@@ -23,7 +23,6 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-
 package org.opends.server.admin.client;
 
 import org.forgerock.i18n.LocalizableMessage;

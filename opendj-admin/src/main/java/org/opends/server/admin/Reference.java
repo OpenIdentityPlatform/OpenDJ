@@ -66,14 +66,13 @@ public final class Reference<C extends ConfigurationClient, S extends Configurat
      *             relation.
      */
     public static <C extends ConfigurationClient, S extends Configuration> Reference<C, S> parseDN(
-            ManagedObjectPath<?, ?> path, InstantiableRelationDefinition<C, S> relationDef, String dnAsString)
-            throws IllegalArgumentException {
+        ManagedObjectPath<?, ?> path, InstantiableRelationDefinition<C, S> relationDef, String dnAsString) {
         AbstractManagedObjectDefinition<?, ?> definition = path.getManagedObjectDefinition();
         RelationDefinition<?, ?> tmp = definition.getRelationDefinition(relationDef.getName());
         if (tmp != relationDef) {
             // TODO : i18n ?
             throw new IllegalArgumentException("The relation \"" + relationDef.getName()
-                    + "\" is not associated with the definition \"" + definition.getName() + "\"");
+                + "\" is not associated with the definition \"" + definition.getName() + "\"");
         }
 
         DN dn = DN.valueOf(dnAsString);
@@ -117,14 +116,13 @@ public final class Reference<C extends ConfigurationClient, S extends Configurat
      *             definition, or if the provided name is empty.
      */
     public static <C extends ConfigurationClient, S extends Configuration> Reference<C, S> parseName(
-            ManagedObjectPath<?, ?> p, InstantiableRelationDefinition<C, S> rd, String s)
-            throws IllegalArgumentException {
+        ManagedObjectPath<?, ?> p, InstantiableRelationDefinition<C, S> rd, String s) {
         // Sanity checks.
         AbstractManagedObjectDefinition<?, ?> d = p.getManagedObjectDefinition();
         RelationDefinition<?, ?> tmp = d.getRelationDefinition(rd.getName());
         if (tmp != rd) {
             throw new IllegalArgumentException("The relation \"" + rd.getName()
-                    + "\" is not associated with the definition \"" + d.getName() + "\"");
+                + "\" is not associated with the definition \"" + d.getName() + "\"");
         }
 
         if (s.trim().length() == 0) {
@@ -145,8 +143,7 @@ public final class Reference<C extends ConfigurationClient, S extends Configurat
     private final InstantiableRelationDefinition<C, S> relation;
 
     // Private constructor.
-    private Reference(ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> relation, String name)
-            throws IllegalArgumentException {
+    private Reference(ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> relation, String name) {
         this.relation = relation;
         this.name = name;
         this.path = parent.child(relation, name);

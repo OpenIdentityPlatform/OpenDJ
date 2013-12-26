@@ -37,7 +37,6 @@ import java.util.MissingResourceException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.admin.meta.RootCfgDefn;
 
-
 /**
  * An interface for querying the properties of a tag.
  * <p>
@@ -45,8 +44,8 @@ import org.forgerock.opendj.admin.meta.RootCfgDefn;
  */
 public final class Tag implements Comparable<Tag> {
 
-    // All the tags.
-    private static final Map<String, Tag> tags = new HashMap<String, Tag>();
+    /** All the tags. */
+    private static final Map<String, Tag> TAGS = new HashMap<String, Tag>();
 
     /**
      * Defines a new tag with the specified name.
@@ -58,7 +57,7 @@ public final class Tag implements Comparable<Tag> {
         Tag tag = new Tag(name);
 
         // Register the tag.
-        tags.put(name, tag);
+        TAGS.put(name, tag);
     }
 
     /**
@@ -70,13 +69,13 @@ public final class Tag implements Comparable<Tag> {
      * @throws IllegalArgumentException
      *             If the tag name was not recognized.
      */
-    public static Tag valueOf(String name) throws IllegalArgumentException {
+    public static Tag valueOf(String name) {
         Reject.ifNull(name);
 
         // Hack to force initialization of the tag definitions.
         RootCfgDefn.getInstance();
 
-        Tag tag = tags.get(name.toLowerCase());
+        Tag tag = TAGS.get(name.toLowerCase());
 
         if (tag == null) {
             throw new IllegalArgumentException("Unknown tag \"" + name + "\"");
@@ -95,27 +94,23 @@ public final class Tag implements Comparable<Tag> {
         // Hack to force initialization of the tag definitions.
         RootCfgDefn.getInstance();
 
-        return Collections.unmodifiableCollection(tags.values());
+        return Collections.unmodifiableCollection(TAGS.values());
     }
 
-    // The name of the tag.
+    /** The name of the tag. */
     private final String name;
 
-    // Private constructor.
+    /** Private constructor. */
     private Tag(String name) {
         this.name = name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public final int compareTo(Tag o) {
         return name.compareTo(o.name);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final boolean equals(Object obj) {
         if (this == obj) {
@@ -165,17 +160,13 @@ public final class Tag implements Comparable<Tag> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final int hashCode() {
         return name.hashCode();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final String toString() {
         return name;

@@ -147,7 +147,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
             { 5, 10, false, -1 },
             { 5, 10, true, 2 },
             { 5, 10, true, 11 }
-         };
+        };
     }
 
     @Test(dataProvider = "illegalValidateValueData", expectedExceptions = { AssertionError.class,

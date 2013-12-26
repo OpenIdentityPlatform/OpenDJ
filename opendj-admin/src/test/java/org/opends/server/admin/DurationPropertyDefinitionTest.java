@@ -57,7 +57,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
     @DataProvider(name = "longLimitData")
     Object[][] createLongLimitData() {
         return new Object[][] {
-                { 1L, 1L },
+            { 1L, 1L },
         };
     }
 
@@ -69,11 +69,11 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
     @DataProvider(name = "illegalLongLimitData")
     Object[][] createIllegalLongLimitData() {
         return new Object[][] {
-             // lower, upper, lower first
-             { -1L, 0L, true },
-             { 0L, -1L, false },
-             { 2L, 1L, true },
-             { 2L, 1L, false } };
+            // lower, upper, lower first
+            { -1L, 0L, true },
+            { 0L, -1L, false },
+            { 2L, 1L, true },
+            { 2L, 1L, false } };
     }
 
     @DataProvider(name = "stringLimitData")
@@ -208,7 +208,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
             { 1024L, "1024 s" },
             { 1025L, "1025 s" },
             { 1000L * 1000L, "1000000 s" },
-         };
+        };
     }
 
     @Test(dataProvider = "encodeValueData")
@@ -316,21 +316,21 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
     @DataProvider(name = "decodeValueDataIllegal")
     Object[][] createDecodeValueDataIllegal() {
         return new Object[][] { { "" }, { "0" }, // no unit
-                { "123" }, // no unit
-                { "a s" },
-                { "1 x" },
-                { "0.h" },
-                { "0. h" },
-                { "1.h" },
-                { "1. h" },
-                { "1.1 h" }, // too granular
-                { "30 m" }, // unit too small violation
-                { "60 m" }, // unit too small violation
-                { "1 w" }, // unit too big violation
-                { "7 w" }, // unit too big violation
-                { "1 x" }, { "1 d" }, // upper limit violation
-                { "2 h" }, // lower limit violation
-                { "-1 h" } // unlimited violation
+            { "123" }, // no unit
+            { "a s" },
+            { "1 x" },
+            { "0.h" },
+            { "0. h" },
+            { "1.h" },
+            { "1. h" },
+            { "1.1 h" }, // too granular
+            { "30 m" }, // unit too small violation
+            { "60 m" }, // unit too small violation
+            { "1 w" }, // unit too big violation
+            { "7 w" }, // unit too big violation
+            { "1 x" }, { "1 d" }, // upper limit violation
+            { "2 h" }, // lower limit violation
+            { "-1 h" } // unlimited violation
         };
     }
 

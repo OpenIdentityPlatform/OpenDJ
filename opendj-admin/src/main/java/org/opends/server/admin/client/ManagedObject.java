@@ -34,7 +34,6 @@ import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.DefaultBehaviorException;
 import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.IllegalPropertyValueException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectDefinition;
@@ -140,7 +139,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @param <S>
      *            The expected type of the child managed object server
      *            configuration.
-     * @param <CC>
+     * @param <C1>
      *            The actual type of the added managed object configuration
      *            client.
      * @param r
@@ -161,10 +160,9 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If the relation definition is not associated with this
      *             managed object's definition.
      */
-    <C extends ConfigurationClient, S extends Configuration, CC extends C> ManagedObject<CC> createChild(
-            InstantiableRelationDefinition<C, S> r, ManagedObjectDefinition<CC, ? extends S> d, String name,
-            Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException,
-            IllegalArgumentException;
+    <C extends ConfigurationClient, S extends Configuration, C1 extends C> ManagedObject<C1> createChild(
+            InstantiableRelationDefinition<C, S> r, ManagedObjectDefinition<C1, ? extends S> d, String name,
+            Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException;
 
     /**
      * Creates a new child managed object bound to the specified optional
@@ -179,7 +177,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @param <S>
      *            The expected type of the child managed object server
      *            configuration.
-     * @param <CC>
+     * @param <C1>
      *            The actual type of the added managed object configuration
      *            client.
      * @param r
@@ -196,9 +194,9 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If the relation definition is not associated with this
      *             managed object's definition.
      */
-    <C extends ConfigurationClient, S extends Configuration, CC extends C> ManagedObject<CC> createChild(
-            OptionalRelationDefinition<C, S> r, ManagedObjectDefinition<CC, ? extends S> d,
-            Collection<DefaultBehaviorException> exceptions) throws IllegalArgumentException;
+    <C extends ConfigurationClient, S extends Configuration, C1 extends C> ManagedObject<C1> createChild(
+            OptionalRelationDefinition<C, S> r, ManagedObjectDefinition<C1, ? extends S> d,
+            Collection<DefaultBehaviorException> exceptions);
 
     /**
      * Creates a new child managed object bound to the specified set relation.
@@ -213,7 +211,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @param <S>
      *            The expected type of the child managed object server
      *            configuration.
-     * @param <CC>
+     * @param <C1>
      *            The actual type of the added managed object configuration
      *            client.
      * @param r
@@ -230,9 +228,9 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If the relation definition is not associated with this
      *             managed object's definition.
      */
-    <C extends ConfigurationClient, S extends Configuration, CC extends C> ManagedObject<CC> createChild(
-            SetRelationDefinition<C, S> r, ManagedObjectDefinition<CC, ? extends S> d,
-            Collection<DefaultBehaviorException> exceptions) throws IllegalArgumentException;
+    <C extends ConfigurationClient, S extends Configuration, C1 extends C> ManagedObject<C1> createChild(
+            SetRelationDefinition<C, S> r, ManagedObjectDefinition<C1, ? extends S> d,
+            Collection<DefaultBehaviorException> exceptions);
 
     /**
      * Retrieves an instantiable child managed object.
@@ -267,7 +265,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
-            InstantiableRelationDefinition<C, S> r, String name) throws IllegalArgumentException,
+            InstantiableRelationDefinition<C, S> r, String name) throws
             DefinitionDecodingException, ManagedObjectDecodingException, ManagedObjectNotFoundException,
             ConcurrentModificationException, ErrorResultException;
 
@@ -302,7 +300,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
-            OptionalRelationDefinition<C, S> r) throws IllegalArgumentException, DefinitionDecodingException,
+            OptionalRelationDefinition<C, S> r) throws DefinitionDecodingException,
             ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
             ErrorResultException;
 
@@ -337,7 +335,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
-            SingletonRelationDefinition<C, S> r) throws IllegalArgumentException, DefinitionDecodingException,
+            SingletonRelationDefinition<C, S> r) throws DefinitionDecodingException,
             ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
             ErrorResultException;
 
@@ -374,7 +372,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
-            SetRelationDefinition<C, S> r, String name) throws IllegalArgumentException, DefinitionDecodingException,
+            SetRelationDefinition<C, S> r, String name) throws DefinitionDecodingException,
             ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
             ErrorResultException;
 
@@ -405,7 +403,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * Gets a mutable copy of the set of default values for the specified
      * property.
      *
-     * @param <PD>
+     * @param <P>
      *            The type of the property to be retrieved.
      * @param pd
      *            The property to be retrieved.
@@ -415,7 +413,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If the property definition is not associated with this
      *             managed object's definition.
      */
-    <PD> SortedSet<PD> getPropertyDefaultValues(PropertyDefinition<PD> pd) throws IllegalArgumentException;
+    <P> SortedSet<P> getPropertyDefaultValues(PropertyDefinition<P> pd);
 
     /**
      * Gets the effective value of the specified property.
@@ -423,7 +421,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * See the class description for more information about how the effective
      * property value is derived.
      *
-     * @param <PD>
+     * @param <P>
      *            The type of the property to be retrieved.
      * @param pd
      *            The property to be retrieved.
@@ -433,7 +431,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If the property definition is not associated with this
      *             managed object's definition.
      */
-    <PD> PD getPropertyValue(PropertyDefinition<PD> pd) throws IllegalArgumentException;
+    <P> P getPropertyValue(PropertyDefinition<P> pd);
 
     /**
      * Gets a mutable copy of the set of effective values for the specified
@@ -442,7 +440,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * See the class description for more information about how the effective
      * property values are derived.
      *
-     * @param <PD>
+     * @param <P>
      *            The type of the property to be retrieved.
      * @param pd
      *            The property to be retrieved.
@@ -452,7 +450,8 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If the property definition is not associated with this
      *             managed object's definition.
      */
-    <PD> SortedSet<PD> getPropertyValues(PropertyDefinition<PD> pd) throws IllegalArgumentException;
+    @Override
+    <P> SortedSet<P> getPropertyValues(PropertyDefinition<P> pd);
 
     /**
      * Determines whether or not the specified property is set. If the property
@@ -467,7 +466,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If the property definition is not associated with this
      *             managed object's definition.
      */
-    boolean isPropertyPresent(PropertyDefinition<?> pd) throws IllegalArgumentException;
+    boolean isPropertyPresent(PropertyDefinition<?> pd);
 
     /**
      * Determines whether or not the optional managed object associated with the
@@ -483,9 +482,6 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *            The optional relation definition.
      * @return Returns <code>true</code> if the optional managed object exists,
      *         <code>false</code> otherwise.
-     * @throws IllegalArgumentException
-     *             If the relation definition is not associated with this
-     *             managed object's definition.
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
@@ -493,7 +489,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If there is any other error.
      */
     <C extends ConfigurationClient, S extends Configuration> boolean hasChild(OptionalRelationDefinition<C, S> r)
-            throws IllegalArgumentException, ConcurrentModificationException, ErrorResultException;
+            throws ConcurrentModificationException, ErrorResultException;
 
     /**
      * Lists the child managed objects associated with the specified
@@ -518,7 +514,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
-            InstantiableRelationDefinition<C, S> r) throws IllegalArgumentException, ConcurrentModificationException,
+            InstantiableRelationDefinition<C, S> r) throws ConcurrentModificationException,
             ErrorResultException;
 
     /**
@@ -538,9 +534,6 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *            The managed object definition.
      * @return Returns the names of the child managed objects which are a
      *         sub-type of the specified managed object definition.
-     * @throws IllegalArgumentException
-     *             If the relation definition is not associated with this
-     *             managed object's definition.
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
@@ -549,7 +542,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      */
     <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
             InstantiableRelationDefinition<C, S> r, AbstractManagedObjectDefinition<? extends C, ? extends S> d)
-            throws IllegalArgumentException, ConcurrentModificationException, ErrorResultException;
+            throws ConcurrentModificationException, ErrorResultException;
 
     /**
      * Lists the child managed objects associated with the specified set
@@ -565,9 +558,6 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *            The set relation definition.
      * @return Returns the names of the child managed objects which for set
      *         relations are the definition names of each managed object.
-     * @throws IllegalArgumentException
-     *             If the relation definition is not associated with this
-     *             managed object's definition.
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
@@ -575,7 +565,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> String[] listChildren(SetRelationDefinition<C, S> r)
-            throws IllegalArgumentException, ConcurrentModificationException, ErrorResultException;
+            throws ConcurrentModificationException, ErrorResultException;
 
     /**
      * Lists the child managed objects associated with the specified set
@@ -603,7 +593,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> String[] listChildren(SetRelationDefinition<C, S> r,
-            AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws IllegalArgumentException,
+            AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws
             ConcurrentModificationException, ErrorResultException;
 
     /**
@@ -637,7 +627,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> void removeChild(InstantiableRelationDefinition<C, S> r,
-            String name) throws IllegalArgumentException, ManagedObjectNotFoundException, OperationRejectedException,
+            String name) throws ManagedObjectNotFoundException, OperationRejectedException,
             ConcurrentModificationException, ErrorResultException;
 
     /**
@@ -651,9 +641,6 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *            relation definition refers to.
      * @param r
      *            The optional relation definition.
-     * @throws IllegalArgumentException
-     *             If the relation definition is not associated with this
-     *             managed object's definition.
      * @throws ManagedObjectNotFoundException
      *             If the managed object could not be removed because it could
      *             not found on the server.
@@ -669,7 +656,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> void removeChild(OptionalRelationDefinition<C, S> r)
-            throws IllegalArgumentException, ManagedObjectNotFoundException, OperationRejectedException,
+            throws ManagedObjectNotFoundException, OperationRejectedException,
             ConcurrentModificationException, ErrorResultException;
 
     /**
@@ -685,9 +672,6 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *            The set relation definition.
      * @param name
      *            The name of the child managed object to be removed.
-     * @throws IllegalArgumentException
-     *             If the relation definition is not associated with this
-     *             managed object's definition.
      * @throws ManagedObjectNotFoundException
      *             If the managed object could not be removed because it could
      *             not found on the server.
@@ -702,8 +686,8 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ErrorResultException
      *             If any other error occurs.
      */
-    <C extends ConfigurationClient, S extends Configuration> void removeChild(SetRelationDefinition<C, S> r, String name)
-            throws IllegalArgumentException, ManagedObjectNotFoundException, OperationRejectedException,
+    <C extends ConfigurationClient, S extends Configuration> void removeChild(SetRelationDefinition<C, S> r,
+        String name) throws ManagedObjectNotFoundException, OperationRejectedException,
             ConcurrentModificationException, ErrorResultException;
 
     /**
@@ -711,34 +695,27 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * <p>
      * See the class description for more information regarding pending values.
      *
-     * @param <PD>
+     * @param <P>
      *            The type of the property to be modified.
      * @param pd
      *            The property to be modified.
      * @param value
      *            The new pending value for the property, or <code>null</code>
      *            if the property should be reset to its default behavior.
-     * @throws IllegalPropertyValueException
-     *             If the new pending value is deemed to be invalid according to
-     *             the property definition.
      * @throws PropertyIsReadOnlyException
      *             If this is not a new managed object and the property is
      *             read-only or for monitoring purposes.
      * @throws PropertyIsMandatoryException
      *             If an attempt was made to remove a mandatory property.
-     * @throws IllegalArgumentException
-     *             If the specified property definition is not associated with
-     *             this managed object.
      */
-    <PD> void setPropertyValue(PropertyDefinition<PD> pd, PD value) throws IllegalPropertyValueException,
-            PropertyIsReadOnlyException, PropertyIsMandatoryException, IllegalArgumentException;
+    <P> void setPropertyValue(PropertyDefinition<P> pd, P value);
 
     /**
      * Sets a new pending values for the specified property.
      * <p>
      * See the class description for more information regarding pending values.
      *
-     * @param <PD>
+     * @param <P>
      *            The type of the property to be modified.
      * @param pd
      *            The property to be modified.
@@ -747,9 +724,6 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *            property (an empty set indicates that the property should be
      *            reset to its default behavior). The set will not be referenced
      *            by this managed object.
-     * @throws IllegalPropertyValueException
-     *             If a new pending value is deemed to be invalid according to
-     *             the property definition.
      * @throws PropertyIsSingleValuedException
      *             If an attempt was made to add multiple pending values to a
      *             single-valued property.
@@ -758,12 +732,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             read-only or for monitoring purposes.
      * @throws PropertyIsMandatoryException
      *             If an attempt was made to remove a mandatory property.
-     * @throws IllegalArgumentException
-     *             If the specified property definition is not associated with
-     *             this managed object.
      */
-    <PD> void setPropertyValues(PropertyDefinition<PD> pd, Collection<PD> values) throws IllegalPropertyValueException,
-            PropertyIsSingleValuedException, PropertyIsReadOnlyException, PropertyIsMandatoryException,
-            IllegalArgumentException;
+    <P> void setPropertyValues(PropertyDefinition<P> pd, Collection<P> values);
 
 }

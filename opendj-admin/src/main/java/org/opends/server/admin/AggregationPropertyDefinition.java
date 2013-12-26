@@ -99,7 +99,7 @@ import org.forgerock.opendj.ldap.ResultCode;
  *            aggregation property definition refers to.
  */
 public final class AggregationPropertyDefinition<C extends ConfigurationClient, S extends Configuration> extends
-        PropertyDefinition<String> {
+    PropertyDefinition<String> {
 
     /**
      * An interface for incrementally constructing aggregation property
@@ -112,8 +112,8 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      *            The type of server managed object configuration that this
      *            aggregation property definition refers to.
      */
-    public static class Builder<C extends ConfigurationClient, S extends Configuration> extends
-            AbstractBuilder<String, AggregationPropertyDefinition<C, S>> {
+    public static final class Builder<C extends ConfigurationClient, S extends Configuration> extends
+        AbstractBuilder<String, AggregationPropertyDefinition<C, S>> {
 
         // The string representation of the managed object path specifying
         // the parent of the aggregated managed objects.
@@ -195,8 +195,8 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         protected AggregationPropertyDefinition<C, S> buildInstance(AbstractManagedObjectDefinition<?, ?> d,
-                String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
-                DefaultBehaviorProvider<String> defaultBehavior) {
+            String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<String> defaultBehavior) {
             // Make sure that the parent path has been defined.
             if (parentPathString == null) {
                 throw new IllegalStateException("Parent path undefined");
@@ -208,7 +208,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             }
 
             return new AggregationPropertyDefinition<C, S>(d, propertyName, options, adminAction, defaultBehavior,
-                    parentPathString, rdName, targetNeedsEnablingCondition, targetIsEnabledCondition);
+                parentPathString, rdName, targetNeedsEnablingCondition, targetIsEnabledCondition);
         }
 
     }
@@ -216,7 +216,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
     /**
      * A change listener which prevents the named component from being disabled.
      */
-    private class ReferentialIntegrityChangeListener implements ServerManagedObjectChangeListener<S> {
+    private final class ReferentialIntegrityChangeListener implements ServerManagedObjectChangeListener<S> {
 
         // The error message which should be returned if an attempt is
         // made to disable the referenced component.
@@ -247,14 +247,14 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             // This should not happen - the previous call-back should have
             // trapped this.
             throw new IllegalStateException("Attempting to disable a referenced "
-                    + relationDefinition.getChildDefinition().getUserFriendlyName());
+                + relationDefinition.getChildDefinition().getUserFriendlyName());
         }
 
         /**
          * {@inheritDoc}
          */
         public boolean isConfigurationChangeAcceptable(ServerManagedObject<? extends S> mo,
-                List<LocalizableMessage> unacceptableReasons) {
+            List<LocalizableMessage> unacceptableReasons) {
             // Always prevent the referenced component from being
             // disabled.
             try {
@@ -267,11 +267,11 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             } catch (ConfigException e) {
                 // The condition could not be evaluated.
                 debugLogger.trace("Unable to perform post add", e);
-                LocalizableMessage message = ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo
-                        .getManagedObjectDefinition().getUserFriendlyName(), String.valueOf(mo.getDN()),
-                        getExceptionMessage(e));
-                LocalizedLogger logger = LocalizedLogger
-                        .getLocalizedLogger(ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.resourceName());
+                LocalizableMessage message =
+                    ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo.getManagedObjectDefinition()
+                        .getUserFriendlyName(), String.valueOf(mo.getDN()), getExceptionMessage(e));
+                LocalizedLogger logger =
+                    LocalizedLogger.getLocalizedLogger(ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.resourceName());
                 logger.error(message);
                 unacceptableReasons.add(message);
                 return false;
@@ -288,7 +288,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
     /**
      * A delete listener which prevents the named component from being deleted.
      */
-    private class ReferentialIntegrityDeleteListener implements ConfigurationDeleteListener<S> {
+    private final class ReferentialIntegrityDeleteListener implements ConfigurationDeleteListener<S> {
 
         // The DN of the referenced configuration entry.
         private final DN dn;
@@ -315,7 +315,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
                 // isConfigurationDeleteAcceptable() call-back should have
                 // trapped this.
                 throw new IllegalStateException("Attempting to delete a referenced "
-                        + relationDefinition.getChildDefinition().getUserFriendlyName());
+                    + relationDefinition.getChildDefinition().getUserFriendlyName());
             } else {
                 return new ConfigChangeResult(ResultCode.SUCCESS, false);
             }
@@ -345,8 +345,8 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          * {@inheritDoc}
          */
         @Override
-        public boolean isUsable(ServerManagedObject<?> managedObject, Collection<LocalizableMessage> unacceptableReasons)
-                throws ConfigException {
+        public boolean isUsable(ServerManagedObject<?> managedObject,
+            Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
             SortedSet<String> names = managedObject.getPropertyValues(AggregationPropertyDefinition.this);
             ServerManagementContext context = managedObject.getServerContext();
             LocalizableMessage thisUFN = managedObject.getManagedObjectDefinition().getUserFriendlyName();
@@ -360,8 +360,8 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
                 String thatDN = path.toDN().toString();
 
                 if (!context.managedObjectExists(path)) {
-                    LocalizableMessage msg = ERR_SERVER_REFINT_DANGLING_REFERENCE.get(name, getName(), thisUFN, thisDN, thatUFN,
-                            thatDN);
+                    LocalizableMessage msg =
+                        ERR_SERVER_REFINT_DANGLING_REFERENCE.get(name, getName(), thisUFN, thisDN, thatUFN, thatDN);
                     unacceptableReasons.add(msg);
                     isUsable = false;
                 } else if (needsEnabling) {
@@ -369,8 +369,8 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
                     // required.
                     ServerManagedObject<? extends S> ref = context.getManagedObject(path);
                     if (!targetIsEnabledCondition.evaluate(ref)) {
-                        LocalizableMessage msg = ERR_SERVER_REFINT_TARGET_DISABLED.get(name, getName(), thisUFN, thisDN, thatUFN,
-                                thatDN);
+                        LocalizableMessage msg =
+                            ERR_SERVER_REFINT_TARGET_DISABLED.get(name, getName(), thisUFN, thisDN, thatUFN, thatDN);
                         unacceptableReasons.add(msg);
                         isUsable = false;
                     }
@@ -421,7 +421,8 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
                 String thatDN = dn.toString();
 
                 // Register the delete listener.
-                LocalizableMessage msg = ERR_SERVER_REFINT_CANNOT_DELETE.get(thatUFN, thatDN, getName(), thisUFN, thisDN);
+                LocalizableMessage msg =
+                    ERR_SERVER_REFINT_CANNOT_DELETE.get(thatUFN, thatDN, getName(), thisUFN, thisDN);
                 ReferentialIntegrityDeleteListener dl = new ReferentialIntegrityDeleteListener(dn, msg);
                 parent.registerDeleteListener(getRelationDefinition(), dl);
                 dlist.add(dl);
@@ -493,7 +494,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
             // If all of this managed object's "enabled" properties are true
             // then any referenced managed objects must also be enabled.
             boolean needsEnabling = targetNeedsEnablingCondition.evaluate(context, managedObject);
@@ -510,14 +511,14 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
                 try {
                     ref = context.getManagedObject(path);
                 } catch (DefinitionDecodingException e) {
-                    LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name, getName(),
-                            e.getMessageObject());
+                    LocalizableMessage msg =
+                        ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name, getName(), e.getMessageObject());
                     unacceptableReasons.add(msg);
                     isAcceptable = false;
                     continue;
                 } catch (ManagedObjectDecodingException e) {
-                    LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name, getName(),
-                            e.getMessageObject());
+                    LocalizableMessage msg =
+                        ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name, getName(), e.getMessageObject());
                     unacceptableReasons.add(msg);
                     isAcceptable = false;
                     continue;
@@ -545,7 +546,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
             // The same constraint applies as for adds.
             return isAddAcceptable(context, managedObject, unacceptableReasons);
         }
@@ -564,21 +565,21 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         public boolean isDeleteAcceptable(ManagementContext context, ManagedObjectPath<?, ?> path,
-                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
             // Any references to the deleted managed object should cause a
             // constraint violation.
             boolean isAcceptable = true;
             for (ManagedObject<?> mo : findReferences(context, getManagedObjectDefinition(), path.getName())) {
                 String name = mo.getManagedObjectPath().getName();
                 if (name == null) {
-                    LocalizableMessage msg = ERR_CLIENT_REFINT_CANNOT_DELETE_WITHOUT_NAME.get(getName(), mo
-                            .getManagedObjectDefinition().getUserFriendlyName(), getManagedObjectDefinition()
-                            .getUserFriendlyName());
+                    LocalizableMessage msg =
+                        ERR_CLIENT_REFINT_CANNOT_DELETE_WITHOUT_NAME.get(getName(), mo.getManagedObjectDefinition()
+                            .getUserFriendlyName(), getManagedObjectDefinition().getUserFriendlyName());
                     unacceptableReasons.add(msg);
                 } else {
-                    LocalizableMessage msg = ERR_CLIENT_REFINT_CANNOT_DELETE_WITH_NAME.get(getName(), mo
-                            .getManagedObjectDefinition().getUserFriendlyName(), name, getManagedObjectDefinition()
-                            .getUserFriendlyName());
+                    LocalizableMessage msg =
+                        ERR_CLIENT_REFINT_CANNOT_DELETE_WITH_NAME.get(getName(), mo.getManagedObjectDefinition()
+                            .getUserFriendlyName(), name, getManagedObjectDefinition().getUserFriendlyName());
                     unacceptableReasons.add(msg);
                 }
                 isAcceptable = false;
@@ -591,7 +592,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
             // If the modified managed object is disabled and there are some
             // active references then refuse the change.
             if (targetIsEnabledCondition.evaluate(context, managedObject)) {
@@ -602,18 +603,20 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             // active references.
             boolean isAcceptable = true;
             for (ManagedObject<?> mo : findReferences(context, getManagedObjectDefinition(), managedObject
-                    .getManagedObjectPath().getName())) {
+                .getManagedObjectPath().getName())) {
                 if (targetNeedsEnablingCondition.evaluate(context, mo)) {
                     String name = mo.getManagedObjectPath().getName();
                     if (name == null) {
-                        LocalizableMessage msg = ERR_CLIENT_REFINT_CANNOT_DISABLE_WITHOUT_NAME.get(managedObject
+                        LocalizableMessage msg =
+                            ERR_CLIENT_REFINT_CANNOT_DISABLE_WITHOUT_NAME.get(managedObject
                                 .getManagedObjectDefinition().getUserFriendlyName(), getName(), mo
                                 .getManagedObjectDefinition().getUserFriendlyName());
                         unacceptableReasons.add(msg);
                     } else {
-                        LocalizableMessage msg = ERR_CLIENT_REFINT_CANNOT_DISABLE_WITH_NAME.get(managedObject
-                                .getManagedObjectDefinition().getUserFriendlyName(), getName(), mo
-                                .getManagedObjectDefinition().getUserFriendlyName(), name);
+                        LocalizableMessage msg =
+                            ERR_CLIENT_REFINT_CANNOT_DISABLE_WITH_NAME.get(
+                                managedObject.getManagedObjectDefinition().getUserFriendlyName(), getName(),
+                                mo.getManagedObjectDefinition().getUserFriendlyName(), name);
                         unacceptableReasons.add(msg);
                     }
                     isAcceptable = false;
@@ -624,14 +627,14 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
 
         // Find all managed objects which reference the named managed
         // object using this property.
-        private <CC extends ConfigurationClient> List<ManagedObject<? extends CC>> findReferences(
-                ManagementContext context, AbstractManagedObjectDefinition<CC, ?> mod, String name)
+        private <C1 extends ConfigurationClient> List<ManagedObject<? extends C1>> findReferences(
+            ManagementContext context, AbstractManagedObjectDefinition<C1, ?> mod, String name)
                 throws ErrorResultException {
-            List<ManagedObject<? extends CC>> instances = findInstances(context, mod);
+            List<ManagedObject<? extends C1>> instances = findInstances(context, mod);
 
-            Iterator<ManagedObject<? extends CC>> i = instances.iterator();
+            Iterator<ManagedObject<? extends C1>> i = instances.iterator();
             while (i.hasNext()) {
-                ManagedObject<? extends CC> mo = i.next();
+                ManagedObject<? extends C1> mo = i.next();
                 boolean hasReference = false;
 
                 for (String value : mo.getPropertyValues(AggregationPropertyDefinition.this)) {
@@ -651,35 +654,38 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
 
         // Find all instances of a specific type of managed object.
         @SuppressWarnings("unchecked")
-        private <CC extends ConfigurationClient> List<ManagedObject<? extends CC>> findInstances(
-                ManagementContext context, AbstractManagedObjectDefinition<CC, ?> mod) throws ErrorResultException {
-            List<ManagedObject<? extends CC>> instances = new LinkedList<ManagedObject<? extends CC>>();
+        private <C1 extends ConfigurationClient> List<ManagedObject<? extends C1>> findInstances(
+            ManagementContext context, AbstractManagedObjectDefinition<C1, ?> mod) throws ErrorResultException {
+            List<ManagedObject<? extends C1>> instances = new LinkedList<ManagedObject<? extends C1>>();
 
             if (mod == RootCfgDefn.getInstance()) {
-                instances.add((ManagedObject<? extends CC>) context.getRootConfigurationManagedObject());
+                instances.add((ManagedObject<? extends C1>) context.getRootConfigurationManagedObject());
             } else {
-                for (RelationDefinition<? super CC, ?> rd : mod.getAllReverseRelationDefinitions()) {
+                for (RelationDefinition<? super C1, ?> rd : mod.getAllReverseRelationDefinitions()) {
                     for (ManagedObject<?> parent : findInstances(context, rd.getParentDefinition())) {
                         try {
                             if (rd instanceof SingletonRelationDefinition) {
-                                SingletonRelationDefinition<? super CC, ?> srd = (SingletonRelationDefinition<? super CC, ?>) rd;
+                                SingletonRelationDefinition<? super C1, ?> srd =
+                                    (SingletonRelationDefinition<? super C1, ?>) rd;
                                 ManagedObject<?> mo = parent.getChild(srd);
                                 if (mo.getManagedObjectDefinition().isChildOf(mod)) {
-                                    instances.add((ManagedObject<? extends CC>) mo);
+                                    instances.add((ManagedObject<? extends C1>) mo);
                                 }
                             } else if (rd instanceof OptionalRelationDefinition) {
-                                OptionalRelationDefinition<? super CC, ?> ord = (OptionalRelationDefinition<? super CC, ?>) rd;
+                                OptionalRelationDefinition<? super C1, ?> ord =
+                                    (OptionalRelationDefinition<? super C1, ?>) rd;
                                 ManagedObject<?> mo = parent.getChild(ord);
                                 if (mo.getManagedObjectDefinition().isChildOf(mod)) {
-                                    instances.add((ManagedObject<? extends CC>) mo);
+                                    instances.add((ManagedObject<? extends C1>) mo);
                                 }
                             } else if (rd instanceof InstantiableRelationDefinition) {
-                                InstantiableRelationDefinition<? super CC, ?> ird = (InstantiableRelationDefinition<? super CC, ?>) rd;
+                                InstantiableRelationDefinition<? super C1, ?> ird =
+                                    (InstantiableRelationDefinition<? super C1, ?>) rd;
 
                                 for (String name : parent.listChildren(ird)) {
                                     ManagedObject<?> mo = parent.getChild(ird, name);
                                     if (mo.getManagedObjectDefinition().isChildOf(mod)) {
-                                        instances.add((ManagedObject<? extends CC>) mo);
+                                        instances.add((ManagedObject<? extends C1>) mo);
                                     }
                                 }
                             }
@@ -711,7 +717,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      * @return Returns the new aggregation property definition builder.
      */
     public static <C extends ConfigurationClient, S extends Configuration> Builder<C, S> createBuilder(
-            AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
         return new Builder<C, S>(d, propertyName);
     }
 
@@ -719,11 +725,13 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
 
     // The active server-side referential integrity change listeners
     // associated with this property.
-    private final Map<DN, List<ReferentialIntegrityChangeListener>> changeListeners = new HashMap<DN, List<ReferentialIntegrityChangeListener>>();
+    private final Map<DN, List<ReferentialIntegrityChangeListener>> changeListeners =
+        new HashMap<DN, List<ReferentialIntegrityChangeListener>>();
 
     // The active server-side referential integrity delete listeners
     // associated with this property.
-    private final Map<DN, List<ReferentialIntegrityDeleteListener>> deleteListeners = new HashMap<DN, List<ReferentialIntegrityDeleteListener>>();
+    private final Map<DN, List<ReferentialIntegrityDeleteListener>> deleteListeners =
+        new HashMap<DN, List<ReferentialIntegrityDeleteListener>>();
 
     // The name of the managed object which is the parent of the
     // aggregated managed objects.
@@ -754,9 +762,9 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
 
     // Private constructor.
     private AggregationPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction,
-            DefaultBehaviorProvider<String> defaultBehavior, String parentPathString, String rdName,
-            Condition targetNeedsEnablingCondition, Condition targetIsEnabledCondition) {
+        EnumSet<PropertyOption> options, AdministratorAction adminAction,
+        DefaultBehaviorProvider<String> defaultBehavior, String parentPathString, String rdName,
+        Condition targetNeedsEnablingCondition, Condition targetIsEnabledCondition) {
         super(d, String.class, propertyName, options, adminAction, defaultBehavior);
 
         this.parentPathString = parentPathString;
@@ -803,7 +811,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      * {@inheritDoc}
      */
     @Override
-    public String decodeValue(String value) throws IllegalPropertyValueStringException {
+    public String decodeValue(String value) {
         Reject.ifNull(value);
 
         try {
@@ -938,7 +946,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      * {@inheritDoc}
      */
     @Override
-    public String normalizeValue(String value) throws IllegalPropertyValueException {
+    public String normalizeValue(String value) {
         try {
             Reference<C, S> reference = Reference.parseName(parentPath, relationDefinition, value);
             return reference.getNormalizedName();
@@ -971,7 +979,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(String value) throws IllegalPropertyValueException {
+    public void validateValue(String value) {
         try {
             Reference.parseName(parentPath, relationDefinition, value);
         } catch (IllegalArgumentException e) {

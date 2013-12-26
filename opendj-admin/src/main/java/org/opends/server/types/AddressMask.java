@@ -289,8 +289,8 @@ public final class AddressMask {
             return true;
         }
         for (int i = 0; i < s.length; i++) {
-            if (!hostName[i].equals("*")) // skip if wildcard
-            {
+            // skip if wildcard
+            if (!hostName[i].equals("*")) {
                 if (!s[i].equalsIgnoreCase(hostName[i])) {
                     return false;
                 }
@@ -335,7 +335,7 @@ public final class AddressMask {
      *            The rule string containing all wildcards.
      */
     private void processAllWilds(final String rule) {
-        final String s[] = rule.split("\\.", -1);
+        final String []s = rule.split("\\.", -1);
         if (s.length == IN4ADDRSZ) {
             for (int i = 0; i < IN4ADDRSZ; i++) {
                 wildCard.set(i);
@@ -354,7 +354,7 @@ public final class AddressMask {
      */
     private void processHost(final String rule) throws ConfigException {
         // Note that '*' is valid in host rule
-        final String s[] = rule.split("^[0-9a-zA-z-.*]+");
+        final String []s = rule.split("^[0-9a-zA-z-.*]+");
         if (s.length > 0) {
             final LocalizableMessage message = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
             throw new ConfigException(message);
@@ -373,7 +373,7 @@ public final class AddressMask {
      */
     private void processHostPattern(final String rule) throws ConfigException {
         // quick check for invalid chars like " "
-        final String s[] = rule.split("^[0-9a-zA-z-.]+");
+        final String []s = rule.split("^[0-9a-zA-z-.]+");
         if (s.length > 0) {
             final LocalizableMessage message = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
             throw new ConfigException(message);

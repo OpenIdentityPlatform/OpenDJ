@@ -23,10 +23,7 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-
 package org.opends.server.admin.client;
-
-
 
 import static com.forgerock.opendj.ldap.AdminMessages.*;
 
@@ -40,133 +37,114 @@ import org.forgerock.util.Reject;
 import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.PropertyIsMandatoryException;
 
-
-
 /**
- * This exception is thrown when an attempt is made to add or modify a
- * managed object when one or more of its mandatory properties are
- * undefined.
+ * This exception is thrown when an attempt is made to add or modify a managed
+ * object when one or more of its mandatory properties are undefined.
  */
 public class MissingMandatoryPropertiesException extends OperationsException {
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 6342522125252055588L;
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = 6342522125252055588L;
 
+    // Create the message.
+    private static LocalizableMessage createMessage(Collection<PropertyIsMandatoryException> causes) {
+        Reject.ifNull(causes);
+        Reject.ifFalse(!causes.isEmpty(), "causes should not be empty");
 
+        if (causes.size() == 1) {
+            return ERR_MISSING_MANDATORY_PROPERTIES_EXCEPTION_SINGLE.get(causes.iterator().next()
+                .getPropertyDefinition().getName());
+        } else {
+            LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
-  // Create the message.
-  private static LocalizableMessage createMessage(
-      Collection<PropertyIsMandatoryException> causes) {
-    Reject.ifNull(causes);
-    Reject.ifFalse(!causes.isEmpty(), "causes should not be empty");
+            boolean isFirst = true;
+            for (PropertyIsMandatoryException cause : causes) {
+                if (!isFirst) {
+                    builder.append(", ");
+                }
+                builder.append(cause.getPropertyDefinition().getName());
+                isFirst = false;
+            }
 
-    if (causes.size() == 1) {
-      return ERR_MISSING_MANDATORY_PROPERTIES_EXCEPTION_SINGLE.get(causes
-          .iterator().next().getPropertyDefinition().getName());
-    } else {
-      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
-
-      boolean isFirst = true;
-      for (PropertyIsMandatoryException cause : causes) {
-        if (!isFirst) {
-          builder.append(", ");
+            return ERR_MISSING_MANDATORY_PROPERTIES_EXCEPTION_PLURAL.get(builder.toMessage());
         }
-        builder.append(cause.getPropertyDefinition().getName());
-        isFirst = false;
-      }
-
-      return ERR_MISSING_MANDATORY_PROPERTIES_EXCEPTION_PLURAL.get(builder
-          .toMessage());
     }
-  }
 
-  // The causes of this exception.
-  private final Collection<PropertyIsMandatoryException> causes;
+    // The causes of this exception.
+    private final Collection<PropertyIsMandatoryException> causes;
 
-  // Indicates whether the exception occurred during managed object
-  // creation.
-  private final boolean isCreate;
+    // Indicates whether the exception occurred during managed object
+    // creation.
+    private final boolean isCreate;
 
-  // The user friendly name of the component that caused this
-  // exception.
-  private final LocalizableMessage ufn;
+    // The user friendly name of the component that caused this
+    // exception.
+    private final LocalizableMessage ufn;
 
+    /**
+     * Creates a new missing mandatory properties exception with the provided
+     * causes.
+     *
+     * @param ufn
+     *            The user friendly name of the component that caused this
+     *            exception.
+     * @param causes
+     *            The causes of this exception (must be non-<code>null</code>
+     *            and non-empty).
+     * @param isCreate
+     *            Indicates whether the exception occurred during managed object
+     *            creation.
+     */
+    public MissingMandatoryPropertiesException(LocalizableMessage ufn,
+        Collection<PropertyIsMandatoryException> causes, boolean isCreate) {
+        super(createMessage(causes));
 
+        this.causes = new ArrayList<PropertyIsMandatoryException>(causes);
+        this.ufn = ufn;
+        this.isCreate = isCreate;
+    }
 
-  /**
-   * Creates a new missing mandatory properties exception with the
-   * provided causes.
-   *
-   * @param ufn
-   *          The user friendly name of the component that caused this
-   *          exception.
-   * @param causes
-   *          The causes of this exception (must be non-<code>null</code>
-   *          and non-empty).
-   * @param isCreate
-   *          Indicates whether the exception occurred during managed
-   *          object creation.
-   */
-  public MissingMandatoryPropertiesException(LocalizableMessage ufn,
-      Collection<PropertyIsMandatoryException> causes, boolean isCreate) {
-    super(createMessage(causes));
+    /**
+     * Gets the first exception that caused this exception.
+     *
+     * @return Returns the first exception that caused this exception.
+     */
+    @Override
+    public PropertyIsMandatoryException getCause() {
+        return causes.iterator().next();
+    }
 
-    this.causes = new ArrayList<PropertyIsMandatoryException>(causes);
-    this.ufn = ufn;
-    this.isCreate = isCreate;
-  }
+    /**
+     * Gets an unmodifiable collection view of the causes of this exception.
+     *
+     * @return Returns an unmodifiable collection view of the causes of this
+     *         exception.
+     */
+    public Collection<PropertyIsMandatoryException> getCauses() {
+        return Collections.unmodifiableCollection(causes);
+    }
 
+    /**
+     * Gets the user friendly name of the component that caused this exception.
+     *
+     * @return Returns the user friendly name of the component that caused this
+     *         exception.
+     */
+    public LocalizableMessage getUserFriendlyName() {
+        return ufn;
+    }
 
-
-  /**
-   * Gets the first exception that caused this exception.
-   *
-   * @return Returns the first exception that caused this exception.
-   */
-  @Override
-  public PropertyIsMandatoryException getCause() {
-    return causes.iterator().next();
-  }
-
-
-
-  /**
-   * Gets an unmodifiable collection view of the causes of this
-   * exception.
-   *
-   * @return Returns an unmodifiable collection view of the causes of
-   *         this exception.
-   */
-  public Collection<PropertyIsMandatoryException> getCauses() {
-    return Collections.unmodifiableCollection(causes);
-  }
-
-
-
-  /**
-   * Gets the user friendly name of the component that caused this
-   * exception.
-   *
-   * @return Returns the user friendly name of the component that
-   *         caused this exception.
-   */
-  public LocalizableMessage getUserFriendlyName() {
-    return ufn;
-  }
-
-
-
-  /**
-   * Indicates whether or not this exception was thrown during managed
-   * object creation or during modification.
-   *
-   * @return Returns <code>true</code> if this exception was thrown
-   *         during managed object creation.
-   */
-  public boolean isCreate() {
-    return isCreate;
-  }
+    /**
+     * Indicates whether or not this exception was thrown during managed object
+     * creation or during modification.
+     *
+     * @return Returns <code>true</code> if this exception was thrown during
+     *         managed object creation.
+     */
+    public boolean isCreate() {
+        return isCreate;
+    }
 
 }

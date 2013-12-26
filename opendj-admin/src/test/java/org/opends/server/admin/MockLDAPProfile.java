@@ -25,123 +25,106 @@
  */
 package org.opends.server.admin;
 
-
-
 /**
  * A mock LDAP profile wrapper for testing purposes.
  */
 public final class MockLDAPProfile extends LDAPProfile.Wrapper {
 
-  /**
-   * Creates a new mock LDAP profile.
-   */
-  public MockLDAPProfile() {
-    // No implementation required.
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getAttributeName(AbstractManagedObjectDefinition<?, ?> d,
-      PropertyDefinition<?> pd) {
-
-    if (d == TestParentCfgDefn.getInstance()) {
-      TestParentCfgDefn td = TestParentCfgDefn.getInstance();
-
-      if (pd == (PropertyDefinition<?>)td.getMandatoryBooleanPropertyPropertyDefinition()) {
-        return "ds-cfg-enabled";
-      } else if (pd == (PropertyDefinition<?>)td.getMandatoryClassPropertyPropertyDefinition()) {
-        return "ds-cfg-java-class";
-      } else if (pd == (PropertyDefinition<?>)td
-          .getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition()) {
-        return "ds-cfg-attribute-type";
-      } else if (pd == (PropertyDefinition<?>)td.getOptionalMultiValuedDNPropertyPropertyDefinition()) {
-        return "ds-cfg-base-dn";
-      } else {
-        throw new RuntimeException("Unexpected test-parent property"
-            + pd.getName());
-      }
-    } else if (d == TestChildCfgDefn.getInstance()) {
-      TestChildCfgDefn td = TestChildCfgDefn.getInstance();
-
-      if (pd == (PropertyDefinition<?>)td.getMandatoryBooleanPropertyPropertyDefinition()) {
-        return "ds-cfg-enabled";
-      } else if (pd == (PropertyDefinition<?>)td.getMandatoryClassPropertyPropertyDefinition()) {
-        return "ds-cfg-java-class";
-      } else if (pd == (PropertyDefinition<?>)td
-          .getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition()) {
-        return "ds-cfg-attribute-type";
-      } else if (pd == (PropertyDefinition<?>)td.getOptionalMultiValuedDNProperty1PropertyDefinition()) {
-        return "ds-cfg-base-dn";
-      } else if (pd == (PropertyDefinition<?>)td.getOptionalMultiValuedDNProperty2PropertyDefinition()) {
-        return "ds-cfg-group-dn";
-      } else if (pd.getName().equals("aggregation-property")) {
-        return "ds-cfg-rotation-policy";
-      } else {
-        throw new RuntimeException("Unexpected test-child property"
-            + pd.getName());
-      }
+    /**
+     * Creates a new mock LDAP profile.
+     */
+    public MockLDAPProfile() {
+        // No implementation required.
     }
 
-    // Not known.
-    return null;
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getAttributeName(AbstractManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd) {
 
+        if (d == TestParentCfgDefn.getInstance()) {
+            TestParentCfgDefn td = TestParentCfgDefn.getInstance();
 
+            if (pd == (PropertyDefinition<?>) td.getMandatoryBooleanPropertyPropertyDefinition()) {
+                return "ds-cfg-enabled";
+            } else if (pd == (PropertyDefinition<?>) td.getMandatoryClassPropertyPropertyDefinition()) {
+                return "ds-cfg-java-class";
+            } else if (pd == (PropertyDefinition<?>) td.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition()) {
+                return "ds-cfg-attribute-type";
+            } else if (pd == (PropertyDefinition<?>) td.getOptionalMultiValuedDNPropertyPropertyDefinition()) {
+                return "ds-cfg-base-dn";
+            } else {
+                throw new RuntimeException("Unexpected test-parent property" + pd.getName());
+            }
+        } else if (d == TestChildCfgDefn.getInstance()) {
+            TestChildCfgDefn td = TestChildCfgDefn.getInstance();
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getRelationChildRDNType(
-      InstantiableRelationDefinition<?, ?> r) {
-    if (r == TestCfg.getTestOneToManyParentRelationDefinition()
-        || r == TestParentCfgDefn.getInstance()
-            .getTestChildrenRelationDefinition()) {
-      return "cn";
-    } else {
-      return null;
+            if (pd == (PropertyDefinition<?>) td.getMandatoryBooleanPropertyPropertyDefinition()) {
+                return "ds-cfg-enabled";
+            } else if (pd == (PropertyDefinition<?>) td.getMandatoryClassPropertyPropertyDefinition()) {
+                return "ds-cfg-java-class";
+            } else if (pd == (PropertyDefinition<?>) td.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition()) {
+                return "ds-cfg-attribute-type";
+            } else if (pd == (PropertyDefinition<?>) td.getOptionalMultiValuedDNProperty1PropertyDefinition()) {
+                return "ds-cfg-base-dn";
+            } else if (pd == (PropertyDefinition<?>) td.getOptionalMultiValuedDNProperty2PropertyDefinition()) {
+                return "ds-cfg-group-dn";
+            } else if (pd.getName().equals("aggregation-property")) {
+                return "ds-cfg-rotation-policy";
+            } else {
+                throw new RuntimeException("Unexpected test-child property" + pd.getName());
+            }
+        }
+
+        // Not known.
+        return null;
     }
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
-    if (d == TestParentCfgDefn.getInstance()) {
-      return "ds-cfg-test-parent-dummy";
-    } else if (d == TestChildCfgDefn.getInstance()) {
-      return "ds-cfg-test-child-dummy";
-    } else {
-      // Not known.
-      return null;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getRelationChildRDNType(InstantiableRelationDefinition<?, ?> r) {
+        if (r == TestCfg.getTestOneToManyParentRelationDefinition()
+                || r == TestParentCfgDefn.getInstance().getTestChildrenRelationDefinition()) {
+            return "cn";
+        } else {
+            return null;
+        }
     }
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
-    if (r == TestCfg.getTestOneToManyParentRelationDefinition()) {
-      return "cn=test parents,cn=config";
-    } else if (r == TestCfg.getTestOneToZeroOrOneParentRelationDefinition()) {
-      return "cn=optional test parent,cn=config";
-    } else if (r == TestParentCfgDefn.getInstance()
-        .getTestChildrenRelationDefinition()) {
-      return "cn=test children";
-    } else if (r == TestParentCfgDefn.getInstance()
-        .getOptionalTestChildRelationDefinition()) {
-      return "cn=optional test child";
-    } else {
-      return null;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
+        if (d == TestParentCfgDefn.getInstance()) {
+            return "ds-cfg-test-parent-dummy";
+        } else if (d == TestChildCfgDefn.getInstance()) {
+            return "ds-cfg-test-child-dummy";
+        } else {
+            // Not known.
+            return null;
+        }
     }
-  }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
+        if (r == TestCfg.getTestOneToManyParentRelationDefinition()) {
+            return "cn=test parents,cn=config";
+        } else if (r == TestCfg.getTestOneToZeroOrOneParentRelationDefinition()) {
+            return "cn=optional test parent,cn=config";
+        } else if (r == TestParentCfgDefn.getInstance().getTestChildrenRelationDefinition()) {
+            return "cn=test children";
+        } else if (r == TestParentCfgDefn.getInstance().getOptionalTestChildRelationDefinition()) {
+            return "cn=optional test child";
+        } else {
+            return null;
+        }
+    }
 
 }

@@ -24,52 +24,45 @@
  *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.List;
 
 import org.opends.server.admin.Configuration;
 import org.opends.server.types.ConfigChangeResult;
 
-
-
 /**
- * This interface defines the methods that a Directory Server
- * configurable component should implement if it wishes to be able to
- * receive notifications when a new configuration is added.
+ * This interface defines the methods that a Directory Server configurable
+ * component should implement if it wishes to be able to receive notifications
+ * when a new configuration is added.
  *
  * @param <T>
- *          The type of configuration that this listener should be
- *          notified about.
+ *            The type of configuration that this listener should be notified
+ *            about.
  */
 public interface ConfigurationAddListener<T extends Configuration> {
 
-  /**
-   * Indicates whether the proposed addition of a new configuration is
-   * acceptable to this add listener.
-   *
-   * @param configuration
-   *          The configuration that will be added.
-   * @param unacceptableReasons
-   *          A list that can be used to hold messages about why the
-   *          provided configuration is not acceptable.
-   * @return Returns <code>true</code> if the proposed addition is
-   *         acceptable, or <code>false</code> if it is not.
-   */
-  public boolean isConfigurationAddAcceptable(T configuration,
-      List<LocalizableMessage> unacceptableReasons);
+    /**
+     * Indicates whether the proposed addition of a new configuration is
+     * acceptable to this add listener.
+     *
+     * @param configuration
+     *            The configuration that will be added.
+     * @param unacceptableReasons
+     *            A list that can be used to hold messages about why the
+     *            provided configuration is not acceptable.
+     * @return Returns <code>true</code> if the proposed addition is acceptable,
+     *         or <code>false</code> if it is not.
+     */
+    public boolean isConfigurationAddAcceptable(T configuration, List<LocalizableMessage> unacceptableReasons);
 
-
-
-  /**
-   * Adds a new configuration to this add listener.
-   *
-   * @param configuration
-   *          The configuration that will be added.
-   * @return Returns information about the result of adding the
-   *         configuration.
-   */
-  public ConfigChangeResult applyConfigurationAdd(T configuration);
+    /**
+     * Adds a new configuration to this add listener.
+     *
+     * @param configuration
+     *            The configuration that will be added.
+     * @return Returns information about the result of adding the configuration.
+     */
+    public ConfigChangeResult applyConfigurationAdd(T configuration);
 }

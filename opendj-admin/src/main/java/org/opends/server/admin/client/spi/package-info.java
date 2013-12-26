@@ -24,8 +24,6 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 
-
-
 /**
  * Client side driver implementation interfaces.
  * <p>

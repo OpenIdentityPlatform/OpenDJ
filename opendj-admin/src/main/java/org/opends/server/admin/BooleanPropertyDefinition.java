@@ -23,7 +23,6 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-
 package org.opends.server.admin;
 
 import org.forgerock.util.Reject;
@@ -35,143 +34,113 @@ import java.util.Map;
 /**
  * Boolean property definition.
  */
-public final class BooleanPropertyDefinition extends
-    PropertyDefinition<Boolean> {
+public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean> {
 
-  /**
-   * Mapping used for parsing boolean values. This mapping is more flexible than
-   * the standard boolean string parser and supports common true/false synonyms
-   * used in configuration.
-   */
-  private static final Map<String, Boolean> VALUE_MAP;
-  static {
-    VALUE_MAP = new HashMap<String, Boolean>();
+    /**
+     * Mapping used for parsing boolean values. This mapping is more flexible
+     * than the standard boolean string parser and supports common true/false
+     * synonyms used in configuration.
+     */
+    private static final Map<String, Boolean> VALUE_MAP;
+    static {
+        VALUE_MAP = new HashMap<String, Boolean>();
 
-    // We could have more possibilities but decided against in issue 1960.
-    VALUE_MAP.put("false", Boolean.FALSE);
-    VALUE_MAP.put("true", Boolean.TRUE);
-  }
-
-
-
-  /**
-   * An interface for incrementally constructing boolean property definitions.
-   */
-  public static class Builder extends
-      AbstractBuilder<Boolean, BooleanPropertyDefinition> {
-
-    // Private constructor
-    private Builder(
-        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-      super(d, propertyName);
+        // We could have more possibilities but decided against in issue 1960.
+        VALUE_MAP.put("false", Boolean.FALSE);
+        VALUE_MAP.put("true", Boolean.TRUE);
     }
 
+    /**
+     * An interface for incrementally constructing boolean property definitions.
+     */
+    public static final class Builder extends AbstractBuilder<Boolean, BooleanPropertyDefinition> {
 
+        // Private constructor
+        private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+            super(d, propertyName);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected BooleanPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
+            String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<Boolean> defaultBehavior) {
+            return new BooleanPropertyDefinition(d, propertyName, options, adminAction, defaultBehavior);
+        }
+
+    }
+
+    /**
+     * Create a boolean property definition builder.
+     *
+     * @param d
+     *            The managed object definition associated with this property
+     *            definition.
+     * @param propertyName
+     *            The property name.
+     * @return Returns the new boolean property definition builder.
+     */
+    public static Builder createBuilder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+        return new Builder(d, propertyName);
+    }
+
+    // Private constructor.
+    private BooleanPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
+        EnumSet<PropertyOption> options, AdministratorAction adminAction,
+        DefaultBehaviorProvider<Boolean> defaultBehavior) {
+        super(d, Boolean.class, propertyName, options, adminAction, defaultBehavior);
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected BooleanPropertyDefinition buildInstance(
-        AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-        EnumSet<PropertyOption> options,
-        AdministratorAction adminAction,
-        DefaultBehaviorProvider<Boolean> defaultBehavior) {
-      return new BooleanPropertyDefinition(d, propertyName, options,
-          adminAction, defaultBehavior);
+    public void validateValue(Boolean value) {
+        Reject.ifNull(value);
+
+        // No additional validation required.
     }
 
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Boolean decodeValue(String value) {
+        Reject.ifNull(value);
 
+        String nvalue = value.trim().toLowerCase();
+        Boolean b = VALUE_MAP.get(nvalue);
 
-
-  /**
-   * Create a boolean property definition builder.
-   *
-   * @param d
-   *          The managed object definition associated with this
-   *          property definition.
-   * @param propertyName
-   *          The property name.
-   * @return Returns the new boolean property definition builder.
-   */
-  public static Builder createBuilder(
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-    return new Builder(d, propertyName);
-  }
-
-
-
-  // Private constructor.
-  private BooleanPropertyDefinition(
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-      EnumSet<PropertyOption> options,
-      AdministratorAction adminAction,
-      DefaultBehaviorProvider<Boolean> defaultBehavior) {
-    super(d, Boolean.class, propertyName, options, adminAction,
-        defaultBehavior);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void validateValue(Boolean value)
-      throws IllegalPropertyValueException {
-    Reject.ifNull(value);
-
-    // No additional validation required.
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Boolean decodeValue(String value)
-      throws IllegalPropertyValueStringException {
-    Reject.ifNull(value);
-
-    String nvalue = value.trim().toLowerCase();
-    Boolean b = VALUE_MAP.get(nvalue);
-
-    if (b == null) {
-      throw new IllegalPropertyValueStringException(this, value);
-    } else {
-      return b;
+        if (b == null) {
+            throw new IllegalPropertyValueStringException(this, value);
+        } else {
+            return b;
+        }
     }
-  }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
+        return v.visitBoolean(this, p);
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <R, P> R accept(PropertyValueVisitor<R, P> v, Boolean value, P p) {
+        return v.visitBoolean(this, value, p);
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
-    return v.visitBoolean(this, p);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(PropertyValueVisitor<R, P> v, Boolean value, P p) {
-    return v.visitBoolean(this, value, p);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int compare(Boolean o1, Boolean o2) {
-    return o1.compareTo(o2);
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int compare(Boolean o1, Boolean o2) {
+        return o1.compareTo(o2);
+    }
 }

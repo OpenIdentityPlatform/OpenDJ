@@ -82,7 +82,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
      * An interface for incrementally constructing duration property
      * definitions.
      */
-    public static class Builder extends AbstractBuilder<Long, DurationPropertyDefinition> {
+    public static final class Builder extends AbstractBuilder<Long, DurationPropertyDefinition> {
 
         // The base unit for this property definition.
         private DurationUnit baseUnit = DurationUnit.SECONDS;
@@ -120,7 +120,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
          *             duration unit, or if the base unit is bigger than the
          *             maximum unit.
          */
-        public final void setBaseUnit(String unit) throws IllegalArgumentException {
+        public final void setBaseUnit(String unit) {
             Reject.ifNull(unit);
 
             setBaseUnit(DurationUnit.getUnit(unit));
@@ -137,7 +137,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
          *             If the provided base unit is bigger than the maximum
          *             unit.
          */
-        public final void setBaseUnit(DurationUnit unit) throws IllegalArgumentException {
+        public final void setBaseUnit(DurationUnit unit) {
             Reject.ifNull(unit);
 
             // Make sure that the base unit is not bigger than the maximum
@@ -163,7 +163,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
          *             duration unit, or if the maximum unit is smaller than the
          *             base unit.
          */
-        public final void setMaximumUnit(String unit) throws IllegalArgumentException {
+        public final void setMaximumUnit(String unit) {
             if (unit == null) {
                 setMaximumUnit((DurationUnit) null);
             } else {
@@ -182,7 +182,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
          *             If the provided maximum unit is smaller than the base
          *             unit.
          */
-        public final void setMaximumUnit(DurationUnit unit) throws IllegalArgumentException {
+        public final void setMaximumUnit(DurationUnit unit) {
             if (unit != null) {
                 // Make sure that the maximum unit is not smaller than the
                 // base unit.
@@ -203,7 +203,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
          *             If a negative lower limit was specified, or the lower
          *             limit is greater than the upper limit.
          */
-        public final void setLowerLimit(long lowerLimit) throws IllegalArgumentException {
+        public final void setLowerLimit(long lowerLimit) {
             if (lowerLimit < 0) {
                 throw new IllegalArgumentException("Negative lower limit");
             }
@@ -227,7 +227,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
          *             lower limit was specified, or the lower limit is greater
          *             than the upper limit.
          */
-        public final void setLowerLimit(String lowerLimit) throws IllegalArgumentException {
+        public final void setLowerLimit(String lowerLimit) {
             setLowerLimit(DurationUnit.parseValue(lowerLimit, baseUnit));
         }
 
@@ -242,7 +242,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
          *             limit is greater than the upper limit or unlimited
          *             durations are permitted.
          */
-        public final void setUpperLimit(Long upperLimit) throws IllegalArgumentException {
+        public final void setUpperLimit(Long upperLimit) {
             if (upperLimit != null) {
                 if (upperLimit < 0) {
                     throw new IllegalArgumentException("Negative upper limit");
@@ -272,7 +272,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
          *             If the upper limit could not be parsed, or if the lower
          *             limit is greater than the upper limit.
          */
-        public final void setUpperLimit(String upperLimit) throws IllegalArgumentException {
+        public final void setUpperLimit(String upperLimit) {
             if (upperLimit == null) {
                 setUpperLimit((Long) null);
             } else {
@@ -291,7 +291,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
          *             If unlimited values are to be permitted but there is an
          *             upper limit specified.
          */
-        public final void setAllowUnlimited(boolean allowUnlimited) throws IllegalArgumentException {
+        public final void setAllowUnlimited(boolean allowUnlimited) {
             if (allowUnlimited && upperLimit != null) {
                 throw new IllegalArgumentException("Upper limit specified when unlimited durations are permitted");
             }
@@ -304,10 +304,10 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
          */
         @Override
         protected DurationPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
-                String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
-                DefaultBehaviorProvider<Long> defaultBehavior) {
+            String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<Long> defaultBehavior) {
             return new DurationPropertyDefinition(d, propertyName, options, adminAction, defaultBehavior, baseUnit,
-                    maximumUnit, lowerLimit, upperLimit, allowUnlimited);
+                maximumUnit, lowerLimit, upperLimit, allowUnlimited);
         }
     }
 
@@ -327,9 +327,9 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
 
     // Private constructor.
     private DurationPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction,
-            DefaultBehaviorProvider<Long> defaultBehavior, DurationUnit baseUnit, DurationUnit maximumUnit,
-            Long lowerLimit, Long upperLimit, boolean allowUnlimited) {
+        EnumSet<PropertyOption> options, AdministratorAction adminAction,
+        DefaultBehaviorProvider<Long> defaultBehavior, DurationUnit baseUnit, DurationUnit maximumUnit,
+        Long lowerLimit, Long upperLimit, boolean allowUnlimited) {
         super(d, Long.class, propertyName, options, adminAction, defaultBehavior);
         this.baseUnit = baseUnit;
         this.maximumUnit = maximumUnit;
@@ -392,7 +392,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(Long value) throws IllegalPropertyValueException {
+    public void validateValue(Long value) {
         Reject.ifNull(value);
 
         long nvalue = baseUnit.toMilliSeconds(value);
@@ -413,7 +413,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
      * {@inheritDoc}
      */
     @Override
-    public String encodeValue(Long value) throws IllegalPropertyValueException {
+    public String encodeValue(Long value) {
         Reject.ifNull(value);
 
         // Make sure that we correctly encode negative values as
@@ -436,7 +436,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
      * {@inheritDoc}
      */
     @Override
-    public Long decodeValue(String value) throws IllegalPropertyValueStringException {
+    public Long decodeValue(String value) {
         Reject.ifNull(value);
 
         // First check for the special "unlimited" value when necessary.

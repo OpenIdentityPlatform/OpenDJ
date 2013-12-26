@@ -53,8 +53,10 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
     private static final TestChildCfgDefn INSTANCE = new TestChildCfgDefn();
 
     // The "aggregation-property" property definition.
+    // @Checkstyle:off
     private static final AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg>
         PROPDEF_AGGREGATION_PROPERTY;
+    // @Checkstyle:on
 
     // The "mandatory-boolean-property" property definition.
     private static final BooleanPropertyDefinition PROPDEF_MANDATORY_BOOLEAN_PROPERTY;
@@ -199,10 +201,12 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
      *
      * @return Returns the "aggregation-property" property definition.
      */
+    // @Checkstyle:off
     public AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg>
         getAggregationPropertyPropertyDefinition() {
-            return PROPDEF_AGGREGATION_PROPERTY;
+        return PROPDEF_AGGREGATION_PROPERTY;
     }
+    // @Checkstyle:on
 
     /**
      * Get the "mandatory-boolean-property" property definition.

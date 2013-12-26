@@ -26,23 +26,20 @@
 
 package org.opends.server.admin;
 
-
-
 /**
- * This enumeration contains various options that can be associated
- * with relation definitions.
+ * This enumeration contains various options that can be associated with
+ * relation definitions.
  */
 public enum RelationOption {
-  /**
-   * Use this option to identify relations which should be considered
-   * as advanced and should not be exposed by default in client
-   * applications.
-   */
-  ADVANCED,
+    /**
+     * Use this option to identify relations which should be considered as
+     * advanced and should not be exposed by default in client applications.
+     */
+    ADVANCED,
 
-  /**
-   * Use this option to identify relations which must not be directly
-   * exposed in client applications.
-   */
-  HIDDEN;
+    /**
+     * Use this option to identify relations which must not be directly exposed
+     * in client applications.
+     */
+    HIDDEN;
 }

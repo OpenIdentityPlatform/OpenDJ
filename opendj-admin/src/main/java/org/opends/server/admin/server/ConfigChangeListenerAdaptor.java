@@ -195,7 +195,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
     /** The managed object path. */
     private final ManagedObjectPath<?, S> path;
 
-    /** Repository of configuration entries */
+    /** Repository of configuration entries. */
     private final ConfigurationRepository configRepository;
 
     private final ServerManagementContext serverContext;

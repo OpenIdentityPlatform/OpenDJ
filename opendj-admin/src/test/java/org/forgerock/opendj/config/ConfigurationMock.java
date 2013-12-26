@@ -65,7 +65,7 @@ import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
  */
 public final class ConfigurationMock {
 
-    private static final ConfigAnswer configAnswer = new ConfigAnswer();
+    private static final ConfigAnswer CONFIG_ANSWER = new ConfigAnswer();
 
     /**
      * Returns a mock for the provided configuration class.
@@ -83,7 +83,7 @@ public final class ConfigurationMock {
      * @return a mock
      */
     public static <T extends Configuration> T mockCfg(Class<T> configClass) {
-        return mock(configClass, configAnswer);
+        return mock(configClass, CONFIG_ANSWER);
     }
 
     /**

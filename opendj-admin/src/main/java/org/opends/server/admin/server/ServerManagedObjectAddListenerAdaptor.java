@@ -39,7 +39,8 @@ import org.opends.server.types.ConfigChangeResult;
  *            The type of server managed object that this listener should be
  *            notified about.
  */
-final class ServerManagedObjectAddListenerAdaptor<T extends Configuration> implements ServerManagedObjectAddListener<T> {
+final class ServerManagedObjectAddListenerAdaptor<T extends Configuration> implements
+    ServerManagedObjectAddListener<T> {
 
     // The underlying add listener.
     private final ConfigurationAddListener<T> listener;
@@ -75,7 +76,7 @@ final class ServerManagedObjectAddListenerAdaptor<T extends Configuration> imple
      * {@inheritDoc}
      */
     public boolean isConfigurationAddAcceptable(ServerManagedObject<? extends T> mo,
-            List<LocalizableMessage> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
         return listener.isConfigurationAddAcceptable(mo.getConfiguration(), unacceptableReasons);
     }
 

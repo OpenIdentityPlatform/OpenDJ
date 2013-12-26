@@ -26,45 +26,42 @@
 
 package org.opends.server.admin;
 
-
-
 /**
- * This enumeration contains various options that can be associated
- * with property definitions.
+ * This enumeration contains various options that can be associated with
+ * property definitions.
  */
 public enum PropertyOption {
-  /**
-   * Use this option to identify properties which should be considered
-   * as advanced and should not be exposed by default in client
-   * applications.
-   */
-  ADVANCED,
+    /**
+     * Use this option to identify properties which should be considered as
+     * advanced and should not be exposed by default in client applications.
+     */
+    ADVANCED,
 
-  /**
-   * Use this option to identify properties which must not be directly
-   * exposed in client applications.
-   */
-  HIDDEN,
+    /**
+     * Use this option to identify properties which must not be directly exposed
+     * in client applications.
+     */
+    HIDDEN,
 
-  /**
-   * Use this option to identify properties which must have a value.
-   */
-  MANDATORY,
+    /**
+     * Use this option to identify properties which must have a value.
+     */
+    MANDATORY,
 
-  /**
-   * Use this option to identify properties which are multi-valued.
-   */
-  MULTI_VALUED,
+    /**
+     * Use this option to identify properties which are multi-valued.
+     */
+    MULTI_VALUED,
 
-  /**
-   * Use this option to identify properties which can be initialized
-   * once only and are read-only thereafter.
-   */
-  READ_ONLY,
+    /**
+     * Use this option to identify properties which can be initialized once only
+     * and are read-only thereafter.
+     */
+    READ_ONLY,
 
-  /**
-   * Use this option to identify properties which are for monitoring
-   * purposes only and are generated automatically by the server..
-   */
-  MONITORING;
+    /**
+     * Use this option to identify properties which are for monitoring purposes
+     * only and are generated automatically by the server..
+     */
+    MONITORING;
 }

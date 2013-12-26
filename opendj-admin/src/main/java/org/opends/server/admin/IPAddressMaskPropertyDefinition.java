@@ -42,7 +42,7 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
      * An interface for incrementally constructing IP address mask property
      * definitions.
      */
-    public static class Builder extends AbstractBuilder<AddressMask, IPAddressMaskPropertyDefinition> {
+    public static final class Builder extends AbstractBuilder<AddressMask, IPAddressMaskPropertyDefinition> {
 
         // Private constructor
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
@@ -54,8 +54,8 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
          */
         @Override
         protected IPAddressMaskPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
-                String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
-                DefaultBehaviorProvider<AddressMask> defaultBehavior) {
+            String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<AddressMask> defaultBehavior) {
             return new IPAddressMaskPropertyDefinition(d, propertyName, options, adminAction, defaultBehavior);
         }
 
@@ -77,8 +77,8 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
 
     // Private constructor.
     private IPAddressMaskPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction,
-            DefaultBehaviorProvider<AddressMask> defaultBehavior) {
+        EnumSet<PropertyOption> options, AdministratorAction adminAction,
+        DefaultBehaviorProvider<AddressMask> defaultBehavior) {
         super(d, AddressMask.class, propertyName, options, adminAction, defaultBehavior);
     }
 
@@ -86,7 +86,7 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(AddressMask value) throws IllegalPropertyValueException {
+    public void validateValue(AddressMask value) {
         Reject.ifNull(value);
 
         // No additional validation required.
@@ -96,7 +96,7 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
      * {@inheritDoc}
      */
     @Override
-    public AddressMask decodeValue(String value) throws IllegalPropertyValueStringException {
+    public AddressMask decodeValue(String value) {
         Reject.ifNull(value);
 
         try {

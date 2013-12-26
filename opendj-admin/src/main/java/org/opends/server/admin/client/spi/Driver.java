@@ -23,7 +23,6 @@
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
-
 package org.opends.server.admin.client.spi;
 
 import java.util.ArrayList;
@@ -81,7 +80,7 @@ public abstract class Driver {
      * @param <T>
      *            The type of the property.
      */
-    private class DefaultValueFinder<T> implements DefaultBehaviorProviderVisitor<T, Collection<T>, Void> {
+    private final class DefaultValueFinder<T> implements DefaultBehaviorProviderVisitor<T, Collection<T>, Void> {
 
         // Any exception that occurred whilst retrieving inherited default
         // values.
@@ -108,10 +107,11 @@ public abstract class Driver {
         /**
          * {@inheritDoc}
          */
+        @Override
         public Collection<T> visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
             try {
                 return getInheritedProperty(d.getManagedObjectPath(), d.getManagedObjectDefinition(),
-                        d.getPropertyName());
+                    d.getPropertyName());
             } catch (DefaultBehaviorException e) {
                 exception = e;
                 return Collections.emptySet();
@@ -121,6 +121,7 @@ public abstract class Driver {
         /**
          * {@inheritDoc}
          */
+        @Override
         public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
             return Collections.emptySet();
         }
@@ -128,6 +129,7 @@ public abstract class Driver {
         /**
          * {@inheritDoc}
          */
+        @Override
         public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d, Void p) {
             Collection<String> stringValues = d.getDefaultValues();
             List<T> values = new ArrayList<T>(stringValues.size());
@@ -147,10 +149,11 @@ public abstract class Driver {
         /**
          * {@inheritDoc}
          */
+        @Override
         public Collection<T> visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
             try {
                 return getInheritedProperty(d.getManagedObjectPath(nextPath), d.getManagedObjectDefinition(),
-                        d.getPropertyName());
+                    d.getPropertyName());
             } catch (DefaultBehaviorException e) {
                 exception = e;
                 return Collections.emptySet();
@@ -160,12 +163,13 @@ public abstract class Driver {
         /**
          * {@inheritDoc}
          */
+        @Override
         public Collection<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d, Void p) {
             return Collections.emptySet();
         }
 
         // Find the default values for the next path/property.
-        private Collection<T> find(ManagedObjectPath<?, ?> p, PropertyDefinition<T> pd) throws DefaultBehaviorException {
+        private Collection<T> find(ManagedObjectPath<?, ?> p, PropertyDefinition<T> pd) {
             this.nextPath = p;
             this.nextProperty = pd;
 
@@ -185,13 +189,13 @@ public abstract class Driver {
         // Get an inherited property value.
         @SuppressWarnings("unchecked")
         private Collection<T> getInheritedProperty(ManagedObjectPath target, AbstractManagedObjectDefinition<?, ?> d,
-                String propertyName) throws DefaultBehaviorException {
+            String propertyName) {
             // First check that the requested type of managed object
             // corresponds to the path.
             AbstractManagedObjectDefinition<?, ?> supr = target.getManagedObjectDefinition();
             if (!supr.isParentOf(d)) {
                 throw new DefaultBehaviorException(nextProperty, new DefinitionDecodingException(supr,
-                        Reason.WRONG_TYPE_INFORMATION));
+                    Reason.WRONG_TYPE_INFORMATION));
             }
 
             // Save the current property in case of recursion.
@@ -296,9 +300,8 @@ public abstract class Driver {
      *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
-            ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd, String name)
-            throws IllegalArgumentException, ManagedObjectNotFoundException, OperationRejectedException,
-            ErrorResultException {
+        ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd, String name)
+            throws ManagedObjectNotFoundException, OperationRejectedException, ErrorResultException {
         validateRelationDefinition(parent, rd);
         ManagedObjectPath<?, ?> child = parent.child(rd, name);
         return doDeleteManagedObject(child);
@@ -334,8 +337,8 @@ public abstract class Driver {
      *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
-            ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd) throws IllegalArgumentException,
-            ManagedObjectNotFoundException, OperationRejectedException, ErrorResultException {
+        ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd) throws ManagedObjectNotFoundException,
+        OperationRejectedException, ErrorResultException {
         validateRelationDefinition(parent, rd);
         ManagedObjectPath<?, ?> child = parent.child(rd);
         return doDeleteManagedObject(child);
@@ -373,9 +376,8 @@ public abstract class Driver {
      *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
-            ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd, String name)
-            throws IllegalArgumentException, ManagedObjectNotFoundException, OperationRejectedException,
-            ErrorResultException {
+        ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd, String name)
+            throws ManagedObjectNotFoundException, OperationRejectedException, ErrorResultException {
         validateRelationDefinition(parent, rd);
         ManagedObjectPath<?, ?> child = parent.child(rd, name);
         return doDeleteManagedObject(child);
@@ -406,9 +408,10 @@ public abstract class Driver {
      * @throws ErrorResultException
      *             If any other error occurs.
      */
+    // @Checkstyle:ignore
     public abstract <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getManagedObject(
-            ManagedObjectPath<C, S> path) throws DefinitionDecodingException, ManagedObjectDecodingException,
-            ManagedObjectNotFoundException, ErrorResultException;
+        ManagedObjectPath<C, S> path) throws DefinitionDecodingException, ManagedObjectDecodingException,
+        ManagedObjectNotFoundException, ErrorResultException;
 
     /**
      * Gets the effective values of a property in the named managed object.
@@ -427,7 +430,7 @@ public abstract class Driver {
      * @param <S>
      *            The type of server managed object configuration that the path
      *            definition refers to.
-     * @param <PD>
+     * @param <P>
      *            The type of the property to be retrieved.
      * @param path
      *            The path of the managed object containing the property.
@@ -450,9 +453,9 @@ public abstract class Driver {
      * @throws ErrorResultException
      *             If any other error occurs.
      */
-    public abstract <C extends ConfigurationClient, S extends Configuration, PD> SortedSet<PD> getPropertyValues(
-            ManagedObjectPath<C, S> path, PropertyDefinition<PD> pd) throws IllegalArgumentException,
-            DefinitionDecodingException, ManagedObjectNotFoundException, ErrorResultException, PropertyException;
+    public abstract <C extends ConfigurationClient, S extends Configuration, P> SortedSet<P> getPropertyValues(
+        ManagedObjectPath<C, S> path, PropertyDefinition<P> pd) throws DefinitionDecodingException,
+        ManagedObjectNotFoundException, ErrorResultException;
 
     /**
      * Gets the root configuration managed object associated with this
@@ -490,9 +493,9 @@ public abstract class Driver {
      *             If any other error occurs.
      */
     public abstract <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
-            ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
-            AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws IllegalArgumentException,
-            ManagedObjectNotFoundException, ErrorResultException;
+        ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
+        AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws ManagedObjectNotFoundException,
+        ErrorResultException;
 
     /**
      * Lists the child managed objects of the named parent managed object which
@@ -521,9 +524,9 @@ public abstract class Driver {
      *             If any other error occurs.
      */
     public abstract <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
-            ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd,
-            AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws IllegalArgumentException,
-            ManagedObjectNotFoundException, ErrorResultException;
+        ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd,
+        AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws ManagedObjectNotFoundException,
+        ErrorResultException;
 
     /**
      * Determines whether or not the named managed object exists.
@@ -541,7 +544,7 @@ public abstract class Driver {
      *             If any other error occurs.
      */
     public abstract boolean managedObjectExists(ManagedObjectPath<?, ?> path) throws ManagedObjectNotFoundException,
-            ErrorResultException;
+        ErrorResultException;
 
     /**
      * Deletes the named managed object.
@@ -565,12 +568,12 @@ public abstract class Driver {
      *             If any other error occurs.
      */
     protected abstract <C extends ConfigurationClient, S extends Configuration> void deleteManagedObject(
-            ManagedObjectPath<C, S> path) throws OperationRejectedException, ErrorResultException;
+        ManagedObjectPath<C, S> path) throws OperationRejectedException, ErrorResultException;
 
     /**
      * Gets the default values for the specified property.
      *
-     * @param <PD>
+     * @param <P>
      *            The type of the property.
      * @param p
      *            The managed object path of the current managed object.
@@ -583,9 +586,9 @@ public abstract class Driver {
      *             If the default values could not be retrieved or decoded
      *             properly.
      */
-    protected final <PD> Collection<PD> findDefaultValues(ManagedObjectPath<?, ?> p, PropertyDefinition<PD> pd,
-            boolean isCreate) throws DefaultBehaviorException {
-        DefaultValueFinder<PD> v = new DefaultValueFinder<PD>(p, isCreate);
+    protected final <P> Collection<P> findDefaultValues(ManagedObjectPath<?, ?> p, PropertyDefinition<P> pd,
+        boolean isCreate) {
+        DefaultValueFinder<P> v = new DefaultValueFinder<P>(p, isCreate);
         return v.find(p, pd);
     }
 
@@ -608,13 +611,12 @@ public abstract class Driver {
      *             If the relation definition does not belong to the managed
      *             object definition.
      */
-    protected final void validateRelationDefinition(ManagedObjectPath<?, ?> path, RelationDefinition<?, ?> rd)
-            throws IllegalArgumentException {
+    protected final void validateRelationDefinition(ManagedObjectPath<?, ?> path, RelationDefinition<?, ?> rd) {
         AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
         RelationDefinition<?, ?> tmp = d.getRelationDefinition(rd.getName());
         if (tmp != rd) {
             throw new IllegalArgumentException("The relation " + rd.getName() + " is not associated with a "
-                    + d.getName());
+                + d.getName());
         }
     }
 
@@ -622,8 +624,8 @@ public abstract class Driver {
     // then ensuring that the child exists, before ensuring that any
     // constraints are satisfied.
     private <C extends ConfigurationClient, S extends Configuration> boolean doDeleteManagedObject(
-            ManagedObjectPath<C, S> path) throws ManagedObjectNotFoundException, OperationRejectedException,
-            ErrorResultException {
+        ManagedObjectPath<C, S> path) throws ManagedObjectNotFoundException, OperationRejectedException,
+        ErrorResultException {
         // First make sure that the parent exists.
         if (!managedObjectExists(path.parent())) {
             throw new ManagedObjectNotFoundException();

@@ -59,7 +59,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
     /**
      * An interface for incrementally constructing integer property definitions.
      */
-    public static class Builder extends AbstractBuilder<Integer, IntegerPropertyDefinition> {
+    public static final class Builder extends AbstractBuilder<Integer, IntegerPropertyDefinition> {
 
         // The lower limit of the property value.
         private int lowerLimit = 0;
@@ -86,7 +86,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
          *             If a negative lower limit was specified or the lower
          *             limit is greater than the upper limit.
          */
-        public final void setLowerLimit(int lowerLimit) throws IllegalArgumentException {
+        public final void setLowerLimit(int lowerLimit) {
             if (lowerLimit < 0) {
                 throw new IllegalArgumentException("Negative lower limit");
             }
@@ -131,11 +131,11 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
          * {@inheritDoc}
          */
         @Override
-        protected IntegerPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-                EnumSet<PropertyOption> options, AdministratorAction adminAction,
-                DefaultBehaviorProvider<Integer> defaultBehavior) {
+        protected IntegerPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
+            String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<Integer> defaultBehavior) {
             return new IntegerPropertyDefinition(d, propertyName, options, adminAction, defaultBehavior, lowerLimit,
-                    upperLimit, allowUnlimited);
+                upperLimit, allowUnlimited);
         }
 
     }
@@ -156,8 +156,8 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
 
     // Private constructor.
     private IntegerPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction,
-            DefaultBehaviorProvider<Integer> defaultBehavior, int lowerLimit, Integer upperLimit, boolean allowUnlimited) {
+        EnumSet<PropertyOption> options, AdministratorAction adminAction,
+        DefaultBehaviorProvider<Integer> defaultBehavior, int lowerLimit, Integer upperLimit, boolean allowUnlimited) {
         super(d, Integer.class, propertyName, options, adminAction, defaultBehavior);
         this.lowerLimit = lowerLimit;
         this.upperLimit = upperLimit;
@@ -229,7 +229,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(Integer value) throws IllegalPropertyValueException {
+    public void validateValue(Integer value) {
         Reject.ifNull(value);
 
         if (!allowUnlimited && value < lowerLimit) {
@@ -249,7 +249,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
      * {@inheritDoc}
      */
     @Override
-    public String encodeValue(Integer value) throws IllegalPropertyValueException {
+    public String encodeValue(Integer value) {
         Reject.ifNull(value);
 
         // Make sure that we correctly encode negative values as "unlimited".
@@ -266,7 +266,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
      * {@inheritDoc}
      */
     @Override
-    public Integer decodeValue(String value) throws IllegalPropertyValueStringException {
+    public Integer decodeValue(String value) {
         Reject.ifNull(value);
 
         if (allowUnlimited) {

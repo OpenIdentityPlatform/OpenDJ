@@ -152,8 +152,8 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
          * @return The new property definition.
          */
         protected abstract D buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-                EnumSet<PropertyOption> options, AdministratorAction adminAction,
-                DefaultBehaviorProvider<T> defaultBehavior);
+            EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<T> defaultBehavior);
     }
 
     // The administrator action.
@@ -192,7 +192,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      *            The default behavior provider.
      */
     protected PropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, Class<T> theClass, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction, DefaultBehaviorProvider<T> defaultBehavior) {
+        EnumSet<PropertyOption> options, AdministratorAction adminAction, DefaultBehaviorProvider<T> defaultBehavior) {
         Reject.ifNull(d, theClass, propertyName, options, adminAction, defaultBehavior);
 
         this.definition = d;
@@ -260,7 +260,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      * @throws ClassCastException
      *             If the provided property value did not have the correct type.
      */
-    public final T castValue(Object object) throws ClassCastException {
+    public final T castValue(Object object) {
         return theClass.cast(object);
     }
 
@@ -322,7 +322,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      * @throws IllegalPropertyValueStringException
      *             If the property value string is invalid.
      */
-    public abstract T decodeValue(String value) throws IllegalPropertyValueStringException;
+    public abstract T decodeValue(String value);
 
     /**
      * Encode the provided property value into its string representation.
@@ -336,7 +336,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      * @throws IllegalPropertyValueException
      *             If the property value is invalid.
      */
-    public String encodeValue(T value) throws IllegalPropertyValueException {
+    public String encodeValue(T value) {
         Reject.ifNull(value);
 
         return value.toString();
@@ -521,7 +521,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      * @throws IllegalPropertyValueException
      *             If the property value is invalid.
      */
-    public String normalizeValue(T value) throws IllegalPropertyValueException {
+    public String normalizeValue(T value) {
         Reject.ifNull(value);
 
         return encodeValue(value);
@@ -565,7 +565,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      * @throws IllegalPropertyValueException
      *             If the property value is invalid.
      */
-    public abstract void validateValue(T value) throws IllegalPropertyValueException;
+    public abstract void validateValue(T value);
 
     /**
      * Performs any run-time initialization required by this property

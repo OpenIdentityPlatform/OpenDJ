@@ -21,26 +21,15 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-
-package org.opends.server.admin;
-
 /**
- * This enumeration contains various options that can be associated with managed
- * object definitions.
+ * Contains implementations for a number of Directory Server data
+ * types.  Most, but not necessarily all, of these data types may be
+ * considered part of the public API for use when extending the
+ * Directory Server.  Please refer to the official documentation for
+ * authoritative information on what classes are considered part of
+ * the public API.
  */
-public enum ManagedObjectOption {
-    /**
-     * Use this option to identify managed object types which should be
-     * considered as advanced and should not be exposed by default in client
-     * applications.
-     */
-    ADVANCED,
+package org.opends.server.types;
 
-    /**
-     * Use this option to identify managed object types which must not be
-     * directly exposed in client applications.
-     */
-    HIDDEN;
-}

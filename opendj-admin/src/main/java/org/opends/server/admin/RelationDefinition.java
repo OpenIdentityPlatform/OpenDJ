@@ -92,7 +92,8 @@ public abstract class RelationDefinition<C extends ConfigurationClient, S extend
      * @param <D>
      *            The type of relation definition constructed by this builder.
      */
-    protected abstract static class AbstractBuilder<C extends ConfigurationClient, S extends Configuration, D extends RelationDefinition<C, S>> {
+    protected abstract static class AbstractBuilder<C extends ConfigurationClient, S extends Configuration,
+        D extends RelationDefinition<C, S>> {
 
         // Common fields.
         private final Common<C, S> common;
@@ -108,7 +109,7 @@ public abstract class RelationDefinition<C extends ConfigurationClient, S extend
          *            The child managed object definition.
          */
         protected AbstractBuilder(AbstractManagedObjectDefinition<?, ?> pd, String name,
-                AbstractManagedObjectDefinition<C, S> cd) {
+            AbstractManagedObjectDefinition<C, S> cd) {
             this.common = new Common<C, S>(pd, name, cd);
         }
 
@@ -169,7 +170,8 @@ public abstract class RelationDefinition<C extends ConfigurationClient, S extend
         private final AbstractManagedObjectDefinition<?, ?> pd;
 
         // Private constructor.
-        private Common(AbstractManagedObjectDefinition<?, ?> pd, String name, AbstractManagedObjectDefinition<C, S> cd) {
+        private Common(AbstractManagedObjectDefinition<?, ?> pd, String name,
+            AbstractManagedObjectDefinition<C, S> cd) {
             this.name = name;
             this.pd = pd;
             this.cd = cd;
@@ -240,8 +242,8 @@ public abstract class RelationDefinition<C extends ConfigurationClient, S extend
     public final LocalizableMessage getDescription(Locale locale) {
         try {
             String property = "relation." + common.name + ".description";
-            return ManagedObjectDefinitionI18NResource.getInstance()
-                    .getMessage(getParentDefinition(), property, locale);
+            return ManagedObjectDefinitionI18NResource.getInstance().getMessage(getParentDefinition(), property,
+                locale);
         } catch (MissingResourceException e) {
             return null;
         }

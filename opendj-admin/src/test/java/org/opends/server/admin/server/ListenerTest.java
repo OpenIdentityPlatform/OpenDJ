@@ -48,7 +48,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 
-@SuppressWarnings({"javadoc", "rawtypes", "unchecked"})
+@SuppressWarnings({ "javadoc", "rawtypes", "unchecked" })
 public class ListenerTest extends AdminTestCase {
 
     private static final DN ROOT_CONFIG_DN = DN.valueOf("cn=config");
@@ -87,7 +87,7 @@ public class ListenerTest extends AdminTestCase {
     /** Register a listener for test parent entry and return the actual registered listener */
     private ConfigAddListener registerAddListenerForTestParent(ConfigurationRepository configRepository,
             ServerManagedObject<RootCfg> root, ConfigurationAddListener<TestParentCfg> parentListener)
-                throws Exception {
+            throws Exception {
         root.registerAddListener(TestCfg.getTestOneToManyParentRelationDefinition(), parentListener);
 
         ArgumentCaptor<ConfigAddListener> registered = ArgumentCaptor.forClass(ConfigAddListener.class);
@@ -98,7 +98,7 @@ public class ListenerTest extends AdminTestCase {
     /** Register a listener for test parent entry in delayed scenario and return the actual registered listener */
     private DelayedConfigAddListener registerAddListenerForTestParentDelayed(ConfigurationRepository configRepository,
             ServerManagedObject<RootCfg> root, ConfigurationAddListener<TestParentCfg> parentListener)
-                throws Exception {
+            throws Exception {
         root.registerAddListener(TestCfg.getTestOneToManyParentRelationDefinition(), parentListener);
 
         ArgumentCaptor<DelayedConfigAddListener> registered = ArgumentCaptor.forClass(DelayedConfigAddListener.class);
@@ -204,7 +204,7 @@ public class ListenerTest extends AdminTestCase {
         // check that actual listener is the one provided to the root
         ConfigurationDeleteListener actualListener =
                 ((ServerManagedObjectDeleteListenerAdaptor)
-                        ((ConfigDeleteListenerAdaptor)argument.getValue().getDelayedDeleteListener()).
+                        ((ConfigDeleteListenerAdaptor) argument.getValue().getDelayedDeleteListener()).
                             getServerManagedObjectDeleteListener()).getConfigurationDeleteListener();
         assertThat(actualListener).isEqualTo(parentListener);
     }

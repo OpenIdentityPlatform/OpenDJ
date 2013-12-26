@@ -58,9 +58,10 @@ public final class DNBuilderTest extends AdminTestCase {
 
     @Test
     public void createWithInstantiableRelationDefinition() throws Exception {
-        ManagedObjectPath<?,?> parentPath = ManagedObjectPath.emptyPath().
-                child(TestCfg.getTestOneToManyParentRelationDefinition(), "test-parent-1");
-        ManagedObjectPath<?,?> childPath = parentPath.child(TestParentCfgDefn.getInstance().getTestChildrenRelationDefinition(), "test-child-1");
+        ManagedObjectPath<?, ?> parentPath = ManagedObjectPath.emptyPath().
+            child(TestCfg.getTestOneToManyParentRelationDefinition(), "test-parent-1");
+        ManagedObjectPath<?, ?> childPath = parentPath.child(TestParentCfgDefn.getInstance().
+            getTestChildrenRelationDefinition(), "test-child-1");
 
         assertEquals(
             DNBuilder.create(childPath),

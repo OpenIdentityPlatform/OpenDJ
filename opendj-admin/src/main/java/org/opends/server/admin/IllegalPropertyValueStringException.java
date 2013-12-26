@@ -24,7 +24,6 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions copyright 2013 ForgeRock AS.
  */
-
 package org.opends.server.admin;
 
 import org.forgerock.i18n.LocalizableMessage;

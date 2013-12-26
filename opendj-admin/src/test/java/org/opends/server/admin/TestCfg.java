@@ -43,8 +43,10 @@ public final class TestCfg {
      * A one-to-zero-or-one relation between the root and a test-parent
      * component.
      */
+    // @Checkstyle:off
     private static final OptionalRelationDefinition<TestParentCfgClient, TestParentCfg>
         RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT;
+    // @Checkstyle:on
 
     // Create a one-to-many relation for test-parent components.
     static {
@@ -83,7 +85,7 @@ public final class TestCfg {
         LDAPProfile.getInstance().pushWrapper(new MockLDAPProfile());
     }
 
-    private static void initializeAndRegisterBundle(ManagedObjectDefinition<?,?> definition) throws Exception {
+    private static void initializeAndRegisterBundle(ManagedObjectDefinition<?, ?> definition) throws Exception {
         definition.initialize();
         String baseName = definition.getClass().getName();
         ResourceBundle resourceBundle = ResourceBundle.getBundle(baseName);
@@ -117,10 +119,12 @@ public final class TestCfg {
      * @return Returns the one-to-many relation between the root and test-parent
      *         components.
      */
+    // @Checkstyle:off
     public static InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg>
         getTestOneToManyParentRelationDefinition() {
             return RD_TEST_ONE_TO_MANY_PARENT;
     }
+    // @Checkstyle:on
 
     /**
      * Gets the one-to-zero-or-one relation between the root and a test-parent
@@ -132,10 +136,12 @@ public final class TestCfg {
      * @return Returns the one-to-zero-or-one relation between the root and a
      *         test-parent component.
      */
+    // @Checkstyle:off
     public static OptionalRelationDefinition<TestParentCfgClient, TestParentCfg>
         getTestOneToZeroOrOneParentRelationDefinition() {
             return RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT;
     }
+    // @Checkstyle:on
 
     /**
      * Initializes a property definition and its default behavior.

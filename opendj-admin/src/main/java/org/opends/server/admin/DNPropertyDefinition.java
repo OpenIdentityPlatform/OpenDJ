@@ -44,7 +44,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
     /**
      * An interface for incrementally constructing DN property definitions.
      */
-    public static class Builder extends AbstractBuilder<DN, DNPropertyDefinition> {
+    public static final class Builder extends AbstractBuilder<DN, DNPropertyDefinition> {
 
         // Optional base DN which all valid values must be immediately
         // subordinate to.
@@ -65,7 +65,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
          *             If the provided string is not a valid DN string
          *             representation.
          */
-        public void setBaseDN(String baseDN) throws IllegalArgumentException {
+        public void setBaseDN(String baseDN) {
             if (baseDN == null) {
                 setBaseDN((DN) null);
             } else {
@@ -91,8 +91,8 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
          */
         @Override
         protected DNPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-                EnumSet<PropertyOption> options, AdministratorAction adminAction,
-                DefaultBehaviorProvider<DN> defaultBehavior) {
+            EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<DN> defaultBehavior) {
             return new DNPropertyDefinition(d, propertyName, options, adminAction, defaultBehavior, baseDN);
         }
     }
@@ -113,8 +113,8 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
 
     // Private constructor.
     private DNPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction,
-            DefaultBehaviorProvider<DN> defaultBehavior, DN baseDN) {
+        EnumSet<PropertyOption> options, AdministratorAction adminAction,
+        DefaultBehaviorProvider<DN> defaultBehavior, DN baseDN) {
         super(d, DN.class, propertyName, options, adminAction, defaultBehavior);
         this.baseDN = baseDN;
     }
@@ -134,7 +134,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(DN value) throws IllegalPropertyValueException {
+    public void validateValue(DN value) {
         Reject.ifNull(value);
 
         if (baseDN != null) {
@@ -154,7 +154,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
      * {@inheritDoc}
      */
     @Override
-    public DN decodeValue(String value) throws IllegalPropertyValueStringException {
+    public DN decodeValue(String value) {
         Reject.ifNull(value);
 
         try {

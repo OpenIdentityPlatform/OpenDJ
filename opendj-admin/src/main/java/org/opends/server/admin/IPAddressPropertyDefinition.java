@@ -41,7 +41,7 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
      * An interface for incrementally constructing IP address property
      * definitions.
      */
-    public static class Builder extends AbstractBuilder<InetAddress, IPAddressPropertyDefinition> {
+    public static final class Builder extends AbstractBuilder<InetAddress, IPAddressPropertyDefinition> {
 
         // Private constructor
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
@@ -53,8 +53,8 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
          */
         @Override
         protected IPAddressPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
-                String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
-                DefaultBehaviorProvider<InetAddress> defaultBehavior) {
+            String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<InetAddress> defaultBehavior) {
             return new IPAddressPropertyDefinition(d, propertyName, options, adminAction, defaultBehavior);
         }
 
@@ -76,8 +76,8 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
 
     // Private constructor.
     private IPAddressPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction,
-            DefaultBehaviorProvider<InetAddress> defaultBehavior) {
+        EnumSet<PropertyOption> options, AdministratorAction adminAction,
+        DefaultBehaviorProvider<InetAddress> defaultBehavior) {
         super(d, InetAddress.class, propertyName, options, adminAction, defaultBehavior);
     }
 
@@ -85,7 +85,7 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(InetAddress value) throws IllegalPropertyValueException {
+    public void validateValue(InetAddress value) {
         Reject.ifNull(value);
 
         // No additional validation required.
@@ -95,7 +95,7 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
      * {@inheritDoc}
      */
     @Override
-    public InetAddress decodeValue(String value) throws IllegalPropertyValueStringException {
+    public InetAddress decodeValue(String value) {
         Reject.ifNull(value);
 
         try {
@@ -110,7 +110,7 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
      * {@inheritDoc}
      */
     @Override
-    public String encodeValue(InetAddress value) throws IllegalPropertyValueException {
+    public String encodeValue(InetAddress value) {
         // We should return the host name if it is available, or the IP
         // address if not.
 

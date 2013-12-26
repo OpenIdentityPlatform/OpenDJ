@@ -24,25 +24,24 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 package org.opends.server.authorization.dseecompat;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.IdentifiedException;
 
-
 /**
- * The AciException class defines an exception that may be thrown
- * either during ACI syntax verification of an "aci" attribute type value
- * or during evaluation of an LDAP operation using a set of applicable
- * ACIs.
+ * The AciException class defines an exception that may be thrown either during
+ * ACI syntax verification of an "aci" attribute type value or during evaluation
+ * of an LDAP operation using a set of applicable ACIs.
  */
 public class AciException extends IdentifiedException {
-  /**
-   * The serial version identifier required to satisfy the compiler because this
-   * class extends <CODE>java.lang.Exception</CODE>, which implements the
-   * <CODE>java.io.Serializable</CODE> interface.  This value was generated
-   * using the <CODE>serialver</CODE> command-line utility included with the
-   * Java SDK.
-   */
-  private static final long serialVersionUID = -2763328522960628853L;
+    /**
+     * The serial version identifier required to satisfy the compiler because
+     * this class extends <CODE>java.lang.Exception</CODE>, which implements the
+     * <CODE>java.io.Serializable</CODE> interface. This value was generated
+     * using the <CODE>serialver</CODE> command-line utility included with the
+     * Java SDK.
+     */
+    private static final long serialVersionUID = -2763328522960628853L;
 
     /**
      * Constructs a new exception with <code>null</code> as its detail message.
@@ -50,28 +49,29 @@ public class AciException extends IdentifiedException {
      * decode and not print duplicate messages.
      */
     public AciException() {
-      super();
+        super();
     }
 
     /**
      * Creates a new ACI exception with the provided message.
      *
-     * @param  message    The message to use for this ACI exception.
+     * @param message
+     *            The message to use for this ACI exception.
      */
     public AciException(LocalizableMessage message) {
-      super(message);
+        super(message);
     }
 
     /**
-     * Creates a new ACI exception with the provided message and root
-     * cause.
+     * Creates a new ACI exception with the provided message and root cause.
      *
-     * @param  message    The message that explains the problem that occurred.
-     * @param  cause      The exception that was caught to trigger this
-     *                    exception.
+     * @param message
+     *            The message that explains the problem that occurred.
+     * @param cause
+     *            The exception that was caught to trigger this exception.
      */
     public AciException(LocalizableMessage message, Throwable cause) {
-      super(message, cause);
+        super(message, cause);
     }
 
 }

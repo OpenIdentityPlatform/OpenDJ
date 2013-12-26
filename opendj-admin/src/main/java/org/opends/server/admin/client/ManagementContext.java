@@ -89,7 +89,7 @@ public abstract class ManagementContext {
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
             ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd, String name)
-            throws IllegalArgumentException, ManagedObjectNotFoundException, OperationRejectedException,
+            throws ManagedObjectNotFoundException, OperationRejectedException,
             ErrorResultException {
         return getDriver().deleteManagedObject(parent, rd, name);
     }
@@ -124,7 +124,7 @@ public abstract class ManagementContext {
      *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
-            ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd) throws IllegalArgumentException,
+            ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd) throws
             ManagedObjectNotFoundException, OperationRejectedException, ErrorResultException {
         return getDriver().deleteManagedObject(parent, rd);
     }
@@ -161,7 +161,7 @@ public abstract class ManagementContext {
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
             ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd, String name)
-            throws IllegalArgumentException, ManagedObjectNotFoundException, OperationRejectedException,
+            throws ManagedObjectNotFoundException, OperationRejectedException,
             ErrorResultException {
         return getDriver().deleteManagedObject(parent, rd, name);
     }
@@ -205,7 +205,7 @@ public abstract class ManagementContext {
     /**
      * Gets the effective value of a property in the named managed object.
      *
-     * @param <PD>
+     * @param <P>
      *            The type of the property to be retrieved.
      * @param path
      *            The path of the managed object containing the property.
@@ -228,10 +228,9 @@ public abstract class ManagementContext {
      * @throws ErrorResultException
      *             If any other error occurs.
      */
-    public final <PD> PD getPropertyValue(ManagedObjectPath<?, ?> path, PropertyDefinition<PD> pd)
-            throws IllegalArgumentException, DefinitionDecodingException, ErrorResultException,
-            ManagedObjectNotFoundException, PropertyException {
-        Set<PD> values = getPropertyValues(path, pd);
+    public final <P> P getPropertyValue(ManagedObjectPath<?, ?> path, PropertyDefinition<P> pd)
+            throws DefinitionDecodingException, ErrorResultException, ManagedObjectNotFoundException {
+        Set<P> values = getPropertyValues(path, pd);
         if (values.isEmpty()) {
             return null;
         } else {
@@ -242,7 +241,7 @@ public abstract class ManagementContext {
     /**
      * Gets the effective values of a property in the named managed object.
      *
-     * @param <PD>
+     * @param <P>
      *            The type of the property to be retrieved.
      * @param path
      *            The path of the managed object containing the property.
@@ -265,9 +264,8 @@ public abstract class ManagementContext {
      * @throws ErrorResultException
      *             If any other error occurs.
      */
-    public final <PD> SortedSet<PD> getPropertyValues(ManagedObjectPath<?, ?> path, PropertyDefinition<PD> pd)
-            throws IllegalArgumentException, DefinitionDecodingException, ErrorResultException,
-            ManagedObjectNotFoundException, PropertyException {
+    public final <P> SortedSet<P> getPropertyValues(ManagedObjectPath<?, ?> path, PropertyDefinition<P> pd)
+            throws DefinitionDecodingException, ErrorResultException, ManagedObjectNotFoundException {
         return getDriver().getPropertyValues(path, pd);
     }
 
@@ -316,7 +314,7 @@ public abstract class ManagementContext {
      *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
-            ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd) throws IllegalArgumentException,
+            ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd) throws
             ManagedObjectNotFoundException, ErrorResultException {
         return listManagedObjects(parent, rd, rd.getChildDefinition());
     }
@@ -349,7 +347,7 @@ public abstract class ManagementContext {
      */
     public final <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
             ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
-            AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws IllegalArgumentException,
+            AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws
             ManagedObjectNotFoundException, ErrorResultException {
         return getDriver().listManagedObjects(parent, rd, d);
     }
@@ -377,7 +375,7 @@ public abstract class ManagementContext {
      *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
-            ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd) throws IllegalArgumentException,
+            ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd) throws
             ManagedObjectNotFoundException, ErrorResultException {
         return getDriver().listManagedObjects(parent, rd, rd.getChildDefinition());
     }

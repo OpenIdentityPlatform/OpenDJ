@@ -47,7 +47,7 @@ import org.forgerock.i18n.LocalizableMessage;
  *            definition refers to.
  */
 public final class SetRelationDefinition<C extends ConfigurationClient, S extends Configuration> extends
-        RelationDefinition<C, S> {
+    RelationDefinition<C, S> {
 
     /**
      * An interface for incrementally constructing set relation definitions.
@@ -60,14 +60,15 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
      *            relation definition refers to.
      */
     public static final class Builder<C extends ConfigurationClient, S extends Configuration> extends
-            AbstractBuilder<C, S, SetRelationDefinition<C, S>> {
+        AbstractBuilder<C, S, SetRelationDefinition<C, S>> {
 
         // The plural name of the relation.
         private final String pluralName;
 
         // The optional default managed objects associated with this
         // set relation definition.
-        private final Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects = new HashMap<String, DefaultManagedObject<? extends C, ? extends S>>();
+        private final Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects =
+            new HashMap<String, DefaultManagedObject<? extends C, ? extends S>>();
 
         /**
          * Creates a new builder which can be used to incrementally build a set
@@ -83,7 +84,7 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
          *            The child managed object definition.
          */
         public Builder(AbstractManagedObjectDefinition<?, ?> pd, String name, String pluralName,
-                AbstractManagedObjectDefinition<C, S> cd) {
+            AbstractManagedObjectDefinition<C, S> cd) {
             super(pd, name, cd);
             this.pluralName = pluralName;
         }
@@ -96,7 +97,7 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
          */
         public void setDefaultManagedObject(DefaultManagedObject<? extends C, ? extends S> defaultManagedObject) {
             this.defaultManagedObjects.put(defaultManagedObject.getManagedObjectDefinition().getName(),
-                    defaultManagedObject);
+                defaultManagedObject);
         }
 
         /**
@@ -118,7 +119,7 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
 
     // Private constructor.
     private SetRelationDefinition(Common<C, S> common, String pluralName,
-            Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects) {
+        Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects) {
         super(common);
         this.pluralName = pluralName;
         this.defaultManagedObjects = defaultManagedObjects;
@@ -144,8 +145,7 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
      *             If there is no default managed object associated with the
      *             provided name.
      */
-    public DefaultManagedObject<? extends C, ? extends S> getDefaultManagedObject(String name)
-            throws IllegalArgumentException {
+    public DefaultManagedObject<? extends C, ? extends S> getDefaultManagedObject(String name) {
         if (!defaultManagedObjects.containsKey(name)) {
             throw new IllegalArgumentException("unrecognized default managed object \"" + name + "\"");
         }
