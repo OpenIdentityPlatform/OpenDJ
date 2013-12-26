@@ -565,9 +565,7 @@ public final class LDAPClientTest extends AdminTestCase {
      */
     @Test
     public void testListTopLevelManagedObjectsEmpty() throws Exception {
-        String[] ldif = {};
         MockLDAPConnection c = new MockLDAPConnection();
-        c.importLDIF(ldif);
         ManagementContext ctx = LDAPManagementContext.createFromContext(c);
         String[] actual = listTestParents(ctx);
         String[] expected = new String[] {};

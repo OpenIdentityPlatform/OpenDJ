@@ -26,27 +26,29 @@
  */
 package org.opends.server.admin.server;
 
-import java.util.Collection;
+import static org.fest.assertions.Assertions.*;
+import static org.forgerock.opendj.ldif.LDIF.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.*;
+
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.naming.ldap.LdapName;
-
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.admin.client.ConnectionHandlerCfgClient;
-import org.forgerock.opendj.admin.client.LDAPConnectionHandlerCfgClient;
-import org.forgerock.opendj.admin.client.RootCfgClient;
-import org.forgerock.opendj.admin.meta.LDAPConnectionHandlerCfgDefn;
 import org.forgerock.opendj.admin.server.ConnectionHandlerCfg;
-import org.forgerock.opendj.admin.server.RootCfg;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.TestCaseUtils;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldif.LDIF;
+import org.mockito.ArgumentCaptor;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.AdministratorAction;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.IllegalPropertyValueStringException;
-import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.TestCfg;
@@ -54,10 +56,11 @@ import org.opends.server.admin.TestChildCfg;
 import org.opends.server.admin.TestChildCfgDefn;
 import org.opends.server.admin.TestParentCfg;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
-import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.condition.Conditions;
+import org.opends.server.api.ConfigChangeListener;
+import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
+import org.opends.server.config.ConfigurationRepository;
 import org.opends.server.types.ConfigChangeResult;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -68,6 +71,7 @@ import org.testng.annotations.Test;
  * Test cases for aggregations on the server-side.
  */
 @Test(singleThreaded = true)
+@SuppressWarnings("javadoc")
 public final class AggregationServerTest extends AdminTestCase {
 
     /**
@@ -75,19 +79,12 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     private static final class DummyChangeListener implements ConfigurationChangeListener<TestChildCfg> {
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
         public ConfigChangeResult applyConfigurationChange(TestChildCfg configuration) {
             return new ConfigChangeResult(ResultCode.SUCCESS, false);
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean isConfigurationChangeAcceptable(TestChildCfg configuration, List<LocalizableMessage> unacceptableReasons) {
+        public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
+                List<LocalizableMessage> unacceptableReasons) {
             return true;
         }
     }
@@ -97,107 +94,133 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     private static final class DummyDeleteListener implements ConfigurationDeleteListener<TestChildCfg> {
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
         public ConfigChangeResult applyConfigurationDelete(TestChildCfg configuration) {
             return new ConfigChangeResult(ResultCode.SUCCESS, false);
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration, List<LocalizableMessage> unacceptableReasons) {
+        public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration,
+                List<LocalizableMessage> unacceptableReasons) {
             return true;
         }
     }
 
-    private static final String TEST_CHILD_7_DN = "cn=test child 7,cn=test children,cn=test parent 1,cn=test parents,cn=config";
+    private static final Entry TEST_CHILD_1 = makeEntry(
+        "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 1", "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real");
 
-    private static final String TEST_CHILD_6_DN = "cn=test child 6,cn=test children,cn=test parent 1,cn=test parents,cn=config";
+    private static final Entry TEST_CHILD_2 = makeEntry(
+        "dn: cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 2", "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real",
+        "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config");
 
-    /** The name of the test connection handler. */
-    private static final String TEST_CONNECTION_HANDLER_NAME = "Test Connection Handler";
+    /** Has an invalid handler reference. */
+    private static final Entry TEST_CHILD_3 = makeEntry(
+        "dn: cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 3", "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real",
+        "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=bad rdn, cn=config");
 
-    /** Test child 1 LDIF. */
-    private static final String[] TEST_CHILD_1 = new String[] {
-            "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy", "cn: test child 1", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real" };
+    private static final Entry TEST_CHILD_4 = makeEntry(
+        "dn: cn=test child 4,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 4", "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real",
+        "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config",
+        "ds-cfg-rotation-policy: cn=LDAPS Connection Handler, cn=connection handlers, cn=config");
 
-    /** Test child 2 LDIF. */
-    private static final String[] TEST_CHILD_2 = new String[] {
-            "dn: cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy", "cn: test child 2", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
-            "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config" };
+    private static final Entry TEST_CHILD_5 = makeEntry(
+        "dn: cn=test child 5,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 5", "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
+        "ds-cfg-rotation-policy: cn=BAD Connection Handler 1, cn=connection handlers, cn=config",
+        "ds-cfg-rotation-policy: cn=BAD Connection Handler 2, cn=connection handlers, cn=config",
+        "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config");
 
-    /** Test child 3 LDIF (invalid reference). */
-    private static final String[] TEST_CHILD_3 = new String[] {
-            "dn: cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy", "cn: test child 3", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
-            "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=bad rdn, cn=config" };
+    private static final Entry TEST_CHILD_6 = makeEntry(
+        "dn: cn=test child 6,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 6", "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
+        "ds-cfg-rotation-policy: cn=Test Connection Handler, cn=connection handlers, cn=config");
 
-    /** Test child 4 LDIF. */
-    private static final String[] TEST_CHILD_4 = new String[] {
-            "dn: cn=test child 4,cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy", "cn: test child 4", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
-            "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config",
-            "ds-cfg-rotation-policy: cn=LDAPS Connection Handler, cn=connection handlers, cn=config" };
+    private static final Entry TEST_CHILD_7 = makeEntry(
+        "dn: cn=test child 7,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 7", "ds-cfg-enabled: false",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real",
+        "ds-cfg-rotation-policy: cn=Test Connection Handler, cn=connection handlers, cn=config");
 
-    /** Test child 5 LDIF. */
-    private static final String[] TEST_CHILD_5 = new String[] {
-            "dn: cn=test child 5,cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy", "cn: test child 5", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
-            "ds-cfg-rotation-policy: cn=BAD Connection Handler 1, cn=connection handlers, cn=config",
-            "ds-cfg-rotation-policy: cn=BAD Connection Handler 2, cn=connection handlers, cn=config",
-            "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config" };
+    static final Entry TEST_PARENTS = makeEntry(
+        "dn: cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-branch",
+        "cn: test parents");
 
-    /** Test child 6 LDIF. */
-    private static final String[] TEST_CHILD_6 = new String[] {
-            "dn: cn=test child 6,cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy", "cn: test child 6", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
-            "ds-cfg-rotation-policy: cn=" + TEST_CONNECTION_HANDLER_NAME + ", cn=connection handlers, cn=config" };
+    static final Entry TEST_PARENT_1 = makeEntry(
+        "dn: cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-parent-dummy",
+        "cn: test parent 1",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real");
 
-    /** Test child 7 LDIF. */
-    private static final String[] TEST_CHILD_7 = new String[] {
-            "dn: cn=test child 7,cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy", "cn: test child 7", "ds-cfg-enabled: false",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
-            "ds-cfg-rotation-policy: cn=" + TEST_CONNECTION_HANDLER_NAME + ", cn=connection handlers, cn=config" };
+    private static final Entry TEST_BASE_CHILD = LDIF.makeEntry(
+        "dn:cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-branch",
+        "cn: test children");
 
-    /** Test LDIF. */
-    private static final String[] TEST_LDIF = new String[] {
-            // Base entries.
-            "dn: cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-branch",
-            "cn: test parents",
-            "",
-            // Parent 1.
-            "dn: cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-parent-dummy", "cn: test parent 1", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real", "",
-            // Child base entries.
-            "dn:cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-branch", "cn: test children", "" };
+    /** this handler is disabled - see ds-cfg-enabled property */
+    protected static final Entry TEST_CONNECTION_HANDLER_ENTRY_DISABLED = LDIF.makeEntry(
+        "dn: cn=" + "Test Connection Handler" + ",cn=Connection Handlers,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-connection-handler",
+        "objectClass: ds-cfg-ldap-connection-handler",
+        "cn: LDAP Connection Handler",
+        "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
+        "ds-cfg-enabled: false",
+        "ds-cfg-listen-address: 0.0.0.0", "ds-cfg-listen-port: 389");
+
+    /** this handler is enabled - see ds-cfg-enabled property */
+    protected static final Entry TEST_CONNECTION_HANDLER_ENTRY_ENABLED = LDIF.makeEntry(
+        "dn: cn=" + "Test Connection Handler" + ",cn=Connection Handlers,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-connection-handler",
+        "objectClass: ds-cfg-ldap-connection-handler",
+        "cn: LDAP Connection Handler",
+        "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
+        "ds-cfg-enabled: true",
+        "ds-cfg-listen-address: 0.0.0.0", "ds-cfg-listen-port: 389");
 
     /**
-     * The saved test child configuration "aggregation-property" property
+     * The default test child configuration "aggregation-property" property
      * definition.
      */
     private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg>
@@ -213,18 +236,10 @@ public final class AggregationServerTest extends AdminTestCase {
     private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg>
         aggregationPropertyDefinitionTargetMustBeEnabled = null;
 
-    /**
-     * Sets up tests
-     *
-     * @throws Exception
-     *             If the server could not be initialized.
-     */
     @BeforeClass
     public void setUp() throws Exception {
+        disableClassValidationForProperties();
         TestCfg.setUp();
-
-        // Add test managed objects.
-        TestCaseUtils.addEntries(TEST_LDIF);
 
         // Save the aggregation property definition so that it can be
         // replaced and restored later.
@@ -258,425 +273,253 @@ public final class AggregationServerTest extends AdminTestCase {
         TestCfg.initializePropertyDefinition(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
     }
 
-    /**
-     * Tears down test environment.
-     *
-     * @throws Exception
-     *             If the test entries could not be removed.
-     */
     @AfterClass
     public void tearDown() throws Exception {
         TestCfg.cleanup();
 
         // Restore the test child aggregation definition.
-        TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-
-        // Remove test entries.
-        deleteSubtree("cn=test parents,cn=config");
+        //TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
     }
 
     /**
      * Tests that aggregation is rejected when the LDAP DN contains a valid RDN
      * but an invalid parent DN.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
      */
     @Test
     public void testAggregationBadBaseDN() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_3);
-
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_3,
+            LDAP_CONN_HANDLER_ENTRY);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
+        TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         try {
-            TestParentCfg parent = getParent("test parent 1");
-            parent.getTestChild("test child 3");
-            Assert.fail("Unexpectedly added test child 3 when it had a bad aggregation value");
+            parentCfg.getTestChild(entryName(TEST_CHILD_3));
+            fail("Unexpectedly added test child 3 when it had a bad aggregation value");
         } catch (ConfigException e) {
-            // Check that we have a decoding exception as the cause and
-            // there was only one cause the illegal property value.
-            Throwable cause = e.getCause();
-            if (cause instanceof ServerManagedObjectDecodingException) {
-                ServerManagedObjectDecodingException de = (ServerManagedObjectDecodingException) cause;
-
-                Collection<PropertyException> causes = de.getCauses();
-                Assert.assertEquals(causes.size(), 1);
-
-                cause = causes.iterator().next();
-                if (cause instanceof IllegalPropertyValueStringException) {
-                    IllegalPropertyValueStringException pe = (IllegalPropertyValueStringException) cause;
-                    Assert.assertEquals(pe.getPropertyDefinition(), TestChildCfgDefn.getInstance()
-                            .getAggregationPropertyPropertyDefinition());
-                    Assert.assertEquals(pe.getIllegalValueString(),
-                            "cn=LDAP Connection Handler, cn=bad rdn, cn=config");
-                } else {
-                    // Got an unexpected cause.
-                    throw e;
-                }
-            } else {
-                // Got an unexpected cause.
-                throw e;
-            }
-        } finally {
-            deleteSubtree("cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config");
+            assertThat(e.getCause()).isNotNull().isInstanceOf(ServerManagedObjectDecodingException.class);
+            ServerManagedObjectDecodingException de = (ServerManagedObjectDecodingException) e.getCause();
+            assertThat(de.getCauses()).hasSize(1);
+            PropertyException propertyException = de.getCauses().iterator().next();
+            assertThat(propertyException).isInstanceOf(IllegalPropertyValueStringException.class);
+            IllegalPropertyValueStringException pe = (IllegalPropertyValueStringException) propertyException;
+            assertEquals(pe.getPropertyDefinition(), TestChildCfgDefn.getInstance()
+                    .getAggregationPropertyPropertyDefinition());
+            assertEquals(pe.getIllegalValueString(), "cn=LDAP Connection Handler, cn=bad rdn, cn=config");
         }
     }
 
     /**
      * Tests that aggregation is rejected by a constraint violation when the DN
      * values are dangling.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
      */
     @Test
     public void testAggregationDanglingReference() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_5);
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
+            TEST_PARENT_1, TEST_CHILD_5, LDAP_CONN_HANDLER_ENTRY);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
+        TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
 
         try {
-            TestParentCfg parent = getParent("test parent 1");
-            parent.getTestChild("test child 5");
-            Assert.fail("Unexpectedly added test child 5 when it had a dangling reference");
+            parentCfg.getTestChild(entryName(TEST_CHILD_5));
+            fail("Unexpectedly added test child 5 when it had a dangling reference");
         } catch (ConfigException e) {
-            // Check that we have a constraint violation as the cause.
-            Throwable cause = e.getCause();
-            if (cause instanceof ConstraintViolationException) {
-                ConstraintViolationException cve = (ConstraintViolationException) cause;
-                Collection<LocalizableMessage> causes = cve.getMessages();
-                Assert.assertEquals(causes.size(), 2);
-            } else {
-                // Got an unexpected cause.
-                throw e;
-            }
-        } finally {
-            deleteSubtree("cn=test child 5,cn=test children,cn=test parent 1,cn=test parents,cn=config");
+            assertThat(e.getCause()).isNotNull().isInstanceOf(ConstraintViolationException.class);
+            ConstraintViolationException cve = (ConstraintViolationException) e.getCause();
+            assertThat(cve.getMessages()).isNotNull().hasSize(2);
         }
     }
 
     /**
-     * Tests that aggregation is rejected by a constraint violation when an
+     * Tests that aggregation is REJECTED by a constraint violation when an
      * enabled component references a disabled component and the referenced
      * component must always be enabled.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
      */
     @Test
     public void testAggregationDisabledReference1() throws Exception {
-        // Add the entry and the connection handler.
-        TestCaseUtils.addEntry(TEST_CHILD_6);
-        try {
-            createConnectionHandler(false);
-        } catch (Exception e) {
-            deleteSubtree(TEST_CHILD_6_DN);
-            throw e;
-        }
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
+                TEST_PARENT_1, TEST_CHILD_6, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
 
-        // Register the temporary aggregation definition.
-        TestCfg.removeConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
-        TestCfg.addPropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
-        TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled.getSourceConstraint());
+        registerAggregationDefinitionWithTargetEnabled();
 
         try {
-            TestParentCfg parent = getParent("test parent 1");
-            parent.getTestChild("test child 6");
-            Assert.fail("Unexpectedly added test child 6 when it had a disabled reference");
+            TestParentCfg parent = getParentCfg(TEST_PARENT_1, context);
+            parent.getTestChild(entryName(TEST_CHILD_6));
+            fail("Unexpectedly added test child 6 when it had a disabled reference");
         } catch (ConfigException e) {
-            // Check that we have a constraint violation as the cause.
-            Throwable cause = e.getCause();
-            if (cause instanceof ConstraintViolationException) {
-                ConstraintViolationException cve = (ConstraintViolationException) cause;
-                Collection<LocalizableMessage> causes = cve.getMessages();
-                Assert.assertEquals(causes.size(), 1);
-            } else {
-                // Got an unexpected cause.
-                throw e;
-            }
+            assertThat(e.getCause()).isNotNull().isInstanceOf(ConstraintViolationException.class);
+            ConstraintViolationException cve = (ConstraintViolationException) e.getCause();
+            assertThat(cve.getMessages()).isNotNull().hasSize(1);
         } finally {
-            // Put back the default aggregation definition.
-            TestCfg.removeConstraint(aggregationPropertyDefinitionTargetMustBeEnabled.getSourceConstraint());
-            TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-            TestCfg.addConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
-
-            try {
-                deleteSubtree(TEST_CHILD_6_DN);
-            } finally {
-                deleteConnectionHandler();
-            }
+            putBackDefaultAggregationDefinitionFromTargetEnabled();
         }
     }
 
     /**
-     * Tests that aggregation is rejected by a constraint violation when a
+     * Tests that aggregation is REJECTED by a constraint violation when a
      * disabled component references a disabled component and the referenced
      * component must always be enabled.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
      */
     @Test
     public void testAggregationDisabledReference2() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_7);
-        try {
-            createConnectionHandler(false);
-        } catch (Exception e) {
-            deleteSubtree(TEST_CHILD_7_DN);
-            throw e;
-        }
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
+                TEST_PARENT_1, TEST_CHILD_7, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
 
-        // Register the temporary aggregation definition.
-        TestCfg.removeConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
-        TestCfg.addPropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
-        TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled.getSourceConstraint());
+        registerAggregationDefinitionWithTargetEnabled();
 
         try {
-            TestParentCfg parent = getParent("test parent 1");
-            parent.getTestChild("test child 7");
-            Assert.fail("Unexpectedly added test child 7 when it had a disabled reference");
+            TestParentCfg parent = getParentCfg(TEST_PARENT_1, context);
+            parent.getTestChild(entryName(TEST_CHILD_7));
+            fail("Unexpectedly added test child 7 when it had a disabled reference");
         } catch (ConfigException e) {
-            // Check that we have a constraint violation as the cause.
-            Throwable cause = e.getCause();
-            if (cause instanceof ConstraintViolationException) {
-                ConstraintViolationException cve = (ConstraintViolationException) cause;
-                Collection<LocalizableMessage> causes = cve.getMessages();
-                Assert.assertEquals(causes.size(), 1);
-            } else {
-                // Got an unexpected cause.
-                throw e;
-            }
+            assertThat(e.getCause()).isNotNull().isInstanceOf(ConstraintViolationException.class);
+            ConstraintViolationException cve = (ConstraintViolationException) e.getCause();
+            assertThat(cve.getMessages()).isNotNull().hasSize(1);
         } finally {
-            // Put back the default aggregation definition.
-            TestCfg.removeConstraint(aggregationPropertyDefinitionTargetMustBeEnabled.getSourceConstraint());
-            TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-            TestCfg.addConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
-
-            try {
-                deleteSubtree(TEST_CHILD_7_DN);
-            } finally {
-                deleteConnectionHandler();
-            }
+            putBackDefaultAggregationDefinitionFromTargetEnabled();
         }
     }
 
     /**
-     * Tests that aggregation is rejected by a constraint violation when an
+     * Tests that aggregation is REJECTED by a constraint violation when an
      * enabled component references a disabled component and the referenced
      * component must always be enabled when the referencing component is
      * enabled.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
      */
     @Test
     public void testAggregationDisabledReference3() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_6);
-        try {
-            createConnectionHandler(false);
-        } catch (Exception e) {
-            deleteSubtree(TEST_CHILD_6_DN);
-            throw e;
-        }
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
+                TEST_PARENT_1, TEST_CHILD_6, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
 
-        // Register the temporary aggregation definition.
-        TestCfg.removeConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
-        TestCfg.addPropertyDefinition(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
-        TestCfg.addConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled.getSourceConstraint());
+        registerAggregationDefinitionWithTargetAndSourceEnabled();
 
         try {
-            TestParentCfg parent = getParent("test parent 1");
-            parent.getTestChild("test child 6");
-            Assert.fail("Unexpectedly added test child 6 when it had a disabled reference");
+            TestParentCfg parent = getParentCfg(TEST_PARENT_1, context);
+            parent.getTestChild(entryName(TEST_CHILD_6));
+            fail("Unexpectedly added test child 6 when it had a disabled reference");
         } catch (ConfigException e) {
-            // Check that we have a constraint violation as the cause.
-            Throwable cause = e.getCause();
-            if (cause instanceof ConstraintViolationException) {
-                ConstraintViolationException cve = (ConstraintViolationException) cause;
-                Collection<LocalizableMessage> causes = cve.getMessages();
-                Assert.assertEquals(causes.size(), 1);
-            } else {
-                // Got an unexpected cause.
-                throw e;
-            }
+            assertThat(e.getCause()).isNotNull().isInstanceOf(ConstraintViolationException.class);
+            ConstraintViolationException cve = (ConstraintViolationException) e.getCause();
+            assertThat(cve.getMessages()).isNotNull().hasSize(1);
         } finally {
-            // Put back the default aggregation definition.
-            TestCfg.removeConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled.getSourceConstraint());
-            TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-            TestCfg.addConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
-
-            try {
-                deleteSubtree(TEST_CHILD_6_DN);
-            } finally {
-                deleteConnectionHandler();
-            }
+            putBackDefaultAggregationDefinitionFromTargetAndSourceEnabled();
         }
     }
 
     /**
-     * Tests that aggregation is allowed when a disabled component references a
+     * Tests that aggregation is ALLOWED when a disabled component references a
      * disabled component and the referenced component must always be enabled
      * when the referencing component is enabled.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
      */
     @Test
     public void testAggregationDisabledReference4() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_7);
-        try {
-            createConnectionHandler(false);
-        } catch (Exception e) {
-            deleteSubtree(TEST_CHILD_7_DN);
-            throw e;
-        }
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
+                TEST_PARENT_1, TEST_CHILD_7, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
 
-        // Register the temporary aggregation definition.
-        TestCfg.removeConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
-        TestCfg.addPropertyDefinition(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
-        TestCfg.addConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled.getSourceConstraint());
+        registerAggregationDefinitionWithTargetAndSourceEnabled();
 
         try {
-            TestParentCfg parent = getParent("test parent 1");
-            parent.getTestChild("test child 7");
+            TestParentCfg parent = getParentCfg(TEST_PARENT_1, context);
+            parent.getTestChild(entryName(TEST_CHILD_7));
         } finally {
-            // Put back the default aggregation definition.
-            TestCfg.removeConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled.getSourceConstraint());
-            TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-            TestCfg.addConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
-
-            try {
-                deleteSubtree(TEST_CHILD_7_DN);
-            } finally {
-                deleteConnectionHandler();
-            }
+            putBackDefaultAggregationDefinitionFromTargetAndSourceEnabled();
         }
     }
 
     /**
      * Tests that aggregation contains no values when it contains does not
      * contain any DN attribute values.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
      */
     @Test
     public void testAggregationEmpty() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_1);
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_1);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
+        TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
+        TestChildCfg testChildCfg = parentCfg.getTestChild(entryName(TEST_CHILD_1));
 
-        try {
-            TestParentCfg parent = getParent("test parent 1");
-            assertChild1(parent.getTestChild("test child 1"));
-        } finally {
-            deleteSubtree("cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-        }
+        assertEquals(testChildCfg.getMandatoryClassProperty(),
+                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
+        assertEquals(testChildCfg.getMandatoryReadOnlyAttributeTypeProperty(),
+                Schema.getDefaultSchema().getAttributeType("description"));
+        assertSetEquals(testChildCfg.getAggregationProperty(), new String[0]);
     }
 
     /**
      * Tests that aggregation contains multiple valid values when it contains a
      * multiple valid DN attribute values.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
      */
     @Test
     public void testAggregationMultipleValues() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_4);
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_4,
+            LDAP_CONN_HANDLER_ENTRY, LDAPS_CONN_HANDLER_ENTRY);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
+        TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
+        TestChildCfg testChildCfg = parentCfg.getTestChild(entryName(TEST_CHILD_4));
 
-        try {
-            TestParentCfg parent = getParent("test parent 1");
-            assertChild4(parent.getTestChild("test child 4"));
-        } finally {
-            deleteSubtree("cn=test child 4,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-        }
+        assertEquals(testChildCfg.getMandatoryClassProperty(),
+                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
+        assertEquals(testChildCfg.getMandatoryReadOnlyAttributeTypeProperty(),
+                Schema.getDefaultSchema().getAttributeType("description"));
+        assertSetEquals(testChildCfg.getAggregationProperty(),
+                "LDAPS Connection Handler", "LDAP Connection Handler");
     }
 
     /**
      * Tests that aggregation contains single valid value when it contains a
      * single valid DN attribute values.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
      */
     @Test
     public void testAggregationSingle() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_2);
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_2,
+                LDAP_CONN_HANDLER_ENTRY);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
+        TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
+        TestChildCfg testChildCfg = parentCfg.getTestChild(entryName(TEST_CHILD_2));
 
-        try {
-            TestParentCfg parent = getParent("test parent 1");
-            assertChild2(parent.getTestChild("test child 2"));
-        } finally {
-            deleteSubtree("cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-        }
+        assertEquals(testChildCfg.getMandatoryClassProperty(),
+                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
+        assertEquals(testChildCfg.getMandatoryReadOnlyAttributeTypeProperty(),
+                Schema.getDefaultSchema().getAttributeType("description"));
+
+        // Test normalization.
+        assertSetEquals(testChildCfg.getAggregationProperty(), "LDAP Connection Handler");
+        assertSetEquals(testChildCfg.getAggregationProperty(), "  LDAP   Connection  Handler ");
+        assertSetEquals(testChildCfg.getAggregationProperty(), "  ldap connection HANDLER ");
     }
 
     /**
      * Tests that it is impossible to delete a referenced component when the
      * referenced component must always exist regardless of whether the
      * referencing component is enabled or not.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
      */
     @Test
     public void testCannotDeleteReferencedComponent() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_7);
-        try {
-            createConnectionHandler(true);
-        } catch (Exception e) {
-            deleteSubtree(TEST_CHILD_7_DN);
-            throw e;
-        }
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENTS, TEST_PARENT_1,
+                TEST_BASE_CHILD, TEST_CHILD_7, CONN_HANDLER_ENTRY, TEST_CONNECTION_HANDLER_ENTRY_ENABLED);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
 
-        // Register the temporary aggregation definition.
-        TestCfg.removeConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
-        TestCfg.addPropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
-        TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled.getSourceConstraint());
+        registerAggregationDefinitionWithTargetEnabled();
 
-        ConfigurationDeleteListener<TestChildCfg> dl = new DummyDeleteListener();
-        ConfigurationChangeListener<TestChildCfg> cl = new DummyChangeListener();
+        ConfigurationDeleteListener<TestChildCfg> deleteListener = new DummyDeleteListener();
         try {
             // Retrieve the parent and child managed objects and register
             // delete and change listeners respectively in order to trigger
             // the constraint call-backs.
-            TestParentCfg parent = getParent("test parent 1");
-            parent.addTestChildDeleteListener(dl);
+            TestParentCfg parentCfg = getParentCfg(entryName(TEST_PARENT_1), context);
+            parentCfg.addTestChildDeleteListener(deleteListener);
 
-            TestChildCfg child = parent.getTestChild("test child 7");
-            child.addChangeListener(cl);
+            ArgumentCaptor<ConfigDeleteListener> registeredListener = ArgumentCaptor.forClass(ConfigDeleteListener.class);
+            verify(configRepository).registerDeleteListener(eq(TEST_BASE_CHILD.getName()), registeredListener.capture());
 
-            // Now attempt to delete the referenced connection handler.
-            // This should fail.
-            try {
-                deleteConnectionHandler();
-                Assert.fail("Successfully deleted a referenced component");
-            } catch (OperationRejectedException e) {
-                // This is the expected exception - do nothing.
-            }
+            // Now simulate the delete ofthe referenced connection handler.
+            assertThat(registeredListener.getValue().
+                    configDeleteIsAcceptable(TEST_CONNECTION_HANDLER_ENTRY_ENABLED, new LocalizableMessageBuilder())).
+                    isFalse();
+
         } finally {
-            try {
-                deleteSubtree(TEST_CHILD_7_DN);
-            } finally {
-                try {
-                    deleteConnectionHandler();
-                } catch (ManagedObjectNotFoundException e) {
-                    // Ignore as it may have been deleted already.
-                } finally {
-                    // Remove the temporary delete listener.
-                    TestParentCfg parent = getParent("test parent 1");
-                    parent.removeTestChildDeleteListener(dl);
-
-                    // Put back the default aggregation definition.
-                    TestCfg.removeConstraint(aggregationPropertyDefinitionTargetMustBeEnabled.getSourceConstraint());
-                    TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-                    TestCfg.addConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
-                }
-            }
+            putBackDefaultAggregationDefinitionFromTargetEnabled();
         }
     }
 
@@ -684,98 +527,76 @@ public final class AggregationServerTest extends AdminTestCase {
      * Tests that it is impossible to disable a referenced component when the
      * referenced component must always be enabled regardless of whether the
      * referencing component is enabled or not.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
      */
     @Test
     public void testCannotDisableReferencedComponent() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_7);
-        try {
-            createConnectionHandler(true);
-        } catch (Exception e) {
-            deleteSubtree(TEST_CHILD_7_DN);
-            throw e;
-        }
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENTS, TEST_PARENT_1,
+                TEST_BASE_CHILD, TEST_CHILD_7, CONN_HANDLER_ENTRY, TEST_CONNECTION_HANDLER_ENTRY_ENABLED);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
 
-        // Register the temporary aggregation definition.
-        TestCfg.removeConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
-        TestCfg.addPropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
-        TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled.getSourceConstraint());
+        registerAggregationDefinitionWithTargetEnabled();
 
-        ConfigurationDeleteListener<TestChildCfg> dl = new DummyDeleteListener();
-        ConfigurationChangeListener<TestChildCfg> cl = new DummyChangeListener();
+        ConfigurationChangeListener<TestChildCfg> changeListener = new DummyChangeListener();
         try {
             // Retrieve the parent and child managed objects and register
             // delete and change listeners respectively in order to trigger
             // the constraint call-backs.
-            TestParentCfg parent = getParent("test parent 1");
-            parent.addTestChildDeleteListener(dl);
+            TestParentCfg parentCfg = getParentCfg(entryName(TEST_PARENT_1), context);
+            TestChildCfg testChildCfg = parentCfg.getTestChild(entryName(TEST_CHILD_7));
+            testChildCfg.addChangeListener(changeListener);
 
-            TestChildCfg child = parent.getTestChild("test child 7");
-            child.addChangeListener(cl);
+            ArgumentCaptor<ConfigChangeListener> registeredListener = ArgumentCaptor.forClass(ConfigChangeListener.class);
+            verify(configRepository).registerChangeListener(eq(TEST_CHILD_7.getName()), registeredListener.capture());
 
-            // Now attempt to disable the referenced connection handler.
-            // This should fail.
-            try {
-                RootCfgClient root = TestCaseUtils.getRootConfiguration();
-                ConnectionHandlerCfgClient client = root.getConnectionHandler(TEST_CONNECTION_HANDLER_NAME);
-                client.setEnabled(false);
-                client.commit();
-                Assert.fail("Successfully disabled a referenced component");
-            } catch (OperationRejectedException e) {
-                // This is the expected exception - do nothing.
-            }
+            // Now simulate the disabling ofthe referenced connection handler.
+            assertThat(registeredListener.getValue().
+                    configChangeIsAcceptable(TEST_CONNECTION_HANDLER_ENTRY_DISABLED, new LocalizableMessageBuilder())).
+                    isFalse();
+
         } finally {
-            try {
-                deleteSubtree(TEST_CHILD_7_DN);
-            } finally {
-                try {
-                    deleteConnectionHandler();
-                } finally {
-                    // Remove the temporary delete listener.
-                    TestParentCfg parent = getParent("test parent 1");
-                    parent.removeTestChildDeleteListener(dl);
-
-                    // Put back the default aggregation definition.
-                    TestCfg.removeConstraint(aggregationPropertyDefinitionTargetMustBeEnabled.getSourceConstraint());
-                    TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-                    TestCfg.addConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
-                }
-            }
+            putBackDefaultAggregationDefinitionFromTargetEnabled();
         }
     }
 
-    /** Assert that the values of child 1 are correct. */
-    private void assertChild1(TestChildCfg child) {
-        Assert.assertEquals(child.getMandatoryClassProperty(),
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-                DirectoryServer.getAttributeType("description"));
-        assertSetEquals(child.getAggregationProperty(), new String[0]);
+    /**
+     * Register the temporary aggregation definition to be used in test. You
+     * must call
+     * {@code putBackDefaultAggregationDefinitionFromTargetAndSourceEnabled}
+     * method at end of test.
+     */
+    private void registerAggregationDefinitionWithTargetAndSourceEnabled() {
+        TestCfg.removeConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
+        TestCfg.addPropertyDefinition(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
+        TestCfg.addConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled.getSourceConstraint());
     }
 
-    /** Assert that the values of child 2 are correct. */
-    private void assertChild2(TestChildCfg child) {
-        Assert.assertEquals(child.getMandatoryClassProperty(),
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-                DirectoryServer.getAttributeType("description"));
-
-        // Test normalization.
-        assertSetEquals(child.getAggregationProperty(), "LDAP Connection Handler");
-        assertSetEquals(child.getAggregationProperty(), "  LDAP   Connection  Handler ");
-        assertSetEquals(child.getAggregationProperty(), "  ldap connection HANDLER ");
+    /**
+     * Put back the default aggregation definition.
+     */
+    private void putBackDefaultAggregationDefinitionFromTargetAndSourceEnabled() {
+        TestCfg.removeConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled.getSourceConstraint());
+        TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
+        TestCfg.addConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
     }
 
-    /** Assert that the values of child 4 are correct. */
-    private void assertChild4(TestChildCfg child) {
-        Assert.assertEquals(child.getMandatoryClassProperty(),
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-                DirectoryServer.getAttributeType("description"));
-        assertSetEquals(child.getAggregationProperty(), "LDAPS Connection Handler", "LDAP Connection Handler");
+    /**
+     * Register the temporary aggregation definition to be used in test. You
+     * must call {@code putBackDefaultAggregationDefinitionFromTargetEnabled}
+     * method at end of test.
+     */
+    private void registerAggregationDefinitionWithTargetEnabled() {
+        TestCfg.removeConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
+        TestCfg.addPropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
+        TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled.getSourceConstraint());
+    }
+
+    /**
+     * Put back the default aggregation definition.
+     */
+    private void putBackDefaultAggregationDefinitionFromTargetEnabled() {
+        TestCfg.removeConstraint(aggregationPropertyDefinitionTargetMustBeEnabled.getSourceConstraint());
+        TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
+        TestCfg.addConstraint(aggregationPropertyDefinitionDefault.getSourceConstraint());
     }
 
     /** Asserts that the actual set of DNs contains the expected values. */
@@ -790,25 +611,4 @@ public final class AggregationServerTest extends AdminTestCase {
         Assert.assertEquals((Object) actual, (Object) values);
     }
 
-    /** Creates a test connection handler for testing. */
-    private void createConnectionHandler(boolean enabled) throws Exception {
-        RootCfgClient root = TestCaseUtils.getRootConfiguration();
-        LDAPConnectionHandlerCfgClient client = root.createConnectionHandler(
-                LDAPConnectionHandlerCfgDefn.getInstance(), TEST_CONNECTION_HANDLER_NAME, null);
-        client.setEnabled(enabled);
-        client.setListenPort(1000);
-        client.commit();
-    }
-
-    /** Deletes the test connection handler after testing. */
-    private void deleteConnectionHandler() throws Exception {
-        RootCfgClient root = TestCaseUtils.getRootConfiguration();
-        root.removeConnectionHandler(TEST_CONNECTION_HANDLER_NAME);
-    }
-
-    /** Gets the named parent configuration. */
-    private TestParentCfg getParent(String name) throws IllegalArgumentException, ConfigException {
-        ServerManagedObject<RootCfg> root = serverContext.getRootConfigurationManagedObject();
-        return root.getChild(TestCfg.getTestOneToManyParentRelationDefinition(), name).getConfiguration();
-    }
 }

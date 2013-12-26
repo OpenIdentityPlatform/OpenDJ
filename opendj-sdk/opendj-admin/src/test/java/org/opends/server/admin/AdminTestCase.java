@@ -30,6 +30,7 @@ import static org.mockito.Mockito.*;
 import org.forgerock.opendj.admin.server.RootCfg;
 import org.forgerock.opendj.config.ConfigTestCase;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldif.LDIF;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.config.ConfigurationRepository;
@@ -72,4 +73,53 @@ public abstract class AdminTestCase extends ConfigTestCase {
                 .getConfiguration();
         return parent;
     }
+
+    protected static final Entry CONFIG_ENTRY = LDIF.makeEntry(
+        "dn: cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-branch",
+        "cn: config");
+
+    protected static final Entry CONN_HANDLER_ENTRY = LDIF.makeEntry(
+        "dn: cn=Connection Handlers,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-branch",
+        "cn: Connection Handlers");
+
+    protected static final Entry LDAP_CONN_HANDLER_ENTRY = LDIF.makeEntry(
+        "dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-connection-handler",
+        "objectClass: ds-cfg-ldap-connection-handler",
+        "cn: LDAP Connection Handler",
+        "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
+        "ds-cfg-enabled: true",
+        "ds-cfg-listen-address: 0.0.0.0", "ds-cfg-listen-port: 389");
+
+    protected static final Entry LDAPS_CONN_HANDLER_ENTRY = LDIF.makeEntry(
+        "dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-connection-handler",
+        "objectClass: ds-cfg-ldap-connection-handler",
+        "cn: LDAPS Connection Handler",
+        "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
+        "ds-cfg-enabled: false",
+        "ds-cfg-listen-address: 0.0.0.0",
+        "ds-cfg-listen-port: 636",
+        "ds-cfg-use-ssl: true",
+        "ds-cfg-ssl-client-auth-policy: optional",
+        "ds-cfg-ssl-cert-nickname: server-cert",
+        "ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config",
+        "ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config");
+
+    protected static final Entry JMX_CONN_HANDLER_ENTRY = LDIF.makeEntry(
+        "dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-connection-handler",
+        "objectClass: ds-cfg-jmx-connection-handler",
+        "cn: JMX Connection Handler",
+        "ds-cfg-java-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
+        "ds-cfg-enabled: false",
+        "ds-cfg-listen-port: 1689");
+
 }
