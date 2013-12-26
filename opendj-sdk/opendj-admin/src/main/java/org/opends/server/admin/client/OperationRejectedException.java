@@ -23,7 +23,6 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-
 package org.opends.server.admin.client;
 
 import static com.forgerock.opendj.ldap.AdminMessages.*;
@@ -141,7 +140,8 @@ public class OperationRejectedException extends AdminClientException {
      *            The messages describing the constraint violations that
      *            occurred (must be non-<code>null</code> and non-empty).
      */
-    public OperationRejectedException(OperationType type, LocalizableMessage ufn, Collection<LocalizableMessage> messages) {
+    public OperationRejectedException(OperationType type, LocalizableMessage ufn,
+        Collection<LocalizableMessage> messages) {
         super(getDefaultMessage(messages));
 
         this.messages = new ArrayList<LocalizableMessage>(messages);

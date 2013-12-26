@@ -23,7 +23,6 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-
 package org.opends.server.admin;
 
 import org.forgerock.util.Reject;
@@ -53,7 +52,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      *            The enumeration that should be used for values of this
      *            property definition.
      */
-    public static class Builder<E extends Enum<E>> extends AbstractBuilder<E, EnumPropertyDefinition<E>> {
+    public final static class Builder<E extends Enum<E>> extends AbstractBuilder<E, EnumPropertyDefinition<E>> {
 
         // The enumeration class.
         private Class<E> enumClass;
@@ -80,9 +79,9 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
          * {@inheritDoc}
          */
         @Override
-        protected EnumPropertyDefinition<E> buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-                EnumSet<PropertyOption> options, AdministratorAction adminAction,
-                DefaultBehaviorProvider<E> defaultBehavior) {
+        protected EnumPropertyDefinition<E> buildInstance(AbstractManagedObjectDefinition<?, ?> d,
+            String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<E> defaultBehavior) {
             // Make sure that the enumeration class has been defined.
             if (enumClass == null) {
                 throw new IllegalStateException("Enumeration class undefined");
@@ -106,7 +105,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      * @return Returns the new enumeration property definition builder.
      */
     public static <E extends Enum<E>> Builder<E> createBuilder(AbstractManagedObjectDefinition<?, ?> d,
-            String propertyName) {
+        String propertyName) {
         return new Builder<E>(d, propertyName);
     }
 
@@ -118,8 +117,8 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
 
     // Private constructor.
     private EnumPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction,
-            DefaultBehaviorProvider<E> defaultBehavior, Class<E> enumClass) {
+        EnumSet<PropertyOption> options, AdministratorAction adminAction, DefaultBehaviorProvider<E> defaultBehavior,
+        Class<E> enumClass) {
         super(d, enumClass, propertyName, options, adminAction, defaultBehavior);
         this.enumClass = enumClass;
 
@@ -151,7 +150,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      * {@inheritDoc}
      */
     @Override
-    public E decodeValue(String value) throws IllegalPropertyValueStringException {
+    public E decodeValue(String value) {
         Reject.ifNull(value);
 
         String nvalue = value.trim().toLowerCase();
@@ -210,7 +209,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      * {@inheritDoc}
      */
     @Override
-    public String normalizeValue(E value) throws IllegalPropertyValueException {
+    public String normalizeValue(E value) {
         Reject.ifNull(value);
 
         return value.toString().trim().toLowerCase();
@@ -220,7 +219,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(E value) throws IllegalPropertyValueException {
+    public void validateValue(E value) {
         Reject.ifNull(value);
 
         // No additional validation required.

@@ -42,7 +42,7 @@ public final class PropertyDefinitionUsageBuilder {
     /**
      * Underlying implementation.
      */
-    private class MyPropertyDefinitionVisitor extends PropertyDefinitionVisitor<LocalizableMessage, Void> {
+    private final class MyPropertyDefinitionVisitor extends PropertyDefinitionVisitor<LocalizableMessage, Void> {
 
         // Flag indicating whether detailed syntax information will be
         // generated.
@@ -65,7 +65,7 @@ public final class PropertyDefinitionUsageBuilder {
          */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> LocalizableMessage visitAggregation(
-                AggregationPropertyDefinition<C, S> d, Void p) {
+            AggregationPropertyDefinition<C, S> d, Void p) {
             return LocalizableMessage.raw("NAME");
         }
 
@@ -307,8 +307,7 @@ public final class PropertyDefinitionUsageBuilder {
          * {@inheritDoc}
          */
         @Override
-        public <T> LocalizableMessage visitUnknown(PropertyDefinition<T> d, Void p)
-                throws UnknownPropertyDefinitionException {
+        public <T> LocalizableMessage visitUnknown(PropertyDefinition<T> d, Void p) {
             return LocalizableMessage.raw("?");
         }
     }

@@ -74,7 +74,8 @@ final class DelayedConfigAddListener implements ConfigAddListener {
      * @param addListener
      *            The add listener to be added to the subordinate entry when it
      *            is added.
-     * @param configRepository TODO
+     * @param configRepository
+     *            Repository of config entries.
      */
     public DelayedConfigAddListener(DN child, ConfigAddListener addListener, ConfigurationRepository configRepository) {
         this.parent = child.parent();
@@ -94,9 +95,11 @@ final class DelayedConfigAddListener implements ConfigAddListener {
      * @param deleteListener
      *            The delete listener to be added to the subordinate entry when
      *            it is added.
-     * @param configRepository TODO
+     * @param configRepository
+     *            Repository of config entries.
      */
-    public DelayedConfigAddListener(DN child, ConfigDeleteListener deleteListener, ConfigurationRepository configRepository) {
+    public DelayedConfigAddListener(DN child, ConfigDeleteListener deleteListener,
+        ConfigurationRepository configRepository) {
         this.parent = child.parent();
         this.child = child;
         this.delayedAddListener = null;
@@ -107,6 +110,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationAdd(Entry configEntry) {
         if (configEntry.getName().equals(child)) {
             // The subordinate entry matched our criteria so register the
@@ -137,6 +141,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean configAddIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {
         // Always acceptable.
         return true;

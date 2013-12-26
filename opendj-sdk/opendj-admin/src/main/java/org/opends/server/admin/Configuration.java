@@ -29,26 +29,23 @@ package org.opends.server.admin;
 import org.forgerock.opendj.ldap.DN;
 
 /**
- * A common base interface for all server managed object
- * configurations.
+ * A common base interface for all server managed object configurations.
  */
 public interface Configuration {
 
-  /**
-   * Gets the DN of the LDAP entry associated with this configuration.
-   *
-   * @return Returns the DN of the LDAP entry associated with this
-   *         configuration.
-   */
-  DN dn();
+    /**
+     * Gets the DN of the LDAP entry associated with this configuration.
+     *
+     * @return Returns the DN of the LDAP entry associated with this
+     *         configuration.
+     */
+    DN dn();
 
-
-
-  /**
-   * Gets the configuration class associated with this configuration.
-   *
-   * @return Returns the configuration class associated with this
-   *         configuration.
-   */
-  Class<? extends Configuration> configurationClass();
+    /**
+     * Gets the configuration class associated with this configuration.
+     *
+     * @return Returns the configuration class associated with this
+     *         configuration.
+     */
+    Class<? extends Configuration> configurationClass();
 }

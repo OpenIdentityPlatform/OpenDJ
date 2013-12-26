@@ -74,7 +74,7 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
             { "", "cn=config" },
             { "cn=config", "cn=key manager providers, cn=config" },
             { "cn=key manager providers, cn=config", "cn=my provider, cn=key manager providers, cn=config" },
-            };
+        };
     }
 
     @DataProvider(name = "illegalValues")

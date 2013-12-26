@@ -241,7 +241,8 @@ public class MockLDAPConnection extends LDAPConnection {
             }
 
             @Override
-            public <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options) throws DecodeException {
+            public <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
+                    throws DecodeException {
                 throw new RuntimeException("not implemented");
             }
 

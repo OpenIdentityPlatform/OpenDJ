@@ -25,34 +25,29 @@
  */
 package org.opends.server.admin;
 
-
-
 /**
- * A default behavior provider which indicates undefined behavior. It should
- * be used by properties which have no default values or behavior as such. For
+ * A default behavior provider which indicates undefined behavior. It should be
+ * used by properties which have no default values or behavior as such. For
  * example, a description property, when left unset, has no default value and no
  * side-effects.
  *
  * @param <T>
- *          The type of values represented by this provider.
+ *            The type of values represented by this provider.
  */
-public final class UndefinedDefaultBehaviorProvider<T> extends
-    DefaultBehaviorProvider<T> {
+public final class UndefinedDefaultBehaviorProvider<T> extends DefaultBehaviorProvider<T> {
 
-  /**
-   * Create an undefined default behavior provider.
-   */
-  public UndefinedDefaultBehaviorProvider() {
-    // No implementation required.
-  }
+    /**
+     * Create an undefined default behavior provider.
+     */
+    public UndefinedDefaultBehaviorProvider() {
+        // No implementation required.
+    }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
-    return v.visitUndefined(this, p);
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
+        return v.visitUndefined(this, p);
+    }
 
 }

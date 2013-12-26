@@ -23,7 +23,6 @@
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
-
 package org.opends.server.admin;
 
 import java.util.ArrayList;
@@ -121,7 +120,8 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *            <code>null</code> parent, unless the definition is being used
      *            for testing).
      */
-    protected AbstractManagedObjectDefinition(String name, AbstractManagedObjectDefinition<? super C, ? super S> parent) {
+    protected AbstractManagedObjectDefinition(String name,
+        AbstractManagedObjectDefinition<? super C, ? super S> parent) {
         this.name = name;
         this.parent = parent;
         this.constraints = new LinkedList<Constraint>();
@@ -168,8 +168,8 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *         definition.
      */
     public final Collection<AbstractManagedObjectDefinition<? extends C, ? extends S>> getAllChildren() {
-        List<AbstractManagedObjectDefinition<? extends C, ? extends S>> list = new ArrayList<AbstractManagedObjectDefinition<? extends C, ? extends S>>(
-                children.values());
+        List<AbstractManagedObjectDefinition<? extends C, ? extends S>> list =
+            new ArrayList<AbstractManagedObjectDefinition<? extends C, ? extends S>>(children.values());
 
         for (AbstractManagedObjectDefinition<? extends C, ? extends S> child : children.values()) {
             list.addAll(child.getAllChildren());
@@ -237,7 +237,8 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
         // This method does not used a cached set of relations because
         // relations may be updated after child definitions have been
         // defined.
-        List<RelationDefinition<? super C, ? super S>> rdlist = new LinkedList<RelationDefinition<? super C, ? super S>>();
+        List<RelationDefinition<? super C, ? super S>> rdlist =
+            new LinkedList<RelationDefinition<? super C, ? super S>>();
 
         if (parent != null) {
             rdlist.addAll(parent.getAllReverseRelationDefinitions());
@@ -310,8 +311,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *             empty or if the requested subordinate managed object
      *             definition was not found.
      */
-    public final AbstractManagedObjectDefinition<? extends C, ? extends S> getChild(String name)
-            throws IllegalArgumentException {
+    public final AbstractManagedObjectDefinition<? extends C, ? extends S> getChild(String name) {
         if ((name == null) || (name.length() == 0)) {
             throw new IllegalArgumentException("null or empty managed object name");
         }
@@ -369,7 +369,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      * @throws UnsupportedOperationException
      *             If this managed object definition is the {@link TopCfgDefn}.
      */
-    public final LocalizableMessage getDescription() throws UnsupportedOperationException {
+    public final LocalizableMessage getDescription() {
         return getDescription(Locale.getDefault());
     }
 
@@ -385,7 +385,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      * @throws UnsupportedOperationException
      *             If this managed object definition is the {@link TopCfgDefn}.
      */
-    public final LocalizableMessage getDescription(Locale locale) throws UnsupportedOperationException {
+    public final LocalizableMessage getDescription(Locale locale) {
         try {
             return ManagedObjectDefinitionI18NResource.getInstance().getMessage(this, "description", locale);
         } catch (MissingResourceException e) {
@@ -425,7 +425,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *             If the specified property name was null or empty or if the
      *             requested property definition was not found.
      */
-    public final PropertyDefinition<?> getPropertyDefinition(String name) throws IllegalArgumentException {
+    public final PropertyDefinition<?> getPropertyDefinition(String name) {
         if ((name == null) || (name.length() == 0)) {
             throw new IllegalArgumentException("null or empty property name");
         }
@@ -462,7 +462,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *             If the specified relation name was null or empty or if the
      *             requested relation definition was not found.
      */
-    public final RelationDefinition<?, ?> getRelationDefinition(String name) throws IllegalArgumentException {
+    public final RelationDefinition<?, ?> getRelationDefinition(String name) {
         if ((name == null) || (name.length() == 0)) {
             throw new IllegalArgumentException("null or empty relation name");
         }
@@ -514,8 +514,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *             or if the requested aggregation property definition was not
      *             found.
      */
-    public final AggregationPropertyDefinition<?, ?> getAggregationPropertyDefinition(String name)
-            throws IllegalArgumentException {
+    public final AggregationPropertyDefinition<?, ?> getAggregationPropertyDefinition(String name) {
         if ((name == null) || (name.length() == 0)) {
             throw new IllegalArgumentException("null or empty aggregation property name");
         }
@@ -563,7 +562,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      * @throws UnsupportedOperationException
      *             If this managed object definition is the {@link TopCfgDefn}.
      */
-    public final LocalizableMessage getSynopsis() throws UnsupportedOperationException {
+    public final LocalizableMessage getSynopsis() {
         return getSynopsis(Locale.getDefault());
     }
 
@@ -578,7 +577,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      * @throws UnsupportedOperationException
      *             If this managed object definition is the {@link TopCfgDefn}.
      */
-    public final LocalizableMessage getSynopsis(Locale locale) throws UnsupportedOperationException {
+    public final LocalizableMessage getSynopsis(Locale locale) {
         return ManagedObjectDefinitionI18NResource.getInstance().getMessage(this, "synopsis", locale);
     }
 
@@ -591,7 +590,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      * @throws UnsupportedOperationException
      *             If this managed object definition is the {@link TopCfgDefn}.
      */
-    public final LocalizableMessage getUserFriendlyName() throws UnsupportedOperationException {
+    public final LocalizableMessage getUserFriendlyName() {
         return getUserFriendlyName(Locale.getDefault());
     }
 
@@ -606,9 +605,9 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      * @throws UnsupportedOperationException
      *             If this managed object definition is the {@link TopCfgDefn}.
      */
-    public final LocalizableMessage getUserFriendlyName(Locale locale) throws UnsupportedOperationException {
+    public final LocalizableMessage getUserFriendlyName(Locale locale) {
         return LocalizableMessage.raw(ManagedObjectDefinitionI18NResource.getInstance().getMessage(this,
-                "user-friendly-name", locale));
+            "user-friendly-name", locale));
     }
 
     /**
@@ -620,7 +619,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      * @throws UnsupportedOperationException
      *             If this managed object definition is the {@link TopCfgDefn}.
      */
-    public final LocalizableMessage getUserFriendlyPluralName() throws UnsupportedOperationException {
+    public final LocalizableMessage getUserFriendlyPluralName() {
         return getUserFriendlyPluralName(Locale.getDefault());
     }
 
@@ -635,9 +634,9 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      * @throws UnsupportedOperationException
      *             If this managed object definition is the {@link TopCfgDefn}.
      */
-    public final LocalizableMessage getUserFriendlyPluralName(Locale locale) throws UnsupportedOperationException {
-        return ManagedObjectDefinitionI18NResource.getInstance().getMessage(this,
-                "user-friendly-plural-name", locale);
+    public final LocalizableMessage getUserFriendlyPluralName(Locale locale) {
+        return ManagedObjectDefinitionI18NResource.getInstance()
+            .getMessage(this, "user-friendly-plural-name", locale);
     }
 
     /**
@@ -941,8 +940,8 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
 
     // Register a relation definition in the referenced managed object
     // definition's reverse lookup table.
-    private <CC extends ConfigurationClient, SS extends Configuration> void registerReverseRelationDefinition(
-            RelationDefinition<CC, SS> rd) {
+    private <C1 extends ConfigurationClient, S1 extends Configuration> void registerReverseRelationDefinition(
+        RelationDefinition<C1, S1> rd) {
         rd.getChildDefinition().reverseRelationDefinitions.add(rd);
     }
 
@@ -957,13 +956,14 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
     // Recursively descend definition hierarchy to find the best match
     // definition.
     private AbstractManagedObjectDefinition<? extends C, ? extends S> resolveManagedObjectDefinitionAux(
-            AbstractManagedObjectDefinition<? extends C, ? extends S> d, DefinitionResolver r) {
+        AbstractManagedObjectDefinition<? extends C, ? extends S> d, DefinitionResolver r) {
         if (!r.matches(d)) {
             return null;
         }
 
         for (AbstractManagedObjectDefinition<? extends C, ? extends S> child : d.getChildren()) {
-            AbstractManagedObjectDefinition<? extends C, ? extends S> rd = resolveManagedObjectDefinitionAux(child, r);
+            AbstractManagedObjectDefinition<? extends C, ? extends S> rd =
+                resolveManagedObjectDefinitionAux(child, r);
             if (rd != null) {
                 return rd;
             }

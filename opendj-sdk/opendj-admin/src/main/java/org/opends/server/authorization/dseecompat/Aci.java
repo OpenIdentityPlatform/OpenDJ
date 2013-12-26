@@ -40,7 +40,18 @@ public class Aci implements Comparable<Aci> {
         throw new RuntimeException("This class is not implemented");
     }
 
-    public static Aci decode(ByteString valueOf, DN rootDN) throws AciException {
+    /**
+     * Decode an ACI byte string.
+     *
+     * @param byteString
+     *            The ByteString containing the ACI string.
+     * @param dn
+     *            DN of the ACI entry.
+     * @return Returns a decoded ACI representing the string argument.
+     * @throws AciException
+     *             If the parsing of the ACI string fails.
+     */
+    public static Aci decode(ByteString byteString, DN dn) throws AciException {
         throw new RuntimeException("This class is not implemented");
     }
 }

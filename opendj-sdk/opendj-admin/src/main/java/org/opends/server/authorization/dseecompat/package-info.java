@@ -23,24 +23,9 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-
-package org.opends.server.admin;
-
 /**
- * This enumeration contains various options that can be associated with managed
- * object definitions.
+ * Contains the Directory Server Sun Java System Directory Server Enterprise
+ * Edition (dseecompat) compatability access control handler implementation.
  */
-public enum ManagedObjectOption {
-    /**
-     * Use this option to identify managed object types which should be
-     * considered as advanced and should not be exposed by default in client
-     * applications.
-     */
-    ADVANCED,
+package org.opends.server.authorization.dseecompat;
 
-    /**
-     * Use this option to identify managed object types which must not be
-     * directly exposed in client applications.
-     */
-    HIDDEN;
-}

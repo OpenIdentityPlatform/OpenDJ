@@ -38,114 +38,96 @@ import java.util.EnumSet;
 /**
  * ACI property definition.
  */
-public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
+public final class ACIPropertyDefinition extends PropertyDefinition<Aci> {
 
+    /**
+     * An interface for incrementally constructing ACI property definitions.
+     */
+    public static final class Builder extends AbstractBuilder<Aci, ACIPropertyDefinition> {
 
-  /**
-   * An interface for incrementally constructing ACI property
-   * definitions.
-   */
-  public static class Builder extends
-      AbstractBuilder<Aci, ACIPropertyDefinition> {
+        // Private constructor
+        private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+            super(d, propertyName);
+        }
 
-    // Private constructor
-    private Builder(
-        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-      super(d, propertyName);
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected ACIPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
+            EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<Aci> defaultBehavior) {
+            return new ACIPropertyDefinition(d, propertyName, options, adminAction, defaultBehavior);
+        }
+    }
+
+    /**
+     * Create a ACI property definition builder.
+     *
+     * @param d
+     *            The managed object definition associated with this property
+     *            definition.
+     * @param propertyName
+     *            The property name.
+     * @return Returns the new ACI property definition builder.
+     */
+    public static Builder createBuilder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+        return new Builder(d, propertyName);
+    }
+
+    // Private constructor.
+    private ACIPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
+        EnumSet<PropertyOption> options, AdministratorAction adminAction,
+        DefaultBehaviorProvider<Aci> defaultBehavior) {
+        super(d, Aci.class, propertyName, options, adminAction, defaultBehavior);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected ACIPropertyDefinition buildInstance(
-        AbstractManagedObjectDefinition<?, ?> d,
-        String propertyName, EnumSet<PropertyOption> options,
-        AdministratorAction adminAction,
-        DefaultBehaviorProvider<Aci> defaultBehavior) {
-      return new ACIPropertyDefinition(d, propertyName, options,
-          adminAction, defaultBehavior);
+    public void validateValue(Aci value) {
+        Reject.ifNull(value);
+
+        // No additional validation required.
     }
-  }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Aci decodeValue(String value) {
+        Reject.ifNull(value);
 
-  /**
-   * Create a ACI property definition builder.
-   *
-   * @param d
-   *          The managed object definition associated with this
-   *          property definition.
-   * @param propertyName
-   *          The property name.
-   * @return Returns the new ACI property definition builder.
-   */
-  public static Builder createBuilder(
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-    return new Builder(d, propertyName);
-  }
-
-
-  // Private constructor.
-  private ACIPropertyDefinition(
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-      EnumSet<PropertyOption> options,
-      AdministratorAction adminAction,
-      DefaultBehaviorProvider<Aci> defaultBehavior) {
-    super(d, Aci.class, propertyName, options, adminAction,
-        defaultBehavior);
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void validateValue(Aci value)
-      throws IllegalPropertyValueException {
-    Reject.ifNull(value);
-
-    // No additional validation required.
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Aci decodeValue(String value)
-      throws IllegalPropertyValueStringException {
-    Reject.ifNull(value);
-
-    try {
-      return Aci.decode(ByteString.valueOf(value), DN.rootDN());
-    } catch (AciException e) {
-      // TODO: it would be nice to throw the cause.
-      throw new IllegalPropertyValueStringException(this, value);
+        try {
+            return Aci.decode(ByteString.valueOf(value), DN.rootDN());
+        } catch (AciException e) {
+            // TODO: it would be nice to throw the cause.
+            throw new IllegalPropertyValueStringException(this, value);
+        }
     }
-  }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
+        return v.visitACI(this, p);
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
-    return v.visitACI(this, p);
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <R, P> R accept(PropertyValueVisitor<R, P> v, Aci value, P p) {
+        return v.visitACI(this, value, p);
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(PropertyValueVisitor<R, P> v, Aci value, P p) {
-    return v.visitACI(this, value, p);
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int compare(Aci o1, Aci o2) {
-    return o1.toString().compareTo(o2.toString());
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int compare(Aci o1, Aci o2) {
+        return o1.toString().compareTo(o2.toString());
+    }
 }

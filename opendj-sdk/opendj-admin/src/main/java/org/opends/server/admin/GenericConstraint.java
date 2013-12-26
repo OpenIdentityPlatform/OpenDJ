@@ -49,7 +49,7 @@ public class GenericConstraint extends Constraint {
     /**
      * The client-side constraint handler.
      */
-    private class ClientHandler extends ClientConstraintHandler {
+    private final class ClientHandler extends ClientConstraintHandler {
 
         // Private constructor.
         private ClientHandler() {
@@ -61,7 +61,7 @@ public class GenericConstraint extends Constraint {
          */
         @Override
         public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
             if (!condition.evaluate(context, managedObject)) {
                 unacceptableReasons.add(getSynopsis());
                 return false;
@@ -75,7 +75,7 @@ public class GenericConstraint extends Constraint {
          */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
             if (!condition.evaluate(context, managedObject)) {
                 unacceptableReasons.add(getSynopsis());
                 return false;
@@ -89,7 +89,7 @@ public class GenericConstraint extends Constraint {
     /**
      * The server-side constraint handler.
      */
-    private class ServerHandler extends ServerConstraintHandler {
+    private final class ServerHandler extends ServerConstraintHandler {
 
         // Private constructor.
         private ServerHandler() {
@@ -100,8 +100,8 @@ public class GenericConstraint extends Constraint {
          * {@inheritDoc}
          */
         @Override
-        public boolean isUsable(ServerManagedObject<?> managedObject, Collection<LocalizableMessage> unacceptableReasons)
-                throws ConfigException {
+        public boolean isUsable(ServerManagedObject<?> managedObject,
+            Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
             if (!condition.evaluate(managedObject)) {
                 unacceptableReasons.add(getSynopsis());
                 return false;

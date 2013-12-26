@@ -133,8 +133,8 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
          * {@inheritDoc}
          */
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
-                InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
-                String name) {
+            InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
+            String name) {
             // Add the RDN sequence representing the relation.
             appendManagedObjectPathElement(r);
 
@@ -148,7 +148,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
          * {@inheritDoc}
          */
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
-                SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
+            SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             // Add the RDN sequence representing the relation.
             appendManagedObjectPathElement(r);
 
@@ -162,7 +162,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
          * {@inheritDoc}
          */
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
-                OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
+            OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             // Add the RDN sequence representing the relation.
             appendManagedObjectPathElement(r);
         }
@@ -171,7 +171,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
          * {@inheritDoc}
          */
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
-                SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
+            SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             // Add the RDN sequence representing the relation.
             appendManagedObjectPathElement(r);
         }
@@ -246,12 +246,12 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      * A path element representing an instantiable managed object.
      */
     private static final class InstantiableElement<C extends ConfigurationClient, S extends Configuration> extends
-            Element<C, S> {
+        Element<C, S> {
 
         // Factory method.
         private static final <C extends ConfigurationClient, S extends Configuration> InstantiableElement<C, S> create(
-                InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
-                String name) {
+            InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
+            String name) {
             return new InstantiableElement<C, S>(r, d, name);
         }
 
@@ -263,7 +263,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
 
         // Private constructor.
         private InstantiableElement(InstantiableRelationDefinition<? super C, ? super S> r,
-                AbstractManagedObjectDefinition<C, S> d, String name) {
+            AbstractManagedObjectDefinition<C, S> d, String name) {
             super(d);
             this.r = r;
             this.name = name;
@@ -298,11 +298,11 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      * A path element representing an optional managed object.
      */
     private static final class OptionalElement<C extends ConfigurationClient, S extends Configuration> extends
-            Element<C, S> {
+        Element<C, S> {
 
         // Factory method.
         private static final <C extends ConfigurationClient, S extends Configuration> OptionalElement<C, S> create(
-                OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
+            OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             return new OptionalElement<C, S>(r, d);
         }
 
@@ -311,7 +311,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
 
         // Private constructor.
         private OptionalElement(OptionalRelationDefinition<? super C, ? super S> r,
-                AbstractManagedObjectDefinition<C, S> d) {
+            AbstractManagedObjectDefinition<C, S> d) {
             super(d);
             this.r = r;
         }
@@ -336,11 +336,12 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
     /**
      * A path element representing an set managed object.
      */
-    private static final class SetElement<C extends ConfigurationClient, S extends Configuration> extends Element<C, S> {
+    private static final class SetElement<C extends ConfigurationClient, S extends Configuration> extends
+        Element<C, S> {
 
         // Factory method.
         private static final <C extends ConfigurationClient, S extends Configuration> SetElement<C, S> create(
-                SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
+            SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             return new SetElement<C, S>(r, d);
         }
 
@@ -374,11 +375,11 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      * A path element representing a singleton managed object.
      */
     private static final class SingletonElement<C extends ConfigurationClient, S extends Configuration> extends
-            Element<C, S> {
+        Element<C, S> {
 
         // Factory method.
         private static final <C extends ConfigurationClient, S extends Configuration> SingletonElement<C, S> create(
-                SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
+            SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             return new SingletonElement<C, S>(r, d);
         }
 
@@ -387,7 +388,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
 
         // Private constructor.
         private SingletonElement(SingletonRelationDefinition<? super C, ? super S> r,
-                AbstractManagedObjectDefinition<C, S> d) {
+            AbstractManagedObjectDefinition<C, S> d) {
             super(d);
             this.r = r;
         }
@@ -426,8 +427,8 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
          * {@inheritDoc}
          */
         public <M extends ConfigurationClient, N extends Configuration> void appendManagedObjectPathElement(
-                InstantiableRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d,
-                String name) {
+            InstantiableRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d,
+            String name) {
             serializeElement(r, d);
 
             // Be careful to escape any forward slashes in the name.
@@ -439,7 +440,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
          * {@inheritDoc}
          */
         public <M extends ConfigurationClient, N extends Configuration> void appendManagedObjectPathElement(
-                OptionalRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
+            OptionalRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
             serializeElement(r, d);
         }
 
@@ -447,7 +448,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
          * {@inheritDoc}
          */
         public <M extends ConfigurationClient, N extends Configuration> void appendManagedObjectPathElement(
-                SingletonRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
+            SingletonRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
             serializeElement(r, d);
         }
 
@@ -455,7 +456,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
          * {@inheritDoc}
          */
         public <M extends ConfigurationClient, N extends Configuration> void appendManagedObjectPathElement(
-                SetRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
+            SetRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
             serializeElement(r, d);
         }
 
@@ -475,12 +476,13 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
     }
 
     // Single instance of a root path.
-    private static final ManagedObjectPath<RootCfgClient, RootCfg> EMPTY_PATH = new ManagedObjectPath<RootCfgClient, RootCfg>(
-            new LinkedList<Element<?, ?>>(), null, RootCfgDefn.getInstance());
+    private static final ManagedObjectPath<RootCfgClient, RootCfg> EMPTY_PATH =
+        new ManagedObjectPath<RootCfgClient, RootCfg>(new LinkedList<Element<?, ?>>(), null,
+            RootCfgDefn.getInstance());
 
     // A regular expression used to parse path elements.
     private static final Pattern PE_REGEXP = Pattern.compile("^\\s*relation=\\s*([^+]+)\\s*"
-            + "(\\+\\s*type=\\s*([^+]+)\\s*)?" + "(\\+\\s*name=\\s*([^+]+)\\s*)?$");
+        + "(\\+\\s*type=\\s*([^+]+)\\s*)?" + "(\\+\\s*name=\\s*([^+]+)\\s*)?$");
 
     /**
      * Creates a new managed object path representing the configuration root.
@@ -502,7 +504,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      * @throws IllegalArgumentException
      *             If the string could not be parsed.
      */
-    public static ManagedObjectPath<?, ?> valueOf(String s) throws IllegalArgumentException {
+    public static ManagedObjectPath<?, ?> valueOf(String s) {
         String ns = s.trim();
 
         // Check for root special case.
@@ -528,7 +530,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
                 if (c == '/') {
                     if (end == (ns.length() - 1)) {
                         throw new IllegalArgumentException("Invalid path \"" + ns
-                                + "\": must not end with a trailing \"/\"");
+                            + "\": must not end with a trailing \"/\"");
                     }
 
                     if (ns.charAt(end + 1) == '/') {
@@ -564,7 +566,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
                 r = definition.getRelationDefinition(relation);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Invalid path element \"" + es + "\" in path \"" + ns
-                        + "\": unknown relation \"" + relation + "\"");
+                    + "\": unknown relation \"" + relation + "\"");
             }
 
             // Append the next element.
@@ -589,20 +591,21 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
     // Factory method required in order to allow generic wild-card
     // construction of new paths.
     private static <C extends ConfigurationClient, S extends Configuration> ManagedObjectPath<C, S> create(
-            LinkedList<Element<?, ?>> elements, Element<C, S> lastElement) {
+        LinkedList<Element<?, ?>> elements, Element<C, S> lastElement) {
         return new ManagedObjectPath<C, S>(elements, lastElement.getRelationDefinition(),
-                lastElement.getManagedObjectDefinition());
+            lastElement.getManagedObjectDefinition());
     }
 
     // Decode an element.
+    // @Checkstyle:ignore
     private static <C extends ConfigurationClient, S extends Configuration> Element<? extends C, ? extends S> createElement(
-            RelationDefinition<C, S> r, String path, String element, String type, String name) {
+        RelationDefinition<C, S> r, String path, String element, String type, String name) {
         // First determine the managed object definition.
         AbstractManagedObjectDefinition<? extends C, ? extends S> d = null;
 
         if (type != null) {
             for (AbstractManagedObjectDefinition<? extends C, ? extends S> child : r.getChildDefinition()
-                    .getAllChildren()) {
+                .getAllChildren()) {
                 if (child.getName().equals(type)) {
                     d = child;
                     break;
@@ -611,7 +614,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
 
             if (d == null) {
                 throw new IllegalArgumentException("Invalid path element \"" + element + "\" in path \"" + path
-                        + "\": unknown sub-type \"" + type + "\"");
+                    + "\": unknown sub-type \"" + type + "\"");
             }
         } else {
             d = r.getChildDefinition();
@@ -622,7 +625,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
 
             if (name == null) {
                 throw new IllegalArgumentException("Invalid path element \"" + element + "\" in path \"" + path
-                        + "\": no instance name for instantiable relation");
+                    + "\": no instance name for instantiable relation");
             }
 
             return InstantiableElement.create(ir, d, name);
@@ -631,7 +634,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
 
             if (name != null) {
                 throw new IllegalArgumentException("Invalid path element \"" + element + "\" in path \"" + path
-                        + "\": instance name specified for set relation");
+                    + "\": instance name specified for set relation");
             }
 
             return SetElement.create(ir, d);
@@ -640,7 +643,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
 
             if (name != null) {
                 throw new IllegalArgumentException("Invalid path element \"" + element + "\" in path \"" + path
-                        + "\": instance name specified for optional relation");
+                    + "\": instance name specified for optional relation");
             }
 
             return OptionalElement.create(or, d);
@@ -649,13 +652,13 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
 
             if (name != null) {
                 throw new IllegalArgumentException("Invalid path element \"" + element + "\" in path \"" + path
-                        + "\": instance name specified for singleton relation");
+                    + "\": instance name specified for singleton relation");
             }
 
             return SingletonElement.create(sr, d);
         } else {
             throw new IllegalArgumentException("Invalid path element \"" + element + "\" in path \"" + path
-                    + "\": unsupported relation type");
+                + "\": unsupported relation type");
         }
     }
 
@@ -670,7 +673,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
 
     // Private constructor.
     private ManagedObjectPath(LinkedList<Element<?, ?>> elements, RelationDefinition<? super C, ? super S> r,
-            AbstractManagedObjectDefinition<C, S> d) {
+        AbstractManagedObjectDefinition<C, S> d) {
         this.elements = Collections.unmodifiableList(elements);
         this.r = r;
         this.d = d;
@@ -681,10 +684,10 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      * path except that the final path element is associated with the specified
      * managed object definition.
      *
-     * @param <CC>
+     * @param <C1>
      *            The type of client managed object configuration that this path
      *            will reference.
-     * @param <SS>
+     * @param <S1>
      *            The type of server managed object configuration that this path
      *            will reference.
      * @param nd
@@ -693,10 +696,11 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *         this path except that the final path element is associated with
      *         the specified managed object definition.
      */
-    @SuppressWarnings("unchecked")
-    public <CC extends C, SS extends S> ManagedObjectPath<CC, SS> asSubType(AbstractManagedObjectDefinition<CC, SS> nd) {
+    // @Checkstyle:ignore
+    public <C1 extends C, S1 extends S> ManagedObjectPath<C1, S1> asSubType(AbstractManagedObjectDefinition<C1, S1> nd) {
         if (r instanceof InstantiableRelationDefinition) {
-            InstantiableRelationDefinition<? super C, ? super S> ir = (InstantiableRelationDefinition<? super C, ? super S>) r;
+            InstantiableRelationDefinition<? super C, ? super S> ir =
+                (InstantiableRelationDefinition<? super C, ? super S>) r;
             if (elements.size() == 0) {
                 return parent().child(ir, nd, "null");
             } else {
@@ -706,10 +710,12 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             SetRelationDefinition<? super C, ? super S> sr = (SetRelationDefinition<? super C, ? super S>) r;
             return parent().child(sr, nd);
         } else if (r instanceof OptionalRelationDefinition) {
-            OptionalRelationDefinition<? super C, ? super S> or = (OptionalRelationDefinition<? super C, ? super S>) r;
+            OptionalRelationDefinition<? super C, ? super S> or =
+                (OptionalRelationDefinition<? super C, ? super S>) r;
             return parent().child(or, nd);
         } else {
-            SingletonRelationDefinition<? super C, ? super S> sr = (SingletonRelationDefinition<? super C, ? super S>) r;
+            SingletonRelationDefinition<? super C, ? super S> sr =
+                (SingletonRelationDefinition<? super C, ? super S>) r;
             return parent().child(sr, nd);
         }
     }
@@ -737,8 +743,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *             If the provided name is empty or blank.
      */
     public <M extends ConfigurationClient, N extends Configuration> ManagedObjectPath<M, N> child(
-            InstantiableRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d, String name)
-            throws IllegalArgumentException {
+        InstantiableRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d, String name) {
         if (name.trim().length() == 0) {
             throw new IllegalArgumentException("Empty or blank managed object names are not allowed");
         }
@@ -767,7 +772,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *             If the provided name is empty or blank.
      */
     public <M extends ConfigurationClient, N extends Configuration> ManagedObjectPath<M, N> child(
-            InstantiableRelationDefinition<M, N> r, String name) throws IllegalArgumentException {
+        InstantiableRelationDefinition<M, N> r, String name) {
         return child(r, r.getChildDefinition(), name);
     }
 
@@ -790,7 +795,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *         parent path.
      */
     public <M extends ConfigurationClient, N extends Configuration> ManagedObjectPath<M, N> child(
-            OptionalRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
+        OptionalRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
         LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(elements);
         celements.add(new OptionalElement<M, N>(r, d));
         return new ManagedObjectPath<M, N>(celements, r, d);
@@ -812,7 +817,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *         parent path.
      */
     public <M extends ConfigurationClient, N extends Configuration> ManagedObjectPath<M, N> child(
-            OptionalRelationDefinition<M, N> r) {
+        OptionalRelationDefinition<M, N> r) {
         return child(r, r.getChildDefinition());
     }
 
@@ -835,7 +840,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *         parent path.
      */
     public <M extends ConfigurationClient, N extends Configuration> ManagedObjectPath<M, N> child(
-            SingletonRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
+        SingletonRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
         LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(elements);
         celements.add(new SingletonElement<M, N>(r, d));
         return new ManagedObjectPath<M, N>(celements, r, d);
@@ -857,7 +862,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *         parent path.
      */
     public <M extends ConfigurationClient, N extends Configuration> ManagedObjectPath<M, N> child(
-            SingletonRelationDefinition<M, N> r) {
+        SingletonRelationDefinition<M, N> r) {
         return child(r, r.getChildDefinition());
     }
 
@@ -882,8 +887,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *             If the provided name is empty or blank.
      */
     public <M extends ConfigurationClient, N extends Configuration> ManagedObjectPath<M, N> child(
-            SetRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d)
-            throws IllegalArgumentException {
+        SetRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
         LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(elements);
         celements.add(new SetElement<M, N>(r, d));
         return new ManagedObjectPath<M, N>(celements, r, d);
@@ -912,7 +916,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *             child definition.
      */
     public <M extends ConfigurationClient, N extends Configuration> ManagedObjectPath<? extends M, ? extends N> child(
-            SetRelationDefinition<M, N> r, String name) throws IllegalArgumentException {
+        SetRelationDefinition<M, N> r, String name) {
         AbstractManagedObjectDefinition<M, N> d = r.getChildDefinition();
         return child(r, d.getChild(name));
     }
@@ -935,7 +939,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *             If the provided name is empty or blank.
      */
     public <M extends ConfigurationClient, N extends Configuration> ManagedObjectPath<M, N> child(
-            SetRelationDefinition<M, N> r) throws IllegalArgumentException {
+        SetRelationDefinition<M, N> r) {
         return child(r, r.getChildDefinition());
     }
 
@@ -1044,7 +1048,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *             If this path does not have a parent (i.e. it is the empty
      *             path).
      */
-    public ManagedObjectPath<?, ?> parent() throws IllegalArgumentException {
+    public ManagedObjectPath<?, ?> parent() {
         return parent(1);
     }
 
@@ -1061,7 +1065,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *             If the offset is less than 0, or greater than the number of
      *             path elements in this path.
      */
-    public ManagedObjectPath<?, ?> parent(int offset) throws IllegalArgumentException {
+    public ManagedObjectPath<?, ?> parent(int offset) {
         if (offset < 0) {
             throw new IllegalArgumentException("Negative offset");
         }
@@ -1080,8 +1084,8 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             return emptyPath();
         }
 
-        LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(elements.subList(0, elements.size()
-                - offset));
+        LinkedList<Element<?, ?>> celements =
+            new LinkedList<Element<?, ?>>(elements.subList(0, elements.size() - offset));
         return create(celements, celements.getLast());
     }
 
@@ -1098,14 +1102,14 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
      *             If this managed object path is empty or if its final path
      *             element does not comprise of an instantiable relation.
      */
-    @SuppressWarnings("unchecked")
-    public ManagedObjectPath<C, S> rename(String newName) throws IllegalStateException {
+    public ManagedObjectPath<C, S> rename(String newName) {
         if (elements.size() == 0) {
             throw new IllegalStateException("Cannot rename an empty path");
         }
 
         if (r instanceof InstantiableRelationDefinition) {
-            InstantiableRelationDefinition<? super C, ? super S> ir = (InstantiableRelationDefinition<? super C, ? super S>) r;
+            InstantiableRelationDefinition<? super C, ? super S> ir =
+                (InstantiableRelationDefinition<? super C, ? super S>) r;
             return parent().child(ir, d, newName);
         } else {
             throw new IllegalStateException("Not an instantiable relation");

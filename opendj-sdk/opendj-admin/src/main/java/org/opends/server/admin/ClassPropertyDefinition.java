@@ -52,7 +52,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
     /**
      * An interface for incrementally constructing class property definitions.
      */
-    public static class Builder extends AbstractBuilder<String, ClassPropertyDefinition> {
+    public static final class Builder extends AbstractBuilder<String, ClassPropertyDefinition> {
 
         // List of interfaces which property values must implement.
         private List<String> instanceOfInterfaces;
@@ -107,10 +107,10 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
          */
         @Override
         protected ClassPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-                EnumSet<PropertyOption> options, AdministratorAction adminAction,
-                DefaultBehaviorProvider<String> defaultBehavior) {
+            EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<String> defaultBehavior) {
             return new ClassPropertyDefinition(d, propertyName, options, adminAction, defaultBehavior,
-                    instanceOfInterfaces);
+                instanceOfInterfaces);
         }
 
     }
@@ -165,10 +165,8 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
     }
 
     // Load a named class.
-    private static Class<?> loadClass(String className, boolean initialize)
-            throws ClassNotFoundException, LinkageError {
-        return Class.forName(className, initialize, ClassLoaderProvider.getInstance()
-                .getClassLoader());
+    private static Class<?> loadClass(String className, boolean initialize) throws ClassNotFoundException {
+        return Class.forName(className, initialize, ClassLoaderProvider.getInstance().getClassLoader());
     }
 
     // List of interfaces which property values must implement.
@@ -176,8 +174,8 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
     // Private constructor.
     private ClassPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction,
-            DefaultBehaviorProvider<String> defaultBehavior, List<String> instanceOfInterfaces) {
+        EnumSet<PropertyOption> options, AdministratorAction adminAction,
+        DefaultBehaviorProvider<String> defaultBehavior, List<String> instanceOfInterfaces) {
         super(d, String.class, propertyName, options, adminAction, defaultBehavior);
 
         this.instanceOfInterfaces = Collections.unmodifiableList(new LinkedList<String>(instanceOfInterfaces));
@@ -203,7 +201,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      * {@inheritDoc}
      */
     @Override
-    public String decodeValue(String value) throws IllegalPropertyValueStringException {
+    public String decodeValue(String value) {
         Reject.ifNull(value);
 
         try {
@@ -245,8 +243,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      *             If the referenced class does not implement the requested
      *             type.
      */
-    public <T> Class<? extends T> loadClass(String className, Class<T> instanceOf)
-            throws IllegalPropertyValueException, ClassCastException {
+    public <T> Class<? extends T> loadClass(String className, Class<T> instanceOf) {
         Reject.ifNull(className, instanceOf);
 
         // Make sure that the named class is valid.
@@ -261,7 +258,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      * {@inheritDoc}
      */
     @Override
-    public String normalizeValue(String value) throws IllegalPropertyValueException {
+    public String normalizeValue(String value) {
         Reject.ifNull(value);
 
         return value.trim();
@@ -271,7 +268,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(String value) throws IllegalPropertyValueException {
+    public void validateValue(String value) {
         Reject.ifNull(value);
 
         // Always make sure the name is a valid class name.
@@ -289,20 +286,18 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
     /*
      * Do some basic checks to make sure the string representation is valid.
      */
-    private void validateClassName(String className) throws IllegalPropertyValueException {
+    private void validateClassName(String className) {
         String nvalue = className.trim();
         if (!nvalue.matches(CLASS_RE)) {
             throw new IllegalPropertyValueException(this, className);
         }
     }
 
-
     /*
      * Make sure that named class implements the interfaces named by this
      * definition.
      */
-    private Class<?> validateClassInterfaces(String className, boolean initialize)
-            throws IllegalPropertyValueException {
+    private Class<?> validateClassInterfaces(String className, boolean initialize) {
         Class<?> theClass = loadClassForValidation(className, className, initialize);
         for (String i : instanceOfInterfaces) {
             Class<?> instanceOfClass = loadClassForValidation(className, i, initialize);
@@ -313,8 +308,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         return theClass;
     }
 
-    private Class<?> loadClassForValidation(String componentClassName, String classToBeLoaded,
-            boolean initialize) {
+    private Class<?> loadClassForValidation(String componentClassName, String classToBeLoaded, boolean initialize) {
         try {
             return loadClass(classToBeLoaded.trim(), initialize);
         } catch (ClassNotFoundException e) {

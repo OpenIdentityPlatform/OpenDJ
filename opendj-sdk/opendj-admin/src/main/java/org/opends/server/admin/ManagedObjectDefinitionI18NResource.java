@@ -43,7 +43,7 @@ public final class ManagedObjectDefinitionI18NResource {
 
     // Application-wide set of instances.
     private static final Map<String, ManagedObjectDefinitionI18NResource> INSTANCES =
-            new HashMap<String, ManagedObjectDefinitionI18NResource>();
+        new HashMap<String, ManagedObjectDefinitionI18NResource>();
 
     /**
      * Gets the internationalized resource instance which can be used to
@@ -107,8 +107,7 @@ public final class ManagedObjectDefinitionI18NResource {
      *             If the provided managed object definition was the
      *             {@link TopCfgDefn}.
      */
-    public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d, String key)
-            throws MissingResourceException, UnsupportedOperationException {
+    public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d, String key) {
         return getMessage(d, key, Locale.getDefault(), (String[]) null);
     }
 
@@ -130,8 +129,7 @@ public final class ManagedObjectDefinitionI18NResource {
      *             If the provided managed object definition was the
      *             {@link TopCfgDefn}.
      */
-    public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d, String key, Locale locale)
-            throws MissingResourceException, UnsupportedOperationException {
+    public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d, String key, Locale locale) {
         return getMessage(d, key, locale, (String[]) null);
     }
 
@@ -156,7 +154,7 @@ public final class ManagedObjectDefinitionI18NResource {
      *             {@link TopCfgDefn}.
      */
     public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d, String key, Locale locale,
-            String... args) throws MissingResourceException, UnsupportedOperationException {
+        String... args) {
         ResourceBundle resource = getResourceBundle(d, locale);
 
         // TODO: use message framework directly
@@ -185,8 +183,7 @@ public final class ManagedObjectDefinitionI18NResource {
      *             If the provided managed object definition was the
      *             {@link TopCfgDefn}.
      */
-    public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d, String key, String... args)
-            throws MissingResourceException, UnsupportedOperationException {
+    public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d, String key, String... args) {
         return getMessage(d, key, Locale.getDefault(), args);
     }
 
@@ -250,7 +247,7 @@ public final class ManagedObjectDefinitionI18NResource {
      *            The resource bundle to be used.
      */
     synchronized void setResourceBundle(AbstractManagedObjectDefinition<?, ?> d, Locale locale,
-            ResourceBundle resoureBundle) {
+        ResourceBundle resoureBundle) {
         // First get the locale-resource mapping, creating it if
         // necessary.
         Map<Locale, ResourceBundle> map = resources.get(d);
@@ -265,11 +262,10 @@ public final class ManagedObjectDefinitionI18NResource {
 
     // Retrieve the resource bundle associated with a managed object and
     // locale, lazily loading it if necessary.
-    private synchronized ResourceBundle getResourceBundle(AbstractManagedObjectDefinition<?, ?> d, Locale locale)
-            throws MissingResourceException, UnsupportedOperationException {
+    private synchronized ResourceBundle getResourceBundle(AbstractManagedObjectDefinition<?, ?> d, Locale locale) {
         if (d.isTop()) {
             throw new UnsupportedOperationException("I18n resources are not available for the "
-                    + "Top configuration definition");
+                + "Top configuration definition");
         }
 
         // First get the locale-resource mapping, creating it if
@@ -285,8 +281,8 @@ public final class ManagedObjectDefinitionI18NResource {
         ResourceBundle resourceBundle = map.get(locale);
         if (resourceBundle == null) {
             String baseName = prefix + "." + d.getClass().getName();
-            resourceBundle = ResourceBundle.getBundle(baseName, locale, ClassLoaderProvider.getInstance()
-                    .getClassLoader());
+            resourceBundle =
+                ResourceBundle.getBundle(baseName, locale, ClassLoaderProvider.getInstance().getClassLoader());
             map.put(locale, resourceBundle);
         }
 

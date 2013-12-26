@@ -102,7 +102,7 @@ public class SizeUnitTest extends ConfigTestCase {
             { "1" },
             { "1x" },
             { "1.1y" }
-         };
+        };
     }
 
 
@@ -120,7 +120,7 @@ public class SizeUnitTest extends ConfigTestCase {
             { "1.0", 1000L },
             { "1000", 1000000L },
             { "1MB", 1000000L }
-         };
+        };
     }
 
     @Test(dataProvider = "valuesToKiloBytes")
@@ -140,7 +140,7 @@ public class SizeUnitTest extends ConfigTestCase {
             { "-1b" },
             { "1x" },
             { "1.1y" }
-    };
+        };
     }
 
     @Test(dataProvider = "parseValueIllegalDataKB", expectedExceptions = NumberFormatException.class)

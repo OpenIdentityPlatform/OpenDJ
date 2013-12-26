@@ -42,7 +42,7 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
      * An interface for incrementally constructing attribute type property
      * definitions.
      */
-    public static class Builder extends AbstractBuilder<AttributeType, AttributeTypePropertyDefinition> {
+    public static final class Builder extends AbstractBuilder<AttributeType, AttributeTypePropertyDefinition> {
 
         // Private constructor
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
@@ -54,8 +54,8 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
          */
         @Override
         protected AttributeTypePropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
-                String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
-                DefaultBehaviorProvider<AttributeType> defaultBehavior) {
+            String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<AttributeType> defaultBehavior) {
             return new AttributeTypePropertyDefinition(d, propertyName, options, adminAction, defaultBehavior);
         }
     }
@@ -105,8 +105,8 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
 
     // Private constructor.
     private AttributeTypePropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction,
-            DefaultBehaviorProvider<AttributeType> defaultBehavior) {
+        EnumSet<PropertyOption> options, AdministratorAction adminAction,
+        DefaultBehaviorProvider<AttributeType> defaultBehavior) {
         super(d, AttributeType.class, propertyName, options, adminAction, defaultBehavior);
     }
 
@@ -138,7 +138,7 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
      * {@inheritDoc}
      */
     @Override
-    public AttributeType decodeValue(String value) throws IllegalPropertyValueStringException {
+    public AttributeType decodeValue(String value) {
         Reject.ifNull(value);
 
         String name = value.trim().toLowerCase();
@@ -160,7 +160,7 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
      * {@inheritDoc}
      */
     @Override
-    public String encodeValue(AttributeType value) throws IllegalPropertyValueException {
+    public String encodeValue(AttributeType value) {
         return value.getNameOrOID();
     }
 
@@ -168,7 +168,7 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(AttributeType value) throws IllegalPropertyValueException {
+    public void validateValue(AttributeType value) {
         Reject.ifNull(value);
 
         // No implementation required.

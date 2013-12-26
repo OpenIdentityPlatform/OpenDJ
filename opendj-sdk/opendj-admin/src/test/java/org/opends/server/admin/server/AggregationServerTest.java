@@ -219,6 +219,7 @@ public final class AggregationServerTest extends AdminTestCase {
         "ds-cfg-enabled: true",
         "ds-cfg-listen-address: 0.0.0.0", "ds-cfg-listen-port: 389");
 
+    // @Checkstyle:off
     /**
      * The default test child configuration "aggregation-property" property
      * definition.
@@ -235,6 +236,7 @@ public final class AggregationServerTest extends AdminTestCase {
     /** An aggregation where the target must be enabled. */
     private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg>
         aggregationPropertyDefinitionTargetMustBeEnabled = null;
+    // @Checkstyle:on
 
     @BeforeClass
     public void setUp() throws Exception {
@@ -510,8 +512,10 @@ public final class AggregationServerTest extends AdminTestCase {
             TestParentCfg parentCfg = getParentCfg(entryName(TEST_PARENT_1), context);
             parentCfg.addTestChildDeleteListener(deleteListener);
 
-            ArgumentCaptor<ConfigDeleteListener> registeredListener = ArgumentCaptor.forClass(ConfigDeleteListener.class);
-            verify(configRepository).registerDeleteListener(eq(TEST_BASE_CHILD.getName()), registeredListener.capture());
+            ArgumentCaptor<ConfigDeleteListener> registeredListener =
+                ArgumentCaptor.forClass(ConfigDeleteListener.class);
+            verify(configRepository).registerDeleteListener(eq(TEST_BASE_CHILD.getName()),
+                registeredListener.capture());
 
             // Now simulate the delete ofthe referenced connection handler.
             assertThat(registeredListener.getValue().
@@ -545,13 +549,14 @@ public final class AggregationServerTest extends AdminTestCase {
             TestChildCfg testChildCfg = parentCfg.getTestChild(entryName(TEST_CHILD_7));
             testChildCfg.addChangeListener(changeListener);
 
-            ArgumentCaptor<ConfigChangeListener> registeredListener = ArgumentCaptor.forClass(ConfigChangeListener.class);
+            ArgumentCaptor<ConfigChangeListener> registeredListener =
+                ArgumentCaptor.forClass(ConfigChangeListener.class);
             verify(configRepository).registerChangeListener(eq(TEST_CHILD_7.getName()), registeredListener.capture());
 
             // Now simulate the disabling ofthe referenced connection handler.
             assertThat(registeredListener.getValue().
-                    configChangeIsAcceptable(TEST_CONNECTION_HANDLER_ENTRY_DISABLED, new LocalizableMessageBuilder())).
-                    isFalse();
+                configChangeIsAcceptable(TEST_CONNECTION_HANDLER_ENTRY_DISABLED, new LocalizableMessageBuilder())).
+                isFalse();
 
         } finally {
             putBackDefaultAggregationDefinitionFromTargetEnabled();

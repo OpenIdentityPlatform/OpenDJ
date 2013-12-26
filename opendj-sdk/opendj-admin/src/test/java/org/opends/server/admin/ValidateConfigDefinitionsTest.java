@@ -64,7 +64,7 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
     Object[][] enumerateManageObjectDefns() throws Exception {
         TopCfgDefn topCfgDefn = TopCfgDefn.getInstance();
         List<AbstractManagedObjectDefinition<?, ?>> allCfgDefns =
-                new ArrayList<AbstractManagedObjectDefinition<?, ?>>(topCfgDefn.getAllChildren());
+            new ArrayList<AbstractManagedObjectDefinition<?, ?>>(topCfgDefn.getAllChildren());
 
         Object[][] params = new Object[allCfgDefns.size()][];
         for (int i = 0; i < params.length; i++) {
@@ -76,9 +76,9 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
 
     // Exceptions to config objects having a different objectclass
     private static final List<String> CLASS_OBJECT_CLASS_EXCEPTIONS = Arrays.asList(new String[] {
-            "org.opends.server.admin.std.meta.RootCfgDefn", "org.opends.server.admin.std.meta.GlobalCfgDefn", });
+        "org.opends.server.admin.std.meta.RootCfgDefn", "org.opends.server.admin.std.meta.GlobalCfgDefn", });
 
-    // TODO : does not work because can retrieve object class objects
+    // TODO : does not work because can't retrieve object class objects
     @Test(enabled = false, dataProvider = "enumerateManageObjectDefns")
     public void validateConfigObjectDefinitions(AbstractManagedObjectDefinition<?, ?> objectDef) {
         String objName = objectDef.getName();
@@ -92,15 +92,14 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
         } else {
             String expectedObjectClass = "ds-cfg-" + objName;
             if (!ldapObjectclassName.equals(expectedObjectClass)
-                    && !CLASS_OBJECT_CLASS_EXCEPTIONS.contains(objectDef.getClass().getName())) {
+                && !CLASS_OBJECT_CLASS_EXCEPTIONS.contains(objectDef.getClass().getName())) {
                 errors.append(
-                        "For config object " + objName + ", the LDAP objectclass must be " + expectedObjectClass
-                                + " instead of " + ldapObjectclassName).append(EOL + EOL);
+                    "For config object " + objName + ", the LDAP objectclass must be " + expectedObjectClass
+                        + " instead of " + ldapObjectclassName).append(EOL + EOL);
             }
         }
-        ObjectClass configObjectClass = Schema.getDefaultSchema().asNonStrictSchema().
-                getObjectClass(ldapObjectclassName.toLowerCase());
-        ;
+        ObjectClass configObjectClass =
+            Schema.getDefaultSchema().asNonStrictSchema().getObjectClass(ldapObjectclassName.toLowerCase());
 
         for (PropertyDefinition<?> propDef : allPropertyDefs) {
             validatePropertyDefinition(objectDef, configObjectClass, propDef, errors);
@@ -108,60 +107,60 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
 
         if (errors.length() > 0) {
             Assert.fail("The configuration definition for " + objectDef.getName() + " has the following problems: "
-                    + EOL + errors.toString());
+                + EOL + errors.toString());
         }
     }
 
     // Exceptions to properties ending in -class being exactly 'java-class'.
     private static final List<String> CLASS_PROPERTY_EXCEPTIONS = Arrays.asList(new String[] {
     // e.g. "prop-name-ending-with-class"
-            });
+    });
 
     // Exceptions to properties ending in -enabled being exactly 'enabled'.
     private static final List<String> ENABLED_PROPERTY_EXCEPTIONS = Arrays.asList(new String[] {
-            "index-filter-analyzer-enabled", "subordinate-indexes-enabled"
+        "index-filter-analyzer-enabled", "subordinate-indexes-enabled"
     // e.g. "prop-name-ending-with-enabled"
-            });
+    });
 
     // Exceptions to properties not starting with the name of their config
     // object
     private static final List<String> OBJECT_PREFIX_PROPERTY_EXCEPTIONS = Arrays.asList(new String[] { "backend-id",
-            "plugin-type", "replication-server-id", "network-group-id", "workflow-id", "workflow-element-id",
-            "workflow-element"
+        "plugin-type", "replication-server-id", "network-group-id", "workflow-id", "workflow-element-id",
+        "workflow-element"
     // e.g. "prop-name-starting-with-object-prefix"
-            });
+    });
 
     private void validatePropertyDefinition(AbstractManagedObjectDefinition<?, ?> objectDef,
-            ObjectClass configObjectClass, PropertyDefinition<?> propDef, StringBuilder errors) {
+        ObjectClass configObjectClass, PropertyDefinition<?> propDef, StringBuilder errors) {
         String objName = objectDef.getName();
         String propName = propDef.getName();
 
         // We want class properties to be exactly java-class
         if (propName.endsWith("-class") && !propName.equals("java-class")
-                && !CLASS_PROPERTY_EXCEPTIONS.contains(propName)) {
+            && !CLASS_PROPERTY_EXCEPTIONS.contains(propName)) {
             errors.append("The " + propName + " property on config object " + objName
-                    + " should probably be java-class.  If not, then add " + propName
-                    + " to the CLASS_PROPERTY_EXCEPTIONS array in " + ValidateConfigDefinitionsTest.class.getName()
-                    + " to suppress" + " this warning.");
+                + " should probably be java-class.  If not, then add " + propName
+                + " to the CLASS_PROPERTY_EXCEPTIONS array in " + ValidateConfigDefinitionsTest.class.getName()
+                + " to suppress" + " this warning.");
         }
 
         // We want enabled properties to be exactly enabled
         if (propName.endsWith("-enabled") && !ENABLED_PROPERTY_EXCEPTIONS.contains(propName)) {
             errors.append("The " + propName + " property on config object " + objName
-                    + " should probably be just 'enabled'.  If not, then add " + propName
-                    + " to the ENABLED_PROPERTY_EXCEPTIONS array in " + ValidateConfigDefinitionsTest.class.getName()
-                    + " to suppress" + " this warning.");
+                + " should probably be just 'enabled'.  If not, then add " + propName
+                + " to the ENABLED_PROPERTY_EXCEPTIONS array in " + ValidateConfigDefinitionsTest.class.getName()
+                + " to suppress" + " this warning.");
         }
 
         // It's redundant for properties to be prefixed with the name of their
         // objecty
         if (propName.startsWith(objName) && !propName.equals(objName)
-                && !OBJECT_PREFIX_PROPERTY_EXCEPTIONS.contains(propName)) {
+            && !OBJECT_PREFIX_PROPERTY_EXCEPTIONS.contains(propName)) {
             errors.append("The " + propName + " property on config object " + objName
-                    + " should not be prefixed with the name of the config object because"
-                    + " this is redundant.  If you disagree, then add " + propName
-                    + " to the OBJECT_PREFIX_PROPERTY_EXCEPTIONS array in "
-                    + ValidateConfigDefinitionsTest.class.getName() + " to suppress" + " this warning.");
+                + " should not be prefixed with the name of the config object because"
+                + " this is redundant.  If you disagree, then add " + propName
+                + " to the OBJECT_PREFIX_PROPERTY_EXCEPTIONS array in "
+                + ValidateConfigDefinitionsTest.class.getName() + " to suppress" + " this warning.");
         }
 
         LDAPProfile ldapProfile = LDAPProfile.getInstance();
@@ -171,8 +170,8 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
         String expectedLdapAttr = "ds-cfg-" + propName;
         if (!ldapAttrName.equals(expectedLdapAttr)) {
             errors.append(
-                    "For the " + propName + " property on config object " + objName + ", the LDAP attribute must be "
-                            + expectedLdapAttr + " instead of " + ldapAttrName).append(EOL + EOL);
+                "For the " + propName + " property on config object " + objName + ", the LDAP attribute must be "
+                    + expectedLdapAttr + " instead of " + ldapAttrName).append(EOL + EOL);
         }
 
         Schema schema = Schema.getDefaultSchema();
@@ -181,16 +180,16 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
         // LDAP attribute exists
         if (attrType == null) {
             errors.append(
-                    propName + " property on config object " + objName + " is declared" + " to use ldap attribute "
-                            + ldapAttrName + ", but this attribute is not in the schema ").append(EOL + EOL);
+                propName + " property on config object " + objName + " is declared" + " to use ldap attribute "
+                    + ldapAttrName + ", but this attribute is not in the schema ").append(EOL + EOL);
         } else {
 
             // LDAP attribute is multivalued if the property is multivalued
             if (propDef.hasOption(PropertyOption.MULTI_VALUED) && attrType.isSingleValue()) {
                 errors.append(
-                        propName + " property on config object " + objName + " is declared"
-                                + " as multi-valued, but the corresponding ldap attribute " + ldapAttrName
-                                + " is declared as single-valued.").append(EOL + EOL);
+                    propName + " property on config object " + objName + " is declared"
+                        + " as multi-valued, but the corresponding ldap attribute " + ldapAttrName
+                        + " is declared as single-valued.").append(EOL + EOL);
             }
 
             if (configObjectClass != null) {
@@ -199,19 +198,19 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
                 Set<AttributeType> mandatoryAttributes = configObjectClass.getRequiredAttributes();
                 if (mandatoryAttributes.contains(attrType) && !propDef.hasOption(PropertyOption.MANDATORY)) {
                     errors.append(
-                            propName + " property on config object " + objName + " is not declared"
-                                    + " as mandatory even though the corresponding ldap attribute " + ldapAttrName
-                                    + " is declared as mandatory in the schema.").append(EOL + EOL);
+                        propName + " property on config object " + objName + " is not declared"
+                            + " as mandatory even though the corresponding ldap attribute " + ldapAttrName
+                            + " is declared as mandatory in the schema.").append(EOL + EOL);
                 }
 
                 Set<AttributeType> allowedAttributes = new HashSet<AttributeType>(mandatoryAttributes);
                 allowedAttributes.addAll(configObjectClass.getOptionalAttributes());
                 if (!allowedAttributes.contains(attrType)) {
                     errors.append(
-                            propName + " property on config object " + objName + " has"
-                                    + " the corresponding ldap attribute " + ldapAttrName
-                                    + ", but this attribute is not an allowed attribute on the configuration "
-                                    + " object's objectclass " + configObjectClass.getNameOrOID()).append(EOL + EOL);
+                        propName + " property on config object " + objName + " has"
+                            + " the corresponding ldap attribute " + ldapAttrName
+                            + ", but this attribute is not an allowed attribute on the configuration "
+                            + " object's objectclass " + configObjectClass.getNameOrOID()).append(EOL + EOL);
                 }
             }
         }

@@ -30,7 +30,6 @@ import java.util.SortedSet;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
@@ -58,7 +57,7 @@ public final class ContainsCondition implements Condition {
         final T value;
 
         // Private constructor.
-        private Impl(PropertyDefinition<T> pd, T value) throws IllegalPropertyValueStringException {
+        private Impl(PropertyDefinition<T> pd, T value) {
             this.pd = pd;
             this.value = value;
         }
@@ -150,7 +149,7 @@ public final class ContainsCondition implements Condition {
     }
 
     // Creates the new private implementation.
-    private <T> void buildImpl(PropertyDefinition<T> pd) throws IllegalPropertyValueStringException {
+    private <T> void buildImpl(PropertyDefinition<T> pd) {
         T value = pd.decodeValue(propertyStringValue);
         this.impl = new Impl<T>(pd, value);
     }

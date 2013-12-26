@@ -23,7 +23,6 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-
 package org.opends.server.admin;
 
 import org.forgerock.util.Reject;
@@ -59,7 +58,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
      * An interface for incrementally constructing memory size property
      * definitions.
      */
-    public static class Builder extends AbstractBuilder<Long, SizePropertyDefinition> {
+    public static final class Builder extends AbstractBuilder<Long, SizePropertyDefinition> {
 
         // The lower limit of the property value in bytes.
         private long lowerLimit = 0L;
@@ -86,7 +85,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
          *             If a negative lower limit was specified, or if the lower
          *             limit is greater than the upper limit.
          */
-        public final void setLowerLimit(long lowerLimit) throws IllegalArgumentException {
+        public final void setLowerLimit(long lowerLimit) {
             if (lowerLimit < 0) {
                 throw new IllegalArgumentException("Negative lower limit");
             }
@@ -106,7 +105,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
          *             lower limit was specified, or the lower limit is greater
          *             than the upper limit.
          */
-        public final void setLowerLimit(String lowerLimit) throws IllegalArgumentException {
+        public final void setLowerLimit(String lowerLimit) {
             setLowerLimit(SizeUnit.parseValue(lowerLimit, SizeUnit.BYTES));
         }
 
@@ -119,7 +118,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
          * @throws IllegalArgumentException
          *             If the lower limit is greater than the upper limit.
          */
-        public final void setUpperLimit(Long upperLimit) throws IllegalArgumentException {
+        public final void setUpperLimit(Long upperLimit) {
             if (upperLimit != null) {
                 if (upperLimit < 0) {
                     throw new IllegalArgumentException("Negative upper limit");
@@ -141,7 +140,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
          *             If the upper limit could not be parsed, or if the lower
          *             limit is greater than the upper limit.
          */
-        public final void setUpperLimit(String upperLimit) throws IllegalArgumentException {
+        public final void setUpperLimit(String upperLimit) {
             if (upperLimit == null) {
                 setUpperLimit((Long) null);
             } else {
@@ -166,10 +165,10 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
          */
         @Override
         protected SizePropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-                EnumSet<PropertyOption> options, AdministratorAction adminAction,
-                DefaultBehaviorProvider<Long> defaultBehavior) {
+            EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<Long> defaultBehavior) {
             return new SizePropertyDefinition(d, propertyName, options, adminAction, defaultBehavior, lowerLimit,
-                    upperLimit, allowUnlimited);
+                upperLimit, allowUnlimited);
         }
 
     }
@@ -190,8 +189,8 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
 
     // Private constructor.
     private SizePropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction,
-            DefaultBehaviorProvider<Long> defaultBehavior, Long lowerLimit, Long upperLimit, boolean allowUnlimited) {
+        EnumSet<PropertyOption> options, AdministratorAction adminAction,
+        DefaultBehaviorProvider<Long> defaultBehavior, Long lowerLimit, Long upperLimit, boolean allowUnlimited) {
         super(d, Long.class, propertyName, options, adminAction, defaultBehavior);
         this.lowerLimit = lowerLimit;
         this.upperLimit = upperLimit;
@@ -231,7 +230,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(Long value) throws IllegalPropertyValueException {
+    public void validateValue(Long value) {
         Reject.ifNull(value);
 
         if (!allowUnlimited && value < lowerLimit) {
@@ -251,7 +250,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
      * {@inheritDoc}
      */
     @Override
-    public String encodeValue(Long value) throws IllegalPropertyValueException {
+    public String encodeValue(Long value) {
         Reject.ifNull(value);
 
         // Make sure that we correctly encode negative values as "unlimited".
@@ -277,7 +276,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
      * {@inheritDoc}
      */
     @Override
-    public Long decodeValue(String value) throws IllegalPropertyValueStringException {
+    public Long decodeValue(String value) {
         Reject.ifNull(value);
 
         // First check for the special "unlimited" value when necessary.

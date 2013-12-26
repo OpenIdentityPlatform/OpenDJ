@@ -252,7 +252,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
             { TEST_PARENT_2, TEST_CHILD_BASE_2, TEST_CHILD_4,
               Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com"),
               Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com") }
-            };
+        };
     }
 
     /**

@@ -54,7 +54,6 @@ import org.opends.server.admin.PropertyValueVisitor;
 import org.opends.server.admin.Reference;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
-import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.OperationRejectedException;
@@ -99,9 +98,8 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
          * {@inheritDoc}
          */
         @Override
-        public <PD> Object visitUnknown(PropertyDefinition<PD> pd, PD v, Void p)
-                throws UnknownPropertyDefinitionException {
-            return pd.encodeValue(v);
+        public <P> Object visitUnknown(PropertyDefinition<P> propertyDef, P value, Void p) {
+            return propertyDef.encodeValue(value);
         }
     }
 
@@ -295,18 +293,18 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
     }
 
     // Encode a property into LDAP string values.
-    private <PD> void encodeProperty(Attribute attribute, PropertyDefinition<PD> propertyDef) {
+    private <P> void encodeProperty(Attribute attribute, PropertyDefinition<P> propertyDef) {
         PropertyValueVisitor<Object, Void> visitor = new ValueEncoder();
-        Property<PD> property = getProperty(propertyDef);
+        Property<P> property = getProperty(propertyDef);
         if (propertyDef.hasOption(PropertyOption.MANDATORY)) {
             // For mandatory properties we fall-back to the default values
             // if defined which can sometimes be the case e.g when a
             // mandatory property is overridden.
-            for (PD value : property.getEffectiveValues()) {
+            for (P value : property.getEffectiveValues()) {
                 attribute.add(propertyDef.accept(visitor, value, null));
             }
         } else {
-            for (PD value : property.getPendingValues()) {
+            for (P value : property.getPendingValues()) {
                 attribute.add(propertyDef.accept(visitor, value, null));
             }
         }

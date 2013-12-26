@@ -73,6 +73,6 @@ public interface ConfigurationClient {
      *             If any other error occurs.
      */
     void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
-            ConcurrentModificationException, OperationRejectedException, ErrorResultException;
+        ConcurrentModificationException, OperationRejectedException, ErrorResultException;
 
 }

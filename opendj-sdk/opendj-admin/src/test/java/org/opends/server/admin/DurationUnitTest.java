@@ -30,7 +30,8 @@ import static org.opends.server.admin.DurationUnit.*;
 import static org.testng.Assert.*;
 
 import org.forgerock.opendj.config.ConfigTestCase;
-import org.testng.annotations.*;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class DurationUnitTest extends ConfigTestCase {
@@ -38,18 +39,18 @@ public class DurationUnitTest extends ConfigTestCase {
     @DataProvider(name = "testGetUnitData")
     public Object[][] createStringToSizeLimitData() {
         return new Object[][] {
-                { "ms", MILLI_SECONDS },
-                { "milliseconds", MILLI_SECONDS },
-                { "s", SECONDS },
-                { "seconds", SECONDS },
-                { "m", MINUTES },
-                { "minutes", MINUTES },
-                { "h", HOURS },
-                { "hours", HOURS },
-                { "d", DAYS },
-                { "days", DAYS },
-                { "w", WEEKS },
-                { "weeks", WEEKS } };
+            { "ms", MILLI_SECONDS },
+            { "milliseconds", MILLI_SECONDS },
+            { "s", SECONDS },
+            { "seconds", SECONDS },
+            { "m", MINUTES },
+            { "minutes", MINUTES },
+            { "h", HOURS },
+            { "hours", HOURS },
+            { "d", DAYS },
+            { "days", DAYS },
+            { "w", WEEKS },
+            { "weeks", WEEKS } };
     }
 
     @Test(dataProvider = "testGetUnitData")
@@ -65,15 +66,15 @@ public class DurationUnitTest extends ConfigTestCase {
     @DataProvider(name = "valueToStringData")
     public Object[][] createValueToStringData() {
         return new Object[][] {
-                { 0L, "0 ms" },
-                { 1L, "1 ms" },
-                { 999L, "999 ms" },
-                { 1000L, "1 s" },
-                { 1001L, "1 s 1 ms" },
-                { 59999L, "59 s 999 ms" },
-                { 60000L, "1 m" },
-                { 3599999L, "59 m 59 s 999 ms" },
-                { 3600000L, "1 h" } };
+            { 0L, "0 ms" },
+            { 1L, "1 ms" },
+            { 999L, "999 ms" },
+            { 1000L, "1 s" },
+            { 1001L, "1 s 1 ms" },
+            { 59999L, "59 s 999 ms" },
+            { 60000L, "1 m" },
+            { 3599999L, "59 m 59 s 999 ms" },
+            { 3600000L, "1 h" } };
     }
 
     @Test(dataProvider = "valueToStringData")

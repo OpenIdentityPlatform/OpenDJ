@@ -101,4 +101,10 @@ public final class EmbeddedUtils {
     public static void initializeForClientUse() {
         throw new RuntimeException("not implemented");
     }
+
+    private EmbeddedUtils() {
+        // no implementation required.
+    }
+
+
 }

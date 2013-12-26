@@ -45,7 +45,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
     /**
      * An interface for incrementally constructing string property definitions.
      */
-    public static class Builder extends AbstractBuilder<String, StringPropertyDefinition> {
+    public static final class Builder extends AbstractBuilder<String, StringPropertyDefinition> {
 
         // Flag indicating whether values of this property are
         // case-insensitive.
@@ -91,7 +91,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
          *             If the provided regular expression pattern has an invalid
          *             syntax.
          */
-        public final void setPattern(String pattern, String patternUsage) throws PatternSyntaxException {
+        public final void setPattern(String pattern, String patternUsage) {
             if (pattern == null) {
                 this.pattern = null;
                 this.patternUsage = null;
@@ -105,11 +105,11 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
          * {@inheritDoc}
          */
         @Override
-        protected StringPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-                EnumSet<PropertyOption> options, AdministratorAction adminAction,
-                DefaultBehaviorProvider<String> defaultBehavior) {
+        protected StringPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
+            String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<String> defaultBehavior) {
             return new StringPropertyDefinition(d, propertyName, options, adminAction, defaultBehavior,
-                    isCaseInsensitive, pattern, patternUsage);
+                isCaseInsensitive, pattern, patternUsage);
         }
 
     }
@@ -141,9 +141,9 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
 
     // Private constructor.
     private StringPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction,
-            DefaultBehaviorProvider<String> defaultBehavior, boolean isCaseInsensitive, Pattern pattern,
-            String patternUsage) {
+        EnumSet<PropertyOption> options, AdministratorAction adminAction,
+        DefaultBehaviorProvider<String> defaultBehavior, boolean isCaseInsensitive, Pattern pattern,
+        String patternUsage) {
         super(d, String.class, propertyName, options, adminAction, defaultBehavior);
         this.isCaseInsensitive = isCaseInsensitive;
         this.pattern = pattern;
@@ -170,7 +170,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
      * {@inheritDoc}
      */
     @Override
-    public String decodeValue(String value) throws IllegalPropertyValueStringException {
+    public String decodeValue(String value) {
         Reject.ifNull(value);
 
         try {
@@ -255,7 +255,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
      * {@inheritDoc}
      */
     @Override
-    public String normalizeValue(String value) throws IllegalPropertyValueException {
+    public String normalizeValue(String value) {
         Reject.ifNull(value);
 
         if (isCaseInsensitive()) {
@@ -269,7 +269,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(String value) throws IllegalPropertyValueException {
+    public void validateValue(String value) {
         Reject.ifNull(value);
 
         if (pattern != null) {

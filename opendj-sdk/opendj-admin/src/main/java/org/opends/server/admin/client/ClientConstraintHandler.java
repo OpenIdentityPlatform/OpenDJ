@@ -70,15 +70,11 @@ public abstract class ClientConstraintHandler {
      *            A list of messages to which error messages should be added.
      * @return Returns <code>true</code> if this constraint is satisfied, or
      *         <code>false</code> if it is not.
-     * @throws AuthorizationException
-     *             If an authorization failure prevented this constraint from
-     *             being evaluated.
-     * @throws CommunicationException
-     *             If a communications problem prevented this constraint from
-     *             being evaluated.
+     * @throws ErrorResultException
+     *             If an error occurs.
      */
     public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+        Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
         return true;
     }
 
@@ -101,15 +97,11 @@ public abstract class ClientConstraintHandler {
      *            A list of messages to which error messages should be added.
      * @return Returns <code>true</code> if this modify is satisfied, or
      *         <code>false</code> if it is not.
-     * @throws AuthorizationException
-     *             If an authorization failure prevented this constraint from
-     *             being evaluated.
-     * @throws CommunicationException
-     *             If a communications problem prevented this constraint from
-     *             being evaluated.
+      * @throws ErrorResultException
+     *             If an error occurs.
      */
     public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+        Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
         return true;
     }
 
@@ -135,7 +127,7 @@ public abstract class ClientConstraintHandler {
      *             If an error occurs.
      */
     public boolean isDeleteAcceptable(ManagementContext context, ManagedObjectPath<?, ?> path,
-            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+        Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
         return true;
     }
 }

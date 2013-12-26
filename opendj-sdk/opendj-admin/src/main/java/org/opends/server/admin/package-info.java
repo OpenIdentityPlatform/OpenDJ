@@ -24,8 +24,6 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 
-
-
 /**
  * Common administration classes.
  * <p>

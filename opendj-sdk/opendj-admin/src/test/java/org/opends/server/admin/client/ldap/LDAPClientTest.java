@@ -63,107 +63,107 @@ public final class LDAPClientTest extends AdminTestCase {
 
     // Test LDIF.
     private static final String[] TEST_LDIF = new String[] {
-            // Base entries.
-            "dn: cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-branch",
-            "cn: config",
-            "",
-            "dn: cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-branch",
-            "cn: test-parents",
-            "",
-            // Parent 1 - uses default values for
-            // optional-multi-valued-dn-property.
-            "dn: cn=test parent 1,cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-test-parent-dummy",
-            "cn: test parent 1",
-            "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description",
-            "",
-            // Parent 2 - overrides default values for
-            // optional-multi-valued-dn-property.
-            "dn: cn=test parent 2,cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-test-parent-dummy",
-            "cn: test parent 2",
-            "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description",
-            "ds-cfg-base-dn: dc=default value p2v1,dc=com",
-            "ds-cfg-base-dn: dc=default value p2v2,dc=com",
-            "",
-            // Parent 3 - overrides default values for
-            // optional-multi-valued-dn-property.
-            "dn: cn=test parent 3,cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-test-parent-dummy",
-            "cn: test parent 3",
-            "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description",
-            "ds-cfg-base-dn: dc=default value p3v1,dc=com",
-            "ds-cfg-base-dn: dc=default value p3v2,dc=com",
-            "",
-            // Child base entries.
-            "dn:cn=test children,cn=test parent 1,cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-branch",
-            "cn: multiple children",
-            "",
-            "dn:cn=test children,cn=test parent 2,cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-branch",
-            "cn: multiple children",
-            "",
-            // Child 1 inherits defaults for both
-            // optional-multi-valued-dn-property1 and
-            // optional-multi-valued-dn-property2.
-            "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy",
-            "cn: test child 1",
-            "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description",
-            "",
-            // Child 2 inherits defaults for
-            // optional-multi-valued-dn-property2.
-            "dn: cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy",
-            "cn: test child 2",
-            "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description",
-            "ds-cfg-base-dn: dc=default value c2v1,dc=com",
-            "ds-cfg-base-dn: dc=default value c2v2,dc=com",
-            "",
-            // Child 3 overrides defaults for
-            // optional-multi-valued-dn-property1 and
-            // optional-multi-valued-dn-property2.
-            "dn: cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy",
-            "cn: test child 3",
-            "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description",
-            "ds-cfg-base-dn: dc=default value c3v1,dc=com",
-            "ds-cfg-base-dn: dc=default value c3v2,dc=com",
-            "ds-cfg-group-dn: dc=default value c3v3,dc=com",
-            "ds-cfg-group-dn: dc=default value c3v4,dc=com",
-            "",
-            // Child 4 inherits overridden defaults for both
-            // optional-multi-valued-dn-property1 and
-            // optional-multi-valued-dn-property2.
-            "dn: cn=test child 1,cn=test children,cn=test parent 2,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy", "cn: test child 1", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "", };
+        // Base entries.
+        "dn: cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-branch",
+        "cn: config",
+        "",
+        "dn: cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-branch",
+        "cn: test-parents",
+        "",
+        // Parent 1 - uses default values for
+        // optional-multi-valued-dn-property.
+        "dn: cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-parent-dummy",
+        "cn: test parent 1",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "",
+        // Parent 2 - overrides default values for
+        // optional-multi-valued-dn-property.
+        "dn: cn=test parent 2,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-parent-dummy",
+        "cn: test parent 2",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-base-dn: dc=default value p2v1,dc=com",
+        "ds-cfg-base-dn: dc=default value p2v2,dc=com",
+        "",
+        // Parent 3 - overrides default values for
+        // optional-multi-valued-dn-property.
+        "dn: cn=test parent 3,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-parent-dummy",
+        "cn: test parent 3",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-base-dn: dc=default value p3v1,dc=com",
+        "ds-cfg-base-dn: dc=default value p3v2,dc=com",
+        "",
+        // Child base entries.
+        "dn:cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-branch",
+        "cn: multiple children",
+        "",
+        "dn:cn=test children,cn=test parent 2,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-branch",
+        "cn: multiple children",
+        "",
+        // Child 1 inherits defaults for both
+        // optional-multi-valued-dn-property1 and
+        // optional-multi-valued-dn-property2.
+        "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 1",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "",
+        // Child 2 inherits defaults for
+        // optional-multi-valued-dn-property2.
+        "dn: cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 2",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-base-dn: dc=default value c2v1,dc=com",
+        "ds-cfg-base-dn: dc=default value c2v2,dc=com",
+        "",
+        // Child 3 overrides defaults for
+        // optional-multi-valued-dn-property1 and
+        // optional-multi-valued-dn-property2.
+        "dn: cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 3",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-base-dn: dc=default value c3v1,dc=com",
+        "ds-cfg-base-dn: dc=default value c3v2,dc=com",
+        "ds-cfg-group-dn: dc=default value c3v3,dc=com",
+        "ds-cfg-group-dn: dc=default value c3v4,dc=com",
+        "",
+        // Child 4 inherits overridden defaults for both
+        // optional-multi-valued-dn-property1 and
+        // optional-multi-valued-dn-property2.
+        "dn: cn=test child 1,cn=test children,cn=test parent 2,cn=test parents,cn=config", "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy", "cn: test child 1", "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description", "", };
 
     /**
      * Provide valid naming exception to client API exception mappings.
@@ -178,7 +178,7 @@ public final class LDAPClientTest extends AdminTestCase {
             { ResultCode.UNAVAILABLE , ErrorResultException.class, ResultCode.UNAVAILABLE },
             { ResultCode.ENTRY_ALREADY_EXISTS, ManagedObjectAlreadyExistsException.class, null },
             { ResultCode.INSUFFICIENT_ACCESS_RIGHTS, ErrorResultException.class,
-                    ResultCode.INSUFFICIENT_ACCESS_RIGHTS },
+              ResultCode.INSUFFICIENT_ACCESS_RIGHTS },
             { ResultCode.UNWILLING_TO_PERFORM, OperationRejectedException.class, null }
         };
     }
@@ -196,9 +196,9 @@ public final class LDAPClientTest extends AdminTestCase {
             { ResultCode.UNAVAILABLE, ErrorResultException.class, ResultCode.UNAVAILABLE },
             { ResultCode.NO_SUCH_OBJECT, ManagedObjectNotFoundException.class, null },
             { ResultCode.INSUFFICIENT_ACCESS_RIGHTS, ErrorResultException.class,
-                ResultCode.INSUFFICIENT_ACCESS_RIGHTS },
+              ResultCode.INSUFFICIENT_ACCESS_RIGHTS },
             { ResultCode.UNWILLING_TO_PERFORM, ErrorResultException.class,
-                ResultCode.UNWILLING_TO_PERFORM }
+              ResultCode.UNWILLING_TO_PERFORM }
         };
     }
 
@@ -268,8 +268,7 @@ public final class LDAPClientTest extends AdminTestCase {
             if (expectedExceptionClass.equals(ErrorResultException.class)) {
                 assertThat(e).isInstanceOf(ErrorResultException.class);
                 assertThat(((ErrorResultException) e).getResult().getResultCode()).isEqualTo(expectedCode);
-            }
-            else {
+            } else {
                 assertThat(e).isInstanceOf(expectedExceptionClass);
             }
         }
@@ -378,8 +377,7 @@ public final class LDAPClientTest extends AdminTestCase {
             if (expectedExceptionClass.equals(ErrorResultException.class)) {
                 assertThat(e).isInstanceOf(ErrorResultException.class);
                 assertThat(((ErrorResultException) e).getResult().getResultCode()).isEqualTo(expectedCode);
-            }
-            else {
+            } else {
                 assertThat(e).isInstanceOf(expectedExceptionClass);
             }
         }

@@ -23,7 +23,6 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-
 package org.opends.server.admin;
 
 import static com.forgerock.opendj.ldap.AdminMessages.*;

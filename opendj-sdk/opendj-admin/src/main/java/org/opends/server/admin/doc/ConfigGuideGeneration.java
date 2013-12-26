@@ -77,27 +77,31 @@ import org.opends.server.util.EmbeddedUtils;
  * It is based on the Admin Framework Introspection API
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class ConfigGuideGeneration {
+public final class ConfigGuideGeneration {
 
     // Note : still to be done :
     // I18n support. Today all the strings are hardcoded in this file
 
     private final static String ACI_SYNTAX_REL_URL = "/doc/admin-guide/#about-acis";
     private final static String DURATION_SYNTAX_REL_URL = "duration-syntax.html";
-    private final String CSS_FILE = "opendj-config.css";
+    private static final String CSS_FILE = "opendj-config.css";
 
-    private final String MAIN_FILE = "index.html";
-    private final String INHERITANCE_TREE_FILE = "ManagedObjectInheritanceTree.html";
-    private final String RELATION_TREE_FILE = "ManagedObjectRelationTree.html";
-    private final String MO_LIST_FILE = "ManagedObjectList.html";
-    private final String PROPERTIES_INDEX_FILE = "PropertiesIndex.html";
-    private final String WELCOME_FILE = "welcome.html";
-    private final String MAINTOP_FILE = "maintop.html";
-    private final String INDEX_FILE = "index.html";
-    private final String FAVICON = "http://forgerock.org/favicon.ico";
+    private static final String MAIN_FILE = "index.html";
+    private static final String INHERITANCE_TREE_FILE = "ManagedObjectInheritanceTree.html";
+    private static final String RELATION_TREE_FILE = "ManagedObjectRelationTree.html";
+    private static final String MO_LIST_FILE = "ManagedObjectList.html";
+    private static final String PROPERTIES_INDEX_FILE = "PropertiesIndex.html";
+    private static final String WELCOME_FILE = "welcome.html";
+    private static final String MAINTOP_FILE = "maintop.html";
+    private static final String INDEX_FILE = "index.html";
+    private static final String FAVICON = "http://forgerock.org/favicon.ico";
 
     private static final String CONFIG_GUIDE_DIR = "opendj_config_guide";
-    private final String MAIN_FRAME = "mainFrame";
+    private static final String MAIN_FRAME = "mainFrame";
+
+    private ConfigGuideGeneration() {
+        // no implementation required.
+    }
 
     /**
      * Entry point for documentation generation. Properties: GenerationDir - The
@@ -133,19 +137,19 @@ public class ConfigGuideGeneration {
             ldapMapping = true;
         }
 
-        OpenDJWiki = properties.getProperty("OpenDJWiki");
-        if (OpenDJWiki == null) {
+        openDJWiki = properties.getProperty("OpenDJWiki");
+        if (openDJWiki == null) {
             // Default is current wiki
-            OpenDJWiki = "http://wikis.forgerock.org/confluence/display/OPENDJ";
+            openDJWiki = "http://wikis.forgerock.org/confluence/display/OPENDJ";
         }
 
-        OpenDJHome = properties.getProperty("OpenDJHome");
-        if (OpenDJHome == null) {
+        openDJHome = properties.getProperty("OpenDJHome");
+        if (openDJHome == null) {
             // Default is current OpenDJ project home
-            OpenDJHome = "http://opendj.forgerock.org";
+            openDJHome = "http://opendj.forgerock.org";
         }
 
-        aciSyntaxPage = OpenDJHome + ACI_SYNTAX_REL_URL;
+        aciSyntaxPage = openDJHome + ACI_SYNTAX_REL_URL;
         durationSyntaxPage = DURATION_SYNTAX_REL_URL;
 
         ConfigGuideGeneration myGen = new ConfigGuideGeneration();
@@ -252,7 +256,7 @@ public class ConfigGuideGeneration {
      */
 
     private void genManagedObjectInheritanceTree(
-            TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>> list) {
+        TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>> list) {
 
         htmlHeader(DynamicConstants.PRODUCT_NAME + " " + "Configuration Reference - Inheritance View");
         tabMenu(INHERITANCE_TREE_FILE);
@@ -265,7 +269,7 @@ public class ConfigGuideGeneration {
             TreeMap<String, AbstractManagedObjectDefinition> catList = list.get(catName);
             for (AbstractManagedObjectDefinition mo : catList.values()) {
                 if ((relList.get(mo.getName()) != null)
-                        && (relList.get(mo.getName()).hasOption(RelationOption.HIDDEN))) {
+                    && (relList.get(mo.getName()).hasOption(RelationOption.HIDDEN))) {
                     continue;
                 }
                 paragraph(getLink(mo.getUserFriendlyName().toString(), mo.getName() + ".html", MAIN_FRAME));
@@ -313,7 +317,7 @@ public class ConfigGuideGeneration {
         htmlHeader(DynamicConstants.PRODUCT_NAME + " Configuration Reference - Structure View");
         tabMenu(RELATION_TREE_FILE);
         viewHelp("This view represents the structural relationships between "
-                + "components and indicates how certain components can exist only within " + "container components.");
+            + "components and indicates how certain components can exist only within " + "container components.");
         jumpSection();
 
         for (String catName : list.keySet()) {
@@ -338,11 +342,12 @@ public class ConfigGuideGeneration {
             if (rel.hasOption(RelationOption.HIDDEN)) {
                 continue;
             }
-            String linkStr = getLink(childMo.getUserFriendlyName().toString(), childMo.getName() + ".html",
-                    MAIN_FRAME);
+            String linkStr =
+                getLink(childMo.getUserFriendlyName().toString(), childMo.getName() + ".html", MAIN_FRAME);
             String fromStr = "";
             if (!parentMo.getName().equals("")) {
-                fromStr = " (from "
+                fromStr =
+                    " (from "
                         + getLink(parentMo.getUserFriendlyName().toString(), parentMo.getName() + ".html", MAIN_FRAME)
                         + ")";
             }
@@ -430,7 +435,7 @@ public class ConfigGuideGeneration {
         if (!mo.getParent().isTop()) {
             heading3("Parent Component");
             paragraph("The " + mo.getUserFriendlyName() + " component inherits from the "
-                    + getLink(mo.getParent().getUserFriendlyName().toString(), mo.getParent().getName() + ".html"));
+                + getLink(mo.getParent().getUserFriendlyName().toString(), mo.getParent().getName() + ".html"));
         }
 
         // Relations
@@ -510,8 +515,8 @@ public class ConfigGuideGeneration {
 
     private void homeLink() {
         htmlBuff.append("<div style=\"font-size:11px;margin-top:-10px;"
-                + "margin-bottom:-10px; text-align:right\"><a href=\"" + MAIN_FILE
-                + "\" target=\"_top\">Configuration Reference Home</a></div>");
+            + "margin-bottom:-10px; text-align:right\"><a href=\"" + MAIN_FILE
+            + "\" target=\"_top\">Configuration Reference Home</a></div>");
     }
 
     private void generateRelationsSection(AbstractManagedObjectDefinition mo) {
@@ -579,7 +584,7 @@ public class ConfigGuideGeneration {
 
         if (!isCompRelsEmpty) {
             paragraph("The following components have a direct COMPOSITION relation FROM "
-                    + mo.getUserFriendlyPluralName() + " :");
+                + mo.getUserFriendlyPluralName() + " :");
             for (RelationDefinition rel : compRels) {
                 if (rel.hasOption(RelationOption.HIDDEN)) {
                     continue;
@@ -592,8 +597,9 @@ public class ConfigGuideGeneration {
         }
         if (!aggregProps.isEmpty()) {
             paragraph("The following components have a direct AGGREGATION relation FROM "
-                    + mo.getUserFriendlyPluralName() + " :");
-            TreeMap<String, AbstractManagedObjectDefinition> componentList = new TreeMap<String, AbstractManagedObjectDefinition>();
+                + mo.getUserFriendlyPluralName() + " :");
+            TreeMap<String, AbstractManagedObjectDefinition> componentList =
+                new TreeMap<String, AbstractManagedObjectDefinition>();
             for (AggregationPropertyDefinition agg : aggregProps) {
                 RelationDefinition rel = agg.getRelationDefinition();
                 AbstractManagedObjectDefinition childRel = rel.getChildDefinition();
@@ -617,7 +623,7 @@ public class ConfigGuideGeneration {
         if (!mo.getReverseRelationDefinitions().isEmpty()) {
             if (!isReverseCompRelsEmpty) {
                 paragraph("The following components have a direct COMPOSITION relation TO "
-                        + mo.getUserFriendlyPluralName() + " :");
+                    + mo.getUserFriendlyPluralName() + " :");
                 for (RelationDefinition rel : reverseCompRels) {
                     beginList();
                     AbstractManagedObjectDefinition childRel = rel.getParentDefinition();
@@ -628,8 +634,9 @@ public class ConfigGuideGeneration {
         }
         if (!isReverseAggregPropsEmpty) {
             paragraph("The following components have a direct AGGREGATION relation TO "
-                    + mo.getUserFriendlyPluralName() + " :");
-            TreeMap<String, AbstractManagedObjectDefinition> componentList = new TreeMap<String, AbstractManagedObjectDefinition>();
+                + mo.getUserFriendlyPluralName() + " :");
+            TreeMap<String, AbstractManagedObjectDefinition> componentList =
+                new TreeMap<String, AbstractManagedObjectDefinition>();
             for (AggregationPropertyDefinition agg : reverseAggregProps) {
                 AbstractManagedObjectDefinition fromMo = agg.getManagedObjectDefinition();
                 componentList.put(fromMo.getName(), fromMo);
@@ -652,8 +659,8 @@ public class ConfigGuideGeneration {
         // Property table
         startTable();
         tableRow("Description",
-                ((prop.getSynopsis() != null) ? prop.getSynopsis().toString() + " " : "")
-                        + ((prop.getDescription() != null) ? prop.getDescription().toString() : ""));
+            ((prop.getSynopsis() != null) ? prop.getSynopsis().toString() + " " : "")
+                + ((prop.getDescription() != null) ? prop.getDescription().toString() : ""));
 
         // Default value
         String defValueStr = getDefaultBehaviorString(prop);
@@ -675,7 +682,8 @@ public class ConfigGuideGeneration {
             Type actionType = prop.getAdministratorAction().getType();
             String actionStr = "";
             if (actionType == Type.COMPONENT_RESTART) {
-                actionStr = "The " + mo.getUserFriendlyName()
+                actionStr =
+                    "The " + mo.getUserFriendlyName()
                         + " must be disabled and re-enabled for changes to this setting " + "to take effect";
             } else if (actionType == Type.SERVER_RESTART) {
                 actionStr = "Restart the server";
@@ -704,9 +712,9 @@ public class ConfigGuideGeneration {
     }
 
     private void propertiesLinkTable(TreeMap<String, PropertyDefinition> basicProps,
-            TreeMap<String, PropertyDefinition> advancedProps) {
+        TreeMap<String, PropertyDefinition> advancedProps) {
         htmlBuff.append("<table border=\"0\" cellspacing=\"0\" class=\"jump-table\">\n" + "  <tr>\n"
-                + "    <th>Basic Properties:</th>\n" + "    <th>Advanced Properties:</th>\n" + "  </tr>\n");
+            + "    <th>Basic Properties:</th>\n" + "    <th>Advanced Properties:</th>\n" + "  </tr>\n");
 
         PropertyDefinition[] basicPropsArray = basicProps.values().toArray(new PropertyDefinition[0]);
         PropertyDefinition[] advancedPropsArray = advancedProps.values().toArray(new PropertyDefinition[0]);
@@ -717,8 +725,8 @@ public class ConfigGuideGeneration {
 
             String basicHtmlCell = "";
             if (basicPropName != null) {
-                basicHtmlCell = "  <td>&darr;&nbsp;<a href=\"#" + basicPropName + "\">" + basicPropName
-                        + "</a></td>\n";
+                basicHtmlCell =
+                    "  <td>&darr;&nbsp;<a href=\"#" + basicPropName + "\">" + basicPropName + "</a></td>\n";
             } else if ((basicPropsArray.length == 0) && (ii == 0)) {
                 basicHtmlCell = "  <td>&nbsp;None</td>\n";
             } else if (ii >= basicPropsArray.length) {
@@ -728,8 +736,8 @@ public class ConfigGuideGeneration {
 
             String advancedHtmlCell = "";
             if (advancedPropName != null) {
-                advancedHtmlCell = "  <td>&darr;&nbsp;<a href=\"#" + advancedPropName + "\">" + advancedPropName
-                        + "</a></td>\n";
+                advancedHtmlCell =
+                    "  <td>&darr;&nbsp;<a href=\"#" + advancedPropName + "\">" + advancedPropName + "</a></td>\n";
             } else if ((advancedPropsArray.length == 0) && (ii == 0)) {
                 advancedHtmlCell = "  <td>&nbsp;None</td>\n";
             }
@@ -748,10 +756,10 @@ public class ConfigGuideGeneration {
 
         heading3("LDAP Mapping");
         paragraph("Each configuration property can be mapped to a specific "
-                + "LDAP attribute under the \"cn=config\" entry. "
-                + "The mappings that follow are provided for information only. "
-                + "In general, you should avoid changing the server configuration "
-                + "by manipulating the LDAP attributes directly.");
+            + "LDAP attribute under the \"cn=config\" entry. "
+            + "The mappings that follow are provided for information only. "
+            + "In general, you should avoid changing the server configuration "
+            + "by manipulating the LDAP attributes directly.");
 
         // Managed object table
         startTable();
@@ -807,7 +815,7 @@ public class ConfigGuideGeneration {
                 lettersPointers += getLink(letter, "#" + letter) + " ";
             }
             moPointers.append("<p> "
-                    + getLink(mo.getUserFriendlyName().toString(), mo.getName() + ".html", MAIN_FRAME) + "</p>\n");
+                + getLink(mo.getUserFriendlyName().toString(), mo.getName() + ".html", MAIN_FRAME) + "</p>\n");
         }
         paragraph(lettersPointers);
         htmlBuff.append(moPointers);
@@ -847,8 +855,7 @@ public class ConfigGuideGeneration {
         htmlHeader(DynamicConstants.PRODUCT_NAME + " Configuration Reference - Properties View");
         tabMenu(PROPERTIES_INDEX_FILE);
         viewHelp("This view provides a list of all configuration properties, "
-                + "in alphabetical order, and indicates the configuration component to "
-                + "which each property applies.");
+            + "in alphabetical order, and indicates the configuration component to " + "which each property applies.");
 
         newline();
         paragraph(lettersPointers);
@@ -861,9 +868,9 @@ public class ConfigGuideGeneration {
         htmlHeader(DynamicConstants.PRODUCT_NAME + " Configuration Reference - Welcome");
         heading2("About This Reference");
         paragraph("This reference " + "describes the " + DynamicConstants.PRODUCT_NAME
-                + " configuration properties that can be manipulated " + "with the dsconfig command.");
+            + " configuration properties that can be manipulated " + "with the dsconfig command.");
         paragraph("Configuration components are grouped according to the area of "
-                + "the server in which they are used, as follows:");
+            + "the server in which they are used, as follows:");
 
         beginList();
         for (String catName : catTopMoList.keySet()) {
@@ -872,29 +879,29 @@ public class ConfigGuideGeneration {
         endList();
 
         paragraph("For ease of reference, the configuration is described on multiple "
-                + "tabs. These tabs provide alternative views of the configuration " + "components:");
+            + "tabs. These tabs provide alternative views of the configuration " + "components:");
         beginList();
         bullet("The <strong>Inheritance</strong> view represents the inheritance "
-                + "relationships between configuration components. A sub-component "
-                + "inherits all of the properties of its parent component.");
+            + "relationships between configuration components. A sub-component "
+            + "inherits all of the properties of its parent component.");
         bullet("The <strong>Structure</strong> view represents the structural "
-                + "relationships between components and indicates how certain components "
-                + "can exist only within container components. When a container "
-                + "component is deleted, all of the components within it are also " + "deleted.");
+            + "relationships between components and indicates how certain components "
+            + "can exist only within container components. When a container "
+            + "component is deleted, all of the components within it are also " + "deleted.");
         bullet("The <strong>Components</strong> view provides an alphabetical list "
-                + "of all configuration components.");
+            + "of all configuration components.");
         bullet("The <strong>Properties</strong> view provides an alphabetical list "
-                + "of all configuration properties, and indicates the configuration "
-                + "component to which each property applies.");
+            + "of all configuration properties, and indicates the configuration "
+            + "component to which each property applies.");
         endList();
 
         newline();
         paragraph("When you set up " + DynamicConstants.PRODUCT_NAME + ", certain components are created in the "
-                + "configuration by default. These components are configured with "
-                + "specific values, which are not necessarily the same as the "
-                + "\"default values\" of new components that you create using dsconfig. "
-                + "The \"default values\" listed in this document refer to the values "
-                + "of the new components that you create using dsconfig.");
+            + "configuration by default. These components are configured with "
+            + "specific values, which are not necessarily the same as the "
+            + "\"default values\" of new components that you create using dsconfig. "
+            + "The \"default values\" listed in this document refer to the values "
+            + "of the new components that you create using dsconfig.");
 
         htmlFooter();
         generateFile(WELCOME_FILE);
@@ -903,15 +910,15 @@ public class ConfigGuideGeneration {
 
     private void genMainTopPage() {
         htmlHeader(DynamicConstants.PRODUCT_NAME + " Configuration Reference - Main Top");
-        htmlBuff.append("<div class=\"breadcrumb\"><span class=\"pageactions\">" + "<a href=\"" + OpenDJHome
-                + "\" target=\"_parent\">" + "<span style=\"font-size: 12px;\">&laquo;&nbsp;&nbsp;</span>"
-                + "Back to " + DynamicConstants.PRODUCT_NAME + " Home</a></span>&nbsp;&nbsp;</div>\n");
+        htmlBuff.append("<div class=\"breadcrumb\"><span class=\"pageactions\">" + "<a href=\"" + openDJHome
+            + "\" target=\"_parent\">" + "<span style=\"font-size: 12px;\">&laquo;&nbsp;&nbsp;</span>" + "Back to "
+            + DynamicConstants.PRODUCT_NAME + " Home</a></span>&nbsp;&nbsp;</div>\n");
         htmlBuff.append("<table class=\"titletable\" cellspacing=\"0\" " + "width=\"100%\">\n");
         htmlBuff.append("<tbody><tr>\n");
         htmlBuff.append("  <td><h2>" + DynamicConstants.PRODUCT_NAME + " Configuration Reference</h2></td>\n");
-        htmlBuff.append("  <td valign=\"bottom\" width=\"10%\">" + "<a href=\"" + OpenDJHome
-                + "\" target=\"_parent\">" + "<img src=\"opendj_logo_sm.png\" alt=\"OpenDJ Logo\" align=\"bottom\" "
-                + "border=\"0\" height=\"33\" width=\"114\"></a></td>\n");
+        htmlBuff.append("  <td valign=\"bottom\" width=\"10%\">" + "<a href=\"" + openDJHome
+            + "\" target=\"_parent\">" + "<img src=\"opendj_logo_sm.png\" alt=\"OpenDJ Logo\" align=\"bottom\" "
+            + "border=\"0\" height=\"33\" width=\"114\"></a></td>\n");
         htmlBuff.append("</tr>\n");
         htmlBuff.append("</tbody></table>\n");
 
@@ -924,14 +931,15 @@ public class ConfigGuideGeneration {
         htmlBuff.append(getHtmlHeader(DynamicConstants.PRODUCT_NAME + " Configuration Reference"));
 
         htmlBuff.append("<frameset rows=\"80,*\" framespacing=\"1\" "
-                + "frameborder=\"yes\" border=\"1\" bordercolor=\"#333333\">\n");
+            + "frameborder=\"yes\" border=\"1\" bordercolor=\"#333333\">\n");
         htmlBuff.append("  <frame src=\"" + MAINTOP_FILE + "\" name=\"topFrame\" "
-                + "id=\"topFrame\" border=\"1\" title=\"topFrame\" scrolling=\"no\">\n");
-        htmlBuff.append("  <frameset cols=\"375,*\" frameborder=\"yes\" " + "border=\"1\" " + "framespacing=\"1\">\n");
+            + "id=\"topFrame\" border=\"1\" title=\"topFrame\" scrolling=\"no\">\n");
+        htmlBuff
+            .append("  <frameset cols=\"375,*\" frameborder=\"yes\" " + "border=\"1\" " + "framespacing=\"1\">\n");
         htmlBuff.append("     <frame src=\"" + INHERITANCE_TREE_FILE + "\" "
-                + "name=\"leftFrame\" id=\"leftFrame\" title=\"leftFrame\" " + "scrolling=\"auto\">\n");
+            + "name=\"leftFrame\" id=\"leftFrame\" title=\"leftFrame\" " + "scrolling=\"auto\">\n");
         htmlBuff.append("     <frame src=\"" + WELCOME_FILE + "\" name=\"mainFrame\" "
-                + "id=\"mainFrame\" title=\"mainFrame\" scrolling=\"auto\">\n");
+            + "id=\"mainFrame\" title=\"mainFrame\" scrolling=\"auto\">\n");
         htmlBuff.append("   </frameset>\n");
         htmlBuff.append("</frameset>\n");
         htmlBuff.append("<noframes><body>\n");
@@ -977,10 +985,10 @@ public class ConfigGuideGeneration {
                 RelationDefinition rel = prop.getRelationDefinition();
                 String linkStr = getLink(rel.getUserFriendlyName().toString(), rel.getName() + ".html");
                 return "The DN of any "
-                        + linkStr
-                        + ". "
-                        + ((prop.getSourceConstraintSynopsis() != null) ? prop.getSourceConstraintSynopsis()
-                                .toString() : "");
+                    + linkStr
+                    + ". "
+                    + ((prop.getSourceConstraintSynopsis() != null) ? prop.getSourceConstraintSynopsis().toString()
+                        : "");
             }
 
             @Override
@@ -1022,12 +1030,12 @@ public class ConfigGuideGeneration {
                 if (prop.getMaximumUnit() != null) {
                     durationStr += "Maximum unit is \"" + prop.getMaximumUnit().getLongName() + "\". ";
                 }
-                long lowerLimitStr = new Double(prop.getBaseUnit().fromMilliSeconds(prop.getLowerLimit()))
-                        .longValue();
+                long lowerLimitStr =
+                    new Double(prop.getBaseUnit().fromMilliSeconds(prop.getLowerLimit())).longValue();
                 durationStr += "Lower limit is " + lowerLimitStr + " " + prop.getBaseUnit().getLongName() + ". ";
                 if (prop.getUpperLimit() != null) {
-                    long upperLimitStr = new Double(prop.getBaseUnit().fromMilliSeconds(prop.getUpperLimit()))
-                            .longValue();
+                    long upperLimitStr =
+                        new Double(prop.getBaseUnit().fromMilliSeconds(prop.getUpperLimit())).longValue();
                     durationStr += "Upper limit is " + upperLimitStr + " " + prop.getBaseUnit().getLongName() + ". ";
                 }
 
@@ -1126,19 +1134,23 @@ public class ConfigGuideGeneration {
             AliasDefaultBehaviorProvider aliasBehav = (AliasDefaultBehaviorProvider) defaultBehav;
             defValueStr = aliasBehav.getSynopsis().toString();
         } else if (defaultBehav instanceof RelativeInheritedDefaultBehaviorProvider) {
-            RelativeInheritedDefaultBehaviorProvider relativBehav = (RelativeInheritedDefaultBehaviorProvider) defaultBehav;
-            defValueStr = getDefaultBehaviorString(relativBehav.getManagedObjectDefinition().getPropertyDefinition(
+            RelativeInheritedDefaultBehaviorProvider relativBehav =
+                (RelativeInheritedDefaultBehaviorProvider) defaultBehav;
+            defValueStr =
+                getDefaultBehaviorString(relativBehav.getManagedObjectDefinition().getPropertyDefinition(
                     relativBehav.getPropertyName()));
         } else if (defaultBehav instanceof AbsoluteInheritedDefaultBehaviorProvider) {
-            AbsoluteInheritedDefaultBehaviorProvider absoluteBehav = (AbsoluteInheritedDefaultBehaviorProvider) defaultBehav;
-            defValueStr = getDefaultBehaviorString(absoluteBehav.getManagedObjectDefinition().getPropertyDefinition(
+            AbsoluteInheritedDefaultBehaviorProvider absoluteBehav =
+                (AbsoluteInheritedDefaultBehaviorProvider) defaultBehav;
+            defValueStr =
+                getDefaultBehaviorString(absoluteBehav.getManagedObjectDefinition().getPropertyDefinition(
                     absoluteBehav.getPropertyName()));
         }
         return defValueStr;
     }
 
     private TreeMap<String, AbstractManagedObjectDefinition> makeMOTreeMap(
-            Collection<AbstractManagedObjectDefinition> coll) {
+        Collection<AbstractManagedObjectDefinition> coll) {
 
         if (coll == null) {
             return null;
@@ -1224,34 +1236,35 @@ public class ConfigGuideGeneration {
 
     }
 
-    private final String Now = new Date().toString();
+    private static final String NOW = new Date().toString();
 
     private String getHtmlHeader(String pageTitle) {
         return ("<html>\n" + "<head>\n" + "<meta http-equiv=\"content-type\"\n"
-                + "content=\"text/html; charset=ISO-8859-1\">\n" + "<title>" + pageTitle + "</title>\n"
-                + "<link rel=\"stylesheet\" type=\"text/css\"\n" + "href=\"" + CSS_FILE + "\">\n"
-                + "<link rel=\"shortcut icon\" href=\"" + FAVICON + "\">\n"
-                + "<meta name=\"date generated\" content=\"" + Now + "\">\n" + "</head>\n");
+            + "content=\"text/html; charset=ISO-8859-1\">\n" + "<title>" + pageTitle + "</title>\n"
+            + "<link rel=\"stylesheet\" type=\"text/css\"\n" + "href=\"" + CSS_FILE + "\">\n"
+            + "<link rel=\"shortcut icon\" href=\"" + FAVICON + "\">\n" + "<meta name=\"date generated\" content=\""
+            + NOW + "\">\n" + "</head>\n");
     }
 
     // Add a Tab Menu, the active tab is the one given as parameter
     private void tabMenu(String activeTab) {
+        // @Checkstyle:off
         htmlBuff.append("<div class=\"tabmenu\"> " +
 
         "<span><a " + (activeTab.equals(INHERITANCE_TREE_FILE) ? "class=\"activetab\" " : "") + "href=\""
-                + INHERITANCE_TREE_FILE + "\"" + " title=\"Inheritance View of Components\">Inheritance</a></span> " +
+            + INHERITANCE_TREE_FILE + "\"" + " title=\"Inheritance View of Components\">Inheritance</a></span> " +
 
-                "<span><a " + (activeTab.equals(RELATION_TREE_FILE) ? "class=\"activetab\" " : "") + "href=\""
-                + RELATION_TREE_FILE + "\"" + " title=\"Relational View of Components\">Structure</a></span> " +
+            "<span><a " + (activeTab.equals(RELATION_TREE_FILE) ? "class=\"activetab\" " : "") + "href=\""
+            + RELATION_TREE_FILE + "\"" + " title=\"Relational View of Components\">Structure</a></span> " +
 
-                "<span><a " + (activeTab.equals(MO_LIST_FILE) ? "class=\"activetab\" " : "") + "href=\""
-                + MO_LIST_FILE + "\"" + " title=\"Alphabetical Index of Components\">Components</a></span> " +
+            "<span><a " + (activeTab.equals(MO_LIST_FILE) ? "class=\"activetab\" " : "") + "href=\"" + MO_LIST_FILE
+            + "\"" + " title=\"Alphabetical Index of Components\">Components</a></span> " +
 
-                "<span><a " + (activeTab.equals(PROPERTIES_INDEX_FILE) ? "class=\"activetab\" " : "") + "href=\""
-                + PROPERTIES_INDEX_FILE + "\"" + " title=\"Alphabetical Index of Properties\" >Properties</a></span>"
-                +
+            "<span><a " + (activeTab.equals(PROPERTIES_INDEX_FILE) ? "class=\"activetab\" " : "") + "href=\""
+            + PROPERTIES_INDEX_FILE + "\"" + " title=\"Alphabetical Index of Properties\" >Properties</a></span>" +
 
-                "</div>" + "\n");
+            "</div>" + "\n");
+        // @Checkstyle:on
     }
 
     private String getLink(String str, String link) {
@@ -1264,7 +1277,7 @@ public class ConfigGuideGeneration {
 
     private String getLink(String str, String link, String target, String color) {
         return "<a " + (color != null ? "style=\"color:" + color + "\" " : "") + "href=\"" + link + "\""
-                + (target == null ? "" : " target=\"" + target + "\"") + ">" + str + "</a>";
+            + (target == null ? "" : " target=\"" + target + "\"") + ">" + str + "</a>";
     }
 
     private void link(String str, String link) {
@@ -1341,7 +1354,7 @@ public class ConfigGuideGeneration {
 
     private void startTable() {
         htmlBuff.append("<table " + "style=\"width: 100%; text-align: left;\"" + "border=\"1\"" + "cellpadding=\"1\""
-                + "cellspacing=\"0\"" + ">\n");
+            + "cellspacing=\"0\"" + ">\n");
 
         htmlBuff.append("<tbody>\n");
     }
@@ -1369,7 +1382,7 @@ public class ConfigGuideGeneration {
         for (int ii = 0; ii < strings.length; ii++) {
             String string = strings[ii];
             htmlBuff.append("<td style=\"" + "vertical-align: top; " + ((ii == 0) ? "width: 20%;" : "") + "\">"
-                    + string + "<br></td>");
+                + string + "<br></td>");
         }
         htmlBuff.append("</tr>\n");
     }
@@ -1407,8 +1420,8 @@ public class ConfigGuideGeneration {
     private void generateFile(String fileName) {
         // Write the html buffer in a file
         try {
-            PrintWriter file = new java.io.PrintWriter(new java.io.FileWriter(generationDir + File.separator
-                    + fileName));
+            PrintWriter file =
+                new java.io.PrintWriter(new java.io.FileWriter(generationDir + File.separator + fileName));
             file.write(htmlBuff.toString());
             file.close();
         } catch (Exception e) {
@@ -1422,17 +1435,21 @@ public class ConfigGuideGeneration {
     // Relation List from RootConfiguration
     private final TreeMap<String, RelationDefinition> topRelList = new TreeMap<String, RelationDefinition>();
     private final TreeMap<String, RelationDefinition> relList = new TreeMap<String, RelationDefinition>();
-    private final TreeMap<String, TreeMap<String, RelationDefinition>> catTopRelList = new TreeMap<String, TreeMap<String, RelationDefinition>>();
+    private final TreeMap<String, TreeMap<String, RelationDefinition>> catTopRelList =
+        new TreeMap<String, TreeMap<String, RelationDefinition>>();
     // managed object list
-    private final TreeMap<String, AbstractManagedObjectDefinition> moList = new TreeMap<String, AbstractManagedObjectDefinition>();
-    private final TreeMap<String, AbstractManagedObjectDefinition> topMoList = new TreeMap<String, AbstractManagedObjectDefinition>();
-    private final TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>> catTopMoList = new TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>>();
+    private final TreeMap<String, AbstractManagedObjectDefinition> moList =
+        new TreeMap<String, AbstractManagedObjectDefinition>();
+    private final TreeMap<String, AbstractManagedObjectDefinition> topMoList =
+        new TreeMap<String, AbstractManagedObjectDefinition>();
+    private final TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>> catTopMoList =
+        new TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>>();
     private final int ind = 0;
     private StringBuffer htmlBuff = new StringBuffer();
     private static String generationDir;
     private static boolean ldapMapping = false;
-    private static String OpenDJWiki;
-    private static String OpenDJHome;
+    private static String openDJWiki;
+    private static String openDJHome;
     private static String aciSyntaxPage;
     private static String durationSyntaxPage;
     private boolean inList = false;

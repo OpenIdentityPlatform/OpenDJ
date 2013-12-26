@@ -34,7 +34,11 @@ import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
  * TODO : this is a stub, with some default implementations for some methods,
  * and no implementation for others.
  */
-public class DirectoryServer {
+public final class DirectoryServer {
+
+    private DirectoryServer() {
+        // no implementation yet
+    }
 
     /**
      * Retrieves the attribute type for the provided lowercase name or OID. It
@@ -75,10 +79,20 @@ public class DirectoryServer {
         return Schema.getDefaultSchema().getAttributeType(lowerName);
     }
 
+    /**
+     * Returns the directory of server instance.
+     *
+     * @return the instance root directory
+     */
     public static String getInstanceRoot() {
         throw new RuntimeException("Not implemented");
     }
 
+    /**
+     * Returns the root directory of server.
+     *
+     * @return the server root directory
+     */
     public static String getServerRoot() {
         throw new RuntimeException("Not implemented");
     }

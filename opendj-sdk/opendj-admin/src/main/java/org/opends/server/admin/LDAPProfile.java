@@ -184,8 +184,7 @@ public final class LDAPProfile {
      *             If the LDAP profile properties file associated with the
      *             provided managed object definition could not be loaded.
      */
-    public String getAttributeName(AbstractManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd)
-            throws MissingResourceException {
+    public String getAttributeName(AbstractManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd) {
         for (Wrapper profile : profiles) {
             String attributeName = profile.getAttributeName(d, pd);
             if (attributeName != null) {
@@ -207,7 +206,7 @@ public final class LDAPProfile {
      *             If the LDAP profile properties file associated with the
      *             provided managed object definition could not be loaded.
      */
-    public String getRelationChildRDNType(InstantiableRelationDefinition<?, ?> r) throws MissingResourceException {
+    public String getRelationChildRDNType(InstantiableRelationDefinition<?, ?> r) {
         if (r.getNamingPropertyDefinition() != null) {
             // Use the attribute associated with the naming property.
             return getAttributeName(r.getChildDefinition(), r.getNamingPropertyDefinition());
@@ -246,7 +245,7 @@ public final class LDAPProfile {
      *             If the LDAP profile properties file associated with the
      *             provided managed object definition could not be loaded.
      */
-    public String getRelationChildRDNType(SetRelationDefinition<?, ?> r) throws MissingResourceException {
+    public String getRelationChildRDNType(SetRelationDefinition<?, ?> r) {
         for (Wrapper profile : profiles) {
             String rdnType = profile.getRelationChildRDNType(r);
             if (rdnType != null) {
@@ -267,7 +266,7 @@ public final class LDAPProfile {
      *             If the LDAP profile properties file associated with the
      *             provided managed object definition could not be loaded.
      */
-    public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) throws MissingResourceException {
+    public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
         if (d.isTop()) {
             return "top";
         }
@@ -295,7 +294,7 @@ public final class LDAPProfile {
      *             If the LDAP profile properties file associated with the
      *             provided managed object definition could not be loaded.
      */
-    public List<String> getObjectClasses(AbstractManagedObjectDefinition<?, ?> d) throws MissingResourceException {
+    public List<String> getObjectClasses(AbstractManagedObjectDefinition<?, ?> d) {
         LinkedList<String> objectClasses = new LinkedList<String>();
         Set<String> s = new HashSet<String>();
 
@@ -326,7 +325,7 @@ public final class LDAPProfile {
      *             If the LDAP profile properties file associated with the
      *             provided managed object definition could not be loaded.
      */
-    public String getRelationRDNSequence(RelationDefinition<?, ?> r) throws MissingResourceException {
+    public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
         for (Wrapper profile : profiles) {
             String rdnSequence = profile.getRelationRDNSequence(r);
             if (rdnSequence != null) {
@@ -343,7 +342,7 @@ public final class LDAPProfile {
      * @throws NoSuchElementException
      *             If there are no LDAP profile wrappers.
      */
-    public void popWrapper() throws NoSuchElementException {
+    public void popWrapper() {
         profiles.removeFirst();
     }
 

@@ -87,12 +87,13 @@ public final class AdminTestCaseUtils {
         }
     }
 
-    // Construct a dummy path.
-    private synchronized static <C extends ConfigurationClient, S extends Configuration> ManagedObjectPath<C, S> getPath(
-            AbstractManagedObjectDefinition<C, S> d) {
+    /** Construct a dummy path. */
+    // @Checkstyle:off
+    private synchronized static <C extends ConfigurationClient, S extends Configuration> ManagedObjectPath<C, S>
+        getPath(AbstractManagedObjectDefinition<C, S> d) {
+    // @Checkstyle:on
         if (!isProfileRegistered) {
             LDAPProfile.Wrapper profile = new LDAPProfile.Wrapper() {
-
                 @Override
                 public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
                     if (r.getName().equals(DUMMY_TEST_RELATION)) {
@@ -103,15 +104,12 @@ public final class AdminTestCaseUtils {
                 }
 
             };
-
             LDAPProfile.getInstance().pushWrapper(profile);
             isProfileRegistered = true;
         }
-
-        SingletonRelationDefinition.Builder<C, S> builder = new SingletonRelationDefinition.Builder<C, S>(
-                RootCfgDefn.getInstance(), DUMMY_TEST_RELATION, d);
+        SingletonRelationDefinition.Builder<C, S> builder =
+            new SingletonRelationDefinition.Builder<C, S>(RootCfgDefn.getInstance(), DUMMY_TEST_RELATION, d);
         ManagedObjectPath<?, ?> root = ManagedObjectPath.emptyPath();
         return root.child(builder.getInstance());
-
     }
 }

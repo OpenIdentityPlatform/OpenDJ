@@ -80,7 +80,8 @@ import com.forgerock.opendj.ldap.AdminMessages;
  */
 public final class ClassLoaderProvider {
 
-    private static final LocalizedLogger adminLogger = LocalizedLogger.getLocalizedLogger(AdminMessages.resourceName());
+    private static final LocalizedLogger adminLogger = LocalizedLogger.getLocalizedLogger(AdminMessages
+        .resourceName());
     private static final Logger debugLogger = LoggerFactory.getLogger(ClassLoaderProvider.class);
 
     /**
@@ -117,7 +118,7 @@ public final class ClassLoaderProvider {
          * @throws SecurityException
          *             If a required system property value cannot be accessed.
          */
-        public void addJarFile(File jarFile) throws SecurityException, MalformedURLException {
+        public void addJarFile(File jarFile) throws MalformedURLException {
             addURL(jarFile.toURI().toURL());
         }
 
@@ -145,8 +146,8 @@ public final class ClassLoaderProvider {
 
     // The attribute names for build information is name, version and revision
     // number
-    private static final String[] BUILD_INFORMATION_ATTRIBUTE_NAMES = new String[] {
-            Attributes.Name.EXTENSION_NAME.toString(), Attributes.Name.IMPLEMENTATION_VERSION.toString(),
+    private static final String[] BUILD_INFORMATION_ATTRIBUTE_NAMES =
+        new String[] { Attributes.Name.EXTENSION_NAME.toString(), Attributes.Name.IMPLEMENTATION_VERSION.toString(),
             REVISION_NUMBER };
 
     /**
@@ -192,8 +193,7 @@ public final class ClassLoaderProvider {
      *             If one of the extension names was not a single relative path
      *             name element or was an absolute path.
      */
-    public synchronized void addExtension(String... extensions) throws InitializationException, IllegalStateException,
-            IllegalArgumentException {
+    public synchronized void addExtension(String... extensions) throws InitializationException {
         Reject.ifNull(extensions);
 
         if (loader == null) {
@@ -230,7 +230,7 @@ public final class ClassLoaderProvider {
      * @throws IllegalStateException
      *             If this class loader provider is already disabled.
      */
-    public synchronized void disable() throws IllegalStateException {
+    public synchronized void disable() {
         if (loader == null) {
             throw new IllegalStateException("Class loader provider already disabled.");
         }
@@ -248,7 +248,7 @@ public final class ClassLoaderProvider {
      * @throws IllegalStateException
      *             If this class loader provider is already enabled.
      */
-    public synchronized void enable() throws InitializationException, IllegalStateException {
+    public synchronized void enable() throws InitializationException {
         enable(RootCfgDefn.class.getClassLoader());
     }
 
@@ -263,7 +263,7 @@ public final class ClassLoaderProvider {
      * @throws IllegalStateException
      *             If this class loader provider is already enabled.
      */
-    public synchronized void enable(ClassLoader parent) throws InitializationException, IllegalStateException {
+    public synchronized void enable(ClassLoader parent) throws InitializationException {
         if (loader != null) {
             throw new IllegalStateException("Class loader provider already enabled.");
         }
@@ -361,8 +361,9 @@ public final class ClassLoaderProvider {
                 loader.addJarFile(extension);
             } catch (Exception e) {
                 debugLogger.trace("Unable to register the jar file with the class loader", e);
-                LocalizableMessage message = ERR_ADMIN_CANNOT_OPEN_JAR_FILE.get(extension.getName(),
-                        extension.getParent(), stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                LocalizableMessage message =
+                    ERR_ADMIN_CANNOT_OPEN_JAR_FILE.get(extension.getName(), extension.getParent(),
+                        stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
                 throw new InitializationException(message);
             }
             jarFiles.add(extension);
@@ -381,8 +382,9 @@ public final class ClassLoaderProvider {
      *         <code>null</code> if there is no information available.
      */
     public String printExtensionInformation() {
-        File extensionsPath = new File(new StringBuilder(DirectoryServer.getServerRoot()).append(File.separator)
-                .append(LIB_DIR).append(File.separator).append(EXTENSIONS_DIR).toString());
+        File extensionsPath =
+            new File(new StringBuilder(DirectoryServer.getServerRoot()).append(File.separator).append(LIB_DIR)
+                .append(File.separator).append(EXTENSIONS_DIR).toString());
 
         if (!extensionsPath.exists() || !extensionsPath.isDirectory()) {
             // no extensions' directory
@@ -500,7 +502,8 @@ public final class ClassLoaderProvider {
             if (!extensionsPath.isDirectory()) {
                 // The extensions directory is not a directory. This is more
                 // critical.
-                LocalizableMessage message = ERR_ADMIN_EXTENSIONS_DIR_NOT_DIRECTORY.get(String.valueOf(extensionsPath));
+                LocalizableMessage message =
+                    ERR_ADMIN_EXTENSIONS_DIR_NOT_DIRECTORY.get(String.valueOf(extensionsPath));
                 throw new InitializationException(message);
             }
 
@@ -528,7 +531,8 @@ public final class ClassLoaderProvider {
             throw e;
         } catch (Exception e) {
             debugLogger.trace("Unable to initialize all extensions", e);
-            LocalizableMessage message = ERR_ADMIN_EXTENSIONS_CANNOT_LIST_FILES.get(String.valueOf(extensionsPath),
+            LocalizableMessage message =
+                ERR_ADMIN_EXTENSIONS_CANNOT_LIST_FILES.get(String.valueOf(extensionsPath),
                     stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
             throw new InitializationException(message, e);
         }
@@ -553,7 +557,8 @@ public final class ClassLoaderProvider {
             loadDefinitionClasses(is);
         } catch (InitializationException e) {
             debugLogger.trace("Unable to initialize core components", e);
-            LocalizableMessage message = ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(CORE_MANIFEST,
+            LocalizableMessage message =
+                ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(CORE_MANIFEST,
                     stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
             throw new InitializationException(message);
         }
@@ -578,8 +583,9 @@ public final class ClassLoaderProvider {
                 is = jarFile.getInputStream(entry);
             } catch (Exception e) {
                 debugLogger.trace("Unable to get input stream from jar", e);
-                LocalizableMessage message = ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.get(EXTENSION_MANIFEST,
-                        jarFile.getName(), stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                LocalizableMessage message =
+                    ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.get(EXTENSION_MANIFEST, jarFile.getName(),
+                        stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
                 throw new InitializationException(message);
             }
 
@@ -587,15 +593,16 @@ public final class ClassLoaderProvider {
                 loadDefinitionClasses(is);
             } catch (InitializationException e) {
                 debugLogger.trace("Unable to load classes from input stream", e);
-                LocalizableMessage message = ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile.getName(),
-                        EXTENSION_MANIFEST, stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                LocalizableMessage message =
+                    ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile.getName(), EXTENSION_MANIFEST,
+                        stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
                 throw new InitializationException(message);
             }
             try {
                 // Log build information of extensions in the error log
                 String[] information = getBuildInformation(jarFile);
-                LocalizableMessage message = NOTE_LOG_EXTENSION_INFORMATION.get(jarFile.getName(), information[1],
-                        information[2]);
+                LocalizableMessage message =
+                    NOTE_LOG_EXTENSION_INFORMATION.get(jarFile.getName(), information[1], information[2]);
                 LocalizedLogger.getLocalizedLogger(message.resourceName()).error(message);
             } catch (Exception e) {
                 // Do not log information for that extension
@@ -615,13 +622,15 @@ public final class ClassLoaderProvider {
      */
     private void loadDefinitionClasses(InputStream is) throws InitializationException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        List<AbstractManagedObjectDefinition<?, ?>> definitions = new LinkedList<AbstractManagedObjectDefinition<?, ?>>();
+        List<AbstractManagedObjectDefinition<?, ?>> definitions =
+            new LinkedList<AbstractManagedObjectDefinition<?, ?>>();
         while (true) {
             String className;
             try {
                 className = reader.readLine();
             } catch (IOException e) {
-                LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_READ_MANIFEST_FILE.get(String.valueOf(e.getMessage()));
+                LocalizableMessage msg =
+                    ERR_CLASS_LOADER_CANNOT_READ_MANIFEST_FILE.get(String.valueOf(e.getMessage()));
                 throw new InitializationException(msg, e);
             }
 
@@ -648,8 +657,8 @@ public final class ClassLoaderProvider {
             try {
                 theClass = Class.forName(className, true, loader);
             } catch (Exception e) {
-                LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_LOAD_CLASS.get(className,
-                        String.valueOf(e.getMessage()));
+                LocalizableMessage msg =
+                    ERR_CLASS_LOADER_CANNOT_LOAD_CLASS.get(className, String.valueOf(e.getMessage()));
                 throw new InitializationException(msg, e);
             }
             if (AbstractManagedObjectDefinition.class.isAssignableFrom(theClass)) {
@@ -659,7 +668,8 @@ public final class ClassLoaderProvider {
                 try {
                     method = theClass.getMethod("getInstance");
                 } catch (Exception e) {
-                    LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_FIND_GET_INSTANCE_METHOD.get(className,
+                    LocalizableMessage msg =
+                        ERR_CLASS_LOADER_CANNOT_FIND_GET_INSTANCE_METHOD.get(className,
                             String.valueOf(e.getMessage()));
                     throw new InitializationException(msg, e);
                 }
@@ -669,7 +679,8 @@ public final class ClassLoaderProvider {
                 try {
                     d = (AbstractManagedObjectDefinition<?, ?>) method.invoke(null);
                 } catch (Exception e) {
-                    LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_INVOKE_GET_INSTANCE_METHOD.get(className,
+                    LocalizableMessage msg =
+                        ERR_CLASS_LOADER_CANNOT_INVOKE_GET_INSTANCE_METHOD.get(className,
                             String.valueOf(e.getMessage()));
                     throw new InitializationException(msg, e);
                 }
@@ -682,8 +693,9 @@ public final class ClassLoaderProvider {
             try {
                 d.initialize();
             } catch (Exception e) {
-                LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_INITIALIZE_DEFN.get(d.getName(), d.getClass()
-                        .getName(), String.valueOf(e.getMessage()));
+                LocalizableMessage msg =
+                    ERR_CLASS_LOADER_CANNOT_INITIALIZE_DEFN.get(d.getName(), d.getClass().getName(),
+                        String.valueOf(e.getMessage()));
                 throw new InitializationException(msg, e);
             }
         }
@@ -707,7 +719,8 @@ public final class ClassLoaderProvider {
         } catch (Exception e) {
             debugLogger.trace("Unable to load jar file: " + jar, e);
 
-            LocalizableMessage message = ERR_ADMIN_CANNOT_OPEN_JAR_FILE.get(jar.getName(), jar.getParent(),
+            LocalizableMessage message =
+                ERR_ADMIN_CANNOT_OPEN_JAR_FILE.get(jar.getName(), jar.getParent(),
                     stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
             throw new InitializationException(message);
         }

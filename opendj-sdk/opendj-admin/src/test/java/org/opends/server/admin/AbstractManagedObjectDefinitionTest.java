@@ -38,7 +38,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-@SuppressWarnings({"javadoc", "unchecked", "rawtypes"})
+@SuppressWarnings({ "javadoc", "unchecked", "rawtypes" })
 @Test(singleThreaded = true)
 public class AbstractManagedObjectDefinitionTest extends ConfigTestCase {
 

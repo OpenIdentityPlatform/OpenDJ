@@ -68,7 +68,6 @@ import org.opends.server.admin.Reference;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
-import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.ConfigurationRepository;
@@ -97,7 +96,7 @@ public final class ServerManagementContext {
      * @param <T>
      *            The type of the property.
      */
-    private class DefaultValueFinder<T> implements DefaultBehaviorProviderVisitor<T, Collection<T>, Void> {
+    private final class DefaultValueFinder<T> implements DefaultBehaviorProviderVisitor<T, Collection<T>, Void> {
 
         // Any exception that occurred whilst retrieving inherited default
         // values.
@@ -178,8 +177,7 @@ public final class ServerManagementContext {
         }
 
         // Find the default values for the next path/property.
-        private Collection<T> find(ManagedObjectPath<?, ?> path, PropertyDefinition<T> propertyDef)
-                throws DefaultBehaviorException {
+        private Collection<T> find(ManagedObjectPath<?, ?> path, PropertyDefinition<T> propertyDef) {
             nextPath = path;
             nextProperty = propertyDef;
 
@@ -198,9 +196,8 @@ public final class ServerManagementContext {
 
         // Get an inherited property value.
         @SuppressWarnings("unchecked")
-        private Collection<T> getInheritedProperty(ManagedObjectPath<?,?> target,
-                AbstractManagedObjectDefinition<?, ?> definition, String propertyName)
-                        throws DefaultBehaviorException {
+        private Collection<T> getInheritedProperty(ManagedObjectPath<?, ?> target,
+            AbstractManagedObjectDefinition<?, ?> definition, String propertyName) {
             // First check that the requested type of managed object
             // corresponds to the path.
             AbstractManagedObjectDefinition<?, ?> supr = target.getManagedObjectDefinition();
@@ -271,7 +268,7 @@ public final class ServerManagementContext {
      * A definition resolver that determines the managed object definition from
      * the object classes of a ConfigEntry.
      */
-    private class MyDefinitionResolver implements DefinitionResolver {
+    private final class MyDefinitionResolver implements DefinitionResolver {
 
         // The config entry.
         private final Entry entry;
@@ -306,7 +303,7 @@ public final class ServerManagementContext {
         /**
          * Decodes the provided property LDAP value.
          *
-         * @param <PD>
+         * @param <P>
          *            The type of the property.
          * @param propertyDef
          *            The property definition.
@@ -317,8 +314,7 @@ public final class ServerManagementContext {
          *             If the property value could not be decoded because it was
          *             invalid.
          */
-        public static <PD> PD decode(PropertyDefinition<PD> propertyDef, String value)
-                throws IllegalPropertyValueStringException {
+        public static <P> P decode(PropertyDefinition<P> propertyDef, String value) {
             return propertyDef.castValue(propertyDef.accept(new ValueDecoder(), value));
         }
 
@@ -347,7 +343,7 @@ public final class ServerManagementContext {
          * {@inheritDoc}
          */
         @Override
-        public <T> Object visitUnknown(PropertyDefinition<T> d, String p) throws UnknownPropertyDefinitionException {
+        public <T> Object visitUnknown(PropertyDefinition<T> d, String p) {
             // By default the property definition's decoder will do.
             return d.decodeValue(p);
         }
@@ -360,7 +356,7 @@ public final class ServerManagementContext {
      */
     private volatile ServerManagedObject<RootCfg> root;
 
-    /** Repository of configuration entries */
+    /** Repository of configuration entries. */
     private final ConfigurationRepository configRepository;
 
     /**
@@ -426,7 +422,7 @@ public final class ServerManagementContext {
      * @param <S>
      *            The type of server managed object configuration that the path
      *            definition refers to.
-     * @param <PD>
+     * @param <P>
      *            The type of the property to be retrieved.
      * @param path
      *            The path of the managed object containing the property.
@@ -444,10 +440,9 @@ public final class ServerManagementContext {
      *             If the named managed object could not be found or if it could
      *             not be decoded.
      */
-    public <C extends ConfigurationClient, S extends Configuration, PD> PD getPropertyValue(
-            ManagedObjectPath<C, S> path, PropertyDefinition<PD> pd) throws IllegalArgumentException, ConfigException,
-            PropertyException {
-        SortedSet<PD> values = getPropertyValues(path, pd);
+    public <C extends ConfigurationClient, S extends Configuration, P> P getPropertyValue(
+            ManagedObjectPath<C, S> path, PropertyDefinition<P> pd) throws ConfigException {
+        SortedSet<P> values = getPropertyValues(path, pd);
         if (values.isEmpty()) {
             return null;
         } else {
@@ -464,7 +459,7 @@ public final class ServerManagementContext {
      * @param <S>
      *            The type of server managed object configuration that the path
      *            definition refers to.
-     * @param <PD>
+     * @param <P>
      *            The type of the property to be retrieved.
      * @param path
      *            The path of the managed object containing the property.
@@ -483,9 +478,8 @@ public final class ServerManagementContext {
      *             not be decoded.
      */
     @SuppressWarnings("unchecked")
-    public <C extends ConfigurationClient, S extends Configuration, PD> SortedSet<PD> getPropertyValues(
-            ManagedObjectPath<C, S> path, PropertyDefinition<PD> propertyDef) throws IllegalArgumentException, ConfigException,
-            PropertyException {
+    public <C extends ConfigurationClient, S extends Configuration, P> SortedSet<P> getPropertyValues(
+            ManagedObjectPath<C, S> path, PropertyDefinition<P> propertyDef) throws ConfigException {
         // Check that the requested property is from the definition
         // associated with the path.
         AbstractManagedObjectDefinition<C, S> definition = path.getManagedObjectDefinition();
@@ -512,7 +506,7 @@ public final class ServerManagementContext {
         // Make sure we use the correct property definition, the
         // provided one might have been overridden in the resolved
         // definition.
-        propertyDef = (PropertyDefinition<PD>) managedObjDef.getPropertyDefinition(propertyDef.getName());
+        propertyDef = (PropertyDefinition<P>) managedObjDef.getPropertyDefinition(propertyDef.getName());
 
         List<String> attributeValues = getAttributeValues(managedObjDef, propertyDef, configEntry);
         return decodeProperty(path.asSubType(managedObjDef), propertyDef, attributeValues, null);
@@ -536,15 +530,17 @@ public final class ServerManagementContext {
      * @return the root configuration server managed object
      */
     public ServerManagedObject<RootCfg> getRootConfigurationManagedObject() {
-        // Use lazy initialisation because it needs a reference to this server context.
+        // Use lazy initialisation because it needs a reference to this server
+        // context.
         ServerManagedObject<RootCfg> rootObject = root;
         if (rootObject == null) {
-            synchronized(this) {
+            synchronized (this) {
                 rootObject = root;
                 if (rootObject == null) {
-                    root = rootObject = new ServerManagedObject<RootCfg>(ManagedObjectPath.emptyPath(),
-                            RootCfgDefn.getInstance(), Collections.<PropertyDefinition<?>, SortedSet<?>> emptyMap(),
-                            null, this);
+                    root = rootObject =
+                        new ServerManagedObject<RootCfg>(ManagedObjectPath.emptyPath(),
+                                RootCfgDefn.getInstance(), Collections.<PropertyDefinition<?>,
+                                SortedSet<?>> emptyMap(), null, this);
                 }
             }
         }
@@ -707,7 +703,7 @@ public final class ServerManagementContext {
 
     /** Decode a property using the provided attribute values. */
     private <T> SortedSet<T> decodeProperty(ManagedObjectPath<?, ?> path, PropertyDefinition<T> propertyDef,
-            List<String> attributeValues, Entry newConfigEntry) throws PropertyException {
+            List<String> attributeValues, Entry newConfigEntry) {
         PropertyException exception = null;
         SortedSet<T> pvalues = new TreeSet<T>(propertyDef);
 
@@ -751,7 +747,7 @@ public final class ServerManagementContext {
         }
     }
 
-    /** Gets the attribute values associated with a property from a ConfigEntry */
+    /** Gets the attribute values associated with a property from a ConfigEntry. */
     private List<String> getAttributeValues(ManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd,
             Entry configEntry) {
         // TODO: we create a default attribute type if it is undefined.
@@ -771,7 +767,7 @@ public final class ServerManagementContext {
 
     // Get the default values for the specified property.
     private <T> Collection<T> getDefaultValues(ManagedObjectPath<?, ?> p, PropertyDefinition<T> pd,
-            Entry newConfigEntry) throws DefaultBehaviorException {
+            Entry newConfigEntry) {
         DefaultValueFinder<T> v = new DefaultValueFinder<T>(newConfigEntry);
         return v.find(p, pd);
     }
@@ -823,8 +819,7 @@ public final class ServerManagementContext {
     }
 
     // Validate that a relation definition belongs to the path.
-    private void validateRelationDefinition(ManagedObjectPath<?, ?> path, RelationDefinition<?, ?> rd)
-            throws IllegalArgumentException {
+    private void validateRelationDefinition(ManagedObjectPath<?, ?> path, RelationDefinition<?, ?> rd) {
         AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
         RelationDefinition<?, ?> tmp = d.getRelationDefinition(rd.getName());
         if (tmp != rd) {

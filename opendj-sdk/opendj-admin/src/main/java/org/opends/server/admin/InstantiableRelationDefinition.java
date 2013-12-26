@@ -48,7 +48,7 @@ import org.forgerock.i18n.LocalizableMessage;
  *            definition refers to.
  */
 public final class InstantiableRelationDefinition<C extends ConfigurationClient, S extends Configuration> extends
-        RelationDefinition<C, S> {
+    RelationDefinition<C, S> {
 
     /**
      * An interface for incrementally constructing instantiable relation
@@ -62,7 +62,7 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
      *            relation definition refers to.
      */
     public static final class Builder<C extends ConfigurationClient, S extends Configuration> extends
-            AbstractBuilder<C, S, InstantiableRelationDefinition<C, S>> {
+        AbstractBuilder<C, S, InstantiableRelationDefinition<C, S>> {
 
         // The optional naming property definition.
         private PropertyDefinition<?> namingPropertyDefinition = null;
@@ -72,7 +72,8 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
 
         // The optional default managed objects associated with this
         // instantiable relation definition.
-        private final Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects = new HashMap<String, DefaultManagedObject<? extends C, ? extends S>>();
+        private final Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects =
+            new HashMap<String, DefaultManagedObject<? extends C, ? extends S>>();
 
         /**
          * Creates a new builder which can be used to incrementally build an
@@ -88,7 +89,7 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
          *            The child managed object definition.
          */
         public Builder(AbstractManagedObjectDefinition<?, ?> pd, String name, String pluralName,
-                AbstractManagedObjectDefinition<C, S> cd) {
+            AbstractManagedObjectDefinition<C, S> cd) {
             super(pd, name, cd);
             this.pluralName = pluralName;
         }
@@ -103,7 +104,7 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
          *            The default managed object.
          */
         public void setDefaultManagedObject(String name,
-                DefaultManagedObject<? extends C, ? extends S> defaultManagedObject) {
+            DefaultManagedObject<? extends C, ? extends S> defaultManagedObject) {
             this.defaultManagedObjects.put(name, defaultManagedObject);
         }
 
@@ -126,7 +127,7 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
         @Override
         protected InstantiableRelationDefinition<C, S> buildInstance(Common<C, S> common) {
             return new InstantiableRelationDefinition<C, S>(common, pluralName, namingPropertyDefinition,
-                    defaultManagedObjects);
+                defaultManagedObjects);
         }
 
     }
@@ -143,8 +144,8 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
 
     // Private constructor.
     private InstantiableRelationDefinition(Common<C, S> common, String pluralName,
-            PropertyDefinition<?> namingPropertyDefinition,
-            Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects) {
+        PropertyDefinition<?> namingPropertyDefinition,
+        Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects) {
         super(common);
         this.pluralName = pluralName;
         this.namingPropertyDefinition = namingPropertyDefinition;
@@ -170,8 +171,7 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
      *             If there is no default managed object associated with the
      *             provided name.
      */
-    public DefaultManagedObject<? extends C, ? extends S> getDefaultManagedObject(String name)
-            throws IllegalArgumentException {
+    public DefaultManagedObject<? extends C, ? extends S> getDefaultManagedObject(String name) {
         if (!defaultManagedObjects.containsKey(name)) {
             throw new IllegalArgumentException("unrecognized default managed object \"" + name + "\"");
         }

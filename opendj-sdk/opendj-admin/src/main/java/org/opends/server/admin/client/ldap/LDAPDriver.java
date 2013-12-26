@@ -67,7 +67,6 @@ import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.Reference;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
-import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
@@ -89,7 +88,7 @@ final class LDAPDriver extends Driver {
         /**
          * Decodes the provided property LDAP value.
          *
-         * @param <PD>
+         * @param <P>
          *            The type of the property.
          * @param pd
          *            The property definition.
@@ -100,8 +99,7 @@ final class LDAPDriver extends Driver {
          *             If the property value could not be decoded because it was
          *             invalid.
          */
-        public static <PD> PD decode(PropertyDefinition<PD> pd, Object value)
-                throws IllegalPropertyValueStringException {
+        public static <P> P decode(PropertyDefinition<P> pd, Object value) {
             String s = String.valueOf(value);
             return pd.castValue(pd.accept(new ValueDecoder(), s));
         }
@@ -116,7 +114,7 @@ final class LDAPDriver extends Driver {
          */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> Object visitAggregation(
-                AggregationPropertyDefinition<C, S> d, String p) {
+            AggregationPropertyDefinition<C, S> d, String p) {
             // Aggregations values are stored as full DNs in LDAP, but
             // just their common name is exposed in the admin framework.
             try {
@@ -131,7 +129,7 @@ final class LDAPDriver extends Driver {
          * {@inheritDoc}
          */
         @Override
-        public <T> Object visitUnknown(PropertyDefinition<T> d, String p) throws UnknownPropertyDefinitionException {
+        public <T> Object visitUnknown(PropertyDefinition<T> d, String p) {
             // By default the property definition's decoder will do.
             return d.decodeValue(p);
         }
@@ -177,8 +175,8 @@ final class LDAPDriver extends Driver {
      */
     @Override
     public <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getManagedObject(
-            ManagedObjectPath<C, S> path) throws DefinitionDecodingException, ManagedObjectDecodingException,
-            ManagedObjectNotFoundException, ErrorResultException {
+        ManagedObjectPath<C, S> path) throws DefinitionDecodingException, ManagedObjectDecodingException,
+        ManagedObjectNotFoundException, ErrorResultException {
         if (!managedObjectExists(path)) {
             throw new ManagedObjectNotFoundException();
         }
@@ -231,16 +229,16 @@ final class LDAPDriver extends Driver {
      */
     @SuppressWarnings("unchecked")
     @Override
-    public <C extends ConfigurationClient, S extends Configuration, PD> SortedSet<PD> getPropertyValues(
-            ManagedObjectPath<C, S> path, PropertyDefinition<PD> propertyDef) throws IllegalArgumentException,
-            DefinitionDecodingException, ManagedObjectNotFoundException, ErrorResultException, PropertyException {
+    public <C extends ConfigurationClient, S extends Configuration, P> SortedSet<P> getPropertyValues(
+        ManagedObjectPath<C, S> path, PropertyDefinition<P> propertyDef) throws DefinitionDecodingException,
+        ManagedObjectNotFoundException, ErrorResultException {
         // Check that the requested property is from the definition
         // associated with the path.
         AbstractManagedObjectDefinition<C, S> d = path.getManagedObjectDefinition();
         PropertyDefinition<?> tmp = d.getPropertyDefinition(propertyDef.getName());
         if (tmp != propertyDef) {
             throw new IllegalArgumentException("The property " + propertyDef.getName() + " is not associated with a "
-                    + d.getName());
+                + d.getName());
         }
 
         if (!managedObjectExists(path)) {
@@ -255,17 +253,17 @@ final class LDAPDriver extends Driver {
             // Make sure we use the correct property definition, the
             // provided one might have been overridden in the resolved
             // definition.
-            propertyDef = (PropertyDefinition<PD>) objectDef.getPropertyDefinition(propertyDef.getName());
+            propertyDef = (PropertyDefinition<P>) objectDef.getPropertyDefinition(propertyDef.getName());
 
             String attrID = profile.getAttributeName(objectDef, propertyDef);
             SearchResultEntry resultEntry = connection.readEntry(dn, Collections.singleton(attrID));
             Attribute attribute = resultEntry.getAttribute(attrID);
 
             // Decode the values.
-            SortedSet<PD> values = new TreeSet<PD>(propertyDef);
+            SortedSet<P> values = new TreeSet<P>(propertyDef);
             if (attribute != null) {
                 for (ByteString byteValue : attribute) {
-                    PD value = ValueDecoder.decode(propertyDef, byteValue);
+                    P value = ValueDecoder.decode(propertyDef, byteValue);
                     values.add(value);
                 }
             }
@@ -299,7 +297,7 @@ final class LDAPDriver extends Driver {
     @Override
     public ManagedObject<RootCfgClient> getRootConfigurationManagedObject() {
         return new LDAPManagedObject<RootCfgClient>(this, RootCfgDefn.getInstance(), ManagedObjectPath.emptyPath(),
-                new PropertySet(), true, null);
+            new PropertySet(), true, null);
     }
 
     /**
@@ -307,9 +305,9 @@ final class LDAPDriver extends Driver {
      */
     @Override
     public <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
-            ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
-            AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws IllegalArgumentException,
-            ManagedObjectNotFoundException, ErrorResultException {
+        ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
+        AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws ManagedObjectNotFoundException,
+        ErrorResultException {
         validateRelationDefinition(parent, rd);
 
         if (!managedObjectExists(parent)) {
@@ -349,9 +347,9 @@ final class LDAPDriver extends Driver {
      */
     @Override
     public <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
-            ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd,
-            AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws IllegalArgumentException,
-            ManagedObjectNotFoundException, ErrorResultException {
+        ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd,
+        AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws ManagedObjectNotFoundException,
+        ErrorResultException {
         validateRelationDefinition(parent, rd);
 
         if (!managedObjectExists(parent)) {
@@ -392,7 +390,7 @@ final class LDAPDriver extends Driver {
      */
     @Override
     public boolean managedObjectExists(ManagedObjectPath<?, ?> path) throws ManagedObjectNotFoundException,
-            ErrorResultException {
+        ErrorResultException {
         if (path.isEmpty()) {
             return true;
         }
@@ -412,13 +410,13 @@ final class LDAPDriver extends Driver {
      */
     @Override
     protected <C extends ConfigurationClient, S extends Configuration> void deleteManagedObject(
-            ManagedObjectPath<C, S> path) throws OperationRejectedException, ErrorResultException {
+        ManagedObjectPath<C, S> path) throws OperationRejectedException, ErrorResultException {
         // Delete the entry and any subordinate entries.
         DN dn = LDAPNameBuilder.create(path, profile);
         try {
             connection.deleteSubtree(dn);
-        } catch(ErrorResultException e) {
-            if (e.getResult().getResultCode()==ResultCode.UNWILLING_TO_PERFORM) {
+        } catch (ErrorResultException e) {
+            if (e.getResult().getResultCode() == ResultCode.UNWILLING_TO_PERFORM) {
                 AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
                 LocalizableMessage m = LocalizableMessage.raw("%s", e.getMessage());
                 throw new OperationRejectedException(OperationType.DELETE, d.getUserFriendlyName(), m);
@@ -470,7 +468,7 @@ final class LDAPDriver extends Driver {
 
     // Create a managed object which already exists on the server.
     private <M extends ConfigurationClient, N extends Configuration> ManagedObject<M> createExistingManagedObject(
-            ManagedObjectDefinition<M, N> d, ManagedObjectPath<? super M, ? super N> p, PropertySet properties) {
+        ManagedObjectDefinition<M, N> d, ManagedObjectPath<? super M, ? super N> p, PropertySet properties) {
         RelationDefinition<?, ?> rd = p.getRelationDefinition();
         PropertyDefinition<?> pd = null;
         if (rd instanceof InstantiableRelationDefinition) {
@@ -481,15 +479,15 @@ final class LDAPDriver extends Driver {
     }
 
     // Create a property using the provided string values.
-    private <PD> void decodeProperty(PropertySet newProperties, ManagedObjectPath<?, ?> path,
-            PropertyDefinition<PD> propertyDef, Attribute attribute) throws PropertyException {
+    private <P> void decodeProperty(PropertySet newProperties, ManagedObjectPath<?, ?> path,
+        PropertyDefinition<P> propertyDef, Attribute attribute) {
         PropertyException exception = null;
 
         // Get the property's active values.
-        SortedSet<PD> activeValues = new TreeSet<PD>(propertyDef);
+        SortedSet<P> activeValues = new TreeSet<P>(propertyDef);
         if (attribute != null) {
             for (ByteString byteValue : attribute) {
-                PD value = ValueDecoder.decode(propertyDef, byteValue);
+                P value = ValueDecoder.decode(propertyDef, byteValue);
                 activeValues.add(value);
             }
         }
@@ -497,13 +495,13 @@ final class LDAPDriver extends Driver {
         if (activeValues.size() > 1 && !propertyDef.hasOption(PropertyOption.MULTI_VALUED)) {
             // This exception takes precedence over previous exceptions.
             exception = new PropertyIsSingleValuedException(propertyDef);
-            PD value = activeValues.first();
+            P value = activeValues.first();
             activeValues.clear();
             activeValues.add(value);
         }
 
         // Get the property's default values.
-        Collection<PD> defaultValues;
+        Collection<P> defaultValues;
         try {
             defaultValues = findDefaultValues(path, propertyDef, false);
         } catch (DefaultBehaviorException e) {
@@ -528,8 +526,11 @@ final class LDAPDriver extends Driver {
 
     // Determine the type of managed object associated with the named
     // entry.
-    private <C extends ConfigurationClient, S extends Configuration> ManagedObjectDefinition<? extends C, ? extends S> getEntryDefinition(
-            AbstractManagedObjectDefinition<C, S> d, DN dn) throws ErrorResultException, DefinitionDecodingException {
+    // @Checkstyle:off
+    private <C extends ConfigurationClient, S extends Configuration> ManagedObjectDefinition<? extends C, ? extends S>
+        getEntryDefinition(AbstractManagedObjectDefinition<C, S> d, DN dn) throws ErrorResultException,
+        DefinitionDecodingException {
+        // @Checkstyle:on
         SearchResultEntry searchResultEntry = connection.readEntry(dn, Collections.singleton("objectclass"));
         Attribute objectClassAttr = searchResultEntry.getAttribute("objectclass");
 
@@ -550,6 +551,7 @@ final class LDAPDriver extends Driver {
 
         // Resolve the appropriate sub-type based on the object classes.
         DefinitionResolver resolver = new DefinitionResolver() {
+            @Override
             public boolean matches(AbstractManagedObjectDefinition<?, ?> d) {
                 String objectClass = profile.getObjectClass(d);
                 return objectClasses.contains(objectClass);

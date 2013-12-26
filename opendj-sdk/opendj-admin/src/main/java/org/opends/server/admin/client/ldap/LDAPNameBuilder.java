@@ -126,7 +126,8 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
      * {@inheritDoc}
      */
     public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
-            InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d, String name) {
+        InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
+        String name) {
         // Add the RDN sequence representing the relation.
         appendManagedObjectPathElement(r);
 

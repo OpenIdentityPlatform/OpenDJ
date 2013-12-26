@@ -40,7 +40,7 @@ import org.opends.server.types.ConfigChangeResult;
  *            notified about.
  */
 final class ServerManagedObjectChangeListenerAdaptor<T extends Configuration> implements
-        ServerManagedObjectChangeListener<T> {
+    ServerManagedObjectChangeListener<T> {
 
     // The underlying change listener.
     private final ConfigurationChangeListener<? super T> listener;
@@ -58,6 +58,7 @@ final class ServerManagedObjectChangeListenerAdaptor<T extends Configuration> im
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationChange(ServerManagedObject<? extends T> mo) {
         return listener.applyConfigurationChange(mo.getConfiguration());
     }
@@ -75,8 +76,9 @@ final class ServerManagedObjectChangeListenerAdaptor<T extends Configuration> im
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationChangeAcceptable(ServerManagedObject<? extends T> mo,
-            List<LocalizableMessage> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
         return listener.isConfigurationChangeAcceptable(mo.getConfiguration(), unacceptableReasons);
     }
 
