@@ -20,9 +20,9 @@
     <version>3.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-admin</artifactId>
-  <name>OpenDJ Administration API</name>
+  <name>OpenDJ Configuration API</name>
   <description>
-    This module includes Administration APIs for implementing LDAP Directory
+    This module includes Configuration APIs for implementing LDAP Directory
     client and server applications.
   </description>
   <!-- Change to bundle when/if we have a need -->
