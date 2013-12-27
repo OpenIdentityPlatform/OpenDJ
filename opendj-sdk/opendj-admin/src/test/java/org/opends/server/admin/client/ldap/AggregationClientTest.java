@@ -132,20 +132,15 @@ public class AggregationClientTest extends AdminTestCase {
         "ds-cfg-enabled: true",
         "ds-cfg-listen-address: 0.0.0.0", "ds-cfg-listen-port: 389",
         "",
-        "dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config",
+        "dn: cn=HTTP Connection Handler,cn=Connection Handlers,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-connection-handler",
-        "objectClass: ds-cfg-ldap-connection-handler",
-        "cn: LDAPS Connection Handler",
-        "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
+        "objectClass: ds-cfg-http-connection-handler",
+        "cn: HTTP Connection Handler",
+        "ds-cfg-java-class: org.opends.server.protocols.http.HTTPConnectionHandler",
         "ds-cfg-enabled: false",
         "ds-cfg-listen-address: 0.0.0.0",
-        "ds-cfg-listen-port: 636",
-        "ds-cfg-use-ssl: true",
-        "ds-cfg-ssl-client-auth-policy: optional",
-        "ds-cfg-ssl-cert-nickname: server-cert",
-        "ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config",
-        "ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config",
+        "ds-cfg-listen-port: 8080",
         "",
         "dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
         "objectClass: top",
@@ -304,12 +299,12 @@ public class AggregationClientTest extends AdminTestCase {
                 "cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config");
         c.importLDIF(TEST_LDIF);
         c.addExpectedModification("ds-cfg-rotation-policy",
-                "cn=LDAPS Connection Handler,cn=connection handlers, cn=config",
-                "cn=JMX Connection Handler,cn=connection handlers, cn=config");
+            "cn=HTTP Connection Handler,cn=connection handlers, cn=config",
+            "cn=JMX Connection Handler,cn=connection handlers, cn=config");
         ManagementContext ctx = LDAPManagementContext.createFromContext(c);
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.getTestChild("test child 2");
-        child.setAggregationProperty(Arrays.asList("LDAPS Connection Handler", "JMX Connection Handler"));
+        child.setAggregationProperty(Arrays.asList("JMX Connection Handler", "HTTP Connection Handler"));
         child.commit();
         Assert.assertTrue(c.isEntryModified());
     }

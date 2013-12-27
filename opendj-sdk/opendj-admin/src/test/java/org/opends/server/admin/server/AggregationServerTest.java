@@ -280,7 +280,7 @@ public final class AggregationServerTest extends AdminTestCase {
         TestCfg.cleanup();
 
         // Restore the test child aggregation definition.
-        //TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
+        TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
     }
 
     /**
