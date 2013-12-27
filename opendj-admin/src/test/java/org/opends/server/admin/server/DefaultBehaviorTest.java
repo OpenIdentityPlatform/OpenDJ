@@ -42,7 +42,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldif.LDIF;
 import org.mockito.ArgumentCaptor;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.TestCfg;
@@ -131,10 +130,10 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         "ds-cfg-attribute-type: description",
         "ds-cfg-conflict-behavior: virtual-overrides-real");
 
-    static final Entry TEST_PARENT_1 = LDIF.makeEntry(LDIF_TEST_PARENT_1);
+    static final Entry TEST_PARENT_1 = makeEntry(LDIF_TEST_PARENT_1);
 
     // Parent 2 - overrides default values for optional-multi-valued-dn-property.
-    static final Entry TEST_PARENT_2 = LDIF.makeEntry(
+    static final Entry TEST_PARENT_2 = makeEntry(
         "dn: cn=test parent 2,cn=test parents,cn=config",
         "objectclass: top",
         "objectclass: ds-cfg-test-parent-dummy",
