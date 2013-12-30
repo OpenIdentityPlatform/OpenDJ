@@ -89,10 +89,10 @@
     </site>
   </distributionManagement>
   <modules>
-    <!--module>opendj-admin</module-->
+    <module>opendj-config-maven-plugin</module>
     <module>opendj-core</module>
     <module>opendj-grizzly</module>
-    <!-- <module>opendj-admin</module> -->
+    <!--module>opendj-admin</module-->
     <module>opendj-ldap-sdk</module>
     <module>opendj-ldap-toolkit</module>
     <module>opendj-ldap-sdk-examples</module>
@@ -117,7 +117,7 @@
     <forgerockRestVersion>2.1.0-SNAPSHOT</forgerockRestVersion>
     <gaId>UA-23412190-8</gaId>
     <!-- OSGi bundles properties -->
-    <opendj.osgi.import.additional />
+    <opendj.osgi.import.additional/>
     <!--
      | Use provide:=true to disallow mixing OpenDJ and ForgeRock resource versions.
      | it change the version policy from == + to == =+  [2.0,3) [2.0,2.1)
@@ -134,9 +134,9 @@
         -D"pubDate=Publication date: December 31, 1969"
       At all other times, the dates should be empty.
     -->
-    <releaseDate />
+    <releaseDate/>
     <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
-    <pubDate />
+    <pubDate/>
     <publicationDate>${pubDate}</publicationDate>
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
     <frDocPluginVersion>2.0.0</frDocPluginVersion>
