@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -71,17 +71,25 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
   private static int NO_KEY = 0;
 
   private DraftCNDB db;
-  /**
-   * FIXME Is this field that useful? {@link #getOldestChangeNumber()} does not
-   * even use it!
-   */
+  /** FIXME What is this field used for? */
   private volatile long oldestChangeNumber = NO_KEY;
   /**
-   * FIXME Is this field that useful? {@link #getNewestChangeNumber()} does not
-   * even use it!
+   * The newest changenumber stored in the DB. It is used to avoid trimming the
+   * record with the newest changenumber. The newest record in the changenumber
+   * index DB is used to persist the {@link #lastGeneratedChangeNumber} which is
+   * then retrieved on server startup.
    */
   private volatile long newestChangeNumber = NO_KEY;
-  /** The last generated value for the change number. */
+  /**
+   * The last generated value for the change number. It is kept separate from
+   * the {@link #newestChangeNumber} because there is an opportunity for a race
+   * condition between:
+   * <ol>
+   * <li>this atomic long being incremented for a new record ('recordB')</li>
+   * <li>the current newest record ('recordA') being trimmed from the DB</li>
+   * <li>'recordB' failing to be inserted in the DB</li>
+   * </ol>
+   */
   private final AtomicLong lastGeneratedChangeNumber;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
   private final AtomicBoolean shutdown = new AtomicBoolean(false);
@@ -124,10 +132,10 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
     final ChangeNumberIndexRecord oldestRecord = db.readFirstRecord();
     final ChangeNumberIndexRecord newestRecord = db.readLastRecord();
     oldestChangeNumber = getChangeNumber(oldestRecord);
-    newestChangeNumber = getChangeNumber(newestRecord);
+    final long newestCN = getChangeNumber(newestRecord);
+    newestChangeNumber = newestCN;
     // initialization of the lastGeneratedChangeNumber from the DB content
     // if DB is empty => last record does not exist => default to 0
-    long newestCN = (newestRecord != null) ? newestRecord.getChangeNumber() : 0;
     lastGeneratedChangeNumber = new AtomicLong(newestCN);
 
     // Monitoring registration
@@ -165,6 +173,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
         new ChangeNumberIndexRecord(changeNumber, record.getPreviousCookie(),
             record.getBaseDN(), record.getCSN());
     db.addRecord(newRecord);
+    newestChangeNumber = changeNumber;
 
     if (debugEnabled())
       TRACER.debugInfo("In JEChangeNumberIndexDB.add, added: " + newRecord);
@@ -383,6 +392,18 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
           }
 
           final ChangeNumberIndexRecord record = cursor.currentRecord();
+          if (record.getChangeNumber() != oldestChangeNumber)
+          {
+            oldestChangeNumber = record.getChangeNumber();
+          }
+          if (record.getChangeNumber() == newestChangeNumber)
+          {
+            // do not trim the newest record to avoid having the last generated
+            // changenumber dropping back to 0 if the server restarts
+            cursor.close();
+            return;
+          }
+
           if (baseDNToClear != null && baseDNToClear.equals(record.getBaseDN()))
           {
             cursor.delete();
