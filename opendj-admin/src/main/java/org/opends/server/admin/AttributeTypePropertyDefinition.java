@@ -60,10 +60,6 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
         }
     }
 
-    // Flag indicating whether or not attribute type names should be
-    // validated against the schema.
-    private static boolean isCheckSchema = true;
-
     /**
      * Create a attribute type property definition builder.
      *
@@ -76,31 +72,6 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
      */
     public static Builder createBuilder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
         return new Builder(d, propertyName);
-    }
-
-    /**
-     * Determines whether or not attribute type names should be validated
-     * against the schema.
-     *
-     * @return Returns <code>true</code> if attribute type names should be
-     *         validated against the schema.
-     */
-    public static boolean isCheckSchema() {
-        return isCheckSchema;
-    }
-
-    /**
-     * Specify whether or not attribute type names should be validated against
-     * the schema.
-     * <p>
-     * By default validation is switched on.
-     *
-     * @param value
-     *            <code>true</code> if attribute type names should be validated
-     *            against the schema.
-     */
-    public static void setCheckSchema(boolean value) {
-        isCheckSchema = value;
     }
 
     // Private constructor.
@@ -138,17 +109,17 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
      * {@inheritDoc}
      */
     @Override
-    public AttributeType decodeValue(String value) {
+    public AttributeType decodeValue(String value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         String name = value.trim().toLowerCase();
-        AttributeType type = DirectoryServer.getAttributeType(name, !isCheckSchema);
+        AttributeType type = DirectoryServer.getAttributeType(name, !options.checkSchemaForAttributes());
 
         if (type == null) {
             throw new IllegalPropertyValueStringException(this, value);
         } else {
             try {
-                validateValue(type);
+                validateValue(type, options);
                 return type;
             } catch (IllegalPropertyValueException e) {
                 throw new IllegalPropertyValueStringException(this, value);
@@ -168,7 +139,7 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(AttributeType value) {
+    public void validateValue(AttributeType value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         // No implementation required.

@@ -51,6 +51,7 @@ import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyNotFoundException;
@@ -136,7 +137,7 @@ public abstract class Driver {
 
             for (String stringValue : stringValues) {
                 try {
-                    values.add(nextProperty.decodeValue(stringValue));
+                    values.add(nextProperty.decodeValue(stringValue, propertyDefOptions));
                 } catch (IllegalPropertyValueStringException e) {
                     exception = new DefaultBehaviorException(nextProperty, e);
                     break;
@@ -226,7 +227,7 @@ public abstract class Driver {
                     Collection<T> tmp = find(target, pd2);
                     Collection<T> values = new ArrayList<T>(tmp.size());
                     for (T value : tmp) {
-                        pd1.validateValue(value);
+                        pd1.validateValue(value, propertyDefOptions);
                         values.add(value);
                     }
                     return values;
@@ -254,11 +255,16 @@ public abstract class Driver {
         }
     };
 
+    private final PropertyDefinitionsOptions propertyDefOptions;
+
     /**
-     * Creates a new abstract management context.
+     * Creates a new abstract driver.
+     *
+     * @param propertyDefOptions
+     *            Decoding options for property definitions values.
      */
-    protected Driver() {
-        // No implementation required.
+    protected Driver(PropertyDefinitionsOptions propertyDefOptions) {
+        this.propertyDefOptions = propertyDefOptions;
     }
 
     /**

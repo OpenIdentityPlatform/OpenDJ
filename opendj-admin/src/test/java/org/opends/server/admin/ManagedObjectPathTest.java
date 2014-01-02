@@ -41,16 +41,10 @@ import org.forgerock.opendj.admin.server.GlobalCfg;
 import org.forgerock.opendj.admin.server.LDAPConnectionHandlerCfg;
 import org.forgerock.opendj.config.ConfigTestCase;
 import org.forgerock.opendj.ldap.DN;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class ManagedObjectPathTest extends ConfigTestCase {
-
-    @BeforeClass
-    public void setUp() throws Exception {
-        disableClassValidationForProperties();
-    }
 
     @Test
     public void testEmptyPathIsEmpty() {

@@ -51,7 +51,6 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
 
     @BeforeClass
     public void setup() throws Exception {
-        disableClassValidationForProperties();
         TestCfg.setUp();
     }
 

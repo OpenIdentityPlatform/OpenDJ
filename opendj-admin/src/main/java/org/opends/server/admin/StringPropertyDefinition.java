@@ -170,11 +170,11 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
      * {@inheritDoc}
      */
     @Override
-    public String decodeValue(String value) {
+    public String decodeValue(String value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         try {
-            validateValue(value);
+            validateValue(value, options);
         } catch (IllegalPropertyValueException e) {
             throw new IllegalPropertyValueStringException(this, value);
         }
@@ -269,7 +269,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(String value) {
+    public void validateValue(String value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         if (pattern != null) {

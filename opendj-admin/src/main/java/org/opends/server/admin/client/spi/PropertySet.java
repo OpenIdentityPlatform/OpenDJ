@@ -35,6 +35,7 @@ import java.util.TreeSet;
 
 import org.opends.server.admin.IllegalPropertyValueException;
 import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.PropertyIsMandatoryException;
 import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyOption;
@@ -282,6 +283,8 @@ public final class PropertySet {
      *            property (an empty set indicates that the property should be
      *            reset to its default behavior). The set will not be referenced
      *            by this managed object.
+     * @param options
+     *            Options to validate property definitions values.
      * @throws IllegalPropertyValueException
      *             If a new pending value is deemed to be invalid according to
      *             the property definition.
@@ -294,7 +297,8 @@ public final class PropertySet {
      *             If the specified property definition is not associated with
      *             this managed object.
      */
-    <T> void setPropertyValues(PropertyDefinition<T> d, Collection<T> values) {
+    <T> void setPropertyValues(PropertyDefinition<T> d, Collection<T> values,
+        PropertyDefinitionsOptions options) {
         MyProperty<T> property = (MyProperty<T>) getProperty(d);
 
         if (values.size() > 1 && !d.hasOption(PropertyOption.MULTI_VALUED)) {
@@ -314,7 +318,7 @@ public final class PropertySet {
                 throw new NullPointerException();
             }
 
-            d.validateValue(e);
+            d.validateValue(e, options);
         }
 
         // Update the property.

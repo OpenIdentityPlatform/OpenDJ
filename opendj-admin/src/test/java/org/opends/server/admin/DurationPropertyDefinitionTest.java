@@ -31,17 +31,11 @@ import static org.testng.Assert.*;
 
 import org.forgerock.opendj.admin.meta.RootCfgDefn;
 import org.forgerock.opendj.config.ConfigTestCase;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class DurationPropertyDefinitionTest extends ConfigTestCase {
-
-    @BeforeClass
-    public void setUp() throws Exception {
-        disableClassValidationForProperties();
-    }
 
     @Test
     public void testCreateBuilder() {
@@ -130,7 +124,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         DurationPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(true);
         DurationPropertyDefinition def = buildTestDefinition(builder);
-        def.decodeValue("unlimited");
+        def.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @Test(expectedExceptions = IllegalPropertyValueStringException.class)
@@ -138,7 +132,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         DurationPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
         DurationPropertyDefinition def = buildTestDefinition(builder);
-        def.decodeValue("unlimited");
+        def.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @Test(expectedExceptions = IllegalPropertyValueException.class)
@@ -146,7 +140,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         DurationPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
         DurationPropertyDefinition def = buildTestDefinition(builder);
-        def.validateValue(-1L);
+        def.validateValue(-1L, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @DataProvider(name = "validateValueData")
@@ -169,7 +163,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         builder.setUpperLimit(higherLimitInMillis);
         builder.setAllowUnlimited(isAllowUnlimited);
         DurationPropertyDefinition def = buildTestDefinition(builder);
-        def.validateValue(valueInSeconds);
+        def.validateValue(valueInSeconds, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @DataProvider(name = "illegalValidateValueData")
@@ -191,7 +185,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         builder.setUpperLimit(highLimitInMillis);
         builder.setAllowUnlimited(isAllowUnlimited);
         DurationPropertyDefinition def = buildTestDefinition(builder);
-        def.validateValue(valueInSeconds);
+        def.validateValue(valueInSeconds, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @DataProvider(name = "encodeValueData")
@@ -310,7 +304,8 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         builder.setMaximumUnit(DurationUnit.DAYS);
         DurationPropertyDefinition def = buildTestDefinition(builder);
 
-        assertThat(def.decodeValue(valueToDecode)).isEqualTo(expectedValue);
+        assertThat(def.decodeValue(valueToDecode, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS)).
+            isEqualTo(expectedValue);
     }
 
     @DataProvider(name = "decodeValueDataIllegal")
@@ -343,7 +338,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         builder.setLowerLimit(5L);
         builder.setUpperLimit(10L);
         DurationPropertyDefinition def = buildTestDefinition(builder);
-        def.decodeValue(valueToDecode);
+        def.decodeValue(valueToDecode, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     private DurationPropertyDefinition.Builder createTestBuilder() {

@@ -59,6 +59,7 @@ import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionVisitor;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyIsMandatoryException;
 import org.opends.server.admin.PropertyIsSingleValuedException;
@@ -146,7 +147,7 @@ public final class ServerManagementContext {
 
             for (String stringValue : stringValues) {
                 try {
-                    values.add(nextProperty.decodeValue(stringValue));
+                    values.add(nextProperty.decodeValue(stringValue, propertyDefOptions));
                 } catch (IllegalPropertyValueStringException e) {
                     exception = new DefaultBehaviorException(nextProperty, e);
                     break;
@@ -237,7 +238,7 @@ public final class ServerManagementContext {
                 if (attributeValues.size() > 0) {
                     Collection<T> pvalues = new ArrayList<T>();
                     for (String value : attributeValues) {
-                        pvalues.add(ValueDecoder.decode(propDef1, value));
+                        pvalues.add(ValueDecoder.decode(propDef1, value, propertyDefOptions));
                     }
                     return pvalues;
                 } else {
@@ -245,7 +246,7 @@ public final class ServerManagementContext {
                     Collection<T> tmp = find(target, propDef2);
                     Collection<T> pvalues = new ArrayList<T>(tmp.size());
                     for (T value : tmp) {
-                        propDef1.validateValue(value);
+                        propDef1.validateValue(value, propertyDefOptions);
                         pvalues.add(value);
                     }
                     return pvalues;
@@ -300,6 +301,8 @@ public final class ServerManagementContext {
      */
     private static final class ValueDecoder extends PropertyDefinitionVisitor<Object, String> {
 
+        private final PropertyDefinitionsOptions options;
+
         /**
          * Decodes the provided property LDAP value.
          *
@@ -309,18 +312,21 @@ public final class ServerManagementContext {
          *            The property definition.
          * @param value
          *            The LDAP string representation.
+         * @param options
+         *            Options to decode property definitions values.
          * @return Returns the decoded LDAP value.
          * @throws IllegalPropertyValueStringException
          *             If the property value could not be decoded because it was
          *             invalid.
          */
-        public static <P> P decode(PropertyDefinition<P> propertyDef, String value) {
-            return propertyDef.castValue(propertyDef.accept(new ValueDecoder(), value));
+        public static <P> P decode(PropertyDefinition<P> propertyDef, String value,
+            PropertyDefinitionsOptions options) {
+            return propertyDef.castValue(propertyDef.accept(new ValueDecoder(options), value));
         }
 
         // Prevent instantiation.
-        private ValueDecoder() {
-            // No implementation required.
+        private ValueDecoder(PropertyDefinitionsOptions options) {
+            this.options = options;
         }
 
         /**
@@ -345,7 +351,7 @@ public final class ServerManagementContext {
         @Override
         public <T> Object visitUnknown(PropertyDefinition<T> d, String p) {
             // By default the property definition's decoder will do.
-            return d.decodeValue(p);
+            return d.decodeValue(p, options);
         }
     }
 
@@ -360,13 +366,23 @@ public final class ServerManagementContext {
     private final ConfigurationRepository configRepository;
 
     /**
+     * Options to use when decoding and validating values of property
+     * definitions.
+     */
+    private final PropertyDefinitionsOptions propertyDefOptions;
+
+    /**
      * Creates a context from the provided configuration repository.
      *
      * @param repository
      *          The repository of configuration entries.
+     * @param propertyDefOptions
+     *          Options to use when decoding and validating values
+     *          of property definitions.
      */
-    ServerManagementContext(ConfigurationRepository repository) {
+    ServerManagementContext(ConfigurationRepository repository, PropertyDefinitionsOptions propertyDefOptions) {
         configRepository = repository;
+        this.propertyDefOptions = propertyDefOptions;
     }
 
     /**
@@ -530,8 +546,8 @@ public final class ServerManagementContext {
      * @return the root configuration server managed object
      */
     public ServerManagedObject<RootCfg> getRootConfigurationManagedObject() {
-        // Use lazy initialisation because it needs a reference to this server
-        // context.
+        // Use lazy initialisation
+        // because it needs a reference to this server context.
         ServerManagedObject<RootCfg> rootObject = root;
         if (rootObject == null) {
             synchronized (this) {
@@ -711,7 +727,7 @@ public final class ServerManagementContext {
             // The property has values defined for it.
             for (String value : attributeValues) {
                 try {
-                    pvalues.add(ValueDecoder.decode(propertyDef, value));
+                    pvalues.add(ValueDecoder.decode(propertyDef, value, propertyDefOptions));
                 } catch (IllegalPropertyValueStringException e) {
                     exception = e;
                 }

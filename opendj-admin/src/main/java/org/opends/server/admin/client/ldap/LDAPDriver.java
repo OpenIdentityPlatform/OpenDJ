@@ -60,6 +60,7 @@ import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionVisitor;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyIsMandatoryException;
 import org.opends.server.admin.PropertyIsSingleValuedException;
@@ -85,6 +86,8 @@ final class LDAPDriver extends Driver {
      */
     private static final class ValueDecoder extends PropertyDefinitionVisitor<Object, String> {
 
+        private final PropertyDefinitionsOptions options;
+
         /**
          * Decodes the provided property LDAP value.
          *
@@ -94,19 +97,21 @@ final class LDAPDriver extends Driver {
          *            The property definition.
          * @param value
          *            The LDAP string representation.
+         * @param options
+         *            Decoding options for property definitions.
          * @return Returns the decoded LDAP value.
          * @throws IllegalPropertyValueStringException
          *             If the property value could not be decoded because it was
          *             invalid.
          */
-        public static <P> P decode(PropertyDefinition<P> pd, Object value) {
+        public static <P> P decode(PropertyDefinition<P> pd, Object value, PropertyDefinitionsOptions options) {
             String s = String.valueOf(value);
-            return pd.castValue(pd.accept(new ValueDecoder(), s));
+            return pd.castValue(pd.accept(new ValueDecoder(options), s));
         }
 
         // Prevent instantiation.
-        private ValueDecoder() {
-            // No implementation required.
+        private ValueDecoder(PropertyDefinitionsOptions options) {
+            this.options = options;
         }
 
         /**
@@ -131,15 +136,13 @@ final class LDAPDriver extends Driver {
         @Override
         public <T> Object visitUnknown(PropertyDefinition<T> d, String p) {
             // By default the property definition's decoder will do.
-            return d.decodeValue(p);
+            return d.decodeValue(p, options);
         }
     }
 
-    // The LDAP connection.
-    private final LDAPConnection connection;
+    private LDAPManagementContext context;
 
-    // The LDAP management context.
-    private final LDAPManagementContext context;
+    private final LDAPConnection connection;
 
     // The LDAP profile which should be used to construct LDAP
     // requests and decode LDAP responses.
@@ -149,17 +152,21 @@ final class LDAPDriver extends Driver {
      * Creates a new LDAP driver using the specified LDAP connection and
      * profile.
      *
-     * @param context
-     *            The LDAP management context.
      * @param connection
      *            The LDAP connection.
      * @param profile
      *            The LDAP profile.
+     * @param propertyDefOptions
+     *            Options used to validate property definitions values
      */
-    public LDAPDriver(LDAPManagementContext context, LDAPConnection connection, LDAPProfile profile) {
-        this.context = context;
+    public LDAPDriver(LDAPConnection connection, LDAPProfile profile, PropertyDefinitionsOptions propertyDefOptions) {
+        super(propertyDefOptions);
         this.connection = connection;
         this.profile = profile;
+    }
+
+    void setManagementContext(LDAPManagementContext context) {
+        this.context = context;
     }
 
     /**
@@ -261,9 +268,10 @@ final class LDAPDriver extends Driver {
 
             // Decode the values.
             SortedSet<P> values = new TreeSet<P>(propertyDef);
+            PropertyDefinitionsOptions options = context.getPropertyDefOptions();
             if (attribute != null) {
                 for (ByteString byteValue : attribute) {
-                    P value = ValueDecoder.decode(propertyDef, byteValue);
+                    P value = ValueDecoder.decode(propertyDef, byteValue, options);
                     values.add(value);
                 }
             }
@@ -485,9 +493,10 @@ final class LDAPDriver extends Driver {
 
         // Get the property's active values.
         SortedSet<P> activeValues = new TreeSet<P>(propertyDef);
+        PropertyDefinitionsOptions options = context.getPropertyDefOptions();
         if (attribute != null) {
             for (ByteString byteValue : attribute) {
-                P value = ValueDecoder.decode(propertyDef, byteValue);
+                P value = ValueDecoder.decode(propertyDef, byteValue, options);
                 activeValues.add(value);
             }
         }

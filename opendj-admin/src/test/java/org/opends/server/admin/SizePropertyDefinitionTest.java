@@ -29,17 +29,11 @@ import static org.testng.Assert.*;
 
 import org.forgerock.opendj.admin.meta.RootCfgDefn;
 import org.forgerock.opendj.config.ConfigTestCase;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class SizePropertyDefinitionTest extends ConfigTestCase {
-
-    @BeforeClass
-    public void setUp() throws Exception {
-        disableClassValidationForProperties();
-    }
 
     @Test
     public void testCreateBuilder() {
@@ -105,7 +99,7 @@ public class SizePropertyDefinitionTest extends ConfigTestCase {
         SizePropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(true);
         SizePropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.decodeValue("unlimited");
+        propertyDef.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @Test(expectedExceptions = IllegalPropertyValueStringException.class)
@@ -113,7 +107,7 @@ public class SizePropertyDefinitionTest extends ConfigTestCase {
         SizePropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
         SizePropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.decodeValue("unlimited");
+        propertyDef.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @Test(expectedExceptions = IllegalPropertyValueException.class)
@@ -121,7 +115,7 @@ public class SizePropertyDefinitionTest extends ConfigTestCase {
         SizePropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
         SizePropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.validateValue(-1L);
+        propertyDef.validateValue(-1L, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @DataProvider(name = "validateValueData")
@@ -141,7 +135,7 @@ public class SizePropertyDefinitionTest extends ConfigTestCase {
         builder.setUpperLimit(high);
         builder.setAllowUnlimited(isAllowUnlimited);
         SizePropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.validateValue(valueToValidate);
+        propertyDef.validateValue(valueToValidate, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @DataProvider(name = "illegalValidateValueData")
@@ -165,7 +159,7 @@ public class SizePropertyDefinitionTest extends ConfigTestCase {
         builder.setUpperLimit(high);
         builder.setAllowUnlimited(allowUnlimited);
         SizePropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.validateValue(valueToValidate);
+        propertyDef.validateValue(valueToValidate, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @DataProvider(name = "encodeValueData")

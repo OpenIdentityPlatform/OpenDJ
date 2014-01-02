@@ -146,7 +146,8 @@ public final class DefaultManagedObject<C extends ConfigurationClient, S extends
         List<String> stringValues = propertyStringValues.get(pd.getName());
         if (stringValues != null) {
             for (String stringValue : stringValues) {
-                values.add(pd.decodeValue(stringValue));
+                // TODO : is it correct to have no validation ?
+                values.add(pd.decodeValue(stringValue, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS));
             }
         }
         return values;

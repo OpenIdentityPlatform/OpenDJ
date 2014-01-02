@@ -244,7 +244,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      * <p>
      * This method only casts the object to the required type; it does not
      * validate the value once it has been cast. Subsequent validation should be
-     * performed using the method {@link #validateValue(Object)}.
+     * performed using the method {@link #validateValue(Object, PropertyDefinitionsOptions)}.
      * <p>
      * This method guarantees the following expression is always
      * <code>true</code>:
@@ -318,11 +318,13 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      *
      * @param value
      *            The property string value (must not be <code>null</code>).
+     * @param options
+     *            Options to use when decoding value.
      * @return Returns the decoded property value.
      * @throws IllegalPropertyValueStringException
      *             If the property value string is invalid.
      */
-    public abstract T decodeValue(String value);
+    public abstract T decodeValue(String value, PropertyDefinitionsOptions options);
 
     /**
      * Encode the provided property value into its string representation.
@@ -508,7 +510,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      * This method may throw an exception if the provided value is invalid.
      * However, applications should not assume that implementations of this
      * method will always validate a value. This task is the responsibility of
-     * {@link #validateValue(Object)}.
+     * {@link #validateValue(Object, PropertyDefinitionsOptions)}.
      * <p>
      * This default implementation simply returns the string representation of
      * the provided value. Sub-classes might want to override this method if
@@ -562,10 +564,12 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      *
      * @param value
      *            The property value (must not be <code>null</code>).
+     * @param options
+     *            Options to use when decoding value.
      * @throws IllegalPropertyValueException
      *             If the property value is invalid.
      */
-    public abstract void validateValue(T value);
+    public abstract void validateValue(T value, PropertyDefinitionsOptions options);
 
     /**
      * Performs any run-time initialization required by this property

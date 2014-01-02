@@ -29,47 +29,40 @@ import static org.testng.Assert.*;
 
 import org.forgerock.opendj.admin.meta.RootCfgDefn;
 import org.forgerock.opendj.config.ConfigTestCase;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class StringPropertyDefinitionTest extends ConfigTestCase {
 
-    @BeforeClass
-    public void setUp() {
-        disableClassValidationForProperties();
-    }
-
-    @Test
     public void testValidateValueNoPattern() {
         StringPropertyDefinition d = getDefinition(true, null);
-        d.validateValue("abc");
+        d.validateValue("abc", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @Test
     public void testValidateValuePatternMatches() {
         StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
-        d.validateValue("abc");
+        d.validateValue("abc", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     // TODO : I18N problem
     @Test(enabled = false, expectedExceptions = IllegalPropertyValueException.class)
     public void testValidateValuePatternDoesNotMatch() {
         StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
-        d.validateValue("abc123");
+        d.validateValue("abc123", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @Test
     public void testDecodeValuePatternMatches() {
         StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
-        assertEquals(d.decodeValue("abc"), "abc");
+        assertEquals(d.decodeValue("abc", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS), "abc");
     }
 
     // TODO : I18N problem
     @Test(enabled = false, expectedExceptions = IllegalPropertyValueStringException.class)
     public void testDecodeValuePatternDoesNotMatch() {
         StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
-        d.decodeValue("abc123");
+        d.decodeValue("abc123", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     // Create a string property definition.

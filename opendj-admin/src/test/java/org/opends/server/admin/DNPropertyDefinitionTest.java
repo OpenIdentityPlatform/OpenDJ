@@ -32,17 +32,11 @@ import org.forgerock.opendj.admin.meta.RootCfgDefn;
 import org.forgerock.opendj.config.ConfigTestCase;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class DNPropertyDefinitionTest extends ConfigTestCase {
-
-    @BeforeClass
-    public void setUp() throws Exception {
-        disableClassValidationForProperties();
-    }
 
     @DataProvider(name = "baseDN")
     public Object[][] createBuilderSetBaseDN() {
@@ -102,7 +96,7 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
                 "test-property");
         localBuilder.setBaseDN(baseDN);
         DNPropertyDefinition propertyDef = localBuilder.getInstance();
-        propertyDef.validateValue(DN.valueOf(valueToValidate));
+        propertyDef.validateValue(DN.valueOf(valueToValidate), PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @Test(dataProvider = "illegalValues", expectedExceptions = IllegalPropertyValueException.class)
@@ -111,7 +105,7 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
                 "test-property");
         localBuilder.setBaseDN(baseDN);
         DNPropertyDefinition propertyDef = localBuilder.getInstance();
-        propertyDef.validateValue(DN.valueOf(valueToValidate));
+        propertyDef.validateValue(DN.valueOf(valueToValidate), PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @Test(dataProvider = "legalValues")
@@ -120,7 +114,7 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
                 "test-property");
         localBuilder.setBaseDN(baseDN);
         DNPropertyDefinition propertyDef = localBuilder.getInstance();
-        propertyDef.decodeValue(valueToValidate);
+        propertyDef.decodeValue(valueToValidate, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @Test(dataProvider = "illegalValues", expectedExceptions = IllegalPropertyValueStringException.class)
@@ -129,6 +123,6 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
                 "test-property");
         localBuilder.setBaseDN(baseDN);
         DNPropertyDefinition propertyDef = localBuilder.getInstance();
-        propertyDef.decodeValue(valueToValidate);
+        propertyDef.decodeValue(valueToValidate, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 }

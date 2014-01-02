@@ -85,7 +85,7 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(InetAddress value) {
+    public void validateValue(InetAddress value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         // No additional validation required.
@@ -95,7 +95,7 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
      * {@inheritDoc}
      */
     @Override
-    public InetAddress decodeValue(String value) {
+    public InetAddress decodeValue(String value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         try {

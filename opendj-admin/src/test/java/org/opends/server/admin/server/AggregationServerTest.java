@@ -49,6 +49,7 @@ import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.AdministratorAction;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.IllegalPropertyValueStringException;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.TestCfg;
@@ -84,7 +85,7 @@ public final class AggregationServerTest extends AdminTestCase {
         }
 
         public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
-                List<LocalizableMessage> unacceptableReasons) {
+            List<LocalizableMessage> unacceptableReasons) {
             return true;
         }
     }
@@ -99,16 +100,18 @@ public final class AggregationServerTest extends AdminTestCase {
         }
 
         public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration,
-                List<LocalizableMessage> unacceptableReasons) {
+            List<LocalizableMessage> unacceptableReasons) {
             return true;
         }
     }
 
+    // @Checkstyle:off
     private static final Entry TEST_CHILD_1 = makeEntry(
         "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
         "objectclass: top",
         "objectclass: ds-cfg-test-child-dummy",
-        "cn: test child 1", "ds-cfg-enabled: true",
+        "cn: test child 1",
+        "ds-cfg-enabled: true",
         "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
         "ds-cfg-attribute-type: description",
         "ds-cfg-conflict-behavior: virtual-overrides-real");
@@ -117,7 +120,8 @@ public final class AggregationServerTest extends AdminTestCase {
         "dn: cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config",
         "objectclass: top",
         "objectclass: ds-cfg-test-child-dummy",
-        "cn: test child 2", "ds-cfg-enabled: true",
+        "cn: test child 2",
+        "ds-cfg-enabled: true",
         "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
         "ds-cfg-attribute-type: description",
         "ds-cfg-conflict-behavior: virtual-overrides-real",
@@ -151,7 +155,8 @@ public final class AggregationServerTest extends AdminTestCase {
         "objectclass: ds-cfg-test-child-dummy",
         "cn: test child 5", "ds-cfg-enabled: true",
         "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-        "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real",
         "ds-cfg-rotation-policy: cn=BAD Connection Handler 1, cn=connection handlers, cn=config",
         "ds-cfg-rotation-policy: cn=BAD Connection Handler 2, cn=connection handlers, cn=config",
         "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config");
@@ -162,7 +167,8 @@ public final class AggregationServerTest extends AdminTestCase {
         "objectclass: ds-cfg-test-child-dummy",
         "cn: test child 6", "ds-cfg-enabled: true",
         "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-        "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real",
         "ds-cfg-rotation-policy: cn=Test Connection Handler, cn=connection handlers, cn=config");
 
     private static final Entry TEST_CHILD_7 = makeEntry(
@@ -218,6 +224,7 @@ public final class AggregationServerTest extends AdminTestCase {
         "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
         "ds-cfg-enabled: true",
         "ds-cfg-listen-address: 0.0.0.0", "ds-cfg-listen-port: 389");
+    // @Checkstyle:on
 
     // @Checkstyle:off
     /**
@@ -240,13 +247,12 @@ public final class AggregationServerTest extends AdminTestCase {
 
     @BeforeClass
     public void setUp() throws Exception {
-        disableClassValidationForProperties();
         TestCfg.setUp();
 
         // Save the aggregation property definition so that it can be
         // replaced and restored later.
-        aggregationPropertyDefinitionDefault = TestChildCfgDefn.getInstance()
-                .getAggregationPropertyPropertyDefinition();
+        aggregationPropertyDefinitionDefault =
+            TestChildCfgDefn.getInstance().getAggregationPropertyPropertyDefinition();
 
         // Create the two test aggregation properties.
         AggregationPropertyDefinition.Builder<ConnectionHandlerCfgClient, ConnectionHandlerCfg> builder;
@@ -254,7 +260,7 @@ public final class AggregationServerTest extends AdminTestCase {
         builder = AggregationPropertyDefinition.createBuilder(d, "aggregation-property");
         builder.setOption(PropertyOption.MULTI_VALUED);
         builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.NONE, d,
-                "aggregation-property"));
+            "aggregation-property"));
         builder.setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider<String>());
         builder.setParentPath("/");
         builder.setRelationDefinition("connection-handler");
@@ -265,7 +271,7 @@ public final class AggregationServerTest extends AdminTestCase {
         builder = AggregationPropertyDefinition.createBuilder(d, "aggregation-property");
         builder.setOption(PropertyOption.MULTI_VALUED);
         builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.NONE, d,
-                "aggregation-property"));
+            "aggregation-property"));
         builder.setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider<String>());
         builder.setParentPath("/");
         builder.setRelationDefinition("connection-handler");
@@ -289,9 +295,10 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     @Test
     public void testAggregationBadBaseDN() throws Exception {
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_3,
-            LDAP_CONN_HANDLER_ENTRY);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_3, LDAP_CONN_HANDLER_ENTRY);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         try {
             parentCfg.getTestChild(entryName(TEST_CHILD_3));
@@ -304,7 +311,7 @@ public final class AggregationServerTest extends AdminTestCase {
             assertThat(propertyException).isInstanceOf(IllegalPropertyValueStringException.class);
             IllegalPropertyValueStringException pe = (IllegalPropertyValueStringException) propertyException;
             assertEquals(pe.getPropertyDefinition(), TestChildCfgDefn.getInstance()
-                    .getAggregationPropertyPropertyDefinition());
+                .getAggregationPropertyPropertyDefinition());
             assertEquals(pe.getIllegalValueString(), "cn=LDAP Connection Handler, cn=bad rdn, cn=config");
         }
     }
@@ -315,9 +322,10 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     @Test
     public void testAggregationDanglingReference() throws Exception {
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
-            TEST_PARENT_1, TEST_CHILD_5, LDAP_CONN_HANDLER_ENTRY);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_5, LDAP_CONN_HANDLER_ENTRY);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
 
         try {
@@ -337,9 +345,10 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     @Test
     public void testAggregationDisabledReference1() throws Exception {
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
-                TEST_PARENT_1, TEST_CHILD_6, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_6, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
 
         registerAggregationDefinitionWithTargetEnabled();
 
@@ -363,9 +372,10 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     @Test
     public void testAggregationDisabledReference2() throws Exception {
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
-                TEST_PARENT_1, TEST_CHILD_7, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_7, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
 
         registerAggregationDefinitionWithTargetEnabled();
 
@@ -390,9 +400,10 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     @Test
     public void testAggregationDisabledReference3() throws Exception {
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
-                TEST_PARENT_1, TEST_CHILD_6, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_6, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
 
         registerAggregationDefinitionWithTargetAndSourceEnabled();
 
@@ -416,9 +427,10 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     @Test
     public void testAggregationDisabledReference4() throws Exception {
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
-                TEST_PARENT_1, TEST_CHILD_7, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_7, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
 
         registerAggregationDefinitionWithTargetAndSourceEnabled();
 
@@ -437,14 +449,15 @@ public final class AggregationServerTest extends AdminTestCase {
     @Test
     public void testAggregationEmpty() throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_1);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         TestChildCfg testChildCfg = parentCfg.getTestChild(entryName(TEST_CHILD_1));
 
         assertEquals(testChildCfg.getMandatoryClassProperty(),
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        assertEquals(testChildCfg.getMandatoryReadOnlyAttributeTypeProperty(),
-                Schema.getDefaultSchema().getAttributeType("description"));
+            "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
+        assertEquals(testChildCfg.getMandatoryReadOnlyAttributeTypeProperty(), Schema.getDefaultSchema()
+            .getAttributeType("description"));
         assertSetEquals(testChildCfg.getAggregationProperty(), new String[0]);
     }
 
@@ -454,18 +467,19 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     @Test
     public void testAggregationMultipleValues() throws Exception {
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_4,
-            LDAP_CONN_HANDLER_ENTRY, LDAPS_CONN_HANDLER_ENTRY);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_4, LDAP_CONN_HANDLER_ENTRY,
+                LDAPS_CONN_HANDLER_ENTRY);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         TestChildCfg testChildCfg = parentCfg.getTestChild(entryName(TEST_CHILD_4));
 
         assertEquals(testChildCfg.getMandatoryClassProperty(),
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        assertEquals(testChildCfg.getMandatoryReadOnlyAttributeTypeProperty(),
-                Schema.getDefaultSchema().getAttributeType("description"));
-        assertSetEquals(testChildCfg.getAggregationProperty(),
-                "LDAPS Connection Handler", "LDAP Connection Handler");
+            "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
+        assertEquals(testChildCfg.getMandatoryReadOnlyAttributeTypeProperty(), Schema.getDefaultSchema()
+            .getAttributeType("description"));
+        assertSetEquals(testChildCfg.getAggregationProperty(), "LDAPS Connection Handler", "LDAP Connection Handler");
     }
 
     /**
@@ -474,16 +488,17 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     @Test
     public void testAggregationSingle() throws Exception {
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_2,
-                LDAP_CONN_HANDLER_ENTRY);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_2, LDAP_CONN_HANDLER_ENTRY);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         TestChildCfg testChildCfg = parentCfg.getTestChild(entryName(TEST_CHILD_2));
 
         assertEquals(testChildCfg.getMandatoryClassProperty(),
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        assertEquals(testChildCfg.getMandatoryReadOnlyAttributeTypeProperty(),
-                Schema.getDefaultSchema().getAttributeType("description"));
+            "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
+        assertEquals(testChildCfg.getMandatoryReadOnlyAttributeTypeProperty(), Schema.getDefaultSchema()
+            .getAttributeType("description"));
 
         // Test normalization.
         assertSetEquals(testChildCfg.getAggregationProperty(), "LDAP Connection Handler");
@@ -498,9 +513,11 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     @Test
     public void testCannotDeleteReferencedComponent() throws Exception {
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENTS, TEST_PARENT_1,
-                TEST_BASE_CHILD, TEST_CHILD_7, CONN_HANDLER_ENTRY, TEST_CONNECTION_HANDLER_ENTRY_ENABLED);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENTS, TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_7,
+                CONN_HANDLER_ENTRY, TEST_CONNECTION_HANDLER_ENTRY_ENABLED);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
 
         registerAggregationDefinitionWithTargetEnabled();
 
@@ -518,9 +535,9 @@ public final class AggregationServerTest extends AdminTestCase {
                 registeredListener.capture());
 
             // Now simulate the delete ofthe referenced connection handler.
-            assertThat(registeredListener.getValue().
-                    configDeleteIsAcceptable(TEST_CONNECTION_HANDLER_ENTRY_ENABLED, new LocalizableMessageBuilder())).
-                    isFalse();
+            assertThat(
+                registeredListener.getValue().configDeleteIsAcceptable(TEST_CONNECTION_HANDLER_ENTRY_ENABLED,
+                    new LocalizableMessageBuilder())).isFalse();
 
         } finally {
             putBackDefaultAggregationDefinitionFromTargetEnabled();
@@ -534,9 +551,11 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     @Test
     public void testCannotDisableReferencedComponent() throws Exception {
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENTS, TEST_PARENT_1,
-                TEST_BASE_CHILD, TEST_CHILD_7, CONN_HANDLER_ENTRY, TEST_CONNECTION_HANDLER_ENTRY_ENABLED);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENTS, TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_7,
+                CONN_HANDLER_ENTRY, TEST_CONNECTION_HANDLER_ENTRY_ENABLED);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
 
         registerAggregationDefinitionWithTargetEnabled();
 
@@ -554,9 +573,9 @@ public final class AggregationServerTest extends AdminTestCase {
             verify(configRepository).registerChangeListener(eq(TEST_CHILD_7.getName()), registeredListener.capture());
 
             // Now simulate the disabling ofthe referenced connection handler.
-            assertThat(registeredListener.getValue().
-                configChangeIsAcceptable(TEST_CONNECTION_HANDLER_ENTRY_DISABLED, new LocalizableMessageBuilder())).
-                isFalse();
+            assertThat(
+                registeredListener.getValue().configChangeIsAcceptable(TEST_CONNECTION_HANDLER_ENTRY_DISABLED,
+                    new LocalizableMessageBuilder())).isFalse();
 
         } finally {
             putBackDefaultAggregationDefinitionFromTargetEnabled();
@@ -606,8 +625,8 @@ public final class AggregationServerTest extends AdminTestCase {
 
     /** Asserts that the actual set of DNs contains the expected values. */
     private void assertSetEquals(SortedSet<String> actual, String... expected) {
-        SortedSet<String> values = new TreeSet<String>(TestChildCfgDefn.getInstance()
-                .getAggregationPropertyPropertyDefinition());
+        SortedSet<String> values =
+            new TreeSet<String>(TestChildCfgDefn.getInstance().getAggregationPropertyPropertyDefinition());
         if (expected != null) {
             for (String value : expected) {
                 values.add(value);

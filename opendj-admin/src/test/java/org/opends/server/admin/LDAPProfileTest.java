@@ -31,16 +31,10 @@ import java.util.List;
 
 import org.forgerock.opendj.admin.meta.GlobalCfgDefn;
 import org.forgerock.opendj.config.ConfigTestCase;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class LDAPProfileTest extends ConfigTestCase {
-
-    @BeforeClass
-    public void setUp() {
-        disableClassValidationForProperties();
-    }
 
     /** Makes sure the returned list contains "top" */
     @Test

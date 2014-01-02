@@ -31,18 +31,12 @@ import static org.testng.Assert.*;
 
 import org.forgerock.opendj.admin.meta.RootCfgDefn;
 import org.forgerock.opendj.config.ConfigTestCase;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 
 @SuppressWarnings("javadoc")
 @Test(singleThreaded = true)
 public class TestTopCfgDefnTest extends ConfigTestCase {
-
-    @BeforeClass
-    public void setUp() throws Exception {
-        disableClassValidationForProperties();
-    }
 
     @Test
     public void testGetInstance() {

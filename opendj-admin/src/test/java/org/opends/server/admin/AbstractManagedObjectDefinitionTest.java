@@ -64,7 +64,6 @@ public class AbstractManagedObjectDefinitionTest extends ConfigTestCase {
 
     @BeforeClass
     public void setUp() throws Exception {
-        disableClassValidationForProperties();
         TestCfg.setUp();
     }
 
