@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -315,7 +315,8 @@ public class ChangeNumberIndexer extends DirectoryThread
       for (Integer serverId : entry.getValue())
       {
         final CSN csn = mediumConsistencyRUV.getCSN(baseDN, serverId);
-        ensureCursorExists(baseDN, serverId, csn, false);
+        // start after the actual CSN when initializing from the previous cookie
+        ensureCursorExists(baseDN, serverId, csn);
       }
 
       ServerState latestKnownState = domainDB.getDomainNewestCSNs(baseDN);
@@ -362,8 +363,8 @@ public class ChangeNumberIndexer extends DirectoryThread
     nextChangeForInsertDBCursor = result;
   }
 
-  private boolean ensureCursorExists(DN baseDN, Integer serverId, CSN csn,
-      boolean startFromPrecedingCSN) throws ChangelogException
+  private boolean ensureCursorExists(DN baseDN, Integer serverId,
+      CSN startAfterCSN) throws ChangelogException
   {
     Map<Integer, DBCursor<UpdateMsg>> map = allCursors.get(baseDN);
     if (map == null)
@@ -375,10 +376,6 @@ public class ChangeNumberIndexer extends DirectoryThread
     if (cursor == null)
     {
       final ReplicationDomainDB domainDB = changelogDB.getReplicationDomainDB();
-      // start from preceding CSN for publishUpdateMsg(),
-      // or from the actual CSN when initializing from the previous cookie
-      final CSN startAfterCSN =
-          startFromPrecedingCSN ? getPrecedingCSN(csn) : csn;
       cursor = domainDB.getCursorFrom(baseDN, serverId, startAfterCSN);
       map.put(serverId, cursor);
       return false;
@@ -388,8 +385,12 @@ public class ChangeNumberIndexer extends DirectoryThread
 
   /**
    * Returns the immediately preceding CSN.
+   *
+   * @param csn
+   *          the CSN to use
+   * @return the immediately preceding CSN or null if the provided CSN is null.
    */
-  private CSN getPrecedingCSN(CSN csn)
+  CSN getPrecedingCSN(CSN csn)
   {
     if (csn == null)
     {
@@ -602,7 +603,10 @@ public class ChangeNumberIndexer extends DirectoryThread
         final Entry<Pair<DN, Integer>, CSN> entry = iter.next();
         final DN baseDN = entry.getKey().getFirst();
         final CSN csn = entry.getValue();
-        if (!ensureCursorExists(baseDN, csn.getServerId(), csn, true))
+        // start after preceding CSN so the first CSN read will exactly be the
+        // current one
+        final CSN startFromCSN = getPrecedingCSN(csn);
+        if (!ensureCursorExists(baseDN, csn.getServerId(), startFromCSN))
         {
           newCursorAdded = true;
         }
