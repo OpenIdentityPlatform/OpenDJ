@@ -169,9 +169,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   public void ECLReplicationServerTest() throws Exception
   {
     getCNIndexDB().setPurgeDelay(0);
-    // Following test does not create RSDomain (only broker) but want to test
-    // ECL .. so let's enable ECl manually
-    // Now that we tested that ECl is not available
+    // let's enable ECl manually now that we tested that ECl is not available
     ECLWorkflowElement wfe =
         (ECLWorkflowElement) DirectoryServer
         .getWorkflowElement(ECLWorkflowElement.ECL_WORKFLOW_ELEMENT);
@@ -1008,6 +1006,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test\n\n");
     ReplicationBroker server01 = null;
     ReplicationBroker server02 = null;
+    LDAPReplicationDomain domain = null;
     try
     {
       // Creates brokers on o=test and o=test2
@@ -1015,6 +1014,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           100, replicationServerPort, brokerSessionTimeout);
       server02 = openReplicationSession(TEST_ROOT_DN2, SERVER_ID_2,
           100, replicationServerPort, brokerSessionTimeout);
+
+      DomainFakeCfg domainConf = newFakeCfg(TEST_ROOT_DN, SERVER_ID_1, replicationServerPort);
+      domain = startNewDomain(domainConf, null, null);
 
       String user1entryUUID = "11111111-1111-1111-1111-111111111111";
       String baseUUID       = "22222222-2222-2222-2222-222222222222";
@@ -1125,7 +1127,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, "Entries:" + result);
       assertThat(getControls(result)).containsExactly(cookies);
     }
-    finally {
+    finally
+    {
+      remove(domain);
       stop(server01, server02);
     }
     debugInfo(tn, "Ending test with success");
@@ -2490,10 +2494,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugAndWriteEntries(null, entries, tn);
     for (SearchResultEntry resultEntry : entries)
     {
-      assertEquals(getAttributeValue(resultEntry, "firstchangenumber"), null);
-      assertEquals(getAttributeValue(resultEntry, "lastchangenumber"), null);
-      assertEquals(getAttributeValue(resultEntry, "changelog"), null);
-      assertEquals(getAttributeValue(resultEntry, "lastExternalChangelogCookie"), null);
+      assertNull(getAttributeValue(resultEntry, "firstchangenumber"));
+      assertNull(getAttributeValue(resultEntry, "lastchangenumber"));
+      assertNull(getAttributeValue(resultEntry, "changelog"));
+      assertNull(getAttributeValue(resultEntry, "lastExternalChangelogCookie"));
     }
 
     debugInfo(tn, "Ending test with success");
@@ -2528,14 +2532,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         checkValue(resultEntry, "firstchangenumber", String.valueOf(expectedFirst));
       checkValue(resultEntry, "lastchangenumber", String.valueOf(expectedLast));
       checkValue(resultEntry, "changelog", String.valueOf("cn=changelog"));
+      assertNotNull(getAttributeValue(resultEntry, "lastExternalChangelogCookie"));
     }
     else
     {
       if (expectedFirst > 0)
-        assertEquals(getAttributeValue(resultEntry, "firstchangenumber"), null);
-      assertEquals(getAttributeValue(resultEntry, "lastchangenumber"), null);
-      assertEquals(getAttributeValue(resultEntry, "changelog"), null);
-      assertEquals(getAttributeValue(resultEntry, "lastExternalChangelogCookie"), null);
+        assertNull(getAttributeValue(resultEntry, "firstchangenumber"));
+      assertNull(getAttributeValue(resultEntry, "lastchangenumber"));
+      assertNull(getAttributeValue(resultEntry, "changelog"));
+      assertNull(getAttributeValue(resultEntry, "lastExternalChangelogCookie"));
     }
 
     debugInfo(tn, "Ending test with success");
