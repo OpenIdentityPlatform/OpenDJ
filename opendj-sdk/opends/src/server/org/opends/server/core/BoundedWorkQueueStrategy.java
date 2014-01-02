@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -63,11 +63,21 @@ public class BoundedWorkQueueStrategy implements QueueingStrategy
     else
     {
       int cpus = Runtime.getRuntime().availableProcessors();
-      int numWorkerThreads =
-          DirectoryServer.getWorkQueue().getNumWorkerThreads();
       this.maxNbConcurrentOperations =
-          Math.max(cpus, numWorkerThreads * 25 / 100);
+          Math.max(cpus, getNumWorkerThreads() * 25 / 100);
     }
+  }
+
+  /**
+   * Return the maximum number of worker threads that can be used by the
+   * WorkQueue (The WorkQueue could have a thread pool which adjusts its size).
+   *
+   * @return the maximum number of worker threads that can be used by the
+   *         WorkQueue
+   */
+  protected int getNumWorkerThreads()
+  {
+    return DirectoryServer.getWorkQueue().getNumWorkerThreads();
   }
 
   /** {@inheritDoc} */
@@ -83,13 +93,13 @@ public class BoundedWorkQueueStrategy implements QueueingStrategy
 
     if (maxNbConcurrentOperations == 0)
     { // unlimited concurrent operations
-      if (!DirectoryServer.tryEnqueueRequest(operation))
+      if (!tryEnqueueRequest(operation))
       { // avoid potential deadlocks by running in the current thread
         operation.run();
       }
     }
     else if (nbRunningOperations.getAndIncrement() > maxNbConcurrentOperations
-        || !DirectoryServer.tryEnqueueRequest(wrap(operation)))
+        || !tryEnqueueRequest(wrap(operation)))
     { // avoid potential deadlocks by running in the current thread
       try
       {
@@ -102,6 +112,22 @@ public class BoundedWorkQueueStrategy implements QueueingStrategy
         nbRunningOperations.decrementAndGet();
       }
     }
+  }
+
+  /**
+   * Tries to add the provided operation to the work queue if not full so that
+   * it will be processed by one of the worker threads.
+   *
+   * @param op
+   *          The operation to be added to the work queue.
+   * @return true if the operation could be enqueued, false otherwise
+   * @throws DirectoryException
+   *           If a problem prevents the operation from being added to the queue
+   *           (e.g., the queue is full).
+   */
+  protected boolean tryEnqueueRequest(Operation op) throws DirectoryException
+  {
+    return DirectoryServer.tryEnqueueRequest(op);
   }
 
   private Operation wrap(final Operation operation)
