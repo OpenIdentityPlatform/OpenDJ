@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -304,7 +304,6 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg1, msg2, msg4);
   }
 
-
   private void addReplica(DN baseDN, int serverId) throws Exception
   {
     final SequentialDBCursor cursor = new SequentialDBCursor();
@@ -331,7 +330,10 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
   private void stopCNIndexer()
   {
-    cnIndexer.initiateShutdown();
+    if (cnIndexer != null)
+    {
+      cnIndexer.initiateShutdown();
+    }
   }
 
   private ReplicatedUpdateMsg msg(DN baseDN, int serverId, long time)
@@ -457,5 +459,26 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
       assertThat(record.getPreviousCookie()).as(desc2).isEqualTo(previousCookie.toString());
       previousCookie.update(msg.getBaseDN(), msg.getCSN());
     }
+  }
+
+  @DataProvider
+  public Object[][] precedingCSNData()
+  {
+    final int serverId = 42;
+    final int t = 1000;
+    return new Object[][] {
+      // @formatter:off
+      { null, null, },
+      { new CSN(t, 1, serverId), new CSN(t, 0, serverId), },
+      { new CSN(t, 0, serverId), new CSN(t - 1, Integer.MAX_VALUE, serverId), },
+      // @formatter:on
+    };
+  }
+
+  @Test(dataProvider = "precedingCSNData")
+  public void getPrecedingCSN(CSN start, CSN expected)
+  {
+    CSN precedingCSN = this.cnIndexer.getPrecedingCSN(start);
+    assertThat(precedingCSN).isEqualTo(expected);
   }
 }
