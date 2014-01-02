@@ -31,23 +31,16 @@ import org.forgerock.opendj.admin.meta.RootCfgDefn;
 import org.forgerock.opendj.config.ConfigTestCase;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class AttributeTypePropertyDefinitionTest extends ConfigTestCase {
 
-    @BeforeClass
-    public void setUp() throws Exception {
-        disableClassValidationForProperties();
-    }
-
     @Test
     public void testValidateValue() {
-        AttributeTypePropertyDefinition.setCheckSchema(true);
         AttributeTypePropertyDefinition propertyDef = createPropertyDefinition();
-        propertyDef.validateValue(Schema.getDefaultSchema().getAttributeType("cn"));
+        propertyDef.validateValue(Schema.getDefaultSchema().getAttributeType("cn"), new PropertyDefinitionsOptions());
     }
 
     @DataProvider(name = "valueLegalData")
@@ -57,17 +50,15 @@ public class AttributeTypePropertyDefinitionTest extends ConfigTestCase {
 
     @Test(dataProvider = "valueLegalData")
     public void testDecodeValue(String value) {
-        AttributeTypePropertyDefinition.setCheckSchema(true);
         AttributeTypePropertyDefinition propertyDef = createPropertyDefinition();
         AttributeType expected = Schema.getDefaultSchema().getAttributeType(value);
-        assertEquals(propertyDef.decodeValue(value), expected);
+        assertEquals(propertyDef.decodeValue(value, new PropertyDefinitionsOptions()), expected);
     }
 
     @Test(dataProvider = "valueLegalData")
     public void testEncodeValue(String value) {
-        AttributeTypePropertyDefinition.setCheckSchema(true);
         AttributeTypePropertyDefinition propertyDef = createPropertyDefinition();
-        assertEquals(propertyDef.encodeValue(propertyDef.decodeValue(value)), value);
+        assertEquals(propertyDef.encodeValue(propertyDef.decodeValue(value, new PropertyDefinitionsOptions())), value);
     }
 
     @DataProvider(name = "valueIllegalData")
@@ -77,21 +68,15 @@ public class AttributeTypePropertyDefinitionTest extends ConfigTestCase {
 
     @Test(dataProvider = "valueIllegalData", expectedExceptions = { IllegalPropertyValueStringException.class })
     public void testDecodeValueIllegal(String value) {
-        AttributeTypePropertyDefinition.setCheckSchema(true);
         AttributeTypePropertyDefinition propertyDef = createPropertyDefinition();
-        propertyDef.decodeValue(value);
+        propertyDef.decodeValue(value, new PropertyDefinitionsOptions());
     }
 
     @Test(dataProvider = "valueIllegalData")
     public void testDecodeValueIllegalNoSchemaCheck(String value) {
-        AttributeTypePropertyDefinition.setCheckSchema(false);
         AttributeTypePropertyDefinition propertyDef = createPropertyDefinition();
-        AttributeType type = propertyDef.decodeValue(value);
+        AttributeType type = propertyDef.decodeValue(value, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         assertEquals(type.getNameOrOID(), value);
-
-        // Make sure to turn schema checking back on
-        // so that other tests which depend on it don't fail.
-        AttributeTypePropertyDefinition.setCheckSchema(true);
     }
 
     // Create a new definition.

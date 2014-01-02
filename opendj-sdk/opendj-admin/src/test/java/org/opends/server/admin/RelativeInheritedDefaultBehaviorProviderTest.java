@@ -43,7 +43,6 @@ public class RelativeInheritedDefaultBehaviorProviderTest extends ConfigTestCase
 
     @BeforeClass
     public void setUp() {
-        disableClassValidationForProperties();
         parentDefinition = TestParentCfgDefn.getInstance();
         this.defaultBehaviorProvider = new RelativeInheritedDefaultBehaviorProvider<Boolean>(
             parentDefinition,

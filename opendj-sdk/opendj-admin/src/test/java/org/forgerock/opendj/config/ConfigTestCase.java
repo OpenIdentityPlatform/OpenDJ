@@ -26,7 +26,6 @@
 package org.forgerock.opendj.config;
 
 import org.forgerock.opendj.ldap.SdkTestCase;
-import org.opends.server.admin.ClassPropertyDefinition;
 import org.testng.annotations.Test;
 
 /**
@@ -34,12 +33,5 @@ import org.testng.annotations.Test;
  */
 @Test(groups = { "precommit", "config" })
 public abstract class ConfigTestCase extends SdkTestCase {
-
-    protected void disableClassValidationForProperties() {
-        ClassPropertyDefinition.setAllowClassValidation(false);
-    }
-
-    protected void enableClassValidationForProperties() {
-        ClassPropertyDefinition.setAllowClassValidation(true);
-    }
+   // no implementation
 }

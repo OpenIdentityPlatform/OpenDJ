@@ -44,6 +44,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.mockito.ArgumentCaptor;
 import org.opends.server.admin.AdminTestCase;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestChildCfg;
 import org.opends.server.admin.TestParentCfg;
@@ -79,7 +80,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         }
 
         public boolean isConfigurationAddAcceptable(TestChildCfg configuration,
-                List<LocalizableMessage> unacceptableReasons) {
+            List<LocalizableMessage> unacceptableReasons) {
             childCfg = configuration;
             return true;
         }
@@ -101,12 +102,13 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         }
 
         public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
-                List<LocalizableMessage> unacceptableReasons) {
+            List<LocalizableMessage> unacceptableReasons) {
             childCfg = configuration;
             return true;
         }
     }
 
+    // @Checkstyle:off
     static final Entry CONFIG = makeEntry(
         "dn: cn=config",
         "objectClass: top",
@@ -219,9 +221,10 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         "ds-cfg-attribute-type: description",
         "ds-cfg-conflict-behavior: virtual-overrides-real");
 
+    // @Checkstyle:on
+
     @BeforeClass
     public void setUp() throws Exception {
-        disableClassValidationForProperties();
         TestCfg.setUp();
     }
 
@@ -237,33 +240,34 @@ public final class DefaultBehaviorTest extends AdminTestCase {
             // expected first dn property values,
             // expected second dn property values
             { TEST_PARENT_1, TEST_CHILD_BASE_1, TEST_CHILD_1,
-              Arrays.asList("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com"),
-              Arrays.asList("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com") },
+                Arrays.asList("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com"),
+                Arrays.asList("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com") },
 
             { TEST_PARENT_1, TEST_CHILD_BASE_1, TEST_CHILD_2,
-              Arrays.asList("dc=default value c2v1,dc=com", "dc=default value c2v2,dc=com"),
-              Arrays.asList("dc=default value c2v1,dc=com", "dc=default value c2v2,dc=com") },
+                Arrays.asList("dc=default value c2v1,dc=com", "dc=default value c2v2,dc=com"),
+                Arrays.asList("dc=default value c2v1,dc=com", "dc=default value c2v2,dc=com") },
 
             { TEST_PARENT_1, TEST_CHILD_BASE_1, TEST_CHILD_3,
-              Arrays.asList("dc=default value c3v1,dc=com", "dc=default value c3v2,dc=com"),
-              Arrays.asList("dc=default value c3v3,dc=com", "dc=default value c3v4,dc=com") },
+                Arrays.asList("dc=default value c3v1,dc=com", "dc=default value c3v2,dc=com"),
+                Arrays.asList("dc=default value c3v3,dc=com", "dc=default value c3v4,dc=com") },
 
             { TEST_PARENT_2, TEST_CHILD_BASE_2, TEST_CHILD_4,
-              Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com"),
-              Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com") }
-        };
+                Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com"),
+                Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com") } };
     }
 
     /**
-     * Test that a child config have correct values when accessed from its parent config.
+     * Test that a child config have correct values when accessed from its
+     * parent config.
      */
     @Test(dataProvider = "childConfigurationsValues")
     public void testChildValues(Entry testParent, Entry testBaseChild, Entry testChild,
-            List<String> valuesForOptionalDNProperty1, List<String> valuesForOptionalDNProperty2) throws Exception {
+        List<String> valuesForOptionalDNProperty1, List<String> valuesForOptionalDNProperty2) throws Exception {
         // arrange
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
-                testParent, testBaseChild, testChild);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(testParent, testBaseChild, testChild);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfg parentCfg = getParentCfg(testParent, context);
 
         // assert
@@ -272,15 +276,17 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     }
 
     /**
-     * Test that a child config have correct values when accessed through an add listener.
+     * Test that a child config have correct values when accessed through an add
+     * listener.
      */
     @Test(dataProvider = "childConfigurationsValues")
     public void testAddListenerChildValues(Entry testParent, Entry testBaseChild, Entry testChild,
-            List<String> valuesForOptionalDNProperty1, List<String> valuesForOptionalDNProperty2) throws Exception {
+        List<String> valuesForOptionalDNProperty1, List<String> valuesForOptionalDNProperty2) throws Exception {
         // arrange
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
-                testParent, testBaseChild, testChild);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(testParent, testBaseChild, testChild);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfg parentCfg = getParentCfg(testParent, context);
         TestConfigurationAddListener addListener = new TestConfigurationAddListener();
         parentCfg.addTestChildAddListener(addListener);
@@ -296,36 +302,38 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     @DataProvider
     Object[][] childConfigurationsValuesForChangeListener() {
         return new Object[][] {
-            // new entry after change, expected first dn property values, expected second dn property values
+            // new entry after change, expected first dn property values,
+            // expected second dn property values
             { makeEntryFrom(LDIF_TEST_CHILD_1, NEW_ATTRS_1),
-              Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com"),
-              Arrays.asList("dc=new value 3,dc=com", "dc=new value 4,dc=com") },
+                Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com"),
+                Arrays.asList("dc=new value 3,dc=com", "dc=new value 4,dc=com") },
 
             { makeEntryFrom(LDIF_TEST_CHILD_1, NEW_ATTRS_2),
-              Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com"),
-              Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com") },
+                Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com"),
+                Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com") },
 
             { makeEntryFrom(LDIF_TEST_CHILD_1, NEW_ATTRS_3),
-              Arrays.asList("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com"),
-              Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com") },
+                Arrays.asList("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com"),
+                Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com") },
 
             { makeEntryFrom(LDIF_TEST_PARENT_1, NEW_ATTRS_2),
-              Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com"),
-              Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com") }
-        };
+                Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com"),
+                Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com") } };
     }
 
     /**
-     * Tests that a child config have correct values when accessed through an change listener.
-     * The defaulted properties are replaced with some real values.
+     * Tests that a child config have correct values when accessed through an
+     * change listener. The defaulted properties are replaced with some real
+     * values.
      */
     @Test(dataProvider = "childConfigurationsValuesForChangeListener")
     public void testChangeListenerChildValues(Entry newEntry, List<String> valuesForOptionalDNProperty1,
-            List<String> valuesForOptionalDNProperty2) throws Exception {
+        List<String> valuesForOptionalDNProperty2) throws Exception {
         // arrange
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
-                TEST_PARENT_1, TEST_CHILD_BASE_1, TEST_CHILD_1);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_BASE_1, TEST_CHILD_1);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         TestChildCfg childCfg = parentCfg.getTestChild(entryName(TEST_CHILD_1));
         TestConfigurationChangeListener changeListener = new TestConfigurationChangeListener();
@@ -335,17 +343,17 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         simulateEntryChange(newEntry, configRepository);
 
         // assert
-        assertChildHasCorrectValues(changeListener.getChildCfg(entryName(TEST_CHILD_1)), valuesForOptionalDNProperty1,
-            valuesForOptionalDNProperty2);
+        assertChildHasCorrectValues(changeListener.getChildCfg(entryName(TEST_CHILD_1)),
+            valuesForOptionalDNProperty1, valuesForOptionalDNProperty2);
     }
 
     @DataProvider
     Object[][] parentConfigurationsValues() {
         return new Object[][] {
-            // parent entry, expected first dn property values, expected second dn property values
+            // parent entry, expected first dn property values, expected second
+            // dn property values
             { TEST_PARENT_1, Arrays.asList("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com") },
-            { TEST_PARENT_2, Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com") }
-        };
+            { TEST_PARENT_2, Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com") } };
     }
 
     /**
@@ -354,20 +362,20 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     @Test(dataProvider = "parentConfigurationsValues")
     public void testParentValues(Entry parentEntry, List<String> valuesForOptionalDNProperty) throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithEntries(parentEntry);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfg parent = getParentCfg(parentEntry, context);
 
         assertThat(parent.getMandatoryClassProperty()).isEqualTo(
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
+            "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
         assertThat(parent.getMandatoryReadOnlyAttributeTypeProperty()).isEqualTo(
-                Schema.getDefaultSchema().getAttributeType("description"));
+            Schema.getDefaultSchema().getAttributeType("description"));
         assertDNSetEquals(parent.getOptionalMultiValuedDNProperty(), valuesForOptionalDNProperty);
     }
 
-
-
     /**
-     * Simulate an entry add by triggering configAddIsAcceptable method of last registered add listener.
+     * Simulate an entry add by triggering configAddIsAcceptable method of last
+     * registered add listener.
      */
     private void simulateEntryAdd(Entry entry, ConfigurationRepository configRepository) throws IOException {
         // use argument capture to retrieve the actual listener
@@ -378,7 +386,8 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     }
 
     /**
-     * Simulate an entry change by triggering configChangeIsAcceptable method on last registered change listener.
+     * Simulate an entry change by triggering configChangeIsAcceptable method on
+     * last registered change listener.
      */
     private void simulateEntryChange(Entry newEntry, ConfigurationRepository configRepository) {
         // use argument capture to retrieve the actual listener
@@ -390,9 +399,9 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
     private void assertChildHasCorrectValues(TestChildCfg child, List<String> dnProperty1, List<String> dnProperty2) {
         assertThat(child.getMandatoryClassProperty()).isEqualTo(
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
+            "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
         assertThat(child.getMandatoryReadOnlyAttributeTypeProperty()).isEqualTo(
-                Schema.getDefaultSchema().getAttributeType("description"));
+            Schema.getDefaultSchema().getAttributeType("description"));
         assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(), dnProperty1);
         assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), dnProperty2);
     }

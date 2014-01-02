@@ -203,10 +203,6 @@ public final class ConfigGuideGeneration {
             e.printStackTrace();
             System.exit(1);
         }
-        // Switch off class name validation in client.
-        ClassPropertyDefinition.setAllowClassValidation(false);
-        // Switch off attribute type name validation in client.
-        AttributeTypePropertyDefinition.setCheckSchema(false);
 
         // Build a sorted list of top managed objects
         TopCfgDefn topCfg = TopCfgDefn.getInstance();

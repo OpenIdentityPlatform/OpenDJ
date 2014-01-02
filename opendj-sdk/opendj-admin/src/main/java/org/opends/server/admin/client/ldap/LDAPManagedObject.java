@@ -126,7 +126,8 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
     LDAPManagedObject(LDAPDriver driver, ManagedObjectDefinition<T, ? extends Configuration> d,
             ManagedObjectPath<T, ? extends Configuration> path, PropertySet properties, boolean existsOnServer,
             PropertyDefinition<?> namingPropertyDefinition) {
-        super(d, path, properties, existsOnServer, namingPropertyDefinition);
+        super(d, path, properties, existsOnServer, namingPropertyDefinition,
+            driver.getManagementContext().getPropertyDefOptions());
         this.driver = driver;
     }
 

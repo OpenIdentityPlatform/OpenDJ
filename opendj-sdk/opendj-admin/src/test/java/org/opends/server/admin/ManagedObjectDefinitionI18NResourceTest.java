@@ -41,7 +41,6 @@ public class ManagedObjectDefinitionI18NResourceTest extends ConfigTestCase {
 
     @BeforeClass
     public void setUp() {
-        disableClassValidationForProperties();
         definitionI18NResource = ManagedObjectDefinitionI18NResource.getInstanceForProfile("ldap");
     }
 

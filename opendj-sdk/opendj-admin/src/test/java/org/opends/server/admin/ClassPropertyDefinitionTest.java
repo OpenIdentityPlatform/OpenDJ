@@ -34,17 +34,11 @@ import java.util.List;
 
 import org.forgerock.opendj.admin.meta.RootCfgDefn;
 import org.forgerock.opendj.config.ConfigTestCase;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class ClassPropertyDefinitionTest extends ConfigTestCase {
-
-    @BeforeClass
-    public void setUp() throws Exception {
-        disableClassValidationForProperties();
-    }
 
     // Dummy class used in tests.
     public static final class Dummy {

@@ -34,6 +34,8 @@ import java.util.TreeSet;
 import org.forgerock.opendj.admin.client.RootCfgClient;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.IllegalPropertyValueStringException;
+import org.opends.server.admin.LDAPProfile;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestChildCfgClient;
@@ -154,7 +156,6 @@ public class AggregationClientTest extends AdminTestCase {
 
     @BeforeClass
     public void setUp() throws Exception {
-        disableClassValidationForProperties();
         TestCfg.setUp();
     }
 
@@ -177,7 +178,8 @@ public class AggregationClientTest extends AdminTestCase {
     public void testAggregationEmpty() throws Exception {
         MockLDAPConnection c = new MockLDAPConnection();
         c.importLDIF(TEST_LDIF);
-        ManagementContext ctx = LDAPManagementContext.createFromContext(c);
+        ManagementContext ctx = LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
+            PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.getTestChild("test child 1");
         assertSetEquals(child.getAggregationProperty(), new String[0]);
@@ -194,7 +196,8 @@ public class AggregationClientTest extends AdminTestCase {
     public void testAggregationSingle() throws Exception {
         MockLDAPConnection c = new MockLDAPConnection();
         c.importLDIF(TEST_LDIF);
-        ManagementContext ctx = LDAPManagementContext.createFromContext(c);
+        ManagementContext ctx = LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
+            PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.getTestChild("test child 2");
 
@@ -215,7 +218,8 @@ public class AggregationClientTest extends AdminTestCase {
     public void testAggregationMultiple() throws Exception {
         MockLDAPConnection c = new MockLDAPConnection();
         c.importLDIF(TEST_LDIF);
-        ManagementContext ctx = LDAPManagementContext.createFromContext(c);
+        ManagementContext ctx = LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
+            PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.getTestChild("test child 3");
         assertSetEquals(child.getAggregationProperty(), "LDAPS Connection Handler", "LDAP Connection Handler");
@@ -232,7 +236,8 @@ public class AggregationClientTest extends AdminTestCase {
     public void testAggregationBadBaseDN() throws Exception {
         MockLDAPConnection c = new MockLDAPConnection();
         c.importLDIF(TEST_LDIF);
-        ManagementContext ctx = LDAPManagementContext.createFromContext(c);
+        ManagementContext ctx = LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
+            PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
 
         try {
@@ -275,7 +280,8 @@ public class AggregationClientTest extends AdminTestCase {
         c.addExpectedAttribute("ds-cfg-rotation-policy",
                 "cn=LDAP Connection Handler,cn=connection handlers, cn=config");
 
-        ManagementContext ctx = LDAPManagementContext.createFromContext(c);
+        ManagementContext ctx = LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
+            PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
         child.setMandatoryBooleanProperty(true);
@@ -301,7 +307,8 @@ public class AggregationClientTest extends AdminTestCase {
         c.addExpectedModification("ds-cfg-rotation-policy",
             "cn=HTTP Connection Handler,cn=connection handlers, cn=config",
             "cn=JMX Connection Handler,cn=connection handlers, cn=config");
-        ManagementContext ctx = LDAPManagementContext.createFromContext(c);
+        ManagementContext ctx = LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
+            PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.getTestChild("test child 2");
         child.setAggregationProperty(Arrays.asList("JMX Connection Handler", "HTTP Connection Handler"));

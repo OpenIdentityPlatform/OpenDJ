@@ -189,7 +189,8 @@ public final class Reference<C extends ConfigurationClient, S extends Configurat
     private <T> String normalizeName(PropertyDefinition<T> pd) {
         if (pd != null) {
             try {
-                T tvalue = pd.decodeValue(name);
+                // TODO : is it correct to have no validation ?
+                T tvalue = pd.decodeValue(name, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
                 return pd.normalizeValue(tvalue);
             } catch (IllegalPropertyValueStringException e) {
                 // Fall through to default normalization.

@@ -86,7 +86,7 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(AddressMask value) {
+    public void validateValue(AddressMask value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         // No additional validation required.
@@ -96,7 +96,7 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
      * {@inheritDoc}
      */
     @Override
-    public AddressMask decodeValue(String value) {
+    public AddressMask decodeValue(String value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         try {

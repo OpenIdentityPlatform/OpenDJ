@@ -27,9 +27,9 @@
 package org.opends.server.admin.client.ldap;
 
 import org.opends.server.admin.LDAPProfile;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.spi.Driver;
-
 import org.forgerock.util.Reject;
 
 /**
@@ -42,26 +42,46 @@ public final class LDAPManagementContext extends ManagementContext {
      *
      * @param connection
      *            The LDAP connection.
+     * @param profile
+     *            The LDAP profile.
+     * @param options
+     *            Options to decode values of property definitions.
      * @return Returns the new management context.
      */
-    public static ManagementContext createFromContext(LDAPConnection connection) {
-        Reject.ifNull(connection);
-        return new LDAPManagementContext(connection, LDAPProfile.getInstance());
+    public static ManagementContext createFromContext(LDAPConnection connection, LDAPProfile profile,
+        PropertyDefinitionsOptions options) {
+        Reject.ifNull(connection, profile, options);
+        LDAPDriver driver = new LDAPDriver(connection, profile, options);
+        LDAPManagementContext context = new LDAPManagementContext(driver, options);
+        driver.setManagementContext(context);
+        return context;
     }
 
-    // The LDAP management context driver.
+    /** The LDAP management context driver. */
     private final LDAPDriver driver;
 
-    // Private constructor.
-    private LDAPManagementContext(LDAPConnection connection, LDAPProfile profile) {
-        this.driver = new LDAPDriver(this, connection, profile);
+    /** Options to validate and decode values of property definitions. */
+    private final PropertyDefinitionsOptions options;
+
+    /** Private constructor. */
+    private LDAPManagementContext(LDAPDriver driver, PropertyDefinitionsOptions options) {
+        this.driver = driver;
+        this.options = options;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Driver getDriver() {
         return driver;
+    }
+
+    /**
+     * Returns the property definitions options.
+     *
+     * @return the options to validate and decode values of property
+     *         definitions.
+     */
+    protected PropertyDefinitionsOptions getPropertyDefOptions() {
+        return options;
     }
 }

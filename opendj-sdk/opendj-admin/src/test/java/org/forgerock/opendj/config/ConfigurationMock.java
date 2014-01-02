@@ -42,6 +42,7 @@ import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
@@ -56,11 +57,8 @@ import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
  * Example:
  *
  * <pre>
- * {
- *     &#064;code
- *     LDAPConnectionHandlerCfg mockCfg = mockCfg(LDAPConnectionHandlerCfg.class);
- *     assertThat(mockCfg.getMaxRequestSize()).isEqualTo(5 * 1000 * 1000);
- * }
+ *  LDAPConnectionHandlerCfg mockCfg = mockCfg(LDAPConnectionHandlerCfg.class);
+ *  assertThat(mockCfg.getMaxRequestSize()).isEqualTo(5 * 1000 * 1000);
  * </pre>
  */
 public final class ConfigurationMock {
@@ -146,7 +144,8 @@ public final class ConfigurationMock {
          */
         @SuppressWarnings("unchecked")
         private <T> Object getDefaultValue(ManagedObjectDefinition<?, ?> definition,
-                Method getPropertyDefMethod, Class<T> propertyReturnClass) throws Exception {
+                Method getPropertyDefMethod, @SuppressWarnings("unused") Class<T> propertyReturnClass)
+                throws Exception {
             PropertyDefinition<T> propertyDefinition = (PropertyDefinition<T>) getPropertyDefMethod.invoke(definition);
             DefaultBehaviorProvider<T> defaultBehaviorProvider = (DefaultBehaviorProvider<T>) propertyDefinition
                     .getClass().getMethod("getDefaultBehaviorProvider").invoke(propertyDefinition);
@@ -194,7 +193,7 @@ public final class ConfigurationMock {
         public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> provider, Void p) {
             SortedSet<T> values = new TreeSet<T>();
             for (String stringValue : provider.getDefaultValues()) {
-                values.add(propertyDef.decodeValue(stringValue));
+                values.add(propertyDef.decodeValue(stringValue, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS));
             }
             return values;
         }

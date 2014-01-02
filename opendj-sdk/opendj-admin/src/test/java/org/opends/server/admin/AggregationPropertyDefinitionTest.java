@@ -39,7 +39,6 @@ public class AggregationPropertyDefinitionTest extends ConfigTestCase {
 
     @BeforeClass
     public void setUp() throws Exception {
-        disableClassValidationForProperties();
         TestCfg.setUp();
     }
 

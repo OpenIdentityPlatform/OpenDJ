@@ -36,6 +36,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.mockito.ArgumentCaptor;
 import org.opends.server.admin.AdminTestCase;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestParentCfg;
 import org.opends.server.api.ConfigAddListener;
@@ -47,7 +48,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-
 @SuppressWarnings({ "javadoc", "rawtypes", "unchecked" })
 public class ListenerTest extends AdminTestCase {
 
@@ -56,7 +56,6 @@ public class ListenerTest extends AdminTestCase {
 
     @BeforeClass
     public void setUp() throws Exception {
-        disableClassValidationForProperties();
         TestCfg.setUp();
     }
 
@@ -66,17 +65,14 @@ public class ListenerTest extends AdminTestCase {
     }
 
     private Entry getTestParentEntry() throws Exception {
-        return makeEntry(
-            "dn: cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-branch",
+        return makeEntry("dn: cn=test parents,cn=config", "objectclass: top", "objectclass: ds-cfg-branch",
             "cn: test parents");
     }
 
     /**
      * Create a mock of ConfigurationRepository with provided DNs registered.
      */
-    private ConfigurationRepository createConfigRepositoryWithDNs(DN...dns) throws ConfigException {
+    private ConfigurationRepository createConfigRepositoryWithDNs(DN... dns) throws ConfigException {
         ConfigurationRepository configRepository = mock(ConfigurationRepository.class);
         for (DN dn : dns) {
             when(configRepository.hasEntry(dn)).thenReturn(true);
@@ -84,10 +80,12 @@ public class ListenerTest extends AdminTestCase {
         return configRepository;
     }
 
-    /** Register a listener for test parent entry and return the actual registered listener */
+    /**
+     * Register a listener for test parent entry and return the actual
+     * registered listener
+     */
     private ConfigAddListener registerAddListenerForTestParent(ConfigurationRepository configRepository,
-            ServerManagedObject<RootCfg> root, ConfigurationAddListener<TestParentCfg> parentListener)
-            throws Exception {
+        ServerManagedObject<RootCfg> root, ConfigurationAddListener<TestParentCfg> parentListener) throws Exception {
         root.registerAddListener(TestCfg.getTestOneToManyParentRelationDefinition(), parentListener);
 
         ArgumentCaptor<ConfigAddListener> registered = ArgumentCaptor.forClass(ConfigAddListener.class);
@@ -95,10 +93,13 @@ public class ListenerTest extends AdminTestCase {
         return registered.getValue();
     }
 
-    /** Register a listener for test parent entry in delayed scenario and return the actual registered listener */
-    private DelayedConfigAddListener registerAddListenerForTestParentDelayed(ConfigurationRepository configRepository,
-            ServerManagedObject<RootCfg> root, ConfigurationAddListener<TestParentCfg> parentListener)
-            throws Exception {
+    /**
+     * Register a listener for test parent entry in delayed scenario and return
+     * the actual registered listener
+     */
+    private DelayedConfigAddListener registerAddListenerForTestParentDelayed(
+        ConfigurationRepository configRepository, ServerManagedObject<RootCfg> root,
+        ConfigurationAddListener<TestParentCfg> parentListener) throws Exception {
         root.registerAddListener(TestCfg.getTestOneToManyParentRelationDefinition(), parentListener);
 
         ArgumentCaptor<DelayedConfigAddListener> registered = ArgumentCaptor.forClass(DelayedConfigAddListener.class);
@@ -109,20 +110,21 @@ public class ListenerTest extends AdminTestCase {
     @Test
     public void testRegisterAddListenerWithInstantiableRelationImmediate() throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithDNs(ROOT_CONFIG_DN, TEST_PARENTS_DN);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         ServerManagedObject<RootCfg> root = context.getRootConfigurationManagedObject();
 
         root.registerAddListener(TestCfg.getTestOneToManyParentRelationDefinition(),
-                mock(ConfigurationAddListener.class));
+            mock(ConfigurationAddListener.class));
 
-        verify(configRepository).registerAddListener(eq(TEST_PARENTS_DN),
-                isA(ConfigAddListener.class));
+        verify(configRepository).registerAddListener(eq(TEST_PARENTS_DN), isA(ConfigAddListener.class));
     }
 
     @Test
     public void testRegisterAddListenerWithInstantiableRelationDelayed() throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithDNs(ROOT_CONFIG_DN);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         ServerManagedObject<RootCfg> root = context.getRootConfigurationManagedObject();
 
         ConfigurationAddListener<TestParentCfg> parentListener = mock(ConfigurationAddListener.class);
@@ -141,7 +143,8 @@ public class ListenerTest extends AdminTestCase {
     @Test
     public void testRegisterAddListenerWithInstantiableRelationDelayedThenActualized() throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithDNs(ROOT_CONFIG_DN);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         ServerManagedObject<RootCfg> root = context.getRootConfigurationManagedObject();
 
         // register a listener to root
@@ -157,9 +160,10 @@ public class ListenerTest extends AdminTestCase {
         when(configRepository.hasEntry(DN.valueOf(parentDN))).thenReturn(true);
         registered.getValue().applyConfigurationAdd(getTestParentEntry());
 
-        // check that listener is added for target entry and deleted for its parent entry
+        // check that listener is added for target entry and deleted for its
+        // parent entry
         ConfigAddListenerAdaptor listener =
-                (ConfigAddListenerAdaptor<?>) registered.getValue().getDelayedAddListener();
+            (ConfigAddListenerAdaptor<?>) registered.getValue().getDelayedAddListener();
         verify(configRepository).registerAddListener(DN.valueOf(parentDN), listener);
         verify(configRepository).deregisterAddListener(ROOT_CONFIG_DN, registered.getValue());
     }
@@ -167,33 +171,34 @@ public class ListenerTest extends AdminTestCase {
     @Test
     public void testRegisterAddListenerWithOptionalRelation() throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithDNs(ROOT_CONFIG_DN);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         ServerManagedObject<RootCfg> root = context.getRootConfigurationManagedObject();
 
         root.registerAddListener(TestCfg.getTestOneToZeroOrOneParentRelationDefinition(),
             mock(ConfigurationAddListener.class));
 
-        verify(configRepository).registerAddListener(eq(ROOT_CONFIG_DN),
-                isA(ConfigAddListener.class));
+        verify(configRepository).registerAddListener(eq(ROOT_CONFIG_DN), isA(ConfigAddListener.class));
     }
 
     @Test
     public void testRegisterDeleteListenerWithInstantiableRelationImmediate() throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithDNs(ROOT_CONFIG_DN, TEST_PARENTS_DN);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         ServerManagedObject<RootCfg> root = context.getRootConfigurationManagedObject();
 
         root.registerDeleteListener(TestCfg.getTestOneToManyParentRelationDefinition(),
-                mock(ConfigurationDeleteListener.class));
+            mock(ConfigurationDeleteListener.class));
 
-        verify(configRepository).registerDeleteListener(eq(TEST_PARENTS_DN),
-                isA(ConfigDeleteListener.class));
+        verify(configRepository).registerDeleteListener(eq(TEST_PARENTS_DN), isA(ConfigDeleteListener.class));
     }
 
     @Test
     public void testRegisterDeleteListenerWithInstantiableRelationDelayed() throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithDNs(ROOT_CONFIG_DN);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         ServerManagedObject<RootCfg> root = context.getRootConfigurationManagedObject();
 
         ConfigurationDeleteListener<TestParentCfg> parentListener = mock(ConfigurationDeleteListener.class);
@@ -203,48 +208,49 @@ public class ListenerTest extends AdminTestCase {
         verify(configRepository).registerAddListener(eq(ROOT_CONFIG_DN), argument.capture());
         // check that actual listener is the one provided to the root
         ConfigurationDeleteListener actualListener =
-                ((ServerManagedObjectDeleteListenerAdaptor)
-                        ((ConfigDeleteListenerAdaptor) argument.getValue().getDelayedDeleteListener()).
-                            getServerManagedObjectDeleteListener()).getConfigurationDeleteListener();
+            ((ServerManagedObjectDeleteListenerAdaptor)
+                ((ConfigDeleteListenerAdaptor) argument.getValue().getDelayedDeleteListener()).
+                    getServerManagedObjectDeleteListener()).getConfigurationDeleteListener();
         assertThat(actualListener).isEqualTo(parentListener);
     }
 
     @Test
     public void testRegisterDeleteListenerWithOptionalRelation() throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithDNs(ROOT_CONFIG_DN);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         ServerManagedObject<RootCfg> root = context.getRootConfigurationManagedObject();
 
         root.registerDeleteListener(TestCfg.getTestOneToZeroOrOneParentRelationDefinition(),
-                mock(ConfigurationDeleteListener.class));
+            mock(ConfigurationDeleteListener.class));
 
-        verify(configRepository).registerDeleteListener(eq(ROOT_CONFIG_DN),
-                isA(ConfigDeleteListener.class));
+        verify(configRepository).registerDeleteListener(eq(ROOT_CONFIG_DN), isA(ConfigDeleteListener.class));
     }
 
     @Test
     public void testRegisterChangeListener() throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithDNs(ROOT_CONFIG_DN);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         ServerManagedObject<RootCfg> root = context.getRootConfigurationManagedObject();
         root.setConfigDN(ROOT_CONFIG_DN);
 
         root.registerChangeListener(mock(ConfigurationChangeListener.class));
 
-        verify(configRepository).registerChangeListener(eq(ROOT_CONFIG_DN),
-                isA(ConfigChangeListener.class));
+        verify(configRepository).registerChangeListener(eq(ROOT_CONFIG_DN), isA(ConfigChangeListener.class));
     }
 
     @Test
     public void testDeregisterAddListenerWithInstantiableRelationImmediate() throws Exception {
         // arrange
         ConfigurationRepository configRepository = createConfigRepositoryWithDNs(ROOT_CONFIG_DN, TEST_PARENTS_DN);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         ServerManagedObject<RootCfg> root = context.getRootConfigurationManagedObject();
 
         ConfigurationAddListener<TestParentCfg> parentListener = mock(ConfigurationAddListener.class);
         ConfigAddListener registeredListener =
-                registerAddListenerForTestParent(configRepository, root, parentListener);
+            registerAddListenerForTestParent(configRepository, root, parentListener);
         when(configRepository.getAddListeners(TEST_PARENTS_DN)).thenReturn(Arrays.asList(registeredListener));
 
         // act
@@ -258,12 +264,13 @@ public class ListenerTest extends AdminTestCase {
     public void testDeregisterAddListenerWithInstantiableRelationDelayed() throws Exception {
         // arrange
         ConfigurationRepository configRepository = createConfigRepositoryWithDNs(ROOT_CONFIG_DN);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         ServerManagedObject<RootCfg> root = context.getRootConfigurationManagedObject();
 
         ConfigurationAddListener<TestParentCfg> parentListener = mock(ConfigurationAddListener.class);
         ConfigAddListener registeredListener =
-                registerAddListenerForTestParentDelayed(configRepository, root, parentListener);
+            registerAddListenerForTestParentDelayed(configRepository, root, parentListener);
         when(configRepository.getAddListeners(ROOT_CONFIG_DN)).thenReturn(Arrays.asList(registeredListener));
 
         // act

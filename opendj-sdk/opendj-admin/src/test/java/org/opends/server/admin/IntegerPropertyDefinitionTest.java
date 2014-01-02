@@ -29,17 +29,11 @@ import static org.testng.Assert.*;
 
 import org.forgerock.opendj.admin.meta.RootCfgDefn;
 import org.forgerock.opendj.config.ConfigTestCase;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class IntegerPropertyDefinitionTest extends ConfigTestCase {
-
-    @BeforeClass
-    public void setUp() {
-        disableClassValidationForProperties();
-    }
 
     @Test
     public void testCreateBuilder() {
@@ -98,7 +92,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
         IntegerPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(true);
         IntegerPropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.decodeValue("unlimited");
+        propertyDef.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @Test(expectedExceptions = IllegalPropertyValueStringException.class)
@@ -106,7 +100,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
         IntegerPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
         IntegerPropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.decodeValue("unlimited");
+        propertyDef.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @Test(expectedExceptions = IllegalPropertyValueException.class)
@@ -114,7 +108,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
         IntegerPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
         IntegerPropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.validateValue(-1);
+        propertyDef.validateValue(-1, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @DataProvider(name = "validateValueData")
@@ -134,7 +128,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
         builder.setUpperLimit(high);
         builder.setAllowUnlimited(allowUnlimited);
         IntegerPropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.validateValue(valueToValidate);
+        propertyDef.validateValue(valueToValidate, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @DataProvider(name = "illegalValidateValueData")
@@ -158,7 +152,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
         builder.setUpperLimit(high);
         builder.setAllowUnlimited(allowUnlimited);
         IntegerPropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.validateValue(value);
+        propertyDef.validateValue(value, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @DataProvider(name = "encodeValueData")

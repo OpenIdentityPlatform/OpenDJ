@@ -31,6 +31,7 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
@@ -150,7 +151,7 @@ public final class ContainsCondition implements Condition {
 
     // Creates the new private implementation.
     private <T> void buildImpl(PropertyDefinition<T> pd) {
-        T value = pd.decodeValue(propertyStringValue);
+        T value = pd.decodeValue(propertyStringValue, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         this.impl = new Impl<T>(pd, value);
     }
 

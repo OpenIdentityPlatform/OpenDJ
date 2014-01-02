@@ -44,8 +44,8 @@ import java.util.List;
  * Note that in a client/server environment, the client is probably not capable
  * of validating the Java class (e.g. it will not be able to load it nor have
  * access to the interfaces it is supposed to implement). For this reason, it is
- * possible to switch off validation in the client by calling the static method
- * {@link #setAllowClassValidation(boolean)}.
+ * possible to switch off validation in the client by using the appropriate
+ * {@link PropertyDefinitionsOptions}.
  */
 public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
@@ -82,23 +82,6 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
                 throw new IllegalArgumentException("\"" + value + "\" is not a valid Java class name");
             }
 
-            /*
-             * If possible try and load the class in order to perform additional
-             * validation.
-             */
-            if (isAllowClassValidation()) {
-                /*
-                 * Check that the class can be loaded so that validation can be
-                 * performed.
-                 */
-                try {
-                    loadClass(value, true);
-                } catch (ClassNotFoundException e) {
-                    // TODO: can we do something better here?
-                    throw new RuntimeException(e);
-                }
-            }
-
             instanceOfInterfaces.add(value);
         }
 
@@ -118,11 +101,6 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
     // Regular expression for validating class names.
     private static final String CLASS_RE = "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*(\\$[A-Za-z0-9_]+)*$";
 
-    /*
-     * Flag indicating whether class property values should be validated.
-     */
-    private static boolean allowClassValidation = true;
-
     /**
      * Create a class property definition builder.
      *
@@ -135,33 +113,6 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      */
     public static Builder createBuilder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
         return new Builder(d, propertyName);
-    }
-
-    /**
-     * Determine whether or not class property definitions should validate class
-     * name property values. Validation involves checking that the class exists
-     * and that it implements the required interfaces.
-     *
-     * @return Returns <code>true</code> if class property definitions should
-     *         validate class name property values.
-     */
-    public static boolean isAllowClassValidation() {
-        return allowClassValidation;
-    }
-
-    /**
-     * Specify whether or not class property definitions should validate class
-     * name property values. Validation involves checking that the class exists
-     * and that it implements the required interfaces.
-     * <p>
-     * By default validation is switched on.
-     *
-     * @param value
-     *            <code>true</code> if class property definitions should
-     *            validate class name property values.
-     */
-    public static void setAllowClassValidation(boolean value) {
-        allowClassValidation = value;
     }
 
     // Load a named class.
@@ -201,11 +152,11 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      * {@inheritDoc}
      */
     @Override
-    public String decodeValue(String value) {
+    public String decodeValue(String value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         try {
-            validateValue(value);
+            validateValue(value, options);
         } catch (IllegalPropertyValueException e) {
             throw new IllegalPropertyValueStringException(this, value, e.getCause());
         }
@@ -268,7 +219,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(String value) {
+    public void validateValue(String value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         // Always make sure the name is a valid class name.
@@ -278,7 +229,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
          * If additional validation is enabled then attempt to load the class
          * and check the interfaces that it implements/extends.
          */
-        if (allowClassValidation) {
+        if (options.allowClassValidation()) {
             validateClassInterfaces(value, false);
         }
     }

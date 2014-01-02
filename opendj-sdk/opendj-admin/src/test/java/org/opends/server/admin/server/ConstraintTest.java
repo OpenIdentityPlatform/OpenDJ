@@ -39,6 +39,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldif.LDIF;
 import org.mockito.ArgumentCaptor;
 import org.opends.server.admin.AdminTestCase;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestChildCfg;
 import org.opends.server.admin.TestChildCfgDefn;
@@ -67,7 +68,7 @@ public final class ConstraintTest extends AdminTestCase {
         }
 
         public boolean isConfigurationAddAcceptable(TestChildCfg configuration,
-                List<LocalizableMessage> unacceptableReasons) {
+            List<LocalizableMessage> unacceptableReasons) {
             return true;
         }
     }
@@ -79,7 +80,7 @@ public final class ConstraintTest extends AdminTestCase {
         }
 
         public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration,
-                List<LocalizableMessage> unacceptableReasons) {
+            List<LocalizableMessage> unacceptableReasons) {
             return true;
         }
 
@@ -92,27 +93,22 @@ public final class ConstraintTest extends AdminTestCase {
         }
 
         public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
-                List<LocalizableMessage> unacceptableReasons) {
+            List<LocalizableMessage> unacceptableReasons) {
             return true;
         }
 
     }
 
+    // @Checkstyle:off
     private static final Entry TEST_CHILD_1 = LDIF.makeEntry(
-        "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-        "objectclass: ds-cfg-test-child-dummy", "cn: test child 1", "ds-cfg-enabled: true",
+        "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 1",
+        "ds-cfg-enabled: true",
         "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-        "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real");
-
-    private static final Entry NEW_TEST_CHILD_1 = LDIF.makeEntry(
-        "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-        "objectclass: ds-cfg-test-child-dummy", "cn: test child 1", "ds-cfg-enabled: true",
-        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-        "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
-        "ds-cfg-base-dn: dc=new value 1,dc=com",
-        "ds-cfg-base-dn: dc=new value 2,dc=com",
-        "ds-cfg-group-dn: dc=new value 3,dc=com",
-        "ds-cfg-group-dn: dc=new value 4,dc=com");
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real");
 
     private static final Entry TEST_BASE_CHILD = LDIF.makeEntry(
         "dn:cn=test children,cn=test parent 1,cn=test parents,cn=config",
@@ -123,23 +119,19 @@ public final class ConstraintTest extends AdminTestCase {
     // Parent 1 - uses default values for
     // optional-multi-valued-dn-property.
     private static final Entry TEST_PARENT_1 = LDIF.makeEntry(
-        "dn: cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-        "objectclass: ds-cfg-test-parent-dummy", "cn: test parent 1", "ds-cfg-enabled: true",
-        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-        "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real");
-
-    private static final String[] TEST_LDIF = new String[] {
-        // Base entries.
-        "dn: cn=test parents,cn=config",
+        "dn: cn=test parent 1,cn=test parents,cn=config",
         "objectclass: top",
-        "objectclass: ds-cfg-branch",
-        "cn: test parents",
-        ""};
+        "objectclass: ds-cfg-test-parent-dummy",
+        "cn: test parent 1",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real");
 
+    // @Checkstyle:on
 
     @BeforeClass
     public void setUp() throws Exception {
-        disableClassValidationForProperties();
         TestCfg.setUp();
     }
 
@@ -152,9 +144,10 @@ public final class ConstraintTest extends AdminTestCase {
     @Test
     public void testGetManagedObjectSuccess() throws Exception {
         // arrange
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD,
-            TEST_CHILD_1);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_1);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         MockConstraint constraint = new MockConstraint(true, false, configRepository);
         try {
             TestCfg.addConstraint(constraint);
@@ -170,9 +163,10 @@ public final class ConstraintTest extends AdminTestCase {
     @Test
     public void testGetManagedObjectFail() throws Exception {
         // arrange
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD,
-                TEST_CHILD_1);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_1);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         MockConstraint constraint = new MockConstraint(false, true, configRepository);
         try {
             TestCfg.addConstraint(constraint);
@@ -206,9 +200,10 @@ public final class ConstraintTest extends AdminTestCase {
     @Test(dataProvider = "constraintValues")
     public void testAddConstraint(boolean isUsableConstraint) throws Exception {
         // arrange
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD,
-                TEST_CHILD_1);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_1);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         parentCfg.addTestChildAddListener(new AddListener());
         MockConstraint constraint = new MockConstraint(isUsableConstraint, false, configRepository);
@@ -228,9 +223,10 @@ public final class ConstraintTest extends AdminTestCase {
     @Test(dataProvider = "constraintValues")
     public void testDeleteConstraint(boolean isDeleteAllowedConstraint) throws Exception {
         // arrange
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD,
-                TEST_CHILD_1);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_1);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         parentCfg.addTestChildDeleteListener(new DeleteListener());
         MockConstraint constraint = new MockConstraint(false, isDeleteAllowedConstraint, configRepository);
@@ -250,9 +246,10 @@ public final class ConstraintTest extends AdminTestCase {
     @Test(dataProvider = "constraintValues")
     public void testChangeConstraint(boolean isUsableConstraint) throws Exception {
         // arrange
-        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD,
-                TEST_CHILD_1);
-        ServerManagementContext context = new ServerManagementContext(configRepository);
+        ConfigurationRepository configRepository =
+            createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_1);
+        ServerManagementContext context =
+            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
         MockConstraint constraint = new MockConstraint(isUsableConstraint, false, configRepository);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         TestChildCfg childCfg = parentCfg.getTestChild(entryName(TEST_CHILD_1));
@@ -274,7 +271,9 @@ public final class ConstraintTest extends AdminTestCase {
     }
 
     /**
-     * Simulate an entry add by triggering configAddIsAcceptable method of last registered add listener.
+     * Simulate an entry add by triggering configAddIsAcceptable method of last
+     * registered add listener.
+     *
      * @return true if add is acceptable, false otherwise.
      */
     private boolean simulateEntryAdd(Entry entry, ConfigurationRepository configRepository) throws IOException {
@@ -286,7 +285,9 @@ public final class ConstraintTest extends AdminTestCase {
     }
 
     /**
-     * Simulate an entry delete by triggering configDeleteIsAcceptable method of last registered add listener.
+     * Simulate an entry delete by triggering configDeleteIsAcceptable method of
+     * last registered add listener.
+     *
      * @return true if delete is acceptable, false otherwise.
      */
     private boolean simulateEntryDelete(Entry entry, ConfigurationRepository configRepository) throws IOException {
@@ -298,7 +299,9 @@ public final class ConstraintTest extends AdminTestCase {
     }
 
     /**
-     * Simulate an entry change by triggering configChangeIsAcceptable method on last registered change listener.
+     * Simulate an entry change by triggering configChangeIsAcceptable method on
+     * last registered change listener.
+     *
      * @return true if change is acceptable, false otherwise.
      */
     private boolean simulateEntryChange(Entry newEntry, ConfigurationRepository configRepository) {

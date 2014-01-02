@@ -40,20 +40,19 @@ public class BooleanPropertyDefinitionTest extends ConfigTestCase {
 
     @BeforeClass
     public void setUp() throws Exception {
-        disableClassValidationForProperties();
         builder = BooleanPropertyDefinition.createBuilder(RootCfgDefn.getInstance(), "test-property");
     }
 
     @Test
     public void testValidateValue() {
         BooleanPropertyDefinition def = createPropertyDefinition();
-        def.validateValue(Boolean.TRUE);
+        def.validateValue(Boolean.TRUE, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @Test(expectedExceptions = NullPointerException.class)
     public void testValidateValueIllegal() {
         BooleanPropertyDefinition def = createPropertyDefinition();
-        def.validateValue(null);
+        def.validateValue(null, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     @DataProvider(name = "decodeValueData")
@@ -64,7 +63,7 @@ public class BooleanPropertyDefinitionTest extends ConfigTestCase {
     @Test(dataProvider = "decodeValueData")
     public void testDecodeValue(String value, Boolean expected) {
         BooleanPropertyDefinition def = createPropertyDefinition();
-        assertEquals(def.decodeValue(value), expected);
+        assertEquals(def.decodeValue(value, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS), expected);
     }
 
     @DataProvider(name = "decodeValueDataIllegal")
@@ -76,7 +75,7 @@ public class BooleanPropertyDefinitionTest extends ConfigTestCase {
             IllegalPropertyValueStringException.class })
     public void testDecodeValueIllegal(String value) {
         BooleanPropertyDefinition def = createPropertyDefinition();
-        def.decodeValue(value);
+        def.decodeValue(value, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
     private BooleanPropertyDefinition createPropertyDefinition() {

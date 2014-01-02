@@ -47,7 +47,6 @@ public final class DNBuilderTest extends AdminTestCase {
 
     @BeforeClass
     public void setUp() throws Exception {
-        disableClassValidationForProperties();
         TestCfg.setUp();
     }
 

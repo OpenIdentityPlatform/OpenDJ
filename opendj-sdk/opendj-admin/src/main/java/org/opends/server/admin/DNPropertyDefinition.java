@@ -134,7 +134,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(DN value) {
+    public void validateValue(DN value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         if (baseDN != null) {
@@ -154,13 +154,12 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
      * {@inheritDoc}
      */
     @Override
-    public DN decodeValue(String value) {
+    public DN decodeValue(String value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         try {
-            // TODO: is it correct to replace server DN.decode by SDK valueOf ?
             DN dn = DN.valueOf(value);
-            validateValue(dn);
+            validateValue(dn, options);
             return dn;
         } catch (IllegalPropertyValueException e) {
             throw new IllegalPropertyValueStringException(this, value);

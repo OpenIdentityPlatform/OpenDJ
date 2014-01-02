@@ -392,7 +392,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(Long value) {
+    public void validateValue(Long value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         long nvalue = baseUnit.toMilliSeconds(value);
@@ -436,7 +436,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
      * {@inheritDoc}
      */
     @Override
-    public Long decodeValue(String value) {
+    public Long decodeValue(String value, PropertyDefinitionsOptions options) {
         Reject.ifNull(value);
 
         // First check for the special "unlimited" value when necessary.
@@ -463,7 +463,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         // Convert the value a long in the property's required unit.
         Long i = (long) baseUnit.fromMilliSeconds(ms);
         try {
-            validateValue(i);
+            validateValue(i, options);
         } catch (IllegalPropertyValueException e) {
             throw new IllegalPropertyValueStringException(this, value);
         }

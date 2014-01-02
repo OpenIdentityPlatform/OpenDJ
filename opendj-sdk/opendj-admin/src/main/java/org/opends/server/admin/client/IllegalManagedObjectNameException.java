@@ -32,6 +32,7 @@ import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionUsageBuilder;
+import org.opends.server.admin.PropertyDefinitionsOptions;
 
 /**
  * Thrown when an attempt is made to create a new managed object with an illegal
@@ -50,15 +51,15 @@ public class IllegalManagedObjectNameException extends OperationsException {
     private static final long serialVersionUID = 7491748228684293291L;
 
     /** Create the message. */
-    // @Checkstyle:ignore
-    private static LocalizableMessage createMessage(String illegalName, PropertyDefinition<?> namingPropertyDefinition) {
+    private static LocalizableMessage createMessage(String illegalName, PropertyDefinition<?> namingPropertyDefinition,
+        PropertyDefinitionsOptions options) {
         if (illegalName.length() == 0) {
             return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_EMPTY.get();
         } else if (illegalName.trim().length() == 0) {
             return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_BLANK.get();
         } else if (namingPropertyDefinition != null) {
             try {
-                namingPropertyDefinition.decodeValue(illegalName);
+                namingPropertyDefinition.decodeValue(illegalName, options);
             } catch (IllegalPropertyValueStringException e) {
                 PropertyDefinitionUsageBuilder builder = new PropertyDefinitionUsageBuilder(true);
                 return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_SYNTAX.get(illegalName,
@@ -82,7 +83,7 @@ public class IllegalManagedObjectNameException extends OperationsException {
      *            The illegal managed object name.
      */
     public IllegalManagedObjectNameException(String illegalName) {
-        this(illegalName, null);
+        this(illegalName, null, null);
     }
 
     /**
@@ -92,9 +93,12 @@ public class IllegalManagedObjectNameException extends OperationsException {
      *            The illegal managed object name.
      * @param namingPropertyDefinition
      *            The naming property definition.
+     * @param options
+     *            Options to decode property definition values.
      */
-    public IllegalManagedObjectNameException(String illegalName, PropertyDefinition<?> namingPropertyDefinition) {
-        super(createMessage(illegalName, namingPropertyDefinition));
+    public IllegalManagedObjectNameException(String illegalName, PropertyDefinition<?> namingPropertyDefinition,
+        PropertyDefinitionsOptions options) {
+        super(createMessage(illegalName, namingPropertyDefinition, options));
 
         this.illegalName = illegalName;
         this.namingPropertyDefinition = namingPropertyDefinition;
