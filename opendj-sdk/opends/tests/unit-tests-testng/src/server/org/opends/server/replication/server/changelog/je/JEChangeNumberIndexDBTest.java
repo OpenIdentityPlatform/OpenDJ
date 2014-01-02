@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -219,9 +219,20 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       cursor = cnIndexDB.getCursorFrom(cn3);
       assertCursorReadsInOrder(cursor, cn3);
 
-      cnIndexDB.clear();
+      // check only the last record is left
+      cnIndexDB.clear(null);
+      final ChangeNumberIndexRecord oldest = cnIndexDB.getOldestRecord();
+      final ChangeNumberIndexRecord newest = cnIndexDB.getNewestRecord();
+      assertEquals(oldest.getChangeNumber(), 3);
+      assertEquals(oldest.getChangeNumber(), newest.getChangeNumber());
+      assertEquals(oldest.getPreviousCookie(), newest.getPreviousCookie());
+      assertEquals(oldest.getBaseDN(), newest.getBaseDN());
+      assertEquals(oldest.getCSN(), newest.getCSN());
+      assertEquals(cnIndexDB.count(), 1);
+      assertFalse(cnIndexDB.isEmpty());
 
       // Check the db is cleared.
+      cnIndexDB.clear();
       assertNull(cnIndexDB.getOldestRecord());
       assertNull(cnIndexDB.getNewestRecord());
       assertEquals(cnIndexDB.count(), 0);
