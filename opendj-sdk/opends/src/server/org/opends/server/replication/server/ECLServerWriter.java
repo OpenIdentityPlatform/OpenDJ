@@ -35,7 +35,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.ECLUpdateMsg;
 import org.opends.server.replication.protocol.Session;
-import org.opends.server.replication.protocol.StartECLSessionMsg;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -209,8 +208,7 @@ public class ECLServerWriter extends ServerWriter
 
       if (update == null)
       {
-        if (session != null
-            && handler.getSearchPhase() != ECLServerHandler.INIT_PHASE)
+        if (session != null && handler.isInitPhaseDone())
         {
           // session is null in pusherOnly mode
           // Done is used to end phase 1
@@ -218,7 +216,7 @@ public class ECLServerWriter extends ServerWriter
               handler.getReplicationServerId(), handler.getServerId()));
         }
 
-        if (handler.isPersistent() == StartECLSessionMsg.NON_PERSISTENT)
+        if (handler.isNonPersistent())
         { // publishing is normally stopped here...
           break;
         }

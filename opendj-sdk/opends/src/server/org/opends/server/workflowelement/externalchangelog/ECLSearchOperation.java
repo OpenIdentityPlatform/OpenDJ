@@ -55,6 +55,10 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.protocol.StartECLSessionMsg
+.ECLRequestType.*;
+import static org.opends.server.replication.protocol.StartECLSessionMsg
+.Persistent.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -205,8 +209,7 @@ public class ECLSearchOperation
 
       // Set default behavior as "from change number".
       // "from cookie" is set only when cookie is provided.
-      startECLSessionMsg.setECLRequestType(
-          StartECLSessionMsg.REQUEST_TYPE_FROM_CHANGE_NUMBER);
+      startECLSessionMsg.setECLRequestType(REQUEST_TYPE_FROM_CHANGE_NUMBER);
 
       // Set a string operationId that will help correlate any error message
       // logged for this operation with the 'real' client operation.
@@ -397,8 +400,7 @@ public class ECLSearchOperation
           returnECLControl = true;
           if (cookie != null)
           {
-            startECLSessionMsg.setECLRequestType(
-                StartECLSessionMsg.REQUEST_TYPE_FROM_COOKIE);
+            startECLSessionMsg.setECLRequestType(REQUEST_TYPE_FROM_COOKIE);
             startECLSessionMsg.setCrossDomainServerState(cookie.toString());
           }
         }
@@ -523,11 +525,9 @@ public class ECLSearchOperation
           // If we're only interested in changes, then we don't actually want
           // to process the search now.
           if (psearchControl.getChangesOnly())
-            startECLSessionMsg.setPersistent(
-                StartECLSessionMsg.PERSISTENT_CHANGES_ONLY);
+            startECLSessionMsg.setPersistent(PERSISTENT_CHANGES_ONLY);
           else
-            startECLSessionMsg.setPersistent(
-                StartECLSessionMsg.PERSISTENT);
+            startECLSessionMsg.setPersistent(PERSISTENT);
         }
         else if (OID_LDAP_SUBENTRIES.equals(oid))
         {

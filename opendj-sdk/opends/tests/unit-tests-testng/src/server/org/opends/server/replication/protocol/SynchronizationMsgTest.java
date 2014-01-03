@@ -36,6 +36,8 @@ import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.*;
+import org.opends.server.replication.protocol.StartECLSessionMsg.ECLRequestType;
+import org.opends.server.replication.protocol.StartECLSessionMsg.Persistent;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
@@ -850,8 +852,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     new WindowProbeMsg(msg.getBytes(getCurrentVersion()));
   }
 
-  @DataProvider(name="createTopologyData")
-  public Object [][] createTopologyData() throws Exception
+  @DataProvider
+  public Object[][] createTopologyData() throws Exception
   {
     List<String> urls1 = newList(
         "ldap://ldap.iplanet.com/" + TEST_ROOT_DN_STRING + "??sub?(sn=Jensen)",
@@ -892,23 +894,23 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     List<RSInfo> rsList1 = newList(rsInfo1);
     List<RSInfo> rsList2 = newList(rsInfo1, rsInfo2, rsInfo3, rsInfo4);
 
-    return new Object [][] {
-      {dsList1, rsList1, a1},
-      {dsList2, rsList2, a2},
-      {dsList3, rsList1, a3},
-      {dsList3, null, null},
-      {null, rsList1, a1},
-      {null, null, a2},
-      {dsList4, rsList2, a3}
+    return new Object[][] {
+      {dsList1, rsList1},
+      {dsList2, rsList2},
+      {dsList3, rsList1},
+      {dsList3, null},
+      {null, rsList1},
+      {null, null},
+      {dsList4, rsList2}
     };
   }
 
   /**
    * Test TopologyMsg encoding and decoding.
    */
-  @Test(enabled=true,dataProvider = "createTopologyData")
-  public void topologyMsgTest(List<DSInfo> dsList, List<RSInfo> rsList, Set<String> attrs)
-    throws Exception
+  @Test(enabled = true, dataProvider = "createTopologyData")
+  public void topologyMsgTest(List<DSInfo> dsList, List<RSInfo> rsList)
+      throws Exception
   {
     TopologyMsg msg = new TopologyMsg(dsList, rsList);
     TopologyMsg newMsg = new TopologyMsg(msg.getBytes(getCurrentVersion()),
@@ -1287,10 +1289,10 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     StartECLSessionMsg msg = new StartECLSessionMsg();
     msg.setCSN(csn);
     msg.setCrossDomainServerState("fakegenstate");
-    msg.setPersistent(StartECLSessionMsg.PERSISTENT);
+    msg.setPersistent(Persistent.PERSISTENT);
     msg.setFirstChangeNumber(13);
     msg.setLastChangeNumber(14);
-    msg.setECLRequestType((short) 3);
+    msg.setECLRequestType(ECLRequestType.REQUEST_TYPE_EQUALS_REPL_CHANGE_NUMBER);
     msg.setOperationId("fakeopid");
     String dn1 = "cn=admin data";
     String dn2 = "cn=config";
@@ -1300,7 +1302,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     StartECLSessionMsg newMsg = new StartECLSessionMsg(msg.getBytes(getCurrentVersion()));
     // test equality between the two copies
     assertEquals(msg.getCSN(), newMsg.getCSN());
-    assertEquals(msg.isPersistent(), newMsg.isPersistent());
+    assertEquals(msg.getPersistent(), newMsg.getPersistent());
     assertEquals(msg.getFirstChangeNumber(), newMsg.getFirstChangeNumber());
     assertEquals(msg.getECLRequestType(), newMsg.getECLRequestType());
     assertEquals(msg.getLastChangeNumber(), newMsg.getLastChangeNumber());
