@@ -27,7 +27,6 @@
 package org.opends.server.replication.server;
 
 import java.net.SocketException;
-import java.util.NoSuchElementException;
 
 import org.opends.messages.Message;
 import org.opends.server.api.DirectoryThread;
@@ -103,12 +102,14 @@ public class ServerWriter extends DirectoryThread
         UpdateMsg update = replicationServerDomain.take(this.handler);
         if (update == null)
         {
+          // this connection is closing
           errMessage = Message.raw(
            "Connection closure: null update returned by domain.");
-          return;       /* this connection is closing */
+          return;
         }
 
-        /* Ignore updates in some cases */
+        // Ignore updates in some cases
+        long referenceGenerationId = replicationServerDomain.getGenerationId();
         if (handler.isDataServer())
         {
           /**
@@ -127,9 +128,8 @@ public class ServerWriter extends DirectoryThread
           if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS
               || dsStatus == ServerStatus.FULL_UPDATE_STATUS)
           {
-            long referenceGenerationId =
-              replicationServerDomain.getGenerationId();
             if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS)
+            {
               logError(WARN_IGNORING_UPDATE_TO_DS_BADGENID.get(
                   handler.getReplicationServerId(),
                   update.getCSN().toString(),
@@ -137,22 +137,24 @@ public class ServerWriter extends DirectoryThread
                   session.getReadableRemoteAddress(),
                   handler.getGenerationId(),
                   referenceGenerationId));
-            if (dsStatus == ServerStatus.FULL_UPDATE_STATUS)
+            }
+            else if (dsStatus == ServerStatus.FULL_UPDATE_STATUS)
+            {
               logError(WARN_IGNORING_UPDATE_TO_DS_FULLUP.get(
                   handler.getReplicationServerId(),
                   update.getCSN().toString(),
                   handler.getBaseDNString(), handler.getServerId(),
                   session.getReadableRemoteAddress()));
+            }
             continue;
           }
-        } else
+        }
+        else
         {
           /**
            * Ignore updates to RS with bad gen id
            * (no system managed status for a RS)
            */
-          long referenceGenerationId =
-            replicationServerDomain.getGenerationId();
           if (referenceGenerationId != handler.getGenerationId()
               || referenceGenerationId == -1
               || handler.getGenerationId() == -1)
@@ -175,45 +177,13 @@ public class ServerWriter extends DirectoryThread
         session.publish(update);
       }
     }
-    catch (NoSuchElementException e)
-    {
-      /*
-       * The remote host has disconnected and this particular Tree is going to
-       * be removed, just ignore the exception and let the thread die as well
-       */
-      if (handler.isDataServer())
-      {
-        errMessage = ERR_DS_BADLY_DISCONNECTED.get(
-            handler.getReplicationServerId(), handler.getServerId(),
-            session.getReadableRemoteAddress(), handler.getBaseDNString());
-      }
-      else
-      {
-        errMessage = ERR_RS_BADLY_DISCONNECTED.get(
-            handler.getReplicationServerId(), handler.getServerId(),
-            session.getReadableRemoteAddress(), handler.getBaseDNString());
-      }
-
-      logError(errMessage);
-    }
     catch (SocketException e)
     {
       /*
        * The remote host has disconnected and this particular Tree is going to
        * be removed, just ignore the exception and let the thread die as well
        */
-      if (handler.isDataServer())
-      {
-        errMessage = ERR_DS_BADLY_DISCONNECTED.get(
-            handler.getReplicationServerId(), handler.getServerId(),
-            session.getReadableRemoteAddress(), handler.getBaseDNString());
-      }
-      else
-      {
-        errMessage = ERR_RS_BADLY_DISCONNECTED.get(
-            handler.getReplicationServerId(), handler.getServerId(),
-            session.getReadableRemoteAddress(), handler.getBaseDNString());
-      }
+      errMessage = handler.getBadlyDisconnectedErrorMessage();
       logError(errMessage);
     }
     catch (Exception e)
