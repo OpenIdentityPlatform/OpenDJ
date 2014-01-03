@@ -26,9 +26,6 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
@@ -74,7 +71,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     try
     {
       replicationServer = newReplicationServer();
-      cnIndexDB = newCNIndexDB(replicationServer);
+      cnIndexDB = getCNIndexDBNoTrimming(replicationServer);
       cnIndexDB.setPurgeDelay(0);
 
       // Prepare data to be stored in the db
@@ -122,8 +119,6 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     }
     finally
     {
-      if (cnIndexDB != null)
-        cnIndexDB.shutdown();
       remove(replicationServer);
     }
   }
@@ -141,25 +136,13 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     assertEquals(record.getPreviousCookie(), cookie);
   }
 
-  private JEChangeNumberIndexDB newCNIndexDB(ReplicationServer rs) throws Exception
+  private JEChangeNumberIndexDB getCNIndexDBNoTrimming(ReplicationServer rs) throws ChangelogException
   {
-    final File testRoot = createCleanDir();
-    final ReplicationDbEnv dbEnv = new ReplicationDbEnv(testRoot.getPath(), rs);
-    final JEChangeNumberIndexDB cnIndexDB = new JEChangeNumberIndexDB(rs, dbEnv);
+    final JEChangelogDB changelogDB = (JEChangelogDB) rs.getChangelogDB();
+    final JEChangeNumberIndexDB cnIndexDB =
+        (JEChangeNumberIndexDB) changelogDB.getChangeNumberIndexDB(false);
     assertTrue(cnIndexDB.isEmpty());
     return cnIndexDB;
-  }
-
-  private File createCleanDir() throws IOException
-  {
-    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
-            + File.separator + "build");
-    path = path + File.separator + "unit-tests" + File.separator + "JEChangeNumberIndexDB";
-    final File testRoot = new File(path);
-    TestCaseUtils.deleteDirectory(testRoot);
-    testRoot.mkdirs();
-    return testRoot;
   }
 
   /**
@@ -181,7 +164,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     try
     {
       replicationServer = newReplicationServer();
-      cnIndexDB = newCNIndexDB(replicationServer);
+      cnIndexDB = getCNIndexDBNoTrimming(replicationServer);
       cnIndexDB.setPurgeDelay(0);
 
       // Prepare data to be stored in the db
@@ -229,8 +212,6 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     }
     finally
     {
-      if (cnIndexDB != null)
-        cnIndexDB.shutdown();
       remove(replicationServer);
     }
   }
