@@ -581,6 +581,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test");
 
     ReplicationBroker server01 = null;
+    LDAPReplicationDomain domain = null;
     LDAPReplicationDomain domain2 = null;
     Backend backend2 = null;
 
@@ -591,6 +592,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout);
+      DomainFakeCfg domainConf = newFakeCfg(TEST_ROOT_DN, SERVER_ID_1, replicationServerPort);
+      domain = startNewDomain(domainConf, null, null);
 
       // create and publish 1 change on each suffix
       long time = TimeThread.getTime();
@@ -606,8 +609,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       backend2.setPrivateBackend(true);
       SortedSet<String> replServers = newSortedSet("localhost:" + replicationServerPort);
 
-      DomainFakeCfg domainConf = new DomainFakeCfg(baseDN2, 1602, replServers);
-      domain2 = startNewDomain(domainConf, null,null);
+      DomainFakeCfg domainConf2 = new DomainFakeCfg(baseDN2, 1602, replServers);
+      domain2 = startNewDomain(domainConf2, null, null);
 
       Thread.sleep(1000);
       addEntry(createEntry(baseDN2));
@@ -618,8 +621,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       searchOnCookieChangelog("(targetDN=*)", cookie, 2, tn, SUCCESS);
 
       ExternalChangelogDomainCfg eclCfg = new ExternalChangelogDomainFakeCfg(false, null, null);
-      domainConf.setExternalChangelogDomain(eclCfg);
-      domain2.applyConfigurationChange(domainConf);
+      domainConf2.setExternalChangelogDomain(eclCfg);
+      domain2.applyConfigurationChange(domainConf2);
 
       // Expect only entry from o=test returned
       searchOnCookieChangelog("(targetDN=*)", cookie, 1, tn, SUCCESS);
@@ -636,7 +639,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     finally
     {
-      remove(domain2);
+      remove(domain, domain2);
       removeTestBackend(backend2);
       stop(server01);
     }
@@ -657,15 +660,20 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ReplicationBroker s2test2 = null;
 
     Backend backend2 = null;
+    LDAPReplicationDomain domain1 = null;
+    LDAPReplicationDomain domain2 = null;
     try
     {
       backend2 = initializeTestBackend(true, TEST_BACKEND_ID2);
 
       s1test = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout);
-
       s2test2 = openReplicationSession(TEST_ROOT_DN2, SERVER_ID_2,
           100, replicationServerPort, brokerSessionTimeout, EMPTY_DN_GENID);
+      DomainFakeCfg domainConf1 = newFakeCfg(TEST_ROOT_DN, SERVER_ID_1, replicationServerPort);
+      domain1 = startNewDomain(domainConf1, null, null);
+      DomainFakeCfg domainConf2 = newFakeCfg(TEST_ROOT_DN2, SERVER_ID_2, replicationServerPort);
+      domain2 = startNewDomain(domainConf2, null, null);
       Thread.sleep(500);
 
       // Produce updates
@@ -786,6 +794,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     finally
     {
+      remove(domain1, domain2);
       removeTestBackend(backend2);
       stop(s1test2, s2test, s1test, s2test2);
     }
@@ -2126,11 +2135,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     String tn = "ECLCompatWriteReadAllOps/" + firstChangeNumber;
     debugInfo(tn, "Starting test\n\n");
+    LDAPReplicationDomain domain = null;
     try
     {
       // Creates broker on o=test
       ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout);
+
+      DomainFakeCfg domainConf = newFakeCfg(TEST_ROOT_DN, SERVER_ID_1, replicationServerPort);
+      domain = startNewDomain(domainConf, null, null);
 
       String user1entryUUID = "11111111-1112-1113-1114-111111111115";
       String baseUUID       = "22222222-2222-2222-2222-222222222222";
@@ -2203,6 +2216,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     finally
     {
+      remove(domain);
       debugInfo(tn, "Ending test with success");
     }
   }
