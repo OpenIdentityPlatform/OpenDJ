@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -44,7 +44,7 @@ import org.opends.server.types.DirectoryException;
 
 import com.sleepycat.je.*;
 
-import static com.sleepycat.je.LockMode.*;
+import static com.sleepycat.je.EnvironmentConfig.*;
 import static com.sleepycat.je.OperationStatus.*;
 
 import static org.opends.messages.JebMessages.*;
@@ -95,10 +95,9 @@ public class ReplicationDbEnv
        */
       envConfig.setAllowCreate(true);
       envConfig.setTransactional(true);
-      envConfig.setConfigParam(EnvironmentConfig.STATS_COLLECT, "false");
-      envConfig.setConfigParam(EnvironmentConfig.CLEANER_THREADS, "2");
-      envConfig.setConfigParam(
-          EnvironmentConfig.CHECKPOINTER_HIGH_PRIORITY, "true");
+      envConfig.setConfigParam(STATS_COLLECT, "false");
+      envConfig.setConfigParam(CLEANER_THREADS, "2");
+      envConfig.setConfigParam(CHECKPOINTER_HIGH_PRIORITY, "true");
       /*
        * Tests have shown that since the parsing of the Replication log is
        * always done sequentially, it is not necessary to use a large DB cache.
@@ -110,17 +109,15 @@ public class ReplicationDbEnv
          * read buffers. This will result in more scalable checkpointer and
          * cleaner performance.
          */
-        envConfig.setConfigParam(
-            EnvironmentConfig.CLEANER_LOOK_AHEAD_CACHE_SIZE, mb(2));
-        envConfig.setConfigParam(
-            EnvironmentConfig.LOG_ITERATOR_READ_SIZE, mb(2));
-        envConfig.setConfigParam(EnvironmentConfig.LOG_FAULT_READ_SIZE, kb(4));
+        envConfig.setConfigParam(CLEANER_LOOK_AHEAD_CACHE_SIZE, mb(2));
+        envConfig.setConfigParam(LOG_ITERATOR_READ_SIZE, mb(2));
+        envConfig.setConfigParam(LOG_FAULT_READ_SIZE, kb(4));
 
         /*
          * The cache size must be bigger in order to accommodate the larger
          * buffers - see OPENDJ-943.
          */
-        envConfig.setConfigParam(EnvironmentConfig.MAX_MEMORY, mb(16));
+        envConfig.setConfigParam(MAX_MEMORY, mb(16));
       }
       else
       {
@@ -128,7 +125,7 @@ public class ReplicationDbEnv
          * Use 5M so that the replication can be used with 64M total for the
          * JVM.
          */
-        envConfig.setConfigParam(EnvironmentConfig.MAX_MEMORY, mb(5));
+        envConfig.setConfigParam(MAX_MEMORY, mb(5));
       }
 
       // Since records are always added at the end of the Replication log and
@@ -379,7 +376,7 @@ public class ReplicationDbEnv
   {
     DatabaseEntry key = new DatabaseEntry(toBytes(keyString));
     DatabaseEntry data = new DatabaseEntry();
-    if (changelogStateDb.get(null, key, data, DEFAULT) == NOTFOUND)
+    if (changelogStateDb.get(null, key, data, LockMode.DEFAULT) == NOTFOUND)
     {
       Transaction txn = dbEnvironment.beginTransaction(null, null);
       try
@@ -509,8 +506,7 @@ public class ReplicationDbEnv
     {
       final DatabaseEntry key = new DatabaseEntry(toBytes(keyString));
       final DatabaseEntry data = new DatabaseEntry();
-      OperationStatus status = changelogStateDb.get(null, key, data, DEFAULT);
-      if (status == SUCCESS)
+      if (changelogStateDb.get(null, key, data, LockMode.DEFAULT) == SUCCESS)
       {
         Transaction txn = dbEnvironment.beginTransaction(null, null);
         try
