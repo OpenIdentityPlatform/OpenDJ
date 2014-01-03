@@ -22,23 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.tools;
-
-
-
-import static org.opends.server.TestCaseUtils.readFile;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.util.List;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -53,31 +43,22 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class ImportLDIFTestCase extends ToolsTestCase
 {
 
   private File tempDir;
-
   private String ldifFilePath;
-
   private String configFilePath;
-
   private String homeDirName;
-
   private String beID;
-
   private String baseDN = "dc=example,dc=com";
-
-
 
   /**
    * Ensures that the ldif file is created with the entry.
-   *
-   * @throws Exception
-   *           If an unexpected problem occurs.
    */
   @BeforeClass
   public void setUp() throws Exception
@@ -114,9 +95,6 @@ public class ImportLDIFTestCase extends ToolsTestCase
   /**
    * Tests an import of LDIF with only the operational attributes
    * included.
-   *
-   * @throws Exception
-   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportIncludeOnlyOperational() throws Exception
@@ -148,10 +126,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
 
 
   /**
-   * Tests an import of LDIF with only thel user attributes included.
-   *
-   * @throws Exception
-   *           If an unexpected problem occurs.
+   * Tests an import of LDIF with only the user attributes included.
    */
   @Test
   public void testImportIncludeOnlyUser() throws Exception
@@ -179,13 +154,10 @@ public class ImportLDIFTestCase extends ToolsTestCase
     // Expecting an empty reject file.
     assertRejectedFile(reject, true);
 
-    Attribute[] opAttr =
-    {
-        Attributes.create("creatorsname", "cn=Import"),
-        Attributes.create("modifiersname", "cn=Import")
-    };
     // operational attributes shouldn't be present.
-    assertEntry(opAttr, false);
+    assertEntry(false,
+        Attributes.create("creatorsname", "cn=Import"),
+        Attributes.create("modifiersname", "cn=Import"));
   }
 
 
@@ -194,9 +166,6 @@ public class ImportLDIFTestCase extends ToolsTestCase
    * Tests a simple Import LDIF with none of the attributes excluded
    * or included. It is expected to import the entry(ies) with all the
    * attributes in the ldif file.
-   *
-   * @throws Exception
-   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportDefault() throws Exception
@@ -222,15 +191,11 @@ public class ImportLDIFTestCase extends ToolsTestCase
     // Reject file should be empty.
     assertRejectedFile(reject, true);
     // check the presence of some random attributes.
-    Attribute[] attr =
-    {
-        Attributes.create("description",
-            "This is the description for Aaccf Amar"),
+    assertEntry(true,
+        Attributes.create("description", "This is the description for Aaccf Amar"),
         Attributes.create("mail", "user.0@example.com"),
         Attributes.create("creatorsname", "cn=Import"),
-        Attributes.create("modifiersname", "cn=Import")
-    };
-    assertEntry(attr, true);
+        Attributes.create("modifiersname", "cn=Import"));
   }
 
 
@@ -239,9 +204,6 @@ public class ImportLDIFTestCase extends ToolsTestCase
    * Tests a simple Import LDIF using base DN with none of the
    * attributes excluded or included. It is expected to import the
    * entry(ies) with all the attributes in the ldif file.
-   *
-   * @throws Exception
-   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportDefaultBaseDN() throws Exception
@@ -267,15 +229,11 @@ public class ImportLDIFTestCase extends ToolsTestCase
     // Reject file should be empty.
     assertRejectedFile(reject, true);
     // check the presence of some random attributes.
-    Attribute[] attr =
-    {
-        Attributes.create("description",
-            "This is the description for Aaccf Amar"),
+    assertEntry(true,
+        Attributes.create("description", "This is the description for Aaccf Amar"),
         Attributes.create("mail", "user.0@example.com"),
         Attributes.create("creatorsname", "cn=Import"),
-        Attributes.create("modifiersname", "cn=Import")
-    };
-    assertEntry(attr, true);
+        Attributes.create("modifiersname", "cn=Import"));
   }
 
 
@@ -283,9 +241,6 @@ public class ImportLDIFTestCase extends ToolsTestCase
   /**
    * Tests an import of LDIF with all the user attributes included but
    * "description"
-   *
-   * @throws Exception
-   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportLDIFIncludeUserExcludeDescription() throws Exception
@@ -314,21 +269,14 @@ public class ImportLDIFTestCase extends ToolsTestCase
     assertEquals(
         ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
     assertRejectedFile(reject, true);
-    Attribute[] attr =
-    {
-      Attributes.create("description",
-          "This is the description for Aaccf Amar")
-    };
-    assertEntry(attr, false);
+    assertEntry(false,
+        Attributes.create("description", "This is the description for Aaccf Amar"));
   }
 
 
 
   /**
    * Tests an import of LDIF with all user attributes excluded option.
-   *
-   * @throws Exception
-   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportLDIFExcludeUser() throws Exception
@@ -361,9 +309,6 @@ public class ImportLDIFTestCase extends ToolsTestCase
   /**
    * Tests an import of LDIF with all the operational attributes
    * excluded option.
-   *
-   * @throws Exception
-   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportLDIFExcludeOperational() throws Exception
@@ -389,12 +334,9 @@ public class ImportLDIFTestCase extends ToolsTestCase
     assertEquals(
         ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
     assertRejectedFile(reject, true);
-    Attribute[] attrs =
-    {
+    assertEntry(false,
         Attributes.create("creatorsname", "cn=Import"),
-        Attributes.create("modifiersname", "cn=Import")
-    };
-    assertEntry(attrs, false);
+        Attributes.create("modifiersname", "cn=Import"));
   }
 
 
@@ -402,9 +344,6 @@ public class ImportLDIFTestCase extends ToolsTestCase
   /**
    * Tests an import of LDIF with all user attributes and one
    * operational attribute included..
-   *
-   * @throws Exception
-   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportLDIFUserAndOperational() throws Exception
@@ -432,11 +371,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
     assertEquals(
         ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
     assertRejectedFile(reject, true);
-    Attribute[] attrs =
-    {
-      Attributes.create("creatorsname", "cn=Import")
-    };
-    assertEntry(attrs, true);
+    assertEntry(true, Attributes.create("creatorsname", "cn=Import"));
   }
 
 
@@ -444,9 +379,6 @@ public class ImportLDIFTestCase extends ToolsTestCase
   /**
    * Tests an import of LDIF with select user and operational
    * attributes included..
-   *
-   * @throws Exception
-   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportLDIFSelectiveIncludeAttributes() throws Exception
@@ -480,27 +412,18 @@ public class ImportLDIFTestCase extends ToolsTestCase
     assertEquals(
         ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
     assertRejectedFile(reject, true);
-    Attribute[] attrsPr =
-    {
-      Attributes.create("creatorsname", "cn=Import")
-    };
-    assertEntry(attrsPr, true);
-    Attribute[] attrsAb =
-    {
+    assertEntry(true,
+        Attributes.create("creatorsname", "cn=Import"));
+    assertEntry(false,
         Attributes.create("givenname", "Aaccf"),
-        Attributes.create("employeenumber", "0")
-    };
-    assertEntry(attrsAb, false);
+        Attributes.create("employeenumber", "0"));
   }
 
 
 
   /**
-   * Tests an import of LDIF with select user and operational
-   * attributes encluded..
-   *
-   * @throws Exception
-   *           If an unexpected problem occurs.
+   * Tests an import of LDIF with select user and operational attributes
+   * included.
    */
   @Test
   public void testImportLDIFSelectiveExcludeAttributes() throws Exception
@@ -527,18 +450,12 @@ public class ImportLDIFTestCase extends ToolsTestCase
     assertEquals(
         ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
     assertRejectedFile(reject, true);
-    Attribute[] attrsPr =
-    {
+    assertEntry(true,
         Attributes.create("modifiersname", "cn=Import"),
-        Attributes.create("employeenumber", "0")
-    };
-    assertEntry(attrsPr, true);
-    Attribute[] attrsAb =
-    {
+        Attributes.create("employeenumber", "0"));
+    assertEntry(false,
         Attributes.create("creatorsname", "cn=Import"),
-        Attributes.create("givenname", "Aaccf")
-    };
-    assertEntry(attrsAb, false);
+        Attributes.create("givenname", "Aaccf"));
   }
 
 
@@ -551,8 +468,6 @@ public class ImportLDIFTestCase extends ToolsTestCase
    *          The file to be asserted
    * @param shouldBeEmpty
    *          whether the file should be empty.
-   * @throws Exception
-   *           If an unexpected error occurred.
    */
   private void assertRejectedFile(File reject, boolean shouldBeEmpty) throws Exception
   {
@@ -583,48 +498,32 @@ public class ImportLDIFTestCase extends ToolsTestCase
 
 
   /**
-   * Utility method which is called by the testcase for asserting the
-   * imported entry.
-   *
+   * Utility method which is called by the testcase for asserting the imported
+   * entry.
+   * @param attrsShouldExistInEntry
+   *          the boolean flag for assert type.
    * @param attrs
    *          The array of attributes to be asserted.
-   * @param assertType
-   *          the boolean flag for assert type.
-   * @throws Exception
-   *           If an unexpected problem occurs.
    */
-  private void assertEntry(Attribute[] attrs, boolean assertType)
+  private void assertEntry(boolean attrsShouldExistInEntry, Attribute... attrs)
       throws Exception
   {
     if (attrs != null && attrs.length > 0)
     {
       TaskUtils.enableBackend(beID);
-      Entry entry = DirectoryServer.getEntry(DN
-          .decode(" uid=user.0,dc=example,dc=com"));
+      Entry entry = DirectoryServer.getEntry(
+          DN.decode(" uid=user.0,dc=example,dc=com"));
       TaskUtils.disableBackend(beID);
       assertNotNull(entry);
-      List<Attribute> list = entry.getAttributes();
       for (Attribute a : attrs)
       {
-        if (assertType)
-        {
-          assertTrue(list.contains(a));
-        }
-        else
-        {
-          assertFalse(list.contains(a));
-        }
+        assertEquals(entry.getAttributes().contains(a), attrsShouldExistInEntry);
       }
     }
   }
 
-
-
   /**
    * Clean up method.
-   *
-   * @throws Exception
-   *           If an unexpected problem occurs.
    */
   @AfterClass
   public void cleanUp() throws Exception
