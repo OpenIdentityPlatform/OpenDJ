@@ -22,45 +22,39 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2011 ForgeRock AS.
+ *      Portions Copyright 2010-2014 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 
-import com.sleepycat.je.Durability;
-import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.je.dbi.MemoryBudget;
-
-import org.opends.server.config.ConfigConstants;
-import org.opends.server.config.ConfigException;
-import org.opends.server.types.DebugLogLevel;
-
-import java.util.HashMap;
-import java.util.Map;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.util.HashSet;
-import java.util.SortedSet;
-import java.util.StringTokenizer;
-import java.util.List;
-import java.util.Arrays;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.messages.Message;
-import static org.opends.messages.JebMessages.*;
-
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
-import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
-import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.BooleanPropertyDefinition;
+import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.config.ConfigConstants;
+import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.DebugLogLevel;
 
+import com.sleepycat.je.Durability;
+import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.dbi.MemoryBudget;
+
+import static com.sleepycat.je.EnvironmentConfig.*;
+
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.JebMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.BackendMessages.*;
 
 /**
  * This class maps JE properties to configuration attributes.
@@ -436,36 +430,30 @@ public class ConfigurableEnvironment
     envConfig.setTransactional(true);
     envConfig.setAllowCreate(true);
 
-    // This property was introduced in JE 3.0.  Shared latches are now used on
-    // all internal nodes of the b-tree, which increases concurrency for many
-    // operations.
-    envConfig.setConfigParam("je.env.sharedLatches", "true");
+    // "je.env.sharedLatches" is "true" by default since JE #12136 (3.3.62?)
 
     // This parameter was set to false while diagnosing a Berkeley DB JE bug.
     // Normally cleansed log files are deleted, but if this is set false
     // they are instead renamed from .jdb to .del.
-    envConfig.setConfigParam("je.cleaner.expunge", "true");
+    envConfig.setConfigParam(CLEANER_EXPUNGE, "true");
 
     // Under heavy write load the check point can fall behind causing
     // uncontrolled DB growth over time. This parameter makes the out of
     // the box configuration more robust at the cost of a slight
     // reduction in maximum write throughput. Experiments have shown
     // that response time predictability is not impacted negatively.
-    envConfig.setConfigParam("je.checkpointer.highPriority", "true");
+    envConfig.setConfigParam(CHECKPOINTER_HIGH_PRIORITY, "true");
 
     // If the JVM is reasonably large then we can safely default to
     // bigger read buffers. This will result in more scalable checkpointer
     // and cleaner performance.
     if (Runtime.getRuntime().maxMemory() > 256 * 1024 * 1024)
     {
-      envConfig.setConfigParam("je.cleaner.lookAheadCacheSize", String
-          .valueOf(2 * 1024 * 1024));
-
-      envConfig.setConfigParam("je.log.iteratorReadSize", String
-          .valueOf(2 * 1024 * 1024));
-
-      envConfig.setConfigParam("je.log.faultReadSize", String
-          .valueOf(4 * 1024));
+      envConfig.setConfigParam(CLEANER_LOOK_AHEAD_CACHE_SIZE,
+          String.valueOf(2 * 1024 * 1024));
+      envConfig.setConfigParam(LOG_ITERATOR_READ_SIZE,
+          String.valueOf(2 * 1024 * 1024));
+      envConfig.setConfigParam(LOG_FAULT_READ_SIZE, String.valueOf(4 * 1024));
     }
 
     // Disable lock timeouts, meaning that no lock wait
@@ -545,23 +533,13 @@ public class ConfigurableEnvironment
               String.valueOf(cfg.getDBLoggingLevel()),
               String.valueOf(cfg.dn())));
     }
-    if (cfg.isDBLoggingFileHandlerOn())
-    {
-      envConfig.setConfigParam(
-              EnvironmentConfig.FILE_LOGGING_LEVEL,
-              Level.ALL.getName());
-    }
-    else
-    {
-      envConfig.setConfigParam(
-              EnvironmentConfig.FILE_LOGGING_LEVEL,
-              Level.OFF.getName());
-    }
+
+    final Level level = cfg.isDBLoggingFileHandlerOn() ? Level.ALL : Level.OFF;
+    envConfig.setConfigParam(FILE_LOGGING_LEVEL, level.getName());
 
     // See if there are any native JE properties specified in the config
     // and if so try to parse, evaluate and set them.
-    SortedSet<String> jeProperties = cfg.getJEProperty();
-    return setJEProperties(envConfig, jeProperties, attrMap);
+    return setJEProperties(envConfig, cfg.getJEProperty(), attrMap);
   }
 
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -38,11 +38,6 @@ import java.util.logging.Level;
 import java.util.zip.Adler32;
 import java.util.zip.CheckedInputStream;
 
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Durability;
-import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.je.EnvironmentFailureException;
-
 import org.opends.messages.Message;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -54,18 +49,19 @@ import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.jeb.importLDIF.Importer;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.core.*;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
-import org.opends.server.util.LDIFException;
 import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.Validator;
+
+import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.Durability;
+import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.EnvironmentFailureException;
+
+import static com.sleepycat.je.EnvironmentConfig.*;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
@@ -143,16 +139,7 @@ public class BackendImpl
   /**
    * The features supported by this backend.
    */
-  private static HashSet<String> supportedFeatures;
-
-  static {
-    // Set our supported features.
-    supportedFeatures = new HashSet<String>();
-
-    //NYI
-  }
-
-
+  private static HashSet<String> supportedFeatures = new HashSet<String>();
 
   /**
    * Begin a Backend API method that reads the database.
@@ -276,11 +263,7 @@ public class BackendImpl
     return 0;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void configureBackend(Configuration cfg)
       throws ConfigException
@@ -295,11 +278,7 @@ public class BackendImpl
     dnSet.toArray(baseDNs);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void initializeBackend()
       throws ConfigException, InitializationException
@@ -376,11 +355,7 @@ public class BackendImpl
     cfg.addLocalDBChangeListener(this);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void finalizeBackend()
   {
@@ -443,11 +418,7 @@ public class BackendImpl
     logError(message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isLocal()
   {
@@ -456,9 +427,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
@@ -509,44 +478,28 @@ public class BackendImpl
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean supportsLDIFExport()
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean supportsLDIFImport()
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean supportsBackup()
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
@@ -554,55 +507,35 @@ public class BackendImpl
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean supportsRestore()
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public HashSet<String> getSupportedFeatures()
   {
     return supportedFeatures;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public HashSet<String> getSupportedControls()
   {
     return supportedControls;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public long getEntryCount()
   {
@@ -626,9 +559,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
@@ -650,9 +581,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public long numSubordinates(DN entryDN, boolean subtree)
       throws DirectoryException
@@ -703,9 +632,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
@@ -748,9 +675,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void addEntry(Entry entry, AddOperation addOperation)
       throws DirectoryException, CanceledOperationException
@@ -793,9 +718,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
       throws DirectoryException, CanceledOperationException
@@ -837,9 +760,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException,
@@ -884,9 +805,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
@@ -939,9 +858,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void search(SearchOperation searchOperation)
       throws DirectoryException, CanceledOperationException
@@ -982,9 +899,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void exportLDIF(LDIFExportConfig exportConfig)
       throws DirectoryException
@@ -992,23 +907,12 @@ public class BackendImpl
     // If the backend already has the root container open, we must use the same
     // underlying root container
     boolean openRootContainer = rootContainer == null;
-
     try
     {
-      if(openRootContainer)
+      if (openRootContainer)
       {
-        EnvironmentConfig envConfig =
-            ConfigurableEnvironment.parseConfigEntry(cfg);
-
-        envConfig.setReadOnly(true);
-        envConfig.setAllowCreate(false);
-        envConfig.setTransactional(false);
-        envConfig.setConfigParam("je.env.isLocking", "true");
-        envConfig.setConfigParam("je.env.runCheckpointer", "true");
-
-        rootContainer = initializeRootContainer(envConfig);
+        rootContainer = getReadOnlyRootContainer();
       }
-
 
       ExportJob exportJob = new ExportJob(exportConfig);
       exportJob.exportLDIF(rootContainer);
@@ -1023,15 +927,6 @@ public class BackendImpl
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
-    catch (JebException je)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, je);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   je.getMessageObject());
-    }
     catch (DatabaseException de)
     {
       if (debugEnabled())
@@ -1040,8 +935,12 @@ public class BackendImpl
       }
       throw createDirectoryException(de);
     }
-    catch (LDIFException e)
+    catch (IdentifiedException e)
     {
+      if (e instanceof DirectoryException)
+      {
+        throw (DirectoryException) e;
+      }
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -1049,51 +948,15 @@ public class BackendImpl
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessageObject());
     }
-    catch (InitializationException ie)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   ie.getMessageObject());
-    }
-    catch (ConfigException ce)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   ce.getMessageObject());
-    }
     finally
     {
-      //If a root container was opened in this method as read only, close it
-      //to leave the backend in the same state.
-      if (openRootContainer && rootContainer != null)
-      {
-        try
-        {
-          rootContainer.close();
-          rootContainer = null;
-        }
-        catch (DatabaseException e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-      }
+      closeTemporaryRootContainer(openRootContainer);
     }
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
       throws DirectoryException
@@ -1116,30 +979,21 @@ public class BackendImpl
 
     try
     {
-      EnvironmentConfig envConfig = new EnvironmentConfig();
+      final EnvironmentConfig envConfig = getEnvConfigForImport();
 
-      envConfig.setAllowCreate(true);
-      envConfig.setTransactional(false);
-      envConfig.setDurability(Durability.COMMIT_NO_SYNC);
-      envConfig.setLockTimeout(0, TimeUnit.SECONDS);
-      envConfig.setTxnTimeout(0, TimeUnit.SECONDS);
-      envConfig.setConfigParam(EnvironmentConfig.CLEANER_MIN_FILE_UTILIZATION,
-          String.valueOf(cfg.getDBCleanerMinUtilization()));
-      envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, String
-          .valueOf(cfg.getDBLogFileMax()));
-
-      if(!importConfig.appendToExistingData()) {
-        if(importConfig.clearBackend() || cfg.getBaseDN().size() <= 1) {
-          // We have the writer lock on the environment, now delete the
-          // environment and re-open it. Only do this when we are
-          // importing to all the base DNs in the backend or if the backend only
-          // have one base DN.
-          File parentDirectory = getFileForPath(cfg.getDBDirectory());
-          File backendDirectory = new File(parentDirectory, cfg.getBackendId());
-          // If the backend does not exist the import will create it.
-          if (backendDirectory.exists()) {
-            EnvManager.removeFiles(backendDirectory.getPath());
-          }
+      if (!importConfig.appendToExistingData()
+          && (importConfig.clearBackend() || cfg.getBaseDN().size() <= 1))
+      {
+        // We have the writer lock on the environment, now delete the
+        // environment and re-open it. Only do this when we are
+        // importing to all the base DNs in the backend or if the backend only
+        // have one base DN.
+        File parentDirectory = getFileForPath(cfg.getDBDirectory());
+        File backendDirectory = new File(parentDirectory, cfg.getBackendId());
+        // If the backend does not exist the import will create it.
+        if (backendDirectory.exists())
+        {
+          EnvManager.removeFiles(backendDirectory.getPath());
         }
       }
 
@@ -1235,7 +1089,20 @@ public class BackendImpl
     }
   }
 
-
+  private EnvironmentConfig getEnvConfigForImport()
+  {
+    final EnvironmentConfig envConfig = new EnvironmentConfig();
+    envConfig.setAllowCreate(true);
+    envConfig.setTransactional(false);
+    envConfig.setDurability(Durability.COMMIT_NO_SYNC);
+    envConfig.setLockTimeout(0, TimeUnit.SECONDS);
+    envConfig.setTxnTimeout(0, TimeUnit.SECONDS);
+    envConfig.setConfigParam(CLEANER_MIN_FILE_UTILIZATION,
+        String.valueOf(cfg.getDBCleanerMinUtilization()));
+    envConfig.setConfigParam(LOG_FILE_MAX,
+        String.valueOf(cfg.getDBLogFileMax()));
+    return envConfig;
+  }
 
   /**
    * Verify the integrity of the backend instance.
@@ -1259,18 +1126,9 @@ public class BackendImpl
 
     try
     {
-      if(openRootContainer)
+      if (openRootContainer)
       {
-        EnvironmentConfig envConfig =
-            ConfigurableEnvironment.parseConfigEntry(cfg);
-
-        envConfig.setReadOnly(true);
-        envConfig.setAllowCreate(false);
-        envConfig.setTransactional(false);
-        envConfig.setConfigParam("je.env.isLocking", "true");
-        envConfig.setConfigParam("je.env.runCheckpointer", "true");
-
-        rootContainer = initializeRootContainer(envConfig);
+        rootContainer = getReadOnlyRootContainer();
       }
 
       VerifyJob verifyJob = new VerifyJob(verifyConfig);
@@ -1295,23 +1153,7 @@ public class BackendImpl
     }
     finally
     {
-      //If a root container was opened in this method as read only, close it
-      //to leave the backend in the same state.
-      if (openRootContainer && rootContainer != null)
-      {
-        try
-        {
-          rootContainer.close();
-          rootContainer = null;
-        }
-        catch (DatabaseException e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-      }
+      closeTemporaryRootContainer(openRootContainer);
     }
     return errorCount;
   }
@@ -1349,20 +1191,10 @@ public class BackendImpl
 
     try
     {
-      EnvironmentConfig envConfig;
+      final EnvironmentConfig envConfig;
       if (openRootContainer)
       {
-        envConfig = new EnvironmentConfig();
-        envConfig.setAllowCreate(true);
-        envConfig.setTransactional(false);
-        envConfig.setDurability(Durability.COMMIT_NO_SYNC);
-        envConfig.setLockTimeout(0, TimeUnit.SECONDS);
-        envConfig.setTxnTimeout(0, TimeUnit.SECONDS);
-        envConfig.setConfigParam(
-            EnvironmentConfig.CLEANER_MIN_FILE_UTILIZATION, String.valueOf(cfg
-                .getDBCleanerMinUtilization()));
-        envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, String
-            .valueOf(cfg.getDBLogFileMax()));
+        envConfig = getEnvConfigForImport();
 
         Importer importer = new Importer(rebuildConfig, cfg, envConfig);
         rootContainer = initializeRootContainer(envConfig);
@@ -1424,30 +1256,35 @@ public class BackendImpl
     }
     finally
     {
-      //If a root container was opened in this method as read only, close it
-      //to leave the backend in the same state.
-      if (openRootContainer && rootContainer != null)
+      closeTemporaryRootContainer(openRootContainer);
+    }
+  }
+
+  /**
+   * If a root container was opened in the calling method method as read only,
+   * close it to leave the backend in the same state.
+   */
+  private void closeTemporaryRootContainer(boolean openRootContainer)
+  {
+    if (openRootContainer && rootContainer != null)
+    {
+      try
       {
-        try
+        rootContainer.close();
+        rootContainer = null;
+      }
+      catch (DatabaseException e)
+      {
+        if (debugEnabled())
         {
-          rootContainer.close();
-          rootContainer = null;
-        }
-        catch (DatabaseException e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void createBackup(BackupConfig backupConfig)
       throws DirectoryException
@@ -1461,9 +1298,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
       throws DirectoryException
@@ -1475,9 +1310,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void restoreBackup(RestoreConfig restoreConfig)
       throws DirectoryException
@@ -1491,9 +1324,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isConfigurationAcceptable(Configuration configuration,
                                            List<Message> unacceptableReasons)
@@ -1504,9 +1335,7 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       LocalDBBackendCfg cfg,
@@ -1528,13 +1357,10 @@ public class BackendImpl
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg newCfg)
   {
-    ConfigChangeResult ccr;
     ResultCode resultCode = ResultCode.SUCCESS;
     ArrayList<Message> messages = new ArrayList<Message>();
 
@@ -1593,8 +1419,7 @@ public class BackendImpl
               messages.add(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
                       String.valueOf(baseDN),
                       String.valueOf(e)));
-              ccr = new ConfigChangeResult(resultCode, false, messages);
-              return ccr;
+              return new ConfigChangeResult(resultCode, false, messages);
             }
           }
         }
@@ -1615,13 +1440,11 @@ public class BackendImpl
     catch (Exception e)
     {
       messages.add(Message.raw(stackTraceToSingleLineString(e)));
-      ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                                   false, messages);
-      return ccr;
+      return new ConfigChangeResult(
+          DirectoryServer.getServerErrorResultCode(), false, messages);
     }
 
-    ccr = new ConfigChangeResult(resultCode, false, messages);
-    return ccr;
+    return new ConfigChangeResult(resultCode, false, messages);
   }
 
   /**
@@ -1656,8 +1479,8 @@ public class BackendImpl
     envConfig.setReadOnly(true);
     envConfig.setAllowCreate(false);
     envConfig.setTransactional(false);
-    envConfig.setConfigParam("je.env.isLocking", "true");
-    envConfig.setConfigParam("je.env.runCheckpointer", "true");
+    envConfig.setConfigParam(ENV_IS_LOCKING, "true");
+    envConfig.setConfigParam(ENV_RUN_CHECKPOINTER, "true");
 
     return initializeRootContainer(envConfig);
   }
@@ -1688,11 +1511,8 @@ public class BackendImpl
    * @return  DirectoryException created from exception.
    */
   DirectoryException createDirectoryException(DatabaseException e) {
-    ResultCode resultCode = DirectoryServer.getServerErrorResultCode();
-    Message message;
-    if ((e instanceof EnvironmentFailureException) &&
-            !rootContainer.isValid()) {
-      message = NOTE_BACKEND_ENVIRONMENT_UNUSABLE.get(getBackendID());
+    if (e instanceof EnvironmentFailureException && !rootContainer.isValid()) {
+      Message message = NOTE_BACKEND_ENVIRONMENT_UNUSABLE.get(getBackendID());
       logError(message);
       DirectoryServer.sendAlertNotification(DirectoryServer.getInstance(),
               ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE, message);
@@ -1702,21 +1522,18 @@ public class BackendImpl
     if (jeMessage == null) {
       jeMessage = stackTraceToSingleLineString(e);
     }
-    message = ERR_JEB_DATABASE_EXCEPTION.get(jeMessage);
-    return new DirectoryException(resultCode, message, e);
+    Message message = ERR_JEB_DATABASE_EXCEPTION.get(jeMessage);
+    return new DirectoryException(
+        DirectoryServer.getServerErrorResultCode(), message, e);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getClassName() {
     return CLASS_NAME;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Map<String, String> getAlerts()
   {
@@ -1731,9 +1548,7 @@ public class BackendImpl
     return alerts;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN() {
     return cfg.dn();
@@ -1756,9 +1571,7 @@ public class BackendImpl
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void preloadEntryCache() throws
           UnsupportedOperationException {
@@ -1767,9 +1580,7 @@ public class BackendImpl
     preloader.preload();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void diskLowThresholdReached(DiskSpaceMonitor monitor) {
     Message msg = ERR_JEB_DISK_LOW_THRESHOLD_REACHED.get(
@@ -1780,9 +1591,7 @@ public class BackendImpl
         ALERT_TYPE_DISK_SPACE_LOW, msg);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void diskFullThresholdReached(DiskSpaceMonitor monitor) {
     Message msg = ERR_JEB_DISK_FULL_THRESHOLD_REACHED.get(
@@ -1793,9 +1602,7 @@ public class BackendImpl
         ALERT_TYPE_DISK_FULL, msg);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void diskSpaceRestored(DiskSpaceMonitor monitor) {
     Message msg = NOTE_JEB_DISK_SPACE_RESTORED.get(monitor.getFreeSpace(),

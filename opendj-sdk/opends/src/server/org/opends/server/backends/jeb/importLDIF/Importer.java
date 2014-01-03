@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb.importLDIF;
+
+import static com.sleepycat.je.EnvironmentConfig.*;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -544,24 +546,18 @@ public final class Importer implements DiskSpaceMonitorHandler
 
     if (oldThreadCount != threadCount)
     {
-      Message message =
-          NOTE_JEB_IMPORT_ADJUST_THREAD_COUNT.get(oldThreadCount, threadCount);
-      logError(message);
+      logError(
+          NOTE_JEB_IMPORT_ADJUST_THREAD_COUNT.get(oldThreadCount, threadCount));
     }
 
-    Message message =
-        NOTE_JEB_IMPORT_LDIF_TOT_MEM_BUF.get(availableMemory,
-            phaseOneBufferCount);
-    logError(message);
+    logError(NOTE_JEB_IMPORT_LDIF_TOT_MEM_BUF.get(
+        availableMemory, phaseOneBufferCount));
     if (tmpEnvCacheSize > 0)
     {
-      message = NOTE_JEB_IMPORT_LDIF_TMP_ENV_MEM.get(tmpEnvCacheSize);
-      logError(message);
+      logError(NOTE_JEB_IMPORT_LDIF_TMP_ENV_MEM.get(tmpEnvCacheSize));
     }
-    envConfig.setConfigParam(EnvironmentConfig.MAX_MEMORY, Long
-        .toString(dbCacheSize));
-    message = NOTE_JEB_IMPORT_LDIF_DB_MEM_BUF_INFO.get(dbCacheSize, bufferSize);
-    logError(message);
+    envConfig.setConfigParam(MAX_MEMORY, Long.toString(dbCacheSize));
+    logError(NOTE_JEB_IMPORT_LDIF_DB_MEM_BUF_INFO.get(dbCacheSize, bufferSize));
   }
 
   /**
@@ -4688,16 +4684,15 @@ public final class Importer implements DiskSpaceMonitorHandler
     public TmpEnv(File envPath) throws DatabaseException
     {
       EnvironmentConfig envConfig = new EnvironmentConfig();
-      envConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CLEANER, "true");
+      envConfig.setConfigParam(ENV_RUN_CLEANER, "true");
       envConfig.setReadOnly(false);
       envConfig.setAllowCreate(true);
       envConfig.setTransactional(false);
-      envConfig.setConfigParam(EnvironmentConfig.ENV_IS_LOCKING, "true");
-      envConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CHECKPOINTER, "false");
-      envConfig.setConfigParam(EnvironmentConfig.EVICTOR_LRU_ONLY, "false");
-      envConfig.setConfigParam(EnvironmentConfig.EVICTOR_NODES_PER_SCAN, "128");
-      envConfig.setConfigParam(EnvironmentConfig.MAX_MEMORY, Long
-          .toString(tmpEnvCacheSize));
+      envConfig.setConfigParam(ENV_IS_LOCKING, "true");
+      envConfig.setConfigParam(ENV_RUN_CHECKPOINTER, "false");
+      envConfig.setConfigParam(EVICTOR_LRU_ONLY, "false");
+      envConfig.setConfigParam(EVICTOR_NODES_PER_SCAN, "128");
+      envConfig.setConfigParam(MAX_MEMORY, Long.toString(tmpEnvCacheSize));
       DatabaseConfig dbConfig = new DatabaseConfig();
       dbConfig.setAllowCreate(true);
       dbConfig.setTransactional(false);
