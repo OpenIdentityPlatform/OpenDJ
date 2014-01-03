@@ -22,14 +22,13 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
 import java.io.IOException;
 import java.net.SocketException;
 
-import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -59,11 +58,11 @@ public class ECLServerWriter extends ServerWriter
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private Session session;
-  private ECLServerHandler handler;
-  private ReplicationServerDomain replicationServerDomain;
+  private final Session session;
+  private final ECLServerHandler handler;
+  private final ReplicationServerDomain replicationServerDomain;
   private boolean suspended;
-  private boolean shutdown;
+  private volatile boolean shutdown;
   private PersistentSearch mypsearch;
 
   /**
@@ -111,10 +110,7 @@ public class ECLServerWriter extends ServerWriter
    */
   public synchronized void suspendWriter()
   {
-    synchronized(this)
-    {
-      suspended = true;
-    }
+    suspended = true;
   }
 
   /**
@@ -122,10 +118,7 @@ public class ECLServerWriter extends ServerWriter
    */
   public synchronized void resumeWriter()
   {
-    synchronized(this)
-    {
-      suspended = false;
-    }
+    suspended = false;
     notify();
   }
 
@@ -168,33 +161,15 @@ public class ECLServerWriter extends ServerWriter
       // session is always null if a socket exception has occurred.
       if (session != null)
       {
-        final Message errMessage;
-        if (handler.isDataServer())
-        {
-          errMessage = ERR_DS_BADLY_DISCONNECTED.get(
-              handler.getReplicationServerId(),
-              handler.getServerId(),
-              session.getReadableRemoteAddress(),
-              handler.getBaseDNString());
-        }
-        else
-        {
-          errMessage = ERR_RS_BADLY_DISCONNECTED.get(
-              handler.getReplicationServerId(),
-              handler.getServerId(),
-              session.getReadableRemoteAddress(),
-              handler.getBaseDNString());
-        }
-        logError(errMessage);
+        logError(handler.getBadlyDisconnectedErrorMessage());
       }
     }
     catch (Exception e)
     {
       // An unexpected error happened.
       // Log an error and close the connection.
-      Message errMessage = ERR_WRITER_UNEXPECTED_EXCEPTION
-          .get(handler + " " + stackTraceToSingleLineString(e));
-      logError(errMessage);
+      logError(ERR_WRITER_UNEXPECTED_EXCEPTION.get(
+          handler + " " + stackTraceToSingleLineString(e)));
     }
     finally
     {
@@ -225,7 +200,6 @@ public class ECLServerWriter extends ServerWriter
       ECLUpdateMsg update = null;
       try
       {
-        handler.refreshEligibleCSN();
         update = handler.takeECLUpdate();
       }
       catch(DirectoryException de)
@@ -292,9 +266,8 @@ public class ECLServerWriter extends ServerWriter
       }
       catch (Exception e)
       {
-        Message errMessage = ERR_WRITER_UNEXPECTED_EXCEPTION.get(
-            handler + " " + stackTraceToSingleLineString(e));
-        logError(errMessage);
+        logError(ERR_WRITER_UNEXPECTED_EXCEPTION.get(
+            handler + " " + stackTraceToSingleLineString(e)));
         mypsearch.cancel();
       }
     }

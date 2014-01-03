@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
-import java.io.IOException;
+import java.net.SocketException;
 
 import org.opends.messages.Message;
 import org.opends.server.api.DirectoryThread;
@@ -59,9 +59,6 @@ public class ServerReader extends DirectoryThread
   private static final DebugTracer TRACER = getTracer();
   private final Session session;
   private final ServerHandler handler;
-  private final String remoteAddress;
-
-
 
   /**
    * Constructor for the LDAP server reader part of the replicationServer.
@@ -78,7 +75,6 @@ public class ServerReader extends DirectoryThread
         + session.getReadableRemoteAddress());
     this.session = session;
     this.handler = handler;
-    this.remoteAddress = session.getReadableRemoteAddress();
   }
 
   /**
@@ -247,7 +243,7 @@ public class ServerReader extends DirectoryThread
         }
       }
     }
-    catch (IOException e)
+    catch (SocketException e)
     {
       /*
        * The connection has been broken
@@ -257,18 +253,7 @@ public class ServerReader extends DirectoryThread
       logException(e);
       if (!handler.shuttingDown())
       {
-        if (handler.isDataServer())
-        {
-          errMessage = ERR_DS_BADLY_DISCONNECTED.get(
-              handler.getReplicationServerId(), handler.getServerId(),
-              remoteAddress, handler.getBaseDNString());
-        }
-        else
-        {
-          errMessage = ERR_RS_BADLY_DISCONNECTED.get(
-              handler.getReplicationServerId(), handler.getServerId(),
-              remoteAddress, handler.getBaseDNString());
-        }
+        errMessage = handler.getBadlyDisconnectedErrorMessage();
         logError(errMessage);
       }
     }

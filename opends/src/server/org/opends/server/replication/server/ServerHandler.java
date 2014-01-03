@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -1239,5 +1239,21 @@ public abstract class ServerHandler extends MessageHandler
         replicationServerDomain.getLatestServerState(), localGenerationId,
         sslEncryption, getLocalGroupId(),
         replicationServer.getDegradedStatusThreshold());
+  }
+
+  /**
+   * Returns a "badly disconnected" error message for this server handler.
+   *
+   * @return a "badly disconnected" error message for this server handler
+   */
+  public Message getBadlyDisconnectedErrorMessage()
+  {
+    if (isDataServer())
+    {
+      return ERR_DS_BADLY_DISCONNECTED.get(getReplicationServerId(),
+          getServerId(), session.getReadableRemoteAddress(), getBaseDNString());
+    }
+    return ERR_RS_BADLY_DISCONNECTED.get(getReplicationServerId(),
+        getServerId(), session.getReadableRemoteAddress(), getBaseDNString());
   }
 }
