@@ -44,55 +44,69 @@ public class StartECLSessionMsg extends ReplicationMsg
 {
 
   /**
-   * This specifies that the ECL is requested from a provided cookie value
-   * defined as a MultiDomainServerState.
+   * Type of request made to the External Changelog.
    */
-  public final static short REQUEST_TYPE_FROM_COOKIE = 0;
+  public enum ECLRequestType
+  {
+
+    /**
+     * This specifies that the ECL is requested from a provided cookie value
+     * defined as a MultiDomainServerState.
+     */
+    REQUEST_TYPE_FROM_COOKIE,
+
+    /**
+     * This specifies that the ECL is requested from a provided interval
+     * of change numbers (as defined by draft-good-ldap-changelog [CHANGELOG]
+     * and NOT replication CSNs).
+     * TODO: not yet implemented
+     */
+    REQUEST_TYPE_FROM_CHANGE_NUMBER,
+
+    /**
+     * This specifies that the ECL is requested only for the entry that have a
+     * CSN matching the provided one.
+     * TODO: not yet implemented
+     */
+    REQUEST_TYPE_EQUALS_REPL_CHANGE_NUMBER
+  }
 
   /**
-   * This specifies that the ECL is requested from a provided interval
-   * of change numbers (as defined by draft-good-ldap-changelog [CHANGELOG]
-   * and NOT replication CSNs).
-   * TODO: not yet implemented
+   * Whether the current External Changelog search is persistent and requires to
+   * receive only new changes or already existing changes as well.
    */
-  public final static short REQUEST_TYPE_FROM_CHANGE_NUMBER = 1;
+  public enum Persistent
+  {
+    /**
+     * This specifies that the request on the ECL is a PERSISTENT search with
+     * changesOnly = false.
+     * <p>
+     * It will return the content of the changelog DB as it is now, plus any
+     * subsequent changes.
+     */
+    PERSISTENT,
 
-  /**
-   * This specifies that the ECL is requested only for the entry that have
-   * a CSN matching the provided one.
-   * TODO: not yet implemented
-   */
-  public final static short REQUEST_TYPE_EQUALS_REPL_CHANGE_NUMBER = 2;
+    /**
+     * This specifies that the request on the ECL is a NOT a PERSISTENT search.
+     * <p>
+     * It will only return the content of the changelog DB as it is now, and
+     * stop. It will NOT be turned into a persistent search that can return
+     * subsequent changes.
+     */
+    NON_PERSISTENT,
 
-  /**
-   * This specifies that the request on the ECL is a PERSISTENT search with
-   * changesOnly = false.
-   * <p>
-   * It will return the content of the changelog DB as it is now, plus any
-   * subsequent changes.
-   */
-  public final static short PERSISTENT = 0;
-
-  /**
-   * This specifies that the request on the ECL is a NOT a PERSISTENT search.
-   * <p>
-   * It will only return the content of the changelog DB as it is now, and stop.
-   * It will NOT be turned into a persistent search that can return subsequent
-   * changes.
-   */
-  public final static short NON_PERSISTENT = 1;
-
-  /**
-   * This specifies that the request on the ECL is a PERSISTENT search with
-   * changesOnly = true.
-   * <p>
-   * It will only return subsequent changes that do not exist yet in the
-   * changelog DB.
-   */
-  public final static short PERSISTENT_CHANGES_ONLY = 2;
+    /**
+     * This specifies that the request on the ECL is a PERSISTENT search with
+     * changesOnly = true.
+     * <p>
+     * It will only return subsequent changes that do not exist yet in the
+     * changelog DB.
+     */
+    PERSISTENT_CHANGES_ONLY
+  }
 
   /** The type of request as defined by REQUEST_TYPE_... */
-  private short eclRequestType;
+  private ECLRequestType eclRequestType;
 
   /**
    * When eclRequestType = FROM_COOKIE, specifies the provided cookie value.
@@ -114,15 +128,14 @@ public class StartECLSessionMsg extends ReplicationMsg
 
   /**
    * Specifies whether the search is persistent and changesOnly.
-   *
-   * @see #NON_PERSISTENT
-   * @see #PERSISTENT
-   * @see #PERSISTENT_CHANGES_ONLY
    */
-  private short isPersistent = NON_PERSISTENT;
+  private Persistent isPersistent = Persistent.NON_PERSISTENT;
 
   /**
-   * A string helping debugging and tracing the client operation related when
+   * This is a string identifying the operation, provided by the client part of
+   * the ECL, used to help interpretation of messages logged.
+   * <p>
+   * It helps debugging and tracing the client operation related when
    * processing, on the RS side, a request on the ECL.
    */
   private String operationId = "";
@@ -160,7 +173,8 @@ public class StartECLSessionMsg extends ReplicationMsg
 
       // start mode
       int length = getNextLength(in, pos);
-      eclRequestType = Short.valueOf(new String(in, pos, length, "UTF-8"));
+      int requestType = Integer.parseInt(new String(in, pos, length, "UTF-8"));
+      eclRequestType = ECLRequestType.values()[requestType];
       pos += length +1;
 
       length = getNextLength(in, pos);
@@ -177,7 +191,8 @@ public class StartECLSessionMsg extends ReplicationMsg
 
       // persistentSearch mode
       length = getNextLength(in, pos);
-      isPersistent = Short.valueOf(new String(in, pos, length, "UTF-8"));
+      int persistent = Integer.parseInt(new String(in, pos, length, "UTF-8"));
+      isPersistent = Persistent.values()[persistent];
       pos += length + 1;
 
       // generalized state
@@ -213,12 +228,12 @@ public class StartECLSessionMsg extends ReplicationMsg
    */
   public StartECLSessionMsg()
   {
-    eclRequestType = REQUEST_TYPE_FROM_COOKIE;
+    eclRequestType = ECLRequestType.REQUEST_TYPE_FROM_COOKIE;
     crossDomainServerState = "";
     firstChangeNumber = -1;
     lastChangeNumber = -1;
     csn = new CSN(0, 0, 0);
-    isPersistent = NON_PERSISTENT;
+    isPersistent = Persistent.NON_PERSISTENT;
     operationId = "-1";
     excludedBaseDNs = new HashSet<String>();
   }
@@ -234,13 +249,13 @@ public class StartECLSessionMsg extends ReplicationMsg
 
     try
     {
-      byte[] byteMode = toBytes(eclRequestType);
+      byte[] byteMode = toBytes(eclRequestType.ordinal());
       // FIXME JNR Changing the lines below to use long would require a protocol
       // version change. Leave it like this for now until the need arises.
       byte[] byteChangeNumber = toBytes((int) firstChangeNumber);
       byte[] byteStopChangeNumber = toBytes((int) lastChangeNumber);
       byte[] byteCSN = csn.toString().getBytes("UTF-8");
-      byte[] bytePsearch = toBytes(isPersistent);
+      byte[] bytePsearch = toBytes(isPersistent.ordinal());
       byte[] byteGeneralizedState = toBytes(crossDomainServerState);
       byte[] byteOperationId = toBytes(operationId);
       byte[] byteExcludedDNs = toBytes(excludedBaseDNsString);
@@ -291,7 +306,7 @@ public class StartECLSessionMsg extends ReplicationMsg
   @Override
   public String toString()
   {
-    return getClass().getCanonicalName() + " [" +
+    return getClass().getSimpleName() + " [" +
             " requestType="+ eclRequestType +
             " persistentSearch="       + isPersistent +
             " csn="                    + csn +
@@ -312,8 +327,9 @@ public class StartECLSessionMsg extends ReplicationMsg
   }
 
   /**
-   * Getter on the changer number stop.
-   * @return the change number stop.
+   * Specifies the last changer number requested.
+   *
+   * @return the last change number requested.
    */
   public long getLastChangeNumber()
   {
@@ -359,7 +375,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * Getter on the type of request.
    * @return the type of request.
    */
-  public short getECLRequestType()
+  public ECLRequestType getECLRequestType()
   {
     return eclRequestType;
   }
@@ -368,7 +384,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * Setter on the type of request.
    * @param eclRequestType the provided type of request.
    */
-  public void setECLRequestType(short eclRequestType)
+  public void setECLRequestType(ECLRequestType eclRequestType)
   {
     this.eclRequestType = eclRequestType;
   }
@@ -377,7 +393,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * Getter on the persistent property of the search request on the ECL.
    * @return the persistent property.
    */
-  public short isPersistent()
+  public Persistent getPersistent()
   {
     return this.isPersistent;
   }
@@ -386,7 +402,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * Setter on the persistent property of the search request on the ECL.
    * @param isPersistent the provided persistent property.
    */
-  public void setPersistent(short isPersistent)
+  public void setPersistent(Persistent isPersistent)
   {
     this.isPersistent = isPersistent;
   }
@@ -428,7 +444,7 @@ public class StartECLSessionMsg extends ReplicationMsg
   }
 
   /**
-   * Getter on the list of excluded baseDNs.
+   * Getter on the list of excluded baseDNs (like cn=admin, ...).
    *
    * @return the list of excluded baseDNs.
    */
