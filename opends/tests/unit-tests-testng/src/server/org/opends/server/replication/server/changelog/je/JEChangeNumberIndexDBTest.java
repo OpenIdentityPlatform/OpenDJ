@@ -114,13 +114,11 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       cnIndexDB.startTrimmingThread();
 
       // Check the db is cleared.
-      while (!cnIndexDB.isEmpty())
+      while (cnIndexDB.count() > 1)
       {
-        Thread.sleep(200);
+        Thread.yield();
       }
-      assertNull(cnIndexDB.getOldestRecord());
-      assertNull(cnIndexDB.getNewestRecord());
-      assertEquals(cnIndexDB.count(), 0);
+      assertOnlyNewestRecordIsLeft(cnIndexDB, 3);
     }
     finally
     {
@@ -145,11 +143,11 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
 
   private JEChangeNumberIndexDB newCNIndexDB(ReplicationServer rs) throws Exception
   {
-    File testRoot = createCleanDir();
-    ReplicationDbEnv dbEnv = new ReplicationDbEnv(testRoot.getPath(), rs);
-    JEChangeNumberIndexDB result = new JEChangeNumberIndexDB(rs, dbEnv);
-    assertTrue(result.isEmpty());
-    return result;
+    final File testRoot = createCleanDir();
+    final ReplicationDbEnv dbEnv = new ReplicationDbEnv(testRoot.getPath(), rs);
+    final JEChangeNumberIndexDB cnIndexDB = new JEChangeNumberIndexDB(rs, dbEnv);
+    assertTrue(cnIndexDB.isEmpty());
+    return cnIndexDB;
   }
 
   private File createCleanDir() throws IOException
@@ -219,17 +217,8 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       cursor = cnIndexDB.getCursorFrom(cn3);
       assertCursorReadsInOrder(cursor, cn3);
 
-      // check only the last record is left
       cnIndexDB.clear(null);
-      final ChangeNumberIndexRecord oldest = cnIndexDB.getOldestRecord();
-      final ChangeNumberIndexRecord newest = cnIndexDB.getNewestRecord();
-      assertEquals(oldest.getChangeNumber(), 3);
-      assertEquals(oldest.getChangeNumber(), newest.getChangeNumber());
-      assertEquals(oldest.getPreviousCookie(), newest.getPreviousCookie());
-      assertEquals(oldest.getBaseDN(), newest.getBaseDN());
-      assertEquals(oldest.getCSN(), newest.getCSN());
-      assertEquals(cnIndexDB.count(), 1);
-      assertFalse(cnIndexDB.isEmpty());
+      assertOnlyNewestRecordIsLeft(cnIndexDB, 3);
 
       // Check the db is cleared.
       cnIndexDB.clear();
@@ -240,8 +229,28 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     }
     finally
     {
+      if (cnIndexDB != null)
+        cnIndexDB.shutdown();
       remove(replicationServer);
     }
+  }
+
+  /**
+   * The newest record is no longer cleared to ensure persistence to the last
+   * generated change number across server restarts.
+   */
+  private void assertOnlyNewestRecordIsLeft(JEChangeNumberIndexDB cnIndexDB,
+      int newestChangeNumber) throws ChangelogException
+  {
+    assertEquals(cnIndexDB.count(), 1);
+    assertFalse(cnIndexDB.isEmpty());
+    final ChangeNumberIndexRecord oldest = cnIndexDB.getOldestRecord();
+    final ChangeNumberIndexRecord newest = cnIndexDB.getNewestRecord();
+    assertEquals(oldest.getChangeNumber(), newestChangeNumber);
+    assertEquals(oldest.getChangeNumber(), newest.getChangeNumber());
+    assertEquals(oldest.getPreviousCookie(), newest.getPreviousCookie());
+    assertEquals(oldest.getBaseDN(), newest.getBaseDN());
+    assertEquals(oldest.getCSN(), newest.getCSN());
   }
 
   private ReplicationServer newReplicationServer() throws Exception
