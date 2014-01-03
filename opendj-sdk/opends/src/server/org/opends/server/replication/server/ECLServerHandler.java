@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2013 ForgeRock AS
+ *      Portions Copyright 2010-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -1118,6 +1118,7 @@ public final class ECLServerHandler extends ServerHandler
    */
   public ECLUpdateMsg takeECLUpdate() throws DirectoryException
   {
+    refreshEligibleCSN();
     ECLUpdateMsg msg = getNextECLUpdate();
 
     // TODO:ECL We should refactor so that a SH always have a session
@@ -1509,7 +1510,7 @@ public final class ECLServerHandler extends ServerHandler
   /**
    * Refresh the eligibleCSN by requesting the replication server.
    */
-  public void refreshEligibleCSN()
+  private void refreshEligibleCSN()
   {
     eligibleCSN = replicationServer.getEligibleCSN(excludedBaseDNs);
   }
