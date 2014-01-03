@@ -678,6 +678,18 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   @Override
   public ChangeNumberIndexDB getChangeNumberIndexDB()
   {
+    return getChangeNumberIndexDB(true);
+  }
+
+  /**
+   * Returns the {@link ChangeNumberIndexDB} object.
+   *
+   * @param startTrimmingThread
+   *          whether the trimming thread should be started
+   * @return the {@link ChangeNumberIndexDB} object
+   */
+  ChangeNumberIndexDB getChangeNumberIndexDB(boolean startTrimmingThread)
+  {
     synchronized (cnIndexDBLock)
     {
       if (cnIndexDB == null)
@@ -685,7 +697,10 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
         try
         {
           cnIndexDB = new JEChangeNumberIndexDB(replicationServer, this.dbEnv);
-          cnIndexDB.startTrimmingThread();
+          if (startTrimmingThread)
+          {
+            cnIndexDB.startTrimmingThread();
+          }
         }
         catch (Exception e)
         {

@@ -93,7 +93,6 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
   private final AtomicLong lastGeneratedChangeNumber;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
   private final AtomicBoolean shutdown = new AtomicBoolean(false);
-  private volatile boolean trimDone = false;
   /**
    * A dedicated thread loops trim().
    * <p>
@@ -252,15 +251,15 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
       notifyAll();
     }
 
-    synchronized (this)
-    { /* Can we just do a thread.join() ? */
-      while (!trimDone)
+    if (trimmingThread != null)
+    {
+      try
       {
-        try
-        {
-          wait();
-        } catch (InterruptedException e)
-        { /* do nothing */ }
+        trimmingThread.join();
+      }
+      catch (InterruptedException ignored)
+      {
+        // Nothing can be done about it, just proceed
       }
     }
 
@@ -283,12 +282,16 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
         synchronized (this)
         {
-          try
+          if (!shutdown.get())
           {
-            wait(1000);
-          } catch (InterruptedException e)
-          {
-            Thread.currentThread().interrupt();
+            try
+            {
+              wait(1000);
+            }
+            catch (InterruptedException e)
+            {
+              Thread.currentThread().interrupt();
+            }
           }
         }
       }
@@ -302,35 +305,6 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
         }
         break;
       }
-      try {
-        trim(shutdown);
-
-        synchronized (this)
-        {
-          try
-          {
-            wait(1000);
-          } catch (InterruptedException e)
-          {
-            Thread.currentThread().interrupt();
-          }
-        }
-      } catch (Exception end)
-      {
-        logError(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH
-            .get(stackTraceToSingleLineString(end)));
-        if (replicationServer != null)
-        {
-          replicationServer.shutdown();
-        }
-        break;
-      }
-    }
-
-    synchronized (this)
-    {
-      trimDone = true;
-      notifyAll();
     }
   }
 
