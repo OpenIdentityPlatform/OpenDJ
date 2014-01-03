@@ -2587,20 +2587,31 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimits(expectedFirst, expectedLast, true);
 
     // Creates broker on o=test
-    ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1, 100,
-            replicationServerPort, brokerSessionTimeout);
+    ReplicationBroker server01 = null;
+    LDAPReplicationDomain domain = null;
+    try
+    {
+      server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
+          100, replicationServerPort, brokerSessionTimeout);
 
-    String user1entryUUID = "11111111-1112-1113-1114-111111111115";
+      DomainFakeCfg domainConf = newFakeCfg(TEST_ROOT_DN, SERVER_ID_1, replicationServerPort);
+      domain = startNewDomain(domainConf, null, null);
 
-    // Publish DEL
-    CSN csn1 = new CSN(TimeThread.getTime(), ts++, SERVER_ID_1);
-    DeleteMsg delMsg = newDeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING,
-        csn1, user1entryUUID);
-    server01.publish(delMsg);
-    debugInfo(tn, " publishes " + delMsg.getCSN());
-    Thread.sleep(500);
+      String user1entryUUID = "11111111-1112-1113-1114-111111111115";
 
-    stop(server01);
+      // Publish DEL
+      CSN csn1 = new CSN(TimeThread.getTime(), ts++, SERVER_ID_1);
+      DeleteMsg delMsg = newDeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING,
+          csn1, user1entryUUID);
+      server01.publish(delMsg);
+      debugInfo(tn, " publishes " + delMsg.getCSN());
+      Thread.sleep(500);
+    }
+    finally
+    {
+      remove(domain);
+      stop(server01);
+    }
 
     ECLCompatTestLimits(expectedFirst, expectedLast + 1, true);
 
