@@ -51,7 +51,7 @@
     </dependency>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-admin</artifactId>
+      <artifactId>opendj-config</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
