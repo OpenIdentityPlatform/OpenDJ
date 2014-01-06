@@ -29,7 +29,6 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
-import org.opends.server.types.ConfigChangeResult;
 
 /**
  * An adaptor class which converts {@link ServerManagedObjectDeleteListener}

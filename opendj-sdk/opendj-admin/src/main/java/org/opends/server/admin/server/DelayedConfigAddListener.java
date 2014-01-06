@@ -25,11 +25,10 @@
  */
 package org.opends.server.admin.server;
 
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigDeleteListener;
-import org.opends.server.config.ConfigException;
-import org.opends.server.config.ConfigurationRepository;
-import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.config.spi.ConfigAddListener;
+import org.opends.server.config.spi.ConfigDeleteListener;
+import org.opends.server.config.spi.ConfigException;
+import org.opends.server.config.spi.ConfigurationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.forgerock.opendj.ldap.DN;

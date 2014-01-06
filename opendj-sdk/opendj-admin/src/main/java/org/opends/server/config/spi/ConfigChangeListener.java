@@ -23,41 +23,42 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-package org.opends.server.api;
+package org.opends.server.config.spi;
 
-import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.admin.server.ConfigChangeResult;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.Entry;
 
 /**
  * This interface defines the methods that a Directory Server component should
- * implement if it wishes to be able to receive notification if entries below a
- * configuration entry are removed.
+ * implement if it wishes to be able to receive notification of changes to a
+ * configuration entry.
  */
-public interface ConfigDeleteListener {
+public interface ConfigChangeListener {
     /**
-     * Indicates whether it is acceptable to remove the provided configuration
-     * entry.
+     * Indicates whether the configuration entry that will result from a
+     * proposed modification is acceptable to this change listener.
      *
      * @param configEntry
-     *            The configuration entry that will be removed from the
-     *            configuration.
+     *            The configuration entry that will result from the requested
+     *            update.
      * @param unacceptableReason
      *            A buffer to which this method can append a human-readable
-     *            message explaining why the proposed delete is not acceptable.
-     * @return {@code true} if the proposed entry may be removed from the
-     *         configuration, or {@code false} if not.
+     *            message explaining why the proposed change is not acceptable.
+     * @return {@code true} if the proposed entry contains an acceptable
+     *         configuration, or {@code false} if it does not.
      */
-    public boolean configDeleteIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason);
+    public boolean configChangeIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason);
 
     /**
-     * Attempts to apply a new configuration based on the provided deleted
-     * entry.
+     * Attempts to apply a new configuration to this Directory Server component
+     * based on the provided changed entry.
      *
      * @param configEntry
-     *            The new configuration entry that has been deleted.
+     *            The configuration entry that containing the updated
+     *            configuration for this component.
      * @return Information about the result of processing the configuration
      *         change.
      */
-    public ConfigChangeResult applyConfigurationDelete(Entry configEntry);
+    public ConfigChangeResult applyConfigurationChange(Entry configEntry);
 }

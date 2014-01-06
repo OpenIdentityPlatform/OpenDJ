@@ -23,15 +23,13 @@
  *
  *      Copyright 2013 ForgeRock AS.
  */
-package org.opends.server.config;
+package org.opends.server.config.spi;
 
 import java.util.List;
 import java.util.Set;
+
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
 
 /**
  * Provides configuration entries and listener registration on the entries.

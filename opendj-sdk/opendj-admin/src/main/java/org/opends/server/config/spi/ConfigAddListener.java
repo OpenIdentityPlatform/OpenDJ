@@ -23,42 +23,41 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-package org.opends.server.api;
+package org.opends.server.config.spi;
 
-import org.opends.server.types.ConfigChangeResult;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.Entry;
+import org.opends.server.admin.server.ConfigChangeResult;
 
 /**
  * This interface defines the methods that a Directory Server component should
- * implement if it wishes to be able to receive notification of changes to a
- * configuration entry.
+ * implement if it wishes to be able to receive notification of new entries
+ * added below a configuration entry.
  */
-public interface ConfigChangeListener {
+public interface ConfigAddListener {
     /**
      * Indicates whether the configuration entry that will result from a
-     * proposed modification is acceptable to this change listener.
+     * proposed add is acceptable to this add listener.
      *
      * @param configEntry
      *            The configuration entry that will result from the requested
-     *            update.
+     *            add.
      * @param unacceptableReason
      *            A buffer to which this method can append a human-readable
-     *            message explaining why the proposed change is not acceptable.
+     *            message explaining why the proposed entry is not acceptable.
      * @return {@code true} if the proposed entry contains an acceptable
      *         configuration, or {@code false} if it does not.
      */
-    public boolean configChangeIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason);
+    public boolean configAddIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason);
 
     /**
-     * Attempts to apply a new configuration to this Directory Server component
-     * based on the provided changed entry.
+     * Attempts to apply a new configuration based on the provided added entry.
      *
      * @param configEntry
-     *            The configuration entry that containing the updated
-     *            configuration for this component.
+     *            The new configuration entry that contains the configuration to
+     *            apply.
      * @return Information about the result of processing the configuration
      *         change.
      */
-    public ConfigChangeResult applyConfigurationChange(Entry configEntry);
+    public ConfigChangeResult applyConfigurationAdd(Entry configEntry);
 }

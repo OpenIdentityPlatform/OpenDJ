@@ -35,7 +35,7 @@ import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
-import org.opends.server.config.ConfigException;
+import org.opends.server.config.spi.ConfigException;
 
 /**
  * This class defines some utility functions which can be used by test cases
@@ -61,6 +61,7 @@ public final class AdminTestCaseUtils {
      *
      * @param <S>
      *            The type of server configuration to be decoded.
+     * @param context The server management context.
      * @param definition
      *            The required definition of the required managed object.
      * @param entry

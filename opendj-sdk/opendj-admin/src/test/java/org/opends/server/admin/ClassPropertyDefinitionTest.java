@@ -131,7 +131,6 @@ public class ClassPropertyDefinitionTest extends ConfigTestCase {
             { "java.lang.Runnable", "java.lang.String", Number.class, Number.class }, };
     }
 
-    @SuppressWarnings("unused")
     @Test(dataProvider = "loadClassesIllegal", expectedExceptions = { IllegalPropertyValueException.class })
     public <T> void testLoadClassIllegal(String interfaceName, String loadClassName, Class<T> instanceOfClass,
             Class<?> expectedClass) {

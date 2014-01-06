@@ -27,6 +27,7 @@ package org.opends.server.admin;
 
 import static com.forgerock.opendj.ldap.AdminMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
+
 import org.forgerock.util.Reject;
 
 import java.util.Collection;
@@ -47,13 +48,13 @@ import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.condition.Condition;
 import org.opends.server.admin.condition.Conditions;
+import org.opends.server.admin.server.ConfigChangeResult;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerConstraintHandler;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.server.ServerManagedObjectChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.config.ConfigException;
-import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.config.spi.ConfigException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.forgerock.i18n.LocalizableMessage;

@@ -144,7 +144,7 @@ public final class ConfigurationMock {
          */
         @SuppressWarnings("unchecked")
         private <T> Object getDefaultValue(ManagedObjectDefinition<?, ?> definition,
-                Method getPropertyDefMethod, @SuppressWarnings("unused") Class<T> propertyReturnClass)
+                Method getPropertyDefMethod, Class<T> propertyReturnClass)
                 throws Exception {
             PropertyDefinition<T> propertyDefinition = (PropertyDefinition<T>) getPropertyDefMethod.invoke(definition);
             DefaultBehaviorProvider<T> defaultBehaviorProvider = (DefaultBehaviorProvider<T>) propertyDefinition

@@ -48,11 +48,11 @@ import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
-import org.opends.server.config.ConfigException;
-import org.opends.server.config.ConfigurationRepository;
+import org.opends.server.config.spi.ConfigAddListener;
+import org.opends.server.config.spi.ConfigChangeListener;
+import org.opends.server.config.spi.ConfigDeleteListener;
+import org.opends.server.config.spi.ConfigException;
+import org.opends.server.config.spi.ConfigurationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

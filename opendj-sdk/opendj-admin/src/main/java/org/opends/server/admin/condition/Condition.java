@@ -30,7 +30,7 @@ import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.config.ConfigException;
+import org.opends.server.config.spi.ConfigException;
 
 /**
  * An interface for evaluating conditions.

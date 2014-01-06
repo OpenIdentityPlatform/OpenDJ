@@ -160,9 +160,11 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
             // be required anyway).
             DN dn;
             if (r instanceof InstantiableRelationDefinition) {
-                dn = LDAPNameBuilder.create(parent, (InstantiableRelationDefinition) r, driver.getLDAPProfile());
+                dn = LDAPNameBuilder.create(parent, (InstantiableRelationDefinition<?, ?>) r,
+                        driver.getLDAPProfile());
             } else {
-                dn = LDAPNameBuilder.create(parent, (SetRelationDefinition) r, driver.getLDAPProfile());
+                dn = LDAPNameBuilder.create(parent, (SetRelationDefinition<?, ?>) r,
+                        driver.getLDAPProfile());
             }
 
             if (!driver.entryExists(dn)) {

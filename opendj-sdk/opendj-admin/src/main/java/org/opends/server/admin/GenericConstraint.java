@@ -37,7 +37,7 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.condition.Condition;
 import org.opends.server.admin.server.ServerConstraintHandler;
 import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.config.ConfigException;
+import org.opends.server.config.spi.ConfigException;
 
 /**
  * A generic constraint which comprises of an underlying condition and a

@@ -33,12 +33,13 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldif.LDIF;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.config.ConfigurationRepository;
+import org.opends.server.config.spi.ConfigurationRepository;
 import org.testng.annotations.Test;
 
 /**
  * An abstract class that all admin unit tests should extend.
  */
+@SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "admin" }, singleThreaded = true)
 public abstract class AdminTestCase extends ConfigTestCase {
 

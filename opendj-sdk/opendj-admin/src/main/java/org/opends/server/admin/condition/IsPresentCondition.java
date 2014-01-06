@@ -33,8 +33,7 @@ import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.config.ConfigException;
-
+import org.opends.server.config.spi.ConfigException;
 import org.forgerock.util.Reject;
 
 /**

@@ -52,11 +52,10 @@ import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
-import org.opends.server.config.ConfigException;
-import org.opends.server.config.ConfigurationRepository;
-import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.config.spi.ConfigChangeListener;
+import org.opends.server.config.spi.ConfigDeleteListener;
+import org.opends.server.config.spi.ConfigException;
+import org.opends.server.config.spi.ConfigurationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.forgerock.opendj.ldap.DN;
@@ -89,7 +88,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
          * Finds the dependencies associated with the provided property
          * definition.
          *
-         * @param <T>
+         * @param <T> The type of property definition.
          * @param path
          *            The current base path used for relative name resolution.
          * @param pd

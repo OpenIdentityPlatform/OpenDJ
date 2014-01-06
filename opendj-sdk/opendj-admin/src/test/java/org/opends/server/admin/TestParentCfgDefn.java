@@ -41,7 +41,7 @@ import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.config.ConfigException;
+import org.opends.server.config.spi.ConfigException;
 
 /**
  * An interface for querying the Test Parent managed object definition meta

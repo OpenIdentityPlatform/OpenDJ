@@ -23,7 +23,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-package org.opends.server.config;
+package org.opends.server.config.spi;
 
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
