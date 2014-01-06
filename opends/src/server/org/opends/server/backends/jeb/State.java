@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -79,6 +79,23 @@ public class State extends DatabaseContainer
   }
 
   /**
+   * Return the key associated with the index in the state database.
+   *
+   * @param index The index we need the key for.
+   * @return the key
+   * @throws DatabaseException If an error occurs in the JE database.
+   */
+  private DatabaseEntry keyForIndex(DatabaseContainer index)
+    throws DatabaseException
+  {
+    String shortName =
+      index.getName().replace(entryContainer.getDatabasePrefix(), "");
+    DatabaseEntry key =
+      new DatabaseEntry(StaticUtils.getBytes(shortName));
+    return key;
+  }
+
+  /**
    * Remove a record from the entry database.
    *
    * @param txn The database transaction or null if none.
@@ -86,11 +103,10 @@ public class State extends DatabaseContainer
    * @return true if the entry was removed, false if it was not.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean removeIndexTrustState(Transaction txn, Index index)
+  public boolean removeIndexTrustState(Transaction txn, DatabaseContainer index)
        throws DatabaseException
   {
-    DatabaseEntry key =
-        new DatabaseEntry(StaticUtils.getBytes(index.getName()));
+    DatabaseEntry key = keyForIndex(index);
 
     OperationStatus status = delete(txn, key);
     if (status != OperationStatus.SUCCESS)
@@ -107,41 +123,10 @@ public class State extends DatabaseContainer
    * @return The trusted state of the index in the database.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean getIndexTrustState(Transaction txn, Index index)
+  public boolean getIndexTrustState(Transaction txn, DatabaseContainer index)
       throws DatabaseException
   {
-    String sortName =
-        index.getName().replace(entryContainer.getDatabasePrefix(), "");
-    DatabaseEntry key =
-        new DatabaseEntry(StaticUtils.getBytes(sortName));
-    DatabaseEntry data = new DatabaseEntry();
-
-    OperationStatus status;
-    status = read(txn, key, data, LockMode.DEFAULT);
-
-    if (status != OperationStatus.SUCCESS)
-    {
-      return false;
-    }
-
-    byte[] bytes = data.getData();
-    return Arrays.equals(bytes, trueBytes);
-  }
-
-  /**
-   * Fetch index state from the database.
-   * @param txn The database transaction or null if none.
-   * @param vlvIndex The index storing the trusted state info.
-   * @return The trusted state of the index in the database.
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public boolean getIndexTrustState(Transaction txn, VLVIndex vlvIndex)
-      throws DatabaseException
-  {
-    String shortName =
-        vlvIndex.getName().replace(entryContainer.getDatabasePrefix(), "");
-    DatabaseEntry key =
-        new DatabaseEntry(StaticUtils.getBytes(shortName));
+    DatabaseEntry key = keyForIndex(index);
     DatabaseEntry data = new DatabaseEntry();
 
     OperationStatus status;
@@ -164,14 +149,11 @@ public class State extends DatabaseContainer
    * @return true if the entry was written, false if it was not.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean putIndexTrustState(Transaction txn, Index index,
+  public boolean putIndexTrustState(Transaction txn, DatabaseContainer index,
                                     boolean trusted)
        throws DatabaseException
   {
-    String shortName =
-        index.getName().replace(entryContainer.getDatabasePrefix(), "");
-    DatabaseEntry key =
-        new DatabaseEntry(StaticUtils.getBytes(shortName));
+    DatabaseEntry key = keyForIndex(index);
     DatabaseEntry data = new DatabaseEntry();
 
     if(trusted)
@@ -188,35 +170,4 @@ public class State extends DatabaseContainer
     return true;
   }
 
-  /**
-   * Put VLV index state to database.
-   * @param txn The database transaction or null if none.
-   * @param vlvIndex The VLV index storing the trusted state info.
-   * @param trusted The state value to put into the database.
-   * @return true if the entry was written, false if it was not.
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public boolean putIndexTrustState(Transaction txn, VLVIndex vlvIndex,
-                                    boolean trusted)
-       throws DatabaseException
-  {
-    String shortName =
-        vlvIndex.getName().replace(entryContainer.getDatabasePrefix(), "");
-    DatabaseEntry key =
-        new DatabaseEntry(StaticUtils.getBytes(shortName));
-    DatabaseEntry data = new DatabaseEntry();
-
-    if(trusted)
-      data.setData(trueBytes);
-    else
-      data.setData(falseBytes);
-
-    OperationStatus status;
-    status = put(txn, key, data);
-    if (status != OperationStatus.SUCCESS)
-    {
-      return false;
-    }
-    return true;
-  }
 }

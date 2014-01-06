@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  *      Portions copyright 2013 Manuel Gaupp
  */
 package org.opends.server.backends.jeb;
@@ -3391,71 +3391,57 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   throws DatabaseException
   {
     index.close();
-    if(env.getConfig().getTransactional())
-    {
-      Transaction txn = beginTransaction();
-      try
-      {
-        if(index.equalityIndex != null)
-        {
-          env.removeDatabase(txn, index.equalityIndex.getName());
-          state.removeIndexTrustState(txn, index.equalityIndex);
-        }
-        if(index.presenceIndex != null)
-        {
-          env.removeDatabase(txn, index.presenceIndex.getName());
-          state.removeIndexTrustState(txn, index.presenceIndex);
-        }
-        if(index.substringIndex != null)
-        {
-          env.removeDatabase(txn, index.substringIndex.getName());
-          state.removeIndexTrustState(txn, index.substringIndex);
-        }
-        if(index.orderingIndex != null)
-        {
-          env.removeDatabase(txn, index.orderingIndex.getName());
-          state.removeIndexTrustState(txn, index.orderingIndex);
-        }
-        if(index.approximateIndex != null)
-        {
-          env.removeDatabase(txn, index.approximateIndex.getName());
-          state.removeIndexTrustState(txn, index.approximateIndex);
-        }
-        transactionCommit(txn);
-      }
-      catch(DatabaseException de)
-      {
-        transactionAbort(txn);
-        throw de;
-      }
-    }
-    else
+    Transaction txn = env.getConfig().getTransactional()
+      ? beginTransaction() : null;
+    try
     {
       if(index.equalityIndex != null)
       {
-        env.removeDatabase(null, index.equalityIndex.getName());
-        state.removeIndexTrustState(null, index.equalityIndex);
+        env.removeDatabase(txn, index.equalityIndex.getName());
+        state.removeIndexTrustState(txn, index.equalityIndex);
       }
       if(index.presenceIndex != null)
       {
-        env.removeDatabase(null, index.presenceIndex.getName());
-        state.removeIndexTrustState(null, index.presenceIndex);
+        env.removeDatabase(txn, index.presenceIndex.getName());
+        state.removeIndexTrustState(txn, index.presenceIndex);
       }
       if(index.substringIndex != null)
       {
-        env.removeDatabase(null, index.substringIndex.getName());
-        state.removeIndexTrustState(null, index.substringIndex);
+        env.removeDatabase(txn, index.substringIndex.getName());
+        state.removeIndexTrustState(txn, index.substringIndex);
       }
       if(index.orderingIndex != null)
       {
-        env.removeDatabase(null, index.orderingIndex.getName());
-        state.removeIndexTrustState(null, index.orderingIndex);
+        env.removeDatabase(txn, index.orderingIndex.getName());
+        state.removeIndexTrustState(txn, index.orderingIndex);
       }
       if(index.approximateIndex != null)
       {
-        env.removeDatabase(null, index.approximateIndex.getName());
-        state.removeIndexTrustState(null, index.approximateIndex);
+        env.removeDatabase(txn, index.approximateIndex.getName());
+        state.removeIndexTrustState(txn, index.approximateIndex);
       }
+      Map <String,Collection<Index>> extensibleIndexes =
+        index.getExtensibleIndexes();
+      for (String name : extensibleIndexes.keySet())
+      {
+        for (Index extensibleIndex : extensibleIndexes.get(name))
+        {
+          env.removeDatabase(txn, extensibleIndex.getName());
+          state.removeIndexTrustState(txn, extensibleIndex);
+        }
+      }
+      if (txn != null)
+      {
+        transactionCommit(txn);
+      }
+    }
+    catch(DatabaseException de)
+    {
+      if (txn != null)
+      {
+        transactionAbort(txn);
+      }
+      throw de;
     }
   }
 
