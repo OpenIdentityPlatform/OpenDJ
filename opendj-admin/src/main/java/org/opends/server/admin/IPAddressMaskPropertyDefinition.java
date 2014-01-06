@@ -30,7 +30,7 @@ import org.forgerock.util.Reject;
 
 import java.util.EnumSet;
 
-import org.opends.server.config.ConfigException;
+import org.opends.server.config.spi.ConfigException;
 import org.opends.server.types.AddressMask;
 
 /**

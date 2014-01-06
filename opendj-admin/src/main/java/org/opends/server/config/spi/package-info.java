@@ -21,13 +21,24 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 /**
- * Administration documentation classes.
- * <p>
- * This package contains classes used to generate administration documentation.
+ * Contains a number of API declarations for use throughout the
+ * Directory Server.  Whenever possible, these APIs should be declared
+ * using abstract classes rather than interfaces so that they can be
+ * altered in future versions without impacting backward
+ * compatibility.
+ * <BR><BR>
+ * Note that the mere existence of a class or interface in this
+ * package does not in itself imply that it is intended for use by
+ * third party code.  Please refer to the official product
+ * documentation to indicate which APIs may be safely used by anyone
+ * other than the core Directory Server developers.  Failure to heed
+ * this warning may result in code that could have unintended side
+ * effects or that does not work properly across different Directory
+ * Server versions.
  */
-package org.opends.server.admin.doc;
+package org.opends.server.config.spi;
 

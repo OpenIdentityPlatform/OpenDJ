@@ -30,7 +30,7 @@ import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.config.ConfigException;
+import org.opends.server.config.spi.ConfigException;
 
 /**
  * This class consists exclusively of static methods that operate on or return

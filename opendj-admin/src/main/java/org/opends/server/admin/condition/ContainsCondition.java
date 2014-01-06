@@ -35,7 +35,7 @@ import org.opends.server.admin.PropertyDefinitionsOptions;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.config.ConfigException;
+import org.opends.server.config.spi.ConfigException;
 
 /**
  * A condition which evaluates to <code>true</code> if and only if a property

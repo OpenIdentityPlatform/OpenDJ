@@ -30,7 +30,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import java.util.List;
 
 import org.opends.server.admin.Configuration;
-import org.opends.server.types.ConfigChangeResult;
 
 /**
  * This interface defines the methods that a Directory Server configurable

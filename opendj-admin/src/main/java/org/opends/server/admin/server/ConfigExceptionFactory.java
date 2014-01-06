@@ -30,7 +30,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
 import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.config.ConfigException;
+import org.opends.server.config.spi.ConfigException;
 import org.opends.server.util.DynamicConstants;
 
 import com.forgerock.opendj.ldap.AdminMessages;

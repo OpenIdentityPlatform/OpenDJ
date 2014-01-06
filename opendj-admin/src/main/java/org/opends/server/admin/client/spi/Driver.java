@@ -189,8 +189,8 @@ public abstract class Driver {
 
         // Get an inherited property value.
         @SuppressWarnings("unchecked")
-        private Collection<T> getInheritedProperty(ManagedObjectPath target, AbstractManagedObjectDefinition<?, ?> d,
-            String propertyName) {
+        private Collection<T> getInheritedProperty(ManagedObjectPath<?, ?> target,
+                AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             // First check that the requested type of managed object
             // corresponds to the path.
             AbstractManagedObjectDefinition<?, ?> supr = target.getManagedObjectDefinition();

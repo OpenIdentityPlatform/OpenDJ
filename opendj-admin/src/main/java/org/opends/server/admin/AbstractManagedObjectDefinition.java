@@ -739,7 +739,6 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *             definition was abstract.
      * @see DefinitionResolver
      */
-    @SuppressWarnings("unchecked")
     public final ManagedObjectDefinition<? extends C, ? extends S> resolveManagedObjectDefinition(DefinitionResolver r)
             throws DefinitionDecodingException {
         AbstractManagedObjectDefinition<? extends C, ? extends S> rd;

@@ -32,8 +32,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.admin.Constraint;
 import org.opends.server.admin.client.ClientConstraintHandler;
-import org.opends.server.config.ConfigException;
-import org.opends.server.config.ConfigurationRepository;
+import org.opends.server.config.spi.ConfigException;
+import org.opends.server.config.spi.ConfigurationRepository;
 import org.testng.Assert;
 
 /**

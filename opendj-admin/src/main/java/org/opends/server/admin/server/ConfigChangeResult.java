@@ -23,7 +23,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-package org.opends.server.types;
+package org.opends.server.admin.server;
 
 import java.util.ArrayList;
 import java.util.Iterator;

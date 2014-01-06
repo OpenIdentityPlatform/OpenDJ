@@ -28,7 +28,7 @@ package org.opends.server.admin.server;
 import java.util.Collection;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.config.ConfigException;
+import org.opends.server.config.spi.ConfigException;
 
 /**
  * An interface for performing server-side constraint validation.
