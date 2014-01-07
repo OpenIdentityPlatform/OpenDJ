@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -142,4 +142,23 @@ public class HostPortTest extends TypesTestCase
     }
   }
 
+  @Test
+  public void allAddressesNullHost() {
+    HostPort hp = HostPort.allAddresses(1);
+    assertThat(hp.getHost()).isNull();
+    assertThat(hp.getPort()).isEqualTo(1);
+  }
+
+  @Test
+  public void allAddressesToString() {
+    HostPort hp = HostPort.allAddresses(1636);
+    assertThat(hp.toString()).isEqualTo(HostPort.WILDCARD_ADDRESS + ":1636");
+  }
+
+  @Test
+  public void allAddressesEquals() {
+    HostPort hp1 = HostPort.allAddresses(1389);
+    HostPort hp2 = HostPort.allAddresses(1389);
+    assertThat(hp1).isEqualTo(hp2);
+  }
 }
