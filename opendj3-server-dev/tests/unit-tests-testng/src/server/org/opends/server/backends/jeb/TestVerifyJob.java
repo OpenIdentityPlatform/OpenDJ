@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -132,7 +132,7 @@ public class TestVerifyJob extends JebTestCase
     TestCaseUtils.startServer();
     TestCaseUtils.enableBackend(beID);
     baseDNs = new DN[] {
-         DN.decode(suffix)
+         DN.valueOf(suffix)
     };
   }
 
@@ -218,11 +218,11 @@ public class TestVerifyJob extends JebTestCase
     try
     {
       //Add a junk DN and non-existent entry id to DN2ID index
-      DN testDN=DN.decode(junkDN);
+      DN testDN=DN.valueOf(junkDN);
       EntryID id=new EntryID(45);
       assertTrue(dn2id.insert(txn, testDN, id));
       //Make two DN keys point at same entry.
-      testDN=DN.decode(junkDN1);
+      testDN=DN.valueOf(junkDN1);
       id=new EntryID(3);
       assertTrue(dn2id.insert(txn, testDN, id));
       //Add badDN key with bad entry id
@@ -238,7 +238,7 @@ public class TestVerifyJob extends JebTestCase
       //Try to break JebFormat version
       addID2EntryReturnKey(junkDN3, 20, true);
       id=new EntryID(20);
-      assertTrue(dn2id.insert(txn, DN.decode(junkDN3), id));
+      assertTrue(dn2id.insert(txn, DN.valueOf(junkDN3), id));
       performBECleanVerify("dn2id", 5);
     }
     finally
@@ -484,13 +484,13 @@ public class TestVerifyJob extends JebTestCase
       //entry has dn2id key but its entryID -- don't need key
       addID2EntryReturnKey(junkDN1, 11, false);
       //insert key with bad entry id (45 instead of 10)
-      DN testDN=DN.decode(junkDN1);
+      DN testDN=DN.valueOf(junkDN1);
       EntryID id=new EntryID(45);
       assertTrue(dn2id.insert(txn, testDN, id));
       //entry has no parent in dn2id
       addID2EntryReturnKey(noParentDN, 12, false);
       //add the key/id
-      testDN=DN.decode(noParentDN);
+      testDN=DN.valueOf(noParentDN);
       id=new EntryID(12);
       assertTrue(dn2id.insert(txn, testDN, id));
       performBECompleteVerify("dn2id", 3);
@@ -842,7 +842,7 @@ public class TestVerifyJob extends JebTestCase
     cleanAndLoad(numEntries);
     be=(BackendImpl) DirectoryServer.getBackend(beID);
     RootContainer rContainer = be.getRootContainer();
-    eContainer= rContainer.getEntryContainer(DN.decode(suffix));
+    eContainer= rContainer.getEntryContainer(DN.valueOf(suffix));
     id2child=eContainer.getID2Children();
     id2entry=eContainer.getID2Entry();
     id2subtree=eContainer.getID2Subtree();
@@ -890,7 +890,7 @@ public class TestVerifyJob extends JebTestCase
    * @throws DirectoryException if the cannot be created.
    */
   private Entry bldStatEntry(String dn) throws DirectoryException {
-    DN entryDN = DN.decode(dn);
+    DN entryDN = DN.valueOf(dn);
     HashMap<ObjectClass, String> ocs = new HashMap<ObjectClass, String>(2);
     ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP);
     if (topOC == null) {

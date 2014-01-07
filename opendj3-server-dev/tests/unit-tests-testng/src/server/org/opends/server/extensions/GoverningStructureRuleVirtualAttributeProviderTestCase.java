@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -144,8 +144,8 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   {
     return new Object[][]
     {
-      new Object[] { DN.decode("o=test") },
-      new Object[] { DN.decode("dc=example,dc=com") }
+      new Object[] { DN.valueOf("o=test") },
+      new Object[] { DN.valueOf("dc=example,dc=com") }
     };
   }
 
@@ -165,8 +165,8 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
          throws Exception
   {
     return new Object[][] {
-        {DN.decode("o=test"), "22"},
-        {DN.decode("dc=example,dc=com"), "21"},
+        {DN.valueOf("o=test"), "22"},
+        {DN.valueOf("dc=example,dc=com"), "21"},
     };
   }
 

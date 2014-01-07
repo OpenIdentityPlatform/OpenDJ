@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -892,7 +892,7 @@ public class LDIFBackend
   private void subtreeRename(DN entryDN, DN newParentDN)
   {
     Set<DN> childDNSet = childDNs.remove(entryDN);
-    DN newEntryDN = new DN(entryDN.getRDN(), newParentDN);
+    DN newEntryDN = new DN(entryDN.rdn(), newParentDN);
 
     Entry oldEntry = entryMap.remove(entryDN);
     if (oldEntry == null)

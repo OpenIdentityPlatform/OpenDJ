@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -89,7 +90,7 @@ public class DNPropertyDefinitionTest extends DirectoryServerTestCase {
     DNPropertyDefinition pd = localBuilder.getInstance();
 
     DN actual = pd.getBaseDN();
-    DN expected = baseDN == null ? null : DN.decode(baseDN);
+    DN expected = baseDN == null ? null : DN.valueOf(baseDN);
 
     assertEquals(actual, expected);
   }
@@ -155,7 +156,7 @@ public class DNPropertyDefinitionTest extends DirectoryServerTestCase {
         .createBuilder(RootCfgDefn.getInstance(), "test-property");
     localBuilder.setBaseDN(baseDN);
     DNPropertyDefinition pd = localBuilder.getInstance();
-    pd.validateValue(DN.decode(value));
+    pd.validateValue(DN.valueOf(value));
   }
 
 
@@ -177,7 +178,7 @@ public class DNPropertyDefinitionTest extends DirectoryServerTestCase {
         .createBuilder(RootCfgDefn.getInstance(), "test-property");
     localBuilder.setBaseDN(baseDN);
     DNPropertyDefinition pd = localBuilder.getInstance();
-    pd.validateValue(DN.decode(value));
+    pd.validateValue(DN.valueOf(value));
   }
 
 

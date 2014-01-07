@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -1013,7 +1014,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_DIGEST_MD5,
+         conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_DIGEST_MD5,
                               ByteString.valueOf("invalid"));
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
@@ -1033,12 +1034,12 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_DIGEST_MD5, null);
+         conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_DIGEST_MD5, null);
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.SASL_BIND_IN_PROGRESS);
 
     bindOperation =
-         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_DIGEST_MD5,
+         conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_DIGEST_MD5,
                               ByteString.valueOf("malformed"));
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }

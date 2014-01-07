@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -108,7 +108,7 @@ public class SetGenerationIdTask extends Task
 
     try
     {
-      DN dn = DN.decode(domainString);
+      DN dn = DN.valueOf(domainString);
       domain = LDAPReplicationDomain.retrievesReplicationDomain(dn);
     }
     catch(DirectoryException e)

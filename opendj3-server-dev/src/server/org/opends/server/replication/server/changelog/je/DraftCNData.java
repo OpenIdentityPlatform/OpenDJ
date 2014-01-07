@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2013 ForgeRock AS.
+ *      Portions Copyright 2010-2014 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -104,7 +104,7 @@ public class DraftCNData extends DatabaseEntry
     {
       String stringData = new String(data, "UTF-8");
       String[] str = stringData.split(FIELD_SEPARATOR, 3);
-      final DN baseDN = DN.decode(str[1]);
+      final DN baseDN = DN.valueOf(str[1]);
       final CSN csn = new CSN(str[2]);
       return new ChangeNumberIndexRecord(changeNumber, str[0], baseDN, csn);
     }

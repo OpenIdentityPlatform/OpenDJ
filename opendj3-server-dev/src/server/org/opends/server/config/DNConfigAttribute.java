@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.config;
 import org.opends.messages.Message;
@@ -572,7 +573,7 @@ public final class DNConfigAttribute
     // Make sure that it can be parsed as a DN.
     try
     {
-      DN.decode(value.getValue().toString());
+      DN.valueOf(value.getValue().toString());
     }
     catch (Exception e)
     {
@@ -662,7 +663,7 @@ public final class DNConfigAttribute
       DN dn;
       try
       {
-        dn = DN.decode(valueString);
+        dn = DN.valueOf(valueString);
       }
       catch (Exception e)
       {
@@ -836,7 +837,7 @@ public final class DNConfigAttribute
               DN dn;
               try
               {
-                dn = DN.decode(v.getValue().toString());
+                dn = DN.valueOf(v.getValue().toString());
               }
               catch (Exception e)
               {
@@ -906,7 +907,7 @@ public final class DNConfigAttribute
             DN dn;
             try
             {
-              dn = DN.decode(v.getValue().toString());
+              dn = DN.valueOf(v.getValue().toString());
             }
             catch (Exception e)
             {
@@ -1199,7 +1200,7 @@ public final class DNConfigAttribute
       DN dn;
       try
       {
-        dn = DN.decode((String) value);
+        dn = DN.valueOf((String) value);
       }
       catch (Exception e)
       {
@@ -1243,7 +1244,7 @@ public final class DNConfigAttribute
             DN dn;
             try
             {
-              dn = DN.decode(valueStr);
+              dn = DN.valueOf(valueStr);
             }
             catch (Exception e)
             {

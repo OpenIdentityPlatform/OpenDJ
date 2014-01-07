@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -67,7 +68,7 @@ public class DN2ID extends DatabaseContainer
     super(name, env, entryContainer);
 
     comparator = new AttributeIndex.KeyComparator();
-    prefixRDNComponents = entryContainer.getBaseDN().getNumComponents();
+    prefixRDNComponents = entryContainer.getBaseDN().size();
     DatabaseConfig dn2idConfig = new DatabaseConfig();
 
     if(env.getConfig().getReadOnly())

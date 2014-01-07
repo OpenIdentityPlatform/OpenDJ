@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -183,22 +183,22 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   {
     return new Object[][]
     {
-      new Object[] { DN.decode("dc=example,dc=com"), 2 },
-      new Object[] { DN.decode("ou=People,dc=example,dc=com"), 3 },
-      new Object[] { DN.decode("ou=Employees,ou=People,dc=example,dc=com"), 1 },
-      new Object[] { DN.decode("ou=Buildings,dc=example,dc=com"), 0 },
-      new Object[] { DN.decode("uid=user.0,ou=People,dc=example,dc=com"), 0 },
-      new Object[] { DN.decode("uid=user.1,ou=People,dc=example,dc=com"), 0 },
-      new Object[] { DN.decode("uid=user.2,ou=Employees,ou=People" +
+      new Object[] { DN.valueOf("dc=example,dc=com"), 2 },
+      new Object[] { DN.valueOf("ou=People,dc=example,dc=com"), 3 },
+      new Object[] { DN.valueOf("ou=Employees,ou=People,dc=example,dc=com"), 1 },
+      new Object[] { DN.valueOf("ou=Buildings,dc=example,dc=com"), 0 },
+      new Object[] { DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"), 0 },
+      new Object[] { DN.valueOf("uid=user.1,ou=People,dc=example,dc=com"), 0 },
+      new Object[] { DN.valueOf("uid=user.2,ou=Employees,ou=People" +
                                ",dc=example,dc=com"), 0 },
 //      new Object[] { DN.decode("cn=monitor"),
 //          DirectoryServer.getMonitorProviders().size() },
 // Disable test on # of backends. Some might be disabled, falsing count.
 //      new Object[] { DN.decode("cn=Backends,cn=config"),
 //          DirectoryServer.getBackends().size() },
-      new Object[] { DN.decode("cn=Work Queue,cn=config"), 0 },
-      new Object[] { DN.decode("cn=tasks"), 2 },
-      new Object[] { DN.decode("cn=backups"), 0 }
+      new Object[] { DN.valueOf("cn=Work Queue,cn=config"), 0 },
+      new Object[] { DN.valueOf("cn=tasks"), 2 },
+      new Object[] { DN.valueOf("cn=backups"), 0 }
     };
   }
 

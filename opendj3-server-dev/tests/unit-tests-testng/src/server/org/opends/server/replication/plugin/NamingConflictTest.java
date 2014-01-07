@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -73,7 +73,7 @@ public class NamingConflictTest extends ReplicationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
 
     TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
     DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
@@ -91,7 +91,7 @@ public class NamingConflictTest extends ReplicationTestCase
        */
       CSNGenerator gen = new CSNGenerator(201, 0);
 
-      String parentUUID = getEntryUUID(DN.decode(TEST_ROOT_DN_STRING));
+      String parentUUID = getEntryUUID(DN.valueOf(TEST_ROOT_DN_STRING));
 
       Entry entry = TestCaseUtils.entryFromLdifString(
           "dn: cn=simultaneousModrdnConflict, "+ TEST_ROOT_DN_STRING + "\n"
@@ -162,7 +162,7 @@ public class NamingConflictTest extends ReplicationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
 
     TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
     DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
@@ -197,7 +197,7 @@ public class NamingConflictTest extends ReplicationTestCase
 
       // Add the first entry
       TestCaseUtils.addEntry(entry);
-      String parentUUID = getEntryUUID(DN.decode(TEST_ROOT_DN_STRING));
+      String parentUUID = getEntryUUID(DN.valueOf(TEST_ROOT_DN_STRING));
 
       CSN csn1 = gen.newCSN();
 
@@ -246,7 +246,7 @@ public class NamingConflictTest extends ReplicationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
 
     TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
     DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
@@ -281,7 +281,7 @@ public class NamingConflictTest extends ReplicationTestCase
 
       // Add the first entry
       TestCaseUtils.addEntry(entry);
-      String parentUUID = getEntryUUID(DN.decode(TEST_ROOT_DN_STRING));
+      String parentUUID = getEntryUUID(DN.valueOf(TEST_ROOT_DN_STRING));
 
       CSN csn1 = gen.newCSN();
 
@@ -351,7 +351,7 @@ public class NamingConflictTest extends ReplicationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
 
     TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
     DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
@@ -420,7 +420,7 @@ public class NamingConflictTest extends ReplicationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
 
     TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
     DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
@@ -484,7 +484,7 @@ public class NamingConflictTest extends ReplicationTestCase
 
       // Expect the child entry to be moved as conflict entry under the root
       // entry of the suffix
-      DN childDN = DN.decode("entryuuid="+childUUID+
+      DN childDN = DN.valueOf("entryuuid="+childUUID+
           "+cn=child,o=test");
       assertTrue(DirectoryServer.entryExists(childDN),
           "Child entry conflict exist with DN="+childDN);
@@ -500,7 +500,7 @@ public class NamingConflictTest extends ReplicationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
 
     TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
     DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
@@ -567,7 +567,7 @@ public class NamingConflictTest extends ReplicationTestCase
 
       // Expect the child entry to be moved as conflict entry under the root
       // entry of the suffix
-      DN childDN = DN.decode("entryuuid="+childUUID+
+      DN childDN = DN.valueOf("entryuuid="+childUUID+
           "+cn=child,o=test");
       assertTrue(DirectoryServer.entryExists(childDN),
           "Child entry conflict exist with DN="+childDN);

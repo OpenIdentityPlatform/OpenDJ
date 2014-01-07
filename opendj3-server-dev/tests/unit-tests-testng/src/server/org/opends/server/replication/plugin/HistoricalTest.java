@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -166,7 +166,7 @@ public class HistoricalTest extends ReplicationTestCase
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
 
     // Read the entry back to get its history operational attribute.
-    DN dn = DN.decode("uid=user.1," + TEST_ROOT_DN_STRING);
+    DN dn = DN.valueOf("uid=user.1," + TEST_ROOT_DN_STRING);
     Entry entry = DirectoryServer.getEntry(dn);
 
     List<Attribute> attrs = EntryHistorical.getHistoricalAttr(entry);
@@ -224,9 +224,9 @@ public class HistoricalTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow")
   public void conflictSingleValue() throws Exception
   {
-    final DN dn1 = DN.decode("cn=test1," + TEST_ROOT_DN_STRING);
-    final DN dn2 = DN.decode("cn=test2," + TEST_ROOT_DN_STRING);
-    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    final DN dn1 = DN.valueOf("cn=test1," + TEST_ROOT_DN_STRING);
+    final DN dn2 = DN.valueOf("cn=test2," + TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     final AttributeType attrType =
          DirectoryServer.getAttributeType("displayname");
     final AttributeType entryuuidType =
@@ -344,7 +344,7 @@ public class HistoricalTest extends ReplicationTestCase
   @Test()
   public void historicalAdd() throws Exception
   {
-    final DN dn1 = DN.decode("cn=testHistoricalAdd,o=test");
+    final DN dn1 = DN.valueOf("cn=testHistoricalAdd,o=test");
 
     // Clear the backend.
     TestCaseUtils.initializeTestBackend(true);
@@ -400,7 +400,7 @@ public class HistoricalTest extends ReplicationTestCase
     "deleteoldrdn: 1");
 
     // Read the modified entry.
-    final DN dn2 = DN.decode("cn=test2,o=test");
+    final DN dn2 = DN.valueOf("cn=test2,o=test");
     entry = DirectoryServer.getEntry(dn2);
 
     // use historical information to generate new list of operations
@@ -452,7 +452,7 @@ public class HistoricalTest extends ReplicationTestCase
         AddMsg addmsg = addOp.generateMessage();
         assertEquals(dn1, addmsg.getDN());
         assertEquals(addmsg.getEntryUUID(), EntryHistorical.getEntryUUID(entry));
-        String parentId = LDAPReplicationDomain.findEntryUUID(dn1.getParent());
+        String parentId = LDAPReplicationDomain.findEntryUUID(dn1.parent());
         assertEquals(addmsg.getParentEntryUUID(), parentId);
 
         addmsg.createOperation(InternalClientConnection.getRootConnection());

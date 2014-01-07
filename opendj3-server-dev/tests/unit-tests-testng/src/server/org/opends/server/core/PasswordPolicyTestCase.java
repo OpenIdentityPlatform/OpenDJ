@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -2171,7 +2171,7 @@ public class PasswordPolicyTestCase
   public void testInvalidConstructor(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=Password Policies,cn=config");
+    DN parentDN = DN.valueOf("cn=Password Policies,cn=config");
     ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
@@ -2208,7 +2208,7 @@ public class PasswordPolicyTestCase
   public void testGetPasswordAttributeAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     AttributeType  t = p.getPasswordAttribute();
@@ -2240,7 +2240,7 @@ public class PasswordPolicyTestCase
   public void testUsesAuthPasswordSyntaxAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertTrue(p.isAuthPasswordSyntax());
@@ -2292,7 +2292,7 @@ public class PasswordPolicyTestCase
   public void testGetDefaultStorageSchemesAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     List<PasswordStorageScheme<?>> defaultSchemes =
@@ -2359,7 +2359,7 @@ public class PasswordPolicyTestCase
   public void testIsDefaultStorageSchemeAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertTrue(p.isDefaultPasswordStorageScheme("SHA1"));
@@ -2426,7 +2426,7 @@ public class PasswordPolicyTestCase
   public void testGetDeprecatedStorageSchemesAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     Set<String> deprecatedSchemes =
@@ -2491,7 +2491,7 @@ public class PasswordPolicyTestCase
   public void testIsDeprecatedStorageSchemeAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertFalse(p.isDeprecatedPasswordStorageScheme("MD5"));
@@ -2553,7 +2553,7 @@ public class PasswordPolicyTestCase
   public void testGetPasswordValidatorsAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getPasswordValidators());
@@ -2617,7 +2617,7 @@ public class PasswordPolicyTestCase
   public void testGetAccountStatusNotificationHandlersAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getAccountStatusNotificationHandlers());
@@ -2679,7 +2679,7 @@ public class PasswordPolicyTestCase
   public void testAllowUserPasswordChangesAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertTrue(p.isAllowUserPasswordChanges());
@@ -2739,7 +2739,7 @@ public class PasswordPolicyTestCase
   public void testRequireCurrentPasswordAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertFalse(p.isPasswordChangeRequiresCurrentPassword());
@@ -2799,7 +2799,7 @@ public class PasswordPolicyTestCase
   public void testForceChangeOnAddAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertFalse(p.isPasswordChangeRequiresCurrentPassword());
@@ -2859,7 +2859,7 @@ public class PasswordPolicyTestCase
   public void testForceChangeOnResetAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertFalse(p.isPasswordChangeRequiresCurrentPassword());
@@ -2919,7 +2919,7 @@ public class PasswordPolicyTestCase
   public void testSkipValidationForAdministratorsAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertFalse(p.isSkipValidationForAdministrators());
@@ -2979,7 +2979,7 @@ public class PasswordPolicyTestCase
   public void testGetPasswordGeneratorDNAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getPasswordGenerator());
@@ -3039,7 +3039,7 @@ public class PasswordPolicyTestCase
   public void testGetPasswordGeneratorAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getPasswordGenerator());
@@ -3099,7 +3099,7 @@ public class PasswordPolicyTestCase
   public void testRequireSecureAuthenticationAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertFalse(p.isRequireSecureAuthentication());
@@ -3159,7 +3159,7 @@ public class PasswordPolicyTestCase
   public void testRequireSecurePasswordChangesAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertFalse(p.isRequireSecurePasswordChanges());
@@ -3219,7 +3219,7 @@ public class PasswordPolicyTestCase
   public void testAllowMultiplePasswordValuesAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertFalse(p.isAllowMultiplePasswordValues());
@@ -3279,7 +3279,7 @@ public class PasswordPolicyTestCase
   public void testAllowPreEncodedPasswordsAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertFalse(p.isAllowPreEncodedPasswords());
@@ -3339,7 +3339,7 @@ public class PasswordPolicyTestCase
   public void testGetMinimumPasswordAgeAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getMinPasswordAge(), 0);
@@ -3399,7 +3399,7 @@ public class PasswordPolicyTestCase
   public void testGetMaximumPasswordAgeAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getMaxPasswordAge(), 0);
@@ -3459,7 +3459,7 @@ public class PasswordPolicyTestCase
   public void testGetMaximumPasswordResetAgeAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getMaxPasswordResetAge(), 0);
@@ -3519,7 +3519,7 @@ public class PasswordPolicyTestCase
   public void testGetWarningIntervalAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getPasswordExpirationWarningInterval(), (5*60*60*24));
@@ -3579,7 +3579,7 @@ public class PasswordPolicyTestCase
   public void testExpirePasswordsWithoutWarningAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertFalse(p.isExpirePasswordsWithoutWarning());
@@ -3639,7 +3639,7 @@ public class PasswordPolicyTestCase
   public void testAllowExpiredPasswordChangesAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertFalse(p.isAllowExpiredPasswordChanges());
@@ -3699,7 +3699,7 @@ public class PasswordPolicyTestCase
   public void testGetGraceLoginCountAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getGraceLoginCount(), 0);
@@ -3759,7 +3759,7 @@ public class PasswordPolicyTestCase
   public void testGetLockoutFailureCountAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getLockoutFailureCount(), 0);
@@ -3819,7 +3819,7 @@ public class PasswordPolicyTestCase
   public void testGetLockoutDurationAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getLockoutDuration(), 0);
@@ -3879,7 +3879,7 @@ public class PasswordPolicyTestCase
   public void testGetLockoutFailureExpirationIntervalAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getLockoutFailureExpirationInterval(), 0);
@@ -3939,7 +3939,7 @@ public class PasswordPolicyTestCase
   public void testGetRequireChangeByTimeAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getRequireChangeByTime(), 0);
@@ -3999,7 +3999,7 @@ public class PasswordPolicyTestCase
   public void testGetLastLoginTimeAttributeAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNull(p.getLastLoginTimeAttribute());
@@ -4059,7 +4059,7 @@ public class PasswordPolicyTestCase
   public void testGetLastLoginTimeFormatAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNull(p.getLastLoginTimeFormat());
@@ -4121,7 +4121,7 @@ public class PasswordPolicyTestCase
   public void testGetPreviousLastLoginTimeFormatsAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getPreviousLastLoginTimeFormats());
@@ -4183,7 +4183,7 @@ public class PasswordPolicyTestCase
   public void testGetIdleLockoutIntervalAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getIdleLockoutInterval(), 0);
@@ -4686,7 +4686,7 @@ public class PasswordPolicyTestCase
   public void testToStringAuth()
          throws Exception
   {
-    DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
+    DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.toString());

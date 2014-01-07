@@ -23,6 +23,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2011 profiq, s.r.o.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -96,7 +97,7 @@ public class DictionaryPasswordValidatorTestCase
 
   /**
    * The Dictionary can take up a lot of memory, so we restart the server to
-   * implicitly unregister the validator and free the memory. 
+   * implicitly unregister the validator and free the memory.
    */
   @AfterClass
   public void freeDictionaryMemory() throws Exception
@@ -495,7 +496,7 @@ public class DictionaryPasswordValidatorTestCase
         "dRoWsSaP",
         true
       },
-   
+
       // Substrings checking configuration with a word in the dictionary,
       // case-sensitive matching enabled
       new Object[]
@@ -517,7 +518,7 @@ public class DictionaryPasswordValidatorTestCase
         "oldpassword",
         false
       },
-      
+
       // Substrings checking configuration with a word in the dictionary,
       // case-sensitive matching disabled
       new Object[]
@@ -539,7 +540,7 @@ public class DictionaryPasswordValidatorTestCase
         "NewPassword",
         false
       },
-      
+
       // Substrings checking configuration with a word in the dictionary,
       // case-sensitive matching enabled (dictionary word is lower case)
       new Object[]
@@ -561,7 +562,7 @@ public class DictionaryPasswordValidatorTestCase
         "NewPassword",
         true
       },
-      
+
       // Substrings checking configuration with a word in the dictionary,
       // case-sensitive matching disabled, and minimal substring length
       // of 5 while the password is only 3 characters
@@ -584,7 +585,7 @@ public class DictionaryPasswordValidatorTestCase
         "god",
         false
       },
-      
+
       // Substrings checking configuration with a word in the dictionary,
       // case-sensitive matching disabled, and minimal substring length
       // of 5 while the word in the dictionary is only 3 characters
@@ -607,9 +608,9 @@ public class DictionaryPasswordValidatorTestCase
         "godblessus",
         true
       },
-      
-      // Substring checking configuration with a reverse of a word in the 
-      // dictionary, reversed matching enabled and case-insensitive 
+
+      // Substring checking configuration with a reverse of a word in the
+      // dictionary, reversed matching enabled and case-insensitive
       // matching enabled
       new Object[]
       {
@@ -683,7 +684,7 @@ public class DictionaryPasswordValidatorTestCase
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              new ArrayList<Control>(),
-                             DN.decode("uid=test.user,o=test"), mods);
+                             DN.valueOf("uid=test.user,o=test"), mods);
 
     MessageBuilder invalidReason = new MessageBuilder();
     assertEquals(validator.passwordIsAcceptable(pwOS,

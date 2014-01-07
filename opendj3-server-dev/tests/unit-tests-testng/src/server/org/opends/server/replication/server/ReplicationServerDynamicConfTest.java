@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -72,7 +72,7 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       replicationServer.applyConfigurationChange(newconf);
 
       ReplicationBroker broker = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), 1, 10, ports[1], 1000);
+          DN.valueOf(TEST_ROOT_DN_STRING), 1, 10, ports[1], 1000);
 
       // check that the sendWindow is not null to make sure that the
       // broker did connect successfully.

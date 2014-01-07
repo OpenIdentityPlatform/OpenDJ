@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.backends;
 
@@ -253,7 +253,7 @@ public class MonitorBackend extends Backend implements
     // the DN of the base monitor entry.
     try
     {
-      baseMonitorDN = DN.decode(DN_MONITOR_ROOT);
+      baseMonitorDN = DN.valueOf(DN_MONITOR_ROOT);
     }
     catch (final Exception e)
     {
@@ -652,14 +652,14 @@ public class MonitorBackend extends Backend implements
     else
     {
       long count = 0;
-      final int childDNSize = entryDN.getNumComponents() + 1;
+      final int childDNSize = entryDN.size() + 1;
       for (final DN dn : dit.tailMap(entryDN, false).navigableKeySet())
       {
         if (!dn.isDescendantOf(entryDN))
         {
           break;
         }
-        else if (subtree || dn.getNumComponents() == childDNSize)
+        else if (subtree || dn.size() == childDNSize)
         {
           count++;
         }
@@ -756,14 +756,14 @@ public class MonitorBackend extends Backend implements
     if (!dit.containsKey(baseDN))
     {
       // Not found, so find the nearest match.
-      DN matchedDN = baseDN.getParent();
+      DN matchedDN = baseDN.parent();
       while (matchedDN != null)
       {
         if (dit.containsKey(matchedDN))
         {
           break;
         }
-        matchedDN = matchedDN.getParent();
+        matchedDN = matchedDN.parent();
       }
       final Message message = ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String
           .valueOf(baseDN));
@@ -1043,7 +1043,7 @@ public class MonitorBackend extends Backend implements
     final HashMap<AttributeType, List<Attribute>> monitorUserAttrs =
         new LinkedHashMap<AttributeType, List<Attribute>>();
 
-    final RDN rdn = dn.getRDN();
+    final RDN rdn = dn.rdn();
     if (rdn != null)
     {
       // Add the RDN values
@@ -1084,7 +1084,7 @@ public class MonitorBackend extends Backend implements
       dit.put(dn, monitorProvider);
 
       // Added glue records.
-      for (dn = dn.getParent(); dn != null; dn = dn.getParent())
+      for (dn = dn.parent(); dn != null; dn = dn.parent())
       {
         if (dit.containsKey(dn))
         {
@@ -1162,7 +1162,7 @@ public class MonitorBackend extends Backend implements
           monitorAttrs.size() + 1);
 
     // Make sure to include the RDN attribute.
-    final RDN entryRDN = entryDN.getRDN();
+    final RDN entryRDN = entryDN.rdn();
     final AttributeType rdnType = entryRDN.getAttributeType(0);
     final AttributeValue rdnValue = entryRDN.getAttributeValue(0);
 

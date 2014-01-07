@@ -1095,7 +1095,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           debugBuffer.toString());
 
       Entry debugEntry =
-          new Entry(DN.decode("cn=debugsearch"), null, null, null);
+          new Entry(DN.valueOf("cn=debugsearch"), null, null, null);
       debugEntry.addAttribute(attr, new ArrayList<AttributeValue>());
 
       searchOperation.returnEntry(debugEntry, null);
@@ -1239,7 +1239,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
      * "ou=people,dc=example,dc=com".
      */
     byte[] baseDNKey = JebFormat.dnToDNKey(aBaseDN,
-                                             this.baseDN.getNumComponents());
+                                             this.baseDN.size());
     byte[] suffix = Arrays.copyOf(baseDNKey, baseDNKey.length+1);
     suffix[suffix.length-1] = 0x00;
 
@@ -1532,8 +1532,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           else if (searchScope == SearchScope.SINGLE_LEVEL)
           {
             // Check if this entry is an immediate child.
-            if ((entryDN.getNumComponents() ==
-                aBaseDN.getNumComponents() + 1) &&
+            if ((entryDN.size() ==
+                aBaseDN.size() + 1) &&
                 entryDN.isDescendantOf(aBaseDN))
             {
               isInScope = true;
@@ -1548,8 +1548,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           }
           else if (searchScope == SearchScope.SUBORDINATE_SUBTREE)
           {
-            if ((entryDN.getNumComponents() >
-            aBaseDN.getNumComponents()) &&
+            if ((entryDN.size() >
+            aBaseDN.size()) &&
             entryDN.isDescendantOf(aBaseDN))
             {
               isInScope = true;
@@ -1832,7 +1832,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
        * downwards.
        */
       byte[] entryDNKey = JebFormat.dnToDNKey(entryDN,
-                                               this.baseDN.getNumComponents());
+                                               this.baseDN.size());
       byte[] suffix = Arrays.copyOf(entryDNKey, entryDNKey.length+1);
       suffix[suffix.length-1] = 0x00;
 
@@ -2016,7 +2016,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       {
         leafDNKey =
             new DatabaseEntry(JebFormat.dnToDNKey(
-                targetDN, this.baseDN.getNumComponents()));
+                targetDN, this.baseDN.size()));
       }
       DatabaseEntry value = new DatabaseEntry();
       OperationStatus status;
@@ -2493,7 +2493,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
        * downwards.
        */
       byte[] currentDNKey = JebFormat.dnToDNKey(currentDN,
-                                               this.baseDN.getNumComponents());
+                                               this.baseDN.size());
       byte[] suffix = Arrays.copyOf(currentDNKey, currentDNKey.length+1);
       suffix[suffix.length-1] = 0x00;
 
@@ -2541,7 +2541,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
           // Construct the new DN of the entry.
           DN newDN = modDN(oldEntry.getDN(),
-              currentDN.getNumComponents(),
+              currentDN.size(),
               entry.getDN());
 
           // Assign a new entry ID if we are renumbering.
@@ -2895,9 +2895,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    */
   public static DN modDN(DN oldDN, int oldSuffixLen, DN newSuffixDN)
   {
-    int oldDNNumComponents    = oldDN.getNumComponents();
+    int oldDNNumComponents    = oldDN.size();
     int oldDNKeepComponents   = oldDNNumComponents - oldSuffixLen;
-    int newSuffixDNComponents = newSuffixDN.getNumComponents();
+    int newSuffixDNComponents = newSuffixDN.size();
 
     RDN[] newDNComponents = new RDN[oldDNKeepComponents+newSuffixDNComponents];
     for (int i=0; i < oldDNKeepComponents; i++)
@@ -3567,7 +3567,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     {
       return null;
     }
-    return dn.getParent();
+    return dn.parent();
   }
 
   /**

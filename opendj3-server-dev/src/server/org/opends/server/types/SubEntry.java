@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.types;
@@ -210,7 +210,7 @@ public class SubEntry {
           try
           {
             this.subTreeSpec = SubtreeSpecification.valueOf(
-                    entry.getDN().getParent(), specString);
+                    entry.getDN().parent(), specString);
             isValidSpec = true;
           }
           catch (DirectoryException de)
@@ -245,7 +245,7 @@ public class SubEntry {
     {
       // There is none for some reason eg this could be
       // old Draft based ldapSubEntry so create a dummy.
-      this.subTreeSpec = new SubtreeSpecification(entry.getDN().getParent(),
+      this.subTreeSpec = new SubtreeSpecification(entry.getDN().parent(),
           null, -1, -1, null, null, null);
     }
 
@@ -367,7 +367,7 @@ public class SubEntry {
               // Has to have a parent since subentry itself
               // cannot be a suffix entry within the server.
               this.inheritFromBaseDN =
-                      getDN().getParent().concat(
+                      getDN().parent().child(
                         inheritFromBaseDN);
               break;
             }

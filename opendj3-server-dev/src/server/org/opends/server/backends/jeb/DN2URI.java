@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -100,7 +100,7 @@ public class DN2URI extends DatabaseContainer
     super(name, env, entryContainer);
 
     dn2uriComparator = new AttributeIndex.KeyComparator();
-    prefixRDNComponents = entryContainer.getBaseDN().getNumComponents();
+    prefixRDNComponents = entryContainer.getBaseDN().size();
     DatabaseConfig dn2uriConfig = new DatabaseConfig();
 
     if(env.getConfig().getReadOnly())
@@ -466,7 +466,7 @@ public class DN2URI extends DatabaseContainer
           {
             urlBaseDN =
                  EntryContainer.modDN(targetDN,
-                                      referralDN.getNumComponents(),
+                                      referralDN.size(),
                                       ldapurl.getBaseDN());
           }
           ldapurl.setBaseDN(urlBaseDN);
@@ -700,7 +700,7 @@ public class DN2URI extends DatabaseContainer
 
               if (ldapurl.getScheme().equalsIgnoreCase("ldap"))
               {
-                if (ldapurl.getBaseDN().isNullDN())
+                if (ldapurl.getBaseDN().isRootDN())
                 {
 
                   ldapurl.setBaseDN(dn);

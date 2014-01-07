@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -74,7 +74,7 @@ public class ModifyOperationTestCase
     for (Object[] backendBaseDN2 : backendBaseDNs)
     {
       String backendBaseDN = backendBaseDN2[0].toString();
-      Backend b = DirectoryServer.getBackend(DN.decode(backendBaseDN));
+      Backend b = DirectoryServer.getBackend(DN.valueOf(backendBaseDN));
       b.setWritabilityMode(WritabilityMode.ENABLED);
     }
   }
@@ -148,28 +148,28 @@ public class ModifyOperationTestCase
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("description", "foo")));
 
-    opList.add(newModifyOperation(null, DN.nullDN(), mods));
-    opList.add(newModifyOperation(noControls, DN.nullDN(), mods));
-    opList.add(newModifyOperation(null, DN.decode("o=test"), mods));
-    opList.add(newModifyOperation(noControls, DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(null, DN.rootDN(), mods));
+    opList.add(newModifyOperation(noControls, DN.rootDN(), mods));
+    opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
+    opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE,
         Attributes.create("description", "foo")));
 
-    opList.add(newModifyOperation(null, DN.nullDN(), mods));
-    opList.add(newModifyOperation(noControls, DN.nullDN(), mods));
-    opList.add(newModifyOperation(null, DN.decode("o=test"), mods));
-    opList.add(newModifyOperation(noControls, DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(null, DN.rootDN(), mods));
+    opList.add(newModifyOperation(noControls, DN.rootDN(), mods));
+    opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
+    opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
 
-    opList.add(newModifyOperation(null, DN.nullDN(), mods));
-    opList.add(newModifyOperation(noControls, DN.nullDN(), mods));
-    opList.add(newModifyOperation(null, DN.decode("o=test"), mods));
-    opList.add(newModifyOperation(noControls, DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(null, DN.rootDN(), mods));
+    opList.add(newModifyOperation(noControls, DN.rootDN(), mods));
+    opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
+    opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE,
@@ -177,10 +177,10 @@ public class ModifyOperationTestCase
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("description", "bar")));
 
-    opList.add(newModifyOperation(null, DN.nullDN(), mods));
-    opList.add(newModifyOperation(noControls, DN.nullDN(), mods));
-    opList.add(newModifyOperation(null, DN.decode("o=test"), mods));
-    opList.add(newModifyOperation(noControls, DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(null, DN.rootDN(), mods));
+    opList.add(newModifyOperation(noControls, DN.rootDN(), mods));
+    opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
+    opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
@@ -188,10 +188,10 @@ public class ModifyOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("cn", "bar")));
 
-    opList.add(newModifyOperation(null, DN.nullDN(), mods));
-    opList.add(newModifyOperation(noControls, DN.nullDN(), mods));
-    opList.add(newModifyOperation(null, DN.decode("o=test"), mods));
-    opList.add(newModifyOperation(noControls, DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(null, DN.rootDN(), mods));
+    opList.add(newModifyOperation(noControls, DN.rootDN(), mods));
+    opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
+    opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
 
 
@@ -322,7 +322,7 @@ public class ModifyOperationTestCase
     List<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
-    ModifyOperation modifyOperation = newModifyOperation(null, DN.nullDN(), mods);
+    ModifyOperation modifyOperation = newModifyOperation(null, DN.rootDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
   }
 
@@ -343,7 +343,7 @@ public class ModifyOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
     ModifyOperation modifyOperation =
-        newModifyOperation(null, DN.nullDN(), mods);
+        newModifyOperation(null, DN.rootDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
 
     modifyOperation.setRawEntryDN(ByteString.valueOf("ou=Users,o=test"));
@@ -445,7 +445,7 @@ public class ModifyOperationTestCase
   public void testGetAndAddModifications()
          throws Exception
   {
-    Entry e = DirectoryServer.getEntry(DN.decode("o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
     assertNull(e.getAttribute(DirectoryServer.getAttributeType("description", true)));
 
     UpdatePreOpPlugin.reset();
@@ -462,11 +462,11 @@ public class ModifyOperationTestCase
         Attributes.create("l", "Austin")));
 
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode("o=test"), mods);
+         conn.processModify(DN.valueOf("o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    e = DirectoryServer.getEntry(DN.decode("o=test"));
+    e = DirectoryServer.getEntry(DN.valueOf("o=test"));
     assertNotNull(e.getAttribute(DirectoryServer.getAttributeType("description", true)));
 
     UpdatePreOpPlugin.reset();
@@ -566,7 +566,7 @@ public class ModifyOperationTestCase
   public void testSuccessAddAttribute()
          throws Exception
   {
-    Entry e = DirectoryServer.getEntry(DN.decode("o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
     assertNull(e.getAttribute(DirectoryServer.getAttributeType("description", true)));
 
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
@@ -574,7 +574,7 @@ public class ModifyOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    e = DirectoryServer.getEntry(DN.decode("o=test"));
+    e = DirectoryServer.getEntry(DN.valueOf("o=test"));
     assertNotNull(e.getAttribute(DirectoryServer.getAttributeType("description", true)));
   }
 
@@ -590,7 +590,7 @@ public class ModifyOperationTestCase
   public void testSuccessAddAttributeValue()
          throws Exception
   {
-    Entry e = DirectoryServer.getEntry(DN.decode("o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
 
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("o", true));
@@ -601,7 +601,7 @@ public class ModifyOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    e = DirectoryServer.getEntry(DN.decode("o=test"));
+    e = DirectoryServer.getEntry(DN.valueOf("o=test"));
     attrList = e.getAttribute(DirectoryServer.getAttributeType("o", true));
     assertEquals(countValues(attrList), 2);
   }
@@ -618,7 +618,7 @@ public class ModifyOperationTestCase
   public void testSuccessAddAttributeWithOptions(String baseDN)
          throws Exception
   {
-    Entry e = DirectoryServer.getEntry(DN.decode(baseDN));
+    Entry e = DirectoryServer.getEntry(DN.valueOf(baseDN));
 
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("o", true));
@@ -629,7 +629,7 @@ public class ModifyOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    e = DirectoryServer.getEntry(DN.decode(baseDN));
+    e = DirectoryServer.getEntry(DN.valueOf(baseDN));
     attrList = e.getAttribute(DirectoryServer.getAttributeType("o", true));
     assertEquals(countValues(attrList), 2);
   }
@@ -1950,7 +1950,7 @@ public class ModifyOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("employeenumber", true));
     assertNotNull(attrList);
@@ -1989,7 +1989,7 @@ public class ModifyOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("employeenumber", true));
     assertNotNull(attrList);
@@ -2028,7 +2028,7 @@ public class ModifyOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("employeenumber", true));
     assertNotNull(attrList);
@@ -2273,7 +2273,7 @@ public class ModifyOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     assertFalse(e.hasObjectClass(
          DirectoryServer.getObjectClass("extensibleobject", true)));
   }
@@ -2310,7 +2310,7 @@ public class ModifyOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("extensibleobject", true)));
     assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("inetOrgPerson", true)));
     assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("organizationalPerson", true)));
@@ -2617,7 +2617,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
+    Backend b = DirectoryServer.getBackend(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
     LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
@@ -2655,7 +2655,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
+    Backend b = DirectoryServer.getBackend(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
@@ -2693,7 +2693,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
+    Backend b = DirectoryServer.getBackend(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
 
@@ -2854,7 +2854,7 @@ public class ModifyOperationTestCase
   public void testCannotLockEntry(String baseDN)
          throws Exception
   {
-    Lock entryLock = LockManager.lockRead(DN.decode(baseDN));
+    Lock entryLock = LockManager.lockRead(DN.valueOf(baseDN));
 
     try
     {
@@ -2864,7 +2864,7 @@ public class ModifyOperationTestCase
     }
     finally
     {
-      LockManager.unlock(DN.decode(baseDN), entryLock);
+      LockManager.unlock(DN.valueOf(baseDN), entryLock);
     }
   }
 
@@ -3258,8 +3258,8 @@ responseLoop:
         newModifyOperation(controls, ByteString.valueOf("o=test"), mods);
     modifyOperation.run();
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
-    assertFalse(DirectoryServer.getEntry(DN.decode("o=test")).hasAttribute(
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
+    assertFalse(DirectoryServer.getEntry(DN.valueOf("o=test")).hasAttribute(
                      DirectoryServer.getAttributeType("description", true)));
   }
 
@@ -3502,7 +3502,7 @@ responseLoop:
          "userPassword: password");
 
     Entry e = DirectoryServer.getEntry(
-            DN.decode("uid=testPassword03.user," + baseDN));
+            DN.valueOf("uid=testPassword03.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("userpassword", true));
     assertNotNull(attrList);
@@ -3571,7 +3571,7 @@ responseLoop:
     ), 0);
     // @formatter:on
 
-    e = DirectoryServer.getEntry(DN.decode("cn=Test User,o=test"));
+    e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
     assertNotNull(attrList);
     assertEquals(attrList.size(), 1);
@@ -3613,7 +3613,7 @@ responseLoop:
     ), 0);
     // @formatter:on
 
-    e = DirectoryServer.getEntry(DN.decode("cn=Test User,o=test"));
+    e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
     assertNotNull(attrList);
     assertEquals(attrList.size(), 1);
@@ -3651,7 +3651,7 @@ responseLoop:
     ), 19);
     // @formatter:on
 
-    Entry e = DirectoryServer.getEntry(DN.decode("cn=Test User,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
     assertNotNull(attrList);
     assertEquals(attrList.size(), 1);
@@ -3689,7 +3689,7 @@ responseLoop:
     ), 19);
     // @formatter:on
 
-    Entry e = DirectoryServer.getEntry(DN.decode("cn=Test User,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
     assertNotNull(attrList);
     assertEquals(attrList.size(), 1);
@@ -3747,7 +3747,7 @@ responseLoop:
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("usercertificate", true));
     assertNotNull(attrList);

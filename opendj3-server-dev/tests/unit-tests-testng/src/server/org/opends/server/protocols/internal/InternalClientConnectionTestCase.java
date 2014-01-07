@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -90,7 +91,7 @@ public class InternalClientConnectionTestCase
   public Object[][] getInternalConnections()
          throws Exception
   {
-    DN dmDN = DN.decode("cn=Directory Manager,cn=Root DNs,cn=config");
+    DN dmDN = DN.valueOf("cn=Directory Manager,cn=Root DNs,cn=config");
     Entry dmEntry = DirectoryServer.getEntry(dmDN);
 
     TestCaseUtils.initializeTestBackend(true);
@@ -116,7 +117,7 @@ public class InternalClientConnectionTestCase
       new Object[] { new InternalClientConnection(
            new AuthenticationInfo(userEntry, false)) },
       new Object[] { new InternalClientConnection(dmDN) },
-      new Object[] { new InternalClientConnection(DN.nullDN()) },
+      new Object[] { new InternalClientConnection(DN.rootDN()) },
       new Object[] { new InternalClientConnection((DN) null) }
     };
   }
@@ -382,7 +383,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     BindOperation bindOperation =
-         conn.processSimpleBind(DN.decode("cn=Directory Manager"),
+         conn.processSimpleBind(DN.valueOf("cn=Directory Manager"),
                                 ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -427,7 +428,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     BindOperation bindOperation =
-         conn.processSASLBind(DN.nullDN(), "PLAIN", creds);
+         conn.processSASLBind(DN.rootDN(), "PLAIN", creds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -492,7 +493,7 @@ public class InternalClientConnectionTestCase
 
 
     CompareOperation compareOperation =
-         conn.processCompare(DN.decode("cn=test,o=test"),
+         conn.processCompare(DN.valueOf("cn=test,o=test"),
                              DirectoryServer.getAttributeType("cn", true),
                              ByteString.valueOf("test"));
     assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
@@ -558,7 +559,7 @@ public class InternalClientConnectionTestCase
 
 
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=test,o=test"));
+         conn.processDelete(DN.valueOf("cn=test,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -651,7 +652,7 @@ public class InternalClientConnectionTestCase
         Attributes.create("description", "This is a test")));
 
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode("cn=test,o=test"), mods);
+         conn.processModify(DN.valueOf("cn=test,o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -751,7 +752,7 @@ public class InternalClientConnectionTestCase
 
 
     ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN(DN.decode("cn=test,o=test"),
+         conn.processModifyDN(DN.valueOf("cn=test,o=test"),
                               RDN.decode("cn=test2"), true);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -784,9 +785,9 @@ public class InternalClientConnectionTestCase
 
 
     ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN(DN.decode("cn=test,o=test"),
+         conn.processModifyDN(DN.valueOf("cn=test,o=test"),
                               RDN.decode("cn=test2"), true,
-                              DN.decode("dc=example,dc=com"));
+                              DN.valueOf("dc=example,dc=com"));
     assertEquals(modifyDNOperation.getResultCode(),
                  ResultCode.UNWILLING_TO_PERFORM);
   }
@@ -880,7 +881,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.nullDN(), SearchScope.BASE_OBJECT,
+         conn.processSearch(DN.rootDN(), SearchScope.BASE_OBJECT,
               SearchFilter.createFilterFromString("(objectClass=*)"));
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -902,7 +903,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.nullDN(), SearchScope.BASE_OBJECT,
+         conn.processSearch(DN.rootDN(), SearchScope.BASE_OBJECT,
               DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
               new LinkedHashSet<String>());
@@ -930,7 +931,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.nullDN(), SearchScope.BASE_OBJECT,
+         conn.processSearch(DN.rootDN(), SearchScope.BASE_OBJECT,
               DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
               new LinkedHashSet<String>(), searchListener);

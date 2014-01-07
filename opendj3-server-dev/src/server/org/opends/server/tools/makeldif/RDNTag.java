@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 import org.opends.messages.Message;
@@ -153,13 +154,13 @@ public class RDNTag
                                  TemplateValue templateValue)
   {
     DN dn = templateEntry.getDN();
-    if ((dn == null) || dn.isNullDN())
+    if ((dn == null) || dn.isRootDN())
     {
       return TagResult.SUCCESS_RESULT;
     }
     else
     {
-      dn.getRDN().toString(templateValue.getValue());
+      dn.rdn().toString(templateValue.getValue());
       return TagResult.SUCCESS_RESULT;
     }
   }

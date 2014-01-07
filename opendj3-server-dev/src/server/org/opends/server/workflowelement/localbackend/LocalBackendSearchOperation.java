@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -442,7 +442,7 @@ public class LocalBackendSearchOperation
           setAuthorizationEntry(authorizationEntry);
           if (authorizationEntry == null)
           {
-            setProxiedAuthorizationDN(DN.nullDN());
+            setProxiedAuthorizationDN(DN.rootDN());
           }
           else
           {
@@ -466,7 +466,7 @@ public class LocalBackendSearchOperation
           setAuthorizationEntry(authorizationEntry);
           if (authorizationEntry == null)
           {
-            setProxiedAuthorizationDN(DN.nullDN());
+            setProxiedAuthorizationDN(DN.rootDN());
           }
           else
           {

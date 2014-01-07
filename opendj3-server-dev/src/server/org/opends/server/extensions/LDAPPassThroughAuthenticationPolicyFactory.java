@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -468,7 +469,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     public Connection getConnection() throws DirectoryException
     {
       final Connection connection = factory.getConnection();
-      if (username != null && !username.isNullDN() && password != null
+      if (username != null && !username.isRootDN() && password != null
           && password.length() > 0)
       {
         try
@@ -2179,7 +2180,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       final String mappedSearchPassword;
       if (cfg.getMappingPolicy() == MappingPolicy.MAPPED_SEARCH
           && cfg.getMappedSearchBindDN() != null
-          && !cfg.getMappedSearchBindDN().isNullDN())
+          && !cfg.getMappedSearchBindDN().isRootDN())
       {
         mappedSearchPassword = getMappedSearchBindPassword(cfg,
             new LinkedList<Message>());
@@ -2587,7 +2588,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     // Ensure that the search bind password is defined somewhere.
     if (cfg.getMappingPolicy() == MappingPolicy.MAPPED_SEARCH
         && cfg.getMappedSearchBindDN() != null
-        && !cfg.getMappedSearchBindDN().isNullDN())
+        && !cfg.getMappedSearchBindDN().isRootDN())
     {
       if (getMappedSearchBindPassword(cfg, unacceptableReasons) == null)
       {

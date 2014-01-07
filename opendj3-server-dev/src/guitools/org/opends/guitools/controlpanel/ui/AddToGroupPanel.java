@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -383,7 +383,7 @@ public class AddToGroupPanel extends StatusGenericPanel
       {
         try
         {
-          DN.decode(groupDn);
+          DN.valueOf(groupDn);
           if (!entryExists(groupDn))
           {
             errors.add(
@@ -444,7 +444,7 @@ public class AddToGroupPanel extends StatusGenericPanel
           groupDn = groupDn.trim();
           if (groupDn.length() > 0)
           {
-            groupDns.add(DN.decode(groupDn));
+            groupDns.add(DN.valueOf(groupDn));
           }
         }
       }

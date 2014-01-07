@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -348,7 +349,7 @@ public class WorkflowConfigManager
   {
     // The ID of the workflow to create
     String workflowId =
-        workflowCfg.dn().getRDN().getAttributeValue(0).toString();
+        workflowCfg.dn().rdn().getAttributeValue(0).toString();
 
     // Create the root workflow element to associate with the workflow
     String rootWorkflowElementID = workflowCfg.getWorkflowElement();

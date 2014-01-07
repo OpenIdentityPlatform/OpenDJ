@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -588,7 +588,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       SearchResultEntry e = entries.get(0);
       //An entry must be returned.
       assertNotNull(e);
-      assertTrue(e.getDN().equals(DN.decode("cn=test1,o=test")));
+      assertTrue(e.getDN().equals(DN.valueOf("cn=test1,o=test")));
     }
     finally
     {

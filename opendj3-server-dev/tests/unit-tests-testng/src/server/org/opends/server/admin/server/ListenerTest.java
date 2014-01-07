@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -153,13 +154,13 @@ public final class ListenerTest extends AdminTestCase {
     root.registerAddListener(TestCfg.getTestOneToManyParentRelationDefinition(), listener);
 
     // Make sure that the relation entry does not exist.
-    DN relationDN = DN.decode("cn=test parents,cn=config");
+    DN relationDN = DN.valueOf("cn=test parents,cn=config");
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(relationDN);
     assertNull(configEntry, "Relation entry " + relationDN + " already exists");
 
     // Make sure that the listener was delayed and registered against
     // the parent.
-    DN parentDN = DN.decode("cn=config");
+    DN parentDN = DN.valueOf("cn=config");
     configEntry = DirectoryServer.getConfigEntry(parentDN);
     assertNotNull(configEntry, "Relation parent entry " + parentDN
         + " does not exist");
@@ -267,7 +268,7 @@ public final class ListenerTest extends AdminTestCase {
     TestCaseUtils.addEntry(entry);
 
     // Make sure that the relation entry exist.
-    DN relationDN = DN.decode("cn=test parents,cn=config");
+    DN relationDN = DN.valueOf("cn=test parents,cn=config");
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(relationDN);
     assertNotNull(configEntry, "Relation entry " + relationDN
         + " does not exist");
@@ -315,7 +316,7 @@ public final class ListenerTest extends AdminTestCase {
         listener);
 
     // Make sure that the relation entry exists.
-    DN relationDN = DN.decode("cn=config");
+    DN relationDN = DN.valueOf("cn=config");
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(relationDN);
     assertNotNull(configEntry, "Relation entry " + relationDN
         + " does not exist");
@@ -357,13 +358,13 @@ public final class ListenerTest extends AdminTestCase {
     root.registerDeleteListener(TestCfg.getTestOneToManyParentRelationDefinition(), listener);
 
     // Make sure that the relation entry does not exist.
-    DN relationDN = DN.decode("cn=test parents,cn=config");
+    DN relationDN = DN.valueOf("cn=test parents,cn=config");
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(relationDN);
     assertNull(configEntry, "Relation entry " + relationDN + " already exists");
 
     // Make sure that the listener was delayed and registered against
     // the parent.
-    DN parentDN = DN.decode("cn=config");
+    DN parentDN = DN.valueOf("cn=config");
     configEntry = DirectoryServer.getConfigEntry(parentDN);
     assertNotNull(configEntry, "Relation parent entry " + parentDN
         + " does not exist");
@@ -471,7 +472,7 @@ public final class ListenerTest extends AdminTestCase {
     TestCaseUtils.addEntry(entry);
 
     // Make sure that the relation entry exist.
-    DN relationDN = DN.decode("cn=test parents,cn=config");
+    DN relationDN = DN.valueOf("cn=test parents,cn=config");
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(relationDN);
     assertNotNull(configEntry, "Relation entry " + relationDN
         + " does not exist");
@@ -519,7 +520,7 @@ public final class ListenerTest extends AdminTestCase {
         listener);
 
     // Make sure that the relation entry exists.
-    DN relationDN = DN.decode("cn=config");
+    DN relationDN = DN.valueOf("cn=config");
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(relationDN);
     assertNotNull(configEntry, "Relation entry " + relationDN
         + " does not exist");

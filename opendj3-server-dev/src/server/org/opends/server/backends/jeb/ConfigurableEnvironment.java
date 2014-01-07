@@ -346,7 +346,7 @@ public class ConfigurableEnvironment
 
           Message message =
               INFO_ERGONOMIC_SIZING_OF_JE_CLEANER_THREADS.get(String
-                  .valueOf(cfg.dn().getRDN().getAttributeValue(0)),
+                  .valueOf(cfg.dn().rdn().getAttributeValue(0)),
                   (Number) value);
           logError(message);
         }
@@ -364,7 +364,7 @@ public class ConfigurableEnvironment
 
           Message message =
               INFO_ERGONOMIC_SIZING_OF_JE_LOCK_TABLES.get(String
-                  .valueOf(cfg.dn().getRDN().getAttributeValue(0)),
+                  .valueOf(cfg.dn().rdn().getAttributeValue(0)),
                   (Number) value);
           logError(message);
         }

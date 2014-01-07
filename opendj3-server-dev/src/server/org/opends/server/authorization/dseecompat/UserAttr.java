@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -372,12 +372,12 @@ public class UserAttr implements KeywordBindRule {
      * than the  rdn count.
      */
     private DN getDNParentLevel(int l, DN dn) {
-        int rdns=dn.getNumComponents();
+        int rdns=dn.size();
         if(l > rdns)
             return null;
         DN theDN=dn;
         for(int i=0; i < l;i++) {
-            theDN=theDN.getParent();
+            theDN=theDN.parent();
         }
         return theDN;
     }

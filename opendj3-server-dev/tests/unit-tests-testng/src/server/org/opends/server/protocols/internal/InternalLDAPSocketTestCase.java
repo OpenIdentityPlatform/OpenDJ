@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -88,7 +89,7 @@ public class InternalLDAPSocketTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(false);
-    assertFalse(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
     InternalLDAPSocket socket = new InternalLDAPSocket();
     LDAPReader reader = new LDAPReader(socket);
@@ -117,7 +118,7 @@ public class InternalLDAPSocketTestCase
     assertNotNull(message);
     assertEquals(message.getAddResponseProtocolOp().getResultCode(),
                  LDAPResultCode.SUCCESS);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
     reader.close();
     writer.close();
@@ -137,7 +138,7 @@ public class InternalLDAPSocketTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(false);
-    assertFalse(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
 
     Hashtable<String,String> env = new Hashtable<String,String>();
@@ -165,7 +166,7 @@ public class InternalLDAPSocketTestCase
     attributes.put(o);
 
     context.createSubcontext("o=test", attributes);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
     context.close();
   }
@@ -183,7 +184,7 @@ public class InternalLDAPSocketTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
     InternalLDAPSocket socket = new InternalLDAPSocket();
     LDAPReader reader = new LDAPReader(socket);
@@ -228,7 +229,7 @@ public class InternalLDAPSocketTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
 
     Hashtable<String,String> env = new Hashtable<String,String>();
@@ -269,7 +270,7 @@ public class InternalLDAPSocketTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
     InternalLDAPSocket socket = new InternalLDAPSocket();
     LDAPReader reader = new LDAPReader(socket);
@@ -294,7 +295,7 @@ public class InternalLDAPSocketTestCase
     assertNotNull(message);
     assertEquals(message.getDeleteResponseProtocolOp().getResultCode(),
                  LDAPResultCode.SUCCESS);
-    assertFalse(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
     reader.close();
     writer.close();
@@ -314,7 +315,7 @@ public class InternalLDAPSocketTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
 
     Hashtable<String,String> env = new Hashtable<String,String>();
@@ -330,7 +331,7 @@ public class InternalLDAPSocketTestCase
     DirContext context = new InitialDirContext(env);
 
     context.destroySubcontext("o=test");
-    assertFalse(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
     context.close();
   }
@@ -393,7 +394,7 @@ public class InternalLDAPSocketTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
     InternalLDAPSocket socket = new InternalLDAPSocket();
     LDAPReader reader = new LDAPReader(socket);
@@ -441,7 +442,7 @@ public class InternalLDAPSocketTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
 
     Hashtable<String,String> env = new Hashtable<String,String>();
@@ -485,8 +486,8 @@ public class InternalLDAPSocketTestCase
       "objectClass: organizationalUnit",
       "ou: People");
 
-    assertTrue(DirectoryServer.entryExists(DN.decode("ou=People,o=test")));
-    assertFalse(DirectoryServer.entryExists(DN.decode("ou=Users,o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("ou=People,o=test")));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf("ou=Users,o=test")));
 
     InternalLDAPSocket socket = new InternalLDAPSocket();
     LDAPReader reader = new LDAPReader(socket);
@@ -513,8 +514,8 @@ public class InternalLDAPSocketTestCase
     assertEquals(message.getModifyDNResponseProtocolOp().getResultCode(),
                  LDAPResultCode.SUCCESS);
 
-    assertFalse(DirectoryServer.entryExists(DN.decode("ou=People,o=test")));
-    assertTrue(DirectoryServer.entryExists(DN.decode("ou=Users,o=test")));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf("ou=People,o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("ou=Users,o=test")));
 
     reader.close();
     writer.close();
@@ -540,8 +541,8 @@ public class InternalLDAPSocketTestCase
       "objectClass: organizationalUnit",
       "ou: People");
 
-    assertTrue(DirectoryServer.entryExists(DN.decode("ou=People,o=test")));
-    assertFalse(DirectoryServer.entryExists(DN.decode("ou=Users,o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("ou=People,o=test")));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf("ou=Users,o=test")));
 
 
     Hashtable<String,String> env = new Hashtable<String,String>();
@@ -558,8 +559,8 @@ public class InternalLDAPSocketTestCase
 
     context.rename("ou=People,o=test", "ou=Users,o=test");
 
-    assertFalse(DirectoryServer.entryExists(DN.decode("ou=People,o=test")));
-    assertTrue(DirectoryServer.entryExists(DN.decode("ou=Users,o=test")));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf("ou=People,o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("ou=Users,o=test")));
 
     context.close();
   }
@@ -577,7 +578,7 @@ public class InternalLDAPSocketTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
     InternalLDAPSocket socket = new InternalLDAPSocket();
     LDAPReader reader = new LDAPReader(socket);
@@ -606,7 +607,7 @@ public class InternalLDAPSocketTestCase
     message = reader.readMessage();
     assertNotNull(message);
     assertEquals(message.getSearchResultEntryProtocolOp().getDN(),
-                 DN.decode("o=test"));
+                 DN.valueOf("o=test"));
 
     message = reader.readMessage();
     assertNotNull(message);
@@ -631,7 +632,7 @@ public class InternalLDAPSocketTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
 
     Hashtable<String,String> env = new Hashtable<String,String>();

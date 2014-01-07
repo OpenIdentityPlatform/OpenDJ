@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -62,7 +62,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
 
@@ -80,10 +80,10 @@ public class DeleteOperationTestCase extends OperationTestCase
       newDeleteOperation(null, ByteString.empty()),
       newDeleteOperation(noControls, ByteString.valueOf("o=test")),
       newDeleteOperation(null, ByteString.valueOf("o=test")),
-      newDeleteOperation(noControls, DN.nullDN()),
-      newDeleteOperation(null, DN.nullDN()),
-      newDeleteOperation(noControls, DN.decode("o=test")),
-      newDeleteOperation(null, DN.decode("o=test"))
+      newDeleteOperation(noControls, DN.rootDN()),
+      newDeleteOperation(null, DN.rootDN()),
+      newDeleteOperation(noControls, DN.valueOf("o=test")),
+      newDeleteOperation(null, DN.valueOf("o=test"))
     };
   }
 
@@ -155,7 +155,7 @@ public class DeleteOperationTestCase extends OperationTestCase
          throws Exception
   {
     DeleteOperation deleteOperation =
-        newDeleteOperation(null, DN.decode("o=test"));
+        newDeleteOperation(null, DN.valueOf("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
   }
 
@@ -175,7 +175,7 @@ public class DeleteOperationTestCase extends OperationTestCase
          throws Exception
   {
     DeleteOperation deleteOperation =
-        newDeleteOperation(null, DN.decode("o=test"));
+        newDeleteOperation(null, DN.valueOf("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
 
     deleteOperation.setRawEntryDN(ByteString.valueOf("dc=example,dc=com"));
@@ -239,7 +239,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
-    return conn.processDelete(DN.decode(entryDN));
+    return conn.processDelete(DN.valueOf(entryDN));
   }
 
   private void processAdd(String... entryLines) throws Exception
@@ -623,7 +623,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Backend backend = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
     backend.setWritabilityMode(WritabilityMode.DISABLED);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
@@ -646,7 +646,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Backend backend = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
     backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
@@ -669,7 +669,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Backend backend = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
     backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     String[] args = getArgs("o=test");
@@ -749,7 +749,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Lock entryLock = LockManager.lockRead(DN.decode("o=test"));
+    Lock entryLock = LockManager.lockRead(DN.valueOf("o=test"));
 
     try
     {
@@ -758,7 +758,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     }
     finally
     {
-      LockManager.unlock(DN.decode("o=test"), entryLock);
+      LockManager.unlock(DN.valueOf("o=test"), entryLock);
     }
   }
 
@@ -1054,7 +1054,7 @@ responseLoop:
         newDeleteOperation(controls, ByteString.valueOf("o=test"));
     deleteOperation.run();
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
   }
 }
 

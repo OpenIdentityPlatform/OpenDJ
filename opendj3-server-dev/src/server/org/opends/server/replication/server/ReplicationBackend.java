@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -533,7 +533,7 @@ public class ReplicationBackend extends Backend
 
     for (ReplicationServerDomain domain : domains)
     {
-      DN baseDN = DN.decode(domain.getBaseDN() + "," + BASE_DN);
+      DN baseDN = DN.valueOf(domain.getBaseDN() + "," + BASE_DN);
       for (DN includeBranch : includeBranches)
       {
         if (includeBranch.isDescendantOf(baseDN)
@@ -566,7 +566,7 @@ public class ReplicationBackend extends Backend
     try
     {
       ChangeRecordEntry changeRecord =
-        new AddChangeRecordEntry(DN.decode(BASE_DN), attrs);
+        new AddChangeRecordEntry(DN.valueOf(BASE_DN), attrs);
       ldifWriter.writeChangeRecord(changeRecord);
     }
     catch (Exception e) { /* do nothing */ }
@@ -597,7 +597,7 @@ public class ReplicationBackend extends Backend
       final String dnString = domain.getBaseDN() + "," + BASE_DN;
       try
       {
-        DN dn = DN.decode(dnString);
+        DN dn = DN.valueOf(dnString);
         ldifWriter.writeChangeRecord(new AddChangeRecordEntry(dn, attrs));
       }
       catch (Exception e)
@@ -775,7 +775,7 @@ public class ReplicationBackend extends Backend
           AddMsg addMsg = (AddMsg)msg;
           AddOperation addOperation = (AddOperation)msg.createOperation(conn);
 
-          dn = DN.decode("puid=" + addMsg.getParentEntryUUID() + "+" +
+          dn = DN.valueOf("puid=" + addMsg.getParentEntryUUID() + "+" +
               CHANGE_NUMBER + "=" + msg.getCSN() + "+" +
               msg.getDN() + "," + BASE_DN);
 
@@ -897,7 +897,7 @@ public class ReplicationBackend extends Backend
 
   private DN computeDN(LDAPUpdateMsg msg) throws DirectoryException
   {
-    return DN.decode("uuid=" + msg.getEntryUUID() + "," + CHANGE_NUMBER + "="
+    return DN.valueOf("uuid=" + msg.getEntryUUID() + "," + CHANGE_NUMBER + "="
         + msg.getCSN() + "," + msg.getDN() + "," + BASE_DN);
   }
 
@@ -1147,7 +1147,7 @@ public class ReplicationBackend extends Backend
     // don't do anything if the search is a base search on the backend suffix.
     try
     {
-      DN backendBaseDN = DN.decode(BASE_DN);
+      DN backendBaseDN = DN.valueOf(BASE_DN);
       if ( searchOperation.getScope().equals(SearchScope.BASE_OBJECT) &&
            backendBaseDN.equals(searchOperation.getBaseDN()) )
       {

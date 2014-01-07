@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -85,7 +86,7 @@ public class BackendConfigManagerTestCase
   {
     TestCaseUtils.initializeTestBackend(false);
 
-    DN baseDN = DN.decode("o=test");
+    DN baseDN = DN.valueOf("o=test");
     String backendID = createBackendID(baseDN);
     Entry backendEntry = createBackendEntry(backendID, false, baseDN);
 
@@ -110,7 +111,7 @@ public class BackendConfigManagerTestCase
   public void testDeregisterNonExistentBaseDN()
          throws Exception
   {
-    DirectoryServer.deregisterBaseDN(DN.decode("o=unregistered"));
+    DirectoryServer.deregisterBaseDN(DN.valueOf("o=unregistered"));
   }
 
 
@@ -127,7 +128,7 @@ public class BackendConfigManagerTestCase
   {
     TestCaseUtils.initializeTestBackend(false);
 
-    DN baseDN = DN.decode("o=test");
+    DN baseDN = DN.valueOf("o=test");
     String backendID = "test";
     Entry backendEntry = createBackendEntry(backendID, false, baseDN);
 
@@ -152,7 +153,7 @@ public class BackendConfigManagerTestCase
   public void testAddAndRemoveDisabledBackend()
          throws Exception
   {
-    DN baseDN = DN.decode("o=bcmtest");
+    DN baseDN = DN.valueOf("o=bcmtest");
     String backendID = createBackendID(baseDN);
     Entry backendEntry = createBackendEntry(backendID, false, baseDN);
 
@@ -182,7 +183,7 @@ public class BackendConfigManagerTestCase
   public void testAddAndRemoveEnabledBackend()
          throws Exception
   {
-    DN baseDN = DN.decode("o=bcmtest");
+    DN baseDN = DN.valueOf("o=bcmtest");
     String backendID = createBackendID(baseDN);
     Entry backendEntry = createBackendEntry(backendID, true, baseDN);
 
@@ -228,7 +229,7 @@ public class BackendConfigManagerTestCase
          throws Exception
   {
     // Create the backend and make it disabled.
-    DN baseDN = DN.decode("o=bcmtest");
+    DN baseDN = DN.valueOf("o=bcmtest");
     String backendID = createBackendID(baseDN);
     Entry backendEntry = createBackendEntry(backendID, false, baseDN);
 
@@ -296,7 +297,7 @@ public class BackendConfigManagerTestCase
          throws Exception
   {
     // Create the parent backend and the corresponding base entry.
-    DN parentBaseDN = DN.decode("o=parent");
+    DN parentBaseDN = DN.valueOf("o=parent");
     String parentBackendID = createBackendID(parentBaseDN);
     Entry parentBackendEntry = createBackendEntry(parentBackendID, true,
                                                   parentBaseDN);
@@ -328,7 +329,7 @@ public class BackendConfigManagerTestCase
 
 
     // Create the child backend and the corresponding base entry.
-    DN childBaseDN = DN.decode("ou=child,o=parent");
+    DN childBaseDN = DN.valueOf("ou=child,o=parent");
     String childBackendID = createBackendID(childBaseDN);
     Entry childBackendEntry = createBackendEntry(childBackendID, true,
                                                  childBaseDN);
@@ -399,7 +400,7 @@ public class BackendConfigManagerTestCase
   {
     // Create the child backend and the corresponding base entry (at the time
     // of the creation, it will be a naming context).
-    DN childBaseDN = DN.decode("ou=child,o=parent");
+    DN childBaseDN = DN.valueOf("ou=child,o=parent");
     String childBackendID = createBackendID(childBaseDN);
     Entry childBackendEntry = createBackendEntry(childBackendID, true,
                                                  childBaseDN);
@@ -433,7 +434,7 @@ public class BackendConfigManagerTestCase
 
     // Create the parent backend and the corresponding entry (and verify that
     // its DN is now a naming context and the child's is not).
-    DN parentBaseDN = DN.decode("o=parent");
+    DN parentBaseDN = DN.valueOf("o=parent");
     String parentBackendID = createBackendID(parentBaseDN);
     Entry parentBackendEntry = createBackendEntry(parentBackendID, true,
                                                   parentBaseDN);
@@ -497,7 +498,7 @@ public class BackendConfigManagerTestCase
          throws Exception
   {
     // Add the parent backend to the server and its corresponding base entry.
-    DN parentBaseDN = DN.decode("o=parent");
+    DN parentBaseDN = DN.valueOf("o=parent");
     String parentBackendID = createBackendID(parentBaseDN);
     Entry parentBackendEntry = createBackendEntry(parentBackendID, true,
                                                   parentBaseDN);
@@ -529,7 +530,7 @@ public class BackendConfigManagerTestCase
 
 
     // Add the grandchild backend to the server.
-    DN grandchildBaseDN = DN.decode("ou=grandchild,ou=child,o=parent");
+    DN grandchildBaseDN = DN.valueOf("ou=grandchild,ou=child,o=parent");
     String grandchildBackendID = createBackendID(grandchildBaseDN);
     Entry grandchildBackendEntry = createBackendEntry(grandchildBackendID, true,
                                                       grandchildBaseDN);
@@ -561,7 +562,7 @@ public class BackendConfigManagerTestCase
 
 
     // Add the child backend to the server and create its base entry.
-    DN childBaseDN = DN.decode("ou=child,o=parent");
+    DN childBaseDN = DN.valueOf("ou=child,o=parent");
     String childBackendID = createBackendID(childBaseDN);
     Entry childBackendEntry = createBackendEntry(childBackendID, true,
                                                  childBaseDN);

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -117,7 +118,7 @@ public class LDIFBackendTestCase
       "ds-task-import-backend-id: ldifRoot",
       "ds-task-import-ldif-file: " + ldifFile.getAbsolutePath());
 
-    Task t = TasksTestCase.getCompletedTask(DN.decode(taskDN));
+    Task t = TasksTestCase.getCompletedTask(DN.valueOf(taskDN));
     assertNotNull(t);
     assertEquals(t.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
   }
@@ -258,7 +259,7 @@ public class LDIFBackendTestCase
          InternalClientConnection.getRootConnection();
     AddOperation addOperation = conn.processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.NO_SUCH_OBJECT);
-    assertEquals(addOperation.getMatchedDN(), DN.decode("o=ldif"));
+    assertEquals(addOperation.getMatchedDN(), DN.valueOf("o=ldif"));
   }
 
 
@@ -274,9 +275,9 @@ public class LDIFBackendTestCase
   public void testAddBaseEntry()
          throws Exception
   {
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=ldif")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=ldif")));
     assertTrue(DirectoryServer.entryExists(
-                   DN.decode("uid=user.1,ou=People,o=ldif")));
+                   DN.valueOf("uid=user.1,ou=People,o=ldif")));
 
     String path = TestCaseUtils.createTempFile(
       "dn: o=ldif",
@@ -292,9 +293,9 @@ public class LDIFBackendTestCase
       "-f", path
     };
     assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
-    assertFalse(DirectoryServer.entryExists(DN.decode("o=ldif")));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf("o=ldif")));
     assertFalse(DirectoryServer.entryExists(
-                    DN.decode("uid=user.1,ou=People,o=ldif")));
+                    DN.valueOf("uid=user.1,ou=People,o=ldif")));
 
     Entry e = TestCaseUtils.makeEntry(
       "dn: o=ldif",
@@ -306,14 +307,14 @@ public class LDIFBackendTestCase
          InternalClientConnection.getRootConnection();
     AddOperation addOperation = conn.processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=ldif")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=ldif")));
     assertFalse(DirectoryServer.entryExists(
-                    DN.decode("uid=user.1,ou=People,o=ldif")));
+                    DN.valueOf("uid=user.1,ou=People,o=ldif")));
 
     setUp();
-    assertTrue(DirectoryServer.entryExists(DN.decode("o=ldif")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=ldif")));
     assertTrue(DirectoryServer.entryExists(
-                   DN.decode("uid=user.1,ou=People,o=ldif")));
+                   DN.valueOf("uid=user.1,ou=People,o=ldif")));
   }
 
 
@@ -405,8 +406,8 @@ public class LDIFBackendTestCase
       "objectClass: organizationalUnit",
       "ou: leaf before");
 
-    DN beforeDN = DN.decode("ou=leaf before,o=ldif");
-    DN afterDN  = DN.decode("ou=leaf after,o=ldif");
+    DN beforeDN = DN.valueOf("ou=leaf before,o=ldif");
+    DN afterDN  = DN.valueOf("ou=leaf after,o=ldif");
 
     assertTrue(DirectoryServer.entryExists(beforeDN));
     assertFalse(DirectoryServer.entryExists(afterDN));
@@ -441,7 +442,7 @@ public class LDIFBackendTestCase
       "objectClass: top",
       "objectClass: organizationalUnit",
       "ou: new entry");
-    assertTrue(DirectoryServer.entryExists(DN.decode("ou=new entry,o=ldif")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("ou=new entry,o=ldif")));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -449,11 +450,11 @@ public class LDIFBackendTestCase
          conn.processModifyDN("ou=new entry,o=ldif", "ou=People", true);
     assertEquals(modifyDNOperation.getResultCode(),
                  ResultCode.ENTRY_ALREADY_EXISTS);
-    assertTrue(DirectoryServer.entryExists(DN.decode("ou=new entry,o=ldif")));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf("ou=new entry,o=ldif")));
 
     DeleteOperation deleteOperation = conn.processDelete("ou=new entry,o=ldif");
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-    assertFalse(DirectoryServer.entryExists(DN.decode("ou=new entry,o=ldif")));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf("ou=new entry,o=ldif")));
   }
 
 
@@ -474,8 +475,8 @@ public class LDIFBackendTestCase
       "objectClass: organizationalUnit",
       "ou: leaf before");
 
-    DN beforeDN = DN.decode("ou=leaf before,o=ldif");
-    DN afterDN  = DN.decode("ou=leaf after,ou=People,o=ldif");
+    DN beforeDN = DN.valueOf("ou=leaf before,o=ldif");
+    DN afterDN  = DN.valueOf("ou=leaf after,ou=People,o=ldif");
 
     assertTrue(DirectoryServer.entryExists(beforeDN));
     assertFalse(DirectoryServer.entryExists(afterDN));
@@ -506,10 +507,10 @@ public class LDIFBackendTestCase
   public void testModifyDNSubtreeRename()
          throws Exception
   {
-    DN beforeDN      = DN.decode("ou=People,o=ldif");
-    DN afterDN       = DN.decode("ou=Users,o=ldif");
-    DN childBeforeDN = DN.decode("uid=user.1,ou=People,o=ldif");
-    DN childAfterDN  = DN.decode("uid=user.1,ou=Users,o=ldif");
+    DN beforeDN      = DN.valueOf("ou=People,o=ldif");
+    DN afterDN       = DN.valueOf("ou=Users,o=ldif");
+    DN childBeforeDN = DN.valueOf("uid=user.1,ou=People,o=ldif");
+    DN childAfterDN  = DN.valueOf("uid=user.1,ou=Users,o=ldif");
 
     assertTrue(DirectoryServer.entryExists(beforeDN));
     assertFalse(DirectoryServer.entryExists(afterDN));
@@ -598,7 +599,7 @@ public class LDIFBackendTestCase
          conn.processSearch("o=nonexistent2,o=nonexistent1,o=ldif",
                             SearchScope.BASE_OBJECT, "(objectClass=*)");
     assertEquals(searchOperation.getResultCode(), ResultCode.NO_SUCH_OBJECT);
-    assertEquals(searchOperation.getMatchedDN(), DN.decode("o=ldif"));
+    assertEquals(searchOperation.getMatchedDN(), DN.valueOf("o=ldif"));
   }
 
 
@@ -677,13 +678,13 @@ public class LDIFBackendTestCase
     assertNotNull(b);
     assertTrue(b instanceof LDIFBackend);
 
-    assertEquals(b.hasSubordinates(DN.decode("o=ldif")), ConditionResult.TRUE);
-    assertEquals(b.hasSubordinates(DN.decode("uid=user.1,ou=People,o=ldif")),
+    assertEquals(b.hasSubordinates(DN.valueOf("o=ldif")), ConditionResult.TRUE);
+    assertEquals(b.hasSubordinates(DN.valueOf("uid=user.1,ou=People,o=ldif")),
                  ConditionResult.FALSE);
 
     try
     {
-      b.hasSubordinates(DN.decode("ou=nonexistent,o=ldif"));
+      b.hasSubordinates(DN.valueOf("ou=nonexistent,o=ldif"));
       fail("Expected an exception when calling hasSubordinates on a " +
            "non-existent entry");
     }
@@ -708,16 +709,16 @@ public class LDIFBackendTestCase
     assertNotNull(b);
     assertTrue(b instanceof LDIFBackend);
 
-    assertEquals(b.numSubordinates(DN.decode("o=ldif"), false), 1);
-    assertEquals(b.numSubordinates(DN.decode("o=ldif"), true), 26);
+    assertEquals(b.numSubordinates(DN.valueOf("o=ldif"), false), 1);
+    assertEquals(b.numSubordinates(DN.valueOf("o=ldif"), true), 26);
     assertEquals(b.numSubordinates(
-        DN.decode("uid=user.1,ou=People,o=ldif"), false), 0);
+        DN.valueOf("uid=user.1,ou=People,o=ldif"), false), 0);
     assertEquals(b.numSubordinates(
-        DN.decode("uid=user.1,ou=People,o=ldif"), true), 0);
+        DN.valueOf("uid=user.1,ou=People,o=ldif"), true), 0);
 
     try
     {
-      b.numSubordinates(DN.decode("ou=nonexistent,o=ldif"), false);
+      b.numSubordinates(DN.valueOf("ou=nonexistent,o=ldif"), false);
       fail("Expected an exception when calling numSubordinates on a " +
            "non-existent entry");
     }
@@ -756,7 +757,7 @@ public class LDIFBackendTestCase
       "ds-task-export-backend-id: ldifRoot",
       "ds-task-export-ldif-file: " + tempFilePath);
 
-    Task t = TasksTestCase.getCompletedTask(DN.decode(taskDN));
+    Task t = TasksTestCase.getCompletedTask(DN.valueOf(taskDN));
     assertNotNull(t);
     assertEquals(t.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
   }

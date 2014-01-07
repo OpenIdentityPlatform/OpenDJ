@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -413,7 +413,7 @@ public class ImportTask extends Task
       DN includeBranch;
       try
       {
-        includeBranch = DN.decode(s);
+        includeBranch = DN.valueOf(s);
       }
       catch (DirectoryException de)
       {
@@ -438,7 +438,7 @@ public class ImportTask extends Task
       DN excludeBranch;
       try
       {
-        excludeBranch = DN.decode(s);
+        excludeBranch = DN.valueOf(s);
       }
       catch (DirectoryException de)
       {
@@ -682,7 +682,7 @@ public class ImportTask extends Task
       DN includeBranch;
       try
       {
-        includeBranch = DN.decode(s);
+        includeBranch = DN.valueOf(s);
       }
       catch (DirectoryException de)
       {
@@ -802,7 +802,7 @@ public class ImportTask extends Task
       DN excludeBranch;
       try
       {
-        excludeBranch = DN.decode(s);
+        excludeBranch = DN.valueOf(s);
       }
       catch (DirectoryException de)
       {

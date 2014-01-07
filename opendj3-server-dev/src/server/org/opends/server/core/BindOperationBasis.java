@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -711,7 +711,7 @@ public class BindOperationBasis
       // Issue #3502 has been logged to track this request.
       boolean isInConfig;
       try {
-        isInConfig = bindDN.isDescendantOf(DN.decode(DN_CONFIG_ROOT));
+        isInConfig = bindDN.isDescendantOf(DN.valueOf(DN_CONFIG_ROOT));
       } catch (DirectoryException ex) {
         // can not happen
         isInConfig = false;

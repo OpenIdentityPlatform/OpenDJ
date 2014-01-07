@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -107,7 +107,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
     }
 
     // Clear any reference to a domain in synchro plugin
-    MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
+    MultimasterReplication.deleteDomain(DN.valueOf(TEST_ROOT_DN_STRING));
     remove(rs1, rs2, rs3);
     rs1 = rs2 = rs3 = null;
     rs1Port = rs2Port = rs3Port = -1;
@@ -300,7 +300,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       int groupId, String testCase) throws Exception
   {
     SortedSet<String> replServers = createRSListForTestCase(testCase);
-    DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    DN baseDn = DN.valueOf(TEST_ROOT_DN_STRING);
     DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn, serverId, replServers, groupId);
     LDAPReplicationDomain replicationDomain =
@@ -479,7 +479,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
        * Change group id of DS1 and DS2 to 1 and see them reconnect to RS1
        */
       SortedSet<String> replServers = createRSListForTestCase(testCase);
-      DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+      DN baseDn = DN.valueOf(TEST_ROOT_DN_STRING);
       DomainFakeCfg domainConfWithNewGid =  new DomainFakeCfg(baseDn, DS1_ID, replServers, 1);
       rd1.applyConfigurationChange(domainConfWithNewGid);
       domainConfWithNewGid = new DomainFakeCfg(baseDn, DS2_ID, replServers, 1);

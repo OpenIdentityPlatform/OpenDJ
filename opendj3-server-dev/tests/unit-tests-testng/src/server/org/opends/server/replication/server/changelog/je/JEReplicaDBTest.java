@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -75,7 +75,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
   @BeforeClass
   public void setup() throws Exception
   {
-    TEST_ROOT_DN = DN.decode(TEST_ROOT_DN_STRING);
+    TEST_ROOT_DN = DN.valueOf(TEST_ROOT_DN_STRING);
   }
 
   @Test(enabled=true)

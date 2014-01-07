@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -153,7 +153,7 @@ public class ReSyncTest extends ReplicationTestCase
   {
     // Delete the entry we are going to use to make sure that
     // we do test something.
-    DN entryDN = DN.decode("dc=fooUniqueName1," + EXAMPLE_DN);
+    DN entryDN = DN.valueOf("dc=fooUniqueName1," + EXAMPLE_DN);
     connection.processDelete(entryDN);
 
     task("dn: ds-task-id=" + UUID.randomUUID()
@@ -200,7 +200,7 @@ public class ReSyncTest extends ReplicationTestCase
   {
     // delete the entry we are going to use to make sure that
     // we do test something.
-    DN entryDN = DN.decode("dc=fooUniqueName2," + EXAMPLE_DN);
+    DN entryDN = DN.valueOf("dc=fooUniqueName2," + EXAMPLE_DN);
     connection.processDelete(entryDN);
 
     String path = reSyncTempDir.getAbsolutePath() + File.pathSeparator + "ReSynchTest";
@@ -243,7 +243,7 @@ public class ReSyncTest extends ReplicationTestCase
     callParanoiaCheck = false;
 
     // Do not try to remove non leaves
-    entriesToCleanup.remove(DN.decode(EXAMPLE_DN));
+    entriesToCleanup.remove(DN.valueOf(EXAMPLE_DN));
     super.classCleanUp();
 
     TestCaseUtils.clearJEBackend(false, "userRoot", EXAMPLE_DN);

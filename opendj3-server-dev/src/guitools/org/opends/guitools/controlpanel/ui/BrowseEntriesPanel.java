@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -1144,7 +1144,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         BasicNode node = (BasicNode)path.getLastPathComponent();
         try
         {
-          dns.add(DN.decode(node.getDN()));
+          dns.add(DN.valueOf(node.getDN()));
         }
         catch (OpenDsException ode)
         {

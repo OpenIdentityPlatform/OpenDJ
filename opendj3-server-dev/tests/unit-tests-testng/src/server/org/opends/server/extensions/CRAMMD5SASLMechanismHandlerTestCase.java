@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -696,7 +697,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5,
+         conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5,
                               ByteString.valueOf("invalid"));
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
@@ -716,12 +717,12 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5, null);
+         conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5, null);
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.SASL_BIND_IN_PROGRESS);
 
     bindOperation =
-         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5,
+         conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5,
                               ByteString.valueOf("malformed"));
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
@@ -741,14 +742,14 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5, null);
+         conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5, null);
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.SASL_BIND_IN_PROGRESS);
 
     ByteString creds =
          ByteString.valueOf("dn:cn=Directory Manager malformeddigest");
     bindOperation =
-         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5, creds);
+         conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5, creds);
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -768,7 +769,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5, null);
+         conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5, null);
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.SASL_BIND_IN_PROGRESS);
 
@@ -776,7 +777,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          ByteString.valueOf("dn:cn=Directory Manager " +
                           "malformedcredswiththerightlength");
     bindOperation =
-         conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5, creds);
+         conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5, creds);
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
 }

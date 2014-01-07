@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 
@@ -170,7 +171,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
          throws Exception
   {
     TaskBackend taskBackend =
-         (TaskBackend) DirectoryServer.getBackend(DN.decode("cn=tasks"));
+         (TaskBackend) DirectoryServer.getBackend(DN.valueOf("cn=tasks"));
     Task task = taskBackend.getScheduledTask(taskEntryDN);
     if (task == null)
     {

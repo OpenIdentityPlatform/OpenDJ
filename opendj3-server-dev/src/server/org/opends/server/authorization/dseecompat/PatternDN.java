@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -137,12 +138,12 @@ public class PatternDN
     if (equality != null)
     {
       // There are no Multiple-Whole-RDN wildcards in the pattern.
-      if (equality.length != dn.getNumComponents())
+      if (equality.length != dn.size())
       {
         return false;
       }
 
-      for (int i = 0; i < dn.getNumComponents(); i++)
+      for (int i = 0; i < dn.size(); i++)
       {
         if (!equality[i].matchesRDN(dn.getRDN(i)))
         {
@@ -155,7 +156,7 @@ public class PatternDN
     else
     {
       // There are Multiple-Whole-RDN wildcards in the pattern.
-      int valueLength = dn.getNumComponents();
+      int valueLength = dn.size();
 
       int pos = 0;
       if (subInitial != null)

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 
@@ -75,8 +75,8 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     addTestEntries("o=test", 't');
     TestCaseUtils.clearJEBackend(true,"userRoot", "dc=example,dc=com");
     addTestEntries("dc=example,dc=com", 'x');
-    uidConfigDN=DN.decode("cn=UID Unique Attribute ,cn=Plugins,cn=config");
-    testConfigDN=DN.decode("cn=Test Unique Attribute,cn=Plugins,cn=config");
+    uidConfigDN=DN.valueOf("cn=UID Unique Attribute ,cn=Plugins,cn=config");
+    testConfigDN=DN.valueOf("cn=Test Unique Attribute,cn=Plugins,cn=config");
   }
 
 
@@ -365,11 +365,11 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"uid");
     //Rename with new rdn, should fail, there is an entry already with that
     //uid value.
-    doModDN(DN.decode("uid=3user.3, ou=people, o=test"), RDN.decode("uid=4"),
+    doModDN(DN.valueOf("uid=3user.3, ou=people, o=test"), RDN.decode("uid=4"),
                       false, null, ResultCode.CONSTRAINT_VIOLATION);
     //Rename with multi-valued RDN, should fail there is an entry already with
     //that uid value.
-    doModDN(DN.decode("uid=3user.3, ou=people, o=test"),
+    doModDN(DN.valueOf("uid=3user.3, ou=people, o=test"),
                       RDN.decode("sn=xx+uid=4"),
                       false, null, ResultCode.CONSTRAINT_VIOLATION);
     //Now add a base dn to be unique under, so new superior move can be tested.
@@ -379,15 +379,15 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     //Try to move the entry to a new superior.
     //Should fail, there is an entry under the new superior already with
     //that uid value.
-    doModDN(DN.decode("uid=3user.3, ou=people, o=test"),
+    doModDN(DN.valueOf("uid=3user.3, ou=people, o=test"),
                       RDN.decode("uid=3user.3"), false,
-                       DN.decode("ou=new people, o=test"),
+                       DN.valueOf("ou=new people, o=test"),
                        ResultCode.CONSTRAINT_VIOLATION);
    //Test again with different superior, should succeed, new superior DN is
    //not in base DN scope.
-   doModDN(DN.decode("uid=3user.3, ou=people, o=test"),
+   doModDN(DN.valueOf("uid=3user.3, ou=people, o=test"),
                       RDN.decode("uid=3user.3"), false,
-                       DN.decode("ou=new people1, o=test"),
+                       DN.valueOf("ou=new people1, o=test"),
                        ResultCode.SUCCESS);
   }
 
@@ -404,14 +404,14 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     addMods(mods,"mail",ModificationType.REPLACE,"userx@test","userxx@test",
            "user1t@test");
     //Fail because user1t@test already exists under "o=people,o=test".
-    doMods(mods, DN.decode("uid=5user.5,ou=People,o=test"),
+    doMods(mods, DN.valueOf("uid=5user.5,ou=People,o=test"),
            ResultCode.CONSTRAINT_VIOLATION);
     mods.clear();
     addMods(mods,"pager",ModificationType.ADD,"2-999-1234","1-999-5678");
     addMods(mods,"mail",ModificationType.ADD,"userx@test","userxx@test",
            "user1t@test");
     //Fail because user1t@test already exists under "o=people,o=test".
-    doMods(mods, DN.decode("uid=5user.5,ou=People,o=test"),
+    doMods(mods, DN.valueOf("uid=5user.5,ou=People,o=test"),
            ResultCode.CONSTRAINT_VIOLATION);
     mods.clear();
     addMods(mods,"pager",ModificationType.ADD,"2-999-1234","1-999-5678");
@@ -419,7 +419,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
            "user1t@test");
     //Ok because adding mail value user1t@test to entry that already
     //contains mail value user1t@test.
-    doMods(mods, DN.decode("uid=1user.1,ou=People,o=test"),
+    doMods(mods, DN.valueOf("uid=1user.1,ou=People,o=test"),
            ResultCode.SUCCESS);
     mods.clear();
     //Replace employeenumber as the unique attribute.
@@ -427,7 +427,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     addMods(mods,"employeenumber",ModificationType.INCREMENT,"1");
     //Test modify increment extension.
     //Fail because incremented value of employeenumber (2) already exists.
-    doMods(mods, DN.decode("uid=1user.1,ou=People,o=test"),
+    doMods(mods, DN.valueOf("uid=1user.1,ou=People,o=test"),
            ResultCode.CONSTRAINT_VIOLATION);
   }
 
@@ -485,7 +485,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
                        "pager","telephonenumber");
     addAttribute(e, "mobile", "1-999-1234","1-999-5678","1-444-9012");
     addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
-    e.setDN(DN.decode("cn=test user, ou=People,o=test"));
+    e.setDN(DN.valueOf("cn=test user, ou=People,o=test"));
     //Fail because "2-333-9012" already exists in "ou=people,o=test" in
     //telephonenumber attribute.
     addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
@@ -530,7 +530,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     //Fail because "2-777-9012"  is a telephone value under the
     //"dc=example,dc=com" naming context.
     addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
-    e.setDN(DN.decode("cn=test user, ou=People,o=test"));
+    e.setDN(DN.valueOf("cn=test user, ou=People,o=test"));
     addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
     delAttribute(e, "mobile");
     addAttribute(e, "pager", "2-777-1234","1-999-5678","1-999-9012");
@@ -729,8 +729,8 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
 
   private void clearAcis(String suffix) throws Exception
   {
-    deleteAttrsFromEntry(DN.decode("ou=People," + suffix), "aci");
-    deleteAttrsFromEntry(DN.decode("ou=People1," + suffix), "aci");
+    deleteAttrsFromEntry(DN.valueOf("ou=People," + suffix), "aci");
+    deleteAttrsFromEntry(DN.valueOf("ou=People1," + suffix), "aci");
   }
 
   /**

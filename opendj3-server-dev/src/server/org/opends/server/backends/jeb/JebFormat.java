@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -269,7 +270,7 @@ public class JebFormat
       {
         if(buffer.length() > 0)
         {
-          dn = dn.concat(RDN.decode(buffer.toString()));
+          dn = dn.child(RDN.decode(buffer.toString()));
           buffer.clear();
         }
       }
@@ -286,7 +287,7 @@ public class JebFormat
 
     if(buffer.length() > 0)
     {
-      dn = dn.concat(RDN.decode(buffer.toString()));
+      dn = dn.child(RDN.decode(buffer.toString()));
     }
 
     return dn;
@@ -332,7 +333,7 @@ public class JebFormat
   public static byte[] dnToDNKey(DN dn, int prefixRDNs)
   {
     StringBuilder buffer = new StringBuilder();
-    for (int i = dn.getNumComponents() - prefixRDNs - 1; i >= 0; i--)
+    for (int i = dn.size() - prefixRDNs - 1; i >= 0; i--)
     {
       buffer.append('\u0000');
       formatRDNKey(dn.getRDN(i), buffer);

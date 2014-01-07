@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -159,7 +159,7 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
          throws Exception
   {
     DN parentDN =
-            DN.decode("cn=Account Status Notification Handlers,cn=config");
+            DN.valueOf("cn=Account Status Notification Handlers,cn=config");
     ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
@@ -187,7 +187,7 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
   {
     String dnStr = "cn=Error Log Handler,cn=Account Status Notification " +
                         "Handlers,cn=config";
-    DN handlerDN = DN.decode(dnStr);
+    DN handlerDN = DN.valueOf(dnStr);
     AccountStatusNotificationHandler<?> handler =
          DirectoryServer.getAccountStatusNotificationHandler(handlerDN);
     assertNotNull(handler);
@@ -248,13 +248,13 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
 
     String dnStr = "cn=Error Log Handler,cn=Account Status Notification " +
                         "Handlers,cn=config";
-    DN handlerDN = DN.decode(dnStr);
+    DN handlerDN = DN.valueOf(dnStr);
     AccountStatusNotificationHandler<?> handler =
          DirectoryServer.getAccountStatusNotificationHandler(handlerDN);
     assertNotNull(handler);
 
     Entry userEntry =
-               DirectoryServer.getEntry(DN.decode("uid=test.user,o=test"));
+               DirectoryServer.getEntry(DN.valueOf("uid=test.user,o=test"));
 
     PasswordPolicy policy = (PasswordPolicy) AuthenticationPolicy.forUser(
         userEntry, false);

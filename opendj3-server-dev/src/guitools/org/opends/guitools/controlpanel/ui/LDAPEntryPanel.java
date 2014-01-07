@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -469,16 +470,16 @@ implements EntryReadListener
     try
     {
       parentReadOnly = new DN[] {
-        DN.decode(ConfigConstants.DN_TASK_ROOT),
-        DN.decode(ConfigConstants.DN_MONITOR_ROOT),
-        DN.decode(ConfigConstants.DN_BACKUP_ROOT),
-        DN.decode(Constants.REPLICATION_CHANGES_DN),
-        DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT)
+        DN.valueOf(ConfigConstants.DN_TASK_ROOT),
+        DN.valueOf(ConfigConstants.DN_MONITOR_ROOT),
+        DN.valueOf(ConfigConstants.DN_BACKUP_ROOT),
+        DN.valueOf(Constants.REPLICATION_CHANGES_DN),
+        DN.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT)
       };
       nonDeletable = new DN[] {
-          DN.decode(ConfigConstants.DN_CONFIG_ROOT),
-          DN.decode(ConfigConstants.DN_DEFAULT_SCHEMA_ROOT),
-          DN.decode(ConfigConstants.DN_TRUST_STORE_ROOT)
+          DN.valueOf(ConfigConstants.DN_CONFIG_ROOT),
+          DN.valueOf(ConfigConstants.DN_DEFAULT_SCHEMA_ROOT),
+          DN.valueOf(ConfigConstants.DN_TRUST_STORE_ROOT)
       };
     }
     catch (Throwable t)
@@ -499,7 +500,7 @@ implements EntryReadListener
     boolean isReadOnly = false;
     try
     {
-      DN dn = DN.decode(sDn);
+      DN dn = DN.valueOf(sDn);
       for (DN parentDN : parentReadOnly)
       {
         if (dn.isDescendantOf(parentDN))
@@ -532,7 +533,7 @@ implements EntryReadListener
     boolean canDelete = true;
     try
     {
-      DN dn = DN.decode(sDn);
+      DN dn = DN.valueOf(sDn);
       for (DN parentDN : parentReadOnly)
       {
         if (dn.isDescendantOf(parentDN))

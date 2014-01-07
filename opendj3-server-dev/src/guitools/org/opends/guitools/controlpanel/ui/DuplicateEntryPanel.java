@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -141,16 +141,16 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     String aRdn;
     try
     {
-      DN nodeDN = DN.decode(node.getDN());
-      if (nodeDN.isNullDN())
+      DN nodeDN = DN.valueOf(node.getDN());
+      if (nodeDN.isRootDN())
       {
         aParentDN = nodeDN;
         aRdn = "(1)";
       }
       else
       {
-        aParentDN = nodeDN.getParent();
-        aRdn = nodeDN.getRDN().getAttributeValue(0).toString()+"-1";
+        aParentDN = nodeDN.parent();
+        aRdn = nodeDN.rdn().getAttributeValue(0).toString()+"-1";
       }
     }
     catch (DirectoryException de)
@@ -431,8 +431,8 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         String newValue = null;
         try
         {
-          DN theDN = DN.decode(dn);
-          newValue = theDN.getRDN().getAttributeValue(0).toString();
+          DN theDN = DN.valueOf(dn);
+          newValue = theDN.rdn().getAttributeValue(0).toString();
         }
         catch (DirectoryException de)
         {
@@ -449,8 +449,8 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
           String oldValue = null;
           try
           {
-            DN oldDN = DN.decode(entryToDuplicate.getDN());
-            oldValue = oldDN.getRDN().getAttributeValue(0).toString();
+            DN oldDN = DN.valueOf(entryToDuplicate.getDN());
+            oldValue = oldDN.rdn().getAttributeValue(0).toString();
           }
           catch (DirectoryException de)
           {
@@ -533,8 +533,8 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
           entryToDuplicate = sr;
           try
           {
-            DN dn = DN.decode(sr.getDN());
-            rdnAttribute = dn.getRDN().getAttributeType(0).getNameOrOID();
+            DN dn = DN.valueOf(sr.getDN());
+            rdnAttribute = dn.rdn().getAttributeType(0).getNameOrOID();
 
             updateDNValue();
             Boolean hasPassword = !sr.getAttributeValues(

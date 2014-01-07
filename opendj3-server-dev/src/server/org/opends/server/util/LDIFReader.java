@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -859,7 +859,7 @@ public final class LDIFReader implements Closeable
     // base64-encoded.  Otherwise, it may be one or more spaces.
     if (colonPos == line.length() - 1)
     {
-      return DN.nullDN();
+      return DN.rootDN();
     }
 
     if (line.charAt(colonPos+1) == ':')
@@ -920,7 +920,7 @@ public final class LDIFReader implements Closeable
   {
     try
     {
-      return DN.decode(dnString);
+      return DN.valueOf(dnString);
     }
     catch (DirectoryException de)
     {
@@ -1550,7 +1550,7 @@ public final class LDIFReader implements Closeable
           entryDN, "newsuperior");
       try
       {
-        newSuperiorDN = DN.decode(dnStr);
+        newSuperiorDN = DN.valueOf(dnStr);
       } catch (DirectoryException de)
       {
         if (debugEnabled())
@@ -1989,7 +1989,7 @@ public final class LDIFReader implements Closeable
           Map<AttributeType,List<Attribute>>userAttributes,
           Map<AttributeType,List<Attribute>> operationalAttributes)
   {
-    RDN rdn = entryDN.getRDN();
+    RDN rdn = entryDN.rdn();
     int numAVAs = rdn.getNumValues();
     for (int i=0; i < numAVAs; i++)
     {

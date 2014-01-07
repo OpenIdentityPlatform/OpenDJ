@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -352,7 +352,7 @@ public class TrustStoreBackend
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
          new LinkedHashMap<AttributeType,List<Attribute>>(1);
 
-    RDN rdn = baseDN.getRDN();
+    RDN rdn = baseDN.rdn();
     int numAVAs = rdn.getNumValues();
     for (int i=0; i < numAVAs; i++)
     {
@@ -549,7 +549,7 @@ public class TrustStoreBackend
     // Make sure that the DN specifies a certificate alias.
     AttributeType t =
          DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID, true);
-    AttributeValue v = entryDN.getRDN().getAttributeValue(t);
+    AttributeValue v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
       Message message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.
@@ -1348,7 +1348,7 @@ public class TrustStoreBackend
   {
     AttributeValue attrValue =
         AttributeValues.create(rdnAttrType, rdnStringValue);
-    return parentDN.concat(RDN.create(rdnAttrType, attrValue));
+    return parentDN.child(RDN.create(rdnAttrType, attrValue));
   }
 
 
@@ -1576,7 +1576,7 @@ public class TrustStoreBackend
     // Make sure that the DN specifies a certificate alias.
     AttributeType t =
          DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID, true);
-    AttributeValue v = entryDN.getRDN().getAttributeValue(t);
+    AttributeValue v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
       Message message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(
@@ -1714,7 +1714,7 @@ public class TrustStoreBackend
     // Make sure that the DN specifies a certificate alias.
     AttributeType t =
          DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID, true);
-    AttributeValue v = entryDN.getRDN().getAttributeValue(t);
+    AttributeValue v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
       Message message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(

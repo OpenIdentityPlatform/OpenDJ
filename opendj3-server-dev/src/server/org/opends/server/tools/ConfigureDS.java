@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -553,7 +553,7 @@ public class ConfigureDS
         {
           try
           {
-            baseDNs.add(DN.decode(dnString));
+            baseDNs.add(DN.valueOf(dnString));
           }
           catch (DirectoryException de)
           {
@@ -575,7 +575,7 @@ public class ConfigureDS
       {
         try
         {
-          rootDN = DN.decode(rootDNString.getValue());
+          rootDN = DN.valueOf(rootDNString.getValue());
         }
         catch (DirectoryException de)
         {
@@ -615,9 +615,9 @@ public class ConfigureDS
         DN JCEKSProviderDN = null;
         try
         {
-          dn = DN.decode(keyManagerProviderDN.getValue());
+          dn = DN.valueOf(keyManagerProviderDN.getValue());
           JCEKSProviderDN =
-            DN.decode("cn=JCEKS,cn=Key Manager Providers,cn=config");
+            DN.valueOf("cn=JCEKS,cn=Key Manager Providers,cn=config");
         }
         catch (DirectoryException de)
         {
@@ -687,9 +687,9 @@ public class ConfigureDS
         DN JCEKSTrustManagerDN = null;
         try
         {
-          dn = DN.decode(trustManagerProviderDN.getValue());
+          dn = DN.valueOf(trustManagerProviderDN.getValue());
           JCEKSTrustManagerDN =
-            DN.decode("cn=JCEKS,cn=Trust Manager Providers,cn=config");
+            DN.valueOf("cn=JCEKS,cn=Trust Manager Providers,cn=config");
         }
         catch (DirectoryException de)
         {
@@ -766,7 +766,7 @@ public class ConfigureDS
       {
         try
         {
-          DN jeBackendDN = DN.decode(DN_JE_BACKEND);
+          DN jeBackendDN = DN.valueOf(DN_JE_BACKEND);
           ConfigEntry configEntry = configHandler.getConfigEntry(jeBackendDN);
 
           DNConfigAttribute baseDNAttr =
@@ -791,7 +791,7 @@ public class ConfigureDS
       {
         try
         {
-          DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+          DN ldapListenerDN = DN.valueOf(DN_LDAP_CONNECTION_HANDLER);
           ConfigEntry configEntry =
                configHandler.getConfigEntry(ldapListenerDN);
 
@@ -818,7 +818,7 @@ public class ConfigureDS
       {
         try
         {
-          DN adminConnectorDN = DN.decode(DN_ADMIN_CONNECTOR);
+          DN adminConnectorDN = DN.valueOf(DN_ADMIN_CONNECTOR);
           ConfigEntry configEntry =
                configHandler.getConfigEntry(adminConnectorDN);
 
@@ -845,7 +845,7 @@ public class ConfigureDS
       {
         try
         {
-          DN ldapListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
+          DN ldapListenerDN = DN.valueOf(DN_LDAPS_CONNECTION_HANDLER);
           ConfigEntry configEntry =
                configHandler.getConfigEntry(ldapListenerDN);
 
@@ -877,7 +877,7 @@ public class ConfigureDS
       {
         try
         {
-          DN jmxListenerDN = DN.decode(DN_JMX_CONNECTION_HANDLER);
+          DN jmxListenerDN = DN.valueOf(DN_JMX_CONNECTION_HANDLER);
           ConfigEntry configEntry =
                configHandler.getConfigEntry(jmxListenerDN);
 
@@ -909,7 +909,7 @@ public class ConfigureDS
       {
         try
         {
-          DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+          DN ldapListenerDN = DN.valueOf(DN_LDAP_CONNECTION_HANDLER);
           ConfigEntry configEntry =
                configHandler.getConfigEntry(ldapListenerDN);
 
@@ -937,7 +937,7 @@ public class ConfigureDS
           try
           {
             // Enable the key manager
-            DN dn = DN.decode(keyManagerProviderDN.getValue());
+            DN dn = DN.valueOf(keyManagerProviderDN.getValue());
             ConfigEntry configEntry = configHandler.getConfigEntry(dn);
 
             BooleanConfigAttribute enableAttr =
@@ -960,7 +960,7 @@ public class ConfigureDS
           if (enableStartTLS.isPresent())
           {
             // Use the key manager specified for the LDAP connection handler.
-            DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+            DN ldapListenerDN = DN.valueOf(DN_LDAP_CONNECTION_HANDLER);
             ConfigEntry configEntry =
               configHandler.getConfigEntry(ldapListenerDN);
 
@@ -974,7 +974,7 @@ public class ConfigureDS
           if (ldapsPort.isPresent())
           {
             // Use the key manager specified for the LDAPS connection handler.
-            DN ldapsListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
+            DN ldapsListenerDN = DN.valueOf(DN_LDAPS_CONNECTION_HANDLER);
             ConfigEntry configEntry =
               configHandler.getConfigEntry(ldapsListenerDN);
 
@@ -999,7 +999,7 @@ public class ConfigureDS
           try
           {
             // Enable the key manager
-            DN dn = DN.decode(keyManagerProviderDN.getValue());
+            DN dn = DN.valueOf(keyManagerProviderDN.getValue());
             ConfigEntry configEntry = configHandler.getConfigEntry(dn);
 
             StringConfigAttribute pathAttr =
@@ -1023,7 +1023,7 @@ public class ConfigureDS
           // Enable the trust manager
           try
           {
-            DN dn = DN.decode(trustManagerProviderDN.getValue());
+            DN dn = DN.valueOf(trustManagerProviderDN.getValue());
             ConfigEntry configEntry = configHandler.getConfigEntry(dn);
 
             BooleanConfigAttribute enableAttr =
@@ -1046,7 +1046,7 @@ public class ConfigureDS
           if (enableStartTLS.isPresent())
           {
             // Use the trust manager specified for the LDAP connection handler.
-            DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+            DN ldapListenerDN = DN.valueOf(DN_LDAP_CONNECTION_HANDLER);
             ConfigEntry configEntry =
               configHandler.getConfigEntry(ldapListenerDN);
 
@@ -1061,7 +1061,7 @@ public class ConfigureDS
           if (ldapsPort.isPresent())
           {
             // Use the trust manager specified for the LDAPS connection handler.
-            DN ldapsListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
+            DN ldapsListenerDN = DN.valueOf(DN_LDAPS_CONNECTION_HANDLER);
             ConfigEntry configEntry =
               configHandler.getConfigEntry(ldapsListenerDN);
 
@@ -1093,7 +1093,7 @@ public class ConfigureDS
                     INFO_LDAP_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME.get(),
                 false, false, true, certNickName.getValue());
 
-          DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+          DN ldapListenerDN = DN.valueOf(DN_LDAP_CONNECTION_HANDLER);
           ConfigEntry configEntry =
             configHandler.getConfigEntry(ldapListenerDN);
           if (ldapPort.isPresent())
@@ -1108,7 +1108,7 @@ public class ConfigureDS
           }
 
           // Use the key manager specified for the LDAPS connection handler.
-          DN ldapsListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
+          DN ldapsListenerDN = DN.valueOf(DN_LDAPS_CONNECTION_HANDLER);
           configEntry = configHandler.getConfigEntry(ldapsListenerDN);
           if (ldapsPort.isPresent())
           {
@@ -1125,7 +1125,7 @@ public class ConfigureDS
                   false, false, true, certNickName.getValue());
 
           // Use the key manager specified for the JMX connection handler.
-          DN jmxListenerDN = DN.decode(DN_JMX_CONNECTION_HANDLER);
+          DN jmxListenerDN = DN.valueOf(DN_JMX_CONNECTION_HANDLER);
           configEntry = configHandler.getConfigEntry(jmxListenerDN);
           if (jmxPort.isPresent())
           {
@@ -1150,7 +1150,7 @@ public class ConfigureDS
         try
         {
           // Use the key manager specified for the LDAP connection handler.
-          DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+          DN ldapListenerDN = DN.valueOf(DN_LDAP_CONNECTION_HANDLER);
           ConfigEntry configEntry =
             configHandler.getConfigEntry(ldapListenerDN);
 
@@ -1158,14 +1158,14 @@ public class ConfigureDS
               ATTR_SSL_CERT_NICKNAME.toLowerCase());
 
           // Use the key manager specified for the LDAPS connection handler.
-          DN ldapsListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
+          DN ldapsListenerDN = DN.valueOf(DN_LDAPS_CONNECTION_HANDLER);
           configEntry = configHandler.getConfigEntry(ldapsListenerDN);
 
           configEntry.removeConfigAttribute(
               ATTR_SSL_CERT_NICKNAME.toLowerCase());
 
           // Use the key manager specified for the JMX connection handler.
-          DN jmxListenerDN = DN.decode(DN_JMX_CONNECTION_HANDLER);
+          DN jmxListenerDN = DN.valueOf(DN_JMX_CONNECTION_HANDLER);
           configEntry = configHandler.getConfigEntry(jmxListenerDN);
 
           configEntry.removeConfigAttribute(
@@ -1186,7 +1186,7 @@ public class ConfigureDS
       {
         try
         {
-          DN rootUserDN = DN.decode(DN_ROOT_USER);
+          DN rootUserDN = DN.valueOf(DN_ROOT_USER);
           ConfigEntry configEntry = configHandler.getConfigEntry(rootUserDN);
 
           DNConfigAttribute bindDNAttr =
@@ -1217,7 +1217,7 @@ public class ConfigureDS
       // Set the FQDN for the DIGEST-MD5 SASL mechanism.
       try
       {
-        DN digestMD5DN = DN.decode(DN_DIGEST_MD5_SASL_MECHANISM);
+        DN digestMD5DN = DN.valueOf(DN_DIGEST_MD5_SASL_MECHANISM);
         ConfigEntry configEntry = configHandler.getConfigEntry(digestMD5DN);
         StringConfigAttribute fqdnAttr = new StringConfigAttribute(
             "ds-cfg-server-fqdn", Message.EMPTY, false, false, false,
@@ -1264,7 +1264,7 @@ public class ConfigureDS
           {
             try
             {
-              DN cipherDN = DN.decode(DN_CRYPTO_MANAGER);
+              DN cipherDN = DN.valueOf(DN_CRYPTO_MANAGER);
               ConfigEntry configEntry = configHandler.getConfigEntry(cipherDN);
 
               // Set the alternative cipher

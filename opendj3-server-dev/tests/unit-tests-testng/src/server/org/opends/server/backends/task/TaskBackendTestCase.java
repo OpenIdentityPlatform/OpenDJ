@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
@@ -117,9 +118,9 @@ public class TaskBackendTestCase
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
       "ds-task-scheduled-start-time: " + startTimeStr,
       "ds-task-dummy-sleep-time: 30000");
-    assertTrue(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
 
-    Task task = TasksTestCase.getTask(DN.decode(taskDN));
+    Task task = TasksTestCase.getTask(DN.valueOf(taskDN));
     assertTrue(TaskState.isPending(task.getTaskState()));
 
     // Perform a modification to delete that task.
@@ -127,7 +128,7 @@ public class TaskBackendTestCase
       "dn: " + taskDN,
       "changetype: delete");
     assertEquals(resultCode, 0);
-    assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf(taskDN)));
   }
 
 
@@ -154,12 +155,12 @@ public class TaskBackendTestCase
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
       "ds-task-dummy-sleep-time: 300000");
-    assertTrue(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
 
 
     // Wait until we're sure that the task has started running.
     long startTime = System.currentTimeMillis();
-    Task task = TasksTestCase.getTask(DN.decode(taskDN));
+    Task task = TasksTestCase.getTask(DN.valueOf(taskDN));
     while (TaskState.isPending(task.getTaskState()))
     {
       Thread.sleep(10);
@@ -177,7 +178,7 @@ public class TaskBackendTestCase
       "dn: " + taskDN,
       "changetype: delete");
     assertFalse(resultCode == 0);
-    assertTrue(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
   }
 
 
@@ -203,11 +204,11 @@ public class TaskBackendTestCase
       "objectClass: extensibleObject",
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask");
-    assertTrue(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
 
 
     // Wait until the task has completed.
-    Task task = TasksTestCase.getCompletedTask(DN.decode(taskDN));
+    Task task = TasksTestCase.getCompletedTask(DN.valueOf(taskDN));
     assertTrue(TaskState.isDone(task.getTaskState()));
 
 
@@ -216,7 +217,7 @@ public class TaskBackendTestCase
       "dn: " + taskDN,
       "changetype: delete");
     assertEquals(resultCode, 0);
-    assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf(taskDN)));
   }
 
 
@@ -251,9 +252,9 @@ public class TaskBackendTestCase
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
       "ds-task-scheduled-start-time: " + startTimeStr,
       "ds-task-dummy-sleep-time: 30000");
-    assertTrue(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
 
-    Task task = TasksTestCase.getTask(DN.decode(taskDN));
+    Task task = TasksTestCase.getTask(DN.valueOf(taskDN));
     assertTrue(TaskState.isPending(task.getTaskState()));
 
     // Perform a modification to update a non-state attribute.
@@ -277,7 +278,7 @@ public class TaskBackendTestCase
     resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
-    assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf(taskDN)));
   }
 
 
@@ -305,12 +306,12 @@ public class TaskBackendTestCase
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
       "ds-task-dummy-sleep-time: 300000");
-    assertTrue(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
 
 
     // Wait until we're sure that the task has started running.
     long startTime = System.currentTimeMillis();
-    Task task = TasksTestCase.getTask(DN.decode(taskDN));
+    Task task = TasksTestCase.getTask(DN.valueOf(taskDN));
     while (TaskState.isPending(task.getTaskState()))
     {
       Thread.sleep(10);
@@ -343,7 +344,7 @@ public class TaskBackendTestCase
 
     // We may have to wait for the task to register as done, but it should
     // definitely be done before it would have stopped normally.
-    task = TasksTestCase.getCompletedTask(DN.decode(taskDN));
+    task = TasksTestCase.getCompletedTask(DN.valueOf(taskDN));
     assertTrue((System.currentTimeMillis() - startTime) < 300000L);
     assertTrue(TaskState.isDone(task.getTaskState()));
 
@@ -353,7 +354,7 @@ public class TaskBackendTestCase
     resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
-    assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf(taskDN)));
   }
 
 
@@ -378,11 +379,11 @@ public class TaskBackendTestCase
       "objectClass: extensibleObject",
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask");
-    assertTrue(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
 
 
     // Wait until the task has completed.
-    Task task = TasksTestCase.getCompletedTask(DN.decode(taskDN));
+    Task task = TasksTestCase.getCompletedTask(DN.valueOf(taskDN));
     assertTrue(TaskState.isDone(task.getTaskState()));
 
 
@@ -400,7 +401,7 @@ public class TaskBackendTestCase
       "dn: " + taskDN,
       "changetype: delete");
     assertEquals(resultCode, 0);
-    assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf(taskDN)));
   }
 
 
@@ -492,14 +493,14 @@ public class TaskBackendTestCase
       Integer.toString(scheduledMonth) + " *";
 
     TaskBackend taskBackend =
-      (TaskBackend) DirectoryServer.getBackend(DN.decode("cn=tasks"));
-    long tasksCountBefore = taskBackend.numSubordinates(DN.decode(
+      (TaskBackend) DirectoryServer.getBackend(DN.valueOf("cn=tasks"));
+    long tasksCountBefore = taskBackend.numSubordinates(DN.valueOf(
       "cn=Scheduled Tasks,cn=tasks"), true);
 
     assertTrue(addRecurringTask(taskID, taskSchedule));
 
     // Make sure recurring task iteration got scheduled.
-    long tasksCountAfter = taskBackend.numSubordinates(DN.decode(
+    long tasksCountAfter = taskBackend.numSubordinates(DN.valueOf(
       "cn=Scheduled Tasks,cn=tasks"), true);
     assertTrue(tasksCountAfter == (tasksCountBefore + 1));
 
@@ -516,10 +517,10 @@ public class TaskBackendTestCase
         TestCaseUtils.applyModifications(true, "dn: " + taskDN,
             "changetype: delete");
     assertEquals(resultCode, 0);
-    assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf(taskDN)));
 
     // Make sure recurring task iteration got canceled and removed.
-    tasksCountAfter = taskBackend.numSubordinates(DN.decode(
+    tasksCountAfter = taskBackend.numSubordinates(DN.valueOf(
       "cn=Scheduled Tasks,cn=tasks"), true);
     assertTrue(tasksCountAfter == tasksCountBefore);
   }
@@ -555,7 +556,7 @@ public class TaskBackendTestCase
             TestCaseUtils.applyModifications(true, "dn: " + taskDN,
                 "changetype: delete");
         assertEquals(resultCode, 0);
-        assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
+        assertFalse(DirectoryServer.entryExists(DN.valueOf(taskDN)));
       }
     }
     finally
@@ -610,6 +611,6 @@ public class TaskBackendTestCase
       return false;
     }
 
-    return DirectoryServer.entryExists(DN.decode(taskDN));
+    return DirectoryServer.entryExists(DN.valueOf(taskDN));
   }
 }

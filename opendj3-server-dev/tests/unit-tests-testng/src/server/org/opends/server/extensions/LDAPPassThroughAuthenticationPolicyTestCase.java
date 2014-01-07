@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -591,7 +592,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       try
       {
-        baseDNs.add(DN.decode(baseDN));
+        baseDNs.add(DN.valueOf(baseDN));
       }
       catch (final DirectoryException e)
       {
@@ -754,7 +755,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       try
       {
-        return DN.decode("cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
+        return DN.valueOf("cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
       }
       catch (DirectoryException e)
       {
@@ -1614,9 +1615,9 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
   {
     TestCaseUtils.startServer();
 
-    policyDN = DN.decode(policyDNString);
-    trustManagerDN = DN.decode(trustManagerDNString);
-    searchBindDN = DN.decode(searchBindDNString);
+    policyDN = DN.valueOf(policyDNString);
+    trustManagerDN = DN.valueOf(trustManagerDNString);
+    searchBindDN = DN.valueOf(searchBindDNString);
     userEntry = TestCaseUtils.makeEntry(
         /* @formatter:off */
         "dn: " + opendjDNString,
@@ -4327,7 +4328,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     // Check that the password has been cached if needed.
     Entry updatedTestUser = DirectoryServer.getEntry(DN
-        .decode("cn=test user,o=test"));
+        .valueOf("cn=test user,o=test"));
 
     String newCachedPassword = updatedTestUser.getAttributeValue(
         DirectoryServer.getAttributeType("ds-pta-cached-password"),
@@ -4411,7 +4412,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
   SearchResultEntryProtocolOp newSearchEntry(final String dn)
       throws DirectoryException
   {
-    return new SearchResultEntryProtocolOp(DN.decode(dn));
+    return new SearchResultEntryProtocolOp(DN.valueOf(dn));
   }
 
 

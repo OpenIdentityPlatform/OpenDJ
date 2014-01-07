@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.server;
@@ -190,7 +191,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       throws IllegalArgumentException {
     validateRelationDefinition(d);
 
-    DN baseDN = DNBuilder.create(path, d).getParent();
+    DN baseDN = DNBuilder.create(path, d).parent();
     deregisterAddListener(baseDN, listener);
   }
 
@@ -215,7 +216,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       throws IllegalArgumentException {
     validateRelationDefinition(d);
 
-    DN baseDN = DNBuilder.create(path, d).getParent();
+    DN baseDN = DNBuilder.create(path, d).parent();
     deregisterAddListener(baseDN, listener);
   }
 
@@ -387,7 +388,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       ConfigurationDeleteListener<M> listener) throws IllegalArgumentException {
     validateRelationDefinition(d);
 
-    DN baseDN = DNBuilder.create(path, d).getParent();
+    DN baseDN = DNBuilder.create(path, d).parent();
     deregisterDeleteListener(baseDN, listener);
   }
 
@@ -412,7 +413,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       throws IllegalArgumentException {
     validateRelationDefinition(d);
 
-    DN baseDN = DNBuilder.create(path, d).getParent();
+    DN baseDN = DNBuilder.create(path, d).parent();
     deregisterDeleteListener(baseDN, listener);
   }
 
@@ -599,7 +600,7 @@ public final class ServerManagedObject<S extends Configuration> implements
     if (configEntry != null) {
       return configEntry.getDN();
     } else {
-      return DN.nullDN();
+      return DN.rootDN();
     }
   }
 
@@ -850,7 +851,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       ServerManagedObjectAddListener<M> listener)
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
-    DN baseDN = DNBuilder.create(path, d).getParent();
+    DN baseDN = DNBuilder.create(path, d).parent();
     ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
         listener);
     registerAddListener(baseDN, adaptor);
@@ -1071,7 +1072,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       ServerManagedObjectDeleteListener<M> listener)
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
-    DN baseDN = DNBuilder.create(path, d).getParent();
+    DN baseDN = DNBuilder.create(path, d).parent();
     ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
         listener);
     registerDeleteListener(baseDN, adaptor);
@@ -1396,13 +1397,13 @@ public final class ServerManagedObject<S extends Configuration> implements
   // entry to the provided base DN.
   private void registerDelayedListener(DN baseDN,
       ConfigAddListener delayedListener) throws ConfigException {
-    DN parentDN = baseDN.getParent();
+    DN parentDN = baseDN.parent();
     while (parentDN != null) {
       ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
       if (relationEntry == null) {
         delayedListener = new DelayedConfigAddListener(parentDN,
             delayedListener);
-        parentDN = parentDN.getParent();
+        parentDN = parentDN.parent();
       } else {
         relationEntry.registerAddListener(delayedListener);
         return;
@@ -1419,12 +1420,12 @@ public final class ServerManagedObject<S extends Configuration> implements
   // entry to the provided base DN.
   private <M extends Configuration> void deregisterDelayedAddListener(DN baseDN,
       ConfigurationAddListener<M> listener) throws ConfigException {
-    DN parentDN = baseDN.getParent();
+    DN parentDN = baseDN.parent();
     int delayWrappers = 0;
     while (parentDN != null) {
       ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
       if (relationEntry == null) {
-        parentDN = parentDN.getParent();
+        parentDN = parentDN.parent();
         delayWrappers++;
       } else {
         for (ConfigAddListener l : relationEntry.getAddListeners()) {
@@ -1486,12 +1487,12 @@ public final class ServerManagedObject<S extends Configuration> implements
   private <M extends Configuration> void deregisterDelayedDeleteListener(
       DN baseDN, ConfigurationDeleteListener<M> listener)
       throws ConfigException {
-    DN parentDN = baseDN.getParent();
+    DN parentDN = baseDN.parent();
     int delayWrappers = 0;
     while (parentDN != null) {
       ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
       if (relationEntry == null) {
-        parentDN = parentDN.getParent();
+        parentDN = parentDN.parent();
         delayWrappers++;
       } else {
         for (ConfigAddListener l : relationEntry.getAddListeners()) {
@@ -1551,12 +1552,12 @@ public final class ServerManagedObject<S extends Configuration> implements
   // entry to the provided base DN.
   private <M extends Configuration> void deregisterDelayedAddListener(DN baseDN,
       ServerManagedObjectAddListener<M> listener) throws ConfigException {
-    DN parentDN = baseDN.getParent();
+    DN parentDN = baseDN.parent();
     int delayWrappers = 0;
     while (parentDN != null) {
       ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
       if (relationEntry == null) {
-        parentDN = parentDN.getParent();
+        parentDN = parentDN.parent();
         delayWrappers++;
       } else {
         for (ConfigAddListener l : relationEntry.getAddListeners()) {
@@ -1612,12 +1613,12 @@ public final class ServerManagedObject<S extends Configuration> implements
   private <M extends Configuration> void deregisterDelayedDeleteListener(
       DN baseDN, ServerManagedObjectDeleteListener<M> listener)
       throws ConfigException {
-    DN parentDN = baseDN.getParent();
+    DN parentDN = baseDN.parent();
     int delayWrappers = 0;
     while (parentDN != null) {
       ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
       if (relationEntry == null) {
-        parentDN = parentDN.getParent();
+        parentDN = parentDN.parent();
         delayWrappers++;
       } else {
         for (ConfigAddListener l : relationEntry.getAddListeners()) {

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.monitors;
 
@@ -69,7 +70,7 @@ public abstract class GenericMonitorTestCase
 
     if (dnString != null)
     {
-      DN dn = DN.decode(dnString);
+      DN dn = DN.valueOf(dnString);
       configEntry = DirectoryServer.getConfigEntry(dn);
       assertNotNull(configEntry);
     }

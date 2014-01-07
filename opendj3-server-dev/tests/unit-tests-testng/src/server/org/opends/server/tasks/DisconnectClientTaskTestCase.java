@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -112,7 +113,7 @@ public class DisconnectClientTaskTestCase
     // Invoke the disconnect client task.
     String taskID = "Disconnect Client " + connectionID;
     Message disconnectMessage = Message.raw("testDisconnectWithNotification");
-    DN taskDN = DN.decode("ds-task-id=" + taskID +
+    DN taskDN = DN.valueOf("ds-task-id=" + taskID +
                           ",cn=Scheduled Tasks,cn=Tasks");
     TestCaseUtils.addEntry(
       "dn: " + taskDN.toString(),
@@ -190,7 +191,7 @@ public class DisconnectClientTaskTestCase
 
     // Invoke the disconnect client task.
     String taskID = "Disconnect Client " + connectionID;
-    DN taskDN = DN.decode("ds-task-id=" + taskID +
+    DN taskDN = DN.valueOf("ds-task-id=" + taskID +
                           ",cn=Scheduled Tasks,cn=Tasks");
     TestCaseUtils.addEntry(
       "dn: " + taskDN.toString(),

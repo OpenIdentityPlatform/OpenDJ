@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -230,7 +230,7 @@ public class UserDN implements KeywordBindRule {
             }
             case PARENT:
             {
-                DN parentDN = resDN.getParent();
+                DN parentDN = resDN.parent();
                 if ((parentDN != null) &&
                         (parentDN.equals(clientDN)))
                     matched = EnumEvalResult.TRUE;
@@ -319,12 +319,12 @@ public class UserDN implements KeywordBindRule {
             if(!evalCtx.getClientDN().isDescendantOf(urlDN))
                 return EnumEvalResult.FALSE;
         } else if(scope == SearchScope.SINGLE_LEVEL) {
-            DN parent=evalCtx.getClientDN().getParent();
+            DN parent=evalCtx.getClientDN().parent();
             if((parent != null) && !parent.equals(urlDN))
                 return EnumEvalResult.FALSE;
         } else if(scope == SearchScope.SUBORDINATE_SUBTREE) {
             DN userDN = evalCtx.getClientDN();
-            if ((userDN.getNumComponents() <= urlDN.getNumComponents()) ||
+            if ((userDN.size() <= urlDN.size()) ||
                  !userDN.isDescendantOf(urlDN)) {
               return EnumEvalResult.FALSE;
             }
@@ -364,7 +364,7 @@ public class UserDN implements KeywordBindRule {
         List<Attribute> attrs =  e.getAttribute(attrType);
         for(AttributeValue v : attrs.get(0)) {
             try {
-                DN dn=DN.decode(v.getValue().toString());
+                DN dn=DN.valueOf(v.getValue().toString());
                 if(dn.equals(clientDN)) {
                     matched=EnumEvalResult.TRUE;
                     break;

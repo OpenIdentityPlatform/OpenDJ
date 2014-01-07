@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 
@@ -71,10 +72,10 @@ public final class CollationMatchingRuleTest
   {
     TestCaseUtils.startServer();
     TestCaseUtils.initializeTestBackend(true);
-    user1 = DN.decode("cn=user1,dc=example,dc=com");
-    user2 = DN.decode("cn=user2,dc=example,dc=com");
-    user3 = DN.decode("cn=user3,dc=example,dc=com");
-    user4 = DN.decode("cn=user4,dc=example,dc=com");
+    user1 = DN.valueOf("cn=user1,dc=example,dc=com");
+    user2 = DN.valueOf("cn=user2,dc=example,dc=com");
+    user3 = DN.valueOf("cn=user3,dc=example,dc=com");
+    user4 = DN.valueOf("cn=user4,dc=example,dc=com");
   }
 
 
@@ -476,7 +477,7 @@ public final class CollationMatchingRuleTest
       InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString(searchFilter),
                   null, null);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.crypto;
 
@@ -359,7 +359,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     // specified transformation and key length. Mark each entry compromised.
     final String baseDNStr // TODO: is this DN defined elsewhere as a constant?
             = "cn=secret keys," + ADSContext.getAdministrationSuffixDN();
-    final DN baseDN = DN.decode(baseDNStr);
+    final DN baseDN = DN.valueOf(baseDNStr);
     final String FILTER_OC_INSTANCE_KEY
             = new StringBuilder("(objectclass=")
             .append(ConfigConstants.OC_CRYPTO_CIPHER_KEY)

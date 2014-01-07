@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
@@ -409,9 +410,9 @@ public class BasicNode extends DefaultMutableTreeNode {
     {
       try
       {
-        DN dnObj = DN.decode(dn);
-        if (dnObj.getNumComponents() >= 1) {
-          RDN rdn = dnObj.getRDN();
+        DN dnObj = DN.valueOf(dn);
+        if (dnObj.size() >= 1) {
+          RDN rdn = dnObj.rdn();
           if (showAttributeName)
           {
             result = rdn.toString();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2011-2012 profiq s.r.o.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -694,7 +694,7 @@ public final class SambaPasswordPlugin extends
      */
     final DN authDN = extendedOperation.getAuthorizationDN();
     final DN sambaAdminDN = config.getSambaAdministratorDN();
-    if (sambaAdminDN != null && !sambaAdminDN.isNullDN())
+    if (sambaAdminDN != null && !sambaAdminDN.isRootDN())
     {
       if (authDN.equals(sambaAdminDN))
       {
@@ -844,7 +844,7 @@ public final class SambaPasswordPlugin extends
      */
     final DN authDN = modifyOperation.getAuthorizationDN();
     final DN sambaAdminDN = config.getSambaAdministratorDN();
-    if (sambaAdminDN != null && !sambaAdminDN.isNullDN())
+    if (sambaAdminDN != null && !sambaAdminDN.isRootDN())
     {
       if (authDN.equals(sambaAdminDN))
       {

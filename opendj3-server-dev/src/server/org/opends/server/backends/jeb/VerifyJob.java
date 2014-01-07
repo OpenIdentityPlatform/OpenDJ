@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import com.sleepycat.je.*;
@@ -632,7 +632,7 @@ public class VerifyJob
         else
         {
           if (!Arrays.equals(JebFormat.dnToDNKey(
-              entry.getDN(), verifyConfig.getBaseDN().getNumComponents()),
+              entry.getDN(), verifyConfig.getBaseDN().size()),
                              key.getData()))
           {
             errorCount++;
@@ -770,8 +770,8 @@ public class VerifyJob
             }
 
             if (!childEntry.getDN().isDescendantOf(entry.getDN()) ||
-                 childEntry.getDN().getNumComponents() !=
-                 entry.getDN().getNumComponents() + 1)
+                 childEntry.getDN().size() !=
+                 entry.getDN().size() + 1)
             {
               errorCount++;
               if (debugEnabled())

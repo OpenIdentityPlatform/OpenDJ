@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -558,7 +558,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(mapperDN), mods);
+         conn.processModify(DN.valueOf(mapperDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -614,7 +614,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(externalDN), mods);
+         conn.processModify(DN.valueOf(externalDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -640,7 +640,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(externalDN), mods);
+         conn.processModify(DN.valueOf(externalDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -669,7 +669,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(mapperDN), mods);
+         conn.processModify(DN.valueOf(mapperDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -710,7 +710,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(mapperDN), mods);
+         conn.processModify(DN.valueOf(mapperDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 

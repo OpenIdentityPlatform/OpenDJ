@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -107,7 +107,7 @@ public class MonitorTest extends ReplicationTestCase
   {
     super.setUp();
 
-    baseDN = DN.decode(baseDnStr);
+    baseDN = DN.valueOf(baseDnStr);
   }
 
   /**
@@ -223,7 +223,7 @@ public class MonitorTest extends ReplicationTestCase
       SYNCHRO_PLUGIN_DN;
       // Must have called connectServer1ToChangelog previously
       assertTrue(synchroServerEntry != null);
-      DN synchroServerDN = DN.decode(synchroServerStringDN);
+      DN synchroServerDN = DN.valueOf(synchroServerStringDN);
       deleteEntry(synchroServerDN);
       synchroServerEntry = null;
     configEntriesToCleanup.remove(synchroServerDN);

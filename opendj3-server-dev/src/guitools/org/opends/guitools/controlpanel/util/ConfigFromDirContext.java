@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock, AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -102,37 +102,37 @@ public class ConfigFromDirContext extends ConfigReader
   /**
    * The monitor root entry DN.
    */
-  protected DN monitorDN = DN.nullDN();
+  protected DN monitorDN = DN.rootDN();
   /**
    * The JVM memory usage monitoring entry DN.
    */
-  protected DN jvmMemoryUsageDN = DN.nullDN();
+  protected DN jvmMemoryUsageDN = DN.rootDN();
   /**
    * The system information monitoring entry DN.
    */
-  protected DN systemInformationDN = DN.nullDN();
+  protected DN systemInformationDN = DN.rootDN();
   /**
    * The entry cache monitoring entry DN.
    */
-  protected DN entryCachesDN = DN.nullDN();
+  protected DN entryCachesDN = DN.rootDN();
   /**
    * The work queue monitoring entry DN.
    */
-  protected DN workQueueDN = DN.nullDN();
+  protected DN workQueueDN = DN.rootDN();
   /**
    * The version monitoring entry DN.
    */
-  protected DN versionDN = DN.nullDN();
+  protected DN versionDN = DN.rootDN();
 
   {
     try
     {
-      monitorDN = DN.decode("cn=monitor");
-      jvmMemoryUsageDN = DN.decode("cn=JVM Memory Usage,cn=monitor");
-      systemInformationDN = DN.decode("cn=System Information,cn=monitor");
-      entryCachesDN = DN.decode("cn=Entry Caches,cn=monitor");
-      workQueueDN = DN.decode("cn=Work Queue,cn=monitor");
-      versionDN = DN.decode("cn=Version,cn=monitor");
+      monitorDN = DN.valueOf("cn=monitor");
+      jvmMemoryUsageDN = DN.valueOf("cn=JVM Memory Usage,cn=monitor");
+      systemInformationDN = DN.valueOf("cn=System Information,cn=monitor");
+      entryCachesDN = DN.valueOf("cn=Entry Caches,cn=monitor");
+      workQueueDN = DN.valueOf("cn=Work Queue,cn=monitor");
+      versionDN = DN.valueOf("cn=Version,cn=monitor");
     }
     catch (Throwable t)
     {
@@ -631,7 +631,7 @@ public class ConfigFromDirContext extends ConfigReader
         {
           try
           {
-            if (baseDN.getDn().equals(DN.decode(dn)) &&
+            if (baseDN.getDn().equals(DN.valueOf(dn)) &&
                 String.valueOf(baseDN.getReplicaID()).equals(replicaId))
             {
               try
@@ -1007,45 +1007,45 @@ public class ConfigFromDirContext extends ConfigReader
   private boolean isRootMonitor(CustomSearchResult csr)
   throws OpenDsException
   {
-    return monitorDN.equals(DN.decode(csr.getDN()));
+    return monitorDN.equals(DN.valueOf(csr.getDN()));
   }
 
   private boolean isVersionMonitor(CustomSearchResult csr)
   throws OpenDsException
   {
-    return versionDN.equals(DN.decode(csr.getDN()));
+    return versionDN.equals(DN.valueOf(csr.getDN()));
   }
 
   private boolean isSystemInformation(CustomSearchResult csr)
   throws OpenDsException
   {
-    return systemInformationDN.equals(DN.decode(csr.getDN()));
+    return systemInformationDN.equals(DN.valueOf(csr.getDN()));
   }
 
   private boolean isJvmMemoryUsage(CustomSearchResult csr)
   throws OpenDsException
   {
-    return jvmMemoryUsageDN.equals(DN.decode(csr.getDN()));
+    return jvmMemoryUsageDN.equals(DN.valueOf(csr.getDN()));
   }
 
   private boolean isWorkQueue(CustomSearchResult csr)
   throws OpenDsException
   {
-    return workQueueDN.equals(DN.decode(csr.getDN()));
+    return workQueueDN.equals(DN.valueOf(csr.getDN()));
   }
 
   private boolean isEntryCaches(CustomSearchResult csr)
   throws OpenDsException
   {
-    return entryCachesDN.equals(DN.decode(csr.getDN()));
+    return entryCachesDN.equals(DN.valueOf(csr.getDN()));
   }
 
   private boolean isConnectionHandler(CustomSearchResult csr)
   throws OpenDsException
   {
     boolean isConnectionHandler = false;
-    DN dn = DN.decode(csr.getDN());
-    DN parent = dn.getParent();
+    DN dn = DN.valueOf(csr.getDN());
+    DN parent = dn.parent();
     if ((parent != null) && parent.equals(monitorDN))
     {
       List<?> vs = csr.getAttributeValues("cn");

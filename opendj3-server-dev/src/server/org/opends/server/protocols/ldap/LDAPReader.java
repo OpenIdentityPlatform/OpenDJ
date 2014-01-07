@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -461,7 +462,7 @@ public class LDAPReader
       }
       else
       {
-        matchedDN = DN.decode(dnString);
+        matchedDN = DN.valueOf(dnString);
       }
     }
     catch (Exception e)
@@ -753,7 +754,7 @@ public class LDAPReader
       }
       else
       {
-        matchedDN = DN.decode(dnString);
+        matchedDN = DN.valueOf(dnString);
       }
     }
     catch (Exception e)
@@ -1064,7 +1065,7 @@ public class LDAPReader
       }
       else
       {
-        matchedDN = DN.decode(dnString);
+        matchedDN = DN.valueOf(dnString);
       }
     }
     catch (Exception e)
@@ -1235,7 +1236,7 @@ public class LDAPReader
       }
       else
       {
-        matchedDN = DN.decode(dnString);
+        matchedDN = DN.valueOf(dnString);
       }
     }
     catch (Exception e)
@@ -1468,7 +1469,7 @@ public class LDAPReader
       }
       else
       {
-        matchedDN = DN.decode(dnString);
+        matchedDN = DN.valueOf(dnString);
       }
     }
     catch (Exception e)
@@ -1896,7 +1897,7 @@ public class LDAPReader
       }
       else
       {
-        matchedDN = DN.decode(dnString);
+        matchedDN = DN.valueOf(dnString);
       }
     }
     catch (Exception e)
@@ -2131,7 +2132,7 @@ public class LDAPReader
       }
       else
       {
-        matchedDN = DN.decode(dnString);
+        matchedDN = DN.valueOf(dnString);
       }
     }
     catch (Exception e)
@@ -2519,7 +2520,7 @@ public class LDAPReader
       }
       else
       {
-        matchedDN = DN.decode(dnString);
+        matchedDN = DN.valueOf(dnString);
       }
     }
     catch (Exception e)
@@ -2639,7 +2640,7 @@ public class LDAPReader
     DN dn;
     try
     {
-      dn = DN.decode(reader.readOctetStringAsString());
+      dn = DN.valueOf(reader.readOctetStringAsString());
     }
     catch (Exception e)
     {

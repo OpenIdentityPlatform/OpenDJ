@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -809,8 +809,8 @@ public class NodeRefresher extends AbstractNodeTask {
       int parentComponents;
       try
       {
-        DN dn = DN.decode(parentDn);
-        parentComponents = dn.getNumComponents();
+        DN dn = DN.valueOf(parentDn);
+        parentComponents = dn.size();
       }
       catch (Throwable t)
       {
@@ -844,8 +844,8 @@ public class NodeRefresher extends AbstractNodeTask {
             DN dn = null;
             try
             {
-              dn = DN.decode(name);
-              add = dn.getNumComponents() == parentComponents + 1;
+              dn = DN.valueOf(name);
+              add = dn.size() == parentComponents + 1;
             }
             catch (Throwable t)
             {
@@ -858,7 +858,7 @@ public class NodeRefresher extends AbstractNodeTask {
               // if it is the case, do not add the parent.  If is not the case,
               // search for the parent and add it.
               RDN[] rdns = new RDN[parentComponents + 1];
-              int diff = dn.getNumComponents() - rdns.length;
+              int diff = dn.size() - rdns.length;
               for (int i=0; i < rdns.length; i++)
               {
                 rdns[i] = dn.getRDN(i + diff);
@@ -869,7 +869,7 @@ public class NodeRefresher extends AbstractNodeTask {
               {
                 try
                 {
-                  DN addedDN = DN.decode(addedEntry.getName());
+                  DN addedDN = DN.valueOf(addedEntry.getName());
                   if (addedDN.equals(parentToAddDN))
                   {
                     mustAddParent = false;
@@ -897,7 +897,7 @@ public class NodeRefresher extends AbstractNodeTask {
                         BasicNode node = (BasicNode)getNode().getChildAt(i);
                         try
                         {
-                          DN dn = DN.decode(node.getDN());
+                          DN dn = DN.valueOf(node.getDN());
                           if (dn.equals(parentToAddDN))
                           {
                             resultValue[0] = false;
@@ -1186,7 +1186,7 @@ public class NodeRefresher extends AbstractNodeTask {
     boolean checkSucceeded = true;
     try
     {
-      DN dn1 = DN.decode(getNode().getDN());
+      DN dn1 = DN.valueOf(getNode().getDN());
       DN dn2 = url.getBaseDN();
       if (dn2.isAncestorOf(dn1))
       {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 import java.util.HashSet;
@@ -325,7 +325,7 @@ public class AuthenticatedUsers
               builder.replace(oldDNIndex, builder.length(),
                       newDNString);
               String newAuthNDNString = builder.toString();
-              newAuthNDN = DN.decode(newAuthNDNString);
+              newAuthNDN = DN.valueOf(newAuthNDNString);
             }
             catch (Exception e)
             {
@@ -347,7 +347,7 @@ public class AuthenticatedUsers
               builder.replace(oldDNIndex, builder.length(),
                       newDNString);
               String newAuthZDNString = builder.toString();
-              newAuthZDN = DN.decode(newAuthZDNString);
+              newAuthZDN = DN.valueOf(newAuthZDNString);
             }
             catch (Exception e)
             {

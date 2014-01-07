@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -212,7 +213,7 @@ public class AuthenticationPolicyTestCase extends APITestCase
   {
     TestCaseUtils.startServer();
 
-    policyDN = DN.decode(policyDNString);
+    policyDN = DN.valueOf(policyDNString);
   }
 
 
@@ -354,7 +355,7 @@ public class AuthenticationPolicyTestCase extends APITestCase
       credentials.append((byte) 0);
       credentials.append("password");
 
-      BindOperation bind = conn.processSASLBind(DN.nullDN(), "PLAIN",
+      BindOperation bind = conn.processSASLBind(DN.rootDN(), "PLAIN",
           credentials.toByteString());
 
       // Check authentication result.

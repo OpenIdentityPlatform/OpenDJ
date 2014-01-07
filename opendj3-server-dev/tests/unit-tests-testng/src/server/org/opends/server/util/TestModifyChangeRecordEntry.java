@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -97,10 +98,10 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorEmptyDN() throws Exception {
-    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.nullDN(),
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.rootDN(),
         modifications);
 
-    Assert.assertEquals(entry.getDN(), DN.nullDN());
+    Assert.assertEquals(entry.getDN(), DN.rootDN());
   }
 
   /**
@@ -111,8 +112,8 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorNonNullDN() throws Exception {
-    DN testDN1 = DN.decode("dc=hello, dc=world");
-    DN testDN2 = DN.decode("dc=hello, dc=world");
+    DN testDN1 = DN.valueOf("dc=hello, dc=world");
+    DN testDN2 = DN.valueOf("dc=hello, dc=world");
 
     ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(testDN1,
         modifications);
@@ -128,7 +129,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.nullDN(),
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.rootDN(),
         modifications);
 
     Assert.assertEquals(entry.getChangeOperationType(),
@@ -144,7 +145,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
   @Test
   public void testGetModificationsEmpty() throws Exception {
     List<RawModification> empty = Collections.emptyList();
-    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.nullDN(),
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.rootDN(),
                                                                 empty);
 
     List<RawModification> mods = entry.getModifications();
@@ -159,7 +160,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testGetModificationsNonEmpty() throws Exception {
-    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.nullDN(),
+    ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.rootDN(),
         modifications);
 
     List<RawModification> mods = entry.getModifications();

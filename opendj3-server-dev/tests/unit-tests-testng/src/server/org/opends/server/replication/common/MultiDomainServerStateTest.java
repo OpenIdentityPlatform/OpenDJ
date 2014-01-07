@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -60,8 +61,8 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   @Test
   public void testUpdateCSN() throws Exception
   {
-    final DN dn1 = DN.decode("o=test1");
-    final DN dn2 = DN.decode("o=test2");
+    final DN dn1 = DN.valueOf("o=test1");
+    final DN dn2 = DN.valueOf("o=test2");
 
     final MultiDomainServerState state = new MultiDomainServerState();
     assertTrue(state.update(dn1, csn1));
@@ -77,8 +78,8 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   @Test
   public void testUpdateServerState() throws Exception
   {
-    final DN dn1 = DN.decode("o=test1");
-    final DN dn2 = DN.decode("o=test2");
+    final DN dn1 = DN.valueOf("o=test1");
+    final DN dn2 = DN.valueOf("o=test2");
 
     final MultiDomainServerState state = new MultiDomainServerState();
     final ServerState ss1 = new ServerState();
@@ -95,8 +96,8 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   @Test
   public void testUpdateMultiDomainServerState() throws Exception
   {
-    final DN dn1 = DN.decode("o=test1");
-    final DN dn2 = DN.decode("o=test2");
+    final DN dn1 = DN.valueOf("o=test1");
+    final DN dn2 = DN.valueOf("o=test2");
 
     final MultiDomainServerState state1 = new MultiDomainServerState();
     state1.update(dn1, csn3);
@@ -112,8 +113,8 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   @Test(dependsOnMethods = { "testUpdateCSN" })
   public void testEqualsTo() throws Exception
   {
-    final DN dn1 = DN.decode("o=test1");
-    final DN dn2 = DN.decode("o=test2");
+    final DN dn1 = DN.valueOf("o=test1");
+    final DN dn2 = DN.valueOf("o=test2");
 
     final MultiDomainServerState state1 = new MultiDomainServerState();
     assertTrue(state1.update(dn1, csn3));
@@ -134,8 +135,8 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   @Test(dependsOnMethods = { "testUpdateCSN" })
   public void testIsEmpty() throws Exception
   {
-    final DN dn1 = DN.decode("o=test1");
-    final DN dn2 = DN.decode("o=test2");
+    final DN dn1 = DN.valueOf("o=test1");
+    final DN dn2 = DN.valueOf("o=test2");
 
     final MultiDomainServerState state = new MultiDomainServerState();
     assertTrue(state.isEmpty());
@@ -155,9 +156,9 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   @Test(dependsOnMethods = { "testUpdateCSN" })
   public void testRemoveCSN() throws Exception
   {
-    final DN dn1 = DN.decode("o=test1");
-    final DN dn2 = DN.decode("o=test2");
-    final DN dn3 = DN.decode("o=test3");
+    final DN dn1 = DN.valueOf("o=test1");
+    final DN dn2 = DN.valueOf("o=test2");
+    final DN dn3 = DN.valueOf("o=test3");
 
     final MultiDomainServerState state = new MultiDomainServerState();
 

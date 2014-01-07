@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server.authorization.dseecompat;
@@ -134,7 +134,7 @@ public final class AciHandler extends
 
     try
     {
-      debugSearchIndexDN = DN.decode("cn=debugsearch");
+      debugSearchIndexDN = DN.valueOf("cn=debugsearch");
     }
     catch (DirectoryException ex)
     {
@@ -409,7 +409,7 @@ public final class AciHandler extends
       return true;
     }
 
-    final RDN oldRDN = operation.getOriginalEntry().getDN().getRDN();
+    final RDN oldRDN = operation.getOriginalEntry().getDN().rdn();
     final RDN newRDN = operation.getNewRDN();
     final DN newSuperiorDN = operation.getNewSuperior();
 
@@ -627,7 +627,7 @@ public final class AciHandler extends
       {
         DNString =
             container.getCurrentAttributeValue().getValue().toString();
-        DN tmpDN = DN.decode(DNString);
+        DN tmpDN = DN.valueOf(DNString);
         // Have a valid DN, compare to clientDN to see if the ACI_SELF
         // right should be set.
         if (tmpDN.equals(container.getClientDN()))
@@ -926,7 +926,7 @@ public final class AciHandler extends
               // modification.
               if (modAttrType.equals(globalAciType))
               {
-                dn = DN.nullDN();
+                dn = DN.rootDN();
               }
               Aci.decode(v.getValue(), dn);
             }
@@ -1266,7 +1266,7 @@ public final class AciHandler extends
       final SortedSet<Aci> globalAcis = configuration.getGlobalACI();
       if (globalAcis != null)
       {
-        aciList.addAci(DN.nullDN(), globalAcis);
+        aciList.addAci(DN.rootDN(), globalAcis);
         logError(INFO_ACI_ADD_LIST_GLOBAL_ACIS.get(
             Integer.toString(globalAcis.size())));
       }

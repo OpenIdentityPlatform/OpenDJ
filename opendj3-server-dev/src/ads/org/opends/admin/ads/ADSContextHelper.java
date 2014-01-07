@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.admin.ads;
@@ -102,7 +103,7 @@ public class ADSContextHelper
         if (suffixes != null)
         {
           if (suffixes.remove(
-              DN.decode(ADSContext.getAdministrationSuffixDN())))
+              DN.valueOf(ADSContext.getAdministrationSuffixDN())))
           {
             if (suffixes.size() > 0)
             {
@@ -170,7 +171,7 @@ public class ADSContextHelper
       {
         suffixes = new TreeSet<DN>();
       }
-      DN newDN = DN.decode(ADSContext.getAdministrationSuffixDN());
+      DN newDN = DN.valueOf(ADSContext.getAdministrationSuffixDN());
       if (!suffixes.contains(newDN))
       {
         suffixes.add(newDN);

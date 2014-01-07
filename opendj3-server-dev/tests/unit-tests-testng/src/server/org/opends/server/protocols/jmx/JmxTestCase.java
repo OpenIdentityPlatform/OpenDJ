@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.protocols.jmx;
 
@@ -135,7 +135,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
         InternalClientConnection.nextMessageID(),
         new ArrayList<Control>(),
         DN
-            .decode("cn=JMX Connection Handler,cn=Connection Handlers,cn=config"),
+            .valueOf("cn=JMX Connection Handler,cn=Connection Handlers,cn=config"),
         mods);
     op.run();
   }

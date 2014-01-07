@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -270,8 +270,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   protected void deleteEntry(DN dn) throws Exception
   {
-    if (dn.getParent().getRDN().toString().equalsIgnoreCase("cn=domains"))
-      deleteEntry(DN.decode("cn=external changelog," + dn));
+    if (dn.parent().rdn().toString().equalsIgnoreCase("cn=domains"))
+      deleteEntry(DN.valueOf("cn=external changelog," + dn));
 
     DeleteOperation op = connection.processDelete(dn);
     assertTrue(op.getResultCode() == SUCCESS || op.getResultCode() == NO_SUCH_OBJECT,

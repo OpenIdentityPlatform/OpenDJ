@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -137,7 +137,7 @@ public class InitOnLineTest extends ReplicationTestCase
     log("Setup: debugEnabled:" + debugEnabled());
 
     // This test suite depends on having the schema available.
-    baseDN = DN.decode(EXAMPLE_DN);
+    baseDN = DN.valueOf(EXAMPLE_DN);
 
     // This test uses import tasks which do not work with memory backend
     // (like the test backend we use in every tests): backend is disabled then
@@ -200,7 +200,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
       log("Search Entry: " + dn);
 
-      DN entryDN = DN.decode(dn);
+      DN entryDN = DN.valueOf(dn);
 
       Entry resultEntry = getEntry(entryDN, 1000, true);
       if (resultEntry == null)
@@ -1333,7 +1333,7 @@ public class InitOnLineTest extends ReplicationTestCase
     // do not try to remove non-leaves
     entriesToCleanup.removeAll(Arrays.asList(
         baseDN,
-        DN.decode("ou=people," + EXAMPLE_DN)));
+        DN.valueOf("ou=people," + EXAMPLE_DN)));
     super.cleanRealEntries();
 
     remove(replServer1, replServer2, replServer3);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer;
@@ -285,7 +285,7 @@ public class InstallerHelper {
 
       LDIFWriter writer = new LDIFWriter(exportConfig);
 
-      DN dn = DN.decode(baseDn);
+      DN dn = DN.valueOf(baseDn);
       Entry entry = StaticUtils.createEntry(dn);
 
       writer.writeEntry(entry);
@@ -352,7 +352,7 @@ public class InstallerHelper {
       String dn = Utilities.getRDNString("ds-cfg-backend-id",
           backendName)+",cn=Backends,cn=config";
       Utilities.deleteConfigSubtree(
-          DirectoryServer.getConfigHandler(), DN.decode(dn));
+          DirectoryServer.getConfigHandler(), DN.valueOf(dn));
     }
     catch (OpenDsException ode)
     {
@@ -388,7 +388,7 @@ public class InstallerHelper {
       Set<DN> setBaseDNs = new HashSet<DN>();
       for (String baseDN : baseDNs)
       {
-        setBaseDNs.add(DN.decode(baseDN));
+        setBaseDNs.add(DN.valueOf(baseDN));
       }
       backend.setBaseDN(setBaseDNs);
       backend.setBackendId(backendName);
@@ -429,7 +429,7 @@ public class InstallerHelper {
       Set<DN> setBaseDNs = new HashSet<DN>();
       for (String baseDN : baseDNs)
       {
-        setBaseDNs.add(DN.decode(baseDN));
+        setBaseDNs.add(DN.valueOf(baseDN));
       }
       backend.setBaseDN(setBaseDNs);
       backend.commit();
@@ -621,7 +621,7 @@ public class InstallerHelper {
               ReplicationDomainCfgDefn.getInstance(), domainName,
               new ArrayList<DefaultBehaviorException>());
           domain.setServerId(domainId);
-          domain.setBaseDN(DN.decode(dn));
+          domain.setBaseDN(DN.valueOf(dn));
           isCreated = true;
         }
         else

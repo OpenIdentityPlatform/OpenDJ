@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -121,7 +121,7 @@ public class PurgeConflictsHistoricalTask extends Task
 
     try
     {
-      DN dn = DN.decode(domainString);
+      DN dn = DN.valueOf(domainString);
       // We can assume that this is an LDAP replication domain
       domain = LDAPReplicationDomain.retrievesReplicationDomain(dn);
     }

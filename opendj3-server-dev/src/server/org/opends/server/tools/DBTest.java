@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -741,7 +741,7 @@ public class DBTest
     {
       try
       {
-        base = DN.decode(baseDN.getValue());
+        base = DN.valueOf(baseDN.getValue());
       }
       catch(DirectoryException de)
       {
@@ -916,7 +916,7 @@ public class DBTest
     {
       try
       {
-        base = DN.decode(baseDN.getValue());
+        base = DN.valueOf(baseDN.getValue());
       }
       catch(DirectoryException de)
       {
@@ -1173,7 +1173,7 @@ public class DBTest
 
     try
     {
-      base = DN.decode(baseDN.getValue());
+      base = DN.valueOf(baseDN.getValue());
     }
     catch(DirectoryException de)
     {
@@ -1316,7 +1316,7 @@ public class DBTest
               {
                 // Encode the value as a DN
                 start = StaticUtils.getBytes(
-                    DN.decode(minKeyValue.getValue()).toNormalizedString());
+                    DN.valueOf(minKeyValue.getValue()).toNormalizedString());
               }
               else if(databaseContainer instanceof ID2Entry)
               {
@@ -1365,7 +1365,7 @@ public class DBTest
               {
                 // Encode the value as a DN
                 end = StaticUtils.getBytes(
-                    DN.decode(maxKeyValue.getValue()).toNormalizedString());
+                    DN.valueOf(maxKeyValue.getValue()).toNormalizedString());
               }
               else if(databaseContainer instanceof ID2Entry)
               {

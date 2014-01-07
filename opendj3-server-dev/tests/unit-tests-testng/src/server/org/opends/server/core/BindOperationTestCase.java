@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -96,23 +96,23 @@ public class BindOperationTestCase
                         ByteString.valueOf("cn=Directory Manager"),
                         ByteString.valueOf("password")),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", DN.nullDN(), ByteString.empty()),
+                        null, "3", DN.rootDN(), ByteString.empty()),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", DN.nullDN(), ByteString.empty()),
+                        noControls, "3", DN.rootDN(), ByteString.empty()),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullDN, ByteString.empty()),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullDN, ByteString.empty()),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", DN.nullDN(), nullOS),
+                        null, "3", DN.rootDN(), nullOS),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", DN.nullDN(), nullOS),
+                        noControls, "3", DN.rootDN(), nullOS),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullDN, nullOS),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullDN, nullOS),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", DN.decode("cn=Directory Manager"),
+                        noControls, "3", DN.valueOf("cn=Directory Manager"),
                         ByteString.valueOf("password"))
     };
 
@@ -168,18 +168,18 @@ public class BindOperationTestCase
                         noControls, "3", nullOS, "PLAIN",
                         ByteString.valueOf("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", DN.nullDN(), "EXTERNAL", null),
+                        null, "3", DN.rootDN(), "EXTERNAL", null),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", DN.nullDN(), "EXTERNAL", null),
+                        noControls, "3", DN.rootDN(), "EXTERNAL", null),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullDN, "EXTERNAL", null),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullDN, "EXTERNAL", null),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", DN.nullDN(), "PLAIN",
+                        null, "3", DN.rootDN(), "PLAIN",
                         ByteString.valueOf("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", DN.nullDN(), "PLAIN",
+                        noControls, "3", DN.rootDN(), "PLAIN",
                         ByteString.valueOf("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullDN, "PLAIN",
@@ -619,7 +619,7 @@ public class BindOperationTestCase
          ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
-                       conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
+                       conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(bindOperation.getSASLAuthUserEntry());
   }
@@ -687,7 +687,7 @@ public class BindOperationTestCase
          ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
-         conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
+         conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(bindOperation.getUserEntryDN());
   }
@@ -732,7 +732,7 @@ public class BindOperationTestCase
          ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
-         conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
+         conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(bindOperation.getProcessingStartTime() > 0);
     assertTrue(bindOperation.getProcessingStopTime() >=
@@ -812,7 +812,7 @@ public class BindOperationTestCase
          ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
-         conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
+         conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
 //    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
@@ -1516,7 +1516,7 @@ public class BindOperationTestCase
 
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                           requestControls, "3", DN.nullDN(),
+                           requestControls, "3", DN.rootDN(),
                         ByteString.empty());
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(),
@@ -1543,7 +1543,7 @@ public class BindOperationTestCase
 
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                           requestControls, "3", DN.nullDN(), "PLAIN",
+                           requestControls, "3", DN.rootDN(), "PLAIN",
                         saslCreds);
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(),
@@ -1567,7 +1567,7 @@ public class BindOperationTestCase
 
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                           requestControls, "3", DN.nullDN(),
+                           requestControls, "3", DN.rootDN(),
                            ByteString.empty());
 
     bindOperation.run();
@@ -1594,7 +1594,7 @@ public class BindOperationTestCase
 
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                           requestControls, "3", DN.nullDN(), "PLAIN",
+                           requestControls, "3", DN.rootDN(), "PLAIN",
                            saslCreds);
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1671,7 +1671,7 @@ public class BindOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attr, "false")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode("cn=config"), mods);
+         conn.processModify(DN.valueOf("cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     BindOperation bindOperation =
@@ -1682,7 +1682,7 @@ public class BindOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attr, "true")));
-    modifyOperation =  conn.processModify(DN.decode("cn=config"), mods);
+    modifyOperation =  conn.processModify(DN.valueOf("cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1855,7 +1855,7 @@ public class BindOperationTestCase
       "cn: Rebind Test",
       "userPassword: password");
     String dnString = "uid=rebind.test,o=test";
-    DN userDN = DN.decode(dnString);
+    DN userDN = DN.valueOf(dnString);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     TestCaseUtils.configureSocket(s);
@@ -1928,7 +1928,7 @@ public class BindOperationTestCase
       "userPassword: password");
 
     String dnString = "uid=test,ou=people,dc=example,dc=com";
-    DN userDN = DN.decode(dnString);
+    DN userDN = DN.valueOf(dnString);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     TestCaseUtils.configureSocket(s);
@@ -2005,7 +2005,7 @@ public class BindOperationTestCase
       "userPassword: password");
 
     String dnString = "uid=test,ou=people,dc=example,dc=com";
-    DN userDN = DN.decode(dnString);
+    DN userDN = DN.valueOf(dnString);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     TestCaseUtils.configureSocket(s);
@@ -2045,7 +2045,7 @@ public class BindOperationTestCase
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
 
     String newDNString = "uid=test,ou=users,dc=example,dc=com";
-    DN newUserDN = DN.decode(newDNString);
+    DN newUserDN = DN.valueOf(newDNString);
 
     assertNotNull(DirectoryServer.getAuthenticatedUsers().get(
             newUserDN));

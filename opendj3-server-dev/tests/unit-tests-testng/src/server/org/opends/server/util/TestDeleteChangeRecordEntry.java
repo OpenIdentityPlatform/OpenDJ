@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -73,9 +74,9 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorEmptyDN() throws Exception {
-    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(DN.nullDN());
+    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(DN.rootDN());
 
-    Assert.assertEquals(entry.getDN(), DN.nullDN());
+    Assert.assertEquals(entry.getDN(), DN.rootDN());
   }
 
   /**
@@ -86,8 +87,8 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorNonNullDN() throws Exception {
-    DN testDN1 = DN.decode("dc=hello, dc=world");
-    DN testDN2 = DN.decode("dc=hello, dc=world");
+    DN testDN1 = DN.valueOf("dc=hello, dc=world");
+    DN testDN2 = DN.valueOf("dc=hello, dc=world");
 
     DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(testDN1);
 
@@ -102,7 +103,7 @@ public final class TestDeleteChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(DN.nullDN());
+    DeleteChangeRecordEntry entry = new DeleteChangeRecordEntry(DN.rootDN());
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.DELETE);

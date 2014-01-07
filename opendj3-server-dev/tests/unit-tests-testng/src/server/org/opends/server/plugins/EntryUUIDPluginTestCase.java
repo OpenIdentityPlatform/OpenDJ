@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -307,7 +308,7 @@ public class EntryUUIDPluginTestCase
          new ByteArrayInputStream(ldifString.getBytes("UTF-8"));
     LDIFImportConfig importConfig = new LDIFImportConfig(bais);
 
-    DN dn = DN.decode("cn=Entry UUID,cn=plugins,cn=config");
+    DN dn = DN.valueOf("cn=Entry UUID,cn=plugins,cn=config");
     EntryUUIDPlugin plugin =
          (EntryUUIDPlugin)
          DirectoryServer.getPluginConfigManager().getRegisteredPlugin(dn);
@@ -348,7 +349,7 @@ public class EntryUUIDPluginTestCase
          new ByteArrayInputStream(ldifString.getBytes("UTF-8"));
     LDIFImportConfig importConfig = new LDIFImportConfig(bais);
 
-    DN dn = DN.decode("cn=Entry UUID,cn=plugins,cn=config");
+    DN dn = DN.valueOf("cn=Entry UUID,cn=plugins,cn=config");
     EntryUUIDPlugin plugin =
          (EntryUUIDPlugin)
          DirectoryServer.getPluginConfigManager().getRegisteredPlugin(dn);

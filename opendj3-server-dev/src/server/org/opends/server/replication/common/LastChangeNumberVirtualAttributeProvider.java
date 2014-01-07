@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -77,7 +77,7 @@ public class LastChangeNumberVirtualAttributeProvider
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
     // There's only a value for the rootDSE, i.e. the Null DN.
-    return entry.getDN().isNullDN();
+    return entry.getDN().isRootDN();
   }
 
   /** {@inheritDoc} */

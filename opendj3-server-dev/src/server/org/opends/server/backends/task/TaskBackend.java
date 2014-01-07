@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
@@ -175,7 +175,7 @@ public class TaskBackend
                                        taskRootDN.toString();
       try
       {
-        recurringTaskParentDN = DN.decode(recurringTaskBaseString);
+        recurringTaskParentDN = DN.valueOf(recurringTaskBaseString);
       }
       catch (Exception e)
       {
@@ -194,7 +194,7 @@ public class TaskBackend
                                        taskRootDN.toString();
       try
       {
-        scheduledTaskParentDN = DN.decode(scheduledTaskBaseString);
+        scheduledTaskParentDN = DN.valueOf(scheduledTaskBaseString);
       }
       catch (Exception e)
       {

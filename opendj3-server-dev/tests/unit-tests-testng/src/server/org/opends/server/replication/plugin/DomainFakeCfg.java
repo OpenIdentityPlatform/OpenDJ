@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -163,7 +163,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   {
     this.replicationServers = new TreeSet<String>();
     this.replicationServers.add(replServer);
-    this.baseDN = DN.decode(baseDN);
+    this.baseDN = DN.valueOf(baseDN);
     this.serverId = serverId;
   }
 
@@ -266,7 +266,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   {
     try
     {
-      return DN.decode("cn=domain, cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
+      return DN.valueOf("cn=domain, cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
     } catch (DirectoryException e)
     {
       return null;

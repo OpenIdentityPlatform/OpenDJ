@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -671,13 +671,13 @@ public class ModifyDNMsg extends ModifyCommonMsg
   {
     if (newSuperior == null)
     {
-      DN parentDn = getDN().getParent();
-      return parentDn.concat(RDN.decode(newRDN));
+      DN parentDn = getDN().parent();
+      return parentDn.child(RDN.decode(newRDN));
     }
     else
     {
       String newStringDN = newRDN + "," + newSuperior;
-      return DN.decode(newStringDN);
+      return DN.valueOf(newStringDN);
     }
   }
 
@@ -739,7 +739,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   {
     try
     {
-      DN newSuperiorDN = DN.decode(newSuperior);
+      DN newSuperiorDN = DN.valueOf(newSuperior);
       return newSuperiorDN.equals(targetDN);
     } catch (DirectoryException e)
     {

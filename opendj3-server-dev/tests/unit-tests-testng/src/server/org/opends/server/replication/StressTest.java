@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock As.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication;
 
@@ -81,7 +81,7 @@ public class StressTest extends ReplicationTestCase
     logError(Message.raw(Category.SYNC, Severity.NOTICE,
         "Starting replication StressTest : fromServertoBroker"));
 
-    final DN baseDN = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.valueOf("ou=People," + TEST_ROOT_DN_STRING);
     final int TOTAL_MESSAGES = 1000;
 
     ReplicationBroker broker =

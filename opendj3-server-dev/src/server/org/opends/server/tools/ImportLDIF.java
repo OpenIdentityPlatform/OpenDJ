@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -1141,7 +1141,7 @@ public class ImportLDIF extends TaskTool {
         DN includeBranch;
         try
         {
-          includeBranch = DN.decode(s);
+          includeBranch = DN.valueOf(s);
         }
         catch (DirectoryException de)
         {
@@ -1282,7 +1282,7 @@ public class ImportLDIF extends TaskTool {
       DN excludeBranch;
       try
       {
-        excludeBranch = DN.decode(s);
+        excludeBranch = DN.valueOf(s);
       }
       catch (DirectoryException de)
       {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -588,7 +588,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
   {
     try
     {
-      return !index.getBaseDN().equals(DN.decode(getBaseDN())) ||
+      return !index.getBaseDN().equals(DN.valueOf(getBaseDN())) ||
       (getScope() != index.getScope()) ||
       !filter.getText().trim().equals(index.getFilter()) ||
       !getSortOrder().equals(index.getSortOrder()) ||
@@ -704,7 +704,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
           getInfo().stopPooling();
           if (getInfo().mustDeregisterConfig())
           {
-            DirectoryServer.deregisterBaseDN(DN.decode("cn=config"));
+            DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
           DirectoryServer.getInstance().initializeConfiguration(
               org.opends.server.extensions.ConfigFileHandler.class.getName(),
@@ -822,7 +822,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       LocalDBBackendCfgClient backend =
         (LocalDBBackendCfgClient)root.getBackend(backendID);
       LocalDBVLVIndexCfgClient index = backend.getLocalDBVLVIndex(indexName);
-      DN b = DN.decode(baseDN);
+      DN b = DN.valueOf(baseDN);
       if (!indexToModify.getBaseDN().equals(b))
       {
         index.setBaseDN(b);
@@ -882,7 +882,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       {
         updateConfiguration();
         modifiedIndex = new VLVIndexDescriptor(
-            indexName, indexToModify.getBackend(), DN.decode(baseDN),
+            indexName, indexToModify.getBackend(), DN.valueOf(baseDN),
             scope, filterValue, sortOrder, maxBlock);
         getInfo().registerModifiedIndex(modifiedIndex);
         state = State.FINISHED_SUCCESSFULLY;
@@ -918,7 +918,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
       try
       {
-        DN b = DN.decode(baseDN);
+        DN b = DN.valueOf(baseDN);
         if (!indexToModify.getBaseDN().equals(b))
         {
           args.add("--set");

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -122,7 +123,7 @@ public class TaskUtils
     DN backendBaseDN;
     try
     {
-      backendBaseDN = DN.decode(DN_BACKEND_BASE);
+      backendBaseDN = DN.valueOf(DN_BACKEND_BASE);
     }
     catch (DirectoryException de)
     {

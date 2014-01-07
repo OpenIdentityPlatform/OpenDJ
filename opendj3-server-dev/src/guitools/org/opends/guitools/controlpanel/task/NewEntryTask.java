@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -254,9 +255,9 @@ public class NewEntryTask extends Task
             boolean isReallyParentNode = false;
             try
             {
-              DN parentDN = DN.decode(parentNode.getDN());
+              DN parentDN = DN.valueOf(parentNode.getDN());
               isReallyParentNode =
-                parentDN.equals(newEntry.getDN().getParent());
+                parentDN.equals(newEntry.getDN().parent());
             }
             catch (Throwable t)
             {
@@ -342,10 +343,10 @@ public class NewEntryTask extends Task
         (BasicNode)controller.getTreeModel().getChild(root, i);
       try
       {
-        DN nodeDN = DN.decode(node.getDN());
+        DN nodeDN = DN.valueOf(node.getDN());
         if (dn.isDescendantOf(nodeDN))
         {
-          if (dn.getNumComponents() == nodeDN.getNumComponents() + 1)
+          if (dn.size() == nodeDN.size() + 1)
           {
             parentNode = node;
             break;

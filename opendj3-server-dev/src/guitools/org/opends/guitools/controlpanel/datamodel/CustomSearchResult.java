@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -305,7 +305,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    */
   public Entry getEntry() throws OpenDsException
   {
-    DN dn = DN.decode(this.getDN());
+    DN dn = DN.valueOf(this.getDN());
     Map<ObjectClass,String> objectClasses = new HashMap<ObjectClass,String>();
     Map<AttributeType,List<org.opends.server.types.Attribute>> userAttributes =
       new HashMap<AttributeType,List<org.opends.server.types.Attribute>>();

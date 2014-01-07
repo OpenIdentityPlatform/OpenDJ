@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -132,14 +132,14 @@ public class GroupManagerTestCase
     GroupManager groupManager = DirectoryServer.getGroupManager();
     groupManager.deregisterAllGroups();
     addNestedGroupTestEntries();
-    DN group1DN = DN.decode("cn=group 1,ou=Groups,o=test");
-    DN group2DN = DN.decode("cn=group 2,ou=Groups,o=test");
-    DN group3DN = DN.decode("cn=group 3,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
-    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
-    DN user4DN = DN.decode("uid=user.4,ou=People,o=test");
-    DN user5DN = DN.decode("uid=user.5,ou=People,o=test");
+    DN group1DN = DN.valueOf("cn=group 1,ou=Groups,o=test");
+    DN group2DN = DN.valueOf("cn=group 2,ou=Groups,o=test");
+    DN group3DN = DN.valueOf("cn=group 3,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.valueOf("uid=user.3,ou=People,o=test");
+    DN user4DN = DN.valueOf("uid=user.4,ou=People,o=test");
+    DN user5DN = DN.valueOf("uid=user.5,ou=People,o=test");
     Entry user1Entry = DirectoryServer.getEntry(user1DN);
     Entry user2Entry = DirectoryServer.getEntry(user2DN);
     Entry user3Entry = DirectoryServer.getEntry(user3DN);
@@ -176,15 +176,15 @@ public class GroupManagerTestCase
     GroupManager groupManager = DirectoryServer.getGroupManager();
     groupManager.deregisterAllGroups();
     addNestedGroupTestEntries();
-    DN group1DN = DN.decode("cn=group 1,ou=Groups,o=test");
-    DN group2DN = DN.decode("cn=group 2,ou=Groups,o=test");
-    DN group3DN = DN.decode("cn=group 3,ou=Groups,o=test");
-    DN group4DN = DN.decode("cn=group 4,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
-    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
-    DN user4DN = DN.decode("uid=user.4,ou=People,o=test");
-    DN user5DN = DN.decode("uid=user.5,ou=People,o=test");
+    DN group1DN = DN.valueOf("cn=group 1,ou=Groups,o=test");
+    DN group2DN = DN.valueOf("cn=group 2,ou=Groups,o=test");
+    DN group3DN = DN.valueOf("cn=group 3,ou=Groups,o=test");
+    DN group4DN = DN.valueOf("cn=group 4,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.valueOf("uid=user.3,ou=People,o=test");
+    DN user4DN = DN.valueOf("uid=user.4,ou=People,o=test");
+    DN user5DN = DN.valueOf("uid=user.5,ou=People,o=test");
     Entry user1Entry = DirectoryServer.getEntry(user1DN);
     Entry user2Entry = DirectoryServer.getEntry(user2DN);
     Entry user3Entry = DirectoryServer.getEntry(user3DN);
@@ -225,15 +225,15 @@ public class GroupManagerTestCase
     GroupManager groupManager = DirectoryServer.getGroupManager();
     groupManager.deregisterAllGroups();
     addNestedGroupTestEntries();
-    DN group1DN = DN.decode("cn=group 1,ou=Groups,o=test");
-    DN group2DN = DN.decode("cn=group 2,ou=Groups,o=test");
-    DN group3DN = DN.decode("cn=group 3,ou=Groups,o=test");
-    DN group4DN = DN.decode("cn=group 4,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
-    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
-    DN user4DN = DN.decode("uid=user.4,ou=People,o=test");
-    DN user5DN = DN.decode("uid=user.5,ou=People,o=test");
+    DN group1DN = DN.valueOf("cn=group 1,ou=Groups,o=test");
+    DN group2DN = DN.valueOf("cn=group 2,ou=Groups,o=test");
+    DN group3DN = DN.valueOf("cn=group 3,ou=Groups,o=test");
+    DN group4DN = DN.valueOf("cn=group 4,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.valueOf("uid=user.3,ou=People,o=test");
+    DN user4DN = DN.valueOf("uid=user.4,ou=People,o=test");
+    DN user5DN = DN.valueOf("uid=user.5,ou=People,o=test");
     Entry user1Entry = DirectoryServer.getEntry(user1DN);
     Entry user2Entry = DirectoryServer.getEntry(user2DN);
     Entry user3Entry = DirectoryServer.getEntry(user3DN);
@@ -318,11 +318,11 @@ public class GroupManagerTestCase
     GroupManager groupManager = DirectoryServer.getGroupManager();
     groupManager.deregisterAllGroups();
     addNestedGroupTestEntries();
-    DN group1DN = DN.decode("cn=group 1,ou=Groups,o=test");
-    DN group2DN = DN.decode("cn=group 2,ou=Groups,o=test");
-    DN group3DN = DN.decode("cn=group 3,ou=Groups,o=test");
-    DN group4DN = DN.decode("cn=group 4,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    DN group1DN = DN.valueOf("cn=group 1,ou=Groups,o=test");
+    DN group2DN = DN.valueOf("cn=group 2,ou=Groups,o=test");
+    DN group3DN = DN.valueOf("cn=group 3,ou=Groups,o=test");
+    DN group4DN = DN.valueOf("cn=group 4,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
     Entry user1Entry = DirectoryServer.getEntry(user1DN);
     Group<? extends GroupImplementationCfg> group1Instance =
             (Group<? extends GroupImplementationCfg>)
@@ -370,16 +370,16 @@ public class GroupManagerTestCase
     GroupManager groupManager = DirectoryServer.getGroupManager();
     groupManager.deregisterAllGroups();
     addNestedGroupTestEntries();
-    DN group1DN = DN.decode("cn=group 1,ou=Groups,o=test");
-    DN group2DN = DN.decode("cn=group 2,ou=Groups,o=test");
-    DN group3DN = DN.decode("cn=group 3,ou=Groups,o=test");
-    DN group4DN = DN.decode("cn=group 4,ou=Groups,o=test");
-    DN bogusGroup = DN.decode("cn=bogus group,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
-    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
-    DN user4DN = DN.decode("uid=user.4,ou=People,o=test");
-    DN user5DN = DN.decode("uid=user.5,ou=People,o=test");
+    DN group1DN = DN.valueOf("cn=group 1,ou=Groups,o=test");
+    DN group2DN = DN.valueOf("cn=group 2,ou=Groups,o=test");
+    DN group3DN = DN.valueOf("cn=group 3,ou=Groups,o=test");
+    DN group4DN = DN.valueOf("cn=group 4,ou=Groups,o=test");
+    DN bogusGroup = DN.valueOf("cn=bogus group,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.valueOf("uid=user.3,ou=People,o=test");
+    DN user4DN = DN.valueOf("uid=user.4,ou=People,o=test");
+    DN user5DN = DN.valueOf("uid=user.5,ou=People,o=test");
     Entry user1Entry = DirectoryServer.getEntry(user1DN);
     Entry user2Entry = DirectoryServer.getEntry(user2DN);
     Entry user3Entry = DirectoryServer.getEntry(user3DN);
@@ -561,10 +561,10 @@ public class GroupManagerTestCase
       "member: uid=user.1,ou=People,o=test",
       "member: uid=user.2,ou=People,o=test");
 
-    DN groupDN = DN.decode("cn=Test Group of Names,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
-    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of Names,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.valueOf("uid=user.3,ou=People,o=test");
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
@@ -578,7 +578,7 @@ public class GroupManagerTestCase
 
     try
     {
-      groupInstance.addNestedGroup(DN.decode("uid=test,ou=People,o=test"));
+      groupInstance.addNestedGroup(DN.valueOf("uid=test,ou=People,o=test"));
     } catch (DirectoryException ex) {
            throw new AssertionError("Expected addNestedGroup to succeed but" +
                                     " it didn't");
@@ -587,7 +587,7 @@ public class GroupManagerTestCase
     try
     {
       groupInstance.removeNestedGroup(
-           DN.decode("uid=test,ou=People,o=test"));
+           DN.valueOf("uid=test,ou=People,o=test"));
     } catch (DirectoryException ex) {
             throw new AssertionError("Expected removeNestedGroup to succeed " +
                     "but it didn't");
@@ -692,10 +692,10 @@ public class GroupManagerTestCase
 
 
     // Perform a basic set of validation on the group itself.
-    DN groupDN = DN.decode("cn=Test Group of Names,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
-    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of Names,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.valueOf("uid=user.3,ou=People,o=test");
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
@@ -712,7 +712,7 @@ public class GroupManagerTestCase
     }
 
     SearchFilter filter = SearchFilter.createFilterFromString("(uid=user.1)");
-    memberList = groupInstance.getMembers(DN.decode("o=test"),
+    memberList = groupInstance.getMembers(DN.valueOf("o=test"),
                                           SearchScope.WHOLE_SUBTREE, filter);
     assertTrue(memberList.hasMoreMembers());
     DN memberDN = memberList.nextMemberDN();
@@ -720,7 +720,7 @@ public class GroupManagerTestCase
     assertFalse(memberList.hasMoreMembers());
 
     filter = SearchFilter.createFilterFromString("(uid=user.3)");
-    memberList = groupInstance.getMembers(DN.decode("o=test"),
+    memberList = groupInstance.getMembers(DN.valueOf("o=test"),
                                           SearchScope.WHOLE_SUBTREE, filter);
     assertFalse(memberList.hasMoreMembers());
 
@@ -791,7 +791,7 @@ public class GroupManagerTestCase
 
 
     // Make sure that the group exists but doesn't have any members.
-    DN groupDN = DN.decode("cn=Test Group of Names,ou=Groups,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of Names,ou=Groups,o=test");
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
     assertEquals(groupInstance.getGroupDN(), groupDN);
@@ -886,10 +886,10 @@ public class GroupManagerTestCase
 
 
     // Perform a basic set of validation on the group itself.
-    DN groupDN = DN.decode("cn=Test Group of Unique Names,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
-    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of Unique Names,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.valueOf("uid=user.3,ou=People,o=test");
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
@@ -906,7 +906,7 @@ public class GroupManagerTestCase
     }
 
     SearchFilter filter = SearchFilter.createFilterFromString("(uid=user.1)");
-    memberList = groupInstance.getMembers(DN.decode("o=test"),
+    memberList = groupInstance.getMembers(DN.valueOf("o=test"),
                                           SearchScope.WHOLE_SUBTREE, filter);
     assertTrue(memberList.hasMoreMembers());
     DN memberDN = memberList.nextMemberDN();
@@ -914,7 +914,7 @@ public class GroupManagerTestCase
     assertFalse(memberList.hasMoreMembers());
 
     filter = SearchFilter.createFilterFromString("(uid=user.3)");
-    memberList = groupInstance.getMembers(DN.decode("o=test"),
+    memberList = groupInstance.getMembers(DN.valueOf("o=test"),
                                           SearchScope.WHOLE_SUBTREE, filter);
     assertFalse(memberList.hasMoreMembers());
 
@@ -985,7 +985,7 @@ public class GroupManagerTestCase
 
 
     // Make sure that the group exists but doesn't have any members.
-    DN groupDN = DN.decode("cn=Test Group of Unique Names,ou=Groups,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of Unique Names,ou=Groups,o=test");
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
     assertEquals(groupInstance.getGroupDN(), groupDN);
@@ -1080,10 +1080,10 @@ public class GroupManagerTestCase
 
 
     // Perform a basic set of validation on the group itself.
-    DN groupDN = DN.decode("cn=Test Group of Entries,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
-    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of Entries,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.valueOf("uid=user.3,ou=People,o=test");
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
@@ -1100,7 +1100,7 @@ public class GroupManagerTestCase
     }
 
     SearchFilter filter = SearchFilter.createFilterFromString("(uid=user.1)");
-    memberList = groupInstance.getMembers(DN.decode("o=test"),
+    memberList = groupInstance.getMembers(DN.valueOf("o=test"),
                                           SearchScope.WHOLE_SUBTREE, filter);
     assertTrue(memberList.hasMoreMembers());
     DN memberDN = memberList.nextMemberDN();
@@ -1108,7 +1108,7 @@ public class GroupManagerTestCase
     assertFalse(memberList.hasMoreMembers());
 
     filter = SearchFilter.createFilterFromString("(uid=user.3)");
-    memberList = groupInstance.getMembers(DN.decode("o=test"),
+    memberList = groupInstance.getMembers(DN.valueOf("o=test"),
                                           SearchScope.WHOLE_SUBTREE, filter);
     assertFalse(memberList.hasMoreMembers());
 
@@ -1179,7 +1179,7 @@ public class GroupManagerTestCase
 
 
     // Make sure that the group exists but doesn't have any members.
-    DN groupDN = DN.decode("cn=Test Group of Entries,ou=Groups,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of Entries,ou=Groups,o=test");
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
     assertEquals(groupInstance.getGroupDN(), groupDN);
@@ -1250,8 +1250,8 @@ public class GroupManagerTestCase
 
 
     // Perform a basic set of validation on the group itself.
-    DN groupDN = DN.decode("cn=Test Group of Unique Names,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of Unique Names,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
@@ -1262,7 +1262,7 @@ public class GroupManagerTestCase
     // Rename the group and make sure the old one no longer exists but the new
     // one does.
     RDN newRDN = RDN.decode("cn=Renamed Group");
-    DN  newDN  = DN.decode("cn=Renamed Group,ou=Groups,o=test");
+    DN  newDN  = DN.valueOf("cn=Renamed Group,ou=Groups,o=test");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -1377,13 +1377,13 @@ public class GroupManagerTestCase
 
 
     // Perform basic validation on the groups.
-    DN group1DN = DN.decode("cn=Group 1,ou=Groups,o=test");
-    DN group2DN = DN.decode("cn=Group 2,ou=Groups,o=test");
-    DN group3DN = DN.decode("cn=Group 3,ou=Groups,o=test");
-    DN group4DN = DN.decode("cn=Group 4,ou=Groups,o=test");
-    DN user1DN  = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN  = DN.decode("uid=user.2,ou=People,o=test");
-    DN user3DN  = DN.decode("uid=user.3,ou=People,o=test");
+    DN group1DN = DN.valueOf("cn=Group 1,ou=Groups,o=test");
+    DN group2DN = DN.valueOf("cn=Group 2,ou=Groups,o=test");
+    DN group3DN = DN.valueOf("cn=Group 3,ou=Groups,o=test");
+    DN group4DN = DN.valueOf("cn=Group 4,ou=Groups,o=test");
+    DN user1DN  = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN  = DN.valueOf("uid=user.2,ou=People,o=test");
+    DN user3DN  = DN.valueOf("uid=user.3,ou=People,o=test");
 
     Group group1 = groupManager.getGroupInstance(group1DN);
     Group group2 = groupManager.getGroupInstance(group2DN);
@@ -1413,10 +1413,10 @@ public class GroupManagerTestCase
 
     // Get a client connection authenticated as user1 and make sure it handles
     // group operations correctly.
-    InternalClientConnection conn0 = new InternalClientConnection(DN.nullDN());
+    InternalClientConnection conn0 = new InternalClientConnection(DN.rootDN());
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(conn0, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
+                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -1442,7 +1442,7 @@ public class GroupManagerTestCase
     InternalClientConnection conn1 = new InternalClientConnection(user1DN);
     searchOperation =
          new InternalSearchOperation(conn1, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
+                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,  false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -1472,7 +1472,7 @@ public class GroupManagerTestCase
     InternalClientConnection conn2 = new InternalClientConnection(user2DN);
     searchOperation =
          new InternalSearchOperation(conn2, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
+                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,  false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -1502,7 +1502,7 @@ public class GroupManagerTestCase
     InternalClientConnection conn3 = new InternalClientConnection(user3DN);
     searchOperation =
          new InternalSearchOperation(conn3, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
+                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,  false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -1619,7 +1619,7 @@ public class GroupManagerTestCase
 
 
     // Get the group instance.
-    DN groupDN = DN.decode("cn=Test Group of Unique Names,ou=Groups,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of Unique Names,ou=Groups,o=test");
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
     assertEquals(groupInstance.getGroupDN(), groupDN);
@@ -1641,7 +1641,7 @@ public class GroupManagerTestCase
     // Perform a filtered iteration across the member DNs.
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
-    memberList = groupInstance.getMembers(DN.decode("o=test"),
+    memberList = groupInstance.getMembers(DN.valueOf("o=test"),
                                           SearchScope.WHOLE_SUBTREE, filter);
     while (memberList.hasMoreMembers())
     {
@@ -1669,7 +1669,7 @@ public class GroupManagerTestCase
 
     // Perform a filtered iteration across the member entries.
     filter = SearchFilter.createFilterFromString("(objectClass=*)");
-    memberList = groupInstance.getMembers(DN.decode("o=test"),
+    memberList = groupInstance.getMembers(DN.valueOf("o=test"),
                                           SearchScope.WHOLE_SUBTREE, filter);
     while (memberList.hasMoreMembers())
     {
@@ -1757,11 +1757,11 @@ public class GroupManagerTestCase
       "cn: Test Group of URLs",
       "memberURL: ldap:///o=test??sub?(sn<=2)");
 
-    DN groupDN = DN.decode("cn=Test Group of URLs,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
-    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
-    DN bogusDN = DN.decode("uid=bogus,ou=People,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of URLs,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.valueOf("uid=user.3,ou=People,o=test");
+    DN bogusDN = DN.valueOf("uid=bogus,ou=People,o=test");
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
@@ -1776,7 +1776,7 @@ public class GroupManagerTestCase
 
     try
     {
-      groupInstance.addNestedGroup(DN.decode("uid=test,ou=People,o=test"));
+      groupInstance.addNestedGroup(DN.valueOf("uid=test,ou=People,o=test"));
       throw new AssertionError("Expected addNestedGroup to fail but it " +
                                "didn't");
     } catch (UnsupportedOperationException uoe) {}
@@ -1784,7 +1784,7 @@ public class GroupManagerTestCase
     try
     {
       groupInstance.removeNestedGroup(
-           DN.decode("uid=test,ou=People,o=test"));
+           DN.valueOf("uid=test,ou=People,o=test"));
       throw new AssertionError("Expected removeNestedGroup to fail but " +
                                "it didn't");
     } catch (UnsupportedOperationException uoe) {}
@@ -1861,7 +1861,7 @@ public class GroupManagerTestCase
       "cn: Test Malformed URL",
       "memberURL: ldap:///o=test??sub?(malformed)");
 
-    DN groupDN = DN.decode("cn=Test Malformed URL,ou=Groups,o=test");
+    DN groupDN = DN.valueOf("cn=Test Malformed URL,ou=Groups,o=test");
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
@@ -1943,9 +1943,9 @@ public class GroupManagerTestCase
       "cn: Test Group of URLs",
       "memberURL: ldap:///o=test??sub?(sn<=2)");
 
-    DN groupDN = DN.decode("cn=Test Group of URLs,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of URLs,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
@@ -2042,9 +2042,9 @@ public class GroupManagerTestCase
       "cn: Test Group of URLs",
       "memberURL: ldap:///o=test??sub?(sn<=2)");
 
-    DN groupDN = DN.decode("cn=Test Group of URLs,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of URLs,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
@@ -2054,7 +2054,7 @@ public class GroupManagerTestCase
     memberSet.add(user1DN);
 
     MemberList memberList = groupInstance.getMembers(
-                                 DN.decode("ou=people,o=test"),
+                                 DN.valueOf("ou=people,o=test"),
                                  SearchScope.SINGLE_LEVEL,
                                  SearchFilter.createFilterFromString("(sn=1)"));
     assertNotNull(memberList);
@@ -2144,9 +2144,9 @@ public class GroupManagerTestCase
       "memberURL: ldap:///o=test??sub?(sn=1)",
       "memberURL: ldap:///o=test??sub?(sn=2)");
 
-    DN groupDN = DN.decode("cn=Test Group of URLs,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of URLs,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
@@ -2248,9 +2248,9 @@ public class GroupManagerTestCase
       "memberURL: ldap:///o=test??sub?(sn=1)",
       "memberURL: ldap:///ou=People,o=test??subordinate?(!(sn=3))");
 
-    DN groupDN = DN.decode("cn=Test Group of URLs,ou=Groups,o=test");
-    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+    DN groupDN = DN.valueOf("cn=Test Group of URLs,ou=Groups,o=test");
+    DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
@@ -2262,7 +2262,7 @@ public class GroupManagerTestCase
     memberSet.add(user2DN);
 
     MemberList memberList =
-         groupInstance.getMembers(DN.nullDN(), SearchScope.WHOLE_SUBTREE,
+         groupInstance.getMembers(DN.rootDN(), SearchScope.WHOLE_SUBTREE,
               SearchFilter.createFilterFromString("(objectClass=*)"));
     assertNotNull(memberList);
     while (memberList.hasMoreMembers())
@@ -2296,22 +2296,22 @@ public class GroupManagerTestCase
     addSubtreeGroupTestEntries();
 
     Group group1 = groupManager.getGroupInstance(
-            DN.decode("cn=group1,ou=moregroups,dc=example,dc=com"));
+            DN.valueOf("cn=group1,ou=moregroups,dc=example,dc=com"));
     assertNotNull(group1);
     Group group2 = groupManager.getGroupInstance(
-            DN.decode("cn=group1,ou=groups,dc=example,dc=com"));
+            DN.valueOf("cn=group1,ou=groups,dc=example,dc=com"));
     assertNotNull(group2);
     Group group3 = groupManager.getGroupInstance(
-            DN.decode("cn=group2,ou=groups,dc=example,dc=com"));
+            DN.valueOf("cn=group2,ou=groups,dc=example,dc=com"));
     assertNotNull(group3);
 
     // Get a client connection authenticated as user1 and make sure it handles
     // group operations correctly.
-    DN userDN = DN.decode("uid=test1,ou=people,dc=example,dc=com");
+    DN userDN = DN.valueOf("uid=test1,ou=people,dc=example,dc=com");
     InternalClientConnection conn = new InternalClientConnection(userDN);
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
+                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -2337,21 +2337,21 @@ public class GroupManagerTestCase
             new InternalClientConnection(userDN);
     searchOperation =
          new InternalSearchOperation(conn1, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
+                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
                   null);
 
     group1 = groupManager.getGroupInstance(
-            DN.decode("cn=group1,ou=moregroups,dc=example,dc=com"));
+            DN.valueOf("cn=group1,ou=moregroups,dc=example,dc=com"));
     assertNotNull(group1);
     assertTrue(conn1.isMemberOf(group1, null));
     group2 = groupManager.getGroupInstance(
-            DN.decode("cn=group1,ou=groups,dc=example,dc=com"));
+            DN.valueOf("cn=group1,ou=groups,dc=example,dc=com"));
     assertNull(group2);
     group3 = groupManager.getGroupInstance(
-            DN.decode("cn=group2,ou=groups,dc=example,dc=com"));
+            DN.valueOf("cn=group2,ou=groups,dc=example,dc=com"));
     assertNull(group3);
 
     // Cleanup.
@@ -2372,22 +2372,22 @@ public class GroupManagerTestCase
     addSubtreeGroupTestEntries();
 
     Group group1 = groupManager.getGroupInstance(
-            DN.decode("cn=group1,ou=moregroups,dc=example,dc=com"));
+            DN.valueOf("cn=group1,ou=moregroups,dc=example,dc=com"));
     assertNotNull(group1);
     Group group2 = groupManager.getGroupInstance(
-            DN.decode("cn=group1,ou=groups,dc=example,dc=com"));
+            DN.valueOf("cn=group1,ou=groups,dc=example,dc=com"));
     assertNotNull(group2);
     Group group3 = groupManager.getGroupInstance(
-            DN.decode("cn=group2,ou=groups,dc=example,dc=com"));
+            DN.valueOf("cn=group2,ou=groups,dc=example,dc=com"));
     assertNotNull(group3);
 
     // Get a client connection authenticated as user1 and make sure it handles
     // group operations correctly.
-    DN userDN = DN.decode("uid=test1,ou=people,dc=example,dc=com");
+    DN userDN = DN.valueOf("uid=test1,ou=people,dc=example,dc=com");
     InternalClientConnection conn = new InternalClientConnection(userDN);
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
+                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -2417,28 +2417,28 @@ public class GroupManagerTestCase
             new InternalClientConnection(userDN);
     searchOperation =
          new InternalSearchOperation(conn1, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.nullDN(),
+                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
                   null);
 
     group1 = groupManager.getGroupInstance(
-            DN.decode("cn=group1,ou=moregroups,dc=example,dc=com"));
+            DN.valueOf("cn=group1,ou=moregroups,dc=example,dc=com"));
     assertNotNull(group1);
     assertTrue(conn1.isMemberOf(group1, null));
     group2 = groupManager.getGroupInstance(
-            DN.decode("cn=group1,ou=groups,dc=example,dc=com"));
+            DN.valueOf("cn=group1,ou=groups,dc=example,dc=com"));
     assertNull(group2);
     group3 = groupManager.getGroupInstance(
-            DN.decode("cn=group2,ou=groups,dc=example,dc=com"));
+            DN.valueOf("cn=group2,ou=groups,dc=example,dc=com"));
     assertNull(group3);
     Group newGroup2 = groupManager.getGroupInstance(
-            DN.decode("cn=group1,ou=newgroups,dc=example,dc=com"));
+            DN.valueOf("cn=group1,ou=newgroups,dc=example,dc=com"));
     assertNotNull(newGroup2);
     assertTrue(conn.isMemberOf(newGroup2, null));
     Group newGroup3 = groupManager.getGroupInstance(
-            DN.decode("cn=group2,ou=newgroups,dc=example,dc=com"));
+            DN.valueOf("cn=group2,ou=newgroups,dc=example,dc=com"));
     assertNotNull(newGroup3);
     assertTrue(conn.isMemberOf(newGroup3, null));
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.server;
@@ -662,7 +663,7 @@ public final class ServerManagementContext {
     ArrayList<String> names = new ArrayList<String>(children.size());
     for (DN child : children) {
       // Assume that RDNs are single-valued and can be trimmed.
-      AttributeValue av = child.getRDN().getAttributeValue(0);
+      AttributeValue av = child.rdn().getAttributeValue(0);
       names.add(av.getValue().toString().trim());
     }
 
@@ -714,7 +715,7 @@ public final class ServerManagementContext {
     ArrayList<String> names = new ArrayList<String>(children.size());
     for (DN child : children) {
       // Assume that RDNs are single-valued and can be trimmed.
-      AttributeValue av = child.getRDN().getAttributeValue(0);
+      AttributeValue av = child.rdn().getAttributeValue(0);
       names.add(av.toString().trim());
     }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -307,7 +307,7 @@ public final class TestLDIFWriter extends UtilTestCase {
     List<Entry[]> entries = new LinkedList<Entry[]>();
 
     for (String[] s : input) {
-      DN dn = DN.decode(s[0]);
+      DN dn = DN.valueOf(s[0]);
       Entry entry = new Entry(dn, null, null, null);
 
       for (int i = 1; i < s.length; i+=2) {

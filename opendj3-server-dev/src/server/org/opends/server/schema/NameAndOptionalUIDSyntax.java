@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -246,7 +246,7 @@ public class NameAndOptionalUIDSyntax
     // Take the DN portion of the string and try to normalize it.
     try
     {
-      DN.decode(valueString.substring(0, dnEndPos));
+      DN.valueOf(valueString.substring(0, dnEndPos));
     }
     catch (Exception e)
     {

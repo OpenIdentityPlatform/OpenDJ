@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -182,20 +182,20 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   {
     return new Object[][]
     {
-      new Object[] { DN.decode("dc=example,dc=com"), true },
-      new Object[] { DN.decode("ou=People,dc=example,dc=com"), true },
-      new Object[] { DN.decode("ou=Employees,ou=People,dc=example,dc=com"), true },
-      new Object[] { DN.decode("ou=Buildings,dc=example,dc=com"), false },
-      new Object[] { DN.decode("uid=user.0,ou=People,dc=example,dc=com"), false },
-      new Object[] { DN.decode("uid=user.1,ou=People,dc=example,dc=com"), false },
-      new Object[] { DN.decode("uid=user.2,ou=Employees,ou=People" +
+      new Object[] { DN.valueOf("dc=example,dc=com"), true },
+      new Object[] { DN.valueOf("ou=People,dc=example,dc=com"), true },
+      new Object[] { DN.valueOf("ou=Employees,ou=People,dc=example,dc=com"), true },
+      new Object[] { DN.valueOf("ou=Buildings,dc=example,dc=com"), false },
+      new Object[] { DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"), false },
+      new Object[] { DN.valueOf("uid=user.1,ou=People,dc=example,dc=com"), false },
+      new Object[] { DN.valueOf("uid=user.2,ou=Employees,ou=People" +
             ",dc=example,dc=com"), false },
-      new Object[] { DN.decode("cn=monitor"), true },
-      new Object[] { DN.decode("cn=Backends,cn=config"), true },
-      new Object[] { DN.decode("cn=Work Queue,cn=config"), false },
-      new Object[] { DN.decode("cn=tasks"), true },
-      new Object[] { DN.decode("cn=Recurring Tasks,cn=tasks"), false },
-      new Object[] { DN.decode("cn=backups"), false }
+      new Object[] { DN.valueOf("cn=monitor"), true },
+      new Object[] { DN.valueOf("cn=Backends,cn=config"), true },
+      new Object[] { DN.valueOf("cn=Work Queue,cn=config"), false },
+      new Object[] { DN.valueOf("cn=tasks"), true },
+      new Object[] { DN.valueOf("cn=Recurring Tasks,cn=tasks"), false },
+      new Object[] { DN.valueOf("cn=backups"), false }
     };
   }
 

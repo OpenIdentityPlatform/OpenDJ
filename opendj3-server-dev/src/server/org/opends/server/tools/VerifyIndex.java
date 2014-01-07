@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -391,7 +391,7 @@ public class VerifyIndex
     DN verifyBaseDN ;
     try
     {
-      verifyBaseDN = DN.decode(baseDNString.getValue());
+      verifyBaseDN = DN.valueOf(baseDNString.getValue());
     }
     catch (DirectoryException de)
     {

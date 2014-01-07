@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -71,7 +71,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     TestCaseUtils.initializeTestBackend(true);
 
     // Save Global ACI.
-    Entry e = DirectoryServer.getEntry(DN.decode(ACCESS_HANDLER_DN));
+    Entry e = DirectoryServer.getEntry(DN.valueOf(ACCESS_HANDLER_DN));
     List<Attribute> attrs =
         e.getAttribute(ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI);
     if (attrs != null && !attrs.isEmpty())
@@ -104,7 +104,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
           InternalClientConnection.getRootConnection();
 
       ResultCode rc =
-          conn.processModify(DN.decode(ACCESS_HANDLER_DN),
+          conn.processModify(DN.valueOf(ACCESS_HANDLER_DN),
               modifications).getResultCode();
       Assert.assertEquals(rc, ResultCode.SUCCESS,
           "Unable to restore global ACI");

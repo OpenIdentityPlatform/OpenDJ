@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 import java.io.BufferedReader;
@@ -593,7 +593,7 @@ public class LDIFSearch
       {
         try
         {
-          baseDNs.add(DN.decode(dnString));
+          baseDNs.add(DN.valueOf(dnString));
         }
         catch (Exception e)
         {
@@ -606,7 +606,7 @@ public class LDIFSearch
     }
     else
     {
-      baseDNs.add(DN.nullDN());
+      baseDNs.add(DN.rootDN());
     }
 
 

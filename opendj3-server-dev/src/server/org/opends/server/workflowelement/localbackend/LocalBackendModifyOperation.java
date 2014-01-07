@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -801,7 +801,7 @@ public class LocalBackendModifyOperation
           setAuthorizationEntry(authorizationEntry);
           if (authorizationEntry == null)
           {
-            setProxiedAuthorizationDN(DN.nullDN());
+            setProxiedAuthorizationDN(DN.rootDN());
           }
           else
           {
@@ -825,7 +825,7 @@ public class LocalBackendModifyOperation
           setAuthorizationEntry(authorizationEntry);
           if (authorizationEntry == null)
           {
-            setProxiedAuthorizationDN(DN.nullDN());
+            setProxiedAuthorizationDN(DN.rootDN());
           }
           else
           {
@@ -1567,7 +1567,7 @@ public class LocalBackendModifyOperation
       {
         AttributeType t = attr.getAttributeType();
 
-        RDN rdn = modifiedEntry.getDN().getRDN();
+        RDN rdn = modifiedEntry.getDN().rdn();
         if ((rdn !=  null) && rdn.hasAttributeType(t) &&
             (! modifiedEntry.hasValue(t, attr.getOptions(),
                                       rdn.getAttributeValue(t))))
@@ -1690,7 +1690,7 @@ public class LocalBackendModifyOperation
 
     // Make sure that the RDN attribute value(s) has not been removed.
     AttributeType t = attr.getAttributeType();
-    RDN rdn = modifiedEntry.getDN().getRDN();
+    RDN rdn = modifiedEntry.getDN().rdn();
     if ((rdn != null)
         && rdn.hasAttributeType(t)
         && (!modifiedEntry.hasValue(t, attr.getOptions(), rdn
@@ -1719,7 +1719,7 @@ public class LocalBackendModifyOperation
   {
     // The specified attribute type must not be an RDN attribute.
     AttributeType t = attr.getAttributeType();
-    RDN rdn = modifiedEntry.getDN().getRDN();
+    RDN rdn = modifiedEntry.getDN().rdn();
     if ((rdn != null) && rdn.hasAttributeType(t))
     {
       throw newDirectoryException(modifiedEntry, ResultCode.NOT_ALLOWED_ON_RDN,

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -473,7 +473,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
 
        // Read the dn
        length = getNextLength(encodedMsg, pos);
-       dn = DN.decode(new String(encodedMsg, pos, length, "UTF-8"));
+       dn = DN.valueOf(new String(encodedMsg, pos, length, "UTF-8"));
        pos += length + 1;
 
        // Read the entryuuid
@@ -544,7 +544,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
 
       // read the dn
       length = getNextLength(encodedMsg, pos);
-      dn = DN.decode(new String(encodedMsg, pos, length, "UTF-8"));
+      dn = DN.valueOf(new String(encodedMsg, pos, length, "UTF-8"));
       pos += length + 1;
 
       // read the entryuuid

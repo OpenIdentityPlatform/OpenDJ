@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -279,8 +279,8 @@ public class TestImportJob extends JebTestCase
     writer.close();
     ldifFile.close();
 
-    baseDNs = new DN[] { DN.decode("dc=importtest,dc=com"),
-        DN.decode("dc=importtest1,dc=com") };
+    baseDNs = new DN[] { DN.valueOf("dc=importtest,dc=com"),
+        DN.valueOf("dc=importtest1,dc=com") };
 
   }
 
@@ -342,13 +342,13 @@ public class TestImportJob extends JebTestCase
           assertEquals(entryContainer.getEntryCount(), 5);
           assertTrue(entryContainer.entryExists(baseDN));
           assertTrue(entryContainer.entryExists(DN
-              .decode("ou=People,dc=importtest,dc=com")));
+              .valueOf("ou=People,dc=importtest,dc=com")));
           assertTrue(entryContainer.entryExists(DN
-              .decode("ou=Others,ou=People,dc=importtest,dc=com")));
+              .valueOf("ou=Others,ou=People,dc=importtest,dc=com")));
           assertTrue(entryContainer.entryExists(DN
-              .decode("uid=user.0,ou=People,dc=importtest,dc=com")));
+              .valueOf("uid=user.0,ou=People,dc=importtest,dc=com")));
           assertTrue(entryContainer.entryExists(DN
-              .decode("uid=user.539,ou=People,dc=importtest,dc=com")));
+              .valueOf("uid=user.539,ou=People,dc=importtest,dc=com")));
 
           VerifyConfig verifyConfig = new VerifyConfig();
           verifyConfig.setBaseDN(baseDN);
@@ -363,9 +363,9 @@ public class TestImportJob extends JebTestCase
           assertEquals(entryContainer.getEntryCount(), 3);
           assertTrue(entryContainer.entryExists(baseDN));
           assertTrue(entryContainer.entryExists(DN
-              .decode("uid=user.446,dc=importtest1,dc=com")));
+              .valueOf("uid=user.446,dc=importtest1,dc=com")));
           assertTrue(entryContainer.entryExists(DN
-              .decode("uid=user.362,dc=importtest1,dc=com")));
+              .valueOf("uid=user.362,dc=importtest1,dc=com")));
 
           VerifyConfig verifyConfig = new VerifyConfig();
           verifyConfig.setBaseDN(baseDN);
@@ -394,9 +394,9 @@ public class TestImportJob extends JebTestCase
     fileList.add(homeDirName + File.separator + "entries1.ldif");
 
     ArrayList<DN> includeBranches = new ArrayList<DN>();
-    includeBranches.add(DN.decode("ou=People,dc=importtest,dc=com"));
+    includeBranches.add(DN.valueOf("ou=People,dc=importtest,dc=com"));
     ArrayList<DN> excludeBranches = new ArrayList<DN>();
-    excludeBranches.add(DN.decode("ou=Others,ou=People,dc=importtest,dc=com"));
+    excludeBranches.add(DN.valueOf("ou=Others,ou=People,dc=importtest,dc=com"));
 
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
     ByteArrayOutputStream skippedEntries = new ByteArrayOutputStream();
@@ -438,13 +438,13 @@ public class TestImportJob extends JebTestCase
           assertEquals(entryContainer.getEntryCount(), 5);
           assertTrue(entryContainer.entryExists(baseDN));
           assertTrue(entryContainer.entryExists(DN
-              .decode("ou=People,dc=importtest,dc=com")));
+              .valueOf("ou=People,dc=importtest,dc=com")));
           assertTrue(entryContainer.entryExists(DN
-              .decode("ou=Others,ou=People,dc=importtest,dc=com")));
+              .valueOf("ou=Others,ou=People,dc=importtest,dc=com")));
           assertTrue(entryContainer.entryExists(DN
-              .decode("uid=user.0,ou=People,dc=importtest,dc=com")));
+              .valueOf("uid=user.0,ou=People,dc=importtest,dc=com")));
           assertTrue(entryContainer.entryExists(DN
-              .decode("uid=user.539,ou=People,dc=importtest,dc=com")));
+              .valueOf("uid=user.539,ou=People,dc=importtest,dc=com")));
 
           VerifyConfig verifyConfig = new VerifyConfig();
           verifyConfig.setBaseDN(baseDN);
@@ -459,9 +459,9 @@ public class TestImportJob extends JebTestCase
           assertEquals(entryContainer.getEntryCount(), 3);
           assertTrue(entryContainer.entryExists(baseDN));
           assertTrue(entryContainer.entryExists(DN
-              .decode("uid=user.446,dc=importtest1,dc=com")));
+              .valueOf("uid=user.446,dc=importtest1,dc=com")));
           assertTrue(entryContainer.entryExists(DN
-              .decode("uid=user.362,dc=importtest1,dc=com")));
+              .valueOf("uid=user.362,dc=importtest1,dc=com")));
 
           VerifyConfig verifyConfig = new VerifyConfig();
           verifyConfig.setBaseDN(baseDN);
@@ -509,7 +509,7 @@ public class TestImportJob extends JebTestCase
     EntryContainer entryContainer;
 
     entryContainer = rootContainer.getEntryContainer(DN
-        .decode("dc=importtest1,dc=com"));
+        .valueOf("dc=importtest1,dc=com"));
     assertNotNull(entryContainer);
 
     entryContainer.sharedLock.lock();
@@ -517,7 +517,7 @@ public class TestImportJob extends JebTestCase
     {
       assertTrue(rejectedEntries.size() <= 0);
       Entry entry = entryContainer.getEntry(DN
-          .decode("uid=user.446,dc=importtest1,dc=com"));
+          .valueOf("uid=user.446,dc=importtest1,dc=com"));
       assertNotNull(entry);
 
       AttributeType attribute = entry.getAttribute("cn").get(0)
@@ -527,7 +527,7 @@ public class TestImportJob extends JebTestCase
           AttributeValues.create(attribute, "Annalee Bogard")));
 
       VerifyConfig verifyConfig = new VerifyConfig();
-      verifyConfig.setBaseDN(DN.decode("dc=importtest1,dc=com"));
+      verifyConfig.setBaseDN(DN.valueOf("dc=importtest1,dc=com"));
 
       Entry statEntry = bldStatEntry("");
       be = (BackendImpl) DirectoryServer.getBackend(beID);
@@ -623,20 +623,20 @@ public class TestImportJob extends JebTestCase
           assertEquals(entryContainer.getEntryCount(), 5);
           assertTrue(entryContainer.entryExists(baseDN));
           assertTrue(entryContainer.entryExists(DN
-              .decode("ou=People,dc=importtest,dc=com")));
+              .valueOf("ou=People,dc=importtest,dc=com")));
           assertTrue(entryContainer.entryExists(DN
-              .decode("uid=user.0,ou=People,dc=importtest,dc=com")));
+              .valueOf("uid=user.0,ou=People,dc=importtest,dc=com")));
           assertTrue(entryContainer.entryExists(DN
-              .decode("uid=user.539,ou=People,dc=importtest,dc=com")));
+              .valueOf("uid=user.539,ou=People,dc=importtest,dc=com")));
         }
         else if (baseDN.toString().equals("dc=importtest1,dc=com"))
         {
           assertEquals(entryContainer.getEntryCount(), 3);
           assertTrue(entryContainer.entryExists(baseDN));
           assertTrue(entryContainer.entryExists(DN
-              .decode("uid=user.446,dc=importtest1,dc=com")));
+              .valueOf("uid=user.446,dc=importtest1,dc=com")));
           assertTrue(entryContainer.entryExists(DN
-              .decode("uid=user.362,dc=importtest1,dc=com")));
+              .valueOf("uid=user.362,dc=importtest1,dc=com")));
         }
       }
       finally
@@ -681,7 +681,7 @@ public class TestImportJob extends JebTestCase
   public void testImportSkip() throws Exception
   {
     ArrayList<DN> excludeBranches = new ArrayList<DN>();
-    excludeBranches.add(DN.decode("dc=skipped,dc=importtest1,dc=com"));
+    excludeBranches.add(DN.valueOf("dc=skipped,dc=importtest1,dc=com"));
     ByteArrayOutputStream skippedEntries = new ByteArrayOutputStream();
     LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName
         + File.separator + "skipped.ldif");
@@ -721,7 +721,7 @@ public class TestImportJob extends JebTestCase
    */
   private Entry bldStatEntry(String dn) throws DirectoryException
   {
-    DN entryDN = DN.decode(dn);
+    DN entryDN = DN.valueOf(dn);
     HashMap<ObjectClass, String> ocs = new HashMap<ObjectClass, String>(2);
     ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP);
     if (topOC == null)

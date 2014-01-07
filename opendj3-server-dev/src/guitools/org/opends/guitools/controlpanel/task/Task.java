@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -1092,7 +1092,7 @@ public abstract class Task
     sb.append("dn: "+oldDN);
     sb.append("<br>");
     sb.append("changetype: moddn<br>");
-    sb.append("newrdn: "+newDN.getRDN()+"<br>");
+    sb.append("newrdn: "+newDN.rdn()+"<br>");
     sb.append("deleteoldrdn: 1");
     sb.append("</b><br><br>");
     getProgressDialog().appendProgressHtml(

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -360,7 +360,7 @@ public class RebuildIndex extends TaskTool
     DN rebuildBaseDN = null;
     try
     {
-      rebuildBaseDN = DN.decode(dn);
+      rebuildBaseDN = DN.valueOf(dn);
     }
     catch (Exception e)
     {

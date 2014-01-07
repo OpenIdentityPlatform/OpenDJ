@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -144,7 +145,7 @@ public class BackupBackend
     // the DN of the base backup entry.
     try
     {
-      backupBaseDN = DN.decode(DN_BACKUP_ROOT);
+      backupBaseDN = DN.valueOf(DN_BACKUP_ROOT);
     }
     catch (Exception e)
     {
@@ -185,7 +186,7 @@ public class BackupBackend
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
          new LinkedHashMap<AttributeType,List<Attribute>>(1);
 
-    RDN rdn = backupBaseDN.getRDN();
+    RDN rdn = backupBaseDN.rdn();
     int numAVAs = rdn.getNumValues();
     for (int i=0; i < numAVAs; i++)
     {
@@ -513,7 +514,7 @@ public class BackupBackend
     // Make sure that the DN specifies a backup directory.
     AttributeType t =
          DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
-    AttributeValue v = entryDN.getRDN().getAttributeValue(t);
+    AttributeValue v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
       Message message =
@@ -606,7 +607,7 @@ public class BackupBackend
     // First, get the backup ID from the entry DN.
     AttributeType idType = DirectoryServer.getAttributeType(ATTR_BACKUP_ID,
         true);
-    AttributeValue idValue = entryDN.getRDN().getAttributeValue(idType);
+    AttributeValue idValue = entryDN.rdn().getAttributeValue(idType);
     if (idValue == null) {
       Message message = ERR_BACKUP_NO_BACKUP_ID_IN_DN.get(String
           .valueOf(entryDN));
@@ -624,7 +625,7 @@ public class BackupBackend
 
     AttributeType t = DirectoryServer.getAttributeType(
         ATTR_BACKUP_DIRECTORY_PATH, true);
-    AttributeValue v = parentDN.getRDN().getAttributeValue(t);
+    AttributeValue v = parentDN.rdn().getAttributeValue(t);
     if (v == null) {
       Message message = ERR_BACKUP_NO_BACKUP_DIR_IN_DN.get(String
           .valueOf(entryDN));
@@ -1216,7 +1217,7 @@ public class BackupBackend
   {
     AttributeValue attrValue =
         AttributeValues.create(rdnAttrType, rdnStringValue);
-    return parentDN.concat(RDN.create(rdnAttrType, attrValue));
+    return parentDN.child(RDN.create(rdnAttrType, attrValue));
   }
 
 

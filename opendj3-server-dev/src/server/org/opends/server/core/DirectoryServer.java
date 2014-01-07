@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2013 ForgeRock AS.
+ *      Portions Copyright 2010-2014 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -1850,7 +1850,7 @@ public final class DirectoryServer
     {
       try
       {
-        DN dn = DN.decode(dnStr);
+        DN dn = DN.valueOf(dnStr);
         for (ConfigAddListener listener : addListeners.get(dnStr))
         {
           configHandler.getConfigEntry(dn).registerAddListener(listener);
@@ -1867,7 +1867,7 @@ public final class DirectoryServer
     {
       try
       {
-        DN dn = DN.decode(dnStr);
+        DN dn = DN.valueOf(dnStr);
         for (ConfigDeleteListener listener : deleteListeners.get(dnStr))
         {
           configHandler.getConfigEntry(dn).registerDeleteListener(listener);
@@ -1884,7 +1884,7 @@ public final class DirectoryServer
     {
       try
       {
-        DN dn = DN.decode(dnStr);
+        DN dn = DN.valueOf(dnStr);
         for (ConfigChangeListener listener : changeListeners.get(dnStr))
         {
           configHandler.getConfigEntry(dn).registerChangeListener(listener);
@@ -2132,7 +2132,7 @@ public final class DirectoryServer
       registerWorkflowWithInternalNetworkGroup(workflowImpl);
       // Special case for cn=config
       // it must not be added to the default ng except in auto mode
-      if (!curBaseDN.equals(DN.decode(DN_CONFIG_ROOT))
+      if (!curBaseDN.equals(DN.valueOf(DN_CONFIG_ROOT))
           || workflowConfigurationModeIsAuto()) {
         registerWorkflowWithDefaultNetworkGroup(workflowImpl);
       }
@@ -6170,7 +6170,7 @@ public final class DirectoryServer
    */
   public static Backend getBackend(DN entryDN)
   {
-    if (entryDN.isNullDN())
+    if (entryDN.isRootDN())
     {
       return directoryServer.rootDSEBackend;
     }
@@ -6179,7 +6179,7 @@ public final class DirectoryServer
     Backend b = baseDNs.get(entryDN);
     while (b == null)
     {
-      entryDN = entryDN.getParent();
+      entryDN = entryDN.parent();
       if (entryDN == null)
       {
         return null;
@@ -6247,7 +6247,7 @@ public final class DirectoryServer
       // the workflow in manual mode because in that case the workflows
       // are created explicitly.
       if (workflowConfigurationModeIsAuto()
-          && !baseDN.equals(DN.decode("cn=config")))
+          && !baseDN.equals(DN.valueOf("cn=config")))
       {
         // Now create a workflow for the registered baseDN and register
         // the workflow with the default network group, but don't register
@@ -6416,7 +6416,7 @@ public final class DirectoryServer
          throws DirectoryException
   {
     // If the entry is the root DSE, then get and return that.
-    if (entryDN.isNullDN())
+    if (entryDN.isRootDN())
     {
       return directoryServer.rootDSEBackend.getRootDSE();
     }
@@ -6451,7 +6451,7 @@ public final class DirectoryServer
          throws DirectoryException
   {
     // If the entry is the root DSE, then it will always exist.
-    if (entryDN.isNullDN())
+    if (entryDN.isRootDN())
     {
       return true;
     }
@@ -8887,7 +8887,7 @@ public final class DirectoryServer
       {
         // The config handler hasn't been initialized yet.  Just return the DN
         // of the root DSE.
-        return DN.nullDN();
+        return DN.rootDN();
       }
 
       return configHandler.getConfigRootEntry().getDN();
@@ -8901,7 +8901,7 @@ public final class DirectoryServer
 
       // This could theoretically happen if an alert needs to be sent before the
       // configuration is initialized.  In that case, just return an empty DN.
-      return DN.nullDN();
+      return DN.rootDN();
     }
   }
 
@@ -9420,7 +9420,7 @@ public final class DirectoryServer
     try
     {
       // Get a complete DN which could be a tree naming schema
-      return DN.decode("cn="+monitorName+","+DN_MONITOR_ROOT);
+      return DN.valueOf("cn="+monitorName+","+DN_MONITOR_ROOT);
     }
     catch (DirectoryException e)
     {

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -81,7 +82,7 @@ public class RegularExpressionIdentityMapperTestCase
          throws Exception
   {
     DN mapperDN =
-         DN.decode("cn=Regular Expression,cn=Identity Mappers,cn=config");
+         DN.valueOf("cn=Regular Expression,cn=Identity Mappers,cn=config");
     IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
     assertNotNull(mapper);
     assertTrue(mapper instanceof RegularExpressionIdentityMapper);
@@ -222,7 +223,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test@example.com");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
     mapper.finalizeIdentityMapper();
   }
@@ -287,7 +288,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test@example.com");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
     mapper.finalizeIdentityMapper();
   }
@@ -352,7 +353,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test@example.com");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
     mapper.finalizeIdentityMapper();
   }
@@ -482,7 +483,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test@example.com");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
     mapper.finalizeIdentityMapper();
   }
@@ -546,7 +547,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
     mapper.finalizeIdentityMapper();
   }
@@ -608,7 +609,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test@example.com");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
     mapper.finalizeIdentityMapper();
   }
@@ -671,7 +672,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test@example.com,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test@example.com,o=test"));
 
     mapper.finalizeIdentityMapper();
   }

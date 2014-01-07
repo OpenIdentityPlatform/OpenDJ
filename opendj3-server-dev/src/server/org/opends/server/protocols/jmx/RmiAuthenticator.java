@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 import org.opends.messages.Message;
@@ -242,7 +243,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     DN bindDN;
     try
     {
-      bindDN = DN.decode(authcID);
+      bindDN = DN.valueOf(authcID);
     }
     catch (Exception e)
     {

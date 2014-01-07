@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -101,7 +101,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
     }
 
     // Clear any reference to a domain in synchro plugin
-    MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
+    MultimasterReplication.deleteDomain(DN.valueOf(TEST_ROOT_DN_STRING));
     remove(rs1, rs2);
     rs1 = rs2 = null;
     rs1Port = rs2Port = -1;
@@ -134,7 +134,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       rs2 = createReplicationServer(RS2_ID, testCase);
 
       // Start DS1
-      DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+      DN baseDn = DN.valueOf(TEST_ROOT_DN_STRING);
       rd1 = createReplicationDomain(baseDn, DS1_ID);
 
       // Wait a bit so that connections are performed
@@ -203,7 +203,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       rs2 = createReplicationServer(RS2_ID, testCase);
 
       // Start DS1
-      DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+      DN baseDn = DN.valueOf(TEST_ROOT_DN_STRING);
       rd1 = createReplicationDomain(baseDn, DS1_ID);
       // Start DS2
       rd2 = createReplicationDomain(baseDn, DS2_ID);

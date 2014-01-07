@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -233,7 +233,7 @@ public class PersistentServerState
       LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
       attributes.add(REPLICATION_STATE);
       InternalSearchOperation op =
-          conn.processSearch(DN.decode("cn=config"),
+          conn.processSearch(DN.valueOf("cn=config"),
           SearchScope.SUBORDINATE_SUBTREE,
           DereferencePolicy.NEVER_DEREF_ALIASES,
           1, 0, false, filter, attributes);

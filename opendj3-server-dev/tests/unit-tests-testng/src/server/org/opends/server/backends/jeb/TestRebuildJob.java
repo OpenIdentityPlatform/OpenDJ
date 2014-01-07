@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -129,7 +129,7 @@ public class TestRebuildJob extends JebTestCase
     TestCaseUtils.startServer();
     TestCaseUtils.enableBackend(beID);
     baseDNs = new DN[] {
-        DN.decode(suffix)
+        DN.valueOf(suffix)
     };
   }
 
@@ -392,7 +392,7 @@ public class TestRebuildJob extends JebTestCase
    * @throws DirectoryException if the cannot be created.
    */
   private Entry bldStatEntry(String dn) throws DirectoryException {
-    DN entryDN = DN.decode(dn);
+    DN entryDN = DN.valueOf(dn);
     HashMap<ObjectClass, String> ocs = new HashMap<ObjectClass, String>(2);
     ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP);
     if (topOC == null) {

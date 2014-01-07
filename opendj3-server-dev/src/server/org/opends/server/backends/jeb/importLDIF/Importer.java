@@ -1307,7 +1307,7 @@ public final class Importer implements DiskSpaceMonitorHandler
             {
               byte[] bytes =
                   JebFormat.dnToDNKey(excludedDN, suffix.getBaseDN()
-                      .getNumComponents());
+                      .size());
               key.setData(bytes);
               status = cursor.getSearchKeyRange(key, data, lockMode);
               if (status == OperationStatus.SUCCESS
@@ -1375,7 +1375,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           if (includeBranch.isDescendantOf(suffix.getBaseDN()))
           {
             includeBranches.add(JebFormat.dnToDNKey(includeBranch, suffix
-                .getBaseDN().getNumComponents()));
+                .getBaseDN().size()));
           }
         }
 
@@ -1872,7 +1872,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       DN2ID dn2id = suffix.getDN2ID();
       byte[] dnBytes =
-          JebFormat.dnToDNKey(dn, suffix.getBaseDN().getNumComponents());
+          JebFormat.dnToDNKey(dn, suffix.getBaseDN().size());
       int id =
           processKey(dn2id, dnBytes, entryID, indexComparator, new IndexKey(
               dnType, ImportIndexType.DN, 1), true);

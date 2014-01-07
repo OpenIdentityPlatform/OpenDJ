@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -449,7 +449,7 @@ public class DefaultEntryCacheTestCase
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
 
     // Spread test entries among all cache levels via default cache.
     for (int i = 0; i < NUMTESTENTRIES; i++) {

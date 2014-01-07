@@ -75,9 +75,9 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       cnIndexDB.setPurgeDelay(0);
 
       // Prepare data to be stored in the db
-      DN baseDN1 = DN.decode("o=baseDN1");
-      DN baseDN2 = DN.decode("o=baseDN2");
-      DN baseDN3 = DN.decode("o=baseDN3");
+      DN baseDN1 = DN.valueOf("o=baseDN1");
+      DN baseDN2 = DN.valueOf("o=baseDN2");
+      DN baseDN3 = DN.valueOf("o=baseDN3");
 
       CSN[] csns = newCSNs(1, 0, 3);
 
@@ -169,9 +169,9 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
 
       // Prepare data to be stored in the db
 
-      DN baseDN1 = DN.decode("o=baseDN1");
-      DN baseDN2 = DN.decode("o=baseDN2");
-      DN baseDN3 = DN.decode("o=baseDN3");
+      DN baseDN1 = DN.valueOf("o=baseDN1");
+      DN baseDN2 = DN.valueOf("o=baseDN2");
+      DN baseDN3 = DN.valueOf("o=baseDN3");
 
       CSN[] csns = newCSNs(1, 0, 3);
 

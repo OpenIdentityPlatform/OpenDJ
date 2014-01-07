@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -140,7 +140,7 @@ public class SubjectEqualsDNCertificateMapper
     DN subjectDN;
     try
     {
-      subjectDN = DN.decode(peerPrincipal.getName(X500Principal.RFC2253));
+      subjectDN = DN.valueOf(peerPrincipal.getName(X500Principal.RFC2253));
     }
     catch (Exception e)
     {

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -412,7 +413,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
     // Test constructor EntryChangeNotificationControl
     // (PersistentSearchChangeType changeType, DN previousDN, long
     // changeNumber)
-    DN dn = DN.decode(dnString);
+    DN dn = DN.valueOf(dnString);
     for (PersistentSearchChangeType type : types)
     {
       ecnc = new EntryChangeNotificationControl(type, dn, changeNumber);

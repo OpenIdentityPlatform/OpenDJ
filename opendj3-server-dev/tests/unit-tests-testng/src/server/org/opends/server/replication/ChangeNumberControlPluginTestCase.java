@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -67,7 +67,7 @@ public class ChangeNumberControlPluginTestCase extends ReplicationTestCase
   public void setUp() throws Exception {
     super.setUp();
 
-    baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    baseDn = DN.valueOf(TEST_ROOT_DN_STRING);
 
     replServerPort = TestCaseUtils.findFreePort();
 

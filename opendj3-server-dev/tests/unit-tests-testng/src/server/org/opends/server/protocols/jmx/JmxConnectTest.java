@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
@@ -150,11 +150,11 @@ public class JmxConnectTest extends JmxTestCase {
         .getRootConnection();
 
     DeleteOperation deleteOperation = conn.processDelete(DN
-        .decode("cn=Privileged User,o=test"));
+        .valueOf("cn=Privileged User,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     deleteOperation = conn.processDelete(DN
-        .decode("cn=Unprivileged JMX User,o=test"));
+        .valueOf("cn=Unprivileged JMX User,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -625,7 +625,7 @@ public class JmxConnectTest extends JmxTestCase {
    */
   private Object jmxGet(String dn, String attributeName,
       MBeanServerConnection mbsc) throws Exception {
-    String jmxName = JMXMBean.getJmxName(DN.decode(dn));
+    String jmxName = JMXMBean.getJmxName(DN.valueOf(dn));
     ObjectName name = ObjectName.getInstance(jmxName);
 
     try
@@ -650,7 +650,7 @@ public class JmxConnectTest extends JmxTestCase {
    */
   private void jmxSet(String dn, String attributeName, Object value,
       MBeanServerConnection mbsc) throws Exception {
-    String jmxName = JMXMBean.getJmxName(DN.decode(dn));
+    String jmxName = JMXMBean.getJmxName(DN.valueOf(dn));
     ObjectName name = ObjectName.getInstance(jmxName);
     Attribute attr = new Attribute(attributeName, value);
 

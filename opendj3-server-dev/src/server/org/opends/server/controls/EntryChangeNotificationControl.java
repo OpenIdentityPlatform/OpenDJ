@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -93,7 +94,7 @@ public class EntryChangeNotificationControl
                 ResultCode.PROTOCOL_ERROR, message);
           }
 
-          previousDN = DN.decode(reader.readOctetStringAsString());
+          previousDN = DN.valueOf(reader.readOctetStringAsString());
         }
         if(reader.hasNextElement() &&
             reader.peekType() == UNIVERSAL_INTEGER_TYPE)

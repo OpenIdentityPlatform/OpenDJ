@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -298,7 +299,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // Create a workflow and register it with the server
     String workflowID = baseDN + "#" + backendID;
     WorkflowImpl workflowImpl = new WorkflowImpl(
-        workflowID, DN.decode(baseDN), workflowElementID, workflowElement);
+        workflowID, DN.valueOf(baseDN), workflowElementID, workflowElement);
     workflowImpl.register();
     
     // Register the workflow with the internal network group
@@ -364,7 +365,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
   private void createBaseEntry(String baseDN, String backendID)
       throws Exception
   {
-    Entry entry = StaticUtils.createEntry(DN.decode(baseDN));
+    Entry entry = StaticUtils.createEntry(DN.valueOf(baseDN));
 
     AddOperationBasis addOperation = new AddOperationBasis(
         InternalClientConnection.getRootConnection(),
@@ -455,7 +456,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     Backend backend = DirectoryServer.getBackend(backendID);
     if (createBaseEntry)
     {
-      Entry e = createEntry(DN.decode(baseDN));
+      Entry e = createEntry(DN.valueOf(baseDN));
       backend.addEntry(e, null);
     }
     return backend;

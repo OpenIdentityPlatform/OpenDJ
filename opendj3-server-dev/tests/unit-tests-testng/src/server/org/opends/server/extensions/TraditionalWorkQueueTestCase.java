@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -100,7 +100,7 @@ public class TraditionalWorkQueueTestCase
   public void testChangingNumWorkerThreads()
          throws Exception
   {
-    DN     dn   = DN.decode("cn=Work Queue,cn=config");
+    DN     dn   = DN.valueOf("cn=Work Queue,cn=config");
     String attr = "ds-cfg-num-worker-threads";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
@@ -202,7 +202,7 @@ public class TraditionalWorkQueueTestCase
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                      InternalClientConnection.nextMessageID(),requestControls,
-                                     DN.decode("o=test"),
+                                     DN.valueOf("o=test"),
                                      SearchScope.BASE_OBJECT,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, attrs, null);
@@ -239,7 +239,7 @@ public class TraditionalWorkQueueTestCase
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                      InternalClientConnection.nextMessageID(), requestControls,
-                                     DN.decode("o=test"),
+                                     DN.valueOf("o=test"),
                                      SearchScope.BASE_OBJECT,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, attrs, null);

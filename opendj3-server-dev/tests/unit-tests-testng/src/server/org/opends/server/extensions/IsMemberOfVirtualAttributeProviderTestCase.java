@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -134,7 +134,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "member: uid=test.user,ou=People,o=test");
 
     Entry e =
-         DirectoryServer.getEntry(DN.decode("uid=test.user,ou=People,o=test"));
+         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
@@ -152,7 +152,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=test static group,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -200,7 +200,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "uniqueMember: uid=test.user,ou=People,o=test");
 
     Entry e =
-         DirectoryServer.getEntry(DN.decode("uid=test.user,ou=People,o=test"));
+         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
@@ -218,7 +218,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=test static group,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -265,7 +265,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "memberURL: ldap:///ou=People,o=test??sub?(sn=user)");
 
     Entry e =
-         DirectoryServer.getEntry(DN.decode("uid=test.user,ou=People,o=test"));
+         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
@@ -284,7 +284,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
          conn.processDelete(
-              DN.decode("cn=test dynamic group,ou=groups,o=test"));
+              DN.valueOf("cn=test dynamic group,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -355,7 +355,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "member: uid=test.user2,ou=People,o=test");
 
     Entry e =
-         DirectoryServer.getEntry(DN.decode("uid=test.user,ou=People,o=test"));
+         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
@@ -377,15 +377,15 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 1,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 1,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 2,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 2,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 3,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 3,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -474,7 +474,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "memberURL: ldap:///o=test??sub?(givenName=test)");
 
     Entry e =
-         DirectoryServer.getEntry(DN.decode("uid=test.user,ou=People,o=test"));
+         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
@@ -502,27 +502,27 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 1,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 1,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 2,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 2,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 3,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 3,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 4,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 4,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 5,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 5,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 6,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 6,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -581,7 +581,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "member: uid=test.user,ou=People,o=test");
 
     Entry e =
-         DirectoryServer.getEntry(DN.decode("uid=test.user,ou=People,o=test"));
+         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
 
     IsMemberOfVirtualAttributeProvider provider =
          new IsMemberOfVirtualAttributeProvider();
@@ -599,7 +599,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=test static group,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -646,7 +646,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "member: uid=test.user,ou=People,o=test");
 
     Entry e =
-         DirectoryServer.getEntry(DN.decode("uid=test.user,ou=People,o=test"));
+         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
 
     IsMemberOfVirtualAttributeProvider provider =
          new IsMemberOfVirtualAttributeProvider();
@@ -667,7 +667,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=test static group,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -714,7 +714,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "member: uid=test.user,ou=People,o=test");
 
     Entry e =
-         DirectoryServer.getEntry(DN.decode("uid=test.user,ou=People,o=test"));
+         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
 
     IsMemberOfVirtualAttributeProvider provider =
          new IsMemberOfVirtualAttributeProvider();
@@ -735,7 +735,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=test static group,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -782,7 +782,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "member: uid=test.user,ou=People,o=test");
 
     Entry e =
-         DirectoryServer.getEntry(DN.decode("uid=test.user,ou=People,o=test"));
+         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
 
     IsMemberOfVirtualAttributeProvider provider =
          new IsMemberOfVirtualAttributeProvider();
@@ -805,7 +805,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=test static group,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -852,7 +852,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "member: uid=test.user,ou=People,o=test");
 
     Entry e =
-         DirectoryServer.getEntry(DN.decode("uid=test.user,ou=People,o=test"));
+         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
 
     IsMemberOfVirtualAttributeProvider provider =
          new IsMemberOfVirtualAttributeProvider();
@@ -875,7 +875,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=test static group,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1121,7 +1121,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                                      InternalClientConnection.nextOperationID(),
                                      InternalClientConnection.nextMessageID(),
                                      null,
-                                     DN.decode("o=test"),
+                                     DN.valueOf("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, null, null);
@@ -1230,7 +1230,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "member: uid=test.user3,ou=People,o=test");
 
     Entry userEntry =
-         DirectoryServer.getEntry(DN.decode("uid=test.user,ou=People,o=test"));
+         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(userEntry);
 
     IsMemberOfVirtualAttributeProvider provider =
@@ -1253,7 +1253,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                                      InternalClientConnection.nextOperationID(),
                                      InternalClientConnection.nextMessageID(),
                                      null,
-                                     DN.decode("o=test"),
+                                     DN.valueOf("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, null, null);
@@ -1278,19 +1278,19 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     assertEquals(matchFound, shouldMatch);
 
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 1,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 1,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 2,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 2,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 3,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 3,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 4,ou=groups,o=test"));
+         conn.processDelete(DN.valueOf("cn=test group 4,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1334,7 +1334,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     TestCaseUtils.addEntries(builder.toString());
     //Verify the entry.
     Entry e =
-         DirectoryServer.getEntry(DN.decode("cn=user.0,ou=People"+SUFFIX));
+         DirectoryServer.getEntry(DN.valueOf("cn=user.0,ou=People"+SUFFIX));
     assertNotNull(e);
     //Do an ldapsearch.
     InternalClientConnection conn =

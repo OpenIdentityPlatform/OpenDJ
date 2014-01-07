@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2011-2012 profiq s.r.o.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 
 package org.opends.server.plugins;
@@ -106,7 +106,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
   public void afterClass() throws Exception
   {
     TestCaseUtils.deleteEntry(DN
-        .decode("cn=samba password,cn=Plugins,cn=config"));
+        .valueOf("cn=samba password,cn=Plugins,cn=config"));
   }
 
 
@@ -153,7 +153,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
             + "(version 3.0; acl \"Samba admin\"; allow (all) "
             + "userdn=\"ldap:///cn=samba admin,o=test\";)")));
 
-    ModifyOperation modOp = conn.processModify(DN.decode("o=test"), mods);
+    ModifyOperation modOp = conn.processModify(DN.valueOf("o=test"), mods);
 
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
   }
@@ -675,7 +675,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
   {
     SambaPasswordPlugin plugin = (SambaPasswordPlugin)
       DirectoryServer.getPluginConfigManager().getRegisteredPlugin(
-        DN.decode("cn=samba password,cn=Plugins,cn=config"));
+        DN.valueOf("cn=samba password,cn=Plugins,cn=config"));
 
     TimeStampProvider testTimeStampProvider = new TimeStampProvider()
     {
@@ -755,7 +755,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
   {
     SambaPasswordPlugin plugin = (SambaPasswordPlugin)
       DirectoryServer.getPluginConfigManager().getRegisteredPlugin(
-        DN.decode("cn=samba password,cn=Plugins,cn=config"));
+        DN.valueOf("cn=samba password,cn=Plugins,cn=config"));
 
     TimeStampProvider testTimeStampProvider = new TimeStampProvider()
     {

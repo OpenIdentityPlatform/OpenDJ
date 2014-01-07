@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -113,7 +113,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   public void buildAndPublishMissingChangesOneEntryTest() throws Exception
   {
     final int serverId = 123;
-    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     TestCaseUtils.initializeTestBackend(true);
     ReplicationServer rs = createReplicationServer();
     // Create Replication Server and Domain
@@ -122,7 +122,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     try
     {
       long startTime = TimeThread.getTime();
-      final DN dn1 = DN.decode("cn=test1," + baseDN);
+      final DN dn1 = DN.valueOf("cn=test1," + baseDN);
     final AttributeType histType =
       DirectoryServer.getAttributeType(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
@@ -216,7 +216,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   @Test()
   public void buildAndPublishMissingChangesSeveralEntriesTest() throws Exception
   {
-    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     TestCaseUtils.initializeTestBackend(true);
     ReplicationServer rs = createReplicationServer();
     // Create Replication Server and Domain
@@ -229,9 +229,9 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     "Starting replication test : changesCmpTest"));
 
     // Add 3 entries.
-    DN dnTest1 = DN.decode("cn=test1," + baseDN);
-    DN dnTest2 = DN.decode("cn=test2," + baseDN);
-    DN dnTest3 = DN.decode("cn=test3," + baseDN);
+    DN dnTest1 = DN.valueOf("cn=test1," + baseDN);
+    DN dnTest2 = DN.valueOf("cn=test2," + baseDN);
+    DN dnTest3 = DN.valueOf("cn=test3," + baseDN);
     TestCaseUtils.addEntry(
         "dn: " + dnTest3,
         "displayname: Test1",
@@ -325,7 +325,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   private LDAPReplicationDomain createReplicationDomain(int dsId)
           throws DirectoryException, ConfigException
   {
-    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     final DomainFakeCfg domainConf = new DomainFakeCfg(
         baseDN, dsId, replServers, AssuredType.NOT_ASSURED, 2, 1, 0, null);
     LDAPReplicationDomain replicationDomain = MultimasterReplication.createNewDomain(domainConf);

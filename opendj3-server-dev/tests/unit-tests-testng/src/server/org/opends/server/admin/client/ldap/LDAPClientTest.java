@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.client.ldap;
 
@@ -751,7 +752,7 @@ public final class LDAPClientTest extends AdminTestCase {
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
     parent.setMandatoryBooleanProperty(false);
     parent.setOptionalMultiValuedDNProperty(Arrays.asList(DN
-        .decode("dc=mod1,dc=com"), DN.decode("dc=mod2,dc=com")));
+        .valueOf("dc=mod1,dc=com"), DN.valueOf("dc=mod2,dc=com")));
     parent.commit();
     Assert.assertTrue(c.isEntryModified());
   }

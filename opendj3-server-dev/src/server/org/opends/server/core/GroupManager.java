@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -123,7 +123,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    */
   public GroupManager() throws DirectoryException
   {
-    super(DN.decode(CONFIG_DN), EnumSet.of(
+    super(DN.valueOf(CONFIG_DN), EnumSet.of(
           PluginType.POST_OPERATION_ADD,
           PluginType.POST_OPERATION_DELETE,
           PluginType.POST_OPERATION_MODIFY,
@@ -856,7 +856,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
         DN groupDN;
         try
         {
-          groupDN = DN.decode(groupDNString);
+          groupDN = DN.valueOf(groupDNString);
         }
         catch (DirectoryException de)
         {

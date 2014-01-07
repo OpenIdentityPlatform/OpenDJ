@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
@@ -139,7 +139,7 @@ public class AddSchemaFileTaskTestCase
          "ds-task-schema-file-name: 05-single-valid.ldif");
     assertEquals(resultCode, 0);
 
-    Task task = getCompletedTask(DN.decode(taskDNStr));
+    Task task = getCompletedTask(DN.valueOf(taskDNStr));
     assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
     assertFalse(DirectoryServer.getSchema().getYoungestModificationTime() ==
                      beforeModifyTimestamp);
@@ -263,7 +263,7 @@ public class AddSchemaFileTaskTestCase
          "ds-task-schema-file-name: 05-multiple-valid-2.ldif");
     assertEquals(resultCode, 0);
 
-    Task task = getCompletedTask(DN.decode(taskDNStr));
+    Task task = getCompletedTask(DN.valueOf(taskDNStr));
     assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
     assertFalse(DirectoryServer.getSchema().getYoungestModificationTime() ==
                      beforeModifyTimestamp);
@@ -357,7 +357,7 @@ public class AddSchemaFileTaskTestCase
          "ds-task-schema-file-name: 05-empty.ldif");
     assertEquals(resultCode, 0);
 
-    Task task = getCompletedTask(DN.decode(taskDNStr));
+    Task task = getCompletedTask(DN.valueOf(taskDNStr));
     assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
     assertFalse(DirectoryServer.getSchema().getYoungestModificationTime() ==
                      beforeModifyTimestamp);

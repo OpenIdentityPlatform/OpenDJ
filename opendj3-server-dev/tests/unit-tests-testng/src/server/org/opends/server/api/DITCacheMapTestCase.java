@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -137,16 +138,16 @@ public class DITCacheMapTestCase extends APITestCase
   {
     TestCaseUtils.startServer();
 
-    dn0 = DN.decode(dn0String);
-    dn1 = DN.decode(dn1String);
-    dn2 = DN.decode(dn2String);
-    dn3 = DN.decode(dn3String);
-    dn4 = DN.decode(dn4String);
-    dn5 = DN.decode(dn5String);
-    dn6 = DN.decode(dn6String);
-    dn7 = DN.decode(dn7String);
-    dn8 = DN.decode(dn8String);
-    dn9 = DN.decode(dn9String);
+    dn0 = DN.valueOf(dn0String);
+    dn1 = DN.valueOf(dn1String);
+    dn2 = DN.valueOf(dn2String);
+    dn3 = DN.valueOf(dn3String);
+    dn4 = DN.valueOf(dn4String);
+    dn5 = DN.valueOf(dn5String);
+    dn6 = DN.valueOf(dn6String);
+    dn7 = DN.valueOf(dn7String);
+    dn8 = DN.valueOf(dn8String);
+    dn9 = DN.valueOf(dn9String);
   }
 
   @Test()
@@ -180,17 +181,17 @@ public class DITCacheMapTestCase extends APITestCase
     assertTrue(ditMap.containsKey(dn8));
     assertTrue(ditMap.containsKey(dn9));
 
-    assertFalse(ditMap.containsKey(DN.decode(
+    assertFalse(ditMap.containsKey(DN.valueOf(
             "ou=No,ou=More,ou=Objects,dc=example,dc=com")));
-    assertFalse(ditMap.containsKey(DN.decode(
+    assertFalse(ditMap.containsKey(DN.valueOf(
             "ou=More,ou=Objects,dc=example,dc=com")));
-    assertFalse(ditMap.containsKey(DN.decode(
+    assertFalse(ditMap.containsKey(DN.valueOf(
             "ou=Objects,dc=example,dc=com")));
-    assertFalse(ditMap.containsKey(DN.decode(
+    assertFalse(ditMap.containsKey(DN.valueOf(
             "ou=Classes,dc=example,dc=com")));
-    assertFalse(ditMap.containsKey(DN.decode(
+    assertFalse(ditMap.containsKey(DN.valueOf(
             "dc=example,dc=com")));
-    assertFalse(ditMap.containsKey(DN.decode(
+    assertFalse(ditMap.containsKey(DN.valueOf(
             "dc=com")));
 
     assertTrue(ditMap.containsValue(dn0String));
@@ -215,17 +216,17 @@ public class DITCacheMapTestCase extends APITestCase
     assertEquals(ditMap.get(dn8), dn8String);
     assertEquals(ditMap.get(dn9), dn9String);
 
-    assertNull(ditMap.get(DN.decode(
+    assertNull(ditMap.get(DN.valueOf(
             "ou=No,ou=More,ou=Objects,dc=example,dc=com")));
-    assertNull(ditMap.get(DN.decode(
+    assertNull(ditMap.get(DN.valueOf(
             "ou=More,ou=Objects,dc=example,dc=com")));
-    assertNull(ditMap.get(DN.decode(
+    assertNull(ditMap.get(DN.valueOf(
             "ou=Objects,dc=example,dc=com")));
-    assertNull(ditMap.get(DN.decode(
+    assertNull(ditMap.get(DN.valueOf(
             "ou=Classes,dc=example,dc=com")));
-    assertNull(ditMap.get(DN.decode(
+    assertNull(ditMap.get(DN.valueOf(
             "dc=example,dc=com")));
-    assertNull(ditMap.get(DN.decode(
+    assertNull(ditMap.get(DN.valueOf(
             "dc=com")));
   }
 
@@ -238,7 +239,7 @@ public class DITCacheMapTestCase extends APITestCase
     putAllAndVerify();
 
     Collection<String> subtreeSet = ditMap.getSubtree(
-            DN.decode("dc=example,dc=com"));
+            DN.valueOf("dc=example,dc=com"));
     assertFalse(subtreeSet.isEmpty());
     assertEquals(subtreeSet.size(), 10);
     assertTrue(subtreeSet.contains(dn0String));
@@ -253,7 +254,7 @@ public class DITCacheMapTestCase extends APITestCase
     assertTrue(subtreeSet.contains(dn9String));
 
     subtreeSet = ditMap.getSubtree(
-            DN.decode("ou=Objects,dc=example,dc=com"));
+            DN.valueOf("ou=Objects,dc=example,dc=com"));
     assertFalse(subtreeSet.isEmpty());
     assertEquals(subtreeSet.size(), 7);
     assertTrue(subtreeSet.contains(dn1String));
@@ -266,14 +267,14 @@ public class DITCacheMapTestCase extends APITestCase
 
 
     subtreeSet = ditMap.getSubtree(
-            DN.decode("ou=Classes,dc=example,dc=com"));
+            DN.valueOf("ou=Classes,dc=example,dc=com"));
     assertFalse(subtreeSet.isEmpty());
     assertEquals(subtreeSet.size(), 2);
     assertTrue(subtreeSet.contains(dn4String));
     assertTrue(subtreeSet.contains(dn5String));
 
     subtreeSet = ditMap.getSubtree(
-            DN.decode("ou=More,ou=Objects,dc=example,dc=com"));
+            DN.valueOf("ou=More,ou=Objects,dc=example,dc=com"));
     assertFalse(subtreeSet.isEmpty());
     assertEquals(subtreeSet.size(), 4);
     assertTrue(subtreeSet.contains(dn6String));
@@ -282,7 +283,7 @@ public class DITCacheMapTestCase extends APITestCase
     assertTrue(subtreeSet.contains(dn9String));
 
     subtreeSet = ditMap.getSubtree(
-            DN.decode("ou=No,ou=More,ou=Objects,dc=example,dc=com"));
+            DN.valueOf("ou=No,ou=More,ou=Objects,dc=example,dc=com"));
     assertFalse(subtreeSet.isEmpty());
     assertEquals(subtreeSet.size(), 1);
     assertTrue(subtreeSet.contains(dn9String));
@@ -383,7 +384,7 @@ public class DITCacheMapTestCase extends APITestCase
     putAllAndVerify();
 
     Set<String> removeSet = new HashSet<String>();
-    assertTrue(ditMap.removeSubtree(DN.decode(
+    assertTrue(ditMap.removeSubtree(DN.valueOf(
             "dc=example,dc=com"),
             removeSet));
     assertFalse(removeSet.isEmpty());
@@ -403,7 +404,7 @@ public class DITCacheMapTestCase extends APITestCase
     putAllAndVerify();
 
     removeSet.clear();
-    assertTrue(ditMap.removeSubtree(DN.decode(
+    assertTrue(ditMap.removeSubtree(DN.valueOf(
             "ou=Objects,dc=example,dc=com"),
             removeSet));
     assertFalse(removeSet.isEmpty());
@@ -425,7 +426,7 @@ public class DITCacheMapTestCase extends APITestCase
     putAllAndVerify();
 
     removeSet.clear();
-    assertTrue(ditMap.removeSubtree(DN.decode(
+    assertTrue(ditMap.removeSubtree(DN.valueOf(
             "ou=Classes,dc=example,dc=com"),
             removeSet));
     assertFalse(removeSet.isEmpty());
@@ -447,7 +448,7 @@ public class DITCacheMapTestCase extends APITestCase
     putAllAndVerify();
 
     removeSet.clear();
-    assertTrue(ditMap.removeSubtree(DN.decode(
+    assertTrue(ditMap.removeSubtree(DN.valueOf(
             "ou=More,ou=Objects,dc=example,dc=com"),
             removeSet));
     assertFalse(removeSet.isEmpty());
@@ -469,7 +470,7 @@ public class DITCacheMapTestCase extends APITestCase
     putAllAndVerify();
 
     removeSet.clear();
-    assertTrue(ditMap.removeSubtree(DN.decode(
+    assertTrue(ditMap.removeSubtree(DN.valueOf(
             "ou=No,ou=More,ou=Objects,dc=example,dc=com"),
             removeSet));
     assertFalse(removeSet.isEmpty());

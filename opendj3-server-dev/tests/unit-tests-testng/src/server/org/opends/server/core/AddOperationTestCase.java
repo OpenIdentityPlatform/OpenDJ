@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -62,7 +62,7 @@ public class AddOperationTestCase
   /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
 
@@ -344,7 +344,7 @@ public class AddOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("ou=People,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
     assertTrue(e.hasObjectClass(oc));
 
     UpdatePreOpPlugin.reset();
@@ -385,7 +385,7 @@ public class AddOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("ou=People,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
     assertFalse(e.hasObjectClass(oc));
 
     UpdatePreOpPlugin.reset();
@@ -427,7 +427,7 @@ public class AddOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("ou=People,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
     List<Attribute> attrList = e.getAttribute(a.getAttributeType());
     assertNotNull(attrList);
     assertFalse(attrList.isEmpty());
@@ -490,7 +490,7 @@ public class AddOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("ou=People,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
     List<Attribute> attrList = e.getAttribute(a.getAttributeType());
     assertNotNull(attrList);
     assertFalse(attrList.isEmpty());
@@ -534,7 +534,7 @@ public class AddOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("ou=People,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
     List<Attribute> attrList = e.getAttribute(attrType);
     assertNull(attrList);
 
@@ -1159,7 +1159,7 @@ public class AddOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("ou=People,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
     List<Attribute> attrList = e.getAttribute("ou");
     assertNotNull(attrList);
   }
@@ -1229,7 +1229,7 @@ public class AddOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,o=test"));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getObjectClassAttributeType());
     assertNotNull(attrList);
@@ -1727,7 +1727,7 @@ public class AddOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
     AddOperation addOperation =
@@ -1768,7 +1768,7 @@ public class AddOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     AddOperation addOperation =
@@ -1822,7 +1822,7 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     long addRequests  = ldapStatistics.getAddRequests();
@@ -2009,7 +2009,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Lock entryLock = LockManager.lockRead(DN.decode("ou=People,o=test"));
+    Lock entryLock = LockManager.lockRead(DN.valueOf("ou=People,o=test"));
 
     try
     {
@@ -2030,7 +2030,7 @@ public class AddOperationTestCase
     }
     finally
     {
-      LockManager.unlock(DN.decode("ou=People,o=test"), entryLock);
+      LockManager.unlock(DN.valueOf("ou=People,o=test"), entryLock);
     }
   }
 
@@ -2502,7 +2502,7 @@ responseLoop:
                           controls, ByteString.valueOf("o=test"), rawAttrs);
     addOperation.run();
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertFalse(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));
   }
 }
 

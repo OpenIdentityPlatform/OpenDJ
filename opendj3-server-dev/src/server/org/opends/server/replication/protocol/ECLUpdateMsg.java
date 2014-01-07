@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -98,7 +98,7 @@ public class ECLUpdateMsg extends ReplicationMsg
 
       // Decode the baseDN
       length = getNextLength(in, pos);
-      this.baseDN = DN.decode(new String(in, pos, length, "UTF-8"));
+      this.baseDN = DN.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length + 1;
 
       // Decode the changeNumber

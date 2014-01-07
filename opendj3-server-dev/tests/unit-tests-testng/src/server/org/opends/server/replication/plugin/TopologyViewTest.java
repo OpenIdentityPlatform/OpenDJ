@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -208,7 +208,7 @@ public class TopologyViewTest extends ReplicationTestCase
     }
 
     // Clear any reference to a domain in synchro plugin
-    MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
+    MultimasterReplication.deleteDomain(DN.valueOf(TEST_ROOT_DN_STRING));
     remove(rs1, rs2, rs3);
     rs1 = rs2 = rs3 = null;
     rs1Port = rs2Port = rs3Port = -1;
@@ -449,7 +449,7 @@ public class TopologyViewTest extends ReplicationTestCase
       fail("Unknown replication domain server id.");
     }
 
-    DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    DN baseDn = DN.valueOf(TEST_ROOT_DN_STRING);
     DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn, dsId, replServers, assuredType,
             assuredSdLevel, groupId, 0, refUrls);

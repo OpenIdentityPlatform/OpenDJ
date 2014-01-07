@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server;
@@ -807,7 +807,7 @@ public final class TestCaseUtils {
   {
     startServer();
 
-    DN baseDN = DN.decode(namingContext);
+    DN baseDN = DN.valueOf(namingContext);
 
     // Retrieve backend. Warning: it is important to perform this each time,
     // because a test may have disabled then enabled the backend (i.e a test
@@ -878,7 +878,7 @@ public final class TestCaseUtils {
 
       if (createBaseEntry)
       {
-        DN baseDN = DN.decode(dn);
+        DN baseDN = DN.valueOf(dn);
         Entry e = createEntry(baseDN);
         backend = (BackendImpl)DirectoryServer.getBackend(beID);
         backend.addEntry(e, null);

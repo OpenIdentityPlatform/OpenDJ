@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -77,7 +78,7 @@ public class RandomPasswordGeneratorTestCase
   public void testDefaultConfiguration()
          throws Exception
   {
-    DN dn = DN.decode("cn=Random Password Generator,cn=Password Generators," +
+    DN dn = DN.valueOf("cn=Random Password Generator,cn=Password Generators," +
                       "cn=config");
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(dn);
     assertNotNull(configEntry);

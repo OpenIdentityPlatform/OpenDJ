@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS.
+ *      Portions Copyright 2010-2014 ForgeRock AS.
  */
 
 
@@ -95,14 +95,14 @@ public final class TimeBasedMatchingRuleTest
 
     TestCaseUtils.initializeTestBackend(true);
 
-    user1 = DN.decode("cn=user1,dc=example,dc=com");
-    user2 = DN.decode("cn=user2,dc=example,dc=com");
-    user3 = DN.decode("cn=user3,dc=example,dc=com");
-    user4 = DN.decode("cn=user4,dc=example,dc=com");
-    user5 = DN.decode("cn=user5,dc=example,dc=com");
-    user6 = DN.decode("cn=user6,dc=example,dc=com");
-    user7 = DN.decode("cn=user7,dc=example,dc=com");
-    user8 = DN.decode("cn=user!,dc=example,dc=com");
+    user1 = DN.valueOf("cn=user1,dc=example,dc=com");
+    user2 = DN.valueOf("cn=user2,dc=example,dc=com");
+    user3 = DN.valueOf("cn=user3,dc=example,dc=com");
+    user4 = DN.valueOf("cn=user4,dc=example,dc=com");
+    user5 = DN.valueOf("cn=user5,dc=example,dc=com");
+    user6 = DN.valueOf("cn=user6,dc=example,dc=com");
+    user7 = DN.valueOf("cn=user7,dc=example,dc=com");
+    user8 = DN.valueOf("cn=user!,dc=example,dc=com");
 
     /**
     Extend the schema and add an attribute which is baseed on

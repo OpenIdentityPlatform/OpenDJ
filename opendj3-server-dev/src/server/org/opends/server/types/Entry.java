@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -192,7 +192,7 @@ public class Entry
   {
     if (dn == null)
     {
-      this.dn = DN.nullDN();
+      this.dn = DN.rootDN();
     }
     else
     {
@@ -2147,7 +2147,7 @@ public class Entry
                        AcceptRejectWarn structuralPolicy,
                        MessageBuilder invalidReason)
   {
-    RDN rdn = dn.getRDN();
+    RDN rdn = dn.rdn();
     if (rdn != null)
     {
         // Make sure that all the required attributes are present.
@@ -3021,7 +3021,7 @@ public class Entry
       Attribute aliasAttr = aliasAttrs.get(0);
       if (!aliasAttr.isEmpty())
       {
-        return DN.decode(aliasAttr.iterator().next().getValue().toString());
+        return DN.valueOf(aliasAttr.iterator().next().getValue().toString());
       }
     }
     return null;
@@ -3261,7 +3261,7 @@ public class Entry
                   inheritFromDN = DN.decode(value.getNormalizedValue());
                   // Respect subentry root scope.
                   if (!inheritFromDN.isDescendantOf(
-                       subEntry.getDN().getParent()))
+                       subEntry.getDN().parent()))
                   {
                     inheritFromDN = null;
                   }
@@ -3298,7 +3298,7 @@ public class Entry
                   inheritFromDN = subEntry.getInheritFromBaseDN();
                   for (AttributeValue value : attr)
                   {
-                    inheritFromDN = inheritFromDN.concat(
+                    inheritFromDN = inheritFromDN.child(
                         RDN.create(subEntry.getInheritFromRDNType(),
                         value));
                     break;

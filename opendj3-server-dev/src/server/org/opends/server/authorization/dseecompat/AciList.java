@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -95,7 +95,7 @@ public class AciList {
         List<Aci> acis = aciList.get(baseDN);
         if (acis != null) {
           //Check if there are global ACIs. Global ACI has a NULL DN.
-          if (baseDN.isNullDN()) {
+          if (baseDN.isRootDN()) {
             for (Aci aci : acis) {
               AciTargets targets = aci.getTargets();
               //If there is a target, evaluate it to see if this ACI should
@@ -110,12 +110,12 @@ public class AciList {
             candidates.addAll(acis);
           }
         }
-        if(baseDN.isNullDN()) {
+        if(baseDN.isRootDN()) {
           break;
         }
-        DN parentDN=baseDN.getParent();
+        DN parentDN=baseDN.parent();
         if(parentDN == null) {
-          baseDN=DN.nullDN();
+          baseDN=DN.rootDN();
         } else {
           baseDN=parentDN;
         }
@@ -207,7 +207,7 @@ public class AciList {
       //attributes are skipped.
       if(hasGlobalAci && entry.getDN().equals(configDN)) {
           List<Attribute> attributeList = entry.getAttribute(globalAciType);
-          validAcis = addAciAttributeList(aciList, DN.nullDN(), configDN,
+          validAcis = addAciAttributeList(aciList, DN.rootDN(), configDN,
                                           attributeList, failedACIMsgs);
       }
 
@@ -259,7 +259,7 @@ public class AciList {
           validAcis++;
         } catch (AciException ex) {
           DN msgDN=dn;
-          if(dn == DN.nullDN()) {
+          if(dn == DN.rootDN()) {
             msgDN=configDN;
           }
           Message message = WARN_ACI_ADD_LIST_FAILED_DECODE.get(
@@ -308,10 +308,10 @@ public class AciList {
       //DN is checked to verify it is equal to the config DN. If not those
       //attributes are skipped.
       if(hasGlobalAci && oldEntry.getDN().equals(configDN)) {
-          aciList.remove(DN.nullDN());
+          aciList.remove(DN.rootDN());
           List<Attribute> attributeList =
                   newEntry.getAttribute(globalAciType);
-          addAciAttributeList(aciList, DN.nullDN(), configDN,
+          addAciAttributeList(aciList, DN.rootDN(), configDN,
                               attributeList, failedACIMsgs);
       }
     }
@@ -360,7 +360,7 @@ public class AciList {
     try
     {
       if (hasGlobalAci && entryDN.equals(configDN) &&
-          aciList.remove(DN.nullDN()) == null)
+          aciList.remove(DN.rootDN()) == null)
       {
         return false;
       }
@@ -416,8 +416,8 @@ public class AciList {
    */
   public void renameAci(DN oldDN, DN newDN ) {
 
-    int oldRDNCount=oldDN.getNumComponents();
-    int newRDNCount=newDN.getNumComponents();
+    int oldRDNCount=oldDN.size();
+    int newRDNCount=newDN.size();
 
     lock.writeLock().lock();
     try
@@ -428,7 +428,7 @@ public class AciList {
       while (iterator.hasNext()) {
         Map.Entry<DN,List<Aci>> hashEntry = iterator.next();
         if(hashEntry.getKey().isDescendantOf(oldDN)) {
-          int keyRDNCount=hashEntry.getKey().getNumComponents();
+          int keyRDNCount=hashEntry.getKey().size();
           int keepRDNCount=keyRDNCount - oldRDNCount;
           RDN[] newRDNs = new RDN[keepRDNCount + newRDNCount];
           for (int i=0; i < keepRDNCount; i++) {

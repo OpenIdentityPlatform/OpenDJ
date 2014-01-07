@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -155,7 +156,7 @@ public class TestEntryContainer extends JebTestCase {
     be=(BackendImpl) DirectoryServer.getBackend(beID);
     RootContainer rootContainer = be.getRootContainer();
     EntryContainer entryContainer =
-        rootContainer.getEntryContainer(DN.decode("dc=example,dc=com"));
+        rootContainer.getEntryContainer(DN.valueOf("dc=example,dc=com"));
 
     entryContainer.sharedLock.lock();
     try

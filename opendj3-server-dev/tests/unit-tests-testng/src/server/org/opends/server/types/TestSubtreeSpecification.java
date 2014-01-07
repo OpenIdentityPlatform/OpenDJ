@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -41,7 +41,7 @@ public final class TestSubtreeSpecification extends
     SubtreeSpecificationTestCase {
 
   // Cached root DN.
-  private DN rootDN = DN.nullDN();
+  private DN rootDN = DN.rootDN();
 
   /**
    * Tests the {@link SubtreeSpecification#valueOf(DN, String)}
@@ -265,7 +265,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches1() throws Exception {
-    DN dn = DN.decode("dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\" }";
     SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
@@ -284,7 +284,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches2() throws Exception {
-    DN dn = DN.decode("dc=com");
+    DN dn = DN.valueOf("dc=com");
 
     String value = "{ base \"dc=sun, dc=com\" }";
     SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
@@ -303,7 +303,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches3() throws Exception {
-    DN dn = DN.decode("dc=foo, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\" }";
     SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
@@ -322,7 +322,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches4() throws Exception {
-    DN dn = DN.decode("dc=foo, dc=bar, dc=com");
+    DN dn = DN.valueOf("dc=foo, dc=bar, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\" }";
     SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
@@ -341,7 +341,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches5() throws Exception {
-    DN dn = DN.decode("dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", minimum 1 }";
     SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
@@ -360,7 +360,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches6() throws Exception {
-    DN dn = DN.decode("dc=abc, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=abc, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", minimum 1 }";
     SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
@@ -379,7 +379,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches7() throws Exception {
-    DN dn = DN.decode("dc=xyz, dc=abc, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=xyz, dc=abc, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", minimum 1 }";
     SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
@@ -398,7 +398,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches8() throws Exception {
-    DN dn = DN.decode("dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", maximum 0 }";
     SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
@@ -417,7 +417,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches9() throws Exception {
-    DN dn = DN.decode("dc=foo, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", maximum 0 }";
     SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
@@ -436,7 +436,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches10() throws Exception {
-    DN dn = DN.decode("dc=bar, dc=foo, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=bar, dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", maximum 1 }";
     SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
@@ -455,7 +455,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches11() throws Exception {
-    DN dn = DN.decode("dc=bar, dc=foo, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=bar, dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", maximum 2 }";
     SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
@@ -474,7 +474,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches12() throws Exception {
-    DN dn = DN.decode("dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopAfter:\"\" } }";
@@ -494,7 +494,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches13() throws Exception {
-    DN dn = DN.decode("dc=foo, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopAfter:\"\" } }";
@@ -514,7 +514,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches14() throws Exception {
-    DN dn = DN.decode("dc=foo, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopAfter:\"dc=foo\" } }";
@@ -534,7 +534,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches15() throws Exception {
-    DN dn = DN.decode("dc=bar, dc=foo, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=bar, dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopAfter:\"dc=foo\" } }";
@@ -554,7 +554,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches16() throws Exception {
-    DN dn = DN.decode("dc=foo, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopBefore:\"dc=foo\" } }";
@@ -574,7 +574,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches17() throws Exception {
-    DN dn = DN.decode("dc=bar, dc=foo, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=bar, dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopBefore:\"dc=foo\" } }";
@@ -594,7 +594,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches18() throws Exception {
-    DN dn = DN.decode("dc=abc, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=abc, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopBefore:\"dc=foo\" } }";
@@ -614,7 +614,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches19() throws Exception {
-    DN dn = DN.decode("dc=abc, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=abc, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter item:person }";
@@ -634,7 +634,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches20() throws Exception {
-    DN dn = DN.decode("dc=abc, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=abc, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter item:organization }";
@@ -654,7 +654,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches21() throws Exception {
-    DN dn = DN.decode("dc=abc, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=abc, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter not:item:person }";
@@ -674,7 +674,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches22() throws Exception {
-    DN dn = DN.decode("dc=abc, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=abc, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter not:item:organization }";
@@ -694,7 +694,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches23() throws Exception {
-    DN dn = DN.decode("dc=abc, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=abc, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter \"(objectClass=person)\" }";
@@ -714,7 +714,7 @@ public final class TestSubtreeSpecification extends
    */
   @Test
   public void testMatches24() throws Exception {
-    DN dn = DN.decode("dc=abc, dc=sun, dc=com");
+    DN dn = DN.valueOf("dc=abc, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter \"(objectClass=organization)\" }";

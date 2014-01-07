@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -852,11 +852,11 @@ public final class SubtreeSpecification
         skipColon();
         if (type.equals("chopbefore"))
         {
-          chopBefore.add(DN.decode(nextStringValue()));
+          chopBefore.add(DN.valueOf(nextStringValue()));
         }
         else if (type.equals("chopafter"))
         {
-          chopAfter.add(DN.decode(nextStringValue()));
+          chopAfter.add(DN.valueOf(nextStringValue()));
         }
         else
         {
@@ -1069,7 +1069,7 @@ public final class SubtreeSpecification
             // Relative base DN specified more than once.
             throw new InputMismatchException();
           }
-          relativeBaseDN = DN.decode(parser.nextStringValue());
+          relativeBaseDN = DN.valueOf(parser.nextStringValue());
         }
         else if (key.equals("minimum"))
         {
@@ -1324,7 +1324,7 @@ public final class SubtreeSpecification
       final Iterable<DN> chopAfter, final Refinement refinements)
   {
     this.baseDN = relativeBaseDN == null ? rootDN : rootDN
-        .concat(relativeBaseDN);
+        .child(relativeBaseDN);
     this.minimumDepth = minimumDepth;
     this.maximumDepth = maximumDepth;
 
@@ -1334,7 +1334,7 @@ public final class SubtreeSpecification
       final TreeMap<DN, DN> map = new TreeMap<DN, DN>();
       for (final DN localName : chopBefore)
       {
-        map.put(baseDN.concat(localName), localName);
+        map.put(baseDN.child(localName), localName);
       }
       this.chopBefore = Collections.unmodifiableMap(map);
     }
@@ -1350,7 +1350,7 @@ public final class SubtreeSpecification
       final TreeMap<DN, DN> map = new TreeMap<DN, DN>();
       for (final DN localName : chopAfter)
       {
-        map.put(baseDN.concat(localName), localName);
+        map.put(baseDN.child(localName), localName);
       }
       this.chopAfter = Collections.unmodifiableMap(map);
     }
@@ -1559,11 +1559,11 @@ public final class SubtreeSpecification
     }
 
     // Check minimum and maximum depths.
-    final int baseRDNCount = baseDN.getNumComponents();
+    final int baseRDNCount = baseDN.size();
 
     if (minimumDepth > 0)
     {
-      final int entryRDNCount = dn.getNumComponents();
+      final int entryRDNCount = dn.size();
 
       if (entryRDNCount - baseRDNCount < minimumDepth)
       {
@@ -1573,7 +1573,7 @@ public final class SubtreeSpecification
 
     if (maximumDepth >= 0)
     {
-      final int entryRDNCount = dn.getNumComponents();
+      final int entryRDNCount = dn.size();
 
       if (entryRDNCount - baseRDNCount > maximumDepth)
       {
@@ -1666,7 +1666,7 @@ public final class SubtreeSpecification
 
     // Output the optional base DN.
     builder.append("{");
-    if (relativeBaseDN != null && !relativeBaseDN.isNullDN())
+    if (relativeBaseDN != null && !relativeBaseDN.isRootDN())
     {
       builder.append(" base ");
       StaticUtils.toRFC3641StringValue(builder,

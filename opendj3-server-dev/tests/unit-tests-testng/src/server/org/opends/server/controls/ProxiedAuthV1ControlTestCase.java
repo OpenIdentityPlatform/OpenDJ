@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -88,7 +89,7 @@ public class ProxiedAuthV1ControlTestCase
     proxyControl = new ProxiedAuthV1Control(ByteString.valueOf(""));
     assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
     assertTrue(proxyControl.isCritical());
-    assertTrue(proxyControl.getAuthorizationDN().isNullDN());
+    assertTrue(proxyControl.getAuthorizationDN().isRootDN());
 
 
     // Try a valid DN, which is acceptable.
@@ -97,7 +98,7 @@ public class ProxiedAuthV1ControlTestCase
     assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
     assertTrue(proxyControl.isCritical());
     assertEquals(proxyControl.getAuthorizationDN(),
-                 DN.decode("uid=test,o=test"));
+                 DN.valueOf("uid=test,o=test"));
 
 
     // Try an invalid DN, which will be initally accepted but will fail when
@@ -137,19 +138,19 @@ public class ProxiedAuthV1ControlTestCase
 
 
     // Try an empty DN, which is acceptable.
-    proxyControl = new ProxiedAuthV1Control(DN.nullDN());
+    proxyControl = new ProxiedAuthV1Control(DN.rootDN());
     assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
     assertTrue(proxyControl.isCritical());
-    assertTrue(proxyControl.getAuthorizationDN().isNullDN());
+    assertTrue(proxyControl.getAuthorizationDN().isRootDN());
 
 
     // Try a valid DN, which is acceptable.
     proxyControl =
-         new ProxiedAuthV1Control(DN.decode("uid=test,o=test"));
+         new ProxiedAuthV1Control(DN.valueOf("uid=test,o=test"));
     assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
     assertTrue(proxyControl.isCritical());
     assertEquals(proxyControl.getAuthorizationDN(),
-                 DN.decode("uid=test,o=test"));
+                 DN.valueOf("uid=test,o=test"));
   }
 
 
@@ -303,7 +304,7 @@ public class ProxiedAuthV1ControlTestCase
         new LDAPControl(OID_PROXIED_AUTH_V1, true, bsb.toByteString());
 
     ProxiedAuthV1Control proxyControl = ProxiedAuthV1Control.DECODER.decode(c.isCritical(), c.getValue());
-    assertTrue(proxyControl.getAuthorizationDN().isNullDN());
+    assertTrue(proxyControl.getAuthorizationDN().isRootDN());
   }
 
 
@@ -328,7 +329,7 @@ public class ProxiedAuthV1ControlTestCase
 
     ProxiedAuthV1Control proxyControl = ProxiedAuthV1Control.DECODER.decode(c.isCritical(), c.getValue());
     assertEquals(proxyControl.getAuthorizationDN(),
-                 DN.decode("uid=test,o=test"));
+                 DN.valueOf("uid=test,o=test"));
   }
 
 
@@ -366,16 +367,16 @@ public class ProxiedAuthV1ControlTestCase
          throws Exception
   {
     ProxiedAuthV1Control proxyControl =
-         new ProxiedAuthV1Control(DN.nullDN());
+         new ProxiedAuthV1Control(DN.rootDN());
     assertEquals(proxyControl.getRawAuthorizationDN(), ByteString.valueOf(""));
-    assertEquals(proxyControl.getAuthorizationDN(), DN.nullDN());
+    assertEquals(proxyControl.getAuthorizationDN(), DN.rootDN());
 
     proxyControl =
-         new ProxiedAuthV1Control(DN.decode("uid=test,o=test"));
+         new ProxiedAuthV1Control(DN.valueOf("uid=test,o=test"));
     assertEquals(proxyControl.getRawAuthorizationDN(),
                  ByteString.valueOf("uid=test,o=test"));
     assertEquals(proxyControl.getAuthorizationDN(),
-                 DN.decode("uid=test,o=test"));
+                 DN.valueOf("uid=test,o=test"));
   }
 
 
@@ -390,7 +391,7 @@ public class ProxiedAuthV1ControlTestCase
          throws Exception
   {
     ProxiedAuthV1Control proxyControl =
-         new ProxiedAuthV1Control(DN.nullDN());
+         new ProxiedAuthV1Control(DN.rootDN());
 
     assertNull(proxyControl.getAuthorizationEntry());
   }
@@ -421,10 +422,10 @@ public class ProxiedAuthV1ControlTestCase
       "cn: Test User");
 
     ProxiedAuthV1Control proxyControl =
-         new ProxiedAuthV1Control(DN.decode("uid=test,o=test"));
+         new ProxiedAuthV1Control(DN.valueOf("uid=test,o=test"));
 
     assertEquals(proxyControl.getAuthorizationEntry().getDN(),
-                 DN.decode("uid=test,o=test"));
+                 DN.valueOf("uid=test,o=test"));
   }
 
 
@@ -442,7 +443,7 @@ public class ProxiedAuthV1ControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ProxiedAuthV1Control proxyControl =
-         new ProxiedAuthV1Control(DN.decode("uid=test,o=test"));
+         new ProxiedAuthV1Control(DN.valueOf("uid=test,o=test"));
 
     proxyControl.getAuthorizationEntry();
   }
@@ -472,7 +473,7 @@ public class ProxiedAuthV1ControlTestCase
       "ds-pwp-account-disabled: true");
 
     ProxiedAuthV1Control proxyControl =
-         new ProxiedAuthV1Control(DN.decode("uid=test,o=test"));
+         new ProxiedAuthV1Control(DN.valueOf("uid=test,o=test"));
 
     proxyControl.getAuthorizationEntry();
   }
@@ -494,7 +495,7 @@ public class ProxiedAuthV1ControlTestCase
          new ProxiedAuthV1Control(ByteString.valueOf("uid=test,o=test"));
     proxyControl.toString();
 
-    proxyControl = new ProxiedAuthV1Control(DN.decode("uid=test,o=test"));
+    proxyControl = new ProxiedAuthV1Control(DN.valueOf("uid=test,o=test"));
     proxyControl.toString();
   }
 }

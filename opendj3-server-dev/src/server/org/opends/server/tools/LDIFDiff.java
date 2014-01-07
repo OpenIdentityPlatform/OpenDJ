@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.tools;
 import java.io.BufferedReader;
@@ -387,7 +387,7 @@ public class LDIFDiff
         {
           try
           {
-            DN dn = DN.decode(line);
+            DN dn = DN.valueOf(line);
             ignoreEntries.add(dn);
           }
           catch (DirectoryException e)
