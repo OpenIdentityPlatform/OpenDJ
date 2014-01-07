@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 
 package org.opends.server.core;
@@ -118,7 +118,7 @@ public class CompareOperationTestCase extends OperationTestCase
          "ds-privilege-name: proxied-auth");
 
     proxyUserConn =
-         new InternalClientConnection(DN.decode("uid=proxy.user,o=test"));
+         new InternalClientConnection(DN.valueOf("uid=proxy.user,o=test"));
   }
 
 

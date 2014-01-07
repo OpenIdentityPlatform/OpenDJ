@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -114,7 +115,7 @@ public class DirectoryExceptionTestCase
          throws Exception
   {
     Message   msg = Message.raw("Test Constructor 3");
-    DN        dn  = DN.decode("cn=Test Constructor 3,dc=example,dc=com");
+    DN        dn  = DN.valueOf("cn=Test Constructor 3,dc=example,dc=com");
     Exception e   = new Exception("Test Constructor 3 Exception");
 
     validateException(new DirectoryException(resultCode, msg, dn, e));
@@ -145,7 +146,7 @@ public class DirectoryExceptionTestCase
          throws Exception
   {
     Message   msg     = Message.raw("Test Constructor 4");
-    DN        dn      = DN.decode("cn=Test Constructor 4,dc=example,dc=com");
+    DN        dn      = DN.valueOf("cn=Test Constructor 4,dc=example,dc=com");
     Exception e       = new Exception("Test Constructor 4 Exception");
     List<String> refs = new ArrayList<String>();
     refs.add("ldap://ldap.example.com/cn=Test Constructor 4,dc=example,dc=com");

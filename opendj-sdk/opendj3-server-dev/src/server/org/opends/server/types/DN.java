@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -175,7 +175,7 @@ public final class DN implements Comparable<DN>, Serializable
   public DN(RDN rdn, DN parentDN)
   {
     ensureNotNull(rdn, parentDN);
-    if (parentDN.isNullDN())
+    if (parentDN.isRootDN())
     {
       rdnComponents = new RDN[] { rdn };
     }
@@ -199,7 +199,7 @@ public final class DN implements Comparable<DN>, Serializable
    *
    * @return  A singleton instance of the null DN.
    */
-  public static DN nullDN()
+  public static DN rootDN()
   {
     return NULL_DN;
   }
@@ -214,7 +214,7 @@ public final class DN implements Comparable<DN>, Serializable
    * @return  <CODE>true</CODE> if this does represent a null DN, or
    *          <CODE>false</CODE> if it does not.
    */
-  public boolean isNullDN()
+  public boolean isRootDN()
   {
     return (numComponents == 0);
   }
@@ -226,7 +226,7 @@ public final class DN implements Comparable<DN>, Serializable
    *
    * @return  The number of RDN components for this DN.
    */
-  public int getNumComponents()
+  public int size()
   {
     return numComponents;
   }
@@ -241,7 +241,7 @@ public final class DN implements Comparable<DN>, Serializable
    *          <CODE>null</CODE> if there are no RDN components in the
    *          DN.
    */
-  public RDN getRDN()
+  public RDN rdn()
   {
     if (numComponents == 0)
     {
@@ -281,7 +281,7 @@ public final class DN implements Comparable<DN>, Serializable
    *          this entry, or <CODE>null</CODE> if the entry with this
    *          DN does not have a parent.
    */
-  public DN getParent()
+  public DN parent()
   {
     if (numComponents <= 1)
     {
@@ -334,7 +334,7 @@ public final class DN implements Comparable<DN>, Serializable
    * @return  A new DN that is a child of this DN, using the specified
    *          RDN.
    */
-  public DN concat(RDN rdn)
+  public DN child(RDN rdn)
   {
     RDN[] newComponents = new RDN[rdnComponents.length+1];
     newComponents[0] = rdn;
@@ -382,7 +382,7 @@ public final class DN implements Comparable<DN>, Serializable
    * @return  A new DN that is a descendant of this DN, using the
    *          specified DN as a relative base DN.
    */
-  public DN concat(DN relativeBaseDN)
+  public DN child(DN relativeBaseDN)
   {
     RDN[] newComponents =
                new RDN[rdnComponents.length+
@@ -485,7 +485,7 @@ public final class DN implements Comparable<DN>, Serializable
 
       case SINGLE_LEVEL:
         // The parent DN must equal the base DN.
-        return baseDN.equals(getParent());
+        return baseDN.equals(parent());
 
       case WHOLE_SUBTREE:
         // This DN must be a descendant of the provided base DN.
@@ -541,7 +541,7 @@ public final class DN implements Comparable<DN>, Serializable
       b = dnString.byteAt(i);
       if (((b & 0x7F) != b) || (b == '\\'))
       {
-        return decode(dnString.toString());
+        return valueOf(dnString.toString());
       }
     }
 
@@ -891,7 +891,7 @@ public final class DN implements Comparable<DN>, Serializable
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              decode the provided string as a DN.
    */
-  public static DN decode(String dnString)
+  public static DN valueOf(String dnString)
          throws DirectoryException
   {
     // A null or empty DN is acceptable.
@@ -2862,11 +2862,11 @@ public final class DN implements Comparable<DN>, Serializable
     {
       return 0;
     }
-    else if (isNullDN())
+    else if (isRootDN())
     {
       return -1;
     }
-    else if (dn.isNullDN())
+    else if (dn.isRootDN())
     {
       return 1;
     }

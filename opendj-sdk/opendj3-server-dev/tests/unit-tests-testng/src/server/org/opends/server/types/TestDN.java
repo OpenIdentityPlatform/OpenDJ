@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -186,7 +186,7 @@ public class TestDN extends TypesTestCase {
   public void testCreateNullDN1() throws Exception {
     DN dn = new DN(new RDN[0]);
 
-    assertEquals(dn, DN.nullDN());
+    assertEquals(dn, DN.rootDN());
   }
 
 
@@ -201,7 +201,7 @@ public class TestDN extends TypesTestCase {
   public void testCreateNullDN2() throws Exception {
     DN dn = new DN();
 
-    assertEquals(dn, DN.nullDN());
+    assertEquals(dn, DN.rootDN());
   }
 
 
@@ -216,7 +216,7 @@ public class TestDN extends TypesTestCase {
   public void testCreateNullDN3() throws Exception {
     DN dn = new DN((RDN[]) null);
 
-    assertEquals(dn, DN.nullDN());
+    assertEquals(dn, DN.rootDN());
   }
 
 
@@ -231,7 +231,7 @@ public class TestDN extends TypesTestCase {
   public void testCreateNullDN4() throws Exception {
     DN dn = new DN((ArrayList<RDN>) null);
 
-    assertEquals(dn, DN.nullDN());
+    assertEquals(dn, DN.rootDN());
   }
 
 
@@ -246,7 +246,7 @@ public class TestDN extends TypesTestCase {
   public void testCreateWithSingleRDN1() throws Exception {
     DN dn = new DN(new RDN[] { RDN.decode("dc=com") });
 
-    assertEquals(dn, DN.decode("dc=com"));
+    assertEquals(dn, DN.valueOf("dc=com"));
   }
 
 
@@ -262,7 +262,7 @@ public class TestDN extends TypesTestCase {
     DN dn = new DN(new RDN[] { RDN.decode("dc=foo"),
         RDN.decode("dc=opends"), RDN.decode("dc=org") });
 
-    assertEquals(dn, DN.decode("dc=foo,dc=opends,dc=org"));
+    assertEquals(dn, DN.valueOf("dc=foo,dc=opends,dc=org"));
   }
 
 
@@ -281,7 +281,7 @@ public class TestDN extends TypesTestCase {
     rdnList.add(RDN.decode("dc=org"));
     DN dn = new DN(rdnList);
 
-    assertEquals(dn, DN.decode("dc=foo,dc=opends,dc=org"));
+    assertEquals(dn, DN.valueOf("dc=foo,dc=opends,dc=org"));
   }
 
 
@@ -302,7 +302,7 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "testDNs")
   public void testDecodeString(String rawDN, String normDN,
       String stringDN) throws Exception {
-    DN dn = DN.decode(rawDN);
+    DN dn = DN.valueOf(rawDN);
     StringBuilder buffer = new StringBuilder();
     buffer.append(normDN);
     Platform.normalize(buffer);
@@ -346,7 +346,7 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testToNormalizedString() throws Exception {
-    DN dn = DN.decode("dc=example,dc=com");
+    DN dn = DN.valueOf("dc=example,dc=com");
 
     StringBuilder buffer = new StringBuilder();
     dn.toNormalizedString(buffer);
@@ -365,8 +365,8 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testDecodeNull() throws Exception {
-    assertEquals(DN.decode((ByteString) null), DN.nullDN());
-    assertEquals(DN.decode((String) null), DN.nullDN());
+    assertEquals(DN.decode((ByteString) null), DN.rootDN());
+    assertEquals(DN.valueOf((String) null), DN.rootDN());
   }
 
 
@@ -382,7 +382,7 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "illegalDNs", expectedExceptions = DirectoryException.class)
   public void testIllegalStringDNs(String dn) throws Exception {
     try {
-      DN.decode(dn);
+      DN.valueOf(dn);
     } catch (DirectoryException e) {
       throw e;
     } catch (Exception e) {
@@ -434,9 +434,9 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testNullDN() throws Exception {
-    DN nullDN = DN.nullDN();
+    DN nullDN = DN.rootDN();
 
-    assertTrue(nullDN.getNumComponents() == 0);
+    assertTrue(nullDN.size() == 0);
     assertEquals(nullDN.toNormalizedString(), "");
   }
 
@@ -450,8 +450,8 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testIsNullDNWithNullDN() throws Exception {
-    DN nullDN = DN.nullDN();
-    assertTrue(nullDN.isNullDN());
+    DN nullDN = DN.rootDN();
+    assertTrue(nullDN.isRootDN());
   }
 
 
@@ -464,8 +464,8 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testIsNullDNWithNonNullDN() throws Exception {
-    DN dn = DN.decode("dc=com");
-    assertFalse(dn.isNullDN());
+    DN dn = DN.valueOf("dc=com");
+    assertFalse(dn.isRootDN());
   }
 
 
@@ -497,8 +497,8 @@ public class TestDN extends TypesTestCase {
    */
   @Test(dataProvider = "createNumComponentsTestData")
   public void testNumComponents(String s, int sz) throws Exception {
-    DN dn = DN.decode(s);
-    assertEquals(dn.getNumComponents(), sz);
+    DN dn = DN.valueOf(s);
+    assertEquals(dn.size(), sz);
   }
 
 
@@ -536,10 +536,10 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "createParentAndRDNTestData")
   public void testGetParent(String s, String p, String r)
       throws Exception {
-    DN dn = DN.decode(s);
-    DN parent = (p != null ? DN.decode(p) : null);
+    DN dn = DN.valueOf(s);
+    DN parent = (p != null ? DN.valueOf(p) : null);
 
-    assertEquals(dn.getParent(), parent, "For DN " + s);
+    assertEquals(dn.parent(), parent, "For DN " + s);
   }
 
 
@@ -581,7 +581,7 @@ public class TestDN extends TypesTestCase {
   public void testGetParentDNInSuffix(DN namingContext) throws Exception {
     assertNull(namingContext.getParentDNInSuffix());
 
-    DN childDN = namingContext.concat(RDN.decode("ou=People"));
+    DN childDN = namingContext.child(RDN.decode("ou=People"));
     assertNotNull(childDN.getParentDNInSuffix());
     assertEquals(childDN.getParentDNInSuffix(), namingContext);
   }
@@ -596,13 +596,13 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testGetParentInteraction() throws Exception {
-    DN c = DN.decode("dc=foo,dc=bar,dc=opends,dc=org");
-    DN e = DN.decode("dc=bar,dc=opends,dc=org");
-    DN p = c.getParent();
+    DN c = DN.valueOf("dc=foo,dc=bar,dc=opends,dc=org");
+    DN e = DN.valueOf("dc=bar,dc=opends,dc=org");
+    DN p = c.parent();
 
-    assertFalse(p.isNullDN());
+    assertFalse(p.isRootDN());
 
-    assertEquals(p.getNumComponents(), 3);
+    assertEquals(p.size(), 3);
 
     assertEquals(p.compareTo(c), -1);
     assertEquals(c.compareTo(p), 1);
@@ -619,20 +619,20 @@ public class TestDN extends TypesTestCase {
     assertEquals(p.toNormalizedString(), e.toNormalizedString());
     assertEquals(p.toString(), e.toString());
 
-    assertEquals(p.getRDN(), RDN.decode("dc=bar"));
+    assertEquals(p.rdn(), RDN.decode("dc=bar"));
 
     assertEquals(p.getRDN(0), RDN.decode("dc=bar"));
     assertEquals(p.getRDN(1), RDN.decode("dc=opends"));
     assertEquals(p.getRDN(2), RDN.decode("dc=org"));
 
-    assertEquals(p.getParent(), DN.decode("dc=opends,dc=org"));
-    assertEquals(p.getParent(), e.getParent());
+    assertEquals(p.parent(), DN.valueOf("dc=opends,dc=org"));
+    assertEquals(p.parent(), e.parent());
 
-    assertEquals(p.concat(RDN.decode("dc=foo")), DN
-        .decode("dc=foo,dc=bar,dc=opends,dc=org"));
-    assertEquals(p.concat(RDN.decode("dc=foo")), c);
-    assertEquals(p.concat(DN.decode("dc=xxx,dc=foo")), DN
-        .decode("dc=xxx,dc=foo,dc=bar,dc=opends,dc=org"));
+    assertEquals(p.child(RDN.decode("dc=foo")), DN
+        .valueOf("dc=foo,dc=bar,dc=opends,dc=org"));
+    assertEquals(p.child(RDN.decode("dc=foo")), c);
+    assertEquals(p.child(DN.valueOf("dc=xxx,dc=foo")), DN
+        .valueOf("dc=xxx,dc=foo,dc=bar,dc=opends,dc=org"));
   }
 
 
@@ -652,10 +652,10 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "createParentAndRDNTestData")
   public void testGetRDN(String s, String p, String r)
       throws Exception {
-    DN dn = DN.decode(s);
+    DN dn = DN.valueOf(s);
     RDN rdn = (r != null ? RDN.decode(r) : null);
 
-    assertEquals(dn.getRDN(), rdn, "For DN " + s);
+    assertEquals(dn.rdn(), rdn, "For DN " + s);
   }
 
 
@@ -693,7 +693,7 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "createRDNTestData")
   public void testGetRDNIndexed(String s, int i, String r)
       throws Exception {
-    DN dn = DN.decode(s);
+    DN dn = DN.valueOf(s);
     RDN rdn = RDN.decode(r);
 
     assertEquals(dn.getRDN(i), rdn, "For DN " + s);
@@ -730,7 +730,7 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "createRDNIllegalTestData", expectedExceptions = IndexOutOfBoundsException.class)
   public void testGetRDNIndexedException(String s, int i)
       throws Exception {
-    DN dn = DN.decode(s);
+    DN dn = DN.valueOf(s);
 
     // Shoudld throw.
     dn.getRDN(i);
@@ -777,11 +777,11 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "createConcatDNTestData")
   public void testConcatDN(String s, String l, String e)
       throws Exception {
-    DN dn = DN.decode(s);
-    DN localName = DN.decode(l);
-    DN expected = DN.decode(e);
+    DN dn = DN.valueOf(s);
+    DN localName = DN.valueOf(l);
+    DN expected = DN.valueOf(e);
 
-    assertEquals(dn.concat(localName), expected);
+    assertEquals(dn.child(localName), expected);
   }
 
 
@@ -795,8 +795,8 @@ public class TestDN extends TypesTestCase {
   @Test(expectedExceptions = { NullPointerException.class,
       AssertionError.class })
   public void testConcatDNException() throws Exception {
-    DN dn = DN.decode("dc=org");
-    dn.concat((DN) null);
+    DN dn = DN.valueOf("dc=org");
+    dn.child((DN) null);
   }
 
 
@@ -809,14 +809,14 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testConcatDNInteraction() throws Exception {
-    DN p = DN.decode("dc=opends,dc=org");
-    DN l = DN.decode("dc=foo,dc=bar");
-    DN e = DN.decode("dc=foo,dc=bar,dc=opends,dc=org");
-    DN c = p.concat(l);
+    DN p = DN.valueOf("dc=opends,dc=org");
+    DN l = DN.valueOf("dc=foo,dc=bar");
+    DN e = DN.valueOf("dc=foo,dc=bar,dc=opends,dc=org");
+    DN c = p.child(l);
 
-    assertFalse(c.isNullDN());
+    assertFalse(c.isRootDN());
 
-    assertEquals(c.getNumComponents(), 4);
+    assertEquals(c.size(), 4);
 
     assertEquals(c.compareTo(p), 1);
     assertEquals(p.compareTo(c), -1);
@@ -833,20 +833,20 @@ public class TestDN extends TypesTestCase {
     assertEquals(c.toNormalizedString(), e.toNormalizedString());
     assertEquals(c.toString(), e.toString());
 
-    assertEquals(c.getRDN(), RDN.decode("dc=foo"));
+    assertEquals(c.rdn(), RDN.decode("dc=foo"));
 
     assertEquals(c.getRDN(0), RDN.decode("dc=foo"));
     assertEquals(c.getRDN(1), RDN.decode("dc=bar"));
     assertEquals(c.getRDN(2), RDN.decode("dc=opends"));
     assertEquals(c.getRDN(3), RDN.decode("dc=org"));
 
-    assertEquals(c.getParent(), DN.decode("dc=bar,dc=opends,dc=org"));
-    assertEquals(c.getParent(), e.getParent());
+    assertEquals(c.parent(), DN.valueOf("dc=bar,dc=opends,dc=org"));
+    assertEquals(c.parent(), e.parent());
 
-    assertEquals(c.concat(RDN.decode("dc=xxx")), DN
-        .decode("dc=xxx,dc=foo,dc=bar,dc=opends,dc=org"));
-    assertEquals(c.concat(DN.decode("dc=xxx,dc=yyy")), DN
-        .decode("dc=xxx,dc=yyy,dc=foo,dc=bar,dc=opends,dc=org"));
+    assertEquals(c.child(RDN.decode("dc=xxx")), DN
+        .valueOf("dc=xxx,dc=foo,dc=bar,dc=opends,dc=org"));
+    assertEquals(c.child(DN.valueOf("dc=xxx,dc=yyy")), DN
+        .valueOf("dc=xxx,dc=yyy,dc=foo,dc=bar,dc=opends,dc=org"));
   }
 
 
@@ -880,11 +880,11 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "createConcatRDNTestData")
   public void testConcatSingleRDN(String s, String r, String e)
       throws Exception {
-    DN dn = DN.decode(s);
+    DN dn = DN.valueOf(s);
     RDN rdn = RDN.decode(r);
-    DN expected = DN.decode(e);
+    DN expected = DN.valueOf(e);
 
-    assertEquals(dn.concat(rdn), expected);
+    assertEquals(dn.child(rdn), expected);
   }
 
 
@@ -898,7 +898,7 @@ public class TestDN extends TypesTestCase {
   @Test(expectedExceptions = { NullPointerException.class,
       AssertionError.class })
   public void testConcatRDNException() throws Exception {
-    DN dn = DN.decode("dc=org");
+    DN dn = DN.valueOf("dc=org");
     dn.concat((RDN[]) null);
   }
 
@@ -919,13 +919,13 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "createConcatDNTestData")
   public void testConcatRDNSequence1(String s, String l, String e)
       throws Exception {
-    DN dn = DN.decode(s);
-    DN localName = DN.decode(l);
-    DN expected = DN.decode(e);
+    DN dn = DN.valueOf(s);
+    DN localName = DN.valueOf(l);
+    DN expected = DN.valueOf(e);
 
     // Construct sequence.
-    RDN[] rdns = new RDN[localName.getNumComponents()];
-    for (int i = 0; i < localName.getNumComponents(); i++) {
+    RDN[] rdns = new RDN[localName.size()];
+    for (int i = 0; i < localName.size(); i++) {
       rdns[i] = localName.getRDN(i);
     }
 
@@ -1022,8 +1022,8 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "createIsAncestorOfTestData")
   public void testIsAncestorOf(String s, String d, boolean e)
       throws Exception {
-    DN dn = DN.decode(s);
-    DN other = DN.decode(d);
+    DN dn = DN.valueOf(s);
+    DN other = DN.valueOf(d);
 
     assertEquals(dn.isAncestorOf(other), e, s + " isAncestoryOf " + d);
   }
@@ -1039,7 +1039,7 @@ public class TestDN extends TypesTestCase {
   @Test(expectedExceptions = { NullPointerException.class,
       AssertionError.class })
   public void testIsAncestorOfException() throws Exception {
-    DN dn = DN.decode("dc=com");
+    DN dn = DN.valueOf("dc=com");
     dn.isAncestorOf(null);
   }
 
@@ -1091,8 +1091,8 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "createIsDescendantOfTestData")
   public void testIsDescendantOf(String s, String d, boolean e)
       throws Exception {
-    DN dn = DN.decode(s);
-    DN other = DN.decode(d);
+    DN dn = DN.valueOf(s);
+    DN other = DN.valueOf(d);
 
     assertEquals(dn.isDescendantOf(other), e, s + " isDescendantOf "
         + d);
@@ -1109,7 +1109,7 @@ public class TestDN extends TypesTestCase {
   @Test(expectedExceptions = { NullPointerException.class,
       AssertionError.class })
   public void testIsDescendantOfException() throws Exception {
-    DN dn = DN.decode("dc=com");
+    DN dn = DN.valueOf("dc=com");
     dn.isDescendantOf(null);
   }
 
@@ -1177,8 +1177,8 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "createDNEqualityData")
   public void testEquality(String first, String second, int result)
       throws Exception {
-    DN dn1 = DN.decode(first);
-    DN dn2 = DN.decode(second);
+    DN dn1 = DN.valueOf(first);
+    DN dn2 = DN.valueOf(second);
 
     if (result == 0) {
       assertTrue(dn1.equals(dn2), "DN equality for <" + first
@@ -1199,7 +1199,7 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testEqualsNonDN() throws Exception {
-    DN dn = DN.decode("dc=example,dc=com");
+    DN dn = DN.valueOf("dc=example,dc=com");
 
     assertFalse(dn.equals("not a DN"));
   }
@@ -1221,8 +1221,8 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "createDNEqualityData")
   public void testHashCode(String first, String second, int result)
       throws Exception {
-    DN dn1 = DN.decode(first);
-    DN dn2 = DN.decode(second);
+    DN dn1 = DN.valueOf(first);
+    DN dn2 = DN.valueOf(second);
 
     int h1 = dn1.hashCode();
     int h2 = dn2.hashCode();
@@ -1257,8 +1257,8 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "createDNEqualityData")
   public void testCompareTo(String first, String second, int result)
       throws Exception {
-    DN dn1 = DN.decode(first);
-    DN dn2 = DN.decode(second);
+    DN dn1 = DN.valueOf(first);
+    DN dn2 = DN.valueOf(second);
 
     int rc = dn1.compareTo(dn2);
 
@@ -1290,7 +1290,7 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "testDNs")
   public void testToString(String rawDN, String normDN,
       String stringDN) throws Exception {
-    DN dn = DN.decode(rawDN);
+    DN dn = DN.valueOf(rawDN);
     assertEquals(dn.toString(), stringDN);
   }
 }

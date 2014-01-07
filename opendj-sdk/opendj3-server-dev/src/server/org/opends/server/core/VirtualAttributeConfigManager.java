@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -530,7 +530,7 @@ public class VirtualAttributeConfigManager
     try
     {
       String name = rule.getAttributeType().getNameOrOID();
-      return DN.decode("cn=" + name + ",cn=Virtual Attributes,cn=config");
+      return DN.valueOf("cn=" + name + ",cn=Virtual Attributes,cn=config");
     }
     catch (DirectoryException e)
     {

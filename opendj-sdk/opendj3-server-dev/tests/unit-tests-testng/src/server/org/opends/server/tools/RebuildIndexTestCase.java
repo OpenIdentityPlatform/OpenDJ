@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -82,7 +82,7 @@ public class RebuildIndexTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-enabled", "false")));
     final ModifyOperation modifyOperation =
-         rootConnection.processModify(DN.decode(userRootDN), mods);
+         rootConnection.processModify(DN.valueOf(userRootDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -105,7 +105,7 @@ public class RebuildIndexTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-enabled", "true")));
     final ModifyOperation modifyOperation =
-         rootConnection.processModify(DN.decode(userRootDN), mods);
+         rootConnection.processModify(DN.valueOf(userRootDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 

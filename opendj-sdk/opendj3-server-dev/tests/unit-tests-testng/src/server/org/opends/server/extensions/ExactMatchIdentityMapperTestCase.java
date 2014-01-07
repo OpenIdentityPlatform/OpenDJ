@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -275,7 +276,7 @@ public class ExactMatchIdentityMapperTestCase
   public void testMapperEnabled()
          throws Exception
   {
-    DN mapperDN = DN.decode("cn=Exact Match,cn=Identity Mappers,cn=config");
+    DN mapperDN = DN.valueOf("cn=Exact Match,cn=Identity Mappers,cn=config");
     IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
     assertNotNull(mapper);
     assertTrue(mapper instanceof ExactMatchIdentityMapper);
@@ -340,7 +341,7 @@ public class ExactMatchIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
 
     mapper.finalizeIdentityMapper();
@@ -406,7 +407,7 @@ public class ExactMatchIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
 
     mapper.finalizeIdentityMapper();
@@ -684,7 +685,7 @@ public class ExactMatchIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("foo");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=foo,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=foo,o=test"));
 
 
     mapper.finalizeIdentityMapper();
@@ -750,7 +751,7 @@ public class ExactMatchIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("bar");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=foo,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=foo,o=test"));
 
 
     mapper.finalizeIdentityMapper();
@@ -834,7 +835,7 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
-    DN mapperDN = DN.decode(mapperDNString);
+    DN mapperDN = DN.valueOf(mapperDNString);
     IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
     assertNotNull(mapper);
     assertTrue(mapper instanceof ExactMatchIdentityMapper);
@@ -866,7 +867,7 @@ public class ExactMatchIdentityMapperTestCase
     // does not.
     Entry mappedEntry = mapper.getEntryForID("test");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
     mappedEntry = mapper.getEntryForID("test user");
     assertNull(mappedEntry);
@@ -891,7 +892,7 @@ public class ExactMatchIdentityMapperTestCase
 
     mappedEntry = mapper.getEntryForID("test user");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
 
     // Change the configuration back to the way it was.
@@ -904,7 +905,7 @@ public class ExactMatchIdentityMapperTestCase
     // Verify that the original matching pattern is back.
     mappedEntry = mapper.getEntryForID("test");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
     mappedEntry = mapper.getEntryForID("test user");
     assertNull(mappedEntry);
@@ -923,7 +924,7 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
-    DN mapperDN = DN.decode(mapperDNString);
+    DN mapperDN = DN.valueOf(mapperDNString);
     IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
     assertNotNull(mapper);
     assertTrue(mapper instanceof ExactMatchIdentityMapper);
@@ -954,7 +955,7 @@ public class ExactMatchIdentityMapperTestCase
     // Verify that we can retrieve the user.
     Entry mappedEntry = mapper.getEntryForID("test");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
 
     // Create a modification to set the map base DN to "dc=example,dc=com".
@@ -985,7 +986,7 @@ public class ExactMatchIdentityMapperTestCase
     // Verify that we can retrieve the user again.
     mappedEntry = mapper.getEntryForID("test");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
 
 
     // Change the configuration back to its original setting.
@@ -998,7 +999,7 @@ public class ExactMatchIdentityMapperTestCase
     // Verify that we can still retrieve the user.
     mappedEntry = mapper.getEntryForID("test");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.decode("uid=test,o=test"));
+    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
   }
 
 

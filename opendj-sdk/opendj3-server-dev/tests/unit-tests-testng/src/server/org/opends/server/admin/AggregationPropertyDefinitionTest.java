@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -102,7 +103,7 @@ public class AggregationPropertyDefinitionTest extends DirectoryServerTestCase {
     AggregationPropertyDefinition<?, ?> pd = d
         .getAggregationPropertyPropertyDefinition();
     DN expected = DN
-        .decode("cn=ldap connection handler, cn=connection handlers, cn=config");
+        .valueOf("cn=ldap connection handler, cn=connection handlers, cn=config");
     DN actual = pd.getChildDN("  LDAP  connection handler  ");
     Assert.assertEquals(actual, expected);
   }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -604,7 +604,7 @@ public class AciTargets {
              * Sun CR 6535035 has been raised on DSEE:
              * Non-standard interpretation of onelevel in ACI targetScope.
              */
-            if(!targetDN.equals(entryDN.getParent()))
+            if(!targetDN.equals(entryDN.parent()))
                 return false;
             break;
         case WHOLE_SUBTREE:
@@ -612,7 +612,7 @@ public class AciTargets {
                 return false;
             break;
         case SUBORDINATE_SUBTREE:
-            if ((entryDN.getNumComponents() <= targetDN.getNumComponents()) ||
+            if ((entryDN.size() <= targetDN.size()) ||
                  !entryDN.isDescendantOf(targetDN)) {
               return false;
             }

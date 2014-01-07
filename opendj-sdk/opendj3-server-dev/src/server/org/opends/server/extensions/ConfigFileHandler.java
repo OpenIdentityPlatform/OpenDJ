@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -395,7 +395,7 @@ public class ConfigFileHandler
     // Make sure that the DN of this entry is equal to the config root DN.
     try
     {
-      DN configRootDN = DN.decode(DN_CONFIG_ROOT);
+      DN configRootDN = DN.valueOf(DN_CONFIG_ROOT);
       if (! entry.getDN().equals(configRootDN))
       {
         Message message = ERR_CONFIG_FILE_INVALID_BASE_DN.get(
@@ -499,7 +499,7 @@ public class ConfigFileHandler
 
 
       // Make sure that the parent DN of the entry read does exist.
-      DN parentDN = entryDN.getParent();
+      DN parentDN = entryDN.parent();
       if (parentDN == null)
       {
         close(reader);
@@ -1194,7 +1194,7 @@ public class ConfigFileHandler
 
 
       // Make sure that the entry's parent exists.  If it does not, then fail.
-      DN parentDN = entryDN.getParent();
+      DN parentDN = entryDN.parent();
       if (parentDN == null)
       {
         // The entry DN doesn't have a parent.  This is not allowed.
@@ -1213,7 +1213,7 @@ public class ConfigFileHandler
 
         // Get the matched DN, if possible.
         DN matchedDN = null;
-        parentDN = parentDN.getParent();
+        parentDN = parentDN.parent();
         while (parentDN != null)
         {
           if (configEntries.containsKey(parentDN))
@@ -1222,7 +1222,7 @@ public class ConfigFileHandler
             break;
           }
 
-          parentDN = parentDN.getParent();
+          parentDN = parentDN.parent();
         }
 
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
@@ -1353,7 +1353,7 @@ public class ConfigFileHandler
         DN matchedDN = null;
         if (entryDN.isDescendantOf(configRootEntry.getDN()))
         {
-          DN parentDN = entryDN.getParent();
+          DN parentDN = entryDN.parent();
           while (parentDN != null)
           {
             if (configEntries.containsKey(parentDN))
@@ -1362,7 +1362,7 @@ public class ConfigFileHandler
               break;
             }
 
-            parentDN = parentDN.getParent();
+            parentDN = parentDN.parent();
           }
         }
 
@@ -1541,7 +1541,7 @@ public class ConfigFileHandler
         DN matchedDN = null;
         if (entryDN.isDescendantOf(configRootEntry.getDN()))
         {
-          DN parentDN = entryDN.getParent();
+          DN parentDN = entryDN.parent();
           while (parentDN != null)
           {
             if (configEntries.containsKey(parentDN))
@@ -1550,7 +1550,7 @@ public class ConfigFileHandler
               break;
             }
 
-            parentDN = parentDN.getParent();
+            parentDN = parentDN.parent();
           }
         }
 
@@ -1704,7 +1704,7 @@ public class ConfigFileHandler
       DN matchedDN = null;
       if (baseDN.isDescendantOf(configRootEntry.getDN()))
       {
-        DN parentDN = baseDN.getParent();
+        DN parentDN = baseDN.parent();
         while (parentDN != null)
         {
           if (configEntries.containsKey(parentDN))
@@ -1713,7 +1713,7 @@ public class ConfigFileHandler
             break;
           }
 
-          parentDN = parentDN.getParent();
+          parentDN = parentDN.parent();
         }
       }
 

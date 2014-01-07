@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -57,7 +58,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
     // start the server.
     TestCaseUtils.startServer();
 
-    newSuperiorDN = DN.decode("dc=com");
+    newSuperiorDN = DN.valueOf("dc=com");
     newRDN = RDN.decode("dc=foo");
   }
 
@@ -82,9 +83,9 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testConstructorEmptyDN() throws Exception {
     ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(
-        DN.nullDN(), newRDN, false, newSuperiorDN);
+        DN.rootDN(), newRDN, false, newSuperiorDN);
 
-    Assert.assertEquals(entry.getDN(), DN.nullDN());
+    Assert.assertEquals(entry.getDN(), DN.rootDN());
   }
 
   /**
@@ -95,8 +96,8 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorNonNullDN() throws Exception {
-    DN testDN1 = DN.decode("dc=hello, dc=world");
-    DN testDN2 = DN.decode("dc=hello, dc=world");
+    DN testDN1 = DN.valueOf("dc=hello, dc=world");
+    DN testDN2 = DN.valueOf("dc=hello, dc=world");
 
     ModifyDNChangeRecordEntry entry = new ModifyDNChangeRecordEntry(
         testDN1, newRDN, false, newSuperiorDN);
@@ -113,7 +114,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testChangeOperationType() throws Exception {
     ModifyDNChangeRecordEntry entry =
-         new ModifyDNChangeRecordEntry(DN.nullDN(), newRDN, false, newSuperiorDN);
+         new ModifyDNChangeRecordEntry(DN.rootDN(), newRDN, false, newSuperiorDN);
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.MODIFY_DN);
@@ -128,7 +129,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testGetNewRDN() throws Exception {
     ModifyDNChangeRecordEntry entry =
-         new ModifyDNChangeRecordEntry(DN.nullDN(), newRDN, false, newSuperiorDN);
+         new ModifyDNChangeRecordEntry(DN.rootDN(), newRDN, false, newSuperiorDN);
 
     Assert.assertEquals(entry.getNewRDN(), newRDN);
   }
@@ -142,7 +143,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testGetNewSuperiorDN() throws Exception {
     ModifyDNChangeRecordEntry entry =
-         new ModifyDNChangeRecordEntry(DN.nullDN(), newRDN, false, newSuperiorDN);
+         new ModifyDNChangeRecordEntry(DN.rootDN(), newRDN, false, newSuperiorDN);
 
     Assert
         .assertEquals(entry.getNewSuperiorDN(), newSuperiorDN);
@@ -157,7 +158,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testDeleteOldRDNFalse() throws Exception {
     ModifyDNChangeRecordEntry entry =
-         new ModifyDNChangeRecordEntry(DN.nullDN(), newRDN, false, newSuperiorDN);
+         new ModifyDNChangeRecordEntry(DN.rootDN(), newRDN, false, newSuperiorDN);
 
     Assert.assertEquals(entry.deleteOldRDN(), false);
   }
@@ -171,7 +172,7 @@ public final class TestModifyDNChangeRecordEntry extends UtilTestCase {
   @Test
   public void testDeleteOldRDNTrue() throws Exception {
     ModifyDNChangeRecordEntry entry =
-         new ModifyDNChangeRecordEntry(DN.nullDN(), newRDN, true, newSuperiorDN);
+         new ModifyDNChangeRecordEntry(DN.rootDN(), newRDN, true, newSuperiorDN);
 
     Assert.assertEquals(entry.deleteOldRDN(), true);
   }

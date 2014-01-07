@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -69,7 +69,7 @@ public class PersistentServerStateTest extends ReplicationTestCase
      * Then creates a new PersistentServerState and check that the
      * 2 csns have been saved in this new PersistentServerState.
      */
-    DN baseDn = DN.decode(dn);
+    DN baseDn = DN.valueOf(dn);
     ServerState origState = new ServerState();
     PersistentServerState state =
       new PersistentServerState(baseDn,  1, origState);

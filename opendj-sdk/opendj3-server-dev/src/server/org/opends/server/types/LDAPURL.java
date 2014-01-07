@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.types;
 import java.util.Iterator;
@@ -75,7 +75,7 @@ public final class LDAPURL
   /**
    * The default base DN that will be used if none is provided.
    */
-  public static final DN DEFAULT_BASE_DN = DN.nullDN();
+  public static final DN DEFAULT_BASE_DN = DN.rootDN();
 
 
 
@@ -453,7 +453,7 @@ public final class LDAPURL
     DN baseDN;
     if (fullyDecode)
     {
-      baseDN = DN.decode(baseDNString);
+      baseDN = DN.valueOf(baseDNString);
     }
     else
     {
@@ -1085,7 +1085,7 @@ public final class LDAPURL
         return DEFAULT_BASE_DN;
       }
 
-      baseDN = DN.decode(rawBaseDN);
+      baseDN = DN.valueOf(rawBaseDN);
     }
 
     return baseDN;

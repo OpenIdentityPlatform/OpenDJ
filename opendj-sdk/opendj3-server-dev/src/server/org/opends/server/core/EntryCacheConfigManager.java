@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -176,7 +176,7 @@ public class EntryCacheConfigManager
     // Get the base entry cache configuration entry.
     ConfigEntry entryCacheBase;
     try {
-      DN configEntryDN = DN.decode(ConfigConstants.DN_ENTRY_CACHE_BASE);
+      DN configEntryDN = DN.valueOf(ConfigConstants.DN_ENTRY_CACHE_BASE);
       entryCacheBase   = DirectoryServer.getConfigEntry(configEntryDN);
     } catch (Exception e) {
       if (debugEnabled())
@@ -571,7 +571,7 @@ public class EntryCacheConfigManager
     // Install and register the monitor for this cache.
     EntryCacheMonitorProvider monitor =
         new EntryCacheMonitorProvider(configuration.dn().
-        getRDN().getAttributeValue(0).toString(), entryCache);
+        rdn().getAttributeValue(0).toString(), entryCache);
     try {
       monitor.initializeMonitorProvider((EntryCacheMonitorProviderCfg)
         rootConfiguration.getMonitorProvider(

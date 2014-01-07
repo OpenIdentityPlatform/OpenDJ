@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -349,7 +349,7 @@ public class MultiDomainServerState implements Iterable<DN>
               serverStateByDomain.update(csn);
             }
           }
-          startStates.put(DN.decode(domainBaseDN), serverStateByDomain);
+          startStates.put(DN.valueOf(domainBaseDN), serverStateByDomain);
         }
       }
       catch (DirectoryException de)

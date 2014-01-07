@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.controls;
 
@@ -278,7 +278,7 @@ public class ProxiedAuthV1Control
          throws DirectoryException
   {
     DN authzDN = getAuthorizationDN();
-    if (authzDN.isNullDN())
+    if (authzDN.isRootDN())
     {
       return null;
     }

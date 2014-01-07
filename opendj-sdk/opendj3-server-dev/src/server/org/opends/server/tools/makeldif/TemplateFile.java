@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 import org.opends.messages.Message;
@@ -1000,7 +1000,7 @@ public class TemplateFile
     DN branchDN;
     try
     {
-      branchDN = DN.decode(dnString);
+      branchDN = DN.valueOf(dnString);
     }
     catch (Exception e)
     {

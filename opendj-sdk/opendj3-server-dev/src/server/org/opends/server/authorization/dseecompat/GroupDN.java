@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -144,7 +144,7 @@ public class GroupDN implements KeywordBindRule {
         List<Attribute> attrs = e.getAttribute(attributeType);
         for(AttributeValue v : attrs.get(0)) {
             try {
-                DN groupDN=DN.decode(v.getValue().toString());
+                DN groupDN=DN.valueOf(v.getValue().toString());
                 if(suffixDN != null &&
                    !groupDN.isDescendantOf(suffixDN))
                         continue;

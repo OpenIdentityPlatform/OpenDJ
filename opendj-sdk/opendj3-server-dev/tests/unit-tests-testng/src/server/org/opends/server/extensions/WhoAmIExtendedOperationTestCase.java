@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -104,7 +105,7 @@ public class WhoAmIExtendedOperationTestCase
   public void testAsInternalAnonymous()
          throws Exception
   {
-    InternalClientConnection conn = new InternalClientConnection(DN.nullDN());
+    InternalClientConnection conn = new InternalClientConnection(DN.rootDN());
     ExtendedOperation extOp =
          conn.processExtendedOperation(OID_WHO_AM_I_REQUEST, null);
     assertEquals(extOp.getResultCode(), ResultCode.SUCCESS);

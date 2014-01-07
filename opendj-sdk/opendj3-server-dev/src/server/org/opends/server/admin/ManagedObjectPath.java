@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -137,7 +137,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
 
     // Create a new DN builder.
     private DNSerializer() {
-      this.dn = DN.nullDN();
+      this.dn = DN.rootDN();
       this.profile = LDAPProfile.getInstance();
     }
 
@@ -158,7 +158,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       AttributeType atype = DirectoryServer.getAttributeType(
           type.toLowerCase(), true);
       AttributeValue avalue = AttributeValues.create(atype, name);
-      dn = dn.concat(RDN.create(atype, avalue));
+      dn = dn.child(RDN.create(atype, avalue));
     }
 
 
@@ -178,7 +178,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       AttributeType atype = DirectoryServer.getAttributeType(
           type.toLowerCase(), true);
       AttributeValue avalue = AttributeValues.create(atype, d.getName());
-      dn = dn.concat(RDN.create(atype, avalue));
+      dn = dn.child(RDN.create(atype, avalue));
     }
 
 
@@ -213,8 +213,8 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
     private void appendManagedObjectPathElement(RelationDefinition<?, ?> r) {
       // Add the RDN sequence representing the relation.
       try {
-        DN localName = DN.decode(profile.getRelationRDNSequence(r));
-        dn = dn.concat(localName);
+        DN localName = DN.valueOf(profile.getRelationRDNSequence(r));
+        dn = dn.child(localName);
       } catch (DirectoryException e) {
         throw new RuntimeException(e);
       }

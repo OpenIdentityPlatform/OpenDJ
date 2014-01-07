@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -73,7 +74,7 @@ public class NumSubordinateHacker {
         {
           try
           {
-            if (dn.equals(DN.decode(parentUrl.getRawBaseDN())))
+            if (dn.equals(DN.valueOf(parentUrl.getRawBaseDN())))
             {
               containsChildren = true;
               break;
@@ -110,7 +111,7 @@ public class NumSubordinateHacker {
         {
           try
           {
-            if (dn.equals(DN.decode(url.getRawBaseDN())))
+            if (dn.equals(DN.valueOf(url.getRawBaseDN())))
             {
               contains = true;
               break;
@@ -147,7 +148,7 @@ public class NumSubordinateHacker {
       unreliableEntryList.clear();
 
       for (DN subSuffixDN : subSuffixes) {
-        unreliableEntryList.add(subSuffixDN.getParent());
+        unreliableEntryList.add(subSuffixDN.parent());
       }
       isUnreliableEntryListEmpty = unreliableEntryList.isEmpty();
     }

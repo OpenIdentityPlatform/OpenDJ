@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -94,10 +95,10 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorEmptyDN() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(DN.nullDN(),
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(DN.rootDN(),
         attributes);
 
-    Assert.assertEquals(entry.getDN(), DN.nullDN());
+    Assert.assertEquals(entry.getDN(), DN.rootDN());
   }
 
   /**
@@ -108,8 +109,8 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testConstructorNonNullDN() throws Exception {
-    DN testDN1 = DN.decode("dc=hello, dc=world");
-    DN testDN2 = DN.decode("dc=hello, dc=world");
+    DN testDN1 = DN.valueOf("dc=hello, dc=world");
+    DN testDN2 = DN.valueOf("dc=hello, dc=world");
 
     AddChangeRecordEntry entry = new AddChangeRecordEntry(testDN1,
         attributes);
@@ -125,7 +126,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testChangeOperationType() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(DN.nullDN(), attributes);
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(DN.rootDN(), attributes);
 
     Assert.assertEquals(entry.getChangeOperationType(),
         ChangeOperationType.ADD);
@@ -140,7 +141,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
   @Test
   public void testGetAttributesEmpty() throws Exception {
     Map<AttributeType, List<Attribute>> empty = Collections.emptyMap();
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(DN.nullDN(), empty);
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(DN.rootDN(), empty);
 
     List<Attribute> attrs = entry.getAttributes();
     Assert.assertEquals(attrs.size(), 0);
@@ -154,7 +155,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testGetAttributesNonEmpty() throws Exception {
-    AddChangeRecordEntry entry = new AddChangeRecordEntry(DN.nullDN(), attributes);
+    AddChangeRecordEntry entry = new AddChangeRecordEntry(DN.rootDN(), attributes);
 
     List<Attribute> attrs = entry.getAttributes();
     Assert.assertEquals(attrs.size(), 1);

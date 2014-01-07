@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -539,7 +539,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     {
       try
       {
-        DN theDN = DN.decode(dn);
+        DN theDN = DN.valueOf(dn);
         // Check that the DN is not defined.
         boolean baseDNAlreadyDefined = false;
         for (BackendDescriptor backend : backendObjects)
@@ -861,7 +861,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
           getInfo().stopPooling();
           if (getInfo().mustDeregisterConfig())
           {
-            DirectoryServer.deregisterBaseDN(DN.decode("cn=config"));
+            DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
           DirectoryServer.getInstance().initializeConfiguration(
                 org.opends.server.extensions.ConfigFileHandler.class.getName(),
@@ -1173,7 +1173,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
           backendName, null);
       backend.setEnabled(true);
       Set<DN> baseDNs = new HashSet<DN>();
-      baseDNs.add(DN.decode(baseDN));
+      baseDNs.add(DN.valueOf(baseDN));
       backend.setBaseDN(baseDNs);
       backend.setBackendId(backendName);
       backend.setWritabilityMode(BackendCfgDefn.WritabilityMode.ENABLED);
@@ -1499,12 +1499,12 @@ public class NewBaseDNPanel extends StatusGenericPanel
           break;
         }
       }
-      baseDNs.add(DN.decode(baseDN));
+      baseDNs.add(DN.valueOf(baseDN));
 
       String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName)+
       ",cn=Backends,cn=config";
       ConfigEntry configEntry =
-        DirectoryServer.getConfigHandler().getConfigEntry(DN.decode(dn));
+        DirectoryServer.getConfigHandler().getConfigEntry(DN.valueOf(dn));
 
       DNConfigAttribute baseDNAttr =
         new DNConfigAttribute(
@@ -1525,7 +1525,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         (LocalDBBackendCfgClient)root.getBackend(backendName);
 
       Set<DN> baseDNs = backend.getBaseDN();
-      DN dn = DN.decode(baseDN);
+      DN dn = DN.valueOf(baseDN);
       baseDNs.add(dn);
       backend.setBaseDN(baseDNs);
       backend.commit();

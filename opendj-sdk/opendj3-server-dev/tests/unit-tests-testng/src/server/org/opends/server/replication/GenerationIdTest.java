@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -163,7 +163,7 @@ public class GenerationIdTest extends ReplicationTestCase
     super.setUp();
 
     replServerPort = TestCaseUtils.findFreePorts(3);
-    baseDN = DN.decode(baseDnStr);
+    baseDN = DN.valueOf(baseDnStr);
 
     updatedEntries = newLDIFEntries();
 
@@ -195,7 +195,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Search Entry: " + dn);
 
-      DN entryDN = DN.decode(dn);
+      DN entryDN = DN.valueOf(dn);
 
       try
       {
@@ -412,10 +412,10 @@ public class GenerationIdTest extends ReplicationTestCase
       String synchroServerStringDN = "cn=" + testName + ", cn=domains," + SYNCHRO_PLUGIN_DN;
       assertNotNull(synchroServerEntry);
 
-      DN synchroServerDN = DN.decode(synchroServerStringDN);
+      DN synchroServerDN = DN.valueOf(synchroServerStringDN);
 
       Entry ecle = DirectoryServer.getConfigHandler().getEntry(
-          DN.decode("cn=external changelog," + synchroServerStringDN));
+          DN.valueOf("cn=external changelog," + synchroServerStringDN));
       if (ecle!=null)
       {
         DirectoryServer.getConfigHandler().deleteEntry(ecle.getDN(), null);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -697,7 +697,7 @@ public class StateMachineTest extends ReplicationTestCase
   public void setUp() throws Exception
   {
     super.setUp();
-    EXAMPLE_DN_ = DN.decode(EXAMPLE_DN);
+    EXAMPLE_DN_ = DN.valueOf(EXAMPLE_DN);
 
     // Note: this test does not use the memory test backend as for having a DS
     // going into degraded status, we need to send a lot of updates. This makes

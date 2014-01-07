@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -100,7 +101,7 @@ public final class DNBuilderTest extends AdminTestCase {
     // Now serialize it.
     DN actual = DNBuilder.create(path);
     DN expected = DN
-        .decode("cn=test-child-1,cn=test children,cn=test-parent-1,cn=test parents,cn=config");
+        .valueOf("cn=test-child-1,cn=test children,cn=test-parent-1,cn=test parents,cn=config");
 
     assertEquals(actual, expected);
   }
@@ -149,7 +150,7 @@ public final class DNBuilderTest extends AdminTestCase {
     try {
       DN actual = DNBuilder.create(path);
       DN expected = DN
-          .decode("cn=singleton-test-child,cn=test-parent-1,cn=test parents,cn=config");
+          .valueOf("cn=singleton-test-child,cn=test-parent-1,cn=test parents,cn=config");
 
       assertEquals(actual, expected);
     } finally {
@@ -179,7 +180,7 @@ public final class DNBuilderTest extends AdminTestCase {
     // Now serialize it.
     DN actual = DNBuilder.create(path);
     DN expected = DN
-        .decode("cn=optional test child,cn=test-parent-1,cn=test parents,cn=config");
+        .valueOf("cn=optional test child,cn=test-parent-1,cn=test parents,cn=config");
 
     assertEquals(actual, expected);
   }

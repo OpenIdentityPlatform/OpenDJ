@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -312,7 +312,7 @@ public class AssuredReplicationServerTest
   private DomainFakeCfg newFakeCfg(int serverId, int rsPort, int groupId) throws Exception
   {
     DomainFakeCfg fakeCfg = new DomainFakeCfg(
-        DN.decode(TEST_ROOT_DN_STRING), serverId, newSortedSet("localhost:" + rsPort), groupId);
+        DN.valueOf(TEST_ROOT_DN_STRING), serverId, newSortedSet("localhost:" + rsPort), groupId);
     fakeCfg.setHeartbeatInterval(1000);
     fakeCfg.setChangetimeHeartbeatInterval(500);
     return fakeCfg;
@@ -331,7 +331,7 @@ public class AssuredReplicationServerTest
 
       FakeReplicationServer fakeReplicationServer = new FakeReplicationServer(
         rsPort, serverId, assured, assuredMode, (byte)safeDataLevel, (byte)groupId,
-        DN.decode(TEST_ROOT_DN_STRING), generationId);
+        DN.valueOf(TEST_ROOT_DN_STRING), generationId);
 
       // Connect fake RS to the real RS
       fakeReplicationServer.connect(serverState);

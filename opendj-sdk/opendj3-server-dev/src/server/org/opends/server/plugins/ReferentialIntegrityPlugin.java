@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  *      Portions copyright 2011 profiq s.r.o.
  */
 package org.opends.server.plugins;
@@ -964,12 +964,12 @@ public class ReferentialIntegrityPlugin
         while((line=reader.readLine()) != null) {
           try {
             String[] a=line.split("[\t]");
-            DN origDn = DN.decode(a[0]);
+            DN origDn = DN.valueOf(a[0]);
             //If there is only a single DN string than it must be a delete.
             if(a.length == 1) {
               processDelete(Collections.singleton(origDn), false);
             } else {
-              DN movedDN=DN.decode(a[1]);
+              DN movedDN=DN.valueOf(a[1]);
               processModifyDN(origDn, movedDN);
             }
           } catch (DirectoryException ex) {

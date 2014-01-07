@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -123,7 +124,7 @@ public class InternalSearchOperationTestCase
          InternalClientConnection.getRootConnection();
     new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                 InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
-                                DN.nullDN(), SearchScope.BASE_OBJECT,
+                                DN.rootDN(), SearchScope.BASE_OBJECT,
                                 DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
                                 false, searchFilter,
                                 new LinkedHashSet<String>(), null);
@@ -148,7 +149,7 @@ public class InternalSearchOperationTestCase
          InternalClientConnection.getRootConnection();
     new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                 InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
-                                DN.nullDN(), SearchScope.BASE_OBJECT,
+                                DN.rootDN(), SearchScope.BASE_OBJECT,
                                 DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
                                 false, searchFilter,
                                 new LinkedHashSet<String>(),

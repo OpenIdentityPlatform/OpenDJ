@@ -23,6 +23,7 @@
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011 profiq s.r.o.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.plugins;
@@ -127,10 +128,10 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     replaceAttrEntry(configDN, dsConfigBaseDN, testSuffix);
     addAttrEntry(configDN, dsConfigBaseDN, ugroup);
     //Add DNs to groups and special entries
-    addAttrEntry(DN.decode(tgroup), "member", user1, user2, user3);
-    addAttrEntry(DN.decode(tugroup), "uniquemember", user1, user2, user3);
-    addAttrEntry(DN.decode(ugroup), "uniquemember", user1, user2, user3);
-    addAttrEntry(DN.decode(spPerson), "seealso", user1, user2, user3);
+    addAttrEntry(DN.valueOf(tgroup), "member", user1, user2, user3);
+    addAttrEntry(DN.valueOf(tugroup), "uniquemember", user1, user2, user3);
+    addAttrEntry(DN.valueOf(ugroup), "uniquemember", user1, user2, user3);
+    addAttrEntry(DN.valueOf(spPerson), "seealso", user1, user2, user3);
     //Perform the move.
     doModDN(oldSuperior, newRdn, newSuperior);
     //This group under the suffix all DNs should be moved.
@@ -166,10 +167,10 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     addAttrEntry(configDN, dsConfigBaseDN, ugroup);
 
     // Add DNs to groups and special entries
-    addAttrEntry(DN.decode(tgroup), "member", user1, user2, user3);
-    addAttrEntry(DN.decode(tugroup), "uniquemember", user1, user2, user3);
-    addAttrEntry(DN.decode(ugroup), "uniquemember", user1, user2, user3);
-    addAttrEntry(DN.decode(spPerson), "seealso", user1, user2, user3);
+    addAttrEntry(DN.valueOf(tgroup), "member", user1, user2, user3);
+    addAttrEntry(DN.valueOf(tugroup), "uniquemember", user1, user2, user3);
+    addAttrEntry(DN.valueOf(ugroup), "uniquemember", user1, user2, user3);
+    addAttrEntry(DN.valueOf(spPerson), "seealso", user1, user2, user3);
 
     // Check group membership before delete.
     isMember(tgroup, true, user1, user2, user3);
@@ -213,10 +214,10 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     replaceAttrEntry(configDN, dsConfigBaseDN, exSuffix);
     addAttrEntry(configDN, dsConfigBaseDN, tugroup);
     //Add DNs to groups and special entry
-    addAttrEntry(DN.decode(group), "member", tuser1, tuser2, tuser3);
-    addAttrEntry(DN.decode(ugroup), "uniquemember", tuser1, tuser2, tuser3);
-    addAttrEntry(DN.decode(tugroup), "uniquemember", tuser1, tuser2, tuser3);
-    addAttrEntry(DN.decode(tspPerson), "seealso", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(group), "member", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(ugroup), "uniquemember", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(tugroup), "uniquemember", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(tspPerson), "seealso", tuser1, tuser2, tuser3);
     //Perform rename.
     doModDN(tuser1,tuser1_rdn, null);
     //Verify that the changes were made.
@@ -239,7 +240,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   @Test()
   public void testReferentialDelete() throws Exception {
    replaceAttrEntry(configDN, dsConfigAttrType,"member");
-   addAttrEntry(DN.decode(tgroup), "member", tuser1, tuser2, tuser3);
+   addAttrEntry(DN.valueOf(tgroup), "member", tuser1, tuser2, tuser3);
    deleteEntries(tuser1, tuser2, tuser3);
    isMember(tgroup, false, tuser1, tuser2, tuser3);
   }
@@ -259,7 +260,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     //Set interval to 1 second, this should start the background thread
     //and put the plugin in background mode.
     replaceAttrEntry(configDN, dsConfigUpdateInterval,"1 seconds");
-    addAttrEntry(DN.decode(tgroup), "member", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(tgroup), "member", tuser1, tuser2, tuser3);
     deleteEntries(tuser1, tuser2, tuser3);
     //Wait two seconds and then check the group.
     Thread.sleep(2000);
@@ -268,7 +269,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     //thread.
     replaceAttrEntry(configDN, dsConfigUpdateInterval,"0 seconds");
     addEntries(tuser1, tuser2, tuser3);
-    addAttrEntry(DN.decode(tgroup), "member", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(tgroup), "member", tuser1, tuser2, tuser3);
     deleteEntries(tuser1, tuser2, tuser3);
     //Don't wait, the changes should be there.
     isMember(tgroup, false, tuser1, tuser2, tuser3);
@@ -284,9 +285,9 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    public void testReferentialDeleteAttrs() throws Exception {
     replaceAttrEntry(configDN, dsConfigAttrType,"member");
     addAttrEntry(configDN, dsConfigAttrType,"uniquemember", "seealso");
-    addAttrEntry(DN.decode(tgroup), "member", tuser1, tuser2, tuser3);
-    addAttrEntry(DN.decode(tugroup), "uniquemember", tuser1, tuser2, tuser3);
-    addAttrEntry(DN.decode(tspPerson), "seealso", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(tgroup), "member", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(tugroup), "uniquemember", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(tspPerson), "seealso", tuser1, tuser2, tuser3);
     deleteEntries(tuser1, tuser2, tuser3);
     isMember(tgroup, false, tuser1, tuser2, tuser3);
     isAttributeValueEntry(tugroup, false, "uniquemember",
@@ -307,10 +308,10 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     addAttrEntry(configDN, dsConfigAttrType,"uniquemember", "seealso");
     replaceAttrEntry(configDN, dsConfigBaseDN, exSuffix);
     addAttrEntry(configDN, dsConfigBaseDN, tugroup);
-    addAttrEntry(DN.decode(group), "member", tuser1, tuser2, tuser3);
-    addAttrEntry(DN.decode(ugroup), "uniquemember", tuser1, tuser2, tuser3);
-    addAttrEntry(DN.decode(tugroup), "uniquemember", tuser1, tuser2, tuser3);
-    addAttrEntry(DN.decode(tspPerson), "seealso", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(group), "member", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(ugroup), "uniquemember", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(tugroup), "uniquemember", tuser1, tuser2, tuser3);
+    addAttrEntry(DN.valueOf(tspPerson), "seealso", tuser1, tuser2, tuser3);
     deleteEntries(tuser1, tuser2, tuser3);
     isMember(group, false, tuser1, tuser2, tuser3);
     isAttributeValueEntry(ugroup, true, "uniquemember",
@@ -815,7 +816,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
           throws Exception
   {
     TestCaseUtils.startServer();
-    configDN= DN.decode("cn=Referential Integrity ,cn=Plugins,cn=config");
+    configDN= DN.valueOf("cn=Referential Integrity ,cn=Plugins,cn=config");
   }
 
   /**
@@ -1121,7 +1122,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     InternalClientConnection conn =
                                  InternalClientConnection.getRootConnection();
     for(String dn : dns) {
-         DeleteOperation op=conn.processDelete(DN.decode(dn));
+         DeleteOperation op=conn.processDelete(DN.valueOf(dn));
        assertEquals(op.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -1139,7 +1140,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     for (String dn : dns)
     {
-      DeleteOperation op = conn.processDelete(DN.decode(dn), controls);
+      DeleteOperation op = conn.processDelete(DN.valueOf(dn), controls);
       assertEquals(op.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -1162,9 +1163,9 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   private void isMember(String group, boolean expected, String... dns)
   throws Exception {
    GroupManager groupManager=DirectoryServer.getGroupManager();
-   Group<?> instance=groupManager.getGroupInstance(DN.decode(group));
+   Group<?> instance=groupManager.getGroupInstance(DN.valueOf(group));
    for(String dn : dns)
-     assertEquals(instance.isMember(DN.decode(dn)), expected);
+     assertEquals(instance.isMember(DN.valueOf(dn)), expected);
   }
 
   private void isAttributeValueEntry(String entryDN, boolean expected,
@@ -1175,7 +1176,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     String filterStr="(" + attr + "=*)";
     InternalClientConnection conn =
             InternalClientConnection.getRootConnection();
-    InternalSearchOperation operation = conn.processSearch(DN.decode(entryDN),
+    InternalSearchOperation operation = conn.processSearch(DN.valueOf(entryDN),
             SearchScope.BASE_OBJECT,
             DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
             SearchFilter.createFilterFromString(filterStr),
@@ -1245,10 +1246,10 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
             InternalClientConnection.getRootConnection();
     ModifyDNOperation modDNop;
     if(newSuperior != null)
-        modDNop = conn.processModifyDN(DN.decode(dn), RDN.decode(rdn), true,
-                                       DN.decode(newSuperior));
+        modDNop = conn.processModifyDN(DN.valueOf(dn), RDN.decode(rdn), true,
+                                       DN.valueOf(newSuperior));
     else
-        modDNop = conn.processModifyDN(DN.decode(dn), RDN.decode(rdn),
+        modDNop = conn.processModifyDN(DN.valueOf(dn), RDN.decode(rdn),
                                        false, null);
     assertEquals(modDNop.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1398,7 +1399,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     Entry entry = null;
     AddOperation addOperation = null;
-    
+
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
@@ -1452,7 +1453,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     Entry entry = null;
     AddOperation addOperation = null;
-    
+
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
@@ -1615,7 +1616,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "member:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    
+
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
@@ -1632,7 +1633,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       );
 
     AddOperation addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), 
+    assertEquals(addOperation.getResultCode(),
                  ResultCode.CONSTRAINT_VIOLATION);
   }
 
@@ -1772,7 +1773,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     AddOperation addOperation = conn.processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    ModifyOperation modOperation = addAttrEntry(DN.decode(user1),
+    ModifyOperation modOperation = addAttrEntry(DN.valueOf(user1),
      "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
     assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1813,11 +1814,11 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     AddOperation addOperation = conn.processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    ModifyOperation modOperation = addAttrEntry(DN.decode(user1),
+    ModifyOperation modOperation = addAttrEntry(DN.valueOf(user1),
      "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
     assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
 
-    modOperation = replaceAttrEntry(DN.decode(user1),
+    modOperation = replaceAttrEntry(DN.valueOf(user1),
                                     "manager", user2);
     assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1858,7 +1859,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     AddOperation addOperation = conn.processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    ModifyOperation modOperation = addAttrEntry(DN.decode(user1),
+    ModifyOperation modOperation = addAttrEntry(DN.valueOf(user1),
      "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
     assertEquals(modOperation.getResultCode(),
                  ResultCode.CONSTRAINT_VIOLATION);
@@ -1902,7 +1903,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     AddOperation addOperation = conn.processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    ModifyOperation modOperation = addAttrEntry(DN.decode(user1),
+    ModifyOperation modOperation = addAttrEntry(DN.valueOf(user1),
      "manager", "uid=manager,ou=people,ou=dept,o=test");
     assertEquals(modOperation.getResultCode(),
                  ResultCode.SUCCESS);
@@ -1935,7 +1936,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "manager:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    ModifyOperation modOperation = addAttrEntry(DN.decode(user1),
+    ModifyOperation modOperation = addAttrEntry(DN.valueOf(user1),
      "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
     assertEquals(modOperation.getResultCode(),
                  ResultCode.CONSTRAINT_VIOLATION);
@@ -1960,7 +1961,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "member:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    ModifyOperation modOperation = addAttrEntry(DN.decode(group),
+    ModifyOperation modOperation = addAttrEntry(DN.valueOf(group),
                                                 "member",
                                                 user1);
     assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1985,7 +1986,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "member:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    ModifyOperation modOperation = addAttrEntry(DN.decode(group),
+    ModifyOperation modOperation = addAttrEntry(DN.valueOf(group),
       "member", "uid=user.100,ou=people,ou=dept,dc=example,dc=com");
     assertEquals(modOperation.getResultCode(),
                  ResultCode.CONSTRAINT_VIOLATION);
@@ -2010,7 +2011,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "member:(objectclass=posixaccount)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    ModifyOperation modOperation = addAttrEntry(DN.decode(group),
+    ModifyOperation modOperation = addAttrEntry(DN.valueOf(group),
       "member", "uid=user.100,ou=people,ou=dept,dc=example,dc=com");
     assertEquals(modOperation.getResultCode(),
                  ResultCode.CONSTRAINT_VIOLATION);
@@ -2028,7 +2029,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                                "subordinatedelete",
                                "preoperationadd",
                                "preoperationmodify");
-    addAttrEntry(configDN, dsConfigBaseDN, 
+    addAttrEntry(configDN, dsConfigBaseDN,
                            "dc=example,dc=com",
                            "o=test");
     replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
@@ -2037,7 +2038,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "member:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    ModifyOperation modOperation = addAttrEntry(DN.decode(group),
+    ModifyOperation modOperation = addAttrEntry(DN.valueOf(group),
       "member", "uid=user.1,ou=people,ou=dept,o=test");
     assertEquals(modOperation.getResultCode(),
                  ResultCode.SUCCESS);

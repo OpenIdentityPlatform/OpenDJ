@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -239,7 +239,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // check that entry has been created and that it does not contain
       // forbidden attributes
-      Entry newEntry = getEntry(DN.decode(ENTRY_DN), TIMEOUT, true);
+      Entry newEntry = getEntry(DN.valueOf(ENTRY_DN), TIMEOUT, true);
       checkEntryFilteredAfterAdd(newEntry, EXCLUDE_FRAC_MODE, fractionalConf);
 
       // perform modify operation (modify forbidden attributes +
@@ -350,7 +350,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // check that entry has been created and that it does not contain
       // forbidden attributes
-      Entry newEntry = getEntry(DN.decode(ENTRY_DN), TIMEOUT, true);
+      Entry newEntry = getEntry(DN.valueOf(ENTRY_DN), TIMEOUT, true);
       checkEntryFilteredAfterAdd(newEntry, INCLUDE_FRAC_MODE, fractionalConf);
 
       // perform modify operation (modify forbidden attributes +
@@ -375,7 +375,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   {
     SortedSet<String> replicationServers = newSortedSet("localhost:" + replServerPort);
 
-    DN baseDN = DN.decode(firstBackend ? TEST_ROOT_DN_STRING : TEST2_ROOT_DN_STRING);
+    DN baseDN = DN.valueOf(firstBackend ? TEST_ROOT_DN_STRING : TEST2_ROOT_DN_STRING);
     replicationDomain = new FakeReplicationDomain(baseDN, DS2_ID, replicationServers, 1000, generationId);
 
     // Test connection
@@ -644,7 +644,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
   private long readGenIdFromSuffixRootEntry(String rootDn) throws Exception
   {
-    DN baseDN = DN.decode(rootDn);
+    DN baseDN = DN.valueOf(rootDn);
     Entry resultEntry = getEntry(baseDN, 1000, true);
     if (resultEntry == null)
     {
@@ -749,7 +749,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       mod = new Modification(ModificationType.ADD, attr);
       mods.add(mod);
 
-      DN entryDn = DN.decode(firstBackend ? ENTRY_DN : ENTRY_DN2);
+      DN entryDn = DN.valueOf(firstBackend ? ENTRY_DN : ENTRY_DN2);
       ModifyMsg modifyMsg = new ModifyMsg(gen.newCSN(), entryDn, mods, ENTRY_UUID);
       replicationDomain.publish(modifyMsg);
   }
@@ -991,7 +991,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       // The domain should go in bad gen as backend is not initialized with
       // fractional data
       LDAPReplicationDomain fractionalReplicationDomain =
-        MultimasterReplication.findDomain(DN.decode(TEST2_ROOT_DN_STRING), null);
+        MultimasterReplication.findDomain(DN.valueOf(TEST2_ROOT_DN_STRING), null);
       waitForDomainStatus(fractionalReplicationDomain,
         ServerStatus.BAD_GEN_ID_STATUS, 5);
 
@@ -1074,7 +1074,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // check that entry has been created and that it does not contain
       // forbidden attributes
-      Entry newEntry = getEntry(DN.decode(ENTRY_DN2), TIMEOUT, true);
+      Entry newEntry = getEntry(DN.valueOf(ENTRY_DN2), TIMEOUT, true);
       checkEntryFilteredAfterAdd(newEntry, EXCLUDE_FRAC_MODE, fractionalConf);
 
       // perform modify operation (modify forbidden attributes +
@@ -1096,7 +1096,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       throws Exception
   {
     AttributeType synchroAttrType = DirectoryServer.getAttributeType(SYNCHRO_OPTIONAL_ATTR.toLowerCase());
-    DN dn = DN.decode(entryDN);
+    DN dn = DN.valueOf(entryDN);
 
     Entry entry = null;
     boolean synchroAttrFound = false;
@@ -1229,7 +1229,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       // The domain should go in bad gen as backend is not initialized with
       // fractional data
       LDAPReplicationDomain fractionalReplicationDomain =
-        MultimasterReplication.findDomain(DN.decode(TEST2_ROOT_DN_STRING), null);
+        MultimasterReplication.findDomain(DN.valueOf(TEST2_ROOT_DN_STRING), null);
       waitForDomainStatus(fractionalReplicationDomain,
         ServerStatus.BAD_GEN_ID_STATUS, 5);
 
@@ -1309,7 +1309,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // check that entry has been created and that it does not contain
       // forbidden attributes
-      Entry newEntry = getEntry(DN.decode(ENTRY_DN2), TIMEOUT, true);
+      Entry newEntry = getEntry(DN.valueOf(ENTRY_DN2), TIMEOUT, true);
       checkEntryFilteredAfterAdd(newEntry, INCLUDE_FRAC_MODE, fractionalConf);
 
       // perform modify operation (modify forbidden attributes +
@@ -1572,10 +1572,10 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * the forbidden attributes
        */
       String newEntryName = "displayName=ValueToBeKept," + TEST_ROOT_DN_STRING ;
-      DN newEntryDn = DN.decode(newEntryName);
+      DN newEntryDn = DN.valueOf(newEntryName);
 
       // Create modify dn message to modify the entry.
-      ModifyDNMsg modDnMsg = new ModifyDNMsg(DN.decode(entryName), gen.newCSN(),
+      ModifyDNMsg modDnMsg = new ModifyDNMsg(DN.valueOf(entryName), gen.newCSN(),
         ENTRY_UUID, ENTRY_UUID3, false, TEST_ROOT_DN_STRING,
         "displayName=ValueToBeKept", null);
 
@@ -1653,10 +1653,10 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * the forbidden attributes
        */
       String newEntryName = "displayName=ValueToBeKept," + TEST_ROOT_DN_STRING ;
-      DN newEntryDn = DN.decode(newEntryName);
+      DN newEntryDn = DN.valueOf(newEntryName);
 
       // Create modify dn message to modify the entry.
-      ModifyDNMsg modDnMsg = new ModifyDNMsg(DN.decode(entryName), gen.newCSN(),
+      ModifyDNMsg modDnMsg = new ModifyDNMsg(DN.valueOf(entryName), gen.newCSN(),
         ENTRY_UUID, ENTRY_UUID3, false, TEST_ROOT_DN_STRING,
         "displayName=ValueToBeKept", null);
 

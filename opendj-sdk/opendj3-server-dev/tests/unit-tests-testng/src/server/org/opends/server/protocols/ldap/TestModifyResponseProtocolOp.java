@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -291,7 +292,7 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
 
 
     //Test case for a full encode decode operation with an empty DN params.
-    modifyEncoded = new ModifyResponseProtocolOp(resultCode, resultMsg, DN.nullDN(),
+    modifyEncoded = new ModifyResponseProtocolOp(resultCode, resultMsg, DN.rootDN(),
                                                  referralURLs);
     builder.clear();
     modifyEncoded.write(writer);

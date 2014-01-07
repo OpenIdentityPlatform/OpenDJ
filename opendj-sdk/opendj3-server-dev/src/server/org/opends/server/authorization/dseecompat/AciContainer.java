@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -667,7 +667,7 @@ implements AciTargetMatchContext, AciEvalContext {
         return this.authzid;
       else if (this.authorizationEntry != null)
         return this.authorizationEntry.getDN();
-      return DN.nullDN();
+      return DN.rootDN();
     }
 
    /**

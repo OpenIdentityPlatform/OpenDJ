@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -324,7 +325,7 @@ public class GenericBackendTestCase
     for (DN baseDN : b.getBaseDNs())
     {
       assertTrue(b.handlesEntry(baseDN));
-      assertTrue(b.handlesEntry(DN.decode("cn=child," + baseDN.toString())));
+      assertTrue(b.handlesEntry(DN.valueOf("cn=child," + baseDN.toString())));
     }
   }
 }

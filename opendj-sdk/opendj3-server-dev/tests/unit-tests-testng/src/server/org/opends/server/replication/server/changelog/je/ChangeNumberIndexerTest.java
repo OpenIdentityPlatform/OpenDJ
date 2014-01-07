@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -111,8 +112,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   public static void classSetup() throws Exception
   {
     TestCaseUtils.startFakeServer();
-    BASE_DN = DN.decode("dc=example,dc=com");
-    ADMIN_DATA_DN = DN.decode("cn=admin data");
+    BASE_DN = DN.valueOf("dc=example,dc=com");
+    ADMIN_DATA_DN = DN.valueOf("cn=admin data");
   }
 
   @AfterClass

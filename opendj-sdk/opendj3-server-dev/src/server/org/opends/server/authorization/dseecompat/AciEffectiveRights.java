@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -744,7 +744,7 @@ public class AciEffectiveRights {
     }
     //Actually build the string.
     String user=anonymous;
-    if(!evalCtx.getClientDN().isNullDN())
+    if(!evalCtx.getClientDN().isRootDN())
       user=evalCtx.getClientDN().toString();
     String right=evalCtx.rightToString();
     AttributeType aType=evalCtx.getCurrentAttributeType();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -655,7 +655,7 @@ public class LocalBackendBindOperation
 
     // If there is a bind DN, then see whether that is acceptable.
     if (DirectoryServer.bindWithDNRequiresPassword()
-        && bindDN != null && !bindDN.isNullDN())
+        && bindDN != null && !bindDN.isRootDN())
     {
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                    ERR_BIND_DN_BUT_NO_PASSWORD.get());

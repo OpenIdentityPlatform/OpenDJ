@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
@@ -174,7 +174,7 @@ public class RebuildTask extends Task
 
     try
     {
-      rebuildConfig.setBaseDN(DN.decode(baseDN));
+      rebuildConfig.setBaseDN(DN.valueOf(baseDN));
     }
     catch (DirectoryException de)
     {

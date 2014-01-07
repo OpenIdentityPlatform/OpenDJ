@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -414,7 +414,7 @@ public final class FractionalLDIFImportPlugin
     // If we get here, local domain fractional configuration is enabled.
     // Now filter for potential attributes to be removed.
     LDAPReplicationDomain.fractionalRemoveAttributesFromEntry(
-      localFractionalConfig, entry.getDN().getRDN(),
+      localFractionalConfig, entry.getDN().rdn(),
       entry.getObjectClasses(), entry.getUserAttributes(), true);
 
     return PluginResult.ImportLDIF.continueEntryProcessing();

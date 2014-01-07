@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -210,17 +211,17 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
           throws DirectoryException
   {
     TreeSet<DN> subtrees1 = new TreeSet<DN>();
-    subtrees1.add(DN.decode("ou=people,dc=example,dc=com"));
+    subtrees1.add(DN.valueOf("ou=people,dc=example,dc=com"));
 
     TreeSet<DN> subtrees2 = new TreeSet<DN>();
-    subtrees2.add(DN.decode("ou=test,dc=example,dc=com"));
+    subtrees2.add(DN.valueOf("ou=test,dc=example,dc=com"));
 
     TreeSet<DN> subtrees3 = new TreeSet<DN>();
-    subtrees3.add(DN.decode("dc=example,dc=com"));
+    subtrees3.add(DN.valueOf("dc=example,dc=com"));
 
     TreeSet<DN> subtrees4 = new TreeSet<DN>();
-    subtrees4.add(DN.decode("dc=example,dc=com"));
-    subtrees4.add(DN.decode("dc=test,dc=com"));
+    subtrees4.add(DN.valueOf("dc=example,dc=com"));
+    subtrees4.add(DN.valueOf("dc=test,dc=com"));
 
     Object[][] myData = {
       // allowed subtrees, subtree to test, success
@@ -242,17 +243,17 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
   public Object[][] initProhibitedSubtreesSet() throws DirectoryException
   {
     TreeSet<DN> subtrees1 = new TreeSet<DN>();
-    subtrees1.add(DN.decode("ou=people,dc=example,dc=com"));
+    subtrees1.add(DN.valueOf("ou=people,dc=example,dc=com"));
 
     TreeSet<DN> subtrees2 = new TreeSet<DN>();
-    subtrees2.add(DN.decode("ou=test,dc=example,dc=com"));
+    subtrees2.add(DN.valueOf("ou=test,dc=example,dc=com"));
 
     TreeSet<DN> subtrees3 = new TreeSet<DN>();
-    subtrees3.add(DN.decode("dc=example,dc=com"));
+    subtrees3.add(DN.valueOf("dc=example,dc=com"));
 
     TreeSet<DN> subtrees4 = new TreeSet<DN>();
-    subtrees4.add(DN.decode("dc=example,dc=com"));
-    subtrees4.add(DN.decode("dc=test,dc=com"));
+    subtrees4.add(DN.valueOf("dc=example,dc=com"));
+    subtrees4.add(DN.valueOf("dc=test,dc=com"));
 
     Object[][] myData = {
       // prohibited subtrees, subtree to test, success
@@ -275,13 +276,13 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
     TreeSet<DN> subtrees_empty = new TreeSet<DN>();
 
     TreeSet<DN> subtrees_root = new TreeSet<DN>();
-    subtrees_root.add(DN.decode("dc=example,dc=com"));
+    subtrees_root.add(DN.valueOf("dc=example,dc=com"));
 
     TreeSet<DN> subtrees_people = new TreeSet<DN>();
-    subtrees_people.add(DN.decode("ou=people,dc=example,dc=com"));
+    subtrees_people.add(DN.valueOf("ou=people,dc=example,dc=com"));
 
     TreeSet<DN> subtrees_entry = new TreeSet<DN>();
-    subtrees_entry.add(DN.decode("uid=user.1,ou=people,dc=example,dc=com"));
+    subtrees_entry.add(DN.valueOf("uid=user.1,ou=people,dc=example,dc=com"));
 
     Object[][] myData = {
       // allowed subtree, prohibited subtree, subtree to test, success
@@ -371,7 +372,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     InternalSearchOperation search = conn.processSearch(
-        DN.decode("dc=example,dc=com"),
+        DN.valueOf("dc=example,dc=com"),
         SearchScope.BASE_OBJECT,
         LDAPFilter.decode(searchFilter).toSearchFilter());
 
@@ -408,7 +409,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     InternalSearchOperation search = conn.processSearch(
-        DN.decode("dc=example,dc=com"),
+        DN.valueOf("dc=example,dc=com"),
         SearchScope.BASE_OBJECT,
         LDAPFilter.decode(searchFilter).toSearchFilter());
 
@@ -445,7 +446,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     InternalSearchOperation search = conn.processSearch(
-            DN.decode("dc=example,dc=com"),
+            DN.valueOf("dc=example,dc=com"),
             searchScope,
             LDAPFilter.decode("objectclass=*").toSearchFilter());
 
@@ -482,7 +483,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     InternalSearchOperation search = conn.processSearch(
-            DN.decode(searchSubtree),
+            DN.valueOf(searchSubtree),
             SearchScope.WHOLE_SUBTREE,
             LDAPFilter.decode("objectclass=*").toSearchFilter());
 
@@ -519,7 +520,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     InternalSearchOperation search = conn.processSearch(
-            DN.decode(searchSubtree),
+            DN.valueOf(searchSubtree),
             SearchScope.WHOLE_SUBTREE,
             LDAPFilter.decode("objectclass=*").toSearchFilter());
 
@@ -563,7 +564,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     InternalSearchOperation search = conn.processSearch(
-            DN.decode(searchSubtree),
+            DN.valueOf(searchSubtree),
             SearchScope.WHOLE_SUBTREE,
             LDAPFilter.decode("objectclass=*").toSearchFilter());
 
@@ -634,7 +635,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
          Attribute attributeToModify = Attributes.create("attr", "newVal");
          mods.add(new Modification(ModificationType.ADD, attributeToModify));
          op = (PreParseModifyOperation) conn.processModify(
-                 DN.decode("uid=user.1,ou=people,dc=example,dc=com"), mods);
+                 DN.valueOf("uid=user.1,ou=people,dc=example,dc=com"), mods);
          break;
        case MODIFY_DN:
          op = (PreParseModifyDNOperation) conn.processModifyDN(
@@ -642,7 +643,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
                  "uid=usr.1,ou=people,dc=example,dc=com", true);
          break;
        case SEARCH:
-         op = conn.processSearch(DN.decode("dc=example,dc=com"),
+         op = conn.processSearch(DN.valueOf("dc=example,dc=com"),
             SearchScope.WHOLE_SUBTREE,
             LDAPFilter.decode("uid>=user.1").toSearchFilter());
          break;

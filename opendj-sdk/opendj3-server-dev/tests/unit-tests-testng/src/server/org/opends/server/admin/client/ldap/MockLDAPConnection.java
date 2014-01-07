@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.client.ldap;
 
@@ -150,9 +151,9 @@ public class MockLDAPConnection extends LDAPConnection {
    * Creates a new mock LDAP connection.
    */
   public MockLDAPConnection() {
-    this.rootEntry = new MockEntry(DN.nullDN(), new BasicAttributes());
+    this.rootEntry = new MockEntry(DN.rootDN(), new BasicAttributes());
     this.entries = new HashMap<DN, MockEntry>();
-    this.entries.put(DN.nullDN(), this.rootEntry);
+    this.entries.put(DN.rootDN(), this.rootEntry);
   }
 
 
@@ -298,9 +299,9 @@ public class MockLDAPConnection extends LDAPConnection {
     DN entryDN = entry.getDN();
 
     // Create required glue entries.
-    for (int i = 0; i < entryDN.getNumComponents() - 1; i++) {
-      RDN rdn = entryDN.getRDN(entryDN.getNumComponents() - i - 1);
-      DN dn = parent.getDN().concat(rdn);
+    for (int i = 0; i < entryDN.size() - 1; i++) {
+      RDN rdn = entryDN.getRDN(entryDN.size() - i - 1);
+      DN dn = parent.getDN().child(rdn);
 
       if (!entries.containsKey(dn)) {
         MockEntry glue = new MockEntry(dn, new BasicAttributes());
@@ -346,7 +347,7 @@ public class MockLDAPConnection extends LDAPConnection {
   private MockEntry getEntry(LdapName dn) {
     DN name;
     try {
-      name = DN.decode(dn.toString());
+      name = DN.valueOf(dn.toString());
     } catch (DirectoryException e) {
       throw new RuntimeException(e);
     }

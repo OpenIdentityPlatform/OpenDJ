@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -78,7 +78,7 @@ public final class TestEntry extends TypesTestCase {
     // Construct entry DN.
     DN entryDN;
     try {
-      entryDN = DN.decode("dc=example, dc=com");
+      entryDN = DN.valueOf("dc=example, dc=com");
     } catch (DirectoryException e) {
       throw new RuntimeException(e);
     }
@@ -276,7 +276,7 @@ public final class TestEntry extends TypesTestCase {
         "{ base \"dc=example, dc=com\", maximum 2 }" };
 
     // Relative to the root DN.
-    DN rootDN = DN.nullDN();
+    DN rootDN = DN.rootDN();
 
     SubtreeSpecificationSet expected = new SubtreeSpecificationSet();
     for (String value : values) {

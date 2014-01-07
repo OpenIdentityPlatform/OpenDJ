@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -436,7 +437,7 @@ public class BackupTask extends Task
           {
             Message message = ERR_BACKUPDB_CANNOT_BACKUP_IN_DIRECTORY.get(
                 b.getBackendID(),backupLocation.getPath(),
-                backupDir.getConfigEntryDN().getRDN().
+                backupDir.getConfigEntryDN().rdn().
                 getAttributeValue(0).toString());
             logError(message);
             return false ;

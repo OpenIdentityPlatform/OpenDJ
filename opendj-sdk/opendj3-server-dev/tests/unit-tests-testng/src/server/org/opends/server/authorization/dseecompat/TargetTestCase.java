@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -396,7 +397,7 @@ public class TargetTestCase extends AciTestCase
        throws Exception
   {
     PatternDN patternDN = PatternDN.decode(pattern);
-    boolean match = patternDN.matchesDN(DN.decode(entryDN));
+    boolean match = patternDN.matchesDN(DN.valueOf(entryDN));
     assertTrue(match, pattern + " did not match " + entryDN);
   }
 
@@ -406,7 +407,7 @@ public class TargetTestCase extends AciTestCase
        throws Exception
   {
     PatternDN patternDN = PatternDN.decode(pattern);
-    boolean match = patternDN.matchesDN(DN.decode(entryDN));
+    boolean match = patternDN.matchesDN(DN.valueOf(entryDN));
     assertTrue(!match, pattern + " should not have matched " + entryDN);
   }
 
@@ -425,10 +426,10 @@ public class TargetTestCase extends AciTestCase
   public void applicableTargets(String aciDN, String aciString, String entryDN)
        throws Exception
   {
-    Aci aci = Aci.decode(ByteString.valueOf(aciString), DN.decode(aciDN));
+    Aci aci = Aci.decode(ByteString.valueOf(aciString), DN.valueOf(aciDN));
     boolean match = AciTargets.isTargetApplicable(aci,
                                                   aci.getTargets(),
-                                                  DN.decode(entryDN));
+                                                  DN.valueOf(entryDN));
     assertTrue(match, aciString + " in entry " + aciDN +
          " did not apply to " + entryDN);
   }
@@ -439,10 +440,10 @@ public class TargetTestCase extends AciTestCase
                                    String entryDN)
        throws Exception
   {
-    Aci aci = Aci.decode(ByteString.valueOf(aciString), DN.decode(aciDN));
+    Aci aci = Aci.decode(ByteString.valueOf(aciString), DN.valueOf(aciDN));
     boolean match = AciTargets.isTargetApplicable(aci,
                                                   aci.getTargets(),
-                                                  DN.decode(entryDN));
+                                                  DN.valueOf(entryDN));
     assertTrue(!match, aciString + " in entry " + aciDN +
          " incorrectly applied to " + entryDN);
   }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -98,14 +98,14 @@ public class EntryDNVirtualAttributeProviderTestCase
   {
     return new Object[][]
     {
-      new Object[] { DN.decode("") },
-      new Object[] { DN.decode("o=test") },
-      new Object[] { DN.decode("dc=example,dc=com") },
-      new Object[] { DN.decode("cn=config") },
-      new Object[] { DN.decode("cn=schema") },
-      new Object[] { DN.decode("cn=tasks") },
-      new Object[] { DN.decode("cn=monitor") },
-      new Object[] { DN.decode("cn=backups") }
+      new Object[] { DN.valueOf("") },
+      new Object[] { DN.valueOf("o=test") },
+      new Object[] { DN.valueOf("dc=example,dc=com") },
+      new Object[] { DN.valueOf("cn=config") },
+      new Object[] { DN.valueOf("cn=schema") },
+      new Object[] { DN.valueOf("cn=tasks") },
+      new Object[] { DN.valueOf("cn=monitor") },
+      new Object[] { DN.valueOf("cn=backups") }
     };
   }
 
@@ -934,7 +934,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                      InternalClientConnection.nextMessageID(), null,
-                                     DN.decode("o=test"),
+                                     DN.valueOf("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, null, null);
@@ -987,7 +987,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                      InternalClientConnection.nextMessageID(), null,
-                                     DN.decode("o=test"),
+                                     DN.valueOf("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, null, null);

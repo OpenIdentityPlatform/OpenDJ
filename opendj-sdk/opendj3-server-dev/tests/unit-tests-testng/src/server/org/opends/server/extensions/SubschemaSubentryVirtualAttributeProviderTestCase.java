@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -106,14 +106,14 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   {
     return new Object[][]
     {
-      new Object[] { DN.decode("") },
-      new Object[] { DN.decode("o=test") },
-      new Object[] { DN.decode("dc=example,dc=com") },
-      new Object[] { DN.decode("cn=config") },
-      new Object[] { DN.decode("cn=schema") },
-      new Object[] { DN.decode("cn=tasks") },
-      new Object[] { DN.decode("cn=monitor") },
-      new Object[] { DN.decode("cn=backups") }
+      new Object[] { DN.valueOf("") },
+      new Object[] { DN.valueOf("o=test") },
+      new Object[] { DN.valueOf("dc=example,dc=com") },
+      new Object[] { DN.valueOf("cn=config") },
+      new Object[] { DN.valueOf("cn=schema") },
+      new Object[] { DN.valueOf("cn=tasks") },
+      new Object[] { DN.valueOf("cn=monitor") },
+      new Object[] { DN.valueOf("cn=backups") }
     };
   }
 

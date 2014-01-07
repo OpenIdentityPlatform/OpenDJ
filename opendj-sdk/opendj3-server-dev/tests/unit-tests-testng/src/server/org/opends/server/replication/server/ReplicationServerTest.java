@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -112,8 +112,8 @@ public class ReplicationServerTest extends ReplicationTestCase
   public void setUp() throws Exception
   {
     super.setUp();
-    TEST_ROOT_DN = DN.decode(TEST_ROOT_DN_STRING);
-    EXAMPLE_DN = DN.decode("ou=example," + TEST_ROOT_DN_STRING);
+    TEST_ROOT_DN = DN.valueOf(TEST_ROOT_DN_STRING);
+    EXAMPLE_DN = DN.valueOf("ou=example," + TEST_ROOT_DN_STRING);
 
     // This test suite depends on having the schema available.
     configure();
@@ -678,7 +678,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
         // - Delete
         CSNGenerator csnGen = new CSNGenerator(brokerIds[0], TimeThread.getTime());
-        DN dn = DN.decode("o=example" + 0 + "," + TEST_ROOT_DN_STRING);
+        DN dn = DN.valueOf("o=example" + 0 + "," + TEST_ROOT_DN_STRING);
         DeleteMsg delMsg = new DeleteMsg(dn, csnGen.newCSN(), "uid");
         broker1.publish(delMsg);
 
@@ -772,7 +772,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         // - Delete
         CSNGenerator csnGen = new CSNGenerator(brokerIds[0], TimeThread.getTime());
 
-        DN dn = DN.decode("o=example" + 1 + "," + TEST_ROOT_DN_STRING);
+        DN dn = DN.valueOf("o=example" + 1 + "," + TEST_ROOT_DN_STRING);
         DeleteMsg delMsg = new DeleteMsg(dn, csnGen.newCSN(), "uid");
         broker1.publish(delMsg);
 
@@ -1111,7 +1111,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     try
     {
-      final DN baseDN2 = DN.decode("dc=domain2,dc=com");
+      final DN baseDN2 = DN.valueOf("dc=domain2,dc=com");
       server1 = openReplicationSession(TEST_ROOT_DN, 1, 100, replicationServerPort, 1000);
       server2 = openReplicationSession(baseDN2, 2, 100, replicationServerPort, 1000);
 
@@ -1208,7 +1208,7 @@ public class ReplicationServerTest extends ReplicationTestCase
            + "objectClass: domain\n"
            + "entryUUID: 11111111-1111-1111-1111-111111111111\n");
        CSNGenerator csnGen = new CSNGenerator(serverId, TimeThread.getTime());
-       DN exampleSuffixDN = DN.decode("o=example," + suffix);
+       DN exampleSuffixDN = DN.valueOf("o=example," + suffix);
        AddMsg addMsg = new AddMsg(csnGen.newCSN(), exampleSuffixDN,
            user1entryUUID, baseUUID, entry.getObjectClassAttribute(),
            entry.getAttributes(), new ArrayList<Attribute>());
@@ -1227,7 +1227,7 @@ public class ReplicationServerTest extends ReplicationTestCase
            + "telephonenumber: +1 408 555 1212\n"
            + "entryUUID: " + user1entryUUID +"\n"
            + "userpassword: fjen$$en" + "\n");
-       DN newPersonDN = DN.decode("uid=new person,ou=People,"+suffix);
+       DN newPersonDN = DN.valueOf("uid=new person,ou=People,"+suffix);
        AddMsg addMsg2 = new AddMsg(
            csnGen.newCSN(),
            newPersonDN,
@@ -1302,13 +1302,13 @@ public class ReplicationServerTest extends ReplicationTestCase
          (ReplicationBackend)DirectoryServer.getBackend("replicationChanges");
        b.setServer(replicationServer);
        assertEquals(b.getEntryCount(), msgs.size());
-       assertTrue(b.entryExists(DN.decode("dc=replicationChanges")));
+       assertTrue(b.entryExists(DN.valueOf("dc=replicationChanges")));
        SearchFilter filter=SearchFilter.createFilterFromString("(objectclass=*)");
        assertTrue(b.isIndexed(filter));
 
        List<Control> requestControls = new LinkedList<Control>();
        requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
-       DN baseDN=DN.decode("dc=replicationChanges");
+       DN baseDN=DN.valueOf("dc=replicationChanges");
        //Test the group membership control causes search to be skipped.
        InternalSearchOperation internalSearch =
           connection.processSearch(baseDN, WHOLE_SUBTREE,

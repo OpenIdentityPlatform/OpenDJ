@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -1051,7 +1051,7 @@ public class PluginConfigManager
       {
         DN dn = p.getPluginEntryDN();
         String lowerName =
-            toLowerCase(dn.getRDN().getAttributeValue(0).getValue().toString());
+            toLowerCase(dn.rdn().getAttributeValue(0).getValue().toString());
         if (initialPluginNames.contains(lowerName))
         {
           initialPlugins.put(lowerName, p);
@@ -1071,7 +1071,7 @@ public class PluginConfigManager
       // the correct category.
       DN dn = plugin.getPluginEntryDN();
       String lowerName =
-           toLowerCase(dn.getRDN().getAttributeValue(0).getValue().toString());
+           toLowerCase(dn.rdn().getAttributeValue(0).getValue().toString());
       if (initialPluginNames.contains(lowerName))
       {
         initialPlugins.put(lowerName, plugin);

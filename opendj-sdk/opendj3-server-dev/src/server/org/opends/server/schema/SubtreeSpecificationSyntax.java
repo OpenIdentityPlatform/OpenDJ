@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -251,7 +251,7 @@ public final class SubtreeSpecificationSyntax
 
     // Use the subtree specification code to make this determination.
     try {
-      SubtreeSpecification.valueOf(DN.nullDN(), value.toString());
+      SubtreeSpecification.valueOf(DN.rootDN(), value.toString());
 
       return true;
     } catch (DirectoryException e) {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.core;
@@ -120,12 +120,12 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(subentryList.size(), 1);
     assertEquals(subentryList.get(0).getEntry(), collectiveSubentry);
     subentryList.clear();
-    subentryList = manager.getSubentries(legacyLdapSubentry.getDN().getParent());
+    subentryList = manager.getSubentries(legacyLdapSubentry.getDN().parent());
     assertNotNull(subentryList);
     assertEquals(subentryList.size(), 1);
     assertEquals(subentryList.get(0).getEntry(), legacyLdapSubentry);
     subentryList.clear();
-    subentryList = manager.getSubentries(legacyLdapSubentry.getDN().getParent().getParent());
+    subentryList = manager.getSubentries(legacyLdapSubentry.getDN().parent().parent());
     assertNotNull(subentryList);
     assertEquals(subentryList.size(), 0);
   }
@@ -223,7 +223,7 @@ public class SubentryManagerTestCase extends CoreTestCase
     {
       // Normal user will not inherit the collective description attribute.
       Entry e = DirectoryServer.getEntry(DN
-          .decode("uid=normal user,ou=people,o=test"));
+          .valueOf("uid=normal user,ou=people,o=test"));
       assertNotNull(e);
 
       List<Attribute> description = e.getAttribute("description");
@@ -231,7 +231,7 @@ public class SubentryManagerTestCase extends CoreTestCase
 
       // Collective user will inherit the collective description attribute.
       e = DirectoryServer.getEntry(DN
-          .decode("uid=collective user,ou=people,o=test"));
+          .valueOf("uid=collective user,ou=people,o=test"));
       assertNotNull(e);
 
       description = e.getAttribute("description");
@@ -246,8 +246,8 @@ public class SubentryManagerTestCase extends CoreTestCase
     finally
     {
       // Clear sub-entry and groups from test backend.
-      TestCaseUtils.deleteEntry(DN.decode("cn=description collective attribute,ou=people,o=test"));
-      TestCaseUtils.deleteEntry(DN.decode("cn=collective users,ou=people,o=test"));
+      TestCaseUtils.deleteEntry(DN.valueOf("cn=description collective attribute,ou=people,o=test"));
+      TestCaseUtils.deleteEntry(DN.valueOf("cn=collective users,ou=people,o=test"));
     }
   }
 
@@ -547,10 +547,10 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
 
     assertTrue(DirectoryServer.getSubentryManager().getCollectiveSubentries(
-            DN.decode("uid=rogasawara," + BASE)).isEmpty());
+            DN.valueOf("uid=rogasawara," + BASE)).isEmpty());
 
     assertTrue(DirectoryServer.getSubentryManager().getSubentries(
-            DN.decode("uid=rogasawara," + BASE)).isEmpty());
+            DN.valueOf("uid=rogasawara," + BASE)).isEmpty());
 
     // Re-add entries.
     addTestEntries();
@@ -579,14 +579,14 @@ public class SubentryManagerTestCase extends CoreTestCase
     };
     assertEquals(LDAPModify.mainModify(newArgs, false, null, System.err), 0);
 
-    assertNotNull(DirectoryServer.getEntry(DN.decode(
+    assertNotNull(DirectoryServer.getEntry(DN.valueOf(
             "uid=rogasawara," + NEWBASE + "," + SUFFIX)));
     assertTrue(DirectoryServer.getSubentryManager().getCollectiveSubentries(
-          DN.decode("uid=rogasawara," + NEWBASE + "," + SUFFIX)).isEmpty());
+          DN.valueOf("uid=rogasawara," + NEWBASE + "," + SUFFIX)).isEmpty());
 
     // The legacyLdapSubentry should still apply.
     assertEquals(DirectoryServer.getSubentryManager().getSubentries(
-          DN.decode("uid=rogasawara," + NEWBASE + "," + SUFFIX)).size(), 1);
+          DN.valueOf("uid=rogasawara," + NEWBASE + "," + SUFFIX)).size(), 1);
 
     // Move it back.
     String oldPath = TestCaseUtils.createTempFile(
@@ -605,12 +605,12 @@ public class SubentryManagerTestCase extends CoreTestCase
     };
     assertEquals(LDAPModify.mainModify(oldArgs, false, null, System.err), 0);
 
-    assertNotNull(DirectoryServer.getEntry(DN.decode(
+    assertNotNull(DirectoryServer.getEntry(DN.valueOf(
             "uid=rogasawara," + OLDBASE + "," + SUFFIX)));
     assertFalse(DirectoryServer.getSubentryManager().getCollectiveSubentries(
-          DN.decode("uid=rogasawara," + OLDBASE + "," + SUFFIX)).isEmpty());
+          DN.valueOf("uid=rogasawara," + OLDBASE + "," + SUFFIX)).isEmpty());
     assertFalse(DirectoryServer.getSubentryManager().getSubentries(
-          DN.decode("uid=rogasawara," + OLDBASE + "," + SUFFIX)).isEmpty());
+          DN.valueOf("uid=rogasawara," + OLDBASE + "," + SUFFIX)).isEmpty());
   }
 
   @Test
@@ -671,7 +671,7 @@ public class SubentryManagerTestCase extends CoreTestCase
          InternalClientConnection.getRootConnection();
 
     // Add suffix entry.
-    DN suffixDN = DN.decode(SUFFIX);
+    DN suffixDN = DN.valueOf(SUFFIX);
     if (DirectoryServer.getEntry(suffixDN) == null)
     {
       Entry suffixEntry = StaticUtils.createEntry(suffixDN);
@@ -685,7 +685,7 @@ public class SubentryManagerTestCase extends CoreTestCase
     }
 
     // Add base entry.
-    DN baseDN = DN.decode(BASE);
+    DN baseDN = DN.valueOf(BASE);
     if (DirectoryServer.getEntry(baseDN) == null)
     {
       Entry baseEntry = StaticUtils.createEntry(baseDN);

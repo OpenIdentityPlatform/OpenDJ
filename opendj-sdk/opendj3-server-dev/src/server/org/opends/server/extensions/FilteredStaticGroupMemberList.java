@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.server.types.ByteString;
@@ -188,7 +188,7 @@ public class FilteredStaticGroupMemberList
             break;
 
           case SINGLE_LEVEL:
-            if (! baseDN.equals(nextDN.getParent()))
+            if (! baseDN.equals(nextDN.parent()))
             {
               continue;
             }

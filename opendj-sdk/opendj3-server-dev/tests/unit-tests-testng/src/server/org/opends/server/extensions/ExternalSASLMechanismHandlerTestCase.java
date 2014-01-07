@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 Forgerock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -395,7 +395,7 @@ public class ExternalSASLMechanismHandlerTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attrName, "always")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -423,7 +423,7 @@ public class ExternalSASLMechanismHandlerTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attrName, "ifpresent")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -612,7 +612,7 @@ public class ExternalSASLMechanismHandlerTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attrName, "always")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -637,7 +637,7 @@ public class ExternalSASLMechanismHandlerTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attrName, "ifpresent")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -699,7 +699,7 @@ public class ExternalSASLMechanismHandlerTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attrName, "always")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -727,7 +727,7 @@ public class ExternalSASLMechanismHandlerTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attrName, "ifpresent")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 }

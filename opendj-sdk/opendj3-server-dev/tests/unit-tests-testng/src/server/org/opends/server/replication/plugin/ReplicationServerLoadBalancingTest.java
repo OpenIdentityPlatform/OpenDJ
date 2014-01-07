@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -99,7 +99,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     }
 
     // Clear any reference to a domain in synchro plugin
-    MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
+    MultimasterReplication.deleteDomain(DN.valueOf(TEST_ROOT_DN_STRING));
     remove(rs);
     Arrays.fill(rs, null);
     Arrays.fill(rsPort, -1);
@@ -201,7 +201,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       String testCase) throws Exception
   {
     final SortedSet<String> replServers = createRSListForTestCase(testCase);
-    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDn = DN.valueOf(TEST_ROOT_DN_STRING);
     final DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn, serverId + 1, replServers, 1);
     final LDAPReplicationDomain rd =

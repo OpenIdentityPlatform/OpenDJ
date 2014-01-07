@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -215,7 +216,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
       MessageBuilder unacceptableReason) {
     DN dn = configEntry.getDN();
-    AttributeValue av = dn.getRDN().getAttributeValue(0);
+    AttributeValue av = dn.rdn().getAttributeValue(0);
     String name = av.getValue().toString().trim();
 
     try {

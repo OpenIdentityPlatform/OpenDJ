@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -129,7 +130,7 @@ public class LockdownModeTaskTestCase
       "ds-task-id: Enter Lockdown Mode",
       "ds-task-class-name: org.opends.server.tasks.EnterLockdownModeTask");
 
-    DN taskDN = DN.decode(
+    DN taskDN = DN.valueOf(
          "ds-task-id=Enter Lockdown Mode,cn=Scheduled Tasks,cn=tasks");
 
 
@@ -261,7 +262,7 @@ public class LockdownModeTaskTestCase
       "ds-task-id: Leave Lockdown Mode",
       "ds-task-class-name: org.opends.server.tasks.LeaveLockdownModeTask");
 
-    taskDN = DN.decode(
+    taskDN = DN.valueOf(
          "ds-task-id=Leave Lockdown Mode,cn=Scheduled Tasks,cn=tasks");
 
     args = new String[]

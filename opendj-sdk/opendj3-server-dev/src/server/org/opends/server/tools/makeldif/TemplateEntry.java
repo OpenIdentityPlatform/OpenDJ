@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 
@@ -189,7 +190,7 @@ public class TemplateEntry
         rdn = new RDN(rdnAttrs, names, values);
       }
 
-      dn = parentDN.concat(rdn);
+      dn = parentDN.child(rdn);
     }
 
     return dn;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server.extensions;
@@ -258,7 +258,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     String peerName = peerPrincipal.getName(X500Principal.RFC2253);
     try
     {
-      peerDN = DN.decode(peerName);
+      peerDN = DN.valueOf(peerName);
     }
     catch (DirectoryException de)
     {
@@ -269,7 +269,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     }
 
     LinkedList<SearchFilter> filterComps = new LinkedList<SearchFilter>();
-    for (int i=0; i < peerDN.getNumComponents(); i++)
+    for (int i=0; i < peerDN.size(); i++)
     {
       RDN rdn = peerDN.getRDN(i);
       for (int j=0; j < rdn.getNumValues(); j++)

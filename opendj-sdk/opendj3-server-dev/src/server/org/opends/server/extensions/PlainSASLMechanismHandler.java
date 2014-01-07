@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -212,7 +212,7 @@ public class PlainSASLMechanismHandler
       DN userDN;
       try
       {
-        userDN = DN.decode(authcID.substring(3));
+        userDN = DN.valueOf(authcID.substring(3));
       }
       catch (DirectoryException de)
       {
@@ -229,7 +229,7 @@ public class PlainSASLMechanismHandler
         return;
       }
 
-      if (userDN.isNullDN())
+      if (userDN.isRootDN())
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -335,7 +335,7 @@ public class PlainSASLMechanismHandler
         DN authzDN;
         try
         {
-          authzDN = DN.decode(authzID.substring(3));
+          authzDN = DN.valueOf(authzID.substring(3));
         }
         catch (DirectoryException de)
         {
@@ -375,7 +375,7 @@ public class PlainSASLMechanismHandler
             return;
           }
 
-          if (authzDN.isNullDN())
+          if (authzDN.isRootDN())
           {
             authZEntry = null;
           }

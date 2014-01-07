@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -1329,7 +1329,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
     try
     {
-      DN.decode(getDisplayedDN());
+      DN.valueOf(getDisplayedDN());
     }
     catch (Throwable t)
     {
@@ -1611,10 +1611,10 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     StringBuilder sb = new StringBuilder();
     try
     {
-      DN oldDN = DN.decode(searchResult.getDN());
-      if (oldDN.getNumComponents() > 0)
+      DN oldDN = DN.valueOf(searchResult.getDN());
+      if (oldDN.size() > 0)
       {
-        RDN rdn = oldDN.getRDN();
+        RDN rdn = oldDN.rdn();
         List<AttributeType> attributeTypes = new ArrayList<AttributeType>();
         List<String> attributeNames = new ArrayList<String>();
         List<AttributeValue> attributeValues = new ArrayList<AttributeValue>();
@@ -1694,7 +1694,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
             }
           }
         }
-        DN parent = oldDN.getParent();
+        DN parent = oldDN.parent();
         if (attributeTypes.size() > 0)
         {
           DN newDN;
@@ -1706,7 +1706,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           }
           else
           {
-            newDN = parent.concat(newRDN);
+            newDN = parent.child(newRDN);
           }
           sb.append(newDN.toString());
         }

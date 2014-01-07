@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -397,7 +398,7 @@ public class RejectUnauthReqTests extends CoreTestCase
 
     InternalClientConnection conn = new InternalClientConnection(
         new AuthenticationInfo());
-    BindOperation bindOperation = conn.processSimpleBind(DN.nullDN(), null);
+    BindOperation bindOperation = conn.processSimpleBind(DN.rootDN(), null);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -628,7 +629,7 @@ public class RejectUnauthReqTests extends CoreTestCase
       ByteString user = ByteString.valueOf("cn=Directory Manager");
       ByteString password = ByteString.valueOf("password");
       // Unauthenticated BIND request.
-      BindOperation bindOperation = conn.processSimpleBind(DN.nullDN(), null);
+      BindOperation bindOperation = conn.processSimpleBind(DN.rootDN(), null);
       assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
       // Authenticated BIND request.
       bindOperation = conn.processSimpleBind(user, password);

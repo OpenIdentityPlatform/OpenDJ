@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.server;
@@ -73,8 +74,8 @@ final class DNBuilder {
 
     try {
       LDAPProfile profile = LDAPProfile.getInstance();
-      DN localName = DN.decode(profile.getRelationRDNSequence(relation));
-      return dn.concat(localName);
+      DN localName = DN.valueOf(profile.getRelationRDNSequence(relation));
+      return dn.child(localName);
     } catch (DirectoryException e) {
       throw new RuntimeException(e);
     }

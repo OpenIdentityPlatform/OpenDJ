@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.replication;
 
@@ -115,7 +115,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     cleanUpReplicationServersDB();
 
-    final DN baseDN = DN.decode("cn=schema");
+    final DN baseDN = DN.valueOf("cn=schema");
 
     ReplicationBroker broker =
       openReplicationSession(baseDN, 2, 100, replServerPort, 5000);
@@ -183,7 +183,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     cleanUpReplicationServersDB();
 
-    final DN baseDN = DN.decode("cn=schema");
+    final DN baseDN = DN.valueOf("cn=schema");
 
     ReplicationBroker broker =
       openReplicationSession(baseDN, 2, 100, replServerPort, 5000);
@@ -220,7 +220,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     cleanUpReplicationServersDB();
 
-    final DN baseDN = DN.decode("cn=schema");
+    final DN baseDN = DN.valueOf("cn=schema");
 
     ReplicationBroker broker =
       openReplicationSession(baseDN, 3, 100, replServerPort, 5000);

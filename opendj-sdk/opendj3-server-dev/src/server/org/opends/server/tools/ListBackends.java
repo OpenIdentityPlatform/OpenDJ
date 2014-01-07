@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -353,7 +353,7 @@ public class ListBackends
         DN dn;
         try
         {
-          dn = DN.decode(dnStr);
+          dn = DN.valueOf(dnStr);
         }
         catch (DirectoryException de)
         {
@@ -378,7 +378,7 @@ public class ListBackends
                   dn.toString());
           out.println(message);
 
-          DN parentDN = dn.getParent();
+          DN parentDN = dn.parent();
           while (true)
           {
             if (parentDN == null)
@@ -401,7 +401,7 @@ public class ListBackends
               }
             }
 
-            parentDN = parentDN.getParent();
+            parentDN = parentDN.parent();
           }
         }
         else
@@ -483,7 +483,7 @@ public class ListBackends
           {
             isFirst = false;
           }
-          if (dn.getNumComponents() > 1)
+          if (dn.size() > 1)
           {
             buf.append("\""+dn.toString()+"\"");
           }
@@ -522,7 +522,7 @@ public class ListBackends
     DN backendBaseDN = null;
     try
     {
-      backendBaseDN = DN.decode(DN_BACKEND_BASE);
+      backendBaseDN = DN.valueOf(DN_BACKEND_BASE);
     }
     catch (DirectoryException de)
     {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -81,7 +81,7 @@ public class DistinguishedNameSyntax
      */
     public DN decode(AttributeValue value) throws DirectoryException
     {
-      return DN.decode(value.getValue().toString());
+      return DN.valueOf(value.getValue().toString());
     }
   };
 
@@ -241,7 +241,7 @@ public class DistinguishedNameSyntax
     // Use the DN code to make this determination.
     try
     {
-      DN.decode(value.toString());
+      DN.valueOf(value.toString());
 
       return true;
     }

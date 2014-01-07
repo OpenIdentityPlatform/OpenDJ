@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -3678,14 +3678,14 @@ public final class StaticUtils
   {
     // If the provided DN was null or empty, then return null because we don't
     // support it.
-    if ((dn == null) || dn.isNullDN())
+    if ((dn == null) || dn.isRootDN())
     {
       return null;
     }
 
 
     // Get the information about the RDN attributes.
-    RDN rdn = dn.getRDN();
+    RDN rdn = dn.rdn();
     int numAVAs = rdn.getNumValues();
 
     // If there is only one RDN attribute, then see which objectclass we should

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -321,7 +322,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertNotNull(entry);
 
       Assert.assertEquals(entry.getDN(), DN
-          .decode("cn=john, dc=foo, dc=com"));
+          .valueOf("cn=john, dc=foo, dc=com"));
       Assert.assertTrue(entry.hasObjectClass(OC_TOP));
       Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
       Assert.assertTrue(entry.hasValue(AT_CN, null, AttributeValues.create(
@@ -415,7 +416,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertNotNull(entry);
 
       Assert.assertEquals(entry.getDN(), DN
-          .decode("cn=anne, dc=foo, dc=com"));
+          .valueOf("cn=anne, dc=foo, dc=com"));
       Assert.assertTrue(entry.hasObjectClass(OC_TOP));
       Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
       Assert.assertTrue(entry.hasValue(AT_CN, null, AttributeValues.create(
@@ -461,7 +462,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertTrue(change instanceof AddChangeRecordEntry);
       add = (AddChangeRecordEntry) change;
 
-      dn = DN.decode("cn=Fiona Jensen, ou=Marketing, dc=airius, dc=com");
+      dn = DN.valueOf("cn=Fiona Jensen, ou=Marketing, dc=airius, dc=com");
       Assert.assertEquals(add.getDN(), dn);
 
       List<Attribute> attrs = new ArrayList<Attribute>();
@@ -482,7 +483,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertTrue(change instanceof DeleteChangeRecordEntry);
       delete = (DeleteChangeRecordEntry) change;
 
-      dn = DN.decode("cn=Robert Jensen, ou=Marketing, dc=airius, dc=com");
+      dn = DN.valueOf("cn=Robert Jensen, ou=Marketing, dc=airius, dc=com");
       Assert.assertEquals(delete.getDN(), dn);
 
       // Change record #3.
@@ -491,7 +492,7 @@ public final class TestLDIFReader extends UtilTestCase {
       modifyDN = (ModifyDNChangeRecordEntry) change;
 
       dn = DN
-          .decode("cn=Paul Jensen, ou=Product Development, dc=airius, dc=com");
+          .valueOf("cn=Paul Jensen, ou=Product Development, dc=airius, dc=com");
       Assert.assertEquals(modifyDN.getDN(), dn);
 
       rdn = RDN.decode("cn=paula jensen");
@@ -505,12 +506,12 @@ public final class TestLDIFReader extends UtilTestCase {
       modifyDN = (ModifyDNChangeRecordEntry) change;
 
       dn = DN
-          .decode("ou=PD Accountants, ou=Product Development, dc=airius, dc=com");
+          .valueOf("ou=PD Accountants, ou=Product Development, dc=airius, dc=com");
       Assert.assertEquals(modifyDN.getDN(), dn);
 
       rdn = RDN.decode("ou=Product Development Accountants");
       Assert.assertEquals(modifyDN.getNewRDN(), rdn);
-      dn = DN.decode("ou=Accounting, dc=airius, dc=com");
+      dn = DN.valueOf("ou=Accounting, dc=airius, dc=com");
       Assert.assertEquals(modifyDN.getNewSuperiorDN(), dn);
       Assert.assertFalse(modifyDN.deleteOldRDN());
 
@@ -520,7 +521,7 @@ public final class TestLDIFReader extends UtilTestCase {
       modify = (ModifyChangeRecordEntry) change;
 
       dn = DN
-          .decode("cn=Paula Jensen, ou=Product Development, dc=airius, dc=com");
+          .valueOf("cn=Paula Jensen, ou=Product Development, dc=airius, dc=com");
       Assert.assertEquals(modify.getDN(), dn);
 
       i = modify.getModifications().iterator();
@@ -563,7 +564,7 @@ public final class TestLDIFReader extends UtilTestCase {
       modify = (ModifyChangeRecordEntry) change;
 
       dn = DN
-          .decode("cn=Ingrid Jensen, ou=Product Support, dc=airius, dc=com");
+          .valueOf("cn=Ingrid Jensen, ou=Product Support, dc=airius, dc=com");
       Assert.assertEquals(modify.getDN(), dn);
 
       i = modify.getModifications().iterator();
@@ -581,7 +582,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertTrue(change instanceof ModifyChangeRecordEntry);
       modify = (ModifyChangeRecordEntry) change;
 
-      Assert.assertTrue(modify.getDN().isNullDN());
+      Assert.assertTrue(modify.getDN().isRootDN());
 
       i = modify.getModifications().iterator();
 
@@ -597,7 +598,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertTrue(change instanceof ModifyChangeRecordEntry);
       modify = (ModifyChangeRecordEntry) change;
 
-      dn = DN.decode("uid=rogasawara, ou=\u55b6\u696d\u90e8, o=airius");
+      dn = DN.valueOf("uid=rogasawara, ou=\u55b6\u696d\u90e8, o=airius");
       Assert.assertEquals(modify.getDN(), dn);
 
       i = modify.getModifications().iterator();
@@ -675,7 +676,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertTrue(change instanceof AddChangeRecordEntry);
       AddChangeRecordEntry add = (AddChangeRecordEntry) change;
 
-      DN dn = DN.decode("cn=john smith, dc=com");
+      DN dn = DN.valueOf("cn=john smith, dc=com");
       Assert.assertEquals(add.getDN(), dn);
 
       Attribute attr = Attributes.create("description", TEMP_FILE_STRING);

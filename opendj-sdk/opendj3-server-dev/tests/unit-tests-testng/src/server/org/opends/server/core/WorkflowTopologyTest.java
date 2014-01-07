@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -98,10 +99,10 @@ public class WorkflowTopologyTest extends UtilTestCase
   public Object[][] initDNSet_1()
     throws Exception
   {
-    DN dnNull         = DN.decode ("");
-    DN baseDN1        = DN.decode ("o=test");
-    DN subordinateDN1 = DN.decode ("ou=subtest,o=test");
-    DN unrelatedDN    = DN.decode ("o=dummy");
+    DN dnNull         = DN.valueOf ("");
+    DN baseDN1        = DN.valueOf ("o=test");
+    DN subordinateDN1 = DN.valueOf ("ou=subtest,o=test");
+    DN unrelatedDN    = DN.valueOf ("o=dummy");
 
     // Sets of DNs
     Object[][] myData =
@@ -191,17 +192,17 @@ public class WorkflowTopologyTest extends UtilTestCase
       String subordinateDN3 = "ou=subordinate3," + baseDN3;
 
       int i = 0;
-      baseDNs[i]        = DN.decode (baseDN1);
-      subordinateDNs[i] = DN.decode (subordinateDN1);
+      baseDNs[i]        = DN.valueOf (baseDN1);
+      subordinateDNs[i] = DN.valueOf (subordinateDN1);
       i++;
-      baseDNs[i]        = DN.decode (baseDN2);
-      subordinateDNs[i] = DN.decode (subordinateDN2);
+      baseDNs[i]        = DN.valueOf (baseDN2);
+      subordinateDNs[i] = DN.valueOf (subordinateDN2);
       i++;
-      baseDNs[i]        = DN.decode (baseDN3);
-      subordinateDNs[i] = DN.decode (subordinateDN3);
+      baseDNs[i]        = DN.valueOf (baseDN3);
+      subordinateDNs[i] = DN.valueOf (subordinateDN3);
 
-      unrelatedDN = DN.decode ("o=dummy");
-      rootDSE     = DN.decode ("");
+      unrelatedDN = DN.valueOf ("o=dummy");
+      rootDSE     = DN.valueOf ("");
     }
 
     // Sets of DNs
@@ -281,17 +282,17 @@ public class WorkflowTopologyTest extends UtilTestCase
       String subordinateDN3 = "ou=subordinate3," + baseDN3;
 
       int i = 0;
-      baseDNs[i]        = DN.decode (baseDN1);
-      subordinateDNs[i] = DN.decode (subordinateDN1);
+      baseDNs[i]        = DN.valueOf (baseDN1);
+      subordinateDNs[i] = DN.valueOf (subordinateDN1);
       i++;
-      baseDNs[i]        = DN.decode (baseDN2);
-      subordinateDNs[i] = DN.decode (subordinateDN2);
+      baseDNs[i]        = DN.valueOf (baseDN2);
+      subordinateDNs[i] = DN.valueOf (subordinateDN2);
       i++;
-      baseDNs[i]        = DN.decode (baseDN3);
-      subordinateDNs[i] = DN.decode (subordinateDN3);
+      baseDNs[i]        = DN.valueOf (baseDN3);
+      subordinateDNs[i] = DN.valueOf (subordinateDN3);
 
-      unrelatedDN = DN.decode ("o=dummy");
-      rootDSE     = DN.decode ("");
+      unrelatedDN = DN.valueOf ("o=dummy");
+      rootDSE     = DN.valueOf ("");
     }
 
     // Sets of DNs

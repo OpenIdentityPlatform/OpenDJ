@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
@@ -98,7 +99,7 @@ public class PostConnectedDisconnectTest extends JmxTestCase
         .getRootConnection();
 
     DeleteOperation deleteOperation = conn.processDelete(DN
-        .decode("cn=Privileged User,o=test"));
+        .valueOf("cn=Privileged User,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 

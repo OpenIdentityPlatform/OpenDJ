@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -90,12 +90,12 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @DataProvider(name="createReplServerStartData")
   public Object [][] createReplServerStartData() throws Exception
   {
-    DN baseDN = DN.decode("o=test");
+    DN baseDN = DN.valueOf("o=test");
     ServerState state = new ServerState();
     state.update(new CSN(0, 0,0));
     Object[] set1 = new Object[] {1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0};
 
-    baseDN = DN.decode("dc=example,dc=com");
+    baseDN = DN.valueOf("dc=example,dc=com");
     state = new ServerState();
     state.update(new CSN(75, 5,263));
     Object[] set2 = new Object[] {16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456};
@@ -195,7 +195,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     byte safeDataLevel, List<Attribute> entryAttrList)
   throws Exception
   {
-    final DN dn = DN.decode(rawDN);
+    final DN dn = DN.valueOf(rawDN);
 
     // Create VLAST message
     Attribute objectClass = Attributes.create(DirectoryServer
@@ -372,7 +372,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     byte safeDataLevel, List<Attribute> entryAttrList)
   throws Exception
   {
-    final DN dn = DN.decode(rawDN);
+    final DN dn = DN.valueOf(rawDN);
 
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
     DeleteMsg msg = new DeleteMsg(dn, csn, "thisIsaUniqueID");
@@ -546,7 +546,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
          throws Exception
   {
     // Create VLAST message
-    DN dn = DN.decode(rawdn);
+    DN dn = DN.valueOf(rawdn);
     ModifyMsg origVlastMsg = new ModifyMsg(csn, dn, mods, "fakeuniqueid");
 
     origVlastMsg.setAssured(isAssured);
@@ -734,7 +734,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
                                    List<Attribute> entryAttrList)
          throws Exception
   {
-    final DN dn = DN.decode(rawDN);
+    final DN dn = DN.valueOf(rawDN);
 
     // Create VLAST message
     CSN csn = new CSN(TimeThread.getTime(), 596, 13);
@@ -918,7 +918,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   {
     LDAPUpdateMsg msg = (LDAPUpdateMsg) ReplicationMsg.generateMsg(
         hexStringToByteArray(encodedString), ProtocolVersion.REPLICATION_PROTOCOL_V3);
-    assertEquals(msg.getDN(), DN.decode(dn));
+    assertEquals(msg.getDN(), DN.valueOf(dn));
     assertEquals(msg.getCSN(), csn);
     assertEquals(msg.getClass(), msgType);
     BigInteger bi = new BigInteger(msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V3));
@@ -945,7 +945,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // parameters
     ServerStartMsg msg = new ServerStartMsg(hexStringToByteArray(oldPdu));
     assertEquals(msg.getServerId(), serverId);
-    assertEquals(msg.getBaseDN(), DN.decode(dn));
+    assertEquals(msg.getBaseDN(), DN.valueOf(dn));
     assertEquals(msg.getGroupId(), groupId);
     BigInteger bi = new BigInteger(msg.getBytes(getCurrentVersion()));
     assertEquals(bi.toString(16), oldPdu);
@@ -971,7 +971,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // parameters.
     ReplServerStartMsg msg = new ReplServerStartMsg(hexStringToByteArray(oldPdu));
     assertEquals(msg.getServerId(), serverId);
-    assertEquals(msg.getBaseDN(), DN.decode(dn));
+    assertEquals(msg.getBaseDN(), DN.valueOf(dn));
     assertEquals(msg.getGroupId(), groupId);
     BigInteger bi = new BigInteger(msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V3));
     assertEquals(bi.toString(16), oldPdu);
@@ -1231,7 +1231,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   {
     int sender = 1;
     int dest = 2;
-    DN baseDN = DN.decode("dc=whatever");
+    DN baseDN = DN.valueOf("dc=whatever");
     int initWindow = 22;
     Object[] set1 = new Object[] { sender, dest, baseDN, initWindow };
     return new Object [][] { set1};
@@ -1282,7 +1282,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     int sender = 1;
     int dest = 2;
     int initiator = 3;
-    DN baseDN = DN.decode("dc=whatever");
+    DN baseDN = DN.valueOf("dc=whatever");
     int entryCount = 56;
     int initWindow = 22;
     Object[] set1 = new Object[] {sender, dest, initiator, baseDN, entryCount, initWindow };

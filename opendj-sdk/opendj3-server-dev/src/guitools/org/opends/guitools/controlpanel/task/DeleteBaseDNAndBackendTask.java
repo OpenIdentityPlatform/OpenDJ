@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -252,7 +253,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         getInfo().stopPooling();
         if (getInfo().mustDeregisterConfig())
         {
-          DirectoryServer.deregisterBaseDN(DN.decode("cn=config"));
+          DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
         }
         DirectoryServer.getInstance().initializeConfiguration(
             org.opends.server.extensions.ConfigFileHandler.class.getName(),
@@ -460,7 +461,7 @@ public class DeleteBaseDNAndBackendTask extends Task
     String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName)+
     ",cn=Backends,cn=config";
     ConfigEntry configEntry =
-      DirectoryServer.getConfigHandler().getConfigEntry(DN.decode(dn));
+      DirectoryServer.getConfigHandler().getConfigEntry(DN.valueOf(dn));
 
     DNConfigAttribute baseDNAttr =
       new DNConfigAttribute(
@@ -510,7 +511,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   {
     String dn = getDN(backend);
     Utilities.deleteConfigSubtree(
-        DirectoryServer.getConfigHandler(), DN.decode(dn));
+        DirectoryServer.getConfigHandler(), DN.valueOf(dn));
   }
 
   /**

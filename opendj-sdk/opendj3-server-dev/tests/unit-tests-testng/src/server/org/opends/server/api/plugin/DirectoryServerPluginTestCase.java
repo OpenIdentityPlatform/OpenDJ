@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api.plugin;
 
@@ -822,7 +823,7 @@ import static org.testng.Assert.*;
 
 
     NullPlugin nullPlugin = new NullPlugin();
-    DN pluginEntryDN = DN.decode("cn=Null Plugin,cn=Plugins,cn=config");
+    DN pluginEntryDN = DN.valueOf("cn=Null Plugin,cn=Plugins,cn=config");
 
     HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
     for (PluginType t : PluginType.values())

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -85,7 +86,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
    *          when it is added.
    */
   public DelayedConfigAddListener(DN child, ConfigAddListener addListener) {
-    this.parent = child.getParent();
+    this.parent = child.parent();
     this.child = child;
     this.delayedAddListener = addListener;
     this.delayedDeleteListener = null;
@@ -106,7 +107,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
    */
   public DelayedConfigAddListener(DN child,
       ConfigDeleteListener deleteListener) {
-    this.parent = child.getParent();
+    this.parent = child.parent();
     this.child = child;
     this.delayedAddListener = null;
     this.delayedDeleteListener = deleteListener;

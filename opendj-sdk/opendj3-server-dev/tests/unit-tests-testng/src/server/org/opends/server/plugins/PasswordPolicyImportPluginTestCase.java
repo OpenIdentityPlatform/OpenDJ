@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -279,7 +280,7 @@ public class PasswordPolicyImportPluginTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    DN dn = DN.decode("cn=Password Policy Import,cn=plugins,cn=config");
+    DN dn = DN.valueOf("cn=Password Policy Import,cn=plugins,cn=config");
     PasswordPolicyImportPlugin plugin =
          (PasswordPolicyImportPlugin)
          DirectoryServer.getPluginConfigManager().getRegisteredPlugin(dn);

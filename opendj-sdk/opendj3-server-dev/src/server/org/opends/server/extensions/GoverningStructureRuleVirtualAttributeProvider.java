@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -159,7 +159,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
                        AcceptRejectWarn structuralPolicy,
                        Entry entry)
   {
-    RDN rdn = entry.getDN().getRDN();
+    RDN rdn = entry.getDN().rdn();
     if (rdn != null)
     {
       // Make sure that all the required attributes are present.

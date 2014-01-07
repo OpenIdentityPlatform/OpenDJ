@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -717,7 +717,7 @@ public class SchemaBackend
       new LinkedHashMap<AttributeType, List<Attribute>>();
 
     // Add the RDN attribute(s) for the provided entry.
-    RDN rdn = entryDN.getRDN();
+    RDN rdn = entryDN.rdn();
     if (rdn != null)
     {
       int numAVAs = rdn.getNumValues();
@@ -1601,7 +1601,7 @@ public class SchemaBackend
     DN authzDN = modifyOperation.getAuthorizationDN();
     if (authzDN == null)
     {
-      authzDN = DN.nullDN();
+      authzDN = DN.rootDN();
     }
 
     modifiersName = AttributeValues.create(
@@ -3477,7 +3477,7 @@ public class SchemaBackend
          new LinkedHashMap<AttributeType,List<Attribute>>();
 
     DN  dn  = DirectoryServer.getSchemaDN();
-    RDN rdn = dn.getRDN();
+    RDN rdn = dn.rdn();
     for (int i=0; i < rdn.getNumValues(); i++)
     {
       AttributeType type = rdn.getAttributeType(i);
@@ -5732,7 +5732,7 @@ public class SchemaBackend
       newBaseDNs = new HashSet<DN>(backendCfg.getSchemaEntryDN());
       if (newBaseDNs.isEmpty())
       {
-        newBaseDNs.add(DN.decode(DN_DEFAULT_SCHEMA_ROOT));
+        newBaseDNs.add(DN.valueOf(DN_DEFAULT_SCHEMA_ROOT));
       }
     }
     catch (Exception e)

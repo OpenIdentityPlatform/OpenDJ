@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.controls;
@@ -101,7 +102,7 @@ public class GetEffectiveRightsRequestControl extends Control
           String lowerAuthzIDString = authzIDString.toLowerCase();
           //Make sure authzId starts with "dn:" and is a valid DN.
           if (lowerAuthzIDString.startsWith("dn:"))
-            authzDN = DN.decode(authzIDString.substring(3));
+            authzDN = DN.valueOf(authzIDString.substring(3));
           else {
             Message message = INFO_GETEFFECTIVERIGHTS_INVALID_AUTHZID.get(
                 lowerAuthzIDString);

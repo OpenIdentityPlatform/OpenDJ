@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -72,7 +73,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
     {
         List<String> referralURLs=new ArrayList<String>();
         referralURLs.add(url);
-        DN responseDn = DN.decode(dn);
+        DN responseDn = DN.valueOf(dn);
         ByteString serverSASLCredentials =
             ByteString.valueOf(saslCreds);
         BindResponseProtocolOp r =
@@ -100,7 +101,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
    */
     @Test
     public void testBindResponseTooMany() throws Exception {
-      DN responseDn = DN.decode(dn);
+      DN responseDn = DN.valueOf(dn);
 
       ByteStringBuilder bsb = new ByteStringBuilder();
       ASN1Writer writer = ASN1.getWriter(bsb);
@@ -143,7 +144,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
    */
     @Test
     public void testBindResponseBadReferral() throws Exception {
-      DN responseDn = DN.decode(dn);
+      DN responseDn = DN.valueOf(dn);
       ByteString serverSASLCredentials =
           ByteString.valueOf(saslCreds);
 
@@ -174,7 +175,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
     public void testBindResponseEncodeDecode() throws Exception {
         List<String> referralURLs=new ArrayList<String>();
         referralURLs.add(url);
-        DN responseDn = DN.decode(dn);
+        DN responseDn = DN.valueOf(dn);
         ByteString serverSASLCredentials =
             ByteString.valueOf(saslCreds);
 

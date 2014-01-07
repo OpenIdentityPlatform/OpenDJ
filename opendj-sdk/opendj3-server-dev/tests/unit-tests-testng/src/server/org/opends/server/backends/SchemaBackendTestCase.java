@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.backends;
 
@@ -106,7 +106,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testGetValidEntry()
          throws Exception
   {
-    DN    schemaDN    = DN.decode("cn=schema");
+    DN    schemaDN    = DN.valueOf("cn=schema");
     Entry schemaEntry = schemaBackend.getEntry(schemaDN);
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getDN(), schemaDN);
@@ -136,11 +136,11 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testGetInvalidEntry()
          throws Exception
   {
-    DN    schemaDN    = DN.decode("cn=notschema");
+    DN    schemaDN    = DN.valueOf("cn=notschema");
     Entry schemaEntry = schemaBackend.getEntry(schemaDN);
     assertNull(schemaEntry);
 
-    schemaDN    = DN.decode("cn=child,cn=schema");
+    schemaDN    = DN.valueOf("cn=child,cn=schema");
     schemaEntry = schemaBackend.getEntry(schemaDN);
     assertNull(schemaEntry);
   }
@@ -157,7 +157,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testGetSchemaEntry()
          throws Exception
   {
-    DN    schemaDN    = DN.decode("cn=schema");
+    DN    schemaDN    = DN.valueOf("cn=schema");
     Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getDN(), schemaDN);
@@ -175,7 +175,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(schemaEntry.hasAttribute(t));
 
 
-    schemaDN    = DN.decode("cn=subschema");
+    schemaDN    = DN.valueOf("cn=subschema");
     schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getDN(), schemaDN);
@@ -204,7 +204,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testEntryExistsValidDN()
          throws Exception
   {
-    DN schemaDN = DN.decode("cn=schema");
+    DN schemaDN = DN.valueOf("cn=schema");
     assertTrue(schemaBackend.entryExists(schemaDN));
   }
 
@@ -219,7 +219,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testEntryExistsInvalidDN()
          throws Exception
   {
-    DN schemaDN = DN.decode("cn=notschema");
+    DN schemaDN = DN.valueOf("cn=notschema");
     assertFalse(schemaBackend.entryExists(schemaDN));
   }
 
@@ -232,7 +232,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   @Test(expectedExceptions = { DirectoryException.class })
   public void testAddEntry() throws Exception
   {
-    Entry entry = createEntry(DN.decode("cn=schema"));
+    Entry entry = createEntry(DN.valueOf("cn=schema"));
     AddOperation addOperation = getRootConnection().processAdd(entry);
     schemaBackend.addEntry(entry, addOperation);
   }
@@ -247,7 +247,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testDeleteEntry()
          throws Exception
   {
-    DN schemaDN = DN.decode("cn=schema");
+    DN schemaDN = DN.valueOf("cn=schema");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -268,15 +268,15 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRenameEntry()
          throws Exception
   {
-    DN currentSchemaDN = DN.decode("cn=schema");
-    DN newSchemaDN     = DN.decode("cn=newschema");
+    DN currentSchemaDN = DN.valueOf("cn=schema");
+    DN newSchemaDN     = DN.valueOf("cn=newschema");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(),
                                InternalClientConnection.nextMessageID(), null,
-                               currentSchemaDN, newSchemaDN.getRDN(),
+                               currentSchemaDN, newSchemaDN.rdn(),
                                true, null);
 
     schemaBackend.renameEntry(currentSchemaDN,
@@ -301,7 +301,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("cn=schema"), SearchScope.BASE_OBJECT,
+         conn.processSearch(DN.valueOf("cn=schema"), SearchScope.BASE_OBJECT,
               SearchFilter.createFilterFromString(filterString));
     assertNotNull(searchOperation);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -324,7 +324,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("cn=schema"), SearchScope.SINGLE_LEVEL,
+         conn.processSearch(DN.valueOf("cn=schema"), SearchScope.SINGLE_LEVEL,
               SearchFilter.createFilterFromString(filterString));
     assertNotNull(searchOperation);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -348,7 +348,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("cn=schema"), SearchScope.WHOLE_SUBTREE,
+         conn.processSearch(DN.valueOf("cn=schema"), SearchScope.WHOLE_SUBTREE,
               SearchFilter.createFilterFromString(filterString));
     assertNotNull(searchOperation);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -372,7 +372,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("cn=schema"),
+         conn.processSearch(DN.valueOf("cn=schema"),
               SearchScope.SUBORDINATE_SUBTREE,
               SearchFilter.createFilterFromString(filterString));
     assertNotNull(searchOperation);
@@ -394,7 +394,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    DN baseDN = DN.decode("o=bogus,cn=schema");
+    DN baseDN = DN.valueOf("o=bogus,cn=schema");
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
 
@@ -419,7 +419,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testTreatAsUserAttrs()
          throws Exception
   {
-    DN schemaDN = DN.decode("cn=schema");
+    DN schemaDN = DN.valueOf("cn=schema");
     AttributeType a = DirectoryServer.getAttributeType("attributetypes");
     AttributeType o = DirectoryServer.getAttributeType("objectclasses");
     AttributeType m = DirectoryServer.getAttributeType("matchingrules");
@@ -5327,7 +5327,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testLastModAttributes()
          throws Exception
   {
-    Entry schemaEntry = DirectoryServer.getEntry(DN.decode("cn=schema"));
+    Entry schemaEntry = DirectoryServer.getEntry(DN.valueOf("cn=schema"));
     assertNotNull(schemaEntry);
 
     AttributeType cnType =
@@ -5370,7 +5370,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     Thread.sleep(6000);
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
 
-    schemaEntry = DirectoryServer.getEntry(DN.decode("cn=schema"));
+    schemaEntry = DirectoryServer.getEntry(DN.valueOf("cn=schema"));
     assertNotNull(schemaEntry);
     assertTrue(schemaEntry.hasAttribute(cnType));
     assertTrue(schemaEntry.hasAttribute(ctType));
@@ -5485,7 +5485,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          throws Exception
   {
     DN configEntryDN =
-            DN.decode("ds-cfg-backend-id=schema,cn=Backends,cn=config");
+            DN.valueOf("ds-cfg-backend-id=schema,cn=Backends,cn=config");
     assertEquals(schemaBackend.getComponentEntryDN(), configEntryDN);
   }
 

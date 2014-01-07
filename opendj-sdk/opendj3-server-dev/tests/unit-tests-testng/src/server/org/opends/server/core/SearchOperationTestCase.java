@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -70,7 +70,7 @@ public class SearchOperationTestCase extends OperationTestCase
          InternalClientConnection.getRootConnection();
 
     // Add the suffix entry.
-    DN suffixDN = DN.decode(SUFFIX);
+    DN suffixDN = DN.valueOf(SUFFIX);
     if (DirectoryServer.getEntry(suffixDN) == null)
     {
       Entry suffixEntry = StaticUtils.createEntry(suffixDN);
@@ -84,7 +84,7 @@ public class SearchOperationTestCase extends OperationTestCase
     }
 
     // Add a search base entry.
-    DN baseDN = DN.decode(BASE);
+    DN baseDN = DN.valueOf(BASE);
     if (DirectoryServer.getEntry(baseDN) == null)
     {
       Entry baseEntry = StaticUtils.createEntry(baseDN);
@@ -1233,7 +1233,7 @@ public class SearchOperationTestCase extends OperationTestCase
             "subschemasubentry", "entrydn", "ismemberof");
 
     String userDNString = "uid=test.user,o=test";
-    DN userDN = DN.decode(userDNString);
+    DN userDN = DN.valueOf(userDNString);
 
     TestCaseUtils.addEntry("dn: " + userDNString,
         "objectClass: top",
@@ -1462,7 +1462,7 @@ public class SearchOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     String userDNString = "uid=test.user,o=test";
-    DN userDN = DN.decode(userDNString);
+    DN userDN = DN.valueOf(userDNString);
 
     TestCaseUtils.addEntry("dn: " + userDNString,
         "objectClass: top",
@@ -1534,7 +1534,7 @@ public class SearchOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     String userDNString = "uid=test.user,o=test";
-    DN userDN = DN.decode(userDNString);
+    DN userDN = DN.valueOf(userDNString);
 
     TestCaseUtils.addEntry("dn: " + userDNString,
         "objectClass: top",

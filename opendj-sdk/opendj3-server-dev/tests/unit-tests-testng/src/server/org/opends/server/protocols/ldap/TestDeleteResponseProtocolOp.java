@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -287,7 +288,7 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
 
 
     //Test case for a full encode decode operation with an empty DN params.
-    deleteEncoded = new DeleteResponseProtocolOp(resultCode, resultMsg, DN.nullDN(),
+    deleteEncoded = new DeleteResponseProtocolOp(resultCode, resultMsg, DN.rootDN(),
                                            referralURLs);
     builder.clear();
     deleteEncoded.write(writer);

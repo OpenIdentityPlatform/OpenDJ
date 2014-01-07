@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -1238,7 +1238,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * resolution for the description attribute. Always use the same values
      * for all these tests.
      */
-    DN dn = DN.decode(TEST_ROOT_DN_STRING);
+    DN dn = DN.valueOf(TEST_ROOT_DN_STRING);
     Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
     ObjectClass org = DirectoryServer.getObjectClass(ORGANIZATION);
     objectClasses.put(org, ORGANIZATION);

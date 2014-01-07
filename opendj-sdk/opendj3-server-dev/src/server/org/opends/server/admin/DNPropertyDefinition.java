@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -85,7 +86,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
         setBaseDN((DN) null);
       } else {
         try {
-          setBaseDN(DN.decode(baseDN));
+          setBaseDN(DN.valueOf(baseDN));
         } catch (DirectoryException e) {
           throw new IllegalArgumentException(e);
         }
@@ -174,10 +175,10 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
     ensureNotNull(value);
 
     if (baseDN != null) {
-      DN parent = value.getParent();
+      DN parent = value.parent();
 
       if (parent == null) {
-        parent = DN.nullDN();
+        parent = DN.rootDN();
       }
 
       if (!parent.equals(baseDN)) {
@@ -197,7 +198,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
     ensureNotNull(value);
 
     try {
-      DN dn = DN.decode(value);
+      DN dn = DN.valueOf(value);
       validateValue(dn);
       return dn;
     } catch (DirectoryException e) {

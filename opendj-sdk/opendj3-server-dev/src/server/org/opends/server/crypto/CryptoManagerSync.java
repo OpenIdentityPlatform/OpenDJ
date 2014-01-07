@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.crypto;
@@ -150,10 +151,10 @@ public class CryptoManagerSync
 
     try
     {
-      adminSuffixDN = DN.decode(ADSContext.getAdministrationSuffixDN());
-      instanceKeysDN = adminSuffixDN.concat(DN.decode("cn=instance keys"));
-      secretKeysDN = adminSuffixDN.concat(DN.decode("cn=secret keys"));
-      trustStoreRootDN = DN.decode(ConfigConstants.DN_TRUST_STORE_ROOT);
+      adminSuffixDN = DN.valueOf(ADSContext.getAdministrationSuffixDN());
+      instanceKeysDN = adminSuffixDN.child(DN.valueOf("cn=instance keys"));
+      secretKeysDN = adminSuffixDN.child(DN.valueOf("cn=secret keys"));
+      trustStoreRootDN = DN.valueOf(ConfigConstants.DN_TRUST_STORE_ROOT);
       keySearchFilter =
            SearchFilter.createFilterFromString("(|" +
                 "(objectclass=" + OC_CRYPTO_INSTANCE_KEY + ")" +
@@ -300,13 +301,13 @@ public class CryptoManagerSync
   private void handleInstanceKeySearchEntry(SearchResultEntry searchEntry)
        throws DirectoryException
   {
-    RDN srcRDN = searchEntry.getDN().getRDN();
+    RDN srcRDN = searchEntry.getDN().rdn();
 
     // Only process the entry if it has the expected form of RDN.
     if (!srcRDN.isMultiValued() &&
          srcRDN.getAttributeType(0).equals(attrAlias))
     {
-      DN dstDN = trustStoreRootDN.concat(srcRDN);
+      DN dstDN = trustStoreRootDN.child(srcRDN);
 
       // Extract any change notification control.
       EntryChangeNotificationControl ecn = null;
@@ -521,13 +522,13 @@ public class CryptoManagerSync
 
   private void handleInstanceKeyAddOperation(Entry entry)
   {
-    RDN srcRDN = entry.getDN().getRDN();
+    RDN srcRDN = entry.getDN().rdn();
 
     // Only process the entry if it has the expected form of RDN.
     if (!srcRDN.isMultiValued() &&
          srcRDN.getAttributeType(0).equals(attrAlias))
     {
-      DN dstDN = trustStoreRootDN.concat(srcRDN);
+      DN dstDN = trustStoreRootDN.child(srcRDN);
 
       if (!entry.hasAttribute(attrCompromisedTime))
       {
@@ -547,7 +548,7 @@ public class CryptoManagerSync
       return;
     }
 
-    RDN srcRDN = entry.getDN().getRDN();
+    RDN srcRDN = entry.getDN().rdn();
 
     // Only process the entry if it has the expected form of RDN.
     // FIXME: Technically it is possible to perform a subtree in
@@ -556,7 +557,7 @@ public class CryptoManagerSync
     if (!srcRDN.isMultiValued() &&
          srcRDN.getAttributeType(0).equals(attrAlias))
     {
-      DN dstDN = trustStoreRootDN.concat(srcRDN);
+      DN dstDN = trustStoreRootDN.child(srcRDN);
 
       deleteEntry(dstDN);
     }
@@ -596,13 +597,13 @@ public class CryptoManagerSync
 
   private void handleInstanceKeyModifyOperation(Entry newEntry)
   {
-    RDN srcRDN = newEntry.getDN().getRDN();
+    RDN srcRDN = newEntry.getDN().rdn();
 
     // Only process the entry if it has the expected form of RDN.
     if (!srcRDN.isMultiValued() &&
          srcRDN.getAttributeType(0).equals(attrAlias))
     {
-      DN dstDN = trustStoreRootDN.concat(srcRDN);
+      DN dstDN = trustStoreRootDN.child(srcRDN);
 
       // Get any existing local trust store entry.
       Entry dstEntry = null;

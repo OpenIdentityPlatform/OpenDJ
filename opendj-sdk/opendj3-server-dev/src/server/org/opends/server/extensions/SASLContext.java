@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -726,7 +726,7 @@ public class SASLContext implements CallbackHandler,
 
     try
     {
-      authzDN = DN.decode(responseAuthzID.substring(3));
+      authzDN = DN.valueOf(responseAuthzID.substring(3));
     }
     catch (final DirectoryException e)
     {
@@ -748,7 +748,7 @@ public class SASLContext implements CallbackHandler,
 
     if (!authzDN.equals(authEntry.getDN()))
     {
-      if (authzDN.isNullDN())
+      if (authzDN.isRootDN())
       {
         authzEntry = null;
       }
@@ -990,7 +990,7 @@ public class SASLContext implements CallbackHandler,
     {
       try
       {
-        e = DirectoryServer.getEntry(DN.nullDN());
+        e = DirectoryServer.getEntry(DN.rootDN());
       }
       catch (final DirectoryException ex)
       {
@@ -1091,7 +1091,7 @@ public class SASLContext implements CallbackHandler,
       DN userDN;
       try
       {
-        userDN = DN.decode(userName.substring(3));
+        userDN = DN.valueOf(userName.substring(3));
       }
       catch (final DirectoryException e)
       {
@@ -1104,7 +1104,7 @@ public class SASLContext implements CallbackHandler,
         return;
       }
 
-      if (userDN.isNullDN())
+      if (userDN.isRootDN())
       {
         setCallbackMsg(ERR_SASL_USERNAME_IS_NULL_DN.get(mechanism));
         return;

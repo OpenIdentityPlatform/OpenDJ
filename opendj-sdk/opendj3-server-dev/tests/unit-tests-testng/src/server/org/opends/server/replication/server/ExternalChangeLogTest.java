@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -131,8 +131,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   public void setUp() throws Exception
   {
     super.setUp();
-    TEST_ROOT_DN = DN.decode(TEST_ROOT_DN_STRING);
-    TEST_ROOT_DN2 = DN.decode(TEST_ROOT_DN_STRING2);
+    TEST_ROOT_DN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TEST_ROOT_DN2 = DN.valueOf(TEST_ROOT_DN_STRING2);
 
     // This test suite depends on having the schema available.
     configure();
@@ -413,7 +413,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     try
     {
       // Create 3 ECL broker
-      final DN changelogDN = DN.decode("cn=changelog");
+      final DN changelogDN = DN.valueOf("cn=changelog");
       brokers[0] = openReplicationSession(
           changelogDN, 1111, 100, replicationServerPort, brokerSessionTimeout);
       assertTrue(brokers[0].isConnected());
@@ -493,7 +493,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // open ECL broker
       serverECL = openReplicationSession(
-          DN.decode("cn=changelog"), 10, 100, replicationServerPort, brokerSessionTimeout);
+          DN.valueOf("cn=changelog"), 10, 100, replicationServerPort, brokerSessionTimeout);
       assertTrue(serverECL.isConnected());
 
       // receive change 1 from suffix 1
@@ -587,7 +587,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Use different values than other tests to avoid test interactions in concurrent test runs
     final String backendId2 = tn + 2;
-    final DN baseDN2 = DN.decode("o=" + backendId2);
+    final DN baseDN2 = DN.valueOf("o=" + backendId2);
     try
     {
       server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
@@ -853,7 +853,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
   private DeleteMsg newDeleteMsg(String dn, CSN csn, String entryUUID) throws DirectoryException
   {
-    return new DeleteMsg(DN.decode(dn), csn, entryUUID);
+    return new DeleteMsg(DN.valueOf(dn), csn, entryUUID);
   }
 
   private InternalSearchOperation searchOnCookieChangelog(String filterString,
@@ -1045,7 +1045,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       Entry entry = TestCaseUtils.entryFromLdifString(lentry);
       AddMsg addMsg = new AddMsg(
           csns[csnCounter],
-          DN.decode("uid="+tn+"2," + TEST_ROOT_DN_STRING),
+          DN.valueOf("uid="+tn+"2," + TEST_ROOT_DN_STRING),
           user1entryUUID,
           baseUUID,
           entry.getObjectClassAttribute(),
@@ -1056,7 +1056,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Publish MOD
       csnCounter++;
-      DN baseDN = DN.decode("uid=" + tn + "3," + TEST_ROOT_DN_STRING);
+      DN baseDN = DN.valueOf("uid=" + tn + "3," + TEST_ROOT_DN_STRING);
       List<Modification> mods = createMods("description", "new value");
       ModifyMsg modMsg = new ModifyMsg(csns[csnCounter], baseDN, mods, tn + "uuid3");
       server01.publish(modMsg);
@@ -1066,7 +1066,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       csnCounter++;
       final DN newSuperior = TEST_ROOT_DN2;
       ModifyDNOperation op = new ModifyDNOperationBasis(connection, 1, 1, null,
-          DN.decode("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
+          DN.valueOf("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
           RDN.decode("uid="+tn+"new4"), // new rdn
           true,  // deleteoldrdn
           newSuperior);
@@ -1988,7 +1988,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private static Backend initializeTestBackend(boolean createBaseEntry,
       String backendId) throws Exception
   {
-    DN baseDN = DN.decode("o=" + backendId);
+    DN baseDN = DN.valueOf("o=" + backendId);
 
     //  Retrieve backend. Warning: it is important to perform this each time,
     //  because a test may have disabled then enabled the backend (i.e a test
@@ -2174,7 +2174,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, " publishes " + addMsg.getCSN());
 
       // Publish MOD
-      DN baseDN = DN.decode("uid="+tn+"3," + TEST_ROOT_DN_STRING);
+      DN baseDN = DN.valueOf("uid="+tn+"3," + TEST_ROOT_DN_STRING);
       List<Modification> mods = createMods("description", "new value");
       ModifyMsg modMsg = new ModifyMsg(csns[2], baseDN, mods, user1entryUUID);
       server01.publish(modMsg);
@@ -2182,7 +2182,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Publish modDN
       ModifyDNOperation op = new ModifyDNOperationBasis(connection, 1, 1, null,
-          DN.decode("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
+          DN.valueOf("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
           RDN.decode("uid="+tn+"new4"), // new rdn
           true,  // deleteoldrdn
           TEST_ROOT_DN2); // new superior
@@ -2398,7 +2398,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test\n\n");
 
     {
-      DN baseDN = DN.decode("cn=changelog");
+      DN baseDN = DN.valueOf("cn=changelog");
 
       evaluateSearchParameters(baseDN, -1, -1, "(objectclass=*)");
       evaluateSearchParameters(baseDN, 2, -1, "(changenumber>=2)");
@@ -2430,7 +2430,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertEquals(startCLmsg.getCSN(), csn);
 
       // Use change number as base object.
-      baseDN = DN.decode("changeNumber=8,cn=changelog");
+      baseDN = DN.valueOf("changeNumber=8,cn=changelog");
 
       //
       evaluateSearchParameters(baseDN, 8, 8, "(objectclass=*)");
@@ -2636,7 +2636,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test\n\n");
 
     final String backendId3 = "test3";
-    final DN baseDN3 = DN.decode("o=" + backendId3);
+    final DN baseDN3 = DN.valueOf("o=" + backendId3);
     Backend backend2 = null;
     Backend backend3 = null;
     LDAPReplicationDomain domain2 = null;
@@ -2713,13 +2713,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // moddn robert (o=test3) to robert2 (o=test3)
       ModifyDNOperation modDNOp = connection.processModifyDN(
-          DN.decode("cn=Robert Hue," + baseDN3),
+          DN.valueOf("cn=Robert Hue," + baseDN3),
           RDN.decode("cn=Robert Hue2"), true,
           baseDN3);
       waitOpResult(modDNOp, ResultCode.SUCCESS);
 
       // del robert (o=test3)
-      final DeleteOperation delOp = connection.processDelete(DN.decode("cn=Robert Hue2," + baseDN3));
+      final DeleteOperation delOp = connection.processDelete(DN.valueOf("cn=Robert Hue2," + baseDN3));
       waitOpResult(delOp, ResultCode.SUCCESS);
 
       // Search on ECL from start on all suffixes
@@ -2767,7 +2767,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     finally
     {
-      final DN fionaDN = DN.decode("cn=Fiona Jensen," + TEST_ROOT_DN_STRING2);
+      final DN fionaDN = DN.valueOf("cn=Fiona Jensen," + TEST_ROOT_DN_STRING2);
       waitOpResult(connection.processDelete(fionaDN), ResultCode.SUCCESS);
       waitOpResult(connection.processDelete(TEST_ROOT_DN2), ResultCode.SUCCESS);
       waitOpResult(connection.processDelete(baseDN3), ResultCode.SUCCESS);

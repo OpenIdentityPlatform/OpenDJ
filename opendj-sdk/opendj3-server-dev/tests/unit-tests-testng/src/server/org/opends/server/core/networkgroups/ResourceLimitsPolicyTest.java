@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -220,7 +220,7 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
     limits.addConnection(conn1);
 
     InternalSearchOperation search = conn1.processSearch(
-        DN.decode("dc=example,dc=com"),
+        DN.valueOf("dc=example,dc=com"),
         SearchScope.BASE_OBJECT,
         LDAPFilter.decode(searchFilter).toSearchFilter());
 
@@ -259,7 +259,7 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn);
 
-    final DN dn = DN.decode("dc=example,dc=com");
+    final DN dn = DN.valueOf("dc=example,dc=com");
     final SearchFilter all = SearchFilter.createFilterFromString("(objectclass=*)");
 
     // First operation is allowed

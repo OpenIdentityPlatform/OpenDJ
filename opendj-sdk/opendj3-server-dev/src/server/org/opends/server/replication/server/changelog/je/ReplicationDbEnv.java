@@ -218,7 +218,7 @@ public class ReplicationDbEnv
         if (str[0].equals(GENERATION_ID_TAG))
         {
           long generationId = toLong(str[1]);
-          DN baseDN = DN.decode(str[2]);
+          DN baseDN = DN.valueOf(str[2]);
 
           if (debugEnabled())
             debug("has read baseDN=" + baseDN + " generationId=" +generationId);
@@ -228,7 +228,7 @@ public class ReplicationDbEnv
         else
         {
           int serverId = toInt(str[0]);
-          DN baseDN = DN.decode(str[1]);
+          DN baseDN = DN.valueOf(str[1]);
 
           if (debugEnabled())
             debug("has read: baseDN=" + baseDN + " serverId=" + serverId);

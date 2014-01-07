@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -512,7 +512,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
     {
       TaskUtils.enableBackend(beID);
       Entry entry = DirectoryServer.getEntry(
-          DN.decode(" uid=user.0,dc=example,dc=com"));
+          DN.valueOf(" uid=user.0,dc=example,dc=com"));
       TaskUtils.disableBackend(beID);
       assertNotNull(entry);
       for (Attribute a : attrs)

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -96,7 +97,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
      */
     public TestChildCfg getChild(String expectedName) {
       Assert.assertNotNull(child);
-      Assert.assertEquals(child.dn().getRDN().getAttributeValue(0)
+      Assert.assertEquals(child.dn().rdn().getAttributeValue(0)
           .getValue().toString(), expectedName);
       return child;
     }
@@ -156,7 +157,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
      */
     public TestChildCfg getChild(String expectedName) {
       Assert.assertNotNull(child);
-      Assert.assertEquals(child.dn().getRDN().getAttributeValue(0)
+      Assert.assertEquals(child.dn().rdn().getAttributeValue(0)
           .getValue().toString(), expectedName);
       return child;
     }

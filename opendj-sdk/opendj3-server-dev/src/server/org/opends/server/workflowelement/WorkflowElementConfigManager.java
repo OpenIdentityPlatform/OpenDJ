@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.workflowelement;
 
@@ -237,7 +238,7 @@ public class WorkflowElementConfigManager
 
     WorkflowElement<?> workflowElement =
             DirectoryServer.getWorkflowElement(
-            configuration.dn().getRDN().getAttributeValue(0).toString());
+            configuration.dn().rdn().getAttributeValue(0).toString());
     if (workflowElement != null)
     {
       // Notify to observers that the workflow element is now disabled
@@ -303,7 +304,7 @@ public class WorkflowElementConfigManager
     // Get the existing workflow element if it's already enabled.
     WorkflowElement<?> existingWorkflowElement =
       DirectoryServer.getWorkflowElement(
-      configuration.dn().getRDN().getAttributeValue(0).toString());
+      configuration.dn().rdn().getAttributeValue(0).toString());
 
     // If the new configuration has the workflow element disabled,
     // then disable it if it is enabled, or do nothing if it's already disabled.

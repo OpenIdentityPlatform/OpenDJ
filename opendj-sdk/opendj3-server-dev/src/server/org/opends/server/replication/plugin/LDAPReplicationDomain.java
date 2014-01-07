@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -1151,7 +1151,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     PreOperationAddOperation addOperation, boolean performFiltering)
   {
     return fractionalRemoveAttributesFromEntry(fractionalConfig,
-      addOperation.getEntryDN().getRDN(), addOperation.getObjectClasses(),
+      addOperation.getEntryDN().rdn(), addOperation.getObjectClasses(),
       addOperation.getUserAttributes(), performFiltering);
   }
 
@@ -1201,7 +1201,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      */
 
     boolean inconsistentOperation = false;
-    RDN rdn = modifyDNOperation.getEntryDN().getRDN();
+    RDN rdn = modifyDNOperation.getEntryDN().rdn();
     RDN newRdn = modifyDNOperation.getNewRDN();
 
     // Go through each attribute of the old RDN
@@ -2255,7 +2255,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      {
        DN entryDN = entryToRename.getDN();
        ModifyDNOperation newOp = renameEntry(
-           entryDN, freedDN.getRDN(), freedDN.getParent(), false);
+           entryDN, freedDN.rdn(), freedDN.parent(), false);
 
        ResultCode res = newOp.getResultCode();
        if (res != ResultCode.SUCCESS)
@@ -2751,7 +2751,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       RDN currentRDN;
       if (currentDN != null)
       {
-        currentRDN = currentDN.getRDN();
+        currentRDN = currentDN.rdn();
       }
       else
       {
@@ -2907,7 +2907,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   }
   else
   {
-    newSuperior = entryDN.getParent();
+    newSuperior = entryDN.parent();
   }
 
   //If we could not find the new parent entry, we missed this entry
@@ -2917,12 +2917,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   // stop the processing.
   if (newSuperior == null)
   {
-    markConflictEntry(op, currentDN, currentDN.getParent().concat(newRDN));
+    markConflictEntry(op, currentDN, currentDN.parent().child(newRDN));
     numUnresolvedNamingConflicts.incrementAndGet();
     return true;
   }
 
-  DN newDN = newSuperior.concat(newRDN);
+  DN newDN = newSuperior.child(newRDN);
 
   if (currentDN == null)
   {
@@ -3032,8 +3032,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         addConflict(msg);
 
         String conflictRDN =
-            generateConflictRDN(entryUUID, op.getEntryDN().getRDN().toString());
-        msg.setDN(DN.decode(conflictRDN + "," + getBaseDNString()));
+            generateConflictRDN(entryUUID, op.getEntryDN().rdn().toString());
+        msg.setDN(DN.valueOf(conflictRDN + "," + getBaseDNString()));
         // reset the parent entryUUID so that the check done is the
         // handleConflict phase does not fail.
         msg.setParentEntryUUID(null);
@@ -3041,7 +3041,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       else
       {
-        msg.setDN(DN.decode(msg.getDN().getRDN() + "," + parentDn));
+        msg.setDN(DN.valueOf(msg.getDN().rdn() + "," + parentDn));
         numResolvedNamingConflicts.incrementAndGet();
       }
       return false;
@@ -3067,7 +3067,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         addConflict(msg);
         String conflictRDN =
             generateConflictRDN(entryUUID, msg.getDN().toNormalizedString());
-        msg.setDN(DN.decode(conflictRDN));
+        msg.setDN(DN.valueOf(conflictRDN));
         numUnresolvedNamingConflicts.incrementAndGet();
         return false;
       }
@@ -3282,7 +3282,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   private RDN generateDeleteConflictDn(String entryUUID, DN dn)
   {
-    String newRDN =  "entryuuid=" + entryUUID + "+" + dn.getRDN();
+    String newRDN =  "entryuuid=" + entryUUID + "+" + dn.rdn();
     try
     {
       return RDN.decode(newRDN);
@@ -4151,7 +4151,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     try
     {
-      DN eclConfigEntryDN = DN.decode("cn=external changeLog," + config.dn());
+      DN eclConfigEntryDN = DN.valueOf("cn=external changeLog," + config.dn());
       if (DirectoryServer.getConfigHandler().entryExists(eclConfigEntryDN))
       {
         DirectoryServer.getConfigHandler().deleteEntry(eclConfigEntryDN, null);
@@ -4190,7 +4190,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         {
           // no ECL config provided hence create a default one
           // create the default one
-          DN eclConfigEntryDN = DN.decode("cn=external changelog," + configDn);
+          DN eclConfigEntryDN = DN.valueOf("cn=external changelog," + configDn);
           if (!DirectoryServer.getConfigHandler().entryExists(eclConfigEntryDN))
           {
             // no entry exist yet for the ECL config for this domain

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -686,7 +687,7 @@ public class ManageTasksPanel extends StatusGenericPanel
    */
   public static Entry getEntry(CustomSearchResult csr) throws OpenDsException
   {
-    DN dn = DN.decode(csr.getDN());
+    DN dn = DN.valueOf(csr.getDN());
     Map<ObjectClass,String> objectClasses = new HashMap<ObjectClass,String>();
     Map<AttributeType,List<Attribute>> userAttributes =
       new HashMap<AttributeType,List<Attribute>>();

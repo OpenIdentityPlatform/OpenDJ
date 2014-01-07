@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -68,7 +69,7 @@ public class TestAlertGenerator
   public TestAlertGenerator()
          throws Exception
   {
-    configEntryDN    = DN.decode("cn=Test Alert Generator,cn=config");
+    configEntryDN    = DN.valueOf("cn=Test Alert Generator,cn=config");
     alertType        = "org.opends.server.TestAlert";
     alertDescription = "This is a test alert.";
   }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -331,7 +331,7 @@ public class PasswordModifyExtendedOperation
         {
           try
           {
-            userDN = DN.decode(authzIDStr.substring(3));
+            userDN = DN.valueOf(authzIDStr.substring(3));
           }
           catch (DirectoryException de)
           {
@@ -397,7 +397,7 @@ public class PasswordModifyExtendedOperation
         {
           try
           {
-            userDN = DN.decode(authzIDStr);
+            userDN = DN.valueOf(authzIDStr);
           }
           catch (DirectoryException ignored)
           {
@@ -407,7 +407,7 @@ public class PasswordModifyExtendedOperation
             }
           }
 
-          if (userDN != null && !userDN.isNullDN()) {
+          if (userDN != null && !userDN.isRootDN()) {
             // If the provided DN is an alternate DN for a root user,
             // then replace it with the actual root DN.
             DN actualRootDN = DirectoryServer.getActualRootBindDN(userDN);

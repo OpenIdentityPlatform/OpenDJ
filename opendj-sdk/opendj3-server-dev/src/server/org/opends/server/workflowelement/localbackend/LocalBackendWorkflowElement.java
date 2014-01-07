@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -234,7 +234,7 @@ public class LocalBackendWorkflowElement extends
         RootCfg root = context.getRootConfiguration();
         try {
           BackendCfg backendCfg = root.getBackend(newBackendID);
-          if (backendCfg.getBaseDN().contains(DN.decode(DN_CONFIG_ROOT))) {
+          if (backendCfg.getBaseDN().contains(DN.valueOf(DN_CONFIG_ROOT))) {
             newBackend = DirectoryServer.getConfigHandler();
           }
         } catch (Exception ex) {
@@ -247,7 +247,7 @@ public class LocalBackendWorkflowElement extends
       if (applyChanges)
       {
         super.initialize(
-          configuration.dn().getRDN().getAttributeValue(0).toString(),
+          configuration.dn().rdn().getAttributeValue(0).toString(),
           BACKEND_WORKFLOW_ELEMENT);
         backend = newBackend;
         if (backend != null)

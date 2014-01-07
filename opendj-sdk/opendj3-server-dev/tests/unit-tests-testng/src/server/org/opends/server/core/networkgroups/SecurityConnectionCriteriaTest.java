@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -98,7 +99,7 @@ public class SecurityConnectionCriteriaTest extends
       throws Exception
   {
     ClientConnection client =
-        new MockClientConnection(12345, isSecure, DN.nullDN(),
+        new MockClientConnection(12345, isSecure, DN.rootDN(),
             AllowedAuthMethod.ANONYMOUS);
 
     Assert.assertEquals(criteria.matches(client), expectedResult);
@@ -124,11 +125,11 @@ public class SecurityConnectionCriteriaTest extends
       throws Exception
   {
     ClientConnection client =
-        new MockClientConnection(12345, false, DN.nullDN(),
+        new MockClientConnection(12345, false, DN.rootDN(),
             AllowedAuthMethod.ANONYMOUS);
 
     Assert.assertEquals(criteria.willMatchAfterBind(client,
-        DN.nullDN(), AuthenticationType.SIMPLE, isSecure),
+        DN.rootDN(), AuthenticationType.SIMPLE, isSecure),
         expectedResult);
   }
 

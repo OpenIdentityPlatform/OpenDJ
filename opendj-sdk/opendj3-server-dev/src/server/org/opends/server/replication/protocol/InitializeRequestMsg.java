@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -80,7 +80,7 @@ public class InitializeRequestMsg extends RoutableMsg
 
       // baseDN
       int length = getNextLength(in, pos);
-      baseDN = DN.decode(new String(in, pos, length, "UTF-8"));
+      baseDN = DN.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       // sender

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication;
 
@@ -250,7 +250,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
     // This test suite depends on having the schema available.
     super.setUp();
 
-    baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
 
     replServerPort = TestCaseUtils.findFreePort();
 

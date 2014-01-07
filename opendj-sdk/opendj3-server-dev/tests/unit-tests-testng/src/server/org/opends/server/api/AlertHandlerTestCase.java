@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -273,11 +274,11 @@ public class AlertHandlerTestCase
   {
     try
     {
-      return DN.decode("cn=Alert Handler Test Case,cn=config");
+      return DN.valueOf("cn=Alert Handler Test Case,cn=config");
     }
     catch (Exception e)
     {
-      return DN.nullDN();
+      return DN.rootDN();
     }
   }
 

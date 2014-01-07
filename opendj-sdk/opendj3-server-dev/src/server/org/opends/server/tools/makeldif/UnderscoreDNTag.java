@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 import org.opends.messages.Message;
@@ -190,7 +191,7 @@ public class UnderscoreDNTag
                                  TemplateValue templateValue)
   {
     DN dn = templateEntry.getDN();
-    if ((dn == null) || dn.isNullDN())
+    if ((dn == null) || dn.isRootDN())
     {
       return TagResult.SUCCESS_RESULT;
     }
@@ -198,7 +199,7 @@ public class UnderscoreDNTag
     if (numComponents == 0)
     {
       dn.getRDN(0).toString(templateValue.getValue());
-      for (int i=1; i < dn.getNumComponents(); i++)
+      for (int i=1; i < dn.size(); i++)
       {
         templateValue.append("_");
         dn.getRDN(i).toString(templateValue.getValue());
@@ -206,7 +207,7 @@ public class UnderscoreDNTag
     }
     else if (numComponents > 0)
     {
-      int count = Math.min(numComponents, dn.getNumComponents());
+      int count = Math.min(numComponents, dn.size());
 
       dn.getRDN(0).toString(templateValue.getValue());
       for (int i = 1; i < count; i++)
@@ -217,7 +218,7 @@ public class UnderscoreDNTag
     }
     else
     {
-      int sz = dn.getNumComponents();
+      int sz = dn.size();
       int count = Math.min(Math.abs(numComponents), sz);
 
       dn.getRDN(sz - count).toString(templateValue.getValue());

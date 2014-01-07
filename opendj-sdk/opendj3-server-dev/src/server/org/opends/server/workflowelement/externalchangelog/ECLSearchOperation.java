@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2013 ForgeRock AS
+ *      Portions Copyright 2010-2014 ForgeRock AS
  */
 package org.opends.server.workflowelement.externalchangelog;
 
@@ -125,7 +125,7 @@ public class ECLSearchOperation
     try
     {
       CHANGELOG_ROOT_DN = DN
-          .decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+          .valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
     }
     catch (Exception e)
     {
@@ -482,7 +482,7 @@ public class ECLSearchOperation
           setAuthorizationEntry(authorizationEntry);
           if (authorizationEntry == null)
           {
-            setProxiedAuthorizationDN(DN.nullDN());
+            setProxiedAuthorizationDN(DN.rootDN());
           }
           else
           {
@@ -506,7 +506,7 @@ public class ECLSearchOperation
           setAuthorizationEntry(authorizationEntry);
           if (authorizationEntry == null)
           {
-            setProxiedAuthorizationDN(DN.nullDN());
+            setProxiedAuthorizationDN(DN.rootDN());
           }
           else
           {
@@ -1069,7 +1069,7 @@ public class ECLSearchOperation
     }
 
     // at the end build the CL entry to be returned
-    return new Entry(DN.decode(dnString), CHANGELOG_ENTRY_OBJECT_CLASSES,
+    return new Entry(DN.valueOf(dnString), CHANGELOG_ENTRY_OBJECT_CLASSES,
         uAttrs, operationalAttrs);
   }
 
@@ -1113,7 +1113,7 @@ public class ECLSearchOperation
       DN baseDN, SearchFilter sf) throws DirectoryException
   {
     // Select whether to use the DN or the filter.
-    switch (baseDN.getNumComponents())
+    switch (baseDN.size())
     {
     case 1:
       // cn=changelog - use user provided search filter.
@@ -1124,7 +1124,7 @@ public class ECLSearchOperation
 
       // The DN could also be a new ECL <service-id>,cn=changelog so be sure it
       // is draft ECL.
-      RDN rdn = baseDN.getRDN();
+      RDN rdn = baseDN.rdn();
 
       AttributeType at = DirectoryServer.getAttributeType("changenumber");
       if (at == null)
@@ -1141,7 +1141,7 @@ public class ECLSearchOperation
     default:
       // replicationCSN=xxx,<service-id>,cn=changelog - new ECL - use faked up
       // equality filter.
-      rdn = baseDN.getRDN();
+      rdn = baseDN.rdn();
 
       at = DirectoryServer.getAttributeType("replicationcsn");
       if (at == null)

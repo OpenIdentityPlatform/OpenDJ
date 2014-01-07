@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -715,12 +715,12 @@ public class ModifyDNOperationBasis
         parentDN = newSuperior;
       }
 
-      if ((parentDN == null) || parentDN.isNullDN())
+      if ((parentDN == null) || parentDN.isRootDN())
       {
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         appendErrorMessage(ERR_MODDN_NO_PARENT.get(String.valueOf(entryDN)));
       }
-      newDN = parentDN.concat(getNewRDN());
+      newDN = parentDN.child(getNewRDN());
     }
     return newDN;
   }

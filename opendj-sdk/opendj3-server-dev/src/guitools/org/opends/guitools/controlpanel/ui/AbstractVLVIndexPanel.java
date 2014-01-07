@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 
@@ -792,7 +793,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     {
       try
       {
-        DN.decode(baseDN);
+        DN.valueOf(baseDN);
       }
       catch (OpenDsException oe)
       {

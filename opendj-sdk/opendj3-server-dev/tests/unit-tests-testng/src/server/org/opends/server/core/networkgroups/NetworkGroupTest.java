@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.core.networkgroups;
 
@@ -92,8 +92,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     String networkGroupID2 = "networkGroup2";
 
     // Workflow base DNs
-    DN dn1 = DN.decode("o=test1");
-    DN dn2 = DN.decode("o=test2");
+    DN dn1 = DN.valueOf("o=test1");
+    DN dn2 = DN.valueOf("o=test2");
 
     // Network group info
     return new Object[][] {
@@ -129,17 +129,17 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   @DataProvider(name = "DNSet_1")
   public Object[][] initDNSet_1() throws Exception
   {
-    DN dnRootDSE = DN.decode("");
-    DN dnConfig  = DN.decode("cn=config");
-    DN dnMonitor = DN.decode("cn=monitor");
-    DN dnSchema  = DN.decode("cn=schema");
-    DN dnTasks   = DN.decode("cn=tasks");
-    DN dnBackups = DN.decode("cn=backups");
-    DN dnDummy   = DN.decode("o=dummy_suffix");
+    DN dnRootDSE = DN.valueOf("");
+    DN dnConfig  = DN.valueOf("cn=config");
+    DN dnMonitor = DN.valueOf("cn=monitor");
+    DN dnSchema  = DN.valueOf("cn=schema");
+    DN dnTasks   = DN.valueOf("cn=tasks");
+    DN dnBackups = DN.valueOf("cn=backups");
+    DN dnDummy   = DN.valueOf("o=dummy_suffix");
 
-    DN dnSubordinateConfig  = DN.decode("cn=Work Queue,cn=config");
-    DN dnSubordinateMonitor = DN.decode("cn=schema Backend,cn=monitor");
-    DN dnSubordinateTasks   = DN.decode("cn=Scheduled Tasks,cn=tasks");
+    DN dnSubordinateConfig  = DN.valueOf("cn=Work Queue,cn=config");
+    DN dnSubordinateMonitor = DN.valueOf("cn=schema Backend,cn=monitor");
+    DN dnSubordinateTasks   = DN.valueOf("cn=Scheduled Tasks,cn=tasks");
     // No DN subordinate for schema because the schema backend is
     // currently empty.
     // No DN subordinate for cn=backups because by default there is no
@@ -177,13 +177,13 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   public Object[][] initDNSet_2() throws Exception
   {
     // Network group definition
-    DN     dn1          = DN.decode("o=test1");
-    DN     dn2          = DN.decode("o=test2");
-    DN     dn3          = DN.decode("o=test3");
-    DN     subordinate1 = DN.decode("ou=subtest1,o=test1");
-    DN     subordinate2 = DN.decode("ou=subtest2,o=test2");
-    DN     subordinate3 = DN.decode("ou=subtest3,o=test3");
-    DN     unrelatedDN  = DN.decode("o=dummy");
+    DN     dn1          = DN.valueOf("o=test1");
+    DN     dn2          = DN.valueOf("o=test2");
+    DN     dn3          = DN.valueOf("o=test3");
+    DN     subordinate1 = DN.valueOf("ou=subtest1,o=test1");
+    DN     subordinate2 = DN.valueOf("ou=subtest2,o=test2");
+    DN     subordinate3 = DN.valueOf("ou=subtest3,o=test3");
+    DN     unrelatedDN  = DN.valueOf("o=dummy");
 
     // Network group info
     return new Object[][] {
@@ -217,7 +217,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   {
     // Network group definition
     String networkGroupID = "networkGroup1";
-    DN  dn = DN.decode("o=test1");
+    DN  dn = DN.valueOf("o=test1");
     int prio = 1;
 
     // Resource limits
@@ -256,8 +256,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   {
     String networkGroupID1 = "group1";
     String networkGroupID2 = "group2";
-    DN dn1 = DN.decode("o=test1");
-    DN dn2 = DN.decode("o=test2");
+    DN dn1 = DN.valueOf("o=test1");
+    DN dn2 = DN.valueOf("o=test2");
 
     return new Object[][] {
       {
@@ -884,7 +884,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Use simple bind on this connection
     Entry userEntry = DirectoryServer.getEntry(
-            DN.decode("cn=Directory Manager, cn=Root DNs, cn=config"));
+            DN.valueOf("cn=Directory Manager, cn=Root DNs, cn=config"));
     ClientConnection connection2 = new InternalClientConnection(
           new AuthenticationInfo(userEntry, userEntry.getDN(), true));
     ng = NetworkGroup.findMatchingNetworkGroup(connection2);
@@ -934,7 +934,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Use simple bind on this connection
     Entry userEntry = DirectoryServer.getEntry(
-            DN.decode("cn=Directory Manager, cn=Root DNs, cn=config"));
+            DN.valueOf("cn=Directory Manager, cn=Root DNs, cn=config"));
     ClientConnection connection2 = new InternalClientConnection(
           new AuthenticationInfo(userEntry, userEntry.getDN(), true));
     ng = NetworkGroup.findMatchingNetworkGroup(connection2);
@@ -1066,7 +1066,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       ) throws Exception
   {
     SearchOperation search = connection.processSearch(
-        DN.decode(""),
+        DN.valueOf(""),
         SearchScope.SINGLE_LEVEL,
         LDAPFilter.decode("(objectClass=*)").toSearchFilter());
 
@@ -1095,7 +1095,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       ) throws Exception
   {
     SearchOperation search = connection.processSearch(
-        DN.decode(baseDN),
+        DN.valueOf(baseDN),
         SearchScope.BASE_OBJECT,
         LDAPFilter.decode("(objectClass=*)").toSearchFilter());
 
@@ -1162,7 +1162,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       Attributes.create(attributeName, attributeValue);
     mods.add(new Modification(modType, attributeToModify));
     ModifyOperation modifyOperation = connection.processModify(
-        DN.decode(baseDN), mods);
+        DN.valueOf(baseDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 

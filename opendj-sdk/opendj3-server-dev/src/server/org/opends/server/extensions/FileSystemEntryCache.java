@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -599,7 +599,7 @@ public class FileSystemEntryCache
       {
         // Get the entry DN from the map by its ID.  If it isn't present,
         // then return null.
-        entryDN = DN.decode(map.get(entryID));
+        entryDN = DN.valueOf(map.get(entryID));
       }
     } catch (Exception e) {
       // Ignore.
@@ -766,7 +766,7 @@ public class FileSystemEntryCache
           backendEntriesMap.keySet().iterator();
         while (backendEntriesIterator.hasNext()) {
           Long entryID = backendEntriesIterator.next();
-          DN entryDN = DN.decode(backendEntriesMap.get(entryID));
+          DN entryDN = DN.valueOf(backendEntriesMap.get(entryID));
           entryCacheDB.delete(null, new DatabaseEntry(
             entryDN.toNormalizedString().getBytes("UTF-8")));
           backendEntriesIterator.remove();
@@ -863,7 +863,7 @@ public class FileSystemEntryCache
     while (iterator.hasNext())
     {
       try {
-        DN entryDN = DN.decode(iterator.next());
+        DN entryDN = DN.valueOf(iterator.next());
         if (entryDN.isDescendantOf(baseDN)) {
           iterator.remove();
           entryCacheIndex.dnMap.remove(entryDN.toNormalizedString());

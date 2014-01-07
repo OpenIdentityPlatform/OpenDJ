@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -85,7 +86,7 @@ public class ResetUserPasswordTask extends Task
     this.newPassword = pwd;
     try
     {
-      dn = DN.decode(node.getDN());
+      dn = DN.valueOf(node.getDN());
       for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
       {
         for (BaseDNDescriptor baseDN : backend.getBaseDns())
@@ -269,11 +270,11 @@ public class ResetUserPasswordTask extends Task
   private boolean isBoundAs(DN dn, InitialLdapContext ctx)
   {
     boolean isBoundAs = false;
-    DN bindDN = DN.nullDN();
+    DN bindDN = DN.rootDN();
     try
     {
       String b = ConnectionUtils.getBindDN(ctx);
-      bindDN = DN.decode(b);
+      bindDN = DN.valueOf(b);
       isBoundAs = dn.equals(bindDN);
     }
     catch (Throwable t)
@@ -301,7 +302,7 @@ public class ResetUserPasswordTask extends Task
             Set<String> dns = ConnectionUtils.getValues(sr, attrName);
             for (String sDn : dns)
             {
-              if (bindDN.equals(DN.decode(sDn)))
+              if (bindDN.equals(DN.valueOf(sDn)))
               {
                 isBoundAs = true;
                 break;

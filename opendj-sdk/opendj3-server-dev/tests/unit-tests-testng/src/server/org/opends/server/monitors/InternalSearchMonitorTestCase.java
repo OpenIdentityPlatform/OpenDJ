@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.monitors;
 
@@ -87,7 +87,7 @@ public class InternalSearchMonitorTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("cn=monitor"), SearchScope.WHOLE_SUBTREE,
+         conn.processSearch(DN.valueOf("cn=monitor"), SearchScope.WHOLE_SUBTREE,
               SearchFilter.createFilterFromString("(objectClass=*)"));
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -131,7 +131,7 @@ public class InternalSearchMonitorTestCase
          throws Exception
   {
     // could be more than one level
-    DN monitorDN = DN.decode("cn="+monitorName+",cn=monitor");
+    DN monitorDN = DN.valueOf("cn="+monitorName+",cn=monitor");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -156,7 +156,7 @@ public class InternalSearchMonitorTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("cn=monitor"), SearchScope.WHOLE_SUBTREE,
+         conn.processSearch(DN.valueOf("cn=monitor"), SearchScope.WHOLE_SUBTREE,
               SearchFilter.createFilterFromString("(objectClass=*)"));
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
 

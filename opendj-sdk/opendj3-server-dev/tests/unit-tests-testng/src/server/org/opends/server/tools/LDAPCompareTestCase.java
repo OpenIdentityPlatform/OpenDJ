@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock, AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -538,8 +538,8 @@ public class LDAPCompareTestCase
         DirectoryServer.getBackend(TestCaseUtils.TEST_BACKEND_ID);
     String dn1 = "arg=success,o=test1,o=test";
     String dn2 = "arg=success,o=test2,o=test";
-    addEntriesUpToParentDN(memoryBackend, DN.decode(dn1));
-    addEntriesUpToParentDN(memoryBackend, DN.decode(dn2));
+    addEntriesUpToParentDN(memoryBackend, DN.valueOf(dn1));
+    addEntriesUpToParentDN(memoryBackend, DN.valueOf(dn2));
 
     String[] args =
     {
@@ -591,8 +591,8 @@ public class LDAPCompareTestCase
         DirectoryServer.getBackend(TestCaseUtils.TEST_BACKEND_ID);
     String dn1 = "arg=success,o=test1,o=test";
     String dn2 = "arg=fail,o=test2,o=test";
-    addEntriesUpToParentDN(memoryBackend, DN.decode(dn1));
-    addEntriesUpToParentDN(memoryBackend, DN.decode(dn2));
+    addEntriesUpToParentDN(memoryBackend, DN.valueOf(dn1));
+    addEntriesUpToParentDN(memoryBackend, DN.valueOf(dn2));
 
     String[] args =
     {
@@ -643,7 +643,7 @@ public class LDAPCompareTestCase
     Backend memoryBackend =
         DirectoryServer.getBackend(TestCaseUtils.TEST_BACKEND_ID);
     String dn1 = "arg=success,o=test1,o=test";
-    addEntriesUpToParentDN(memoryBackend, DN.decode(dn1));
+    addEntriesUpToParentDN(memoryBackend, DN.valueOf(dn1));
 
     String[] args =
     {
@@ -684,9 +684,9 @@ public class LDAPCompareTestCase
   private void addEntriesUpToParentDN(Backend backend, DN entryDN)
       throws Exception
   {
-    if (!backend.entryExists(entryDN.getParent()))
+    if (!backend.entryExists(entryDN.parent()))
     {
-      addEntriesUpToParentDN(backend, entryDN.getParent());
+      addEntriesUpToParentDN(backend, entryDN.parent());
     }
     backend.addEntry(StaticUtils.createEntry(entryDN), null);
   }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -598,11 +599,11 @@ public class PluginConfigManagerTestCase
     String pluginBase = ",cn=Plugins,cn=config";
 
     ArrayList<DN> dnList = new ArrayList<DN>();
-    dnList.add(DN.decode("cn=" + PLUGIN_NAME_DELAY + pluginBase));
-    dnList.add(DN.decode("cn=" + PLUGIN_NAME_DISCONNECT + pluginBase));
-    dnList.add(DN.decode("cn=" + PLUGIN_NAME_INVOCATION_COUNTER + pluginBase));
-    dnList.add(DN.decode("cn=" + PLUGIN_NAME_SHORT_CIRCUIT + pluginBase));
-    dnList.add(DN.decode("cn=" + PLUGIN_NAME_UPDATE + pluginBase));
+    dnList.add(DN.valueOf("cn=" + PLUGIN_NAME_DELAY + pluginBase));
+    dnList.add(DN.valueOf("cn=" + PLUGIN_NAME_DISCONNECT + pluginBase));
+    dnList.add(DN.valueOf("cn=" + PLUGIN_NAME_INVOCATION_COUNTER + pluginBase));
+    dnList.add(DN.valueOf("cn=" + PLUGIN_NAME_SHORT_CIRCUIT + pluginBase));
+    dnList.add(DN.valueOf("cn=" + PLUGIN_NAME_UPDATE + pluginBase));
 
     ArrayList<DirectoryServerPlugin> pluginList =
          new ArrayList<DirectoryServerPlugin>(dnList.size());
@@ -640,7 +641,7 @@ public class PluginConfigManagerTestCase
 
       DN dn = pluginArray[i].getPluginEntryDN();
       String name =
-           dn.getRDN().getAttributeValue(0).getValue().toString().toLowerCase();
+           dn.rdn().getAttributeValue(0).getValue().toString().toLowerCase();
       actualOrder.append(name);
 
       if (! name.equals(expectedNameOrder[i]))

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -58,7 +58,7 @@ public class IsolationTest extends ReplicationTestCase
   public void noUpdateIsolationPolicyTest() throws Exception
   {
     LDAPReplicationDomain domain = null;
-    DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    DN baseDn = DN.valueOf(TEST_ROOT_DN_STRING);
     int serverId = 1;
 
     try

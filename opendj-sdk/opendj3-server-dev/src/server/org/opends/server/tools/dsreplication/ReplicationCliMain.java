@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  *      Portions Copyright 2012 profiq s.r.o.
  */
 
@@ -7791,7 +7791,7 @@ public class ReplicationCliMain extends ConsoleApplication
           ReplicationDomainCfgDefn.getInstance(), domainName,
           new ArrayList<DefaultBehaviorException>());
       domain.setServerId(domainId);
-      domain.setBaseDN(DN.decode(baseDN));
+      domain.setBaseDN(DN.valueOf(baseDN));
       domain.setReplicationServer(replicationServers);
       mustCommit = true;
     }

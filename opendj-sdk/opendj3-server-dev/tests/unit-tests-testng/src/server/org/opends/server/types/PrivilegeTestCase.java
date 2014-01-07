@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -258,7 +258,7 @@ public class PrivilegeTestCase extends TypesTestCase
       boolean isRoot)
       throws DirectoryException
   {
-    Entry userEntry = DirectoryServer.getEntry(DN.decode(userDN));
+    Entry userEntry = DirectoryServer.getEntry(DN.valueOf(userDN));
     AuthenticationInfo authInfo = new AuthenticationInfo(userEntry, isRoot);
     return new InternalClientConnection(authInfo);
   }
@@ -293,7 +293,7 @@ public class PrivilegeTestCase extends TypesTestCase
 
   private void assertDeleteSuccessfully(String dn) throws DirectoryException
   {
-    DeleteOperation deleteOperation = getRootConnection().processDelete(DN.decode(dn));
+    DeleteOperation deleteOperation = getRootConnection().processDelete(DN.valueOf(dn));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -418,7 +418,7 @@ public class PrivilegeTestCase extends TypesTestCase
     assertEquals(conn.hasPrivilege(Privilege.CONFIG_READ, null), hasPrivilege);
 
     CompareOperation compareOperation =
-         conn.processCompare(DN.decode("cn=config"),
+         conn.processCompare(DN.valueOf("cn=config"),
                              DirectoryServer.getAttributeType("cn"),
              ByteString.valueOf("config"));
     if (hasPrivilege)
@@ -474,7 +474,7 @@ public class PrivilegeTestCase extends TypesTestCase
     DN dnToRemove = entry.getDN();
     if (!hasPrivilege)
     {
-      dnToRemove = DN.decode("cn=Telex Number,cn=Syntaxes,cn=config");
+      dnToRemove = DN.valueOf("cn=Telex Number,cn=Syntaxes,cn=config");
     }
     DeleteOperation deleteOperation = conn.processDelete(dnToRemove);
     assertPrivilege(deleteOperation.getResultCode(), hasPrivilege);
@@ -506,7 +506,7 @@ public class PrivilegeTestCase extends TypesTestCase
                               Attributes.create("ds-cfg-size-limit", "2000")));
 
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode("cn=config"), mods);
+         conn.processModify(DN.valueOf("cn=config"), mods);
     assertPrivilege(modifyOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
@@ -515,7 +515,7 @@ public class PrivilegeTestCase extends TypesTestCase
       mods.add(new Modification(ModificationType.REPLACE,
           Attributes.create("ds-cfg-size-limit", "1000")));
 
-      modifyOperation = conn.processModify(DN.decode("cn=config"), mods);
+      modifyOperation = conn.processModify(DN.valueOf("cn=config"), mods);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -544,7 +544,7 @@ public class PrivilegeTestCase extends TypesTestCase
     assertEquals(conn.hasPrivilege(Privilege.CONFIG_WRITE, null), hasPrivilege);
 
     ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN(DN.decode("cn=Work Queue,cn=config"),
+         conn.processModifyDN(DN.valueOf("cn=Work Queue,cn=config"),
                               RDN.decode("cn=New RDN for Work Queue"), true,
                               null);
     if (hasPrivilege)
@@ -602,7 +602,7 @@ public class PrivilegeTestCase extends TypesTestCase
     DN dnToRemove = entry.getDN();
     if (!hasPrivilege)
     {
-      dnToRemove = DN.decode("cn=Subentry Target,o=test");
+      dnToRemove = DN.valueOf("cn=Subentry Target,o=test");
     }
     DeleteOperation deleteOperation = conn.processDelete(dnToRemove);
     assertPrivilege(deleteOperation.getResultCode(), hasPrivilege);
@@ -636,7 +636,7 @@ public class PrivilegeTestCase extends TypesTestCase
                               "{base \"ou=doesnotexist\"}")));
 
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode("cn=Subentry Target,o=test"), mods);
+         conn.processModify(DN.valueOf("cn=Subentry Target,o=test"), mods);
     assertPrivilege(modifyOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
@@ -646,7 +646,7 @@ public class PrivilegeTestCase extends TypesTestCase
           Attributes.create("subtreeSpecification", "{}")));
 
       modifyOperation = conn.processModify(
-              DN.decode("cn=Subentry Target,o=test"), mods);
+              DN.valueOf("cn=Subentry Target,o=test"), mods);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -674,14 +674,14 @@ public class PrivilegeTestCase extends TypesTestCase
             hasPrivilege);
 
     ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN(DN.decode("cn=Subentry Target,o=test"),
+         conn.processModifyDN(DN.valueOf("cn=Subentry Target,o=test"),
                               RDN.decode("cn=New Subentry Target"),
                               true, null);
     assertPrivilege(modifyDNOperation.getResultCode(), hasPrivilege);
     if (hasPrivilege)
     {
       modifyDNOperation =
-         conn.processModifyDN(DN.decode("cn=New Subentry Target,o=test"),
+         conn.processModifyDN(DN.valueOf("cn=New Subentry Target,o=test"),
                               RDN.decode("cn=Subentry Target"),
                               true, null);
       assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
@@ -874,7 +874,7 @@ public class PrivilegeTestCase extends TypesTestCase
         Attributes.create("attributetypes", attrDefinition)));
 
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode("cn=schema"), mods);
+         conn.processModify(DN.valueOf("cn=schema"), mods);
     assertPrivilege(modifyOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
@@ -883,7 +883,7 @@ public class PrivilegeTestCase extends TypesTestCase
       mods.add(new Modification(ModificationType.DELETE,
           Attributes.create("attributetypes", attrDefinition)));
 
-      modifyOperation = conn.processModify(DN.decode("cn=schema"), mods);
+      modifyOperation = conn.processModify(DN.valueOf("cn=schema"), mods);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -1234,7 +1234,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "sn: Test");
 
     List<Control> controls = new ArrayList<Control>(1);
-    controls.add(new ProxiedAuthV1Control(DN.decode("cn=PWReset Target,o=test")));
+    controls.add(new ProxiedAuthV1Control(DN.valueOf("cn=PWReset Target,o=test")));
 
 
     // Try to add the entry.  If this fails with the proxy control, then add it
@@ -1315,7 +1315,7 @@ public class PrivilegeTestCase extends TypesTestCase
     // privileges the user actually has.
     boolean hasProxyPrivilege = conn.hasPrivilege(Privilege.PROXIED_AUTH, null);
 
-    DN targetDN = DN.decode("cn=PWReset Target,o=test");
+    DN targetDN = DN.valueOf("cn=PWReset Target,o=test");
     List<Control> controls = new ArrayList<Control>(1);
     controls.add(new ProxiedAuthV1Control(targetDN));
 
@@ -1468,7 +1468,7 @@ public class PrivilegeTestCase extends TypesTestCase
     // privileges the user actually has.
     boolean hasProxyPrivilege = conn.hasPrivilege(Privilege.PROXIED_AUTH, null);
 
-    DN targetDN = DN.decode("cn=PWReset Target,o=test");
+    DN targetDN = DN.valueOf("cn=PWReset Target,o=test");
     List<Control> controls = new ArrayList<Control>(1);
     controls.add(new ProxiedAuthV2Control(ByteString.valueOf("dn:" + targetDN)));
 
@@ -2339,7 +2339,7 @@ public class PrivilegeTestCase extends TypesTestCase
       assertEquals(bindResponse.getResultCode(), 0);
 
       CopyOnWriteArraySet<ClientConnection> connections = DirectoryServer
-          .getAuthenticatedUsers().get(DN.decode("cn=Test User,o=test"));
+          .getAuthenticatedUsers().get(DN.valueOf("cn=Test User,o=test"));
 
       assertNotNull(connections);
       assertEquals(connections.size(), 1);
@@ -2357,7 +2357,7 @@ public class PrivilegeTestCase extends TypesTestCase
       mods.add(new Modification(ModificationType.ADD, Attributes.create(
           "ds-privilege-name", "config-read")));
       ModifyOperation modifyOperation = rootConnection.processModify(
-          DN.decode("cn=Test User,o=test"), mods);
+          DN.valueOf("cn=Test User,o=test"), mods);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
       assertTrue(testConnection.hasPrivilege(Privilege.CONFIG_READ, null));
 
@@ -2367,7 +2367,7 @@ public class PrivilegeTestCase extends TypesTestCase
       mods.add(new Modification(ModificationType.DELETE, Attributes.create(
           "ds-privilege-name", "config-read")));
       modifyOperation = rootConnection.processModify(
-          DN.decode("cn=Test User,o=test"), mods);
+          DN.valueOf("cn=Test User,o=test"), mods);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
       assertFalse(testConnection.hasPrivilege(Privilege.CONFIG_READ, null));
 
@@ -2393,7 +2393,7 @@ public class PrivilegeTestCase extends TypesTestCase
   {
     // Make sure that a root connection doesn't  have the proxied auth
     // privilege.
-    DN unprivRootDN = DN.decode("cn=Unprivileged Root,cn=Root DNs,cn=config");
+    DN unprivRootDN = DN.valueOf("cn=Unprivileged Root,cn=Root DNs,cn=config");
     Entry unprivRootEntry = DirectoryServer.getEntry(unprivRootDN);
     AuthenticationInfo authInfo = new AuthenticationInfo(unprivRootEntry, true);
     InternalClientConnection unprivRootConn =
@@ -2408,7 +2408,7 @@ public class PrivilegeTestCase extends TypesTestCase
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("ds-cfg-default-root-privilege-name",
                                     "proxied-auth")));
-    ModifyOperation modifyOperation = internalRootConn.processModify(DN.decode("cn=Root DNs,cn=config"), mods);
+    ModifyOperation modifyOperation = internalRootConn.processModify(DN.valueOf("cn=Root DNs,cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2424,7 +2424,7 @@ public class PrivilegeTestCase extends TypesTestCase
     mods.add(new Modification(ModificationType.DELETE,
         Attributes.create("ds-cfg-default-root-privilege-name",
                                     "proxied-auth")));
-    modifyOperation = internalRootConn.processModify(DN.decode("cn=Root DNs,cn=config"), mods);
+    modifyOperation = internalRootConn.processModify(DN.valueOf("cn=Root DNs,cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2497,7 +2497,7 @@ public class PrivilegeTestCase extends TypesTestCase
   private Task getCompletedTask(DN taskEntryDN) throws Exception
   {
     TaskBackend taskBackend =
-         (TaskBackend) DirectoryServer.getBackend(DN.decode("cn=tasks"));
+         (TaskBackend) DirectoryServer.getBackend(DN.valueOf("cn=tasks"));
     Task task = taskBackend.getScheduledTask(taskEntryDN);
     if (task == null)
     {

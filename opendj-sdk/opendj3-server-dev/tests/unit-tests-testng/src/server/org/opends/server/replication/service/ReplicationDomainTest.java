@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -75,7 +75,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       int domain1ServerId, int domain2ServerId)
       throws Exception
   {
-    DN testService = DN.decode("o=test");
+    DN testService = DN.valueOf("o=test");
     ReplicationServer replServer1 = null;
     ReplicationServer replServer2 = null;
     FakeReplicationDomain domain1 = null;
@@ -201,7 +201,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   @Test(enabled=false)
   public void publishPerf() throws Exception
   {
-    DN testService = DN.decode("o=test");
+    DN testService = DN.valueOf("o=test");
     ReplicationServer replServer1 = null;
     int replServerID1 = 10;
     FakeReplicationDomain domain1 = null;
@@ -303,7 +303,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   public void exportAndImport(int serverId1, int serverId2) throws Exception
   {
     final int ENTRYCOUNT=5000;
-    DN testService = DN.decode("o=test");
+    DN testService = DN.valueOf("o=test");
     ReplicationServer replServer = null;
     int replServerID = 11;
     FakeReplicationDomain domain1 = null;
@@ -371,7 +371,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   public void exportAndImportAcross2ReplServers() throws Exception
   {
     final int ENTRYCOUNT=5000;
-    DN testService = DN.decode("o=test");
+    DN testService = DN.valueOf("o=test");
     ReplicationServer replServer2 = null;
     ReplicationServer replServer1 = null;
     int replServerID = 11;
@@ -454,7 +454,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   @Test(enabled=false)
   public void senderInitialize() throws Exception
   {
-    DN testService = DN.decode("o=test");
+    DN testService = DN.valueOf("o=test");
     ReplicationServer replServer = null;
     int replServerID = 12;
     FakeStressReplicationDomain domain1 = null;
@@ -487,7 +487,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   @Test(enabled=false)
   public void receiverInitialize() throws Exception
   {
-    DN testService = DN.decode("o=test");
+    DN testService = DN.valueOf("o=test");
     ReplicationServer replServer = null;
     int replServerID = 11;
     FakeStressReplicationDomain domain1 = null;

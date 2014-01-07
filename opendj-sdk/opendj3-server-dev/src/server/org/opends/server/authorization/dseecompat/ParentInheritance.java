@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -186,7 +187,7 @@ public class ParentInheritance {
                 throw new AciException(message);
               }
               baseDN=url.getBaseDN();
-              if(baseDN.isNullDN()){
+              if(baseDN.isRootDN()){
                 Message message =
                     WARN_ACI_SYNTAX_INVALID_USERATTR_BASEDN_URL.get(pattern);
                 throw new AciException(message);

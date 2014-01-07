@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -342,7 +342,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   protected void addValuesInRDN(Entry entry)
   {
 //  Add the values in the RDN if  they are not there
-    RDN rdn = entry.getDN().getRDN();
+    RDN rdn = entry.getDN().rdn();
     for (int i=0; i<rdn.getNumValues(); i++)
     {
       String attrName = rdn.getAttributeName(i);

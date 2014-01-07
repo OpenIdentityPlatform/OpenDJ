@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 import org.opends.messages.Message;
@@ -190,7 +191,7 @@ public class DNTag
                                  TemplateValue templateValue)
   {
     DN dn = templateEntry.getDN();
-    if ((dn == null) || dn.isNullDN())
+    if ((dn == null) || dn.isRootDN())
     {
       return TagResult.SUCCESS_RESULT;
     }
@@ -201,7 +202,7 @@ public class DNTag
     }
     else if (numComponents > 0)
     {
-      int count = Math.min(numComponents, dn.getNumComponents());
+      int count = Math.min(numComponents, dn.size());
 
       dn.getRDN(0).toString(templateValue.getValue());
       for (int i = 1; i < count; i++)
@@ -212,7 +213,7 @@ public class DNTag
     }
     else
     {
-      int sz = dn.getNumComponents();
+      int sz = dn.size();
       int count = Math.min(Math.abs(numComponents), sz);
 
       dn.getRDN(sz - count).toString(templateValue.getValue());

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -214,7 +214,7 @@ public class RootDSEBackend
 
     // Create the set of base DNs that we will handle.  In this case, it's just
     // the root DSE.
-    rootDSEDN    = DN.nullDN();
+    rootDSEDN    = DN.rootDN();
     this.baseDNs = new DN[] { rootDSEDN };
 
 
@@ -427,7 +427,7 @@ public class RootDSEBackend
   public long numSubordinates(DN entryDN, boolean subtree)
          throws DirectoryException
   {
-    if (entryDN == null || ! entryDN.isNullDN())
+    if (entryDN == null || ! entryDN.isRootDN())
     {
       return -1;
     }
@@ -478,7 +478,7 @@ public class RootDSEBackend
          throws DirectoryException
   {
     // If the requested entry was the root DSE, then create and return it.
-    if ((entryDN == null) || entryDN.isNullDN())
+    if ((entryDN == null) || entryDN.isRootDN())
     {
       return getRootDSE();
     }
@@ -1018,7 +1018,7 @@ public class RootDSEBackend
          throws DirectoryException
   {
     // If the specified DN was the null DN, then it exists.
-    if (entryDN.isNullDN())
+    if (entryDN.isRootDN())
     {
       return true;
     }
@@ -1118,7 +1118,7 @@ public class RootDSEBackend
   public void search(SearchOperation searchOperation)
          throws DirectoryException, CanceledOperationException {
     DN baseDN = searchOperation.getBaseDN();
-    if (! baseDN.isNullDN())
+    if (! baseDN.isRootDN())
     {
       Message message = ERR_ROOTDSE_INVALID_SEARCH_BASE.
           get(searchOperation.getConnectionID(),

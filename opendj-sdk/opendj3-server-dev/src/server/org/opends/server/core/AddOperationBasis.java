@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -795,7 +795,7 @@ public class AddOperationBasis
         // This is fine.  This entry is one of the configured suffixes.
         return;
       }
-      if (entryDN.isNullDN())
+      if (entryDN.isRootDN())
       {
         // This is not fine.  The root DSE cannot be added.
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);

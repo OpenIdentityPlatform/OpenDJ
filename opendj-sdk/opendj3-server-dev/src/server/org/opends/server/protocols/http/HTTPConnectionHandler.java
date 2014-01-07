@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.http;
 
@@ -476,7 +477,7 @@ public class HTTPConnectionHandler extends
   {
     if (friendlyName == null)
     {
-      friendlyName = config.dn().getRDN().getAttributeValue(0).toString();
+      friendlyName = config.dn().rdn().getAttributeValue(0).toString();
     }
 
     int listenPort = config.getListenPort();

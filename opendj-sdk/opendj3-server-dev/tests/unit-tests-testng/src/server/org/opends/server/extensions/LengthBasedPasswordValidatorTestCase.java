@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -371,7 +372,7 @@ public class LengthBasedPasswordValidatorTestCase
       ModifyOperationBasis op =
            new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
-                               DN.decode("cn=uid=test.user,o=test"), mods);
+                               DN.valueOf("cn=uid=test.user,o=test"), mods);
 
       MessageBuilder invalidReason = new MessageBuilder();
       assertTrue(validator.passwordIsAcceptable(password,
@@ -444,7 +445,7 @@ public class LengthBasedPasswordValidatorTestCase
       ModifyOperationBasis op =
            new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
-                               DN.decode("cn=uid=test.user,o=test"), mods);
+                               DN.valueOf("cn=uid=test.user,o=test"), mods);
 
       MessageBuilder invalidReason = new MessageBuilder();
       assertEquals((buffer.length() >= 10),
@@ -519,7 +520,7 @@ public class LengthBasedPasswordValidatorTestCase
       ModifyOperationBasis op =
            new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
-                               DN.decode("cn=uid=test.user,o=test"), mods);
+                               DN.valueOf("cn=uid=test.user,o=test"), mods);
 
       MessageBuilder invalidReason = new MessageBuilder();
       assertEquals((buffer.length() <= 10),
@@ -594,7 +595,7 @@ public class LengthBasedPasswordValidatorTestCase
       ModifyOperationBasis op =
            new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
-                               DN.decode("cn=uid=test.user,o=test"), mods);
+                               DN.valueOf("cn=uid=test.user,o=test"), mods);
 
       MessageBuilder invalidReason = new MessageBuilder();
       assertEquals(((buffer.length() >= 6) && (buffer.length() <= 10)),

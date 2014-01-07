@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -316,9 +317,9 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
     };
 
-    DN parent = dn.getParent();
+    DN parent = dn.parent();
     if (parent != null) {
-      ConfigEntry configEntry = getConfigEntry(dn.getParent());
+      ConfigEntry configEntry = getConfigEntry(dn.parent());
       if (configEntry != null) {
         configEntry.registerDeleteListener(cleanerListener);
       }
@@ -439,7 +440,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
     // Now remove the cleaner listener as it will no longer be
     // needed.
-    ConfigEntry parentConfigEntry = getConfigEntry(dn.getParent());
+    ConfigEntry parentConfigEntry = getConfigEntry(dn.parent());
     if (parentConfigEntry != null) {
       parentConfigEntry.deregisterDeleteListener(cleanerListener);
     }

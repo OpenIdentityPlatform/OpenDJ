@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -661,7 +661,7 @@ public class LocalBackendAddOperation
       // This is fine.  This entry is one of the configured suffixes.
       return null;
     }
-    else if (entryDN.isNullDN())
+    else if (entryDN.isRootDN())
     {
       // This is not fine.  The root DSE cannot be added.
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -687,7 +687,7 @@ public class LocalBackendAddOperation
    */
   private void addRDNAttributesIfNecessary() throws DirectoryException
   {
-    RDN rdn = entryDN.getRDN();
+    RDN rdn = entryDN.rdn();
     int numAVAs = rdn.getNumValues();
     for (int i=0; i < numAVAs; i++)
     {
@@ -1235,7 +1235,7 @@ public class LocalBackendAddOperation
           setAuthorizationEntry(authorizationEntry);
           if (authorizationEntry == null)
           {
-            setProxiedAuthorizationDN(DN.nullDN());
+            setProxiedAuthorizationDN(DN.rootDN());
           }
           else
           {
@@ -1260,7 +1260,7 @@ public class LocalBackendAddOperation
           setAuthorizationEntry(authorizationEntry);
           if (authorizationEntry == null)
           {
-            setProxiedAuthorizationDN(DN.nullDN());
+            setProxiedAuthorizationDN(DN.rootDN());
           }
           else
           {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -517,7 +517,7 @@ public class FileSystemEntryCacheTestCase
       cache.toVerboseString());
 
     // Put some test entries in the cache.
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       super.cache.putEntry(super.testEntriesList.get(i), b, i);
     }
@@ -560,7 +560,7 @@ public class FileSystemEntryCacheTestCase
     setupLRUCache();
 
     // Put some test entries in the cache.
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
+    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     for(int i = 0; i < super.NUMTESTENTRIES; i++) {
       super.cache.putEntry(super.testEntriesList.get(i), b, i);
       // Sacrifice one cache entry to support rotation.
@@ -620,7 +620,7 @@ public class FileSystemEntryCacheTestCase
     persistentCacheSetup();
 
     // Put some test entries in the cache.
-    Backend b = DirectoryServer.getBackend(DN.decode("o=cachetest"));
+    Backend b = DirectoryServer.getBackend(DN.valueOf("o=cachetest"));
     for(int i = 0; i < super.NUMTESTENTRIES; i++) {
       super.cache.putEntry(super.testEntriesList.get(i), b, i);
     }
@@ -672,7 +672,7 @@ public class FileSystemEntryCacheTestCase
     persistentCacheSetup();
 
     // Put some test entries in the cache.
-    Backend b = DirectoryServer.getBackend(DN.decode("o=cachetest"));
+    Backend b = DirectoryServer.getBackend(DN.valueOf("o=cachetest"));
     for(int i = 0; i < super.NUMTESTENTRIES; i++) {
       super.cache.putEntry(super.testEntriesList.get(i), b, i);
     }

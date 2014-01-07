@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -123,7 +124,7 @@ public class AllowedTaskTestCase
     assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
                  LDAPResultCode.SUCCESS);
 
-    Task task = getCompletedTask(DN.decode(
+    Task task = getCompletedTask(DN.valueOf(
          "ds-task-id=testAllowedTask 2,cn=Scheduled Tasks,cn=Tasks"));
     assertNotNull(task);
     assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);

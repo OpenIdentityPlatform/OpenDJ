@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.api;
@@ -249,9 +249,9 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
     size++;
 
     // Update parent hierarchy.
-    for (DN parentDN = key.getParent();
+    for (DN parentDN = key.parent();
          parentDN != null;
-         parentDN = parentDN.getParent())
+         parentDN = parentDN.parent())
     {
       final Node<T> parentNode = ditCacheMap.get(parentDN);
 

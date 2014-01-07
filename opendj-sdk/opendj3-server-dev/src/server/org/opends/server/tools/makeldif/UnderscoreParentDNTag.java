@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 import org.opends.messages.Message;
@@ -123,13 +124,13 @@ public class UnderscoreParentDNTag
                                  TemplateValue templateValue)
   {
     DN parentDN = templateEntry.getParentDN();
-    if ((parentDN == null) || parentDN.isNullDN())
+    if ((parentDN == null) || parentDN.isRootDN())
     {
       return TagResult.SUCCESS_RESULT;
     }
 
     parentDN.getRDN(0).toString(templateValue.getValue());
-    for (int i=1; i < parentDN.getNumComponents(); i++)
+    for (int i=1; i < parentDN.size(); i++)
     {
       templateValue.append("_");
       parentDN.getRDN(i).toString(templateValue.getValue());

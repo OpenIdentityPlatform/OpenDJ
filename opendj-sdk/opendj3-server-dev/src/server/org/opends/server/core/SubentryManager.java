@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -119,7 +119,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    */
   public SubentryManager() throws DirectoryException
   {
-    super(DN.decode(CONFIG_DN), EnumSet.of(
+    super(DN.valueOf(CONFIG_DN), EnumSet.of(
           PluginType.PRE_OPERATION_ADD,
           PluginType.PRE_OPERATION_DELETE,
           PluginType.PRE_OPERATION_MODIFY,
@@ -473,7 +473,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     try
     {
       for (DN subDN = dn; subDN != null;
-           subDN = subDN.getParent())
+           subDN = subDN.parent())
       {
         List<SubEntry> subList = dn2SubEntry.get(subDN);
         if (subList != null)
@@ -519,7 +519,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     try
     {
       for (DN subDN = entry.getDN(); subDN != null;
-           subDN = subDN.getParent())
+           subDN = subDN.parent())
       {
         List<SubEntry> subList = dn2SubEntry.get(subDN);
         if (subList != null)
@@ -565,7 +565,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     try
     {
       for (DN subDN = dn; subDN != null;
-           subDN = subDN.getParent())
+           subDN = subDN.parent())
       {
         List<SubEntry> subList = dn2CollectiveSubEntry.get(subDN);
         if (subList != null)
@@ -611,7 +611,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     try
     {
       for (DN subDN = entry.getDN(); subDN != null;
-           subDN = subDN.getParent())
+           subDN = subDN.parent())
       {
         List<SubEntry> subList = dn2CollectiveSubEntry.get(subDN);
         if (subList != null)
@@ -887,7 +887,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
                   newDNString);
           String subentryDNString = builder.toString();
           newEntry = subentry.getEntry().duplicate(false);
-          newEntry.setDN(DN.decode(subentryDNString));
+          newEntry.setDN(DN.valueOf(subentryDNString));
           addSubEntry(newEntry);
         }
         catch (Exception e)
@@ -1119,7 +1119,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
                   newDNString);
           String subentryDNString = builder.toString();
           newEntry = subentry.getEntry().duplicate(false);
-          newEntry.setDN(DN.decode(subentryDNString));
+          newEntry.setDN(DN.valueOf(subentryDNString));
         }
         catch (Exception e)
         {

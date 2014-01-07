@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -180,7 +181,7 @@ class UniqueMemberEqualityMatchingRule
     StringBuilder valueBuffer = new StringBuilder(valueLength);
     try
     {
-      DN dn = DN.decode(valueString.substring(0, dnEndPos));
+      DN dn = DN.valueOf(valueString.substring(0, dnEndPos));
       dn.toNormalizedString(valueBuffer);
     }
     catch (Exception e)

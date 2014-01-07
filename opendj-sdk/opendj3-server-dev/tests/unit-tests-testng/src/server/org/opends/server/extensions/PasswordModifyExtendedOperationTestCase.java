@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -188,7 +188,7 @@ public class PasswordModifyExtendedOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSimpleBind(DN.decode("cn=Directory Manager"),
+         conn.processSimpleBind(DN.valueOf("cn=Directory Manager"),
                                 ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -245,7 +245,7 @@ public class PasswordModifyExtendedOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSimpleBind(DN.decode("cn=Directory Manager"),
+         conn.processSimpleBind(DN.valueOf("cn=Directory Manager"),
                                 ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -301,7 +301,7 @@ public class PasswordModifyExtendedOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         conn.processSimpleBind(DN.decode("cn=Directory Manager"),
+         conn.processSimpleBind(DN.valueOf("cn=Directory Manager"),
                                 ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -1244,7 +1244,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1267,7 +1267,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1314,7 +1314,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attr, "false")));
     ModifyOperation modifyOperation =
-        conn.processModify(DN.decode(dnStr), mods);
+        conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -1376,7 +1376,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attr, "false")));
     ModifyOperation modifyOperation =
-        conn.processModify(DN.decode(dnStr), mods);
+        conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -1504,7 +1504,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "false")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1526,7 +1526,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "true")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1572,7 +1572,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "false")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1595,7 +1595,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "true")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1641,7 +1641,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1664,7 +1664,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1710,7 +1710,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1732,7 +1732,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1778,7 +1778,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1800,7 +1800,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1846,7 +1846,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1869,7 +1869,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1915,7 +1915,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "24 hours")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1936,7 +1936,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "0 seconds")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1982,7 +1982,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "24 hours")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2004,7 +2004,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "0 seconds")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -2055,7 +2055,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr2, "true")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2086,7 +2086,7 @@ public class PasswordModifyExtendedOperationTestCase
                               Attributes.create(attr1, "0 seconds")));
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr2, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -2140,7 +2140,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr3, "true")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2174,7 +2174,7 @@ public class PasswordModifyExtendedOperationTestCase
                               Attributes.create(attr2, "false")));
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr3, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -2222,7 +2222,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                       Attributes.empty(DirectoryServer.getAttributeType(attr))));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2244,7 +2244,7 @@ public class PasswordModifyExtendedOperationTestCase
          "cn=Random Password Generator,cn=Password Generators,cn=config";
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, genDN)));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -2292,7 +2292,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                       Attributes.empty(DirectoryServer.getAttributeType(attr))));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2314,7 +2314,7 @@ public class PasswordModifyExtendedOperationTestCase
          "cn=Random Password Generator,cn=Password Generators,cn=config";
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, genDN)));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -2363,7 +2363,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, valDN)));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2384,7 +2384,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                       Attributes.empty(DirectoryServer.getAttributeType(attr))));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -2433,7 +2433,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, valDN)));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2454,7 +2454,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                       Attributes.empty(DirectoryServer.getAttributeType(attr))));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -2495,7 +2495,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2526,7 +2526,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -2570,7 +2570,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
+         conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2601,7 +2601,7 @@ public class PasswordModifyExtendedOperationTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
+    modifyOperation = conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -2654,7 +2654,7 @@ public class PasswordModifyExtendedOperationTestCase
            DirectoryServer.getAttributeType("ds-pwp-last-login-time", false);
       assertNotNull(lastLoginTimeAttr);
 
-      DN userDN = DN.decode("uid=test.user,o=test");
+      DN userDN = DN.valueOf("uid=test.user,o=test");
       Entry userEntry = DirectoryServer.getEntry(userDN);
       assertNotNull(userEntry);
       assertFalse(userEntry.hasAttribute(lastLoginTimeAttr));
@@ -2726,7 +2726,7 @@ public class PasswordModifyExtendedOperationTestCase
            DirectoryServer.getAttributeType("pwdfailuretime", false);
       assertNotNull(authFailureTimesAttr);
 
-      DN userDN = DN.decode("uid=test.user,o=test");
+      DN userDN = DN.valueOf("uid=test.user,o=test");
       Entry userEntry = DirectoryServer.getEntry(userDN);
       assertNotNull(userEntry);
       assertFalse(userEntry.hasAttribute(authFailureTimesAttr));

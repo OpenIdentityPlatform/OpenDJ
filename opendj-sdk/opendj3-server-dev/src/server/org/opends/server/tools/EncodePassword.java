@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -887,7 +887,7 @@ public class EncodePassword
     RootCfg root = context.getRootConfiguration();
     ConfigEntry backendRoot;
     try {
-      DN configEntryDN = DN.decode(ConfigConstants.DN_BACKEND_BASE);
+      DN configEntryDN = DN.valueOf(ConfigConstants.DN_BACKEND_BASE);
       backendRoot   = DirectoryServer.getConfigEntry(configEntryDN);
     } catch (Exception e) {
       if (debugEnabled()) {

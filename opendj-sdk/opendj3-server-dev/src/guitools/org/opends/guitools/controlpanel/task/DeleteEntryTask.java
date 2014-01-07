@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -103,7 +103,7 @@ public class DeleteEntryTask extends Task
       BasicNode node = (BasicNode)path.getLastPathComponent();
       try
       {
-        DN dn = DN.decode(node.getDN());
+        DN dn = DN.valueOf(node.getDN());
         entries.add(dn);
       }
       catch (DirectoryException de)
@@ -225,7 +225,7 @@ public class DeleteEntryTask extends Task
         BasicNode node = (BasicNode)path.getLastPathComponent();
         try
         {
-          DN dn = DN.decode(node.getDN());
+          DN dn = DN.valueOf(node.getDN());
           boolean isDnDeleted = false;
           for (DN deletedDn : alreadyDeleted)
           {
@@ -378,7 +378,7 @@ public class DeleteEntryTask extends Task
           {
             CustomSearchResult res =
               new CustomSearchResult(sr, dnToRemove.toString());
-            entryDNFound = DN.decode(res.getDN());
+            entryDNFound = DN.valueOf(res.getDN());
             deleteSubtreeRecursively(ctx, entryDNFound, null, toNotify);
           }
         }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.tools.dsreplication;
 
@@ -163,7 +163,7 @@ public class LocalPurgeHistorical
       // launch the job
       for (String baseDN : uData.getBaseDNs())
       {
-        DN dn = DN.decode(baseDN);
+        DN dn = DN.valueOf(baseDN);
         // We can assume that this is an LDAP replication domain
         LDAPReplicationDomain domain =
             LDAPReplicationDomain.retrievesReplicationDomain(dn);

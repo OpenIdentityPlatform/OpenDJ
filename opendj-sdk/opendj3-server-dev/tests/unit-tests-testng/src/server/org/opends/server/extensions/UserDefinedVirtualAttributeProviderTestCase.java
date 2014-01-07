@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -119,7 +119,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       InternalSearchOperation searchOperation =
           new InternalSearchOperation(conn, InternalClientConnection
               .nextOperationID(), InternalClientConnection
-              .nextMessageID(), null, DN.decode(ruleDN),
+              .nextMessageID(), null, DN.valueOf(ruleDN),
               SearchScope.BASE_OBJECT,
               DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
@@ -147,7 +147,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     finally
     {
       DeleteOperation deleteOperation =
-          conn.processDelete(DN.decode(ruleDN));
+          conn.processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -187,7 +187,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       InternalSearchOperation searchOperation =
           new InternalSearchOperation(conn, InternalClientConnection
               .nextOperationID(), InternalClientConnection
-              .nextMessageID(), null, DN.decode(ruleDN),
+              .nextMessageID(), null, DN.valueOf(ruleDN),
               SearchScope.BASE_OBJECT,
               DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
@@ -214,7 +214,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     finally
     {
       DeleteOperation deleteOperation =
-          conn.processDelete(DN.decode(ruleDN));
+          conn.processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -267,7 +267,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     try
     {
       InternalSearchOperation searchOperation =
-          conn.processSearch(DN.decode(userDN),
+          conn.processSearch(DN.valueOf(userDN),
               SearchScope.BASE_OBJECT, SearchFilter
                   .createFilterFromString("(objectClass=*)"));
 
@@ -285,7 +285,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     finally
     {
       DeleteOperation deleteOperation =
-          conn.processDelete(DN.decode(ruleDN));
+          conn.processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -340,7 +340,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     try
     {
       InternalSearchOperation searchOperation =
-          conn.processSearch(DN.decode(userDN),
+          conn.processSearch(DN.valueOf(userDN),
               SearchScope.BASE_OBJECT, SearchFilter
                   .createFilterFromString("(objectClass=*)"));
 
@@ -360,7 +360,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     finally
     {
       DeleteOperation deleteOperation =
-          conn.processDelete(DN.decode(ruleDN));
+          conn.processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -415,7 +415,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     try
     {
       InternalSearchOperation searchOperation =
-          conn.processSearch(DN.decode(userDN),
+          conn.processSearch(DN.valueOf(userDN),
               SearchScope.BASE_OBJECT, SearchFilter
                   .createFilterFromString("(objectClass=*)"));
 
@@ -433,7 +433,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     finally
     {
       DeleteOperation deleteOperation =
-          conn.processDelete(DN.decode(ruleDN));
+          conn.processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -488,7 +488,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     try
     {
       InternalSearchOperation searchOperation =
-          conn.processSearch(DN.decode(userDN),
+          conn.processSearch(DN.valueOf(userDN),
               SearchScope.BASE_OBJECT, SearchFilter
                   .createFilterFromString("(objectClass=*)"));
 
@@ -506,7 +506,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     finally
     {
       DeleteOperation deleteOperation =
-          conn.processDelete(DN.decode(ruleDN));
+          conn.processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -561,7 +561,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     try
     {
       InternalSearchOperation searchOperation =
-          conn.processSearch(DN.decode(userDN),
+          conn.processSearch(DN.valueOf(userDN),
               SearchScope.BASE_OBJECT, SearchFilter
                   .createFilterFromString("(objectClass=*)"));
 
@@ -583,7 +583,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     finally
     {
       DeleteOperation deleteOperation =
-          conn.processDelete(DN.decode(ruleDN));
+          conn.processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -645,7 +645,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       attributes.add("description");
 
       InternalSearchOperation searchOperation =
-          conn.processSearch(DN.decode(userDN),
+          conn.processSearch(DN.valueOf(userDN),
               SearchScope.BASE_OBJECT,
               DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
@@ -668,7 +668,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     finally
     {
       DeleteOperation deleteOperation =
-          conn.processDelete(DN.decode(ruleDN));
+          conn.processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -780,10 +780,10 @@ public class UserDefinedVirtualAttributeProviderTestCase
           InternalClientConnection.getRootConnection();
 
       DeleteOperation deleteOperation =
-          conn.processDelete(DN.decode(ruleDN));
+          conn.processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-      deleteOperation = conn.processDelete(DN.decode(policyDN));
+      deleteOperation = conn.processDelete(DN.valueOf(policyDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -867,7 +867,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
           InternalClientConnection.getRootConnection();
 
       DeleteOperation deleteOperation =
-          conn.processDelete(DN.decode(ruleDN));
+          conn.processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }

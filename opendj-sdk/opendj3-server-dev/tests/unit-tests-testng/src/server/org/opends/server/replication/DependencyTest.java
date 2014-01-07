@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -69,7 +69,7 @@ public class DependencyTest extends ReplicationTestCase
   @BeforeClass
   public void setup() throws Exception
   {
-     TEST_ROOT_DN = DN.decode(TEST_ROOT_DN_STRING);
+     TEST_ROOT_DN = DN.valueOf(TEST_ROOT_DN_STRING);
   }
   
   /**
@@ -150,7 +150,7 @@ public class DependencyTest extends ReplicationTestCase
         entry.removeAttribute(uidType);
         entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)),
                            new LinkedList<AttributeValue>());
-        addDN = DN.decode("dc=dependency" + sequence + "," + addDN);
+        addDN = DN.valueOf("dc=dependency" + sequence + "," + addDN);
         AddMsg addMsg =
           new AddMsg(gen.newCSN(), addDN, stringUID(sequence+1),
                      stringUID(sequence),
@@ -184,7 +184,7 @@ public class DependencyTest extends ReplicationTestCase
       addDN = TEST_ROOT_DN;
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
       {
-        addDN = DN.decode("dc=dependency" + sequence + "," + addDN);
+        addDN = DN.valueOf("dc=dependency" + sequence + "," + addDN);
 
         boolean found = checkEntryHasAttribute(addDN, "description", "test", 10000, true);
         assertTrue(found, "The modification was not replayed on entry " + addDN);
@@ -210,7 +210,7 @@ public class DependencyTest extends ReplicationTestCase
       {
         DeleteMsg delMsg = new DeleteMsg(deleteDN, gen.newCSN(), stringUID(sequence + 1));
         broker.publish(delMsg);
-        deleteDN = deleteDN.getParent();
+        deleteDN = deleteDN.parent();
       }
 
       domain.enable();
@@ -218,7 +218,7 @@ public class DependencyTest extends ReplicationTestCase
       // check that entry just below the base entry was deleted.
       // (we can't delete the base entry because some other tests might
       // have added other children)
-      DN node1 = DN.decode("dc=dependency1," + TEST_ROOT_DN_STRING);
+      DN node1 = DN.valueOf("dc=dependency1," + TEST_ROOT_DN_STRING);
       Entry baseEntry = getEntry(node1, 30000, false);
       assertNull(baseEntry,
                  "The last entry of the DEL sequence was not deleted.");
@@ -289,7 +289,7 @@ public class DependencyTest extends ReplicationTestCase
       entry.addAttribute(Attributes.create("entryuuid",
                          stringUID(renamedEntryUuid)),
                          new LinkedList<AttributeValue>());
-      DN addDN = DN.decode("dc=moddndel" + "," + TEST_ROOT_DN_STRING);
+      DN addDN = DN.valueOf("dc=moddndel" + "," + TEST_ROOT_DN_STRING);
       AddMsg addMsg =
           new AddMsg(gen.newCSN(), addDN, stringUID(renamedEntryUuid),
                    stringUID(1),
@@ -314,7 +314,7 @@ public class DependencyTest extends ReplicationTestCase
                         stringUID(1), true, null, "dc=new_name");
       broker.publish(moddnMsg);
       DeleteMsg delMsg =
-        new DeleteMsg(DN.decode("dc=new_name" + "," + TEST_ROOT_DN_STRING),
+        new DeleteMsg(DN.valueOf("dc=new_name" + "," + TEST_ROOT_DN_STRING),
                       gen.newCSN(), stringUID(renamedEntryUuid));
       broker.publish(delMsg);
 
@@ -323,7 +323,7 @@ public class DependencyTest extends ReplicationTestCase
 
       // check that entry does not exist anymore.
       Thread.sleep(10000);
-      found = checkEntryHasAttribute(DN.decode("dc=new_name" + "," + TEST_ROOT_DN_STRING),
+      found = checkEntryHasAttribute(DN.valueOf("dc=new_name" + "," + TEST_ROOT_DN_STRING),
                                      "entryuuid",
                                      stringUID(renamedEntryUuid),
                                      30000, false);
@@ -416,7 +416,7 @@ public class DependencyTest extends ReplicationTestCase
         entry.removeAttribute(uidType);
         entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)),
                            new LinkedList<AttributeValue>());
-        DN addDN = DN.decode("dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING);
+        DN addDN = DN.valueOf("dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING);
         AddMsg addMsg =
           new AddMsg(gen.newCSN(), addDN, stringUID(sequence+1),
                      stringUID(1),
@@ -455,7 +455,7 @@ public class DependencyTest extends ReplicationTestCase
         String addDn = "dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING;
 
         boolean found =
-          checkEntryHasAttribute(DN.decode(addDn), "entryuuid",
+          checkEntryHasAttribute(DN.valueOf(addDn), "entryuuid",
                                  stringUID(sequence+1025),
                                  30000, true);
         if (!found)
@@ -466,7 +466,7 @@ public class DependencyTest extends ReplicationTestCase
 
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
       {
-        DN deleteDN = DN.decode("dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING);
+        DN deleteDN = DN.valueOf("dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING);
         DeleteMsg delMsg = new DeleteMsg(deleteDN,
                                          gen.newCSN(),
                                          stringUID(sequence + 1025));
@@ -474,7 +474,7 @@ public class DependencyTest extends ReplicationTestCase
       }
 
       // check that the database was cleaned successfully
-      DN node1 = DN.decode("dc=dependency1," + TEST_ROOT_DN_STRING);
+      DN node1 = DN.valueOf("dc=dependency1," + TEST_ROOT_DN_STRING);
       Entry baseEntry = getEntry(node1, 30000, false);
       assertNull(baseEntry,
         "The entry were not removed succesfully after test completion.");
@@ -537,7 +537,7 @@ public class DependencyTest extends ReplicationTestCase
         entry.removeAttribute(uidType);
         entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)),
                            new LinkedList<AttributeValue>());
-        addDN = DN.decode("dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING);
+        addDN = DN.valueOf("dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING);
         AddMsg addMsg =
           new AddMsg(gen.newCSN(), addDN, stringUID(sequence+1),
                      stringUID(1),
@@ -562,7 +562,7 @@ public class DependencyTest extends ReplicationTestCase
       // check that all entries have been renamed
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
       {
-        addDN = DN.decode("dc=new_dep" + sequence + "," + TEST_ROOT_DN_STRING);
+        addDN = DN.valueOf("dc=new_dep" + sequence + "," + TEST_ROOT_DN_STRING);
         Entry baseEntry = getEntry(addDN, 30000, true);
         assertNotNull(baseEntry,
           "The rename was not applied correctly on :" + addDN);
@@ -571,7 +571,7 @@ public class DependencyTest extends ReplicationTestCase
       // delete the entries to clean the database.
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
       {
-        addDN = DN.decode("dc=new_dep" + sequence + "," + TEST_ROOT_DN_STRING);
+        addDN = DN.valueOf("dc=new_dep" + sequence + "," + TEST_ROOT_DN_STRING);
         DeleteMsg delMsg = new DeleteMsg(addDN, gen.newCSN(), stringUID(sequence + 1));
         broker.publish(delMsg);
       }

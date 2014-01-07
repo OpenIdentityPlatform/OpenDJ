@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -422,7 +422,7 @@ implements BackendPopulatedListener
 
             try
             {
-              DN dn = DN.decode(newBaseDn);
+              DN dn = DN.valueOf(newBaseDn);
               newElement = new CategorizedComboBoxElement(
                   Utilities.unescapeUtf8(dn.toString()),
                   CategorizedComboBoxElement.Type.REGULAR);
@@ -697,7 +697,7 @@ implements BackendPopulatedListener
       {
         try
         {
-          theDN = DN.decode(s);
+          theDN = DN.valueOf(s);
         }
         catch (Throwable t)
         {
@@ -799,7 +799,7 @@ implements BackendPopulatedListener
     try
     {
       return theDN.equals(
-          DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT));
+          DN.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT));
     }
     catch (Throwable t)
     {
@@ -918,7 +918,7 @@ implements BackendPopulatedListener
         {
           try
           {
-            theDN = DN.decode(s);
+            theDN = DN.valueOf(s);
           }
           catch (Throwable t)
           {
@@ -1477,7 +1477,7 @@ implements BackendPopulatedListener
             {
               try
               {
-                theDN = DN.decode(s);
+                theDN = DN.valueOf(s);
               }
               catch (Throwable t)
               {

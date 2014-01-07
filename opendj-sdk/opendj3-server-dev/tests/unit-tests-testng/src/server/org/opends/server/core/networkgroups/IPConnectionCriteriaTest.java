@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -77,7 +78,7 @@ public class IPConnectionCriteriaTest extends DirectoryServerTestCase
     AddressMask matchAnything = AddressMask.decode("*.*.*.*");
     AddressMask matchNothing = AddressMask.decode("0.0.0.0");
     ClientConnection client =
-        new MockClientConnection(12345, false, DN.nullDN(),
+        new MockClientConnection(12345, false, DN.rootDN(),
             AllowedAuthMethod.ANONYMOUS);
 
     Collection<AddressMask> emptyMasks = Collections.emptySet();

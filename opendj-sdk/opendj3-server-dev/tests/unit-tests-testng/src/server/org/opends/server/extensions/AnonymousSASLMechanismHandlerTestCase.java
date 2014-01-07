@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -138,7 +139,7 @@ public class AnonymousSASLMechanismHandlerTestCase
          InternalClientConnection.getRootConnection();
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                           new ArrayList<Control>(), "3", DN.nullDN(),
+                           new ArrayList<Control>(), "3", DN.rootDN(),
                            SASL_MECHANISM_ANONYMOUS, null);
     handler.processSASLBind(bindOperation);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
@@ -165,7 +166,7 @@ public class AnonymousSASLMechanismHandlerTestCase
          InternalClientConnection.getRootConnection();
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                           new ArrayList<Control>(), "3", DN.nullDN(),
+                           new ArrayList<Control>(), "3", DN.rootDN(),
                            SASL_MECHANISM_ANONYMOUS, ByteString.empty());
     handler.processSASLBind(bindOperation);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
@@ -191,7 +192,7 @@ public class AnonymousSASLMechanismHandlerTestCase
          InternalClientConnection.getRootConnection();
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                           new ArrayList<Control>(), "3", DN.nullDN(),
+                           new ArrayList<Control>(), "3", DN.rootDN(),
                            SASL_MECHANISM_ANONYMOUS,
                            ByteString.valueOf("Internal Trace String"));
     handler.processSASLBind(bindOperation);

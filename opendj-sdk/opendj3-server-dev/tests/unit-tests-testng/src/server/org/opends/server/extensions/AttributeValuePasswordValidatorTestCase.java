@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock, AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -447,7 +447,7 @@ public class AttributeValuePasswordValidatorTestCase
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              new ArrayList<Control>(),
-                             DN.decode("uid=test.user,o=test"), mods);
+                             DN.valueOf("uid=test.user,o=test"), mods);
 
     MessageBuilder invalidReason = new MessageBuilder();
     assertEquals(validator.passwordIsAcceptable(pwOS,

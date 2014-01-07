@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -718,7 +719,7 @@ public class NetworkGroup
   private static String getNameFromConfiguration(NetworkGroupCfg configuration)
   {
     DN dn = configuration.dn();
-    return dn.getRDN().getAttributeValue(0).toString();
+    return dn.rdn().getAttributeValue(0).toString();
   }
 
 
@@ -963,7 +964,7 @@ public class NetworkGroup
       return workflow;
     }
 
-    if (baseDN.isNullDN())
+    if (baseDN.isRootDN())
     {
       // deregister the rootDSE
       deregisterWorkflow(rootDSEWorkflowNode);
@@ -1236,7 +1237,7 @@ public class NetworkGroup
     Workflow workflowCandidate = null;
 
     // get the list of workflow candidates
-    if (baseDN.isNullDN())
+    if (baseDN.isRootDN())
     {
       // The rootDSE workflow is the candidate.
       workflowCandidate = rootDSEWorkflowNode;
@@ -1896,7 +1897,7 @@ public class NetworkGroup
   {
     // Is it the rootDSE workflow?
     DN baseDN = workflow.getBaseDN();
-    if (baseDN.isNullDN())
+    if (baseDN.isRootDN())
     {
       // NOTE - The rootDSE workflow is stored with the
       // registeredWorkflows.

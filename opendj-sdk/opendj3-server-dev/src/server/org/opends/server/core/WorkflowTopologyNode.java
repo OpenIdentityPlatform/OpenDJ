@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -145,7 +146,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
       // If the new search scope is 'base' and the search base DN does not
       // map the subordinate workflow then skip the subordinate workflow.
       if ((newScope == SearchScope.BASE_OBJECT)
-          && !subordinateDN.getParent().equals(originalBaseDN))
+          && !subordinateDN.parent().equals(originalBaseDN))
       {
         continue;
       }
@@ -514,7 +515,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
     String workflowID = this.getWorkflowImpl().getWorkflowId();
     sb.append(leftMargin + "Workflow ID = " + workflowID + "\n");
     sb.append(leftMargin + "         baseDN:[");
-    if (baseDN.isNullDN())
+    if (baseDN.isRootDN())
     {
       sb.append(" \"\"");
     }

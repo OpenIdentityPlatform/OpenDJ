@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.core;
@@ -116,7 +117,7 @@ public class BaseDnRegistry {
     // backend must also be subordinate to the same base DN.
     Backend superiorBackend = null;
     DN      superiorBaseDN        ;
-    DN      parentDN        = baseDN.getParent();
+    DN      parentDN        = baseDN.parent();
     while (parentDN != null)
     {
       if (baseDNs.containsKey(parentDN))
@@ -139,7 +140,7 @@ public class BaseDnRegistry {
         break;
       }
 
-      parentDN = parentDN.getParent();
+      parentDN = parentDN.parent();
     }
 
     if (superiorBackend == null)
@@ -162,7 +163,7 @@ public class BaseDnRegistry {
     for (DN dn : baseDNs.keySet())
     {
       Backend b = baseDNs.get(dn);
-      parentDN = dn.getParent();
+      parentDN = dn.parent();
       while (parentDN != null)
       {
         if (parentDN.equals(baseDN))
@@ -176,7 +177,7 @@ public class BaseDnRegistry {
           break;
         }
 
-        parentDN = parentDN.getParent();
+        parentDN = parentDN.parent();
       }
     }
 

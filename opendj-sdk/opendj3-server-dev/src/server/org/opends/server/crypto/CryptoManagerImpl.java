@@ -23,7 +23,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.crypto;
 
@@ -257,15 +257,15 @@ public class CryptoManagerImpl
 
       try {
         localTruststoreDN
-                = DN.decode(ConfigConstants.DN_TRUST_STORE_ROOT);
-        DN adminSuffixDN = DN.decode(
+                = DN.valueOf(ConfigConstants.DN_TRUST_STORE_ROOT);
+        DN adminSuffixDN = DN.valueOf(
                 ADSContext.getAdministrationSuffixDN());
-        instanceKeysDN = adminSuffixDN.concat(
-                DN.decode("cn=instance keys"));
-        secretKeysDN = adminSuffixDN.concat(
-             DN.decode("cn=secret keys"));
-        serversDN = adminSuffixDN.concat(
-             DN.decode("cn=Servers"));
+        instanceKeysDN = adminSuffixDN.child(
+                DN.valueOf("cn=instance keys"));
+        secretKeysDN = adminSuffixDN.child(
+             DN.valueOf("cn=secret keys"));
+        serversDN = adminSuffixDN.child(
+             DN.valueOf("cn=Servers"));
       }
       catch (DirectoryException ex) {
         if (debugEnabled()) {
@@ -502,7 +502,7 @@ public class CryptoManagerImpl
     // Construct the key entry DN.
     final AttributeValue distinguishedValue = AttributeValues.create(
             attrKeyID, ConfigConstants.ADS_CERTIFICATE_ALIAS);
-    final DN entryDN = localTruststoreDN.concat(
+    final DN entryDN = localTruststoreDN.child(
             RDN.create(attrKeyID, distinguishedValue));
     // Construct the search filter.
     final String FILTER_OC_INSTANCE_KEY =
@@ -652,7 +652,7 @@ public class CryptoManagerImpl
     // Construct the key entry DN.
     final AttributeValue distinguishedValue =
         AttributeValues.create(attrKeyID, instanceKeyID);
-    final DN entryDN = instanceKeysDN.concat(
+    final DN entryDN = instanceKeysDN.child(
          RDN.create(attrKeyID, distinguishedValue));
     // Construct the search filter.
     final String FILTER_OC_INSTANCE_KEY =
@@ -1730,7 +1730,7 @@ public class CryptoManagerImpl
       AttributeValue distinguishedValue =
            AttributeValues.create(attrKeyID,
                keyEntry.getKeyID().getStringValue());
-      DN entryDN = secretKeysDN.concat(
+      DN entryDN = secretKeysDN.child(
            RDN.create(attrKeyID, distinguishedValue));
 
       // Set the entry object classes.
@@ -2278,7 +2278,7 @@ public class CryptoManagerImpl
       AttributeValue distinguishedValue =
            AttributeValues.create(attrKeyID,
                               keyEntry.getKeyID().getStringValue());
-      DN entryDN = secretKeysDN.concat(
+      DN entryDN = secretKeysDN.child(
            RDN.create(attrKeyID, distinguishedValue));
 
       // Set the entry object classes.

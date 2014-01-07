@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -74,7 +74,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void setUp() throws Exception
   {
     super.setUp();
-    TEST_ROOT_DN = DN.decode(TEST_ROOT_DN_STRING);
+    TEST_ROOT_DN = DN.valueOf(TEST_ROOT_DN_STRING);
   }
 
   /**
@@ -147,7 +147,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
                                List<Attribute> entryAttrList)
          throws Exception
   {
-    DN dn = DN.decode(rawdn);
+    DN dn = DN.valueOf(rawdn);
     InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
     ModifyMsg msg = new ModifyMsg(csn, dn, mods, "fakeuniqueid");
@@ -198,7 +198,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
                                List<Attribute> entryAttrList)
          throws Exception
   {
-    DN dn = DN.decode(rawdn);
+    DN dn = DN.valueOf(rawdn);
     ModifyMsg msg = new ModifyMsg(csn, dn, mods, "fakeuniqueid");
 
     // Check isAssured
@@ -234,7 +234,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Check Get / Set DN
     assertEquals(msg.getDN(), generatedMsg.getDN());
 
-    DN fakeDN = DN.decode("cn=fake cn");
+    DN fakeDN = DN.valueOf("cn=fake cn");
     msg.setDN(fakeDN) ;
     assertEquals(msg.getDN(), fakeDN) ;
 
@@ -285,7 +285,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
     DeleteOperation deleteOp =
-      new DeleteOperationBasis(connection, 1, 1,null, DN.decode(rawDN));
+      new DeleteOperationBasis(connection, 1, 1,null, DN.valueOf(rawDN));
     if (subtree)
     {
       deleteOp.addRequestControl(new SubtreeDeleteControl(false));
@@ -375,8 +375,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       InternalClientConnection.getRootConnection();
     ModifyDNOperation op =
       new ModifyDNOperationBasis(connection, 1, 1, null,
-                  DN.decode(rawDN), RDN.decode(newRdn), deleteOldRdn,
-                  (newSuperior.length() != 0 ? DN.decode(newSuperior) : null));
+                  DN.valueOf(rawDN), RDN.decode(newRdn), deleteOldRdn,
+                  (newSuperior.length() != 0 ? DN.valueOf(newSuperior) : null));
 
     CSN csn = new CSN(TimeThread.getTime(), 123,  45);
     op.setAttachment(SYNCHROCONTEXT,
@@ -438,7 +438,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     byte safeDataLevel, List<Attribute> entryAttrList)
          throws Exception
   {
-    final DN dn = DN.decode(rawDN);
+    final DN dn = DN.valueOf(rawDN);
 
     Attribute objectClass = Attributes.create(DirectoryServer
         .getObjectClassAttributeType(), "organization");
@@ -643,14 +643,14 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     InternalClientConnection connection =
       InternalClientConnection.getRootConnection();
     DeleteOperation deleteOp =
-      new DeleteOperationBasis(connection, 1, 1,null, DN.decode("cn=t1"));
+      new DeleteOperationBasis(connection, 1, 1,null, DN.valueOf("cn=t1"));
     LocalBackendDeleteOperation op = new LocalBackendDeleteOperation(deleteOp);
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(csn, "uniqueid"));
     DeleteMsg delmsg = new DeleteMsg(op);
     long changeNumber = 21;
 
-    DN baseDN = DN.decode("dc=example,dc=com");
+    DN baseDN = DN.valueOf("dc=example,dc=com");
 
     // create a cookie
     MultiDomainServerState cookie =
@@ -1340,7 +1340,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     opList.put(attr.getAttributeType(), newList(attr));
 
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
-    DN dn = DN.decode(rawDN);
+    DN dn = DN.valueOf(rawDN);
 
     long createop = 0;
     long createmsgfromop = 0;
@@ -1415,7 +1415,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       List<Attribute> entryAttrList) throws Exception
   {
     CSN csn2 = new CSN(TimeThread.getTime(), 123, 45);
-    DN dn = DN.decode(rawdn);
+    DN dn = DN.valueOf(rawdn);
 
     long createop = 0;
     long createmsgfromop = 0;
@@ -1505,7 +1505,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
       // create op
       DeleteOperation deleteOp =
-        new DeleteOperationBasis(connection, 1, 1,null, DN.decode(rawDN));
+        new DeleteOperationBasis(connection, 1, 1,null, DN.valueOf(rawDN));
       LocalBackendDeleteOperation op =
           new LocalBackendDeleteOperation(deleteOp);
       CSN csn = new CSN(TimeThread.getTime(), 123, 45);

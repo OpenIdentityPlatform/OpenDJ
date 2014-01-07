@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -314,7 +315,7 @@ public class ProxiedAuthV2ControlTestCase
     ProxiedAuthV2Control proxyControl =
          new ProxiedAuthV2Control(ByteString.valueOf("dn:uid=test,o=test"));
     assertEquals(proxyControl.getAuthorizationEntry().getDN(),
-                 DN.decode("uid=test,o=test"));
+                 DN.valueOf("uid=test,o=test"));
   }
 
 
@@ -411,7 +412,7 @@ public class ProxiedAuthV2ControlTestCase
     ProxiedAuthV2Control proxyControl =
          new ProxiedAuthV2Control(ByteString.valueOf("u:test"));
     assertEquals(proxyControl.getAuthorizationEntry().getDN(),
-                 DN.decode("uid=test,o=test"));
+                 DN.valueOf("uid=test,o=test"));
   }
 
 

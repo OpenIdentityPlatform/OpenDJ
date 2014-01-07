@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -248,7 +249,7 @@ public class LDAPADListPluginTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("o=test"), SearchScope.BASE_OBJECT,
+         conn.processSearch(DN.valueOf("o=test"), SearchScope.BASE_OBJECT,
               DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"), attrList);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -278,7 +279,7 @@ public class LDAPADListPluginTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("o=test"), SearchScope.BASE_OBJECT,
+         conn.processSearch(DN.valueOf("o=test"), SearchScope.BASE_OBJECT,
               DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"), attrList);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -308,7 +309,7 @@ public class LDAPADListPluginTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("o=test"), SearchScope.BASE_OBJECT,
+         conn.processSearch(DN.valueOf("o=test"), SearchScope.BASE_OBJECT,
               DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"), attrList);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -338,7 +339,7 @@ public class LDAPADListPluginTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("o=test"), SearchScope.BASE_OBJECT,
+         conn.processSearch(DN.valueOf("o=test"), SearchScope.BASE_OBJECT,
               DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"), attrList);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);

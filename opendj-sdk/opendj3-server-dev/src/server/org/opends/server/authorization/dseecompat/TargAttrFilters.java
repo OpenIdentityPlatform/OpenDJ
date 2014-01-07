@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -427,7 +427,7 @@ public class TargAttrFilters {
                                               AttributeValue value,
                                               SearchFilter filter) {
         Attribute attr = Attributes.create(attrType, value);
-        Entry e = new Entry(DN.nullDN(), null, null, null);
+        Entry e = new Entry(DN.rootDN(), null, null, null);
         e.addAttribute(attr, new ArrayList<AttributeValue>());
         try {
             return filter.matchesEntry(e);

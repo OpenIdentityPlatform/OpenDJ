@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -567,20 +567,20 @@ public class TestBackendImpl extends JebTestCase {
         InternalClientConnection.getRootConnection();
 
     InternalSearchOperation search =
-        conn.processSearch(DN.decode("dc=test,dc=com"), SearchScope.BASE_OBJECT,
+        conn.processSearch(DN.valueOf("dc=test,dc=com"), SearchScope.BASE_OBJECT,
             LDAPFilter.decode("(objectClass=*)").toSearchFilter());
     List<SearchResultEntry> result = search.getSearchEntries();
 
     assertEquals(result.size(), 1);
     assertEquals(result.get(0).getDN().toString(), "dc=test,dc=com");
 
-    search = conn.processSearch(DN.decode("dc=test,dc=com"),
+    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.BASE_OBJECT, LDAPFilter.decode("(ou=People)").toSearchFilter());
     result = search.getSearchEntries();
 
     assertEquals(result.size(), 0);
 
-    search = conn.processSearch(DN.decode("dc=test,dc=com"),
+    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.SINGLE_LEVEL,
         LDAPFilter.decode("(objectClass=*)").toSearchFilter());
     result = search.getSearchEntries();
@@ -589,7 +589,7 @@ public class TestBackendImpl extends JebTestCase {
     assertEquals(result.get(0).getDN().toString(),
         "ou=People,dc=test,dc=com");
 
-    search = conn.processSearch(DN.decode("dc=test,dc=com"),
+    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.SUBORDINATE_SUBTREE,
         LDAPFilter.decode("(objectClass=*)").toSearchFilter());
     result = search.getSearchEntries();
@@ -599,7 +599,7 @@ public class TestBackendImpl extends JebTestCase {
       assertThat(entry.getDN().toString()).isNotEqualTo("dc=test,dc=com");
     }
 
-    search = conn.processSearch(DN.decode("dc=test,dc=com"),
+    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.WHOLE_SUBTREE,
         LDAPFilter.decode("(objectClass=*)").toSearchFilter());
     result = search.getSearchEntries();
@@ -610,22 +610,22 @@ public class TestBackendImpl extends JebTestCase {
   @Test(dependsOnMethods = "testAdd")
   public void testNumSubordinates() throws Exception
   {
-    DN dn = DN.decode("dc=test,dc=com");
+    DN dn = DN.valueOf("dc=test,dc=com");
     assertEquals(backend.numSubordinates(dn, false), 1);
     assertEquals(backend.numSubordinates(dn, true), 13);
-    dn = DN.decode("ou=People,dc=test,dc=com");
+    dn = DN.valueOf("ou=People,dc=test,dc=com");
     assertEquals(backend.numSubordinates(dn, false), 12);
     assertEquals(backend.numSubordinates(dn, true), 12);
-    dn = DN.decode("dc=com");
+    dn = DN.valueOf("dc=com");
     assertEquals(backend.numSubordinates(dn, false), -1);
     assertEquals(backend.numSubordinates(dn, true), -1);
-    dn = DN.decode("dc=test1,dc=com");
+    dn = DN.valueOf("dc=test1,dc=com");
     assertEquals(backend.numSubordinates(dn, false), 2);
     assertEquals(backend.numSubordinates(dn, true), 2);
-    dn = DN.decode("uid=user.10,ou=People,dc=test,dc=com");
+    dn = DN.valueOf("uid=user.10,ou=People,dc=test,dc=com");
     assertEquals(backend.numSubordinates(dn, false), 0);
     assertEquals(backend.numSubordinates(dn, true), 0);
-    dn = DN.decode("uid=does not exist,ou=People,dc=test,dc=com");
+    dn = DN.valueOf("uid=does not exist,ou=People,dc=test,dc=com");
     assertEquals(backend.numSubordinates(dn, false), -1);
     assertEquals(backend.numSubordinates(dn, true), -1);
   }
@@ -642,7 +642,7 @@ public class TestBackendImpl extends JebTestCase {
     int finalCount;
 
     InternalSearchOperation search =
-        conn.processSearch(DN.decode("dc=test,dc=com"),
+        conn.processSearch(DN.valueOf("dc=test,dc=com"),
             SearchScope.WHOLE_SUBTREE,
             DereferencePolicy.NEVER_DEREF_ALIASES,
             0,
@@ -656,7 +656,7 @@ public class TestBackendImpl extends JebTestCase {
 
     attribs.add(ATTR_DEBUG_SEARCH_INDEX);
 
-    search = conn.processSearch(DN.decode("dc=test,dc=com"),
+    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.WHOLE_SUBTREE,
         DereferencePolicy.NEVER_DEREF_ALIASES,
         0,
@@ -677,7 +677,7 @@ public class TestBackendImpl extends JebTestCase {
         finalEndPos));
     assertEquals(finalCount, 1);
 
-    search = conn.processSearch(DN.decode("dc=test,dc=com"),
+    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.WHOLE_SUBTREE,
         DereferencePolicy.NEVER_DEREF_ALIASES,
         0,
@@ -697,7 +697,7 @@ public class TestBackendImpl extends JebTestCase {
         finalEndPos));
     assertEquals(finalCount, 2);
 
-    search = conn.processSearch(DN.decode("dc=test,dc=com"),
+    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.WHOLE_SUBTREE,
         DereferencePolicy.NEVER_DEREF_ALIASES,
         0,
@@ -716,7 +716,7 @@ public class TestBackendImpl extends JebTestCase {
         finalEndPos));
     assertEquals(finalCount, 12);
 
-    search = conn.processSearch(DN.decode("dc=test,dc=com"),
+    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.WHOLE_SUBTREE,
         DereferencePolicy.NEVER_DEREF_ALIASES,
         0,
@@ -735,7 +735,7 @@ public class TestBackendImpl extends JebTestCase {
         finalEndPos));
     assertEquals(finalCount, 11);
 
-    search = conn.processSearch(DN.decode("dc=test,dc=com"),
+    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.WHOLE_SUBTREE,
         DereferencePolicy.NEVER_DEREF_ALIASES,
         0,
@@ -770,17 +770,17 @@ public class TestBackendImpl extends JebTestCase {
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(),
         deleteSubTreeControl,
-        DN.decode("dc=test1,dc=com"));
+        DN.valueOf("dc=test1,dc=com"));
 
-    backend.deleteEntry(DN.decode("dc=test1,dc=com"), delete);
+    backend.deleteEntry(DN.valueOf("dc=test1,dc=com"), delete);
 
     EntryContainer ec =
-        backend.getRootContainer().getEntryContainer(DN.decode("dc=test1,dc=com"));
+        backend.getRootContainer().getEntryContainer(DN.valueOf("dc=test1,dc=com"));
     ec.sharedLock.lock();
     try
     {
-      assertFalse(ec.entryExists(DN.decode("dc=test1,dc=com")));
-      assertFalse(ec.entryExists(DN.decode("uid=user.362,dc=test1,dc=com")));
+      assertFalse(ec.entryExists(DN.valueOf("dc=test1,dc=com")));
+      assertFalse(ec.entryExists(DN.valueOf("uid=user.362,dc=test1,dc=com")));
     }
     finally
     {
@@ -796,33 +796,33 @@ public class TestBackendImpl extends JebTestCase {
         InternalClientConnection.getRootConnection();
 
     EntryContainer ec =
-        backend.getRootContainer().getEntryContainer(DN.decode("ou=People,dc=test,dc=com"));
+        backend.getRootContainer().getEntryContainer(DN.valueOf("ou=People,dc=test,dc=com"));
 
     ec.sharedLock.lock();
     try
     {
       Entry entry =
-          ec.getEntry(DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
+          ec.getEntry(DN.valueOf("uid=user.539,ou=People,dc=test,dc=com"));
       EntryID entryID = ec.getDN2ID().get(null,
-          DN.decode("uid=user.539,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
+          DN.valueOf("uid=user.539,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
 
       DeleteOperationBasis delete = new DeleteOperationBasis(conn,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(),
         noControls,
 
-          DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
+          DN.valueOf("uid=user.539,ou=People,dc=test,dc=com"));
 
 
-      backend.deleteEntry(DN.decode("uid=user.539,ou=People,dc=test,dc=com"),
+      backend.deleteEntry(DN.valueOf("uid=user.539,ou=People,dc=test,dc=com"),
           delete);
 
 
-      assertFalse(ec.entryExists(DN.decode("uid=user.539,ou=People,dc=test,dc=com")));
+      assertFalse(ec.entryExists(DN.valueOf("uid=user.539,ou=People,dc=test,dc=com")));
       assertNull(ec.getDN2ID().get(null,
-          DN.decode("uid=user.539,ou=People,dc=test,dc=com"), LockMode.DEFAULT));
+          DN.valueOf("uid=user.539,ou=People,dc=test,dc=com"), LockMode.DEFAULT));
       assertFalse(ec.getDN2URI().delete(null,
-          DN.decode("uid=user.539,ou=People,dc=test,dc=com")));
+          DN.valueOf("uid=user.539,ou=People,dc=test,dc=com")));
 
       AttributeType attribute =
           entries.get(0).getAttribute("cn").get(0).getAttributeType();
@@ -894,14 +894,14 @@ public class TestBackendImpl extends JebTestCase {
     backend.replaceEntry(oldEntry, replaceEntry, null);
 
     EntryContainer ec =
-        backend.getRootContainer().getEntryContainer(DN.decode("dc=test,dc=com"));
+        backend.getRootContainer().getEntryContainer(DN.valueOf("dc=test,dc=com"));
     ec.sharedLock.lock();
     try
     {
       Entry entry =
-          ec.getEntry(DN.decode("uid=user.0,ou=People,dc=test,dc=com"));
+          ec.getEntry(DN.valueOf("uid=user.0,ou=People,dc=test,dc=com"));
       EntryID entryID = ec.getDN2ID().get(null,
-          DN.decode("uid=user.0,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
+          DN.valueOf("uid=user.0,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
 
       assertNotNull(entry);
       for (AttributeValue value : entry.getAttribute("cn").get(0)) {
@@ -964,7 +964,7 @@ public class TestBackendImpl extends JebTestCase {
     OrderingIndexer orderingIndexer;
 
     EntryContainer ec = backend.getRootContainer().getEntryContainer(
-        DN.decode("dc=test,dc=com"));
+        DN.valueOf("dc=test,dc=com"));
     ec.sharedLock.lock();
     try
     {
@@ -1008,9 +1008,9 @@ public class TestBackendImpl extends JebTestCase {
 
       newEntry = entries.get(1);
       newEntry.applyModifications(modifications);
-      entry = ec.getEntry(DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
+      entry = ec.getEntry(DN.valueOf("uid=user.1,ou=People,dc=test,dc=com"));
       entryID = ec.getDN2ID().get(null,
-          DN.decode("uid=user.1,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
+          DN.valueOf("uid=user.1,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
 
       assertNotNull(entryID);
 
@@ -1036,11 +1036,11 @@ public class TestBackendImpl extends JebTestCase {
 
       ModifyOperationBasis modifyOp = new ModifyOperationBasis(conn, InternalClientConnection
           .nextOperationID(), InternalClientConnection.nextMessageID(), noControls, DN
-          .decode("uid=user.1,ou=People,dc=test,dc=com"), modifications);
+          .valueOf("uid=user.1,ou=People,dc=test,dc=com"), modifications);
 
       backend.replaceEntry(entry, newEntry, modifyOp);
 
-      entry = ec.getEntry(DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
+      entry = ec.getEntry(DN.valueOf("uid=user.1,ou=People,dc=test,dc=com"));
 
       assertTrue(entry.getAttribute("title").contains(
           Attributes.create("title", "debugger")));
@@ -1109,25 +1109,25 @@ public class TestBackendImpl extends JebTestCase {
       "testMatchedDN"})
   public void testModifyDN() throws Exception {
     EntryContainer ec =
-        backend.getRootContainer().getEntryContainer(DN.decode("dc=test,dc=com"));
+        backend.getRootContainer().getEntryContainer(DN.valueOf("dc=test,dc=com"));
     ec.sharedLock.lock();
     try
     {
       Entry entry =
-          ec.getEntry(DN.decode("uid=user.2,ou=People,dc=test,dc=com"));
-      entry.setDN(DN.decode("cn=Abbey Abbie,ou=People,dc=test,dc=com"));
+          ec.getEntry(DN.valueOf("uid=user.2,ou=People,dc=test,dc=com"));
+      entry.setDN(DN.valueOf("cn=Abbey Abbie,ou=People,dc=test,dc=com"));
 
 
-      backend.renameEntry(DN.decode("uid=user.2,ou=People,dc=test,dc=com"),
+      backend.renameEntry(DN.valueOf("uid=user.2,ou=People,dc=test,dc=com"),
           entry, null);
 
-      assertNotNull(backend.getEntry(DN.decode("cn=Abbey Abbie,ou=People,dc=test,dc=com")));
-      assertNotNull(ec.getDN2ID().get(null, DN.decode("cn=Abbey Abbie,ou=People,dc=test,dc=com"), LockMode.DEFAULT));
+      assertNotNull(backend.getEntry(DN.valueOf("cn=Abbey Abbie,ou=People,dc=test,dc=com")));
+      assertNotNull(ec.getDN2ID().get(null, DN.valueOf("cn=Abbey Abbie,ou=People,dc=test,dc=com"), LockMode.DEFAULT));
 
 
-      assertNull(backend.getEntry(DN.decode("uid=user.2,ou=People,dc=test,dc=com")));
+      assertNull(backend.getEntry(DN.valueOf("uid=user.2,ou=People,dc=test,dc=com")));
       assertNull(ec.getDN2ID().get(null,
-          DN.decode("uid=user.2,ou=People,dc=test,dc=com"), LockMode.DEFAULT));
+          DN.valueOf("uid=user.2,ou=People,dc=test,dc=com"), LockMode.DEFAULT));
     }
     finally
     {
@@ -1145,13 +1145,13 @@ public class TestBackendImpl extends JebTestCase {
     backend.addEntry(newTop, null);
 
     EntryContainer ec =
-        backend.getRootContainer().getEntryContainer(DN.decode("dc=test,dc=com"));
+        backend.getRootContainer().getEntryContainer(DN.valueOf("dc=test,dc=com"));
     ec.sharedLock.lock();
     try
     {
-      EntryID newSuperiorID = ec.getDN2ID().get(null, DN.decode("ou=JEB Testers,dc=test,dc=com"), LockMode.DEFAULT);
+      EntryID newSuperiorID = ec.getDN2ID().get(null, DN.valueOf("ou=JEB Testers,dc=test,dc=com"), LockMode.DEFAULT);
       EntryID oldID = ec.getDN2ID().get(null,
-          DN.decode("ou=People,dc=test,dc=com"), LockMode.DEFAULT);
+          DN.valueOf("ou=People,dc=test,dc=com"), LockMode.DEFAULT);
       assertTrue(newSuperiorID.compareTo(oldID) > 0);
 
       List<Control> noControls = new ArrayList<Control>(0);
@@ -1162,27 +1162,27 @@ public class TestBackendImpl extends JebTestCase {
           InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(),
           noControls,
-          DN.decode("ou=People,dc=test,dc=com"),
+          DN.valueOf("ou=People,dc=test,dc=com"),
           RDN.decode("ou=Good People"),
           false,
-          DN.decode("ou=JEB Testers,dc=test,dc=com"));
+          DN.valueOf("ou=JEB Testers,dc=test,dc=com"));
 
       modifyDN.run();
 
-      assertNotNull(backend.getEntry(DN.decode("ou=Good People,ou=JEB Testers,dc=test,dc=com")));
-      EntryID newID = ec.getDN2ID().get(null, DN.decode("ou=Good People,ou=JEB Testers,dc=test,dc=com"), LockMode.DEFAULT);
+      assertNotNull(backend.getEntry(DN.valueOf("ou=Good People,ou=JEB Testers,dc=test,dc=com")));
+      EntryID newID = ec.getDN2ID().get(null, DN.valueOf("ou=Good People,ou=JEB Testers,dc=test,dc=com"), LockMode.DEFAULT);
       assertNotNull(newID);
       assertTrue(newID.compareTo(newSuperiorID) > 0);
-      DN subDN = DN.decode("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com");
+      DN subDN = DN.valueOf("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com");
       Entry subEntry = backend.getEntry(subDN);
       assertNotNull(subEntry);
       assertEquals(subDN, subEntry.getDN());
       EntryID newSubordinateID = ec.getDN2ID().get(null, subDN, LockMode.DEFAULT);
       assertTrue(newSubordinateID.compareTo(newID) > 0);
 
-      assertNull(backend.getEntry(DN.decode("ou=People,dc=test,dc=com")));
+      assertNull(backend.getEntry(DN.valueOf("ou=People,dc=test,dc=com")));
       assertNull(ec.getDN2ID().get(null,
-          DN.decode("ou=People,dc=test,dc=com"), LockMode.DEFAULT));
+          DN.valueOf("ou=People,dc=test,dc=com"), LockMode.DEFAULT));
     }
     finally
     {
@@ -1219,9 +1219,9 @@ public class TestBackendImpl extends JebTestCase {
 
     RootContainer rootContainer = backend.getRootContainer();
 
-    assertNull(rootContainer.getEntryContainer(DN.decode("dc=test1,dc=com")));
+    assertNull(rootContainer.getEntryContainer(DN.valueOf("dc=test1,dc=com")));
 
-    assertNotNull(rootContainer.getEntryContainer(DN.decode("dc=newsuffix,dc=com")));
+    assertNotNull(rootContainer.getEntryContainer(DN.valueOf("dc=newsuffix,dc=com")));
   }
 
   @Test(dependsOnMethods = {"testModifyDN",
@@ -1241,7 +1241,7 @@ public class TestBackendImpl extends JebTestCase {
     assertEquals(resultCode, 0);
 
     RootContainer rootContainer = backend.getRootContainer();
-    EntryContainer ec = rootContainer.getEntryContainer(DN.decode("dc=test,dc=com"));
+    EntryContainer ec = rootContainer.getEntryContainer(DN.valueOf("dc=test,dc=com"));
 
     AttributeIndex index =
         ec.getAttributeIndex(DirectoryServer.getAttributeType("givenname"));
@@ -1292,7 +1292,7 @@ public class TestBackendImpl extends JebTestCase {
     attribs.add(ATTR_DEBUG_SEARCH_INDEX);
 
     InternalSearchOperation search =
-        conn.processSearch(DN.decode("dc=test,dc=com"),
+        conn.processSearch(DN.valueOf("dc=test,dc=com"),
 
                            SearchScope.SUBORDINATE_SUBTREE,
 
@@ -1474,7 +1474,7 @@ public class TestBackendImpl extends JebTestCase {
     attribs.add(ATTR_DEBUG_SEARCH_INDEX);
 
     InternalSearchOperation search =
-        conn.processSearch(DN.decode("dc=test,dc=com"),
+        conn.processSearch(DN.valueOf("dc=test,dc=com"),
             SearchScope.SUBORDINATE_SUBTREE,
             DereferencePolicy.NEVER_DEREF_ALIASES,
             0,
@@ -1494,24 +1494,24 @@ public class TestBackendImpl extends JebTestCase {
   @Test(dependsOnMethods = "testSearchNotIndexed")
   public void testNumSubordinatesIndexEntryLimitExceeded() throws Exception
   {
-    DN dn = DN.decode("dc=test,dc=com");
+    DN dn = DN.valueOf("dc=test,dc=com");
     assertEquals(backend.numSubordinates(dn, false), 1);
     assertEquals(backend.numSubordinates(dn, true), 14);
 
     // 1 entry was deleted and 2 added for a total of 13
-    dn = DN.decode("ou=People,dc=test,dc=com");
+    dn = DN.valueOf("ou=People,dc=test,dc=com");
     assertEquals(backend.numSubordinates(dn, false), 13);
     assertEquals(backend.numSubordinates(dn, true), 13);
-    dn = DN.decode("dc=com");
+    dn = DN.valueOf("dc=com");
     assertEquals(backend.numSubordinates(dn, false), -1);
     assertEquals(backend.numSubordinates(dn, true), -1);
-    dn = DN.decode("dc=test1,dc=com");
+    dn = DN.valueOf("dc=test1,dc=com");
     assertEquals(backend.numSubordinates(dn, false), 2);
     assertEquals(backend.numSubordinates(dn, true), 2);
-    dn = DN.decode("uid=user.10,ou=People,dc=test,dc=com");
+    dn = DN.valueOf("uid=user.10,ou=People,dc=test,dc=com");
     assertEquals(backend.numSubordinates(dn, false), 0);
     assertEquals(backend.numSubordinates(dn, true), 0);
-    dn = DN.decode("uid=does not exist,ou=People,dc=test,dc=com");
+    dn = DN.valueOf("uid=does not exist,ou=People,dc=test,dc=com");
     assertEquals(backend.numSubordinates(dn, false), -1);
     assertEquals(backend.numSubordinates(dn, true), -1);
   }
@@ -1529,10 +1529,10 @@ public class TestBackendImpl extends JebTestCase {
     ResultCode success      = ResultCode.SUCCESS;
     ResultCode noSuchObject = ResultCode.NO_SUCH_OBJECT;
 
-    DN testComDN            = DN.decode(                   "dc=test,dc=com");
-    DN dummyTestComDN       = DN.decode(          "cn=dummy,dc=test,dc=com");
-    DN peopleTestComDN      = DN.decode(         "ou=people,dc=test,dc=com");
-    DN dummyPeopleTestComDN = DN.decode("cn=dummy,ou=people,dc=test,dc=com");
+    DN testComDN            = DN.valueOf(                   "dc=test,dc=com");
+    DN dummyTestComDN       = DN.valueOf(          "cn=dummy,dc=test,dc=com");
+    DN peopleTestComDN      = DN.valueOf(         "ou=people,dc=test,dc=com");
+    DN dummyPeopleTestComDN = DN.valueOf("cn=dummy,ou=people,dc=test,dc=com");
 
     // Sets of DNs
     return new Object[][] {

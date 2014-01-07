@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -178,7 +178,7 @@ public final class InternalClientConnection
       operationalAttrs.put(privType, attrList);
 
 
-      DN internalUserDN = DN.decode(fullDNString);
+      DN internalUserDN = DN.valueOf(fullDNString);
       Entry internalUserEntry =
                  new Entry(internalUserDN, objectClasses, userAttrs,
                            operationalAttrs);
@@ -281,7 +281,7 @@ public final class InternalClientConnection
   private static AuthenticationInfo getAuthInfoForDN(DN userDN)
           throws DirectoryException
   {
-    if ((userDN == null) || userDN.isNullDN())
+    if ((userDN == null) || userDN.isRootDN())
     {
       return new AuthenticationInfo();
     }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -514,7 +515,7 @@ public final class BackupDirectory
     DN configEntryDN;
     try
     {
-      configEntryDN = DN.decode(dnString);
+      configEntryDN = DN.valueOf(dnString);
     }
     catch (DirectoryException de)
     {

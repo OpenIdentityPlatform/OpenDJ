@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -478,7 +479,7 @@ public class NewIndexPanel extends AbstractIndexPanel
           getInfo().stopPooling();
           if (getInfo().mustDeregisterConfig())
           {
-            DirectoryServer.deregisterBaseDN(DN.decode("cn=config"));
+            DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
           DirectoryServer.getInstance().initializeConfiguration(
               org.opends.server.extensions.ConfigFileHandler.class.getName(),

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -258,24 +258,24 @@ public class VirtualStaticGroupTestCase
 
     groupManager = DirectoryServer.getGroupManager();
 
-    u1 = DN.decode("uid=test.1,ou=People,o=test");
-    u2 = DN.decode("uid=test.2,ou=People,o=test");
-    u3 = DN.decode("uid=test.3,ou=People,o=test");
-    u4 = DN.decode("uid=test.4,ou=People,o=test");
-    da = DN.decode("cn=Dynamic All Users,ou=Groups,o=test");
-    d1 = DN.decode("cn=Dynamic One User,ou=Groups,o=test");
-    sm = DN.decode("cn=Static member List,ou=Groups,o=test");
-    su = DN.decode("cn=Static uniqueMember List,ou=Groups,o=test");
-    vmda = DN.decode("cn=Virtual member All Users,ou=Groups,o=test");
-    vuda = DN.decode("cn=Virtual uniqueMember All Users,ou=Groups,o=test");
-    vmd1 = DN.decode("cn=Virtual member One User,ou=Groups,o=test");
-    vud1 = DN.decode("cn=Virtual uniqueMember One User,ou=Groups,o=test");
-    vsm = DN.decode("cn=Virtual Static member List,ou=Groups,o=test");
-    vsu = DN.decode("cn=Virtual Static uniqueMember List,ou=Groups,o=test");
-    vcm = DN.decode("cn=Crossover member Static Group,ou=Groups,o=test");
-    vcu = DN.decode("cn=Crossover uniqueMember Static Group,ou=Groups,o=test");
-    vn = DN.decode("cn=Virtual Nonexistent,ou=Groups,o=test");
-    ne = DN.decode("cn=Nonexistent,ou=Groups,o=test");
+    u1 = DN.valueOf("uid=test.1,ou=People,o=test");
+    u2 = DN.valueOf("uid=test.2,ou=People,o=test");
+    u3 = DN.valueOf("uid=test.3,ou=People,o=test");
+    u4 = DN.valueOf("uid=test.4,ou=People,o=test");
+    da = DN.valueOf("cn=Dynamic All Users,ou=Groups,o=test");
+    d1 = DN.valueOf("cn=Dynamic One User,ou=Groups,o=test");
+    sm = DN.valueOf("cn=Static member List,ou=Groups,o=test");
+    su = DN.valueOf("cn=Static uniqueMember List,ou=Groups,o=test");
+    vmda = DN.valueOf("cn=Virtual member All Users,ou=Groups,o=test");
+    vuda = DN.valueOf("cn=Virtual uniqueMember All Users,ou=Groups,o=test");
+    vmd1 = DN.valueOf("cn=Virtual member One User,ou=Groups,o=test");
+    vud1 = DN.valueOf("cn=Virtual uniqueMember One User,ou=Groups,o=test");
+    vsm = DN.valueOf("cn=Virtual Static member List,ou=Groups,o=test");
+    vsu = DN.valueOf("cn=Virtual Static uniqueMember List,ou=Groups,o=test");
+    vcm = DN.valueOf("cn=Crossover member Static Group,ou=Groups,o=test");
+    vcu = DN.valueOf("cn=Crossover uniqueMember Static Group,ou=Groups,o=test");
+    vn = DN.valueOf("cn=Virtual Nonexistent,ou=Groups,o=test");
+    ne = DN.valueOf("cn=Nonexistent,ou=Groups,o=test");
   }
 
 
@@ -408,7 +408,7 @@ public class VirtualStaticGroupTestCase
     assertFalse(memberList.hasMoreMembers());
 
     SearchFilter filter = SearchFilter.createFilterFromString("(sn=1)");
-    memberList = g.getMembers(DN.decode("o=test"), SearchScope.WHOLE_SUBTREE,
+    memberList = g.getMembers(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE,
                               filter);
     assertTrue(memberList.hasMoreMembers());
     assertNotNull(memberList.nextMemberDN());
@@ -492,7 +492,7 @@ public class VirtualStaticGroupTestCase
     try
     {
       SearchFilter filter = SearchFilter.createFilterFromString("(sn=1)");
-      g.getMembers(DN.decode("o=test"), SearchScope.WHOLE_SUBTREE, filter);
+      g.getMembers(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE, filter);
       fail("Expected an exception from getMembers(base, scope, filter)");
     } catch (Exception e) {}
 
@@ -662,7 +662,7 @@ public class VirtualStaticGroupTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.decode("o=test"),
+                  InternalClientConnection.nextMessageID(), null, DN.valueOf("o=test"),
                   SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString(
@@ -737,7 +737,7 @@ public class VirtualStaticGroupTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.decode("o=test"),
+                  InternalClientConnection.nextMessageID(), null, DN.valueOf("o=test"),
                   SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString(
@@ -856,7 +856,7 @@ public class VirtualStaticGroupTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-allow-retrieving-membership", "false")));
     DN definitionDN =
-         DN.decode("cn=Virtual Static member,cn=Virtual Attributes,cn=config");
+         DN.valueOf("cn=Virtual Static member,cn=Virtual Attributes,cn=config");
     ModifyOperation modifyOperation = conn.processModify(definitionDN, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -895,7 +895,7 @@ public class VirtualStaticGroupTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("ou=Groups,dc=example,dc=com"),
+         conn.processSearch(DN.valueOf("ou=Groups,dc=example,dc=com"),
               SearchScope.SINGLE_LEVEL,
               SearchFilter.createFilterFromString("(objectClass=*)"));
     for (Entry e : searchOperation.getSearchEntries())

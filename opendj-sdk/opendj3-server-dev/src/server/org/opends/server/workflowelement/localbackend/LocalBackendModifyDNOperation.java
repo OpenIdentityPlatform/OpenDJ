@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -293,14 +293,14 @@ public class LocalBackendModifyDNOperation
       parentDN = newSuperior;
     }
 
-    if (parentDN == null || parentDN.isNullDN())
+    if (parentDN == null || parentDN.isRootDN())
     {
       setResultCode(ResultCode.UNWILLING_TO_PERFORM);
       appendErrorMessage(ERR_MODDN_NO_PARENT.get(String.valueOf(entryDN)));
       return;
     }
 
-    DN newDN = parentDN.concat(newRDN);
+    DN newDN = parentDN.child(newRDN);
 
     // Get the backend for the current entry, and the backend for the new
     // entry. If either is null, or if they are different, then fail.
@@ -701,7 +701,7 @@ public class LocalBackendModifyDNOperation
           setAuthorizationEntry(authorizationEntry);
           if (authorizationEntry == null)
           {
-            setProxiedAuthorizationDN(DN.nullDN());
+            setProxiedAuthorizationDN(DN.rootDN());
           }
           else
           {
@@ -725,7 +725,7 @@ public class LocalBackendModifyDNOperation
           setAuthorizationEntry(authorizationEntry);
           if (authorizationEntry == null)
           {
-            setProxiedAuthorizationDN(DN.nullDN());
+            setProxiedAuthorizationDN(DN.rootDN());
           }
           else
           {
@@ -766,7 +766,7 @@ public class LocalBackendModifyDNOperation
     // If we should delete the old RDN values from the entry, then do so.
     if (deleteOldRDN())
     {
-      RDN currentRDN = entryDN.getRDN();
+      RDN currentRDN = entryDN.rdn();
       int numValues  = currentRDN.getNumValues();
       for (int i=0; i < numValues; i++)
       {

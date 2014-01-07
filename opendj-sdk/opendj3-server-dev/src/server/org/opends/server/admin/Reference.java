@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -85,13 +86,13 @@ public final class Reference<C extends ConfigurationClient,
 
     DN dn;
     try {
-      dn = DN.decode(s);
+      dn = DN.valueOf(s);
     } catch (DirectoryException e) {
       throw new IllegalArgumentException("Unabled to decode the DN string: \""
           + s + "\"");
     }
 
-    RDN rdn = dn.getRDN();
+    RDN rdn = dn.rdn();
     if (rdn == null) {
       throw new IllegalArgumentException("Unabled to decode the DN string: \""
           + s + "\"");

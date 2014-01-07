@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -67,7 +67,7 @@ public class SubentryPasswordPolicyTestCase
          InternalClientConnection.getRootConnection();
 
     // Add suffix entry.
-    DN suffixDN = DN.decode(SUFFIX);
+    DN suffixDN = DN.valueOf(SUFFIX);
     if (DirectoryServer.getEntry(suffixDN) == null)
     {
       Entry suffixEntry = StaticUtils.createEntry(suffixDN);
@@ -81,7 +81,7 @@ public class SubentryPasswordPolicyTestCase
     }
 
     // Add base entry.
-    DN baseDN = DN.decode(BASE);
+    DN baseDN = DN.valueOf(BASE);
     if (DirectoryServer.getEntry(baseDN) == null)
     {
       Entry baseEntry = StaticUtils.createEntry(baseDN);
@@ -277,7 +277,7 @@ public class SubentryPasswordPolicyTestCase
     assertNotNull(DirectoryServer.getEntry(policyEntry.getDN()));
 
     PasswordPolicy policy = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(
-            DN.decode("cn=Temp Policy," + SUFFIX));
+            DN.valueOf("cn=Temp Policy," + SUFFIX));
     assertNotNull(policy);
 
     // Check all pwp attributes for correct values.
@@ -300,7 +300,7 @@ public class SubentryPasswordPolicyTestCase
     // Make sure this policy applies to the test entry
     // its supposed to target and that its the same
     // policy object as previously tested.
-    Entry testEntry = DirectoryServer.getEntry(DN.decode(
+    Entry testEntry = DirectoryServer.getEntry(DN.valueOf(
             "uid=rogasawara," + BASE));
     assertNotNull(testEntry);
 
@@ -332,7 +332,7 @@ public class SubentryPasswordPolicyTestCase
             DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(defaultPolicy);
 
-    Entry testEntry = DirectoryServer.getEntry(DN.decode(
+    Entry testEntry = DirectoryServer.getEntry(DN.valueOf(
             "uid=rogasawara," + BASE));
     assertNotNull(testEntry);
 
@@ -374,7 +374,7 @@ public class SubentryPasswordPolicyTestCase
     assertNotNull(DirectoryServer.getEntry(policyEntry.getDN()));
 
     // Make sure just added policy is in effect.
-    testEntry = DirectoryServer.getEntry(DN.decode(
+    testEntry = DirectoryServer.getEntry(DN.valueOf(
             "uid=rogasawara," + BASE));
     assertNotNull(testEntry);
 
@@ -387,7 +387,7 @@ public class SubentryPasswordPolicyTestCase
     // default policy is in effect again.
     TestCaseUtils.deleteEntry(policyEntry.getDN());
 
-    testEntry = DirectoryServer.getEntry(DN.decode(
+    testEntry = DirectoryServer.getEntry(DN.valueOf(
             "uid=rogasawara," + BASE));
     assertNotNull(testEntry);
 

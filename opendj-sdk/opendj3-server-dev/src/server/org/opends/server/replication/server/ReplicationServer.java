@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -151,8 +151,8 @@ public final class ReplicationServer
     configuration.addChangeListener(this);
     try
     {
-      backendConfigEntryDN =
-         DN.decode("ds-cfg-backend-id=" + backendId + ",cn=Backends,cn=config");
+      backendConfigEntryDN = DN.valueOf("ds-cfg-backend-id=" +
+          backendId + ",cn=Backends,cn=config");
     } catch (DirectoryException e) { /* do nothing */ }
 
     // Creates the backend associated to this ReplicationServer
@@ -469,7 +469,7 @@ public final class ReplicationServer
 
     // Create the workflow for the base DN
     // and register the workflow with the server.
-    final DN dn = DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+    final DN dn = DN.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
     final WorkflowImpl workflowImpl = new WorkflowImpl(eclWorkflowID, dn,
         eclwe.getWorkflowElementID(), eclwe);
     if (!eclWorkflowImpl.compareAndSet(null, workflowImpl))
@@ -505,7 +505,7 @@ public final class ReplicationServer
 
     try
     {
-      Set<DN> baseDNs = Collections.singleton(DN.decode(""));
+      Set<DN> baseDNs = Collections.singleton(DN.valueOf(""));
       Set<DN> groupDNs = Collections.emptySet();
       Set<SearchFilter> filters = Collections.singleton(
           SearchFilter.createFilterFromString("(objectclass=*)"));

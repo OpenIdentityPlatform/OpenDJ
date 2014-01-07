@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.controls;
 
@@ -230,8 +230,8 @@ public class ProxiedAuthV2Control
     {
       // It's a DN, so decode it and see if it exists.  If it's the null DN,
       // then just assume that it does.
-      DN authzDN = DN.decode(lowerAuthzID.substring(3));
-      if (authzDN.isNullDN())
+      DN authzDN = DN.valueOf(lowerAuthzID.substring(3));
+      if (authzDN.isRootDN())
       {
         return null;
       }

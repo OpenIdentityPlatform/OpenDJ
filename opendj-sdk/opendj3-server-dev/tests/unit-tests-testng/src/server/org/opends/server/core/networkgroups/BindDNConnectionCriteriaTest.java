@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -76,9 +77,9 @@ public class BindDNConnectionCriteriaTest extends
   @DataProvider(name = "testData")
   public Object[][] createTestData() throws Exception
   {
-    DN anonymousUser = DN.nullDN();
+    DN anonymousUser = DN.rootDN();
     DN rootUser =
-        DN.decode("cn=Directory Manager, cn=Root DNs, cn=config");
+        DN.valueOf("cn=Directory Manager, cn=Root DNs, cn=config");
     PatternDN rootMatch = PatternDN.decode("*, cn=Root DNs, cn=config");
     PatternDN rootNoMatch =
         PatternDN.decode("cn=Dirx*, cn=Root DNs, cn=config");
@@ -142,7 +143,7 @@ public class BindDNConnectionCriteriaTest extends
       throws Exception
   {
     ClientConnection client =
-        new MockClientConnection(12345, false, DN.nullDN(),
+        new MockClientConnection(12345, false, DN.rootDN(),
             AllowedAuthMethod.ANONYMOUS);
 
     BindDNConnectionCriteria criteria =

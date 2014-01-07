@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -131,12 +132,12 @@ public class AuthMethodConnectionCriteriaTest extends
 
     if (clientAuthMethod == AllowedAuthMethod.ANONYMOUS)
     {
-      bindDN = DN.nullDN();
+      bindDN = DN.rootDN();
     }
     else
     {
       bindDN =
-          DN.decode("cn=Directory Manager, cn=Root DNs, cn=config");
+          DN.valueOf("cn=Directory Manager, cn=Root DNs, cn=config");
     }
 
     ClientConnection client =
@@ -168,7 +169,7 @@ public class AuthMethodConnectionCriteriaTest extends
       boolean expectedResult) throws Exception
   {
     ClientConnection client =
-        new MockClientConnection(12345, false, DN.nullDN(),
+        new MockClientConnection(12345, false, DN.rootDN(),
             AllowedAuthMethod.ANONYMOUS);
 
     AuthenticationType authType;
@@ -178,17 +179,17 @@ public class AuthMethodConnectionCriteriaTest extends
     {
     case ANONYMOUS:
       authType = null;
-      bindDN = DN.nullDN();
+      bindDN = DN.rootDN();
       break;
     case SIMPLE:
       authType = AuthenticationType.SIMPLE;
       bindDN =
-          DN.decode("cn=Directory Manager, cn=Root DNs, cn=config");
+          DN.valueOf("cn=Directory Manager, cn=Root DNs, cn=config");
       break;
     default: // SASL
       authType = AuthenticationType.SASL;
       bindDN =
-          DN.decode("cn=Directory Manager, cn=Root DNs, cn=config");
+          DN.valueOf("cn=Directory Manager, cn=Root DNs, cn=config");
       break;
     }
 

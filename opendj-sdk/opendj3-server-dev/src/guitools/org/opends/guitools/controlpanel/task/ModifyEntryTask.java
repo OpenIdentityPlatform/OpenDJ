@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -104,7 +105,7 @@ public class ModifyEntryTask extends Task
     DN newDn = newEntry.getDN();
     try
     {
-      oldDn = DN.decode(oldEntry.getDN());
+      oldDn = DN.valueOf(oldEntry.getDN());
       for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
       {
         for (BaseDNDescriptor baseDN : backend.getBaseDns())
@@ -362,8 +363,8 @@ public class ModifyEntryTask extends Task
   final ArrayList<ModificationItem> originalMods)
   throws CannotRenameException, NamingException
   {
-    RDN oldRDN = oldDN.getRDN();
-    RDN newRDN = newEntry.getDN().getRDN();
+    RDN oldRDN = oldDN.rdn();
+    RDN newRDN = newEntry.getDN().rdn();
 
     boolean rdnTypeChanged =
     newRDN.getNumValues() != oldRDN.getNumValues();
@@ -521,7 +522,7 @@ public class ModifyEntryTask extends Task
 
       boolean isAttributeInNewRdn = false;
       AttributeValue rdnValue = null;
-      RDN rdn = newEntry.getDN().getRDN();
+      RDN rdn = newEntry.getDN().rdn();
       for (int i=0; i<rdn.getNumValues() && !isAttributeInNewRdn; i++)
       {
         isAttributeInNewRdn =
@@ -546,7 +547,7 @@ public class ModifyEntryTask extends Task
       RDN oldRDN = null;
       try
       {
-        oldRDN = DN.decode(oldEntry.getDN()).getRDN();
+        oldRDN = DN.valueOf(oldEntry.getDN()).rdn();
       }
       catch (DirectoryException de)
       {

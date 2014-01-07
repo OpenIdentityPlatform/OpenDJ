@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -112,15 +113,15 @@ public class VLVControlTestCase
     snType = DirectoryServer.getAttributeType("sn", false);
     assertNotNull(snType);
 
-    aaccfJohnsonDN    = DN.decode("uid=aaccf.johnson,dc=example,dc=com");
-    aaronZimmermanDN  = DN.decode("uid=aaron.zimmerman,dc=example,dc=com");
-    albertSmithDN     = DN.decode("uid=albert.smith,dc=example,dc=com");
-    albertZimmermanDN = DN.decode("uid=albert.zimmerman,dc=example,dc=com");
-    lowercaseMcGeeDN  = DN.decode("uid=lowercase.mcgee,dc=example,dc=com");
-    margaretJonesDN   = DN.decode("uid=margaret.jones,dc=example,dc=com");
-    maryJonesDN       = DN.decode("uid=mary.jones,dc=example,dc=com");
-    samZweckDN        = DN.decode("uid=sam.zweck,dc=example,dc=com");
-    zorroDN           = DN.decode("uid=zorro,dc=example,dc=com");
+    aaccfJohnsonDN    = DN.valueOf("uid=aaccf.johnson,dc=example,dc=com");
+    aaronZimmermanDN  = DN.valueOf("uid=aaron.zimmerman,dc=example,dc=com");
+    albertSmithDN     = DN.valueOf("uid=albert.smith,dc=example,dc=com");
+    albertZimmermanDN = DN.valueOf("uid=albert.zimmerman,dc=example,dc=com");
+    lowercaseMcGeeDN  = DN.valueOf("uid=lowercase.mcgee,dc=example,dc=com");
+    margaretJonesDN   = DN.valueOf("uid=margaret.jones,dc=example,dc=com");
+    maryJonesDN       = DN.valueOf("uid=mary.jones,dc=example,dc=com");
+    samZweckDN        = DN.valueOf("uid=sam.zweck,dc=example,dc=com");
+    zorroDN           = DN.valueOf("uid=zorro,dc=example,dc=com");
   }
 
 
@@ -510,7 +511,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
@@ -603,7 +604,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
@@ -696,7 +697,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
@@ -788,7 +789,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
@@ -846,7 +847,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
@@ -903,7 +904,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
@@ -975,7 +976,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
@@ -1067,7 +1068,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
@@ -1161,7 +1162,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
@@ -1255,7 +1256,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
@@ -1349,7 +1350,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
@@ -1443,7 +1444,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
-                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);

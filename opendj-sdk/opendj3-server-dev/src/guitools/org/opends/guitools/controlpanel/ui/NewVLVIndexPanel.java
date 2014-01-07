@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -271,7 +272,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
           getInfo().stopPooling();
           if (getInfo().mustDeregisterConfig())
           {
-            DirectoryServer.deregisterBaseDN(DN.decode("cn=config"));
+            DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
           DirectoryServer.getInstance().initializeConfiguration(
               org.opends.server.extensions.ConfigFileHandler.class.getName(),
@@ -350,7 +351,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
           backendName.getText())+",cn=Backends,cn=config";
         boolean topEntryExists =
           DirectoryServer.getConfigHandler().entryExists(
-              DN.decode(topEntryDN));
+              DN.valueOf(topEntryDN));
 
         if (!topEntryExists)
         {
@@ -405,7 +406,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
 
       index.setFilter(filter.getText().trim());
       index.setSortOrder(getSortOrderStringValue(getSortOrder()));
-      index.setBaseDN(DN.decode(getBaseDN()));
+      index.setBaseDN(DN.valueOf(getBaseDN()));
       index.setScope(getScope());
       index.setMaxBlockSize(Integer.parseInt(maxBlockSize.getText().trim()));
       index.commit();
@@ -459,7 +460,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
           if (backend.getBackendID().equalsIgnoreCase(backendID))
           {
             newIndex = new VLVIndexDescriptor(
-                indexName, backend, DN.decode(baseDN),
+                indexName, backend, DN.valueOf(baseDN),
                 scope, filterValue, sortOrder, maxBlock);
             getInfo().registerModifiedIndex(newIndex);
             notifyConfigurationElementCreated(newIndex);

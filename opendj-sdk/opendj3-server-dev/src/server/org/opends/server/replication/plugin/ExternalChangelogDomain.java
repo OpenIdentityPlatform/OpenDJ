@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -78,7 +78,7 @@ public class ExternalChangelogDomain
       if (domain==null)
       {
         DN rdns = DN.decode(
-            configuration.dn().getParent().getRDN().getAttributeValue(0).
+            configuration.dn().parent().rdn().getAttributeValue(0).
             getNormalizedValue());
         domain = MultimasterReplication.findDomain(rdns, null);
       }
@@ -113,7 +113,7 @@ public class ExternalChangelogDomain
       if (domain==null)
       {
         DN rdns = DN.decode(
-            configuration.dn().getParent().getRDN().getAttributeValue(0).
+            configuration.dn().parent().rdn().getAttributeValue(0).
               getNormalizedValue());
         domain = MultimasterReplication.findDomain(rdns, null);
       }

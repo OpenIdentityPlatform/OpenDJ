@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2011 ForgeRock AS.
+ *      Portions Copyright 2010-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -99,7 +99,7 @@ public abstract class PasswordStorageSchemeTestCase
 
     if (configDNString != null)
     {
-      configEntry = DirectoryServer.getConfigEntry(DN.decode(configDNString));
+      configEntry = DirectoryServer.getConfigEntry(DN.valueOf(configDNString));
     }
   }
 
@@ -308,7 +308,7 @@ public abstract class PasswordStorageSchemeTestCase
     // PasswordPolicyTestCase.testAllowPreEncodedPasswordsAuth
     boolean previousValue = false;
     try {
-      DN dn = DN.decode("cn=Default Password Policy,cn=Password Policies,cn=config");
+      DN dn = DN.valueOf("cn=Default Password Policy,cn=Password Policies,cn=config");
       PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
       previousValue = p.isAllowPreEncodedPasswords();
 

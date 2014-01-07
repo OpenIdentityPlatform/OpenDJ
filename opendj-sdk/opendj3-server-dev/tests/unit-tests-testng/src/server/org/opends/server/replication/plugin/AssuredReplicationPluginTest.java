@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -815,7 +815,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
         // Check monitoring values
         Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
-        DN baseDN = DN.decode(SAFE_DATA_DN);
+        DN baseDN = DN.valueOf(SAFE_DATA_DN);
         new MonitorAssertions(baseDN)
           .assertValue("assured-sd-sent-updates", 1)
           .assertValue("assured-sd-timeout-updates", 1)
@@ -830,7 +830,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         // No error should be seen in monitoring and update should have not been
         // sent in assured mode
         Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
-        DN baseDN = DN.decode(NOT_ASSURED_DN);
+        DN baseDN = DN.valueOf(NOT_ASSURED_DN);
         new MonitorAssertions(baseDN).assertRemainingValuesAreZero();
         assertNoServerErrors(baseDN);
       }
@@ -925,7 +925,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
         // Check monitoring values
         Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
-        DN baseDN = DN.decode(SAFE_READ_DN);
+        DN baseDN = DN.valueOf(SAFE_READ_DN);
         new MonitorAssertions(baseDN)
           .assertValue("assured-sr-sent-updates", 1)
           .assertValue("assured-sr-not-acknowledged-updates", 1)
@@ -941,7 +941,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         // No error should be seen in monitoring and update should have not been
         // sent in assured mode
         Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
-        DN baseDN = DN.decode(NOT_ASSURED_DN);
+        DN baseDN = DN.valueOf(NOT_ASSURED_DN);
         new MonitorAssertions(baseDN).assertRemainingValuesAreZero();
         assertNoServerErrors(baseDN);
       }
@@ -1065,7 +1065,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       // Check monitoring values
       Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
-      DN baseDN = DN.decode(SAFE_DATA_DN);
+      DN baseDN = DN.valueOf(SAFE_DATA_DN);
       new MonitorAssertions(baseDN)
         .assertValue("assured-sd-sent-updates", 1)
         .assertValue("assured-sd-acknowledged-updates", 1)
@@ -1110,7 +1110,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       // Check monitoring values
       Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
-      DN baseDN = DN.decode(SAFE_READ_DN);
+      DN baseDN = DN.valueOf(SAFE_READ_DN);
       new MonitorAssertions(baseDN)
         .assertValue("assured-sr-sent-updates", 1)
         .assertValue("assured-sr-acknowledged-updates", 1)
@@ -1152,7 +1152,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         "objectClass: top\n" +
         "objectClass: organizationalUnit\n";
       Entry entry = TestCaseUtils.entryFromLdifString(entryStr);
-      String parentUid = getEntryUUID(DN.decode(SAFE_READ_DN));
+      String parentUid = getEntryUUID(DN.valueOf(SAFE_READ_DN));
 
       try {
         AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
@@ -1170,7 +1170,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         assertEquals(ackMsg.getFailedServers().size(), 0);
 
         // Check for monitoring data
-        DN baseDN = DN.decode(SAFE_READ_DN);
+        DN baseDN = DN.valueOf(SAFE_READ_DN);
         new MonitorAssertions(baseDN)
           .assertValue("assured-sr-received-updates", 1)
           .assertValue("assured-sr-received-updates-acked", 1)
@@ -1236,7 +1236,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         "objectClass: top\n" +
         "objectClass: organizationalUnit\n";
       Entry entry = TestCaseUtils.entryFromLdifString(entryStr);
-      String parentUid = getEntryUUID(DN.decode(SAFE_DATA_DN));
+      String parentUid = getEntryUUID(DN.valueOf(SAFE_DATA_DN));
 
       AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
       fail("DS should not reply an ack in safe data mode, however, it replied: " + ackMsg);
@@ -1288,7 +1288,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // - timeout error
       // - server 10 error
       Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
-      DN baseDN = DN.decode(SAFE_DATA_DN);
+      DN baseDN = DN.valueOf(SAFE_DATA_DN);
       new MonitorAssertions(baseDN)
         .assertValue("assured-sd-sent-updates", 1)
         .assertValue("assured-sd-timeout-updates", 1)
@@ -1306,7 +1306,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // - timeout error
       // - server 10 error, server 20 error
       Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
-      baseDN = DN.decode(SAFE_DATA_DN);
+      baseDN = DN.valueOf(SAFE_DATA_DN);
       new MonitorAssertions(baseDN)
         .assertValue("assured-sd-sent-updates", 2)
         .assertValue("assured-sd-timeout-updates", 2)
@@ -1323,7 +1323,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // Check monitoring values
       // No ack should have comen back, so timeout incremented (flag and error for rs)
       Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
-      baseDN = DN.decode(SAFE_DATA_DN);
+      baseDN = DN.valueOf(SAFE_DATA_DN);
       new MonitorAssertions(baseDN)
         .assertValue("assured-sd-sent-updates", 3)
         .assertValue("assured-sd-timeout-updates", 3)
@@ -1396,7 +1396,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // - replay error
       // - server 10 error, server 20 error
       Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
-      DN baseDN = DN.decode(SAFE_READ_DN);
+      DN baseDN = DN.valueOf(SAFE_READ_DN);
       new MonitorAssertions(baseDN)
         .assertValue("assured-sr-sent-updates", 1)
         .assertValue("assured-sr-not-acknowledged-updates", 1)
@@ -1457,7 +1457,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    */
   private void deleteEntry(String dn) throws Exception
   {
-    DN realDN = DN.decode(dn);
+    DN realDN = DN.valueOf(dn);
     DeleteOperation delOp = connection.processDelete(realDN);
     waitOpResult(delOp, ResultCode.SUCCESS);
     assertNull(DirectoryServer.getEntry(realDN));
@@ -1476,7 +1476,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     // Find monitoring entry for requested base DN
     SearchFilter monitorFilter = SearchFilter.createFilterFromString(
         "(&(cn=Directory server*)(domain-name=" + baseDN + "))");
-    DN dn = DN.decode("cn=replication,cn=monitor");
+    DN dn = DN.valueOf("cn=replication,cn=monitor");
 
     InternalSearchOperation op;
     int count = 0;

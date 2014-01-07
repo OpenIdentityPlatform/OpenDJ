@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -125,7 +126,7 @@ public class BackendConfigManager implements
     ConfigEntry backendRoot;
     try
     {
-      DN configEntryDN = DN.decode(ConfigConstants.DN_BACKEND_BASE);
+      DN configEntryDN = DN.valueOf(ConfigConstants.DN_BACKEND_BASE);
       backendRoot   = DirectoryServer.getConfigEntry(configEntryDN);
     }
     catch (Exception e)

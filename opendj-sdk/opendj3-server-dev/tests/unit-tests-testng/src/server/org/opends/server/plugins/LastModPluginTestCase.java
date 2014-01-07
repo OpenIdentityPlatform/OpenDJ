@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -360,10 +361,10 @@ public class LastModPluginTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode("o=test"), mods);
+         conn.processModify(DN.valueOf("o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
-    Entry e = DirectoryConfig.getEntry(DN.decode("o=test"));
+    Entry e = DirectoryConfig.getEntry(DN.valueOf("o=test"));
     assertNotNull(e);
     assertNotNull(e.getAttribute("modifiersname"));
     assertNotNull(e.getAttribute("modifytimestamp"));
@@ -399,7 +400,7 @@ public class LastModPluginTestCase
          conn.processModifyDN(e.getDN(), RDN.decode("cn=test2"), false);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
 
-    e = DirectoryConfig.getEntry(DN.decode("cn=test2,o=test"));
+    e = DirectoryConfig.getEntry(DN.valueOf("cn=test2,o=test"));
     assertNotNull(e);
     assertNotNull(e.getAttribute("modifiersname"));
     assertNotNull(e.getAttribute("modifytimestamp"));
