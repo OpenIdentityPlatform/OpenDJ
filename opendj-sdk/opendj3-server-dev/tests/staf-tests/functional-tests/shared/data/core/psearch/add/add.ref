@@ -1,0 +1,49 @@
+dn: uid=Bil Bo,ou=People,dc=example,dc=com
+ou: Accounting
+ou: People
+sn: Bo
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+roomnumber: 5484
+l: Santa Clara
+cn: Bil Bo
+uid: bbo
+uid: Bil Bo
+givenName: Bil
+mail: bbo@example.com
+
+
+dn: uid=Blam Blo,ou=People,dc=example,dc=com
+ou: Accounting
+ou: People
+sn: Blo
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+roomnumber: 5484
+l: Santa Clara
+cn: Blam Bo
+uid: blbo
+uid: Blam Blo
+givenName: Blam
+mail: blbo@example.com
+
+
+dn: uid=Blum Blue,ou=People,dc=example,dc=com
+ou: Accounting
+ou: People
+sn: Blue
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+roomnumber: 5484
+l: Santa Clara
+cn: Blum Blue
+uid: blubu
+uid: Blum Blue
+givenName: Blum
+mail: blubu@example.com

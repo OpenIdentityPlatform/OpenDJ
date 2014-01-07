@@ -1,0 +1,40 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 1197
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+  <soap-env:Body>
+  <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+     <searchRequest dn="o=dsmlfe.com" scope="wholeSubtree" derefAliases="neverDerefAliases">
+     	<filter>
+		<equalityMatch name="uid">
+			<value>mlangdon</value>
+		</equalityMatch>
+	</filter>
+	<attributes><attribute name="description"/></attributes>
+     </searchRequest>
+     <searchRequest dn="o=dsmlfe.com" scope="wholeSubtree" derefAliases="neverDerefAliases">
+     	<filter>
+		<equalityMatch name="uid">
+			<value>speterso</value>
+		</equalityMatch>
+	</filter>
+	<attributes><attribute name="pager"/></attributes>
+     </searchRequest>
+     <searchRequest dn="o=dsmlfe.com" scope="wholeSubtree" derefAliases="neverDerefAliases">
+     	<filter>
+		<equalityMatch name="uid">
+			<value>rdaugherty</value>
+		</equalityMatch>
+        </filter>
+	<attributes><attribute name="labeleduri"/></attributes>
+     </searchRequest>
+  </batchRequest>
+  </soap-env:Body>
+  </soap-env:Envelope>

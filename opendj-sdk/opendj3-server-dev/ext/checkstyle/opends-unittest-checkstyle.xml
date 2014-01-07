@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+
+
+<module name="Checker">
+  <module name="TreeWalker">
+    <property name="cacheFile" value="${basedir}/.checkstyle-cache/opends-unittest-checkstyle.cache" />
+
+    <!-- Ensure that each source file starts with the appropriate header -->
+    <module name="RegexpHeader">
+      <property name="headerFile" value="${basedir}/ext/checkstyle/opendj.sourceheader" />
+    </module>
+  </module>
+</module>
+

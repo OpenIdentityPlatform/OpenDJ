@@ -1,0 +1,294 @@
+dn: ou=ä, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ö, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ü, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ß, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=Ä_2, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=Ö_2, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=Ü_2, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=á, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=é, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=í, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ó, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ü, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ñ, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=Á_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=É_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=Í_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=Ó_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=Ú_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=Ü_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=Ñ_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=à, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=â, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ç, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ë, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=è, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=é, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ê, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ï, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=î, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ô, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ü, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=ù, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=û, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: delete
+
+dn: ou=À_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: À
+
+dn: ou=Â_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: Â
+
+dn: ou=Ç_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: Ç
+
+dn: ou=Ë_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: Ë
+
+dn: ou=È_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: È
+
+dn: ou=É_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: É
+
+dn: ou=Ê_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: Ê
+
+dn: ou=Ï_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: Ï
+
+dn: ou=Î_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: Î
+
+dn: ou=Ô_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: Ô
+
+dn: ou=Ü_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: Ü
+
+dn: ou=Ù_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: Ù
+
+dn: ou=Û_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+add: businessCategory
+businessCategory: Û
+
+dn: ou=A, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=B, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=C, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=D, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=E, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=F, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=G, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=H, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=I, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=J, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=K, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=L, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=M, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=N, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=O, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=P, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=Q, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=R, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=S, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=T, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=U, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=V, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=W, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=X, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=Y, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+
+dn: ou=Z, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+changetype: modify
+replace: description
+description: I18n test
+

@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<refentry xml:id='ldapdelete-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>ldapdelete</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>ldapdelete</refname>
+  <refpurpose>perform LDAP delete operations</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>ldapdelete</command>
+   <arg choice="req">options</arg>
+   <arg><replaceable>DN</replaceable></arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to perform LDAP delete operations in the
+  directory.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>--assertionFilter {filter}</option></term>
+    <listitem>
+     <para>Use the LDAP assertion control with the provided filter</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-c, --continueOnError</option></term>
+    <listitem>
+     <para>Continue processing even if there are errors</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-f, --filename {file}</option></term>
+    <listitem>
+     <para>LDIF file containing the changes to apply</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-J, --control {controloid[:criticality[:value|::b64value|:&lt;filePath]]}</option></term>
+    <listitem>
+     <para>Use a request control with the provided information</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-n, --dry-run</option></term>
+    <listitem>
+     <para>Show what would be done but do not perform any operation</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-x, --deleteSubtree</option></term>
+    <listitem>
+     <para>Delete the specified entry and all entries below it</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-Y, --proxyAs {authzID}</option></term>
+    <listitem>
+     <para>Use the proxied authorization control with the given authorization
+     ID</para>
+    </listitem>
+   </varlistentry>   
+  </variablelist>
+  <refsect2>
+   <title>LDAP Connection Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-D, --bindDN {bindDN}</option></term>
+     <listitem>
+      <para>DN to use to bind to the server</para>
+      <para>Default value: cn=Directory Manager</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-E, --reportAuthzID</option></term>
+     <listitem>
+      <para>Use the authorization identity control</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-h, --hostname {host}</option></term>
+     <listitem>
+      <para>Directory server hostname or IP address</para>
+      <para>Default value: localhost.localdomain</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-j, --bindPasswordFile {bindPasswordFile}</option></term>
+     <listitem>
+      <para>Bind password file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-K, --keyStorePath {keyStorePath}</option></term>
+     <listitem>
+      <para> Certificate key store path</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-N, --certNickname {nickname}</option></term>
+     <listitem>
+      <para>Nickname of certificate for SSL client authentication</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-o, --saslOption {name=value}</option></term>
+     <listitem>
+      <para>SASL bind options</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-p, --port {port}</option></term>
+     <listitem>
+      <para>Directory server port number</para>
+      <para>Default value: 389</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-P, --trustStorePath {trustStorePath}</option></term>
+     <listitem>
+      <para>Certificate trust store path</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-q, --useStartTLS</option></term>
+     <listitem>
+      <para>Use StartTLS to secure communication with the server</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-T, --trustStorePassword {trustStorePassword}</option></term>
+     <listitem>
+      <para>Certificate trust store PIN</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-u, --keyStorePasswordFile {keyStorePasswordFile}</option></term>
+     <listitem>
+      <para>Certificate key store PIN file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-U, --trustStorePasswordFile {path}</option></term>
+     <listitem>
+      <para>Certificate trust store PIN file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--usePasswordPolicyControl</option></term>
+     <listitem>
+      <para>Use the password policy request control</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-V, --ldapVersion {version}</option></term>
+     <listitem>
+      <para>LDAP protocol version number</para>
+      <para>Default value: 3</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-w, --bindPassword {bindPassword}</option></term>
+     <listitem>
+      <para>Password to use to bind to the server</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-W, --keyStorePassword {keyStorePassword}</option></term>
+     <listitem>
+      <para>Certificate key store PIN</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-X, --trustAll</option></term>
+     <listitem>
+      <para>Trust all server SSL certificates</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-Z, --useSSL</option></term>
+     <listitem>
+      <para>Use SSL for secure communication with the server</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>Utility Input/Output Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-i, --encoding {encoding}</option></term>
+     <listitem>
+      <para>Use the specified character set for command-line input</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--noPropertiesFile</option></term>
+     <listitem>
+      <para>No properties file will be used to get default command line
+      argument values</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--propertiesFilePath {propertiesFilePath}</option></term>
+     <listitem>
+      <para>Path to the file containing default property values used for
+      command line arguments</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-v, --verbose</option></term>
+     <listitem>
+      <para>Use verbose mode</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>General Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>--version</option></term>
+     <listitem>
+      <para>Display version information</para>
+     </listitem>
+    </varlistentry>
+     <varlistentry>
+     <term><option>-?, -H, --help</option></term>
+     <listitem>
+      <para>Display usage information</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+   <variablelist>
+    <varlistentry>
+     <term>0</term>
+     <listitem>
+      <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><replaceable>ldap-error</replaceable></term>
+     <listitem>
+      <para>An LDAP error occurred while processing the operation.</para>
+      <para>LDAP result codes are described in <link
+      xlink:href="http://tools.ietf.org/html/rfc4511#appendix-A">RFC
+      4511</link>. Also see the additional information for details.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>89</term>
+     <listitem>
+      <para>An error occurred while parsing the command-line arguments.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Files</title>
+  <para>You can use <filename>~/.opendj/tools.properties</filename> to set
+  the defaults for bind DN, host name, and port number as in the following
+  example.</para>
+  <programlisting language="ini">hostname=directory.example.com
+port=1389
+bindDN=uid=kvaughan,ou=People,dc=example,dc=com
+
+ldapcompare.port=1389
+ldapdelete.port=1389
+ldapmodify.port=1389
+ldappasswordmodify.port=1389
+ldapsearch.port=1389</programlisting>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>The following command deletes a user entry from the directory.</para>
+  <screen>$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password
+ uid=bjensen,ou=people,dc=example,dc=com
+Processing DELETE request for uid=bjensen,ou=people,dc=example,dc=com
+DELETE operation successful for DN uid=bjensen,ou=people,dc=example,dc=com</screen>
+  <para>The following command deletes the ou=Groups entry and all entries
+  underneath ou=Groups.</para>
+  <screen>$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password -x
+ ou=groups,dc=example,dc=com
+Processing DELETE request for ou=groups,dc=example,dc=com
+DELETE operation successful for DN ou=groups,dc=example,dc=com</screen>
+ </refsect1>
+</refentry>

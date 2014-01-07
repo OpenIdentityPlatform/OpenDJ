@@ -1,0 +1,23 @@
+define base=dc=com
+define suffix=dc=example,[base]
+define orgunit=o=clu tests,[suffix]
+define maildomain=example.com
+define numusers=160
+
+branch: ou=make-ldif,[orgunit]
+subordinateTemplate: person:[numusers]
+
+template: person
+rdnAttr: uid
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+givenName: <first>
+sn: <last>
+employeeNumber: <sequential:0>
+cn: {givenName} {sn} {employeeNumber}
+uid: user.{employeeNumber}
+mail: {uid}@[maildomain]
+telephoneNumber: <random:telephone>
+description: This is the description for user.{employeeNumber}.

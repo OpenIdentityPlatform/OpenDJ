@@ -1,0 +1,22 @@
+#!/bin/bash
+set -e
+# Pre installation script
+if [ "$1" = "upgrade" ]
+then
+# Only if the instance has been configured
+  if [ -f @prefix@/config/buildinfo ] && [ "$(ls -A @prefix@/config/archived-configs)" ]
+  then
+# If the server is running before upgrade, creates a flag.
+    if [ -f @prefix@/logs/server.pid ]
+    then
+      touch @prefix@/logs/status
+    fi
+    echo *Stopping OpenDJ server...
+    @prefix@/bin/./stop-ds
+  else
+    echo "Instance is not configured. Upgrade aborded."
+    exit -1
+  fi
+fi
+echo 
+# End of the pre installation script

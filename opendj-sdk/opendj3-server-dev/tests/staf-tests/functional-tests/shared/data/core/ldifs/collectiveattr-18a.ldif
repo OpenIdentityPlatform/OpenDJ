@@ -1,0 +1,9 @@
+dn: cn=Collective employeeType,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective employeeType
+employeeType;collective: LTR-3
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1}
+collectiveConflictBehavior: virtual-overrides-real

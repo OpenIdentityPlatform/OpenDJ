@@ -1,0 +1,4422 @@
+'\" t
+.\"     Title: dsconfig
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 06/19/2013
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.6.0
+.\"  Language: English
+.\"
+.TH "DSCONFIG" "1" "06/19/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+dsconfig \- manage OpenDJ directory server configuration
+.SH "SYNOPSIS"
+.HP \w'\fBdsconfig\ [\fR\fB\fIsubcommand\fR\fR\fB]\fR\ 'u
+\fBdsconfig [\fR\fB\fIsubcommand\fR\fR\fB]\fR [options]
+.SH "DESCRIPTION"
+.PP
+This utility serves to configure a running directory server\&.
+.PP
+The
+\fBdsconfig\fR
+command is the primary command\-line tool for viewing and editing OpenDJ configuration\&. When started without arguments,
+\fBdsconfig\fR
+prompts you for administration connection information, including the host name, administration port number, administrator bind DN and administrator password\&. The
+\fBdsconfig\fR
+command then connects securely to the directory server over the administration port\&. Once connected it presents you with a menu\-driven interface to the server configuration\&.
+.PP
+When you pass connection information, subcommands, and additional options to
+\fBdsconfig\fR, the command runs in script mode and so is not interactive, though it can prompt you to ask whether to apply changes and whether to trust certificates (unless you use the
+\fB\-\-no\-prompt\fR
+and
+\fB\-\-trustAll\fR
+options, respectively)\&.
+.PP
+You can prepare
+\fBdsconfig\fR
+batch scripts by running the tool with the
+\fB\-\-commandFilePath\fR
+option in interactive mode, then reading from the batch file with the
+\fB\-\-batchFile\fR
+option in script mode\&. Batch files can be useful when you have many
+\fBdsconfig\fR
+commands to run and want to avoid starting the JVM and setting up a new connection for each command\&.
+.PP
+The
+\fBdsconfig\fR
+command categorizes directory server configuration into
+components, also called
+managed objects\&. Actual components often inherit from a parent component type\&. For example, one component is a Connection Handler\&. An LDAP Connection Handler is a type of Connection Handler\&. You configure the LDAP Connection Handler component to specify how OpenDJ directory server handles LDAP connections coming from client applications\&.
+.PP
+Configuration components have
+properties\&. For example, the LDAP Connection Handler component has properties such as
+listen\-port
+and
+allow\-start\-tls\&. You can set the component\*(Aqs
+listen\-port
+property to
+389
+to use the default LDAP port number\&. You can set the component\*(Aqs
+allow\-start\-tls
+property to
+true
+to permit LDAP client applications to use StartTLS\&. Much of the configuration you do with
+\fBdsconfig\fR
+involves setting component properties\&. The
+\m[blue]\fBOpenDJ Configuration Reference\fR\m[]
+covers all
+\fBdsconfig\fR
+component properties in detail, drawing on the documentation you also view when getting help through the
+\fBdsconfig\fR
+command\&.
+.SH "GETTING HELP"
+.PP
+The
+\fBdsconfig\fR
+command provides many subcommands\&. Use the following options to view help for subcommands\&.
+.PP
+See
+dsconfig Subcommands
+for details of individual subcommands\&.
+.PP
+\fBdsconfig \-\-help\-all\fR
+.RS 4
+Display all subcommands
+.RE
+.PP
+\fBdsconfig \-\-help\-core\-server\fR
+.RS 4
+Display subcommands relating to core server
+.RE
+.PP
+\fBdsconfig \-\-help\-database\fR
+.RS 4
+Display subcommands relating to caching and back\-ends
+.RE
+.PP
+\fBdsconfig \-\-help\-logging\fR
+.RS 4
+Display subcommands relating to logging
+.RE
+.PP
+\fBdsconfig \-\-help\-replication\fR
+.RS 4
+Display subcommands relating to replication
+.RE
+.PP
+\fBdsconfig \-\-help\-security\fR
+.RS 4
+Display subcommands relating to authentication and authorization
+.RE
+.PP
+\fBdsconfig \-\-help\-user\-management\fR
+.RS 4
+Display subcommands relating to user management
+.RE
+.PP
+For help with individual subcommands, either use
+\fBdsconfig \fR\fB\fIsubcommand\fR\fR\fB \-\-help\fR, or start
+\fBdsconfig\fR
+in interactive mode, without specifying a subcommand\&.
+.PP
+To view component properties, use the
+\fBdsconfig list\-properties\fR
+command\&.
+.SH "GENERALLY APPLICABLE OPTIONS"
+.PP
+The following options are supported for all
+\fBdsconfig\fR
+subcommands\&.
+.PP
+\fB\-\-advanced\fR
+.RS 4
+Allows the configuration of advanced components and properties
+.RE
+.SS "LDAP Connection Options"
+.PP
+\fB\-\-connectTimeout {timeout}\fR
+.RS 4
+Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
+.sp
+Default value: 30000
+.RE
+.PP
+\fB\-h, \-\-hostname {host}\fR
+.RS 4
+Directory server hostname or IP address
+.sp
+Default value: localhost\&.localdomain
+.RE
+.PP
+\fB\-I, \-\-adminUID {adminUID}\fR
+.RS 4
+User ID of the global administrator to use to bind to the server\&. For the
+\fBenable\fR
+subcommand, if no global administrator was defined previously for any servers, the global administrator will be created using the UID provided\&.
+.sp
+Default value: admin
+.RE
+.PP
+\fB\-j, \-\-adminPasswordFile {bindPasswordFile}\fR
+.RS 4
+Global administrator password file
+.RE
+.PP
+\fB\-K, \-\-keyStorePath {keyStorePath}\fR
+.RS 4
+Certificate key store path
+.RE
+.PP
+\fB\-N, \-\-certNickname {nickname}\fR
+.RS 4
+Nickname of certificate for SSL client authentication
+.RE
+.PP
+\fB\-o, \-\-saslOption {name=value}\fR
+.RS 4
+SASL bind options
+.RE
+.PP
+\fB\-p, \-\-port {port}\fR
+.RS 4
+Directory server administration port number
+.sp
+Default value: 4444
+.RE
+.PP
+\fB\-P, \-\-trustStorePath {trustStorePath}\fR
+.RS 4
+Certificate trust store path
+.sp
+Default value: /path/to/opendj/config/admin\-truststore
+.RE
+.PP
+\fB\-T, \-\-trustStorePassword {trustStorePassword}\fR
+.RS 4
+Certificate trust store PIN
+.RE
+.PP
+\fB\-u, \-\-keyStorePasswordFile {keyStorePasswordFile}\fR
+.RS 4
+Certificate key store PIN file
+.RE
+.PP
+\fB\-U, \-\-trustStorePasswordFile {path}\fR
+.RS 4
+Certificate trust store PIN file
+.RE
+.PP
+\fB\-w, \-\-adminPassword {bindPassword}\fR
+.RS 4
+Password for the global administrator
+.RE
+.PP
+\fB\-W, \-\-keyStorePassword {keyStorePassword}\fR
+.RS 4
+Certificate key store PIN
+.RE
+.PP
+\fB\-X, \-\-trustAll\fR
+.RS 4
+Trust all server SSL certificates
+.RE
+.SS "Utility Input/Output Options"
+.PP
+\fB\-\-commandFilePath {path}\fR
+.RS 4
+The full path to the file where the equivalent non\-interactive commands will be written when this command is run in interactive mode\&.
+.RE
+.PP
+\fB\-\-displayCommand\fR
+.RS 4
+Display the equivalent non\-interactive option on standard output when this command is run in interactive mode\&.
+.RE
+.PP
+\fB\-F, \-\-batchFilePath {batchFilePath}\fR
+.RS 4
+Path to a batch file containing a set of dsconfig commands to be executed
+.RE
+.PP
+\fB\-n, \-\-no\-prompt\fR
+.RS 4
+Use non\-interactive mode\&. If data in the command is missing, the user is not prompted and the command exits with an error\&.
+.RE
+.PP
+\fB\-\-noPropertiesFile\fR
+.RS 4
+No properties file will be used to get default command line argument values
+.RE
+.PP
+\fB\-\-propertiesFilePath {propertiesFilePath}\fR
+.RS 4
+Path to the file containing default property values used for command line arguments
+.RE
+.PP
+\fB\-Q, \-\-quiet\fR
+.RS 4
+Do not write progress information to standard output
+.RE
+.PP
+\fB\-s, \-\-script\-friendly\fR
+.RS 4
+Use script\-friendly mode
+.RE
+.PP
+\fB\-v, \-\-verbose\fR
+.RS 4
+Use verbose mode
+.RE
+.SS "General Options"
+.PP
+\fB\-\-version\fR
+.RS 4
+Display version information
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information
+.RE
+.SH "DSCONFIG SUBCOMMANDS"
+.PP
+This section covers individual
+\fBdsconfig\fR
+subcommands\&.
+.PP
+Subcommands let you create, list, and delete entire configuration components, and also let you get and set component properties\&. Subcommands therefore have names that reflect these five actions\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+create\-\fIcomponent\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+list\-\fIcomponent\fRs
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+delete\-\fIcomponent\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+get\-\fIcomponent\fR\-prop
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+set\-\fIcomponent\fR\-prop
+.RE
+.PP
+Component properties for the
+\fBdsconfig\fR
+command are covered in the
+\m[blue]\fBOpenDJ Configuration Reference\fR\m[]\&.
+.PP
+Many subcommands let you set property values\&. Notice in the reference for the subcommands below that specific options are available for handling multi\-valued properties\&. Whereas you can assign a single property value using the
+\fB\-\-set\fR
+option, you assign multiple values to a multi\-valued property using the
+\fB\-\-add\fR
+option\&. You can reset the values of the multi\-valued property using the
+\fB\-\-reset\fR
+option\&.
+.PP
+Some property values take a time duration\&. Durations are expressed as numbers followed by units\&. For example
+1 s
+means one second, and
+2 w
+means two weeks\&. Some durations have minimum granularity or maximum units, so you cannot necessary specify every duration in milliseconds or weeks for example\&. Some durations allow you to use a special value to mean unlimited\&. Units are specified as follows\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ms: milliseconds
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+s: seconds
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+m: minutes
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+h: hours
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+d: days
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+w: weeks
+.RE
+.SS "dsconfig create\-access\-log\-filtering\-criteria"
+.PP
+Creates Access Log Filtering Criteria
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Access Log Publisher
+.RE
+.PP
+\fB\-\-criteria\-name {name}\fR
+.RS 4
+The name of the new Access Log Filtering Criteria
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Access Log Filtering Criteria which should be created (Default: generic)\&. The value for TYPE can be one of: generic
+.RE
+.SS "dsconfig create\-account\-status\-notification\-handler"
+.PP
+Creates Account Status Notification Handlers
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the new Account Status Notification Handler
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Account Status Notification Handler which should be created\&. The value for TYPE can be one of: custom | error\-log | smtp
+.RE
+.SS "dsconfig create\-alert\-handler"
+.PP
+Creates Alert Handlers
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the new Alert Handler
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Alert Handler which should be created\&. The value for TYPE can be one of: custom | jmx | smtp
+.RE
+.SS "dsconfig create\-attribute\-syntax"
+.PP
+Creates Attribute Syntaxes
+.PP
+\fB\-\-syntax\-name {name}\fR
+.RS 4
+The name of the new Attribute Syntax
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Attribute Syntax which should be created (Default: generic)\&. The value for TYPE can be one of: attribute\-type\-description | certificate | country\-string | directory\-string | generic | jpeg | telephone\-number
+.RE
+.SS "dsconfig create\-backend"
+.PP
+Creates Backends
+.PP
+\fB\-\-backend\-name {STRING}\fR
+.RS 4
+The name of the new Backend which will also be used as the value of the "backend\-id" property: Specifies a name to identify the associated backend\&.
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Backend which should be created\&. The value for TYPE can be one of: backup | config\-file\-handler | custom | ldif | local\-db | memory | monitor | null | schema | task | trust\-store
+.RE
+.SS "dsconfig create\-certificate\-mapper"
+.PP
+Creates Certificate Mappers
+.PP
+\fB\-\-mapper\-name {name}\fR
+.RS 4
+The name of the new Certificate Mapper
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Certificate Mapper which should be created\&. The value for TYPE can be one of: custom | fingerprint | subject\-attribute\-to\-user\-attribute | subject\-dn\-to\-user\-attribute | subject\-equals\-dn
+.RE
+.SS "dsconfig create\-connection\-handler"
+.PP
+Creates Connection Handlers
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the new Connection Handler
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Connection Handler which should be created\&. The value for TYPE can be one of: custom | http | jmx | ldap | ldif | snmp
+.RE
+.SS "dsconfig create\-debug\-target"
+.PP
+Creates Debug Targets
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Debug Log Publisher
+.RE
+.PP
+\fB\-\-target\-name {STRING}\fR
+.RS 4
+The name of the new Debug Target which will also be used as the value of the "debug\-scope" property: Specifies the fully\-qualified OpenDJ Java package, class, or method affected by the settings in this target definition\&. Use the number character (#) to separate the class name and the method name (that is, org\&.opends\&.server\&.core\&.DirectoryServer#startUp)\&.
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Debug Target which should be created (Default: generic)\&. The value for TYPE can be one of: generic
+.RE
+.SS "dsconfig create\-entry\-cache"
+.PP
+Creates Entry Caches
+.PP
+\fB\-\-cache\-name {name}\fR
+.RS 4
+The name of the new Entry Cache
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Entry Cache which should be created\&. The value for TYPE can be one of: custom | fifo | file\-system | soft\-reference
+.RE
+.SS "dsconfig create\-extended\-operation\-handler"
+.PP
+Creates Extended Operation Handlers
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the new Extended Operation Handler
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Extended Operation Handler which should be created\&. The value for TYPE can be one of: cancel | custom | get\-connection\-id | get\-symmetric\-key | password\-modify | password\-policy\-state | start\-tls | who\-am\-i
+.RE
+.SS "dsconfig create\-group\-implementation"
+.PP
+Creates Group Implementations
+.PP
+\fB\-\-implementation\-name {name}\fR
+.RS 4
+The name of the new Group Implementation
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Group Implementation which should be created\&. The value for TYPE can be one of: custom | dynamic | static | virtual\-static
+.RE
+.SS "dsconfig create\-identity\-mapper"
+.PP
+Creates Identity Mappers
+.PP
+\fB\-\-mapper\-name {name}\fR
+.RS 4
+The name of the new Identity Mapper
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Identity Mapper which should be created\&. The value for TYPE can be one of: custom | exact\-match | regular\-expression
+.RE
+.SS "dsconfig create\-key\-manager\-provider"
+.PP
+Creates Key Manager Providers
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the new Key Manager Provider
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Key Manager Provider which should be created\&. The value for TYPE can be one of: custom | file\-based | pkcs11
+.RE
+.SS "dsconfig create\-local\-db\-index"
+.PP
+Creates Local DB Indexes
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Local DB Backend
+.RE
+.PP
+\fB\-\-index\-name {OID}\fR
+.RS 4
+The name of the new Local DB Index which will also be used as the value of the "attribute" property: Specifies the name of the attribute for which the index is to be maintained\&.
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Local DB Index which should be created (Default: generic)\&. The value for TYPE can be one of: generic
+.RE
+.SS "dsconfig create\-local\-db\-vlv\-index"
+.PP
+Creates Local DB VLV Indexes
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Local DB Backend
+.RE
+.PP
+\fB\-\-index\-name {STRING}\fR
+.RS 4
+The name of the new Local DB VLV Index which will also be used as the value of the "name" property: Specifies a unique name for this VLV index\&.
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Local DB VLV Index which should be created (Default: generic)\&. The value for TYPE can be one of: generic
+.RE
+.SS "dsconfig create\-log\-publisher"
+.PP
+Creates Log Publishers
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the new Log Publisher
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Log Publisher which should be created\&. The value for TYPE can be one of: custom\-access | custom\-debug | custom\-error | custom\-http\-access | file\-based\-access | file\-based\-audit | file\-based\-debug | file\-based\-error | file\-based\-http\-access
+.RE
+.SS "dsconfig create\-log\-retention\-policy"
+.PP
+Creates Log Retention Policies
+.PP
+\fB\-\-policy\-name {name}\fR
+.RS 4
+The name of the new Log Retention Policy
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Log Retention Policy which should be created\&. The value for TYPE can be one of: custom | file\-count | free\-disk\-space | size\-limit
+.RE
+.SS "dsconfig create\-log\-rotation\-policy"
+.PP
+Creates Log Rotation Policies
+.PP
+\fB\-\-policy\-name {name}\fR
+.RS 4
+The name of the new Log Rotation Policy
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Log Rotation Policy which should be created\&. The value for TYPE can be one of: custom | fixed\-time | size\-limit | time\-limit
+.RE
+.SS "dsconfig create\-matching\-rule"
+.PP
+Creates Matching Rules
+.PP
+\fB\-\-rule\-name {name}\fR
+.RS 4
+The name of the new Matching Rule
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Matching Rule which should be created (Default: generic)\&. The value for TYPE can be one of: collation | generic
+.RE
+.SS "dsconfig create\-monitor\-provider"
+.PP
+Creates Monitor Providers
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the new Monitor Provider
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Monitor Provider which should be created\&. The value for TYPE can be one of: client\-connection | custom | entry\-cache | memory\-usage | stack\-trace | system\-info | version
+.RE
+.SS "dsconfig create\-password\-generator"
+.PP
+Creates Password Generators
+.PP
+\fB\-\-generator\-name {name}\fR
+.RS 4
+The name of the new Password Generator
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Password Generator which should be created\&. The value for TYPE can be one of: custom | random
+.RE
+.SS "dsconfig create\-password\-policy"
+.PP
+Creates Authentication Policies
+.PP
+\fB\-\-policy\-name {name}\fR
+.RS 4
+The name of the new Authentication Policy
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Authentication Policy which should be created\&. The value for TYPE can be one of: ldap\-pass\-through | password\-policy
+.RE
+.SS "dsconfig create\-password\-storage\-scheme"
+.PP
+Creates Password Storage Schemes
+.PP
+\fB\-\-scheme\-name {name}\fR
+.RS 4
+The name of the new Password Storage Scheme
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Password Storage Scheme which should be created\&. The value for TYPE can be one of: aes | base64 | blowfish | clear | crypt | custom | md5 | pbkdf2 | rc4 | salted\-md5 | salted\-sha1 | salted\-sha256 | salted\-sha384 | salted\-sha512 | sha1 | triple\-des
+.RE
+.SS "dsconfig create\-password\-validator"
+.PP
+Creates Password Validators
+.PP
+\fB\-\-validator\-name {name}\fR
+.RS 4
+The name of the new Password Validator
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Password Validator which should be created\&. The value for TYPE can be one of: attribute\-value | character\-set | custom | dictionary | length\-based | repeated\-characters | similarity\-based | unique\-characters
+.RE
+.SS "dsconfig create\-plugin"
+.PP
+Creates Plugins
+.PP
+\fB\-\-plugin\-name {name}\fR
+.RS 4
+The name of the new Plugin
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Plugin which should be created\&. The value for TYPE can be one of: attribute\-cleanup | change\-number\-control | custom | entry\-uuid | fractional\-ldif\-import | last\-mod | ldap\-attribute\-description\-list | password\-policy\-import | profiler | referential\-integrity | samba\-password | seven\-bit\-clean | unique\-attribute
+.RE
+.SS "dsconfig create\-replication\-domain"
+.PP
+Creates Replication Domains
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Replication Synchronization Provider
+.RE
+.PP
+\fB\-\-domain\-name {name}\fR
+.RS 4
+The name of the new Replication Domain
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Replication Domain which should be created (Default: generic)\&. The value for TYPE can be one of: generic
+.RE
+.SS "dsconfig create\-replication\-server"
+.PP
+Creates Replication Servers
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Replication Synchronization Provider
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Replication Server which should be created (Default: generic)\&. The value for TYPE can be one of: generic
+.RE
+.SS "dsconfig create\-sasl\-mechanism\-handler"
+.PP
+Creates SASL Mechanism Handlers
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the new SASL Mechanism Handler
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of SASL Mechanism Handler which should be created\&. The value for TYPE can be one of: anonymous | cram\-md5 | custom | digest\-md5 | external | gssapi | plain
+.RE
+.SS "dsconfig create\-synchronization\-provider"
+.PP
+Creates Synchronization Providers
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the new Synchronization Provider
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Synchronization Provider which should be created\&. The value for TYPE can be one of: custom | replication
+.RE
+.SS "dsconfig create\-trust\-manager\-provider"
+.PP
+Creates Trust Manager Providers
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the new Trust Manager Provider
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Trust Manager Provider which should be created\&. The value for TYPE can be one of: blind | custom | file\-based
+.RE
+.SS "dsconfig create\-virtual\-attribute"
+.PP
+Creates Virtual Attributes
+.PP
+\fB\-\-name {name}\fR
+.RS 4
+The name of the new Virtual Attribute
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of Virtual Attribute which should be created\&. The value for TYPE can be one of: collective\-attribute\-subentries | custom | entity\-tag | entry\-dn | entry\-uuid | governing\-structure\-rule | has\-subordinates | is\-member\-of | member | num\-subordinates | password\-expiration\-time | password\-policy\-subentry | structural\-object\-class | subschema\-subentry | user\-defined
+.RE
+.SS "dsconfig delete\-access\-log\-filtering\-criteria"
+.PP
+Deletes Access Log Filtering Criteria
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Access Log Publisher
+.RE
+.PP
+\fB\-\-criteria\-name {name}\fR
+.RS 4
+The name of the Access Log Filtering Criteria
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Access Log Filtering Criteria
+.RE
+.SS "dsconfig delete\-account\-status\-notification\-handler"
+.PP
+Deletes Account Status Notification Handlers
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the Account Status Notification Handler
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Account Status Notification Handlers
+.RE
+.SS "dsconfig delete\-alert\-handler"
+.PP
+Deletes Alert Handlers
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the Alert Handler
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Alert Handlers
+.RE
+.SS "dsconfig delete\-attribute\-syntax"
+.PP
+Deletes Attribute Syntaxes
+.PP
+\fB\-\-syntax\-name {name}\fR
+.RS 4
+The name of the Attribute Syntax
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Attribute Syntaxes
+.RE
+.SS "dsconfig delete\-backend"
+.PP
+Deletes Backends
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Backend
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Backends
+.RE
+.SS "dsconfig delete\-certificate\-mapper"
+.PP
+Deletes Certificate Mappers
+.PP
+\fB\-\-mapper\-name {name}\fR
+.RS 4
+The name of the Certificate Mapper
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Certificate Mappers
+.RE
+.SS "dsconfig delete\-connection\-handler"
+.PP
+Deletes Connection Handlers
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the Connection Handler
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Connection Handlers
+.RE
+.SS "dsconfig delete\-debug\-target"
+.PP
+Deletes Debug Targets
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Debug Log Publisher
+.RE
+.PP
+\fB\-\-target\-name {name}\fR
+.RS 4
+The name of the Debug Target
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Debug Targets
+.RE
+.SS "dsconfig delete\-entry\-cache"
+.PP
+Deletes Entry Caches
+.PP
+\fB\-\-cache\-name {name}\fR
+.RS 4
+The name of the Entry Cache
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Entry Caches
+.RE
+.SS "dsconfig delete\-extended\-operation\-handler"
+.PP
+Deletes Extended Operation Handlers
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the Extended Operation Handler
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Extended Operation Handlers
+.RE
+.SS "dsconfig delete\-group\-implementation"
+.PP
+Deletes Group Implementations
+.PP
+\fB\-\-implementation\-name {name}\fR
+.RS 4
+The name of the Group Implementation
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Group Implementations
+.RE
+.SS "dsconfig delete\-identity\-mapper"
+.PP
+Deletes Identity Mappers
+.PP
+\fB\-\-mapper\-name {name}\fR
+.RS 4
+The name of the Identity Mapper
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Identity Mappers
+.RE
+.SS "dsconfig delete\-key\-manager\-provider"
+.PP
+Deletes Key Manager Providers
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Key Manager Provider
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Key Manager Providers
+.RE
+.SS "dsconfig delete\-local\-db\-index"
+.PP
+Deletes Local DB Indexes
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Local DB Backend
+.RE
+.PP
+\fB\-\-index\-name {name}\fR
+.RS 4
+The name of the Local DB Index
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Local DB Indexes
+.RE
+.SS "dsconfig delete\-local\-db\-vlv\-index"
+.PP
+Deletes Local DB VLV Indexes
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Local DB Backend
+.RE
+.PP
+\fB\-\-index\-name {name}\fR
+.RS 4
+The name of the Local DB VLV Index
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Local DB VLV Indexes
+.RE
+.SS "dsconfig delete\-log\-publisher"
+.PP
+Deletes Log Publishers
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Log Publisher
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Log Publishers
+.RE
+.SS "dsconfig delete\-log\-retention\-policy"
+.PP
+Deletes Log Retention Policies
+.PP
+\fB\-\-policy\-name {name}\fR
+.RS 4
+The name of the Log Retention Policy
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Log Retention Policies
+.RE
+.SS "dsconfig delete\-log\-rotation\-policy"
+.PP
+Deletes Log Rotation Policies
+.PP
+\fB\-\-policy\-name {name}\fR
+.RS 4
+The name of the Log Rotation Policy
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Log Rotation Policies
+.RE
+.SS "dsconfig delete\-matching\-rule"
+.PP
+Deletes Matching Rules
+.PP
+\fB\-\-rule\-name {name}\fR
+.RS 4
+The name of the Matching Rule
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Matching Rules
+.RE
+.SS "dsconfig delete\-monitor\-provider"
+.PP
+Deletes Monitor Providers
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Monitor Provider
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Monitor Providers
+.RE
+.SS "dsconfig delete\-password\-generator"
+.PP
+Deletes Password Generators
+.PP
+\fB\-\-generator\-name {name}\fR
+.RS 4
+The name of the Password Generator
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Password Generators
+.RE
+.SS "dsconfig delete\-password\-policy"
+.PP
+Deletes Authentication Policies
+.PP
+\fB\-\-policy\-name {name}\fR
+.RS 4
+The name of the Authentication Policy
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Authentication Policies
+.RE
+.SS "dsconfig delete\-password\-storage\-scheme"
+.PP
+Deletes Password Storage Schemes
+.PP
+\fB\-\-scheme\-name {name}\fR
+.RS 4
+The name of the Password Storage Scheme
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Password Storage Schemes
+.RE
+.SS "dsconfig delete\-password\-validator"
+.PP
+Deletes Password Validators
+.PP
+\fB\-\-validator\-name {name}\fR
+.RS 4
+The name of the Password Validator
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Password Validators
+.RE
+.SS "dsconfig delete\-plugin"
+.PP
+Deletes Plugins
+.PP
+\fB\-\-plugin\-name {name}\fR
+.RS 4
+The name of the Plugin
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Plugins
+.RE
+.SS "dsconfig delete\-replication\-domain"
+.PP
+Deletes Replication Domains
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Replication Synchronization Provider
+.RE
+.PP
+\fB\-\-domain\-name {name}\fR
+.RS 4
+The name of the Replication Domain
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Replication Domains
+.RE
+.SS "dsconfig delete\-replication\-server"
+.PP
+Deletes Replication Servers
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Replication Synchronization Provider
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Replication Servers
+.RE
+.SS "dsconfig delete\-sasl\-mechanism\-handler"
+.PP
+Deletes SASL Mechanism Handlers
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the SASL Mechanism Handler
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent SASL Mechanism Handlers
+.RE
+.SS "dsconfig delete\-synchronization\-provider"
+.PP
+Deletes Synchronization Providers
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Synchronization Provider
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Synchronization Providers
+.RE
+.SS "dsconfig delete\-trust\-manager\-provider"
+.PP
+Deletes Trust Manager Providers
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Trust Manager Provider
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Trust Manager Providers
+.RE
+.SS "dsconfig delete\-virtual\-attribute"
+.PP
+Deletes Virtual Attributes
+.PP
+\fB\-\-name {name}\fR
+.RS 4
+The name of the Virtual Attribute
+.RE
+.PP
+\fB\-f | \-\-force\fR
+.RS 4
+Ignore non\-existent Virtual Attributes
+.RE
+.SS "dsconfig get\-access\-control\-handler\-prop"
+.PP
+Shows Access Control Handler properties
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-access\-log\-filtering\-criteria\-prop"
+.PP
+Shows Access Log Filtering Criteria properties
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Access Log Publisher
+.RE
+.PP
+\fB\-\-criteria\-name {name}\fR
+.RS 4
+The name of the Access Log Filtering Criteria
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-account\-status\-notification\-handler\-prop"
+.PP
+Shows Account Status Notification Handler properties
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the Account Status Notification Handler
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-administration\-connector\-prop"
+.PP
+Shows Administration Connector properties
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-alert\-handler\-prop"
+.PP
+Shows Alert Handler properties
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the Alert Handler
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-attribute\-syntax\-prop"
+.PP
+Shows Attribute Syntax properties
+.PP
+\fB\-\-syntax\-name {name}\fR
+.RS 4
+The name of the Attribute Syntax
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-backend\-prop"
+.PP
+Shows Backend properties
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Backend
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-certificate\-mapper\-prop"
+.PP
+Shows Certificate Mapper properties
+.PP
+\fB\-\-mapper\-name {name}\fR
+.RS 4
+The name of the Certificate Mapper
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-connection\-handler\-prop"
+.PP
+Shows Connection Handler properties
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the Connection Handler
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-crypto\-manager\-prop"
+.PP
+Shows Crypto Manager properties
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-debug\-target\-prop"
+.PP
+Shows Debug Target properties
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Debug Log Publisher
+.RE
+.PP
+\fB\-\-target\-name {name}\fR
+.RS 4
+The name of the Debug Target
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-entry\-cache\-prop"
+.PP
+Shows Entry Cache properties
+.PP
+\fB\-\-cache\-name {name}\fR
+.RS 4
+The name of the Entry Cache
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-extended\-operation\-handler\-prop"
+.PP
+Shows Extended Operation Handler properties
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the Extended Operation Handler
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-external\-changelog\-domain\-prop"
+.PP
+Shows External Changelog Domain properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Replication Synchronization Provider
+.RE
+.PP
+\fB\-\-domain\-name {name}\fR
+.RS 4
+The name of the Replication Domain
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-global\-configuration\-prop"
+.PP
+Shows Global Configuration properties
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-group\-implementation\-prop"
+.PP
+Shows Group Implementation properties
+.PP
+\fB\-\-implementation\-name {name}\fR
+.RS 4
+The name of the Group Implementation
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-identity\-mapper\-prop"
+.PP
+Shows Identity Mapper properties
+.PP
+\fB\-\-mapper\-name {name}\fR
+.RS 4
+The name of the Identity Mapper
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-key\-manager\-provider\-prop"
+.PP
+Shows Key Manager Provider properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Key Manager Provider
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-local\-db\-index\-prop"
+.PP
+Shows Local DB Index properties
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Local DB Backend
+.RE
+.PP
+\fB\-\-index\-name {name}\fR
+.RS 4
+The name of the Local DB Index
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-local\-db\-vlv\-index\-prop"
+.PP
+Shows Local DB VLV Index properties
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Local DB Backend
+.RE
+.PP
+\fB\-\-index\-name {name}\fR
+.RS 4
+The name of the Local DB VLV Index
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-log\-publisher\-prop"
+.PP
+Shows Log Publisher properties
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Log Publisher
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-log\-retention\-policy\-prop"
+.PP
+Shows Log Retention Policy properties
+.PP
+\fB\-\-policy\-name {name}\fR
+.RS 4
+The name of the Log Retention Policy
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-log\-rotation\-policy\-prop"
+.PP
+Shows Log Rotation Policy properties
+.PP
+\fB\-\-policy\-name {name}\fR
+.RS 4
+The name of the Log Rotation Policy
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-matching\-rule\-prop"
+.PP
+Shows Matching Rule properties
+.PP
+\fB\-\-rule\-name {name}\fR
+.RS 4
+The name of the Matching Rule
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-monitor\-provider\-prop"
+.PP
+Shows Monitor Provider properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Monitor Provider
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-password\-generator\-prop"
+.PP
+Shows Password Generator properties
+.PP
+\fB\-\-generator\-name {name}\fR
+.RS 4
+The name of the Password Generator
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-password\-policy\-prop"
+.PP
+Shows Authentication Policy properties
+.PP
+\fB\-\-policy\-name {name}\fR
+.RS 4
+The name of the Authentication Policy
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-password\-storage\-scheme\-prop"
+.PP
+Shows Password Storage Scheme properties
+.PP
+\fB\-\-scheme\-name {name}\fR
+.RS 4
+The name of the Password Storage Scheme
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-password\-validator\-prop"
+.PP
+Shows Password Validator properties
+.PP
+\fB\-\-validator\-name {name}\fR
+.RS 4
+The name of the Password Validator
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-plugin\-prop"
+.PP
+Shows Plugin properties
+.PP
+\fB\-\-plugin\-name {name}\fR
+.RS 4
+The name of the Plugin
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-plugin\-root\-prop"
+.PP
+Shows Plugin Root properties
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-replication\-domain\-prop"
+.PP
+Shows Replication Domain properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Replication Synchronization Provider
+.RE
+.PP
+\fB\-\-domain\-name {name}\fR
+.RS 4
+The name of the Replication Domain
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-replication\-server\-prop"
+.PP
+Shows Replication Server properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Replication Synchronization Provider
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-root\-dn\-prop"
+.PP
+Shows Root DN properties
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-root\-dse\-backend\-prop"
+.PP
+Shows Root DSE Backend properties
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-sasl\-mechanism\-handler\-prop"
+.PP
+Shows SASL Mechanism Handler properties
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the SASL Mechanism Handler
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-synchronization\-provider\-prop"
+.PP
+Shows Synchronization Provider properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Synchronization Provider
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-trust\-manager\-provider\-prop"
+.PP
+Shows Trust Manager Provider properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Trust Manager Provider
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-virtual\-attribute\-prop"
+.PP
+Shows Virtual Attribute properties
+.PP
+\fB\-\-name {name}\fR
+.RS 4
+The name of the Virtual Attribute
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig get\-work\-queue\-prop"
+.PP
+Shows Work Queue properties
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-E | \-\-record\fR
+.RS 4
+Modifies the display output to show one property value per line
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-access\-log\-filtering\-criteria"
+.PP
+Lists existing Access Log Filtering Criteria
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Access Log Publisher
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-account\-status\-notification\-handlers"
+.PP
+Lists existing Account Status Notification Handlers
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-alert\-handlers"
+.PP
+Lists existing Alert Handlers
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-attribute\-syntaxes"
+.PP
+Lists existing Attribute Syntaxes
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-backends"
+.PP
+Lists existing Backends
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-certificate\-mappers"
+.PP
+Lists existing Certificate Mappers
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-connection\-handlers"
+.PP
+Lists existing Connection Handlers
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-debug\-targets"
+.PP
+Lists existing Debug Targets
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Debug Log Publisher
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-entry\-caches"
+.PP
+Lists existing Entry Caches
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-extended\-operation\-handlers"
+.PP
+Lists existing Extended Operation Handlers
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-group\-implementations"
+.PP
+Lists existing Group Implementations
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-identity\-mappers"
+.PP
+Lists existing Identity Mappers
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-key\-manager\-providers"
+.PP
+Lists existing Key Manager Providers
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-local\-db\-indexes"
+.PP
+Lists existing Local DB Indexes
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Local DB Backend
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-local\-db\-vlv\-indexes"
+.PP
+Lists existing Local DB VLV Indexes
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Local DB Backend
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-log\-publishers"
+.PP
+Lists existing Log Publishers
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-log\-retention\-policies"
+.PP
+Lists existing Log Retention Policies
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-log\-rotation\-policies"
+.PP
+Lists existing Log Rotation Policies
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-matching\-rules"
+.PP
+Lists existing Matching Rules
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-monitor\-providers"
+.PP
+Lists existing Monitor Providers
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-password\-generators"
+.PP
+Lists existing Password Generators
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-password\-policies"
+.PP
+Lists existing Password Policies
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-password\-storage\-schemes"
+.PP
+Lists existing Password Storage Schemes
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-password\-validators"
+.PP
+Lists existing Password Validators
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-plugins"
+.PP
+Lists existing Plugins
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-properties"
+.PP
+Describes managed objects and their properties
+.PP
+\fB\-c | \-\-category {category}\fR
+.RS 4
+The category of components whose properties should be described
+.RE
+.PP
+\fB\-t | \-\-type {type}\fR
+.RS 4
+The type of components whose properties should be described\&. The value for TYPE must be one of the component types associated with the CATEGORY specified using the "\-\-category" option
+.RE
+.PP
+\fB\-\-inherited\fR
+.RS 4
+Modifies the display output to show the inherited properties of components
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.SS "dsconfig list\-replication\-domains"
+.PP
+Lists existing Replication Domains
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Replication Synchronization Provider
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-replication\-server"
+.PP
+Lists existing Replication Server
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Replication Synchronization Provider
+.RE
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-sasl\-mechanism\-handlers"
+.PP
+Lists existing SASL Mechanism Handlers
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-synchronization\-providers"
+.PP
+Lists existing Synchronization Providers
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-trust\-manager\-providers"
+.PP
+Lists existing Trust Manager Providers
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig list\-virtual\-attributes"
+.PP
+Lists existing Virtual Attributes
+.PP
+\fB\-\-property {property}\fR
+.RS 4
+The name of a property to be displayed
+.RE
+.PP
+\fB\-z | \-\-unit\-size {unit}\fR
+.RS 4
+Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
+.RE
+.PP
+\fB\-m | \-\-unit\-time {unit}\fR
+.RS 4
+Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
+.RE
+.SS "dsconfig set\-access\-control\-handler\-prop"
+.PP
+Modifies Access Control Handler properties
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-access\-log\-filtering\-criteria\-prop"
+.PP
+Modifies Access Log Filtering Criteria properties
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Access Log Publisher
+.RE
+.PP
+\fB\-\-criteria\-name {name}\fR
+.RS 4
+The name of the Access Log Filtering Criteria
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-account\-status\-notification\-handler\-prop"
+.PP
+Modifies Account Status Notification Handler properties
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the Account Status Notification Handler
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-administration\-connector\-prop"
+.PP
+Modifies Administration Connector properties
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-alert\-handler\-prop"
+.PP
+Modifies Alert Handler properties
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the Alert Handler
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-attribute\-syntax\-prop"
+.PP
+Modifies Attribute Syntax properties
+.PP
+\fB\-\-syntax\-name {name}\fR
+.RS 4
+The name of the Attribute Syntax
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-backend\-prop"
+.PP
+Modifies Backend properties
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Backend
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-certificate\-mapper\-prop"
+.PP
+Modifies Certificate Mapper properties
+.PP
+\fB\-\-mapper\-name {name}\fR
+.RS 4
+The name of the Certificate Mapper
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-connection\-handler\-prop"
+.PP
+Modifies Connection Handler properties
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the Connection Handler
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-crypto\-manager\-prop"
+.PP
+Modifies Crypto Manager properties
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-debug\-target\-prop"
+.PP
+Modifies Debug Target properties
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Debug Log Publisher
+.RE
+.PP
+\fB\-\-target\-name {name}\fR
+.RS 4
+The name of the Debug Target
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-entry\-cache\-prop"
+.PP
+Modifies Entry Cache properties
+.PP
+\fB\-\-cache\-name {name}\fR
+.RS 4
+The name of the Entry Cache
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-extended\-operation\-handler\-prop"
+.PP
+Modifies Extended Operation Handler properties
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the Extended Operation Handler
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-external\-changelog\-domain\-prop"
+.PP
+Modifies External Changelog Domain properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Replication Synchronization Provider
+.RE
+.PP
+\fB\-\-domain\-name {name}\fR
+.RS 4
+The name of the Replication Domain
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-global\-configuration\-prop"
+.PP
+Modifies Global Configuration properties
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-group\-implementation\-prop"
+.PP
+Modifies Group Implementation properties
+.PP
+\fB\-\-implementation\-name {name}\fR
+.RS 4
+The name of the Group Implementation
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-identity\-mapper\-prop"
+.PP
+Modifies Identity Mapper properties
+.PP
+\fB\-\-mapper\-name {name}\fR
+.RS 4
+The name of the Identity Mapper
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-key\-manager\-provider\-prop"
+.PP
+Modifies Key Manager Provider properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Key Manager Provider
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-local\-db\-index\-prop"
+.PP
+Modifies Local DB Index properties
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Local DB Backend
+.RE
+.PP
+\fB\-\-index\-name {name}\fR
+.RS 4
+The name of the Local DB Index
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-local\-db\-vlv\-index\-prop"
+.PP
+Modifies Local DB VLV Index properties
+.PP
+\fB\-\-backend\-name {name}\fR
+.RS 4
+The name of the Local DB Backend
+.RE
+.PP
+\fB\-\-index\-name {name}\fR
+.RS 4
+The name of the Local DB VLV Index
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-log\-publisher\-prop"
+.PP
+Modifies Log Publisher properties
+.PP
+\fB\-\-publisher\-name {name}\fR
+.RS 4
+The name of the Log Publisher
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-log\-retention\-policy\-prop"
+.PP
+Modifies Log Retention Policy properties
+.PP
+\fB\-\-policy\-name {name}\fR
+.RS 4
+The name of the Log Retention Policy
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-log\-rotation\-policy\-prop"
+.PP
+Modifies Log Rotation Policy properties
+.PP
+\fB\-\-policy\-name {name}\fR
+.RS 4
+The name of the Log Rotation Policy
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-matching\-rule\-prop"
+.PP
+Modifies Matching Rule properties
+.PP
+\fB\-\-rule\-name {name}\fR
+.RS 4
+The name of the Matching Rule
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-monitor\-provider\-prop"
+.PP
+Modifies Monitor Provider properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Monitor Provider
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-password\-generator\-prop"
+.PP
+Modifies Password Generator properties
+.PP
+\fB\-\-generator\-name {name}\fR
+.RS 4
+The name of the Password Generator
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-password\-policy\-prop"
+.PP
+Modifies Authentication Policy properties
+.PP
+\fB\-\-policy\-name {name}\fR
+.RS 4
+The name of the Authentication Policy
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-password\-storage\-scheme\-prop"
+.PP
+Modifies Password Storage Scheme properties
+.PP
+\fB\-\-scheme\-name {name}\fR
+.RS 4
+The name of the Password Storage Scheme
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-password\-validator\-prop"
+.PP
+Modifies Password Validator properties
+.PP
+\fB\-\-validator\-name {name}\fR
+.RS 4
+The name of the Password Validator
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-plugin\-prop"
+.PP
+Modifies Plugin properties
+.PP
+\fB\-\-plugin\-name {name}\fR
+.RS 4
+The name of the Plugin
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-plugin\-root\-prop"
+.PP
+Modifies Plugin Root properties
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-replication\-domain\-prop"
+.PP
+Modifies Replication Domain properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Replication Synchronization Provider
+.RE
+.PP
+\fB\-\-domain\-name {name}\fR
+.RS 4
+The name of the Replication Domain
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-replication\-server\-prop"
+.PP
+Modifies Replication Server properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Replication Synchronization Provider
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-root\-dn\-prop"
+.PP
+Modifies Root DN properties
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-root\-dse\-backend\-prop"
+.PP
+Modifies Root DSE Backend properties
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-sasl\-mechanism\-handler\-prop"
+.PP
+Modifies SASL Mechanism Handler properties
+.PP
+\fB\-\-handler\-name {name}\fR
+.RS 4
+The name of the SASL Mechanism Handler
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-synchronization\-provider\-prop"
+.PP
+Modifies Synchronization Provider properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Synchronization Provider
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-trust\-manager\-provider\-prop"
+.PP
+Modifies Trust Manager Provider properties
+.PP
+\fB\-\-provider\-name {name}\fR
+.RS 4
+The name of the Trust Manager Provider
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-virtual\-attribute\-prop"
+.PP
+Modifies Virtual Attribute properties
+.PP
+\fB\-\-name {name}\fR
+.RS 4
+The name of the Virtual Attribute
+.RE
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SS "dsconfig set\-work\-queue\-prop"
+.PP
+Modifies Work Queue properties
+.PP
+\fB\-\-set {PROP:VALUE}\fR
+.RS 4
+Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
+.RE
+.PP
+\fB\-\-reset {property}\fR
+.RS 4
+Resets a property back to its default values where PROP is the name of the property to be reset
+.RE
+.PP
+\fB\-\-add {PROP:VALUE}\fR
+.RS 4
+Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
+.RE
+.PP
+\fB\-\-remove {PROP:VALUE}\fR
+.RS 4
+Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Much of the
+OpenDJ Administration Guide
+consists of
+\fBdsconfig\fR
+examples with text in between\&. This section therefore remains short\&.
+.PP
+The following example starts
+\fBdsconfig\fR
+in interactive, menu\-driven mode on the default port of the current host\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ dsconfig \-h `hostname` \-p 4444 \-D "cn=Directory Manager" \-w password
+
+>>>> OpenDJ configuration console main menu
+
+What do you want to configure?
+
+    1)   Access Control Handler               21)  Log Publisher
+    2)   Access Log Filtering Criteria        22)  Log Retention Policy
+    3)   Account Status Notification Handler  23)  Log Rotation Policy
+    4)   Administration Connector             24)  Matching Rule
+    5)   Alert Handler                        25)  Monitor Provider
+    6)   Attribute Syntax                     26)  Password Generator
+    7)   Backend                              27)  Password Policy
+    8)   Certificate Mapper                   28)  Password Storage Scheme
+    9)   Connection Handler                   29)  Password Validator
+    10)  Crypto Manager                       30)  Plugin
+    11)  Debug Target                         31)  Plugin Root
+    12)  Entry Cache                          32)  Replication Domain
+    13)  Extended Operation Handler           33)  Replication Server
+    14)  External Changelog Domain            34)  Root DN
+    15)  Global Configuration                 35)  Root DSE Backend
+    16)  Group Implementation                 36)  SASL Mechanism Handler
+    17)  Identity Mapper                      37)  Synchronization Provider
+    18)  Key Manager Provider                 38)  Trust Manager Provider
+    19)  Local DB Index                       39)  Virtual Attribute
+    20)  Local DB VLV Index                   40)  Work Queue
+
+    q)   quit
+
+Enter choice: 
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+The following examples demonstrates generating a batch file that corresponds to an interactive session enabling the debug log\&. The example then demonstates using a modified batch file to disable the debug log\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ dsconfig
+ \-\-hostname `hostname`
+ \-\-port 4444
+ \-\-bindDN "cn=Directory Manager"
+ \-\-bindPassword password
+ \-\-commandFilePath ~/enable\-debug\-log\&.batch
+ \&.\&.\&.
+$ cat ~/enable\-debug\-log\&.batch
+# dsconfig session start date: 19/Oct/2011:08:52:22 +0000
+
+# Session operation number: 1
+# Operation date: 19/Oct/2011:08:55:06 +0000
+dsconfig set\-log\-publisher\-prop \e
+          \-\-publisher\-name File\-Based\e Debug\e Logger \e
+          \-\-set enabled:true \e
+          \-\-hostname opendj\&.example\&.com \e
+          \-\-port 4444 \e
+          \-\-trustStorePath /path/to/opendj/config/admin\-truststore \e
+          \-\-bindDN cn=Directory\e Manager \e
+          \-\-bindPassword ****** \e
+          \-\-no\-prompt
+
+$ cp ~/enable\-debug\-log\&.batch ~/disable\-debug\-log\&.batch
+$ vi ~/disable\-debug\-log\&.batch
+$ cat ~/disable\-debug\-log\&.batch
+set\-log\-publisher\-prop \e
+          \-\-publisher\-name File\-Based\e Debug\e Logger \e
+          \-\-set enabled:false \e
+          \-\-hostname opendj\&.example\&.com \e
+          \-\-port 4444 \e
+          \-\-trustStorePath /path/to/opendj/config/admin\-truststore \e
+          \-\-bindDN cn=Directory\e Manager \e
+          \-\-bindPassword password \e
+          \-\-no\-prompt
+
+$ dsconfig \-\-batchFilePath ~/disable\-debug\-log\&.batch \-\-no\-prompt
+set\-log\-publisher\-prop
+\-\-publisher\-name
+File\-Based Debug Logger
+\-\-set
+enabled:false
+\-\-hostname
+opendj\&.example\&.com
+\-\-port
+4444
+\-\-trustStorePath
+/path/to/opendj/config/admin\-truststore
+\-\-bindDN
+cn=Directory Manager
+\-\-bindPassword
+password
+\-\-no\-prompt
+
+$
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Notice that the original command file looks like a shell script with the bind password value replaced by asterisks\&. To pass the content as a batch file to
+\fBdsconfig\fR, strip
+dsconfig
+itself, and include the bind password for the administrative user (or replace that option with an alternative, such as reading the password from a file)\&.
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2013 ForgeRock AS
+.br

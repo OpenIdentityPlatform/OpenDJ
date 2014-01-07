@@ -1,0 +1,4 @@
+dn: ou=people,dc=com
+changetype: modify
+add: aci
+aci: (target="ldap:///uid=user.42*,ou=people,dc=com") (version 3.0; acl "example"; allow (delete) userdn="ldap:///uid=user.350,ou=people,dc=com";)

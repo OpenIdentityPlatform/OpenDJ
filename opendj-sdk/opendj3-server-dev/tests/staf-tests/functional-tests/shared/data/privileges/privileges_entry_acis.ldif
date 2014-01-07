@@ -1,0 +1,19 @@
+dn: uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com
+changetype: modify
+add: aci
+aci: (targetattr="*")(version 3.0; acl "rep_search_aci_tmorris"; allow (write) userdn="ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com";)
+
+dn: uid=abergin, ou=People, o=Privileges Tests, dc=example,dc=com
+changetype: modify
+add: aci
+aci: (targetattr="*")(version 3.0; acl "del_search_aci_abergin"; allow (search,read) userdn="ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com";)
+
+dn: uid=dmiller, ou=People, o=Privileges Tests, dc=example,dc=com
+changetype: modify
+add: aci
+aci: (targetattr="*")(version 3.0; acl "del_search_aci_dmiller"; allow (write) userdn="ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com";)
+
+dn: uid=gfarmer, ou=People, o=Privileges Tests, dc=example,dc=com
+changetype: modify
+add: aci
+aci: (targetattr="*")(version 3.0; acl "del_search_aci_gfarmer"; allow (write) userdn="ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com";)

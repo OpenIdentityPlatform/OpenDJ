@@ -1,0 +1,8 @@
+dn: cn=Collective pwdMinLength,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective pwdMinLength
+pwdMinLength;collective: 9
+subtreeSpecification: {base "ou=peple", minimum 1}

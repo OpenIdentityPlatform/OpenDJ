@@ -1,0 +1,122 @@
+'\" t
+.\"     Title: setup
+.\"    Author: Mark Craig
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: October\ \&20,\ \&2011
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "configure" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH NAME
+configure \- sets the instance location of an OpenDJ package installation
+.SH SYNOPSIS
+.HP \w'\fBconfigure\fR'u
+\fBconfigure\fR [options]
+.SH DESCRIPTION
+.PP
+The \fBconfigure\fR command configures an OpenDJ package installation. The command registers the directory server as an SMF service,  specifies where the directory server instance will be located, and specifies  the user and group names of the instance owner.
+.PP
+This command is available in the OpenSolaris\u\s-2TM\s+2\d package installation only.
+.PP
+Run \fBconfigure --help\fR for more information.
+.SH OPTIONS
+.PP
+The following options are supported:
+.PP
+\fB-?, \-H, \-\-help\fR
+.RS 4
+Displays usage information.
+.RE
+.PP
+\fB\-\-groupName {groupName}\fR
+.RS 4
+The group name of the instance owner. If no group name is specified, the primary group of the \fIuserName\fR is used.
+.RE
+.PP
+\fB\-\-instancePath {path}\fR
+.RS 4
+The path where the instance will be located. If no path is specified, the default \fB/var/opendj\fR is used.
+.RE
+.PP
+\fB\-\-userName {userName}\fR
+.RS 4
+The user name of the instance owner. If no user name is specified, the default \fBldap\fR is used.
+.RE
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Displays directory server version information.
+.RE
+
+.SH EXAMPLES
+.PP
+\fBExample 1 \fRConfiguring a Directory Server Package Installation
+.PP
+The following example configures the instance path, user name and group name for a directory server package installation:
+.if n \{\
+.RS 4
+.\}
+.nf
+$ /usr/opendj/configure --instancePath /var/opendj --userName myUser \
+  --groupName myGroup
+.fi
+.if n \{\
+.RE
+.\}
+.SH ATTRIBUTES
+.PP
+See \fBattributes\fR(5) for descriptions of the following attributes:
+.sp
+.sp
+.TS
+tab() box;
+cw(2.75i) |cw(2.75i)
+lw(2.75i) |lw(2.75i)
+.
+ATTRIBUTE TYPEATTRIBUTE VALUE
+_
+Interface StabilityUncommitted
+.TE
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011 ForgeRock AS
+.br
+.sp
+.RS 4
+[IMAGE]
+.PP
+This work is licensed under the
+\m[blue]\fBCreative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported License\fR\m[].
+.RE
+.PP
+To view a copy of this license, visit
+http://creativecommons.org/licenses/by-nc-nd/3.0/
+or send a letter to Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
+.PP
+Trademarks are the property of their respective owners.
+.PP
+UNLESS OTHERWISE MUTUALLY AGREED BY THE PARTIES IN WRITING, LICENSOR OFFERS THE WORK AS-IS AND MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY KIND CONCERNING THE WORK, EXPRESS, IMPLIED, STATUTORY OR OTHERWISE, INCLUDING, WITHOUT LIMITATION, WARRANTIES OF TITLE, MERCHANTIBILITY, FITNESS FOR A PARTICULAR PURPOSE, NONINFRINGEMENT, OR THE ABSENCE OF LATENT OR OTHER DEFECTS, ACCURACY, OR THE PRESENCE OF ABSENCE OF ERRORS, WHETHER OR NOT DISCOVERABLE. SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO SUCH EXCLUSION MAY NOT APPLY TO YOU.
+.PP
+EXCEPT TO THE EXTENT REQUIRED BY APPLICABLE LAW, IN NO EVENT WILL LICENSOR BE LIABLE TO YOU ON ANY LEGAL THEORY FOR ANY SPECIAL, INCIDENTAL, CONSEQUENTIAL, PUNITIVE OR EXEMPLARY DAMAGES ARISING OUT OF THIS LICENSE OR THE USE OF THE WORK, EVEN IF LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+.sp
+

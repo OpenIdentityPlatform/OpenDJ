@@ -1,0 +1,211 @@
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-resource-limits'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Setting Resource Limits</title>
+ <indexterm><primary>Resource limits</primary></indexterm>
+ 
+ <para>This chapter shows you how to set resource limits that prevent
+ directory clients from using an unfair share of system resources.</para>
+ 
+ <section xml:id="limit-search-resources">
+  <title>Limiting Search Resources</title>
+  
+  <para>Well-written directory client applications limit the scope of their
+  searches with filters that narrow the number of results returned. By default,
+  OpenDJ also only allows users with appropriate privileges to perform
+  unindexed searches.</para>
+  
+  <para>You can further adjust additional limits on search operations, such
+  as the following.</para>
+  <itemizedlist>
+   <listitem>
+    <para>The <firstterm>lookthrough limit</firstterm> defines the maximum
+    number of candidate entries OpenDJ considers when processing a
+    search.</para>
+    <para>The default lookthrough limit, set by using the global server
+    property <literal>lookthrough-limit</literal>, is 5000.</para>
+    <para>You can override the limit for a particular user by changing the
+    operational attribute, <literal>ds-rlim-lookthrough-limit</literal>, on
+    the user's entry.</para>
+   </listitem>
+   <listitem>
+    <para>The <firstterm>size limit</firstterm> sets the maximum number of
+    entries returned for a search.</para>
+    <para>The default size limit, set by using the global server property
+    <literal>size-limit</literal>, is 1000.</para>
+    <para>You can override the limit for a particular user by changing the
+    operational attribute, <literal>ds-rlim-size-limit</literal>, on
+    the user's entry.</para>
+   </listitem>
+   <listitem>
+    <para>The <firstterm>time limit</firstterm> defines the maximum processing
+    time OpenDJ devotes to a search operation.</para>
+    <para>The default time limit, set by using the global server property
+    <literal>time-limit</literal>, is 1 minute.</para>
+    <para>You can override the limit for a particular user by changing the
+    operational attribute, <literal>ds-rlim-time-limit</literal>, on
+    the user's entry. Times for <literal>ds-rlim-time-limit</literal> are
+    expressed in seconds.</para>
+   </listitem>
+   <listitem>
+    <para>The <firstterm>idle time limit</firstterm> defines how long OpenDJ
+    allows idle connections to remain open.</para>
+    <para>No default idle time limit is set. You can set an idle time limit
+    by using the global server property
+    <literal>idle-time-limit</literal>.</para>
+    <para>You can override the limit for a particular user by changing the
+    operational attribute, <literal>ds-rlim-idle-time-limit</literal>, on
+    the user's entry. Times for <literal>ds-rlim-idle-time-limit</literal>
+    are expressed in seconds.</para>
+   </listitem>
+   <listitem>
+    <para>The maximum number of persistent searches can be set using the
+    global server property <literal>max-psearches</literal>.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <procedure xml:id="set-search-limits-per-user">
+   <title>To Set Search Limits For a User</title>
+   <step>
+    <para>Change the user entry to set the limits to override.</para>
+    <screen>$ cat limit.ldif
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: ds-rlim-size-limit
+ds-rlim-size-limit: 10
+
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename limit.ldif
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</screen>
+
+    <para>Now when Babs Jensen performs a search returning more than 10
+    entries, she sees the following message.</para>
+    
+    <screen>Result Code:  4 (Size Limit Exceeded)
+Additional Information:  This search operation has sent the maximum of
+ 10 entries to the client</screen>
+   </step>
+  </procedure>
+
+  <procedure xml:id="set-search-limits-per-group">
+   <title>To Set Search Limits For a Group</title>
+   <step>
+    <para>Create an LDAP subentry to specify the limits using collective
+    attributes.</para>
+    <screen>$ cat grouplim.ldif 
+dn: cn=Remove Administrator Search Limits,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Remove Administrator Search Limits
+ds-rlim-lookthrough-limit;collective: 0
+ds-rlim-size-limit;collective: 0
+ds-rlim-time-limit;collective: 0
+subtreeSpecification: {base "ou=people", specificationFilter "
+ (isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }
+
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename grouplim.ldif
+Processing ADD request for
+ cn=Remove Administrator Search Limits,dc=example,dc=com
+ADD operation successful for DN
+ cn=Remove Administrator Search Limits,dc=example,dc=com</screen>
+   </step>
+   <step>
+    <para>Check the results.</para>
+    <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=kvaughan +|grep ds-rlim
+ds-rlim-lookthrough-limit: 0
+ds-rlim-time-limit: 0
+ds-rlim-size-limit: 0</screen>
+   </step>
+  </procedure>
+ </section>
+
+ <section xml:id="limit-idle-time">
+  <title>Limiting Idle Time</title>
+ 
+  <para>If you have applications that leave connections open for long
+  periods, OpenDJ can end up devoting resources to maintaining connections
+  that are no longer used. If your network does not drop such connections
+  eventually, you can configure OpenDJ to drop them by setting the
+  global configuration property, <literal>idle-time-limit</literal>. By
+  default, no idle time limit is set.</para>
+
+  <note>
+   <para>OpenDJ does not enforce idle timeout for persistent searches.</para>
+  </note>
+
+  <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set idle-time-limit:24h
+ --trustAll
+ --no-prompt</screen>
+
+  <para>The example shown sets the idle time limit to 24 hours.</para>
+ </section>
+ 
+ <section xml:id="limit-max-request-size">
+  <title>Limiting Maximum Request Size</title>
+  
+  <para>The default maximum request size of 5 MB, set using the advanced
+  connection handler property <literal>max-request-size</literal>, is
+  sufficient to satisfy most client requests. Yet, there are some cases where
+  you might need to raise the request size limit. For example, if clients
+  add groups with large numbers of members, those add requests can go beyond
+  the 5 MB limit.</para>
+  
+  <screen>$ dsconfig
+ set-connection-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "LDAP Connection Handler"
+ --set max-request-size:20mb
+ --trustAll
+ --no-prompt</screen>
+  
+  <para>The example shown sets the maximum request size on the LDAP connection
+  handler to 20 MB.</para>
+ </section>
+</chapter>

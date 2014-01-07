@@ -1,0 +1,8 @@
+dn: cn=Collective buildingName,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective buildingName
+buildingName;collective: Capital 4
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1, specificExclusions { chopBefore:"ou=Europe",chopAfter:"ou=America"}}

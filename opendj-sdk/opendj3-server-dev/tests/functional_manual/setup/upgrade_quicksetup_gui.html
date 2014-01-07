@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>upgrade_quicksetup_gui</title>
+</head>
+<body>
+<br>
+<table style="width: 100%; text-align: left;" border="1" cellpadding="2"
+ cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;">Test ID</td>
+      <td style="vertical-align: top;">upgrade_gui</td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Panel<br>
+      </td>
+      <td style="vertical-align: top;"><big><big><small> </small></big></big>OpenDS
+GUI upgrade command : upgrade and revert<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Items<br>
+      </td>
+      <td style="vertical-align: top;">- Install&nbsp; OpenDS previous
+build in {opends-path}, using&nbsp; setup GUI command or QuickSetup
+(http://www.opends.org/promoted-builds/)<br>
+- Verify the server is running <br>
+- Upgrade using the QuickSetup, open a browser on the test machine and
+go to this URL<br>
+      <a href="http://builds.opends.org/install/QuickSetup.jnlp">http://builds.opends.org/install/QuickSetup.jnlp</a><br>
+On the first panel of the QuickSetup, select the second bullet "Upgrade
+Existing Server Instance" <br>
+and enter the path of the Server to Upgrade {opends-path}<br>
+- After the upgrade, verify that the server is running and that it's
+the correct build&nbsp; (for example run start-ds --version)<br>
+      <br>
+- test the revert with the GUI (when it will be available)<br>
+      <br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Specific checks</td>
+      <td style="vertical-align: top;">Notes:<br>
+- QuickSetup is the only way to
+upgrade using GUI mode<br>
+- There is no GUI mode available for the revert the upgrade<br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<br>
+<br>
+</body>
+</html>

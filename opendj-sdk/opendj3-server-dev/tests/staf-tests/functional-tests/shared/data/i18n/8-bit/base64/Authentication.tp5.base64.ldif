@@ -1,0 +1,7 @@
+# dn: cn=Rôséñe, ou=Authentication Tests, o=Çándide Rùiz
+# seeAlso: ou=Authentication Tests, o=Çándide Rùiz
+dn:: Y249UsO0c8Opw7FlLCBvdT1BdXRoZW50aWNhdGlvbiBUZXN0cywgbz3Dh8OhbmRpZGUgUsO5aXo=
+changetype: modify
+add: seeAlso
+seeAlso:: b3U9QXV0aGVudGljYXRpb24gVGVzdHMsIG89w4fDoW5kaWRlIFLDuWl6
+

@@ -1,0 +1,21 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 2633
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+  <soap-env:Body>
+  <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+     <modifyRequest dn="uid=achassin, ou=People, o=dsmlfe.com">
+          <modification name="description" operation="delete">
+               <value>THE PSYCHOLOGY OF MODERN LEFTISM 6. Almost everyone will agree that we live in a deeply troubled society. One of the most widespread manifestations of the craziness of our world is leftism, so a discussion of the psychology of leftism can serve as an introduction to the discussion of the problems of modern society in general.  7. But what is leftism? During the first half of the 20th century leftism could have been practically identified with socialism. Today the movement is fragmented and it is not clear who can properly be called a leftist. When we speak of leftists in this article we have in mind mainly socialists, collectivists, "politically correct" types, feminists, gay and disability activists, animal rights activists and the like. But not everyone who is associated with one of these movements is a leftist. What we are trying to get at in discussing leftism is not so much a movement or an ideology as a psychological type, or rather a collection of related types. Thus, what we mean by "leftism" will emerge more clearly in the course of our discussion of leftist psychology (Also, see paragraphs 227-230.) 8. Even so, our conception of leftism will remain a good deal less clear than we would wish, but there doesn't seem to be any remedy for this. All we are trying to do is indicate in a rough and approximate way the two psychological tendencies that we believe are the main driving force of modern leftism. We by no means claim to be telling the WHOLE truth about leftist psychology. Also, our discussion is meant to apply to modern leftism only. We leave open the question of the extent to which our discussion could be applied to the leftists of the 19th and early 20th century.  9. The two psychological tendencies that underlie modern leftism we call "feelings of inferiority" and "oversocialization." Feelings of inferiority are characteristic of modern leftism as a whole, while oversocialization is characteristic only of a certain segment of modern leftism; but this segment is highly influential. This was just modified.</value>
+          </modification>
+     </modifyRequest>
+  </batchRequest>
+  </soap-env:Body>
+  </soap-env:Envelope>

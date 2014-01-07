@@ -1,0 +1,135 @@
+'\" t
+.\"     Title: base64
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 09/04/2012
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "BASE64" "1" "09/04/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+base64 \- encode and decode base64 strings
+.SH "SYNOPSIS"
+.HP \w'\fBbase64\ \fR\fB\fIsubcommand\fR\fR\ 'u
+\fBbase64 \fR\fB\fIsubcommand\fR\fR {options}
+.SH "DESCRIPTION"
+.PP
+This utility can be used to encode and decode information using base64\&.
+.SH "SUBCOMMANDS"
+.PP
+The following subcommands are supported\&.
+.PP
+\fBbase64 decode\fR
+.RS 4
+Decode base64\-encoded information into raw data
+.sp
+When no options are specified, this subcommand reads from standard input and writes to standard output\&.
+.PP
+\fB\-d, \-\-encodedData {data}\fR
+.RS 4
+The base64\-encoded data to be decoded
+.RE
+.PP
+\fB\-f, \-\-encodedDataFile {path}\fR
+.RS 4
+The path to a file containing the base64\-encoded data to be decoded
+.RE
+.PP
+\fB\-o, \-\-toRawFile {path}\fR
+.RS 4
+The path to a file to which the raw base64\-decoded data should be written
+.RE
+.RE
+.PP
+\fBbase64 encode\fR
+.RS 4
+Encode raw data using base64
+.sp
+When no options are specified, this subcommand reads from standard input and writes to standard output\&.
+.PP
+\fB\-d, \-\-rawData {data}\fR
+.RS 4
+The raw data to be base64 encoded
+.RE
+.PP
+\fB\-f, \-\-rawDataFile {path}\fR
+.RS 4
+The path to a file containing the raw data to be base64 encoded
+.RE
+.PP
+\fB\-o, \-\-toEncodedFile {path}\fR
+.RS 4
+The path to a file to which the base64\-encoded data should be written
+.RE
+.RE
+.SH "GENERAL OPTIONS"
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following command shows the changes from the external change log in human\-readable format\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ base64 decode \-d YWRkOiBkZXNjcmlwdGlvbgpkZXNjcmlwdGlvbjogQSB0aGlyZCBjaGFuZ2UK
+LQpyZXBsYWNlOiBtb2RpZmllcnNOYW1lCm1vZGlmaWVyc05hbWU6IGNuPURpcmVjdG9yeSBNYW5hZ2V
+yLGNuPVJvb3QgRE5zLGNuPWNvbmZpZwotCnJlcGxhY2U6IG1vZGlmeVRpbWVzdGFtcAptb2RpZnlUaW
+1lc3RhbXA6IDIwMTEwNjEzMDcxMjEwWgotCg==
+add: description
+description: A third change
+\-
+replace: modifiersName
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+\-
+replace: modifyTimestamp
+modifyTimestamp: 20110613071210Z
+\-
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2012 ForgeRock AS
+.br

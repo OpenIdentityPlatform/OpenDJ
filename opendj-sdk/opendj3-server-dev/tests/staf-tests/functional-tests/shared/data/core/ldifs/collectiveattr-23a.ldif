@@ -1,0 +1,21 @@
+dn: uid=alutz,ou=Asia,ou=People,o=collectiveattr tests,dc=example,dc=com
+cn: Alexander Lutz
+sn: Lutz
+givenname: Alexander
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Santa Clara
+uid: alutz
+mail: alutz@example.com
+telephonenumber: +1 408 555 6505
+facsimiletelephonenumber: +1 408 555 4774
+roomnumber: 1327
+userpassword: northward
+collectiveExclusions: c-o
+collectiveExclusions: photo
+collectiveExclusions: printer
+collectiveExclusions: location
+collectiveExclusions: c-l
+collectiveExclusions: preferredLanguage

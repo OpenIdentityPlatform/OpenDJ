@@ -1,0 +1,20 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 418
+SOAPAction: batchRequest
+
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<soap-env:Envelope
+   xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'
+   >
+<soap-env:Body>
+<batchRequest
+   xmlns="urn:oasis:names:tc:DSML:2:0:core"
+   requestID="Bad XML prolog: encodidng mismatch"
+   >
+</batchRequest>
+</soap-env:Body>
+</soap-env:Envelope>

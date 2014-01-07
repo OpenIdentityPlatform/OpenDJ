@@ -1,0 +1,13 @@
+dn: cn=Access Control Handler,cn=config
+changetype: modify
+add: ds-cfg-global-aci
+ds-cfg-global-aci: (targetattr="*")(version 3.0; acl "rep_search_aci_tmorris"; allow (write) userdn="ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com";)
+-
+add: ds-cfg-global-aci
+ds-cfg-global-aci: (targetattr="*")(version 3.0; acl "del_search_aci_abergin"; allow (search,read) userdn="ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com";)
+-
+add: ds-cfg-global-aci
+ds-cfg-global-aci: (targetattr="*")(version 3.0; acl "del_search_aci_dmiller"; allow (write) userdn="ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com";)
+-
+add: ds-cfg-global-aci
+ds-cfg-global-aci: (targetattr="*")(version 3.0; acl "del_search_aci_gfarmer"; allow (write) userdn="ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com";)

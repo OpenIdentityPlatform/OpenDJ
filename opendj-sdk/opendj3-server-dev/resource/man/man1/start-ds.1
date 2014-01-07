@@ -1,0 +1,105 @@
+'\" t
+.\"     Title: start-ds
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 03/21/2012
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "START\-DS" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+start-ds \- start OpenDJ directory server
+.SH "SYNOPSIS"
+.HP \w'\fBstart\-ds\fR\ 'u
+\fBstart\-ds\fR [options]
+.SH "DESCRIPTION"
+.PP
+This utility can be used to start the directory server, as well as to obtain the server version and other forms of general server information\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-L, \-\-useLastKnownGoodConfig\fR
+.RS 4
+Attempt to start using the configuration that was in place at the last successful startup (if it is available) rather than using the current active configuration\&.
+.RE
+.PP
+\fB\-N, \-\-nodetach\fR
+.RS 4
+Do not detach from the terminal and continue running in the foreground\&. This option cannot be used with the \-t, \-\-timeout option\&.
+.RE
+.PP
+\fB\-Q, \-\-quiet\fR
+.RS 4
+Use quiet mode\&.
+.RE
+.PP
+\fB\-s, \-\-systemInfo\fR
+.RS 4
+Display general system information\&.
+.RE
+.PP
+\fB\-t, \-\-timeout {seconds}\fR
+.RS 4
+Maximum time (in seconds) to wait before the command returns (the server continues the startup process, regardless)\&. A value of \*(Aq0\*(Aq indicates an infinite timeout, which means that the command returns only when the server startup is completed\&. The default value is 60 seconds\&. This option cannot be used with the \-N, \-\-nodetach option\&.
+.sp
+Default value: 200
+.RE
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information\&.
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information\&.
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following command starts the server without displaying information about the startup process\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ start\-ds \-Q
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2012 ForgeRock AS
+.br

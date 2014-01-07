@@ -1,0 +1,27 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="OpenDS"   verbose="1" >
+    <test name="default">
+    <!-- DO NOT REMOVE! - GENERATED DEFAULT TAGS (see PrepTestNG class) -->
+    </test>
+
+    <test name="precommit">
+        <groups>
+            <run>
+                <!-- DO NOT REMOVE! - GENERATED GLOBAL RUN TAGS (see PrepTestNG class) -->
+                <include name="precommit"/>
+                <exclude name="broken"/>
+            </run>
+        </groups>
+    </test>
+
+    <test name="functional">
+        <groups>
+            <run>
+                <!-- DO NOT REMOVE! - GENERATED GLOBAL RUN TAGS (see PrepTestNG class) -->
+                <include name="functional"/>
+                <exclude name="broken"/>
+            </run>
+        </groups>
+    </test>
+
+</suite>

@@ -1,0 +1,99 @@
+'\" t
+.\"     Title: list-backends
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 03/21/2012
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "LIST\-BACKENDS" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+list-backends \- list OpenDJ backends and base DNs
+.SH "SYNOPSIS"
+.HP \w'\fBlist\-backends\fR\ 'u
+\fBlist\-backends\fR [options]
+.SH "DESCRIPTION"
+.PP
+This utility can be used to list the backends and base DNs configured in the Directory Server\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-b, \-\-baseDN {baseDN}\fR
+.RS 4
+Base DN for which to list the backend ID\&.
+.RE
+.PP
+\fB\-n, \-\-backendID {backendName}\fR
+.RS 4
+Backend ID of the backend for which to list the base DNs\&.
+.RE
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information\&.
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information\&.
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ list\-backends 
+Backend ID         : Base DN
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-:\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+adminRoot          : cn=admin data
+ads\-truststore     : cn=ads\-truststore
+backup             : cn=backups
+config             : cn=config
+monitor            : cn=monitor
+myCompanyRoot      : "dc=myCompany,dc=com"
+myOrgRoot          : o=myOrg
+replicationChanges : dc=replicationChanges
+schema             : cn=schema
+tasks              : cn=tasks
+userRoot           : "dc=example,dc=com"
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2012 ForgeRock AS
+.br
