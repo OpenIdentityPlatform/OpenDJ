@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<refentry xml:id='verify-index-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>verify-index</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>verify-index</refname>
+  <refpurpose>check index for consistency or errors</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>verify-index</command>
+   <arg choice="req">options</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to ensure that index data is consistent
+  within a backend based on the Berkeley DB Java Edition.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>-b, --baseDN {baseDN}</option></term>
+    <listitem>
+     <para>Base DN of a backend supporting indexing. Verification is
+     performed on indexes within the scope of the given base DN.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-c, --clean</option></term>
+    <listitem>
+     <para>Specifies that a single index should be verified to ensure it is
+     clean. An index is clean if each index value references only entries
+     containing that value. Only one index at a time may be verified in this
+     way.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--countErrors</option></term>
+    <listitem>
+     <para>Count the number of errors found during the verification and return
+     that value as the exit code (values &gt; 255 will be reduced to 255 due to
+     exit code restrictions).</para>
+    </listitem>
+   </varlistentry>   
+   <varlistentry>
+    <term><option>-i, --index {index}</option></term>
+    <listitem>
+     <para>Name of an index to be verified. For an attribute index this is
+     simply an attribute name. Multiple indexes may be verified for
+     completeness, or all indexes if no indexes are specified.  An index is
+     complete if each index value references all entries containing that
+     value.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  <refsect2>
+   <title>General Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-V, --version</option></term>
+     <listitem>
+      <para>Display version information</para>
+     </listitem>
+    </varlistentry>
+     <varlistentry>
+     <term><option>-?, -H, --help</option></term>
+     <listitem>
+      <para>Display usage information</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+   <variablelist>
+    <varlistentry>
+     <term>0</term>
+     <listitem>
+      <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>1</term>
+     <listitem>
+      <para>An error occurred while parsing the command-line arguments.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>0-255</term>
+     <listitem>
+      <para>The number of errors in the index, as indicated for the
+      <option>--countErrors</option> option.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>The following example verifies the <literal>cn</literal> (common
+   name) index for completeness and for errors.</para>
+
+   <screen>$ verify-index -b dc=example,dc=com -i cn --clean --countErrors
+[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
+ msgID=9437595 msg=Local DB backend userRoot does not specify the number of
+ lock tables: defaulting to 97
+[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
+ msgID=9437594 msg=Local DB backend userRoot does not specify the number of
+ cleaner threads: defaulting to 24 threads
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=NOTICE msgID=8847461
+ msg=Checked 1316 records and found 0 error(s) in 0 seconds
+ (average rate 2506.7/sec)
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
+ msgID=8388710 msg=Number of records referencing more than one entry: 315
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
+ msgID=8388711 msg=Number of records that exceed the entry limit: 0
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
+ msgID=8388712 msg=Average number of entries referenced is 1.58/record
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
+ msgID=8388713 msg=Maximum number of entries referenced by any
+ record is 32</screen>
+ </refsect1>
+</refentry>

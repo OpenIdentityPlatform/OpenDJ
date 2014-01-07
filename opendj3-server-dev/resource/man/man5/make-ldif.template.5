@@ -1,0 +1,538 @@
+'\" t
+.\"     Title: make-ldif.template
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 05/16/2013
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.6.0
+.\"  Language: English
+.\"
+.TH "MAKE\-LDIF\&.TEMPLAT" "5" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+make-ldif.template \- template file for the make\-ldif command
+.SH "SYNOPSIS"
+.sp
+.nf
+# Comment lines start with #\&.
+
+# Optionally include classes that define custom tags\&.
+# Custom tag classes extend org\&.opends\&.server\&.tools\&.makeldif\&.Tag and
+# must be on the class path when you run make\-ldif\&.
+#
+include \fIcustom\&.makeldif\&.tag\&.ClassName\fR
+\&.\&.\&.
+
+# Optionally define constants used in the template\&.
+# To reference constants later, put brackets around the name: [constant\-name]
+#
+define \fIconstant\-name\fR=\fIvalue\fR
+\&.\&.\&.
+
+# Define branches by suffix DN, such as the following:
+#
+#  dc=example,dc=com
+#  ou=People,dc=example,dc=com
+#  ou=Groups,dc=example,dc=com
+#
+# make\-ldif generates the necessary object class definitions and RDNs\&.
+#
+# A branch can have subordinateTemplates that define templates to use for
+# the branch entry\&.
+#
+# A branch can have additional attributes generated on the branch entry\&. See
+# the Description below for more information on specifying attribute values\&.
+#
+branch: \fIsuffix\-dn\fR
+[subordinateTemplate: \fItemplate\-name\fR:\fInumber\fR
+\&.\&.\&.]
+[\fIattribute\fR: \fIattr\-value\fR
+\&.\&.\&.]
+
+\&.\&.\&.
+
+# Define entries using templates\&.
+#
+# A template can extend another template\&.
+# A template defines the RDN attribute(s) used for generated entries\&.
+# A template can have a subordinateTemplate that defines a template to use for
+# the generated entries\&.
+#
+# A template then defines attributes\&. See the Description below for more
+# information on specifying attribute values\&.
+#
+template: \fItemplate\-name\fR
+[extends: \fItemplate\-name\fR]
+rdnAttr: \fIattribute\fR[+\fIattribute\fR \&.\&.\&.]
+[subordinateTemplate: \fItemplate\-name\fR:\fInumber\fR]
+[\fIattribute\fR: \fIattr\-value\fR
+\&.\&.\&.]
+
+\&.\&.\&.
+.fi
+.SH "DESCRIPTION"
+.PP
+Template files specify how to build LDIF\&. They allow you to define variables, insert random values from other files, and generally build arbitrarily large LDIF files for testing purposes\&. You pass template files to the
+\fBmake\-ldif\fR
+command when generating LDIF\&.
+.PP
+The Synopsis above shows the layout for a
+\fBmake\-ldif\fR
+template file\&. This section focuses on what you can do to specify entry attribute values, called
+\fIattr\-value\fR
+in the Synopsis section\&.
+.PP
+\fBSpecifying Attribute Values\fR
+.PP
+When specifying attribute values in
+\fBmake\-ldif\fR
+templates, you can use static text and constants that you have defined, enclosing names for constants in brackets,
+[myConstant]\&. You can use more than one constant per line, as in the following example\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+description: Description for [org] under [suffix]
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+You can also use two kinds of tags when specifying attribute values\&. One kind of tag gets replaced with the value of another attribute in the generated entry\&. Such tags are delimited with braces,
+{ }\&. For example, if your template includes definitions for first name and last name attributes:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+givenName: <first>
+sn: <last>
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Then you can define a mail attribute that uses the values of both attributes, and an initials attribute that takes the first character of each\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+mail: {givenName}\&.{sn}@[myDomain]
+initials: {givenName:1}{sn:1}
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+The other kind of tag is delimited with
+<
+and
+>, as shown above in the example with
+<first>
+and
+<last>\&. Tag names are not case sensitive\&. Many tags can take arguments separated by colons,
+:, from the tag names within the tag\&.
+.PP
+Use backslashes to escape literal start tag characters (< [ {) as shown in the following example, and to escape literal end tag characters within tags (> ] })\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+scimMail: \e{"emails": \e[\e{"value": "{mail}", "type": "work", "primary": true}]}
+xml: \e<id>{uid}\e</id>
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+OpenDJ supports the following tags\&.
+.PP
+<DN>
+.RS 4
+The DN tag gets replaced by the distinguished name of the current entry\&. An optional integer argument specifies the subcomponents of the DN to generate\&. For example, if the DN of the entry is
+uid=bjensen,ou=People,dc=example,dc=com
+<DN:1>
+gets replaced by
+uid=bjensen, and
+<DN:\-2>
+gets replaced by
+dc=example,dc=com\&.
+.RE
+.PP
+<File>
+.RS 4
+The File tag gets replaced by a line from a text file you specify\&. The File tag takes a required argument, the path to the text file, and an optional second argument, either
+random
+or
+sequential\&. For the file argument, either you specify an absolute path to the file such as
+<file:/path/to/myDescriptions>, or you specify a path relative to the
+/path/to/opendj/config/MakeLDIF/
+directory such as
+<file:streets>\&. For the second argument, if you specify
+sequential
+then lines from the file are read in sequential order\&. Otherwise, lines from the file are read in random order\&.
+.RE
+.PP
+<First>
+.RS 4
+The first name tag gets replaced by a random line from
+/path/to/opendj/config/MakeLDIF/first\&.names\&. Combinations of generated first and last names are unique, with integers appended to the name strings if not enough combinations are available\&.
+.RE
+.PP
+<GUID>
+.RS 4
+The GUID tag gets replaced by a 128\-bit, type 4 (random) universally unique identifier, such as
+f47ac10b\-58cc\-4372\-a567\-0e02b2c3d479\&.
+.RE
+.PP
+<IfAbsent>
+.RS 4
+The IfAbsent tag takes as its first argument the name of another attribute, and optionally as its second argument a value to use\&. This tag causes the attribute to be generated only if the named attribute is not present on the generated entry\&. Use this tag when you have used
+<Presence>
+to define another attribute that is not always present on generated entries\&.
+.RE
+.PP
+<IfPresent>
+.RS 4
+The IfPresent takes as its first argument the name of another attribute, and optionally as its second argument a value to use\&. This tag causes the attribute to be generated only if the named attribute is also present on the generated entry\&. Use this tag when you have used
+<Presence>
+to define another attribute that is sometimes present on generated entries\&.
+.RE
+.PP
+<Last>
+.RS 4
+The last name tag gets replaced by a random line from
+/path/to/opendj/config/MakeLDIF/last\&.names\&. Combinations of generated first and last names are unique, with integers appended to the name strings if not enough combinations are available\&.
+.RE
+.PP
+<List>
+.RS 4
+The List tag gets replaced by one of the values from the list of arguments you provide\&. For example,
+<List:bronze:silver:gold>
+gets replaced with
+bronze,
+silver, or
+gold\&.
+.sp
+You can weight arguments to ensure some arguments are selected more often than others\&. For example, if you want two bronze for one silver and one gold, use
+<List:bronze;2:silver;1:gold;1>\&.
+.RE
+.PP
+<ParentDN>
+.RS 4
+The ParentDN tag gets replaced by the distinguished name of the parent entry\&. For example, if the DN of the entry is
+uid=bjensen,ou=People,dc=example,dc=com,
+<ParentDN>
+gets replaced by
+ou=People,dc=example,dc=com\&.
+.RE
+.PP
+<Presence>
+.RS 4
+The Presence tag takes a percent argument\&. It does not get replaced by a value itself, but instead results in the attribute being generated on the percentage of entries you specify in the argument\&. For example,
+description: <Presence:50>A description
+generates
+description: A description
+on half the entries\&.
+.RE
+.PP
+<Random>
+.RS 4
+The Random tag lets you generate a variety of random numbers and strings\&. The Random tag has the following subtypes, which you include as arguments, that is
+<Random:\fIsubtype\fR>\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+alpha:\fIlength\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+alpha:\fIminlength\fR:\fImaxlength\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+numeric:\fIlength\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+numeric:\fIminvalue\fR:\fImaxvalue\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+numeric:\fIminvalue\fR:\fImaxvalue\fR:\fIformat\fR, where
+\fIformat\fR
+is a
+java\&.text\&.DecimalFormat
+pattern
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+alphanumeric:\fIlength\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+alphanumeric:\fIminlength\fR:\fImaxlength\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+chars:\fIcharacters\fR:\fIlength\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+chars:\fIcharacters\fR:\fIminlength\fR:\fImaxlength\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+hex:\fIlength\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+hex:\fIminlength\fR:\fImaxlength\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+base64:\fIlength\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+base64:\fIminlength\fR:\fImaxlength\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+month
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+month:\fImaxlength\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+telephone, a telephone number starting with the country code
++1
+.RE
+.RE
+.PP
+<RDN>
+.RS 4
+The RDN tag gets replaced with the RDN of the entry\&. Use this in the template after you have specified
+rdnAttr
+so that the RDN has already been generated when this tag is replaced\&.
+.sp
+An optional integer argument specifies the subcomponents of the RDN to generate\&.
+.RE
+.PP
+<Sequential>
+.RS 4
+The Sequential tag gets replaced by a sequentially increasing generated integer\&. The first optional integer argument specifies the starting number\&. The second optional boolean argument specifies whether to start over when generating entries for a new parent entry\&. For example,
+<Sequential>:42:true
+starts counting from 42, and starts over when the parent entry changes from
+o=Engineering
+to
+o=Marketing\&.
+.RE
+.PP
+<_DN>
+.RS 4
+The _DN tag gets replaced by the DN of the current entry with underscores in the place of commas\&.
+.RE
+.PP
+<_ParentDN>
+.RS 4
+The _ParentDN tag gets replaced by the DN the parent entry with underscores in the place of commas\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following example generates 10 organization units, each containing 50 entries\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+define suffix=dc=example,dc=com
+define maildomain=example\&.com
+define numusers=50
+define numorgs=10
+
+branch: [suffix]
+
+branch: ou=People,[suffix]
+subordinateTemplate: orgunit:[numorgs]
+description: This is the People container
+telephoneNumber: +33 00010002
+
+template: orgunit
+subordinateTemplate: person:[numusers]
+rdnAttr: ou
+ou: Org\-<sequential:0>
+objectClass: top
+objectClass: organizationalUnit
+description: This is the {ou} organizational unit
+
+template: person
+rdnAttr: uid
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+givenName: <first>
+sn: <last>
+cn: {givenName} {sn}
+initials: {givenName:1}<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}
+employeeNumber: <sequential:0>
+uid: user\&.{employeeNumber}
+mail: {uid}@[maildomain]
+userPassword: password
+telephoneNumber: <random:telephone>
+homePhone: <random:telephone>
+pager: <random:telephone>
+mobile: <random:telephone>
+street: <random:numeric:5> <file:streets> Street
+l: <file:cities>
+st: <file:states>
+postalCode: <random:numeric:5>
+postalAddress: {cn}${street}${l}, {st}  {postalCode}
+description: This is the description for {cn}\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.PP
+\m[blue]\fB\fBmake-ldif\fR(1)\fR\m[],
+/path/to/opendj/config/MakeLDIF/example\&.template
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2012-2013 ForgeRock AS
+.br

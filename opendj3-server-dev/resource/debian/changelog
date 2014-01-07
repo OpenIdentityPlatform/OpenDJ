@@ -1,0 +1,5 @@
+ opendj (2.7.0) unstable; urgency=low
+
+  * Added changelog to /usr/share/doc/opendj/
+
+ -- ForgeRock <opendj@forgerock.org>  Thu, 22 Aug 2013 15:47:00 +0100

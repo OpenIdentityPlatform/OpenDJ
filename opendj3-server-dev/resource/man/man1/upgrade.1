@@ -1,0 +1,200 @@
+'\" t
+.\"     Title: upgrade
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 05/28/2013
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.6.0
+.\"  Language: English
+.\"
+.TH "UPGRADE" "1" "05/28/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+upgrade \- upgrade OpenDJ configuration & application data
+.SH "SYNOPSIS"
+.HP \w'\fBupgrade\fR\ 'u
+\fBupgrade\fR {options}
+.SH "DESCRIPTION"
+.PP
+This utility upgrades OpenDJ configuration (schema, directory server configuration, and other configuration files) and application data (primarily directory data) so that it is compatible with the binary files and scripts that are installed\&.
+.PP
+The
+\fBupgrade\fR
+command thus performs only part of the upgrade process, which includes the following phases for a single server\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  1." 4.2
+.\}
+Get and unpack a newer version of OpenDJ directory server software\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  2." 4.2
+.\}
+Stop the current OpenDJ directory server\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  3." 4.2
+.\}
+Overwrite existing binary and script files with those of the newer version, and then run this utility, the
+\fBupgrade\fR
+command, before restarting OpenDJ\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 4.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  4." 4.2
+.\}
+Start the upgraded OpenDJ directory server\&.
+.RE
+.if n \{\
+.sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBImportant\fR
+.ps -1
+.br
+.PP
+The
+\fBupgrade\fR
+command
+\fIdoes not back up OpenDJ before you upgrade, nor does it restore OpenDJ if the \fR\fI\fBupgrade\fR\fR\fI command fails\fR\&. In order to revert a failed upgrade, make sure you back up OpenDJ directory server before you overwrite existing binary and script files\&.
+.sp .5v
+.RE
+.PP
+By default, the
+\fBupgrade\fR
+command requests confirmation before making important configuration changes\&. You can use the
+\fB\-\-no\-prompt\fR
+option to run the command non\-interactively\&.
+.PP
+When using the
+\fB\-\-no\-prompt\fR
+option, if the
+\fBupgrade\fR
+command cannot complete because it requires confirmation for a potentially very long or critical task, then it exits with an error and a message about how to finish making the changes\&. You can add the
+\fB\-\-force\fR
+option to force a non\-interactive upgrade to continue in this case, also performing long running and critical tasks\&.
+.PP
+After upgrading, see the resulting
+upgrade\&.log
+file for a full list of operations performed\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-\-acceptLicense\fR
+.RS 4
+Automatically accepts the product license if there is one in the delivery\&.
+.RE
+.PP
+\fB\-\-force\fR
+.RS 4
+Forces a non\-interactive upgrade to continue even if it requires user interaction\&. In particular, long running or critical upgrade tasks, such as re\-indexing, which require user confirmation will be skipped\&. This option may only be used with the
+\fB\-\-no\-prompt\fR
+option\&.
+.RE
+.PP
+\fB\-\-ignoreErrors\fR
+.RS 4
+Ignores any errors which occur during the upgrade\&. This option should be used with caution and may be useful in automated deployments where potential errors are known in advance and resolved after the upgrade has completed\&.
+.RE
+.SS "Utility Input/Output Options"
+.PP
+\fB\-n, \-\-no\-prompt\fR
+.RS 4
+Use non\-interactive mode\&. Prompt for any required information rather than fail\&.
+.RE
+.PP
+\fB\-Q, \-\-quiet\fR
+.RS 4
+Use quiet mode\&.
+.RE
+.PP
+\fB\-v, \-\-verbose\fR
+.RS 4
+Use verbose mode\&.
+.RE
+.SS "General Options"
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information\&.
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information\&.
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+2
+.RS 4
+The command was run in non\-interactive mode, but could not complete because confirmation was required to run a long or critical task\&.
+.sp
+See the error message or the log for details\&.
+.RE
+.PP
+Other
+.RS 4
+An error occurred\&.
+.RE
+.PP
+See the
+Installation Guide
+for an example upgrade process for OpenDJ directory server installed from the cross\-platform (\&.zip) delivery,
+\m[blue]\fBUpgrading From OpenDJ 2\&.4\&.5\fR\m[]\&.
+.PP
+Native packages (\&.deb, \&.rpm) perform more of the upgrade process, stopping OpenDJ if it is running, overwriting older files with newer files, running this utility, and starting OpenDJ if it was running when you upgraded the package(s)\&.
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2013 ForgeRock AS
+.br

@@ -1,0 +1,317 @@
+'\" t
+.\"     Title: manage-account
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 03/21/2012
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "MANAGE\-ACCOUNT" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+manage-account \- manage state of directory server accounts
+.SH "SYNOPSIS"
+.HP \w'\fBmanage\-account\fR\fB\fIsubcommand\fR\fR\ 'u
+\fBmanage\-account\fR\fB\fIsubcommand\fR\fR {options}
+.SH "DESCRIPTION"
+.PP
+This utility can be used to retrieve and manipulate the values of password policy state variables\&.
+.SH "SUBCOMMANDS"
+.PP
+The following subcommands are supported\&.
+.PP
+\fBmanage\-account clear\-account\-is\-disabled\fR
+.RS 4
+Clear account disabled state information from the user account
+.RE
+.PP
+\fBmanage\-account get\-account\-expiration\-time\fR
+.RS 4
+Display when the user account will expire
+.RE
+.PP
+\fBmanage\-account get\-account\-is\-disabled\fR
+.RS 4
+Display information about whether the user account has been administratively disabled
+.RE
+.PP
+\fBmanage\-account get\-all\fR
+.RS 4
+Display all password policy state information for the user
+.RE
+.PP
+\fBmanage\-account get\-authentication\-failure\-times\fR
+.RS 4
+Display the authentication failure times for the user
+.RE
+.PP
+\fBmanage\-account get\-grace\-login\-use\-times\fR
+.RS 4
+Display the grace login use times for the user
+.RE
+.PP
+\fBmanage\-account get\-last\-login\-time\fR
+.RS 4
+Display the time that the user last authenticated to the server
+.RE
+.PP
+\fBmanage\-account get\-password\-changed\-by\-required\-time\fR
+.RS 4
+Display the required password change time with which the user last complied
+.RE
+.PP
+\fBmanage\-account get\-password\-changed\-time\fR
+.RS 4
+Display the time that the user\*(Aqs password was last changed
+.RE
+.PP
+\fBmanage\-account get\-password\-expiration\-warned\-time\fR
+.RS 4
+Display the time that the user first received an expiration warning notice
+.RE
+.PP
+\fBmanage\-account get\-password\-history\fR
+.RS 4
+Display password history state values for the user
+.RE
+.PP
+\fBmanage\-account get\-password\-is\-reset\fR
+.RS 4
+Display information about whether the user will be required to change his or her password on the next successful authentication
+.RE
+.PP
+\fBmanage\-account get\-password\-policy\-dn\fR
+.RS 4
+Display the DN of the password policy for the user
+.RE
+.PP
+\fBmanage\-account get\-remaining\-authentication\-failure\-count\fR
+.RS 4
+Display the number of remaining authentication failures until the user\*(Aqs account is locked
+.RE
+.PP
+\fBmanage\-account get\-remaining\-grace\-login\-count\fR
+.RS 4
+Display the number of grace logins remaining for the user
+.RE
+.PP
+\fBmanage\-account get\-seconds\-until\-account\-expiration\fR
+.RS 4
+Display the length of time in seconds until the user account expires
+.RE
+.PP
+\fBmanage\-account get\-seconds\-until\-authentication\-failure\-unlock\fR
+.RS 4
+Display the length of time in seconds until the authentication failure lockout expires
+.RE
+.PP
+\fBmanage\-account get\-seconds\-until\-idle\-lockout\fR
+.RS 4
+Display the length of time in seconds until user\*(Aqs account is locked because it has remained idle for too long
+.RE
+.PP
+\fBmanage\-account get\-seconds\-until\-password\-expiration\fR
+.RS 4
+Display length of time in seconds until the user\*(Aqs password expires
+.RE
+.PP
+\fBmanage\-account get\-seconds\-until\-password\-expiration\-warning\fR
+.RS 4
+Display the length of time in seconds until the user should start receiving password expiration warning notices
+.RE
+.PP
+\fBmanage\-account get\-seconds\-until\-password\-reset\-lockout\fR
+.RS 4
+Display the length of time in seconds until user\*(Aqs account is locked because the user failed to change the password in a timely manner after an administrative reset
+.RE
+.PP
+\fBmanage\-account get\-seconds\-until\-required\-change\-time\fR
+.RS 4
+Display the length of time in seconds that the user has remaining to change his or her password before the account becomes locked due to the required change time
+.RE
+.PP
+\fBmanage\-account set\-account\-is\-disabled\fR
+.RS 4
+Specify whether the user account has been administratively disabled
+.RE
+.SH "GLOBAL OPTIONS"
+.PP
+The following global options are supported\&.
+.PP
+\fB\-b, \-\-targetDN {targetDN}\fR
+.RS 4
+The DN of the user entry for which to get and set password policy state information
+.RE
+.SS "LDAP Connection Options"
+.PP
+\fB\-D, \-\-bindDN {bindDN}\fR
+.RS 4
+DN to use to bind to the server
+.sp
+Default value: cn=Directory Manager
+.RE
+.PP
+\fB\-h, \-\-hostname {host}\fR
+.RS 4
+Directory server hostname or IP address
+.sp
+Default value: localhost\&.localdomain
+.RE
+.PP
+\fB\-j, \-\-bindPasswordFile {bindPasswordFile}\fR
+.RS 4
+Bind password file
+.RE
+.PP
+\fB\-K, \-\-keyStorePath {keyStorePath}\fR
+.RS 4
+Certificate key store path
+.RE
+.PP
+\fB\-N, \-\-certNickname {nickname}\fR
+.RS 4
+Nickname of certificate for SSL client authentication
+.RE
+.PP
+\fB\-o, \-\-saslOption {name=value}\fR
+.RS 4
+SASL bind options
+.RE
+.PP
+\fB\-p, \-\-port {port}\fR
+.RS 4
+Directory server administration port number
+.sp
+Default value: 4444
+.RE
+.PP
+\fB\-P, \-\-trustStorePath {trustStorePath}\fR
+.RS 4
+Certificate trust store path
+.RE
+.PP
+\fB\-T, \-\-trustStorePassword {trustStorePassword}\fR
+.RS 4
+Certificate trust store PIN
+.RE
+.PP
+\fB\-u, \-\-keyStorePasswordFile {keyStorePasswordFile}\fR
+.RS 4
+Certificate key store PIN file
+.RE
+.PP
+\fB\-U, \-\-trustStorePasswordFile {path}\fR
+.RS 4
+Certificate trust store PIN file
+.RE
+.PP
+\fB\-w, \-\-bindPassword {bindPassword}\fR
+.RS 4
+Password to use to bind to the server
+.sp
+Use
+\fB\-w \-\fR
+to have the command prompt for the password, rather than enter the password on the command line\&.
+.RE
+.PP
+\fB\-W, \-\-keyStorePassword {keyStorePassword}\fR
+.RS 4
+Certificate key store PIN
+.RE
+.PP
+\fB\-X, \-\-trustAll\fR
+.RS 4
+Trust all server SSL certificates
+.RE
+.SS "General Options"
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+89
+.RS 4
+An error occurred while parsing the command\-line arguments\&.
+.RE
+.SH "EXAMPLES"
+.PP
+For the following examples, the directory admin user, Kirsten Vaughan, has
+ds\-privilege\-name: password\-reset, and the following ACI on
+ou=People,dc=example,dc=com\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(
+ version 3\&.0;acl "Admins can run amok"; allow(all) groupdn =
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+The following command locks a user account\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ manage\-account \-p 4444 \-D "uid=kvaughan,ou=people,dc=example,dc=com"
+ \-w bribery set\-account\-is\-disabled \-O true
+ \-b uid=bjensen,ou=people,dc=example,dc=com \-X
+Account Is Disabled:  true
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+The following command unlocks a user account\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ manage\-account \-p 4444 \-D "uid=kvaughan,ou=people,dc=example,dc=com"
+ \-w bribery clear\-account\-is\-disabled
+ \-b uid=bjensen,ou=people,dc=example,dc=com \-X
+Account Is Disabled:  false
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2012 ForgeRock AS
+.br

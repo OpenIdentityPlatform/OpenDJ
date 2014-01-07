@@ -1,0 +1,188 @@
+dn: ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Rename Tests
+description: Root for LDAPRename Tests.
+
+dn: ou=Deutsch, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Deutsch
+ou;lang-de: ÄÖÜäöüß
+description: German Alphabet
+
+dn: ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Français
+ou;lang-fr: àâçëèéêïîôüùûÀÂÇËÈÉÊÏÎÔÜÙÛ
+description: French Alphabet
+
+dn: ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Español
+ou;lang-es: á, é, í, ó, ü, ñ, Á, É, Í, Ó, Ú, Ü, Ñ
+description: Spanish Alphabet
+
+dn: ou=ä, ou=Deutsch, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ä
+ou;lang-de: ä 
+description: ä
+
+dn: ou=ö, ou=Deutsch, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ö
+ou;lang-de: ö
+description: ö
+
+dn: ou=ü, ou=Deutsch, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ü
+ou;lang-de: ü
+description: ü
+
+dn: ou=ß, ou=Deutsch, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ß
+ou;lang-de: ß
+description: ß
+
+dn: ou=á, ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: á
+ou;lang-es: á
+description: á
+
+dn: ou=é, ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: é
+ou;lang-es: é
+description: é
+
+dn: ou=í, ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: í
+ou;lang-es: í
+description: í
+
+dn: ou=ó, ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ó
+ou;lang-es: ó
+description: ó
+
+dn: ou=ü, ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ü
+ou;lang-es: ü
+description: ü
+
+dn: ou=ñ, ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ñ
+ou;lang-es: ñ
+description: ñ
+
+dn: ou=à, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: à
+ou;lang-fr: à
+description: à
+
+dn: ou=â, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: â
+ou;lang-fr: â
+description: â
+
+dn: ou=ç, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ç
+ou;lang-fr: ç
+description: ç
+
+dn: ou=ë, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ë
+ou;lang-fr: ë
+description: ë
+
+dn: ou=è, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: è
+ou;lang-fr: è
+description: è
+
+dn: ou=é, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: é
+ou;lang-fr: é
+description: é
+
+dn: ou=ê, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ê
+ou;lang-fr:  ê
+description: ê
+
+dn: ou=ï, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ï
+ou;lang-fr: ï
+description: ï
+
+dn: ou=î, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: î
+ou;lang-fr: î
+description: î
+
+dn: ou=ô, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ô
+ou;lang-fr: ô
+description: ô
+
+dn: ou=ü, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ü
+ou;lang-fr: ü
+description: ü
+
+dn: ou=ù, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ù
+ou;lang-fr: ù
+description: ù
+
+dn: ou=û, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: û
+ou;lang-fr: û
+description: û
+

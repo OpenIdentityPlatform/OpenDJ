@@ -1,0 +1,4 @@
+dn: uid=user.101,ou=people,dc=com
+changetype: modify
+replace: mail
+mail: user.101@sun.com

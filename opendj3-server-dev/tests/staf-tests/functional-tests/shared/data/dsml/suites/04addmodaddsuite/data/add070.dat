@@ -1,0 +1,221 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 6142
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+    <soap-env:Body>
+      <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+        <addRequest dn="uid=foo13, ou=People, o=dsmlfe.com">
+        <attr name="labeleduri">
+        <value>This is an ExamPle laBeledURI</value>
+        </attr>
+        <attr name="mail">
+        <value>foo13@airius.com</value>
+        </attr>
+        <attr name="objectclass">
+        <value>top</value>
+        <value>person</value>
+        <value>organizationalPerson</value>
+        <value>inetOrgPerson</value>
+        </attr>
+        <attr name="givenname">
+        <value>foo</value>
+        </attr>
+        <attr name="telephonenumber">
+        <value>+1 408 333 3333</value>
+        </attr>
+        <attr name="cn">
+        <value>foo 13</value>
+        </attr>
+        <attr name="uid">
+        <value>foo13</value>
+        </attr>
+        <attr name="roomnumber">
+        <value>4b</value>
+        </attr>
+        <attr name="sn">
+        <value>13</value>
+        </attr>
+        <attr name="ou">
+        <value>People</value>
+        </attr>
+        <attr name="facsimiletelephonenumber">
+        <value>+1 408 333 3333</value>
+        </attr>
+        <attr name="l">
+        <value>foobar</value>
+        </attr>
+        </addRequest>
+        <addRequest dn="uid=foo14, ou=People, o=dsmlfe.com">
+        <attr name="labeleduri">
+        <value>This is an ExamPle laBeledURI</value>
+        </attr>
+        <attr name="mail">
+        <value>foo14@airius.com</value>
+        </attr>
+        <attr name="objectclass">
+        <value>top</value>
+        <value>person</value>
+        <value>organizationalPerson</value>
+        <value>inetOrgPerson</value>
+        </attr>
+        <attr name="givenname">
+        <value>foo</value>
+        </attr>
+        <attr name="telephonenumber">
+        <value>+1 408 444 4444</value>
+        </attr>
+        <attr name="cn">
+        <value>foo 14</value>
+        </attr>
+        <attr name="uid">
+        <value>foo14</value>
+        </attr>
+        <attr name="roomnumber">
+        <value>4h</value>
+        </attr>
+        <attr name="sn">
+        <value>14</value>
+        </attr>
+        <attr name="ou">
+        <value>People</value>
+        </attr>
+        <attr name="facsimiletelephonenumber">
+        <value>+1 408 444 4444</value>
+        </attr>
+        <attr name="l">
+        <value>foobar</value>
+        </attr>
+        </addRequest>
+        <addRequest dn="uid=foo15, ou=People, o=dsmlfe.com">
+        <attr name="labeleduri">
+        <value>This is an ExamPle laBeledURI</value>
+        </attr>
+        <attr name="mail">
+        <value>foo15@airiys.com</value>
+        </attr>
+        <attr name="objectclass">
+        <value>top</value>
+        <value>person</value>
+        <value>organizationalPerson</value>
+        <value>inetOrgPerson</value>
+        </attr>
+        <attr name="givenname">
+        <value>foo</value>
+        </attr>
+        <attr name="telephonenumber">
+        <value>+1 408 555 5555</value>
+        </attr>
+        <attr name="cn">
+        <value>foo 15</value>
+        </attr>
+        <attr name="uid">
+        <value>foo15</value>
+        </attr>
+        <attr name="roomnumber">
+        <value>8f</value>
+        </attr>
+        <attr name="sn">
+        <value>15</value>
+        </attr>
+        <attr name="ou">
+        <value>People</value>
+        </attr>
+        <attr name="facsimiletelephonenumber">
+        <value>+1 408 555 5555</value>
+        </attr>
+        <attr name="l">
+        <value>foobar</value>
+        </attr>
+        </addRequest>
+        <addRequest dn="uid=foo16, ou=People, o=dsmlfe.com">
+        <attr name="labeleduri">
+        <value>This is an ExamPle laBeledURI</value>
+        </attr>
+        <attr name="mail">
+        <value>foo16@airius.com</value>
+        </attr>
+        <attr name="objectclass">
+        <value>top</value>
+        <value>person</value>
+        <value>organizationalPerson</value>
+        <value>inetOrgPerson</value>
+        </attr>
+        <attr name="givenname">
+        <value>foo</value>
+        </attr>
+        <attr name="telephonenumber">
+        <value>+1 408 666 6666</value>
+        </attr>
+        <attr name="cn">
+        <value>foo 16</value>
+        </attr>
+        <attr name="uid">
+        <value>foo16</value>
+        </attr>
+        <attr name="roomnumber">
+        <value>12k</value>
+        </attr>
+        <attr name="sn">
+        <value>16</value>
+        </attr>
+        <attr name="ou">
+        <value>People</value>
+        </attr>
+        <attr name="facsimiletelephonenumber">
+        <value>+1 408 666 6666</value>
+        </attr>
+        <attr name="l">
+        <value>foobar</value>
+        </attr>
+        </addRequest>
+        <addRequest dn="uid=foo17, ou=People, o=dsmlfe.com">
+        <attr name="labeleduri">
+        <value>This is an ExamPle laBeledURI</value>
+        </attr>
+        <attr name="mail">
+        <value>foo17@airius.com</value>
+        </attr>
+        <attr name="objectclass">
+        <value>top</value>
+        <value>person</value>
+        <value>organizationalPerson</value>
+        <value>inetOrgPerson</value>
+        </attr>
+        <attr name="givenname">
+        <value>foo</value>
+        </attr>
+        <attr name="telephonenumber">
+        <value>+1 408 777 7777</value>
+        </attr>
+        <attr name="cn">
+        <value>foo 17</value>
+        </attr>
+        <attr name="uid">
+        <value>foo17</value>
+        </attr>
+        <attr name="roomnumber">
+        <value>28m</value>
+        </attr>
+        <attr name="sn">
+        <value>17</value>
+        </attr>
+        <attr name="ou">
+        <value>People</value>
+        </attr>
+        <attr name="facsimiletelephonenumber">
+        <value>+1 408 777 7777</value>
+        </attr>
+        <attr name="l">
+        <value>foobar</value>
+        </attr>
+        </addRequest>
+      </batchRequest>
+    </soap-env:Body>
+  </soap-env:Envelope>

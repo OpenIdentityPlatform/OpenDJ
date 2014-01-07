@@ -1,0 +1,41 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 1641
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+  <soap-env:Body>
+  <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+     <modifyRequest dn="uid=hmiller, ou=People, o=dsmlfe.com">
+          <modification name="description" operation="replace">
+               <value>This is a sample description that was modified.</value>
+          </modification>
+     </modifyRequest>
+     <modifyRequest dn="uid=jcampai2, ou=People, o=dsmlfe.com">
+          <modification name="description" operation="replace">
+               <value>This is a sample description that was modified.</value>
+          </modification>
+     </modifyRequest>
+     <modifyRequest dn="uid=lulrich, ou=People, o=dsmlfe.com">
+          <modification name="description" operation="replace">
+               <value>This is a sample description that was modified.</value>
+          </modification>
+     </modifyRequest>
+     <modifyRequest dn="uid=mlangdon, ou=People, o=dsmlfe.com">
+          <modification name="description" operation="replace">
+               <value>This is a sample description that was modified.</value>
+          </modification>
+     </modifyRequest>
+     <modifyRequest dn="uid=striplet, ou=People, o=dsmlfe.com">
+          <modification name="description" operation="replace">
+               <value>This is a sample description that was modified.</value>
+          </modification>
+     </modifyRequest>
+  </batchRequest>
+  </soap-env:Body>
+  </soap-env:Envelope>

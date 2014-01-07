@@ -1,0 +1,47 @@
+This folder contains source code for an example "Hello World" style
+plugin. It features a plugin which has a configurable message (the
+default being "Hello World") which is displayed as a notice message
+when OpenDJ directory server is started.
+
+In order to build and use this example plugin, perform the following
+steps while the server is stopped:
+
+  1. Then unzip the example-plugin.zip (in place):
+
+     unzip example-plugin.zip
+
+  2. Go into the example-plugin source folder:
+
+     cd example-plugin
+
+  3. And build the plugin (this requires Ant version 7 and Xalan-Java):
+
+     ant install
+
+     If this step fails for you as is, you can find Ant 7 and Xalan-Java
+     in the OpenDJ ext/ directory after checking the source out with
+     Subversion. Substitute your full path to OpenDJ sources for /src
+     in the following command:
+
+     /src/ext/ant/bin/ant -Dxalan.directory=/src/ext/xalan-j/ install
+
+  4. This will copy the following files into the parent OpenDJ
+     installation:
+
+     lib/extensions/example-plugin.jar
+     config/example-plugin.ldif
+     config/schema/99-example-plugin.ldif
+
+  5. Add the plugin's config to the server configuration.
+
+     cd ../bin
+     ./start-ds
+     ./dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password
+      create-plugin --plugin-name "Example Plugin" --type example
+      --set enabled:true --set plugin-type:startup
+      --set java-class:com.example.opends.ExamplePlugin -X -n
+
+  6. Restart the server and look for the "hello world" notice in the start
+     up log:
+
+     ./stop-ds --restart

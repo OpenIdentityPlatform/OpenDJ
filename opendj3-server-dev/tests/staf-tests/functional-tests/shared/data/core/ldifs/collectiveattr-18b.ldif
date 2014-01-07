@@ -1,0 +1,16 @@
+dn: uid=jreuter,ou=Europe,ou=People,o=collectiveattr tests,dc=example,dc=com
+cn: Jayne Reuter
+sn: Reuter
+givenname: Jayne
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Sunnyvale
+uid: jreuter
+mail: jreuter@example.com
+telephonenumber: +1 408 555 1122
+facsimiletelephonenumber: +1 408 555 8721
+roomnumber: 2942
+userpassword: destroy
+employeeType: BTX-2

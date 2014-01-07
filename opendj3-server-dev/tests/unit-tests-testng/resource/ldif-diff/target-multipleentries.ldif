@@ -1,0 +1,32 @@
+dn: dc=example,dc=com
+objectClass: top
+objectClass: organization
+objectClass: dcObject
+dc: example
+o: Example Corp.
+description: description 1
+description: description 2
+description: description 3
+
+dn: ou=Applications,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Applications
+
+dn: ou=People,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+description: This is where you put the people
+
+dn: cn=Test User,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: test.user
+givenName: Test
+sn: User
+cn: Test User
+userPassword: password
+
