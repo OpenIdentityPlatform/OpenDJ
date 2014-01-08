@@ -38,6 +38,7 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -56,6 +57,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static java.util.Arrays.*;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -239,14 +241,12 @@ public class AssuredReplicationServerTest
    * (no server state constructor version)
    */
   private FakeReplicationDomain createFakeReplicationDomain(int serverId,
-    int groupId, int rsId, long generationId, boolean assured,
-    AssuredMode assuredMode, int safeDataLevel, long assuredTimeout,
-    int scenario)
-        throws Exception
+      int groupId, int rsId, long generationId, AssuredMode assuredMode,
+      int safeDataLevel, long assuredTimeout, int scenario) throws Exception
   {
-    ReplicationDomainCfg config = newFakeCfg(serverId, getRsPort(rsId), groupId);
-    return createFakeReplicationDomain(config, groupId, rsId, generationId, assured,
-      assuredMode, safeDataLevel, assuredTimeout, scenario, new ServerState(), true);
+    return createFakeReplicationDomain(serverId, groupId, rsId, generationId,
+        assuredMode, safeDataLevel, assuredTimeout, scenario,
+        new ServerState(), true);
   }
 
   private int getRsPort(int rsId)
@@ -284,17 +284,23 @@ public class AssuredReplicationServerTest
    * @throws Exception
    */
   private FakeReplicationDomain createFakeReplicationDomain(
-      ReplicationDomainCfg config, int groupId, int rsId, long generationId,
-      boolean assured, AssuredMode assuredMode, int safeDataLevel,
+      int serverId, int groupId, int rsId, long generationId,
+      AssuredMode assuredMode, int safeDataLevel,
       long assuredTimeout, int scenario, ServerState serverState,
       boolean startListen) throws Exception
   {
-    // Set port to right real RS according to its id
-    int rsPort = getRsPort(rsId);
+    final DomainFakeCfg config = newDomainConfig(serverId, groupId, rsId,
+        assuredMode, safeDataLevel, assuredTimeout);
+    return createFakeReplicationDomain(config, rsId, generationId, scenario,
+        serverState, startListen);
+  }
 
-    FakeReplicationDomain fakeReplicationDomain = new FakeReplicationDomain(
-        config.getBaseDN(), config.getServerId(), generationId, (byte) groupId,
-        assured, assuredMode, (byte) safeDataLevel, assuredTimeout, scenario, serverState);
+  private FakeReplicationDomain createFakeReplicationDomain(
+      ReplicationDomainCfg config, int rsId, long generationId, int scenario,
+      ServerState serverState, boolean startListen) throws Exception
+  {
+    FakeReplicationDomain fakeReplicationDomain =
+        new FakeReplicationDomain(config, generationId, scenario, serverState);
 
     fakeReplicationDomain.startPublishService(config);
     if (startListen)
@@ -304,18 +310,40 @@ public class AssuredReplicationServerTest
     assertTrue(fakeReplicationDomain.isConnected());
     // Check connected server port
     HostPort rd = HostPort.valueOf(fakeReplicationDomain.getReplicationServer());
-    assertEquals(rd.getPort(), rsPort);
+    assertEquals(rd.getPort(), getRsPort(rsId));
 
     return fakeReplicationDomain;
   }
 
-  private DomainFakeCfg newFakeCfg(int serverId, int rsPort, int groupId) throws Exception
+  private DomainFakeCfg newDomainConfig(int serverId, int groupId, int rsId,
+      AssuredMode assuredMode, int safeDataLevel, long assuredTimeout)
+      throws DirectoryException
   {
-    DomainFakeCfg fakeCfg = new DomainFakeCfg(
-        DN.decode(TEST_ROOT_DN_STRING), serverId, newSortedSet("localhost:" + rsPort), groupId);
+    final int rsPort = getRsPort(rsId);
+    final DomainFakeCfg fakeCfg = new DomainFakeCfg(
+        DN.decode(TEST_ROOT_DN_STRING), serverId, newSortedSet("localhost:" + rsPort),
+        getAssuredType(assuredMode),
+        safeDataLevel, groupId, assuredTimeout, new TreeSet<String>());
     fakeCfg.setHeartbeatInterval(1000);
     fakeCfg.setChangetimeHeartbeatInterval(500);
     return fakeCfg;
+  }
+
+  private AssuredType getAssuredType(AssuredMode assuredMode)
+  {
+    if (assuredMode == null)
+    {
+      return AssuredType.NOT_ASSURED;
+    }
+
+    switch (assuredMode)
+    {
+    case SAFE_READ_MODE:
+      return AssuredType.SAFE_READ;
+    case SAFE_DATA_MODE:
+      return AssuredType.SAFE_DATA;
+    }
+    throw new RuntimeException("Not implemented for " + assuredMode);
   }
 
   /**
@@ -412,9 +440,8 @@ public class AssuredReplicationServerTest
   {
     /** The scenario this DS is expecting */
     private int scenario = -1;
-    private long generationId = -1;
 
-    private CSNGenerator gen = null;
+    private CSNGenerator gen;
 
     /** False if a received update had assured parameters not as expected */
     private boolean everyUpdatesAreOk = true;
@@ -437,28 +464,14 @@ public class AssuredReplicationServerTest
      * behavior upon reception of updates)
      * @throws org.opends.server.config.ConfigException
      */
-    public FakeReplicationDomain(
-      DN baseDN,
-      int serverID,
-      long generationId,
-      byte groupId,
-      boolean assured,
-      AssuredMode assuredMode,
-      byte safeDataLevel,
-      long assuredTimeout,
-      int scenario,
-      ServerState serverState) throws ConfigException
+    public FakeReplicationDomain(ReplicationDomainCfg config,
+        long generationId, int scenario, ServerState serverState)
+        throws ConfigException
     {
-      super(baseDN, serverID, serverState);
-      this.generationId = generationId;
-      setGroupId(groupId);
-      setAssured(assured);
-      setAssuredMode(assuredMode);
-      setAssuredSdLevel(safeDataLevel);
-      setAssuredTimeout(assuredTimeout);
+      super(config, generationId, serverState);
       this.scenario = scenario;
 
-      gen = new CSNGenerator(serverID, 0L);
+      gen = new CSNGenerator(config.getServerId(), 0L);
     }
 
     public boolean receivedUpdatesOk()
@@ -487,12 +500,6 @@ public class AssuredReplicationServerTest
     protected void exportBackend(OutputStream output) throws DirectoryException
     {
       // Not needed for this test
-    }
-
-    @Override
-    public long getGenerationID()
-    {
-      return generationId;
     }
 
     @Override
@@ -549,8 +556,8 @@ public class AssuredReplicationServerTest
         debugInfo("Fake DS " + getServerId() + " received update assured flag is wrong: " + updateMsg);
         ok = false;
       }
-      if (updateMsg.getAssuredMode() !=  getAssuredMode())
-      {
+      if (isAssured() && updateMsg.getAssuredMode() != getAssuredMode())
+      { // it is meaningless to have different assured mode when UpdateMsg is not assured
         debugInfo("Fake DS " + getServerId() + " received update assured mode is wrong: " + updateMsg);
         ok = false;
       }
@@ -645,7 +652,7 @@ public class AssuredReplicationServerTest
      * @param assuredMode the expected assured mode of the incoming updates (also used for outgoing updates)
      * @param safeDataLevel the expected safe data level of the incoming updates (also used for outgoing updates)
      * @param groupId our group id
-     * @param baseDN the basedn we connect with, to the real RS
+     * @param baseDN the baseDN we connect with, to the real RS
      * @param generationId the generation id we use at connection to real RS
      */
     public FakeReplicationServer(int port, int serverId, boolean assured,
@@ -1022,9 +1029,7 @@ public class AssuredReplicationServerTest
        */
 
       // Create real RS 1
-      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase, 0);
-      assertNotNull(rs1);
+      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT, testCase, 0);
 
       /*
        * Start main DS (the one which sends updates)
@@ -1033,8 +1038,7 @@ public class AssuredReplicationServerTest
       // Create and connect fake domain 1 to RS 1
       // Assured mode: SD, level 1
       fakeRDs[1] = createFakeReplicationDomain(FDS1_ID, mainDsGid, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_DATA_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_DATA_MODE, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       /*
        * Start one other fake DS
@@ -1049,8 +1053,7 @@ public class AssuredReplicationServerTest
         // this would timeout. If main DS group id is not the same as the real RS one,
         // the update will even not come to real RS as assured
         fakeRDs[2] = createFakeReplicationDomain(FDS2_ID, otherFakeDsGid, RS1_ID,
-          DEFAULT_GENID, false, AssuredMode.SAFE_DATA_MODE, 1, LONG_TIMEOUT,
-          TIMEOUT_DS_SCENARIO);
+            DEFAULT_GENID, null, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
       }
 
       /*
@@ -1363,9 +1366,7 @@ public class AssuredReplicationServerTest
        */
 
       // Create real RS 1
-      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase, 0);
-      assertNotNull(rs1);
+      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT, testCase, 0);
 
       /*
        * Start main DS (the one which sends updates)
@@ -1373,8 +1374,7 @@ public class AssuredReplicationServerTest
 
       // Create and connect fake domain 1 to RS 1
       fakeRDs[1] = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_DATA_MODE, sdLevel, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_DATA_MODE, sdLevel, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       /*
        * Start one other fake DS
@@ -1384,8 +1384,7 @@ public class AssuredReplicationServerTest
       if (otherFakeDS)
       {
         fakeRDs[2] = createFakeReplicationDomain(FDS2_ID, otherFakeDsGid, RS1_ID,
-          otherFakeDsGenId, false, AssuredMode.SAFE_DATA_MODE, sdLevel, LONG_TIMEOUT,
-          TIMEOUT_DS_SCENARIO);
+            otherFakeDsGenId, null, sdLevel, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
       }
 
       /*
@@ -1873,9 +1872,7 @@ public class AssuredReplicationServerTest
        */
 
       // Create real RS 1
-      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase, 0);
-      assertNotNull(rs1);
+      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT, testCase, 0);
 
       /*
        * Start fake RS to make the RS have the default generation id
@@ -1976,20 +1973,13 @@ public class AssuredReplicationServerTest
        */
       int numberOfRealRSs = 3;
 
-      // Create real RS 1
+      // Create real RS 1, 2, 3
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
         testCase, numberOfRealRSs);
-      assertNotNull(rs1);
-
-      // Create real RS 2
       rs2 = createReplicationServer(RS2_ID, DEFAULT_GID, SMALL_TIMEOUT,
         testCase, numberOfRealRSs);
-      assertNotNull(rs2);
-
-      // Create real RS 3
       rs3 = createReplicationServer(RS3_ID, DEFAULT_GID, SMALL_TIMEOUT,
         testCase, numberOfRealRSs);
-      assertNotNull(rs3);
 
       /*
        * Start DS that will send updates
@@ -1998,8 +1988,7 @@ public class AssuredReplicationServerTest
       // Wait for RSs to connect together
       // Create and connect fake domain 1 to RS 1
       fakeRDs[1] = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_DATA_MODE, sdLevel, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_DATA_MODE, sdLevel, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       // Wait for RSs connections to be finished
       // DS must see expected numbers of RSs
@@ -2049,9 +2038,7 @@ public class AssuredReplicationServerTest
        */
 
       // Create real RS 1
-      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase, 0);
-      assertNotNull(rs1);
+      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT, testCase, 0);
 
       /*******************
        * Start main DS 1 (the one which sends updates)
@@ -2060,8 +2047,7 @@ public class AssuredReplicationServerTest
       // Create and connect DS 1 to RS 1
       // Assured mode: SR
       fakeRDs[1] = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       /*
        * Send a first assured safe read update
@@ -2089,10 +2075,9 @@ public class AssuredReplicationServerTest
       // Create and connect DS 2 to RS 1
       // Assured mode: SR
       ServerState serverState = fakeRd1.getServerState();
-      ReplicationDomainCfg config = newFakeCfg(FDS2_ID, getRsPort(RS1_ID), DEFAULT_GID);
-      fakeRDs[2] = createFakeReplicationDomain(config, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-              REPLY_OK_DS_SCENARIO, serverState, true);
+      fakeRDs[2] = createFakeReplicationDomain(FDS2_ID, DEFAULT_GID, RS1_ID,
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+          REPLY_OK_DS_SCENARIO, serverState, true);
 
       // Wait for connections to be established
       waitForStableTopo(fakeRd1, 1, 1);
@@ -2306,31 +2291,26 @@ public class AssuredReplicationServerTest
        */
 
       // Create real RS 1
-      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase, 0);
-      assertNotNull(rs1);
+      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT, testCase, 0);
 
       /*
        * Start main DS 1 (the one which sends updates)
        */
       fakeRDs[1] = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       /*
        * Start another fake DS 2 connected to RS
        */
       fakeRDs[2] = createFakeReplicationDomain(FDS2_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        REPLY_OK_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, REPLY_OK_DS_SCENARIO);
 
       /*
        * Start another fake DS 3 connected to RS
        */
       fakeRDs[3] = createFakeReplicationDomain(FDS3_ID, otherFakeDsGid, RS1_ID,
-        otherFakeDsGenId, (otherFakeDsGid == DEFAULT_GID),
-        AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        otherFakeDsScen);
+          otherFakeDsGenId, otherFakeDsGid == DEFAULT_GID ? AssuredMode.SAFE_READ_MODE : null,
+          1, LONG_TIMEOUT, otherFakeDsScen);
 
       /*
        * Start fake RS (RS 1) connected to RS
@@ -2617,25 +2597,17 @@ public class AssuredReplicationServerTest
        */
       int numberOfRealRSs = 4;
 
-      // Create real RS 1
+      // Create real RS 1, 2, 3
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
         testCase, numberOfRealRSs);
-      assertNotNull(rs1);
-
-      // Create real RS 2
       rs2 = createReplicationServer(RS2_ID, DEFAULT_GID, SMALL_TIMEOUT,
         testCase, numberOfRealRSs);
-      assertNotNull(rs2);
-
-      // Create real RS 3
       rs3 = createReplicationServer(RS3_ID, DEFAULT_GID, SMALL_TIMEOUT,
         testCase, numberOfRealRSs);
-      assertNotNull(rs3);
 
       // Create real RS 4 (different GID 2)
       rs4 = createReplicationServer(RS4_ID, OTHER_GID_BIS, SMALL_TIMEOUT,
         testCase, numberOfRealRSs);
-      assertNotNull(rs4);
 
       /*
        * Start DS 1 that will send assured updates
@@ -2644,8 +2616,7 @@ public class AssuredReplicationServerTest
       // Wait for RSs to connect together
       // Create and connect fake domain 1 to RS 1
       fakeRDs[1] = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       // Wait for connections to be finished
       // DS must see expected numbers of DSs/RSs
@@ -2674,23 +2645,19 @@ public class AssuredReplicationServerTest
 
       // DS 2 connected to RS 1
       fakeRDs[2] = createFakeReplicationDomain(FDS2_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        REPLY_OK_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, REPLY_OK_DS_SCENARIO);
 
       // DS 3 connected to RS 2
       fakeRDs[3] = createFakeReplicationDomain(FDS3_ID, DEFAULT_GID, RS2_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        REPLY_OK_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, REPLY_OK_DS_SCENARIO);
 
       // DS 4 connected to RS 3
       fakeRDs[4] = createFakeReplicationDomain(FDS4_ID, DEFAULT_GID, RS3_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        REPLY_OK_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, REPLY_OK_DS_SCENARIO);
 
       // DS 5 connected to RS 3
       fakeRDs[5] = createFakeReplicationDomain(FDS5_ID, DEFAULT_GID, RS3_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        REPLY_OK_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, REPLY_OK_DS_SCENARIO);
 
       /*
        * Start DSs that will not receive updates from DS 1 as assured because
@@ -2699,23 +2666,19 @@ public class AssuredReplicationServerTest
 
       // DS 6 connected to RS 1
       fakeRDs[6] = createFakeReplicationDomain(FDS6_ID, OTHER_GID, RS1_ID,
-        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, null, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       // DS 7 connected to RS 2
       fakeRDs[7] = createFakeReplicationDomain(FDS7_ID, OTHER_GID, RS2_ID,
-        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, null, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       // DS 8 connected to RS 3
       fakeRDs[8] = createFakeReplicationDomain(FDS8_ID, OTHER_GID, RS3_ID,
-        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, null, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       // DS 9 (GID 2) connected to RS 4
       fakeRDs[9] = createFakeReplicationDomain(FDS9_ID, OTHER_GID_BIS, RS4_ID,
-        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, null, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       /*
        * Start DSs that will not receive updates from DS 1 because
@@ -2724,18 +2687,15 @@ public class AssuredReplicationServerTest
 
       // DS 10 connected to RS 1
       fakeRDs[10] = createFakeReplicationDomain(FDS10_ID, DEFAULT_GID, RS1_ID,
-        OTHER_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          OTHER_GENID, null, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       // DS 11 connected to RS 2
       fakeRDs[11] = createFakeReplicationDomain(FDS11_ID, DEFAULT_GID, RS2_ID,
-        OTHER_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          OTHER_GENID, null, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       // DS 12 connected to RS 3
       fakeRDs[12] = createFakeReplicationDomain(FDS12_ID, DEFAULT_GID, RS3_ID,
-        OTHER_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          OTHER_GENID, null, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       // Wait for connections to be finished
       // DS must see expected numbers of DSs/RSs
@@ -2897,15 +2857,11 @@ public class AssuredReplicationServerTest
        */
       int numberOfRealRSs = 2;
 
-      // Create real RS 1
+      // Create real RS 1, 2
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
         testCase, numberOfRealRSs);
-      assertNotNull(rs1);
-
-      // Create real RS 2
       rs2 = createReplicationServer(RS2_ID, OTHER_GID, SMALL_TIMEOUT,
         testCase, numberOfRealRSs);
-      assertNotNull(rs2);
 
       /*
        * Start DSs with GID=DEFAULT_GID, connected to RS1
@@ -2913,13 +2869,11 @@ public class AssuredReplicationServerTest
 
       // DS 1 connected to RS 1
       fakeRDs[1] = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       // DS 2 connected to RS 1
       fakeRDs[2] = createFakeReplicationDomain(FDS2_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        REPLY_OK_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, REPLY_OK_DS_SCENARIO);
 
       /*
        * Start DSs with GID=OTHER_GID, connected to RS2
@@ -2927,13 +2881,11 @@ public class AssuredReplicationServerTest
 
       // DS 3 connected to RS 2
       fakeRDs[3] = createFakeReplicationDomain(FDS3_ID, OTHER_GID, RS2_ID,
-        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        REPLY_OK_DS_SCENARIO);
+          DEFAULT_GENID, null, 1, LONG_TIMEOUT, REPLY_OK_DS_SCENARIO);
 
       // DS 4 connected to RS 3
       fakeRDs[4] = createFakeReplicationDomain(FDS4_ID, OTHER_GID, RS2_ID,
-        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        REPLY_OK_DS_SCENARIO);
+          DEFAULT_GENID, null, 1, LONG_TIMEOUT, REPLY_OK_DS_SCENARIO);
 
       // Wait for connections to be finished
       // DS must see expected numbers of DSs/RSs
@@ -3010,15 +2962,11 @@ public class AssuredReplicationServerTest
        */
       int numberOfRealRSs = 2;
 
-      // Create real RS 1
+      // Create real RS 1, 2
       rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT + 1000, // Be sure DS2 timeout is seen from DS1
         testCase, numberOfRealRSs);
-      assertNotNull(rs1);
-
-      // Create real RS 2
       rs2 = createReplicationServer(RS2_ID, DEFAULT_GID, SMALL_TIMEOUT,
         testCase, numberOfRealRSs);
-      assertNotNull(rs2);
 
       /*
        * Start 2 fake DSs
@@ -3026,13 +2974,12 @@ public class AssuredReplicationServerTest
 
       // DS 1 connected to RS 1
       fakeRDs[1] = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       // DS 2 connected to RS 2
       fakeRDs[2] = createFakeReplicationDomain(FDS2_ID, fakeDsGid, RS2_ID,
-        fakeDsGenId, (fakeDsGid == DEFAULT_GID),
-        AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, fakeDsScen);
+          fakeDsGenId, fakeDsGid == DEFAULT_GID ? AssuredMode.SAFE_READ_MODE : null,
+          1, LONG_TIMEOUT, fakeDsScen);
 
       // Wait for connections to be finished
       // DS must see expected numbers of DSs/RSs
@@ -3167,15 +3114,14 @@ public class AssuredReplicationServerTest
 
       // DS 1 connected to RS 1
       fakeRDs[1] = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        TIMEOUT_DS_SCENARIO);
+          DEFAULT_GENID, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, TIMEOUT_DS_SCENARIO);
 
       // DS 2 connected to RS 1 with low window to easily put it in DEGRADED status
-      DomainFakeCfg config = newFakeCfg(FDS2_ID, getRsPort(RS1_ID), DEFAULT_GID);
+      final DomainFakeCfg config = newDomainConfig(FDS2_ID, DEFAULT_GID, RS1_ID,
+          AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT);
       config.setWindowSize(2);
-      fakeRDs[2] = createFakeReplicationDomain(config, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        REPLY_OK_DS_SCENARIO, new ServerState(), false);
+      fakeRDs[2] = createFakeReplicationDomain(config, RS1_ID, DEFAULT_GENID,
+          REPLY_OK_DS_SCENARIO, new ServerState(), false);
 
       // Wait for connections to be finished
       // DS must see expected numbers of DSs/RSs
