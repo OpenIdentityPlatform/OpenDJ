@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
@@ -29,7 +29,7 @@ package org.forgerock.opendj.ldap.spi;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 import static org.mockito.Mockito.mock;
 
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -46,7 +46,7 @@ import com.forgerock.opendj.util.AsynchronousFutureResult;
 public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryImpl {
 
     private final LDAPOptions options;
-    private final SocketAddress socketAddress;
+    private final InetSocketAddress socketAddress;
 
     /**
      * Creates a new LDAP connection factory which does nothing.
@@ -56,7 +56,7 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
      * @param options
      *            The LDAP connection options to use when creating connections.
      */
-    public BasicLDAPConnectionFactory(final SocketAddress address, final LDAPOptions options) {
+    public BasicLDAPConnectionFactory(final InetSocketAddress address, final LDAPOptions options) {
         this.socketAddress = address;
         this.options = new LDAPOptions(options);
     }
@@ -89,7 +89,7 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
      *
      * @return The address of the Directory Server.
      */
-    public SocketAddress getSocketAddress() {
+    public InetSocketAddress getSocketAddress() {
         return socketAddress;
     }
 

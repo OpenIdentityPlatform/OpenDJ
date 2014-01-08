@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -31,7 +31,6 @@ import static com.forgerock.opendj.util.StaticUtils.getProvider;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
 import org.forgerock.opendj.ldap.spi.TransportProvider;
@@ -64,7 +63,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      * @throws ProviderNotFoundException if no provider is available or if the
      *             provider requested using options is not found.
      */
-    public LDAPConnectionFactory(final SocketAddress address) {
+    public LDAPConnectionFactory(final InetSocketAddress address) {
         this(address, new LDAPOptions());
     }
 
@@ -81,7 +80,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      * @throws ProviderNotFoundException if no provider is available or if the
      *             provider requested using options is not found.
      */
-    public LDAPConnectionFactory(final SocketAddress address, final LDAPOptions options) {
+    public LDAPConnectionFactory(final InetSocketAddress address, final LDAPOptions options) {
         Reject.ifNull(address, options);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());
@@ -124,26 +123,19 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      */
     public LDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
         Reject.ifNull(host, options);
-        final SocketAddress address = new InetSocketAddress(host, port);
+        final InetSocketAddress address = new InetSocketAddress(host, port);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());
         this.impl = provider.getLDAPConnectionFactory(address, options);
     }
 
     /**
-     * Returns the {@code InetAddress} that this LDAP listener is listening on.
+     * Returns the {@code InetAddress} of the Directory Server.
      *
-     * @return The {@code InetAddress} that this LDAP listener is listening on,
-     *         or {@code null} if it is unknown.
+     * @return The {@code InetAddress} of the Directory Server.
      */
     public InetAddress getAddress() {
-        final SocketAddress socketAddress = getSocketAddress();
-        if (socketAddress instanceof InetSocketAddress) {
-            final InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
-            return inetSocketAddress.getAddress();
-        } else {
-            return null;
-        }
+        return getSocketAddress().getAddress();
     }
 
     @Override
@@ -163,43 +155,32 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
     }
 
     /**
-     * Returns the host name that this LDAP listener is listening on.
+     * Returns the host name of the Directory Server. The returned host name is
+     * the same host name that was provided during construction and may be an IP
+     * address. More specifically, this method will not perform a reverse DNS
+     * lookup.
      *
-     * @return The host name that this LDAP listener is listening on, or
-     *         {@code null} if it is unknown.
+     * @return The host name of the Directory Server.
      */
-    public String getHostname() {
-        final SocketAddress socketAddress = getSocketAddress();
-        if (socketAddress instanceof InetSocketAddress) {
-            final InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
-            return inetSocketAddress.getHostName();
-        } else {
-            return null;
-        }
+    public String getHostName() {
+        return Connections.getHostString(getSocketAddress());
     }
 
     /**
-     * Returns the port that this LDAP listener is listening on.
+     * Returns the port of the Directory Server.
      *
-     * @return The port that this LDAP listener is listening on, or {@code -1}
-     *         if it is unknown.
+     * @return The port of the Directory Server.
      */
     public int getPort() {
-        final SocketAddress socketAddress = getSocketAddress();
-        if (socketAddress instanceof InetSocketAddress) {
-            final InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
-            return inetSocketAddress.getPort();
-        } else {
-            return -1;
-        }
+        return getSocketAddress().getPort();
     }
 
     /**
-     * Returns the address used by the connections created by this factory.
+     * Returns the address of the Directory Server.
      *
-     * @return The address used by the connections.
+     * @return The address of the Directory Server.
      */
-    public SocketAddress getSocketAddress() {
+    public InetSocketAddress getSocketAddress() {
         return impl.getSocketAddress();
     }
 

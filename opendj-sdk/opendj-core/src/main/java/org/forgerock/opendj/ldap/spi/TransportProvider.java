@@ -21,12 +21,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
 import java.io.IOException;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
@@ -49,12 +49,13 @@ public interface TransportProvider extends Provider {
      * Returns an implementation of {@code LDAPConnectionFactory}.
      *
      * @param address
-     *          The address of the Directory Server to connect to.
+     *            The address of the Directory Server to connect to.
      * @param options
      *            The LDAP options to use when creating connections.
      * @return an implementation of {@code LDAPConnectionFactory}
      */
-    LDAPConnectionFactoryImpl getLDAPConnectionFactory(SocketAddress address, LDAPOptions options);
+    LDAPConnectionFactoryImpl getLDAPConnectionFactory(InetSocketAddress address,
+            LDAPOptions options);
 
     /**
      * Returns an implementation of {@code LDAPListener}.
@@ -71,9 +72,8 @@ public interface TransportProvider extends Provider {
      *             If an error occurred while trying to listen on the provided
      *             address.
      */
-    LDAPListenerImpl getLDAPListener(
-            SocketAddress address,
-            ServerConnectionFactory<LDAPClientContext, Integer> factory,
-            LDAPListenerOptions options) throws IOException;
+    LDAPListenerImpl getLDAPListener(InetSocketAddress address,
+            ServerConnectionFactory<LDAPClientContext, Integer> factory, LDAPListenerOptions options)
+            throws IOException;
 
 }
