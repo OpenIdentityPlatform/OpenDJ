@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.grizzly;
@@ -34,7 +34,6 @@ import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,6 +48,7 @@ import javax.net.ssl.SSLEngine;
 import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
+import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
@@ -90,6 +90,7 @@ import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
+
 import org.forgerock.util.Reject;
 
 /**
@@ -270,10 +271,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
         final BindClient context;
         try {
             context =
-                    request.createBindClient(
-                            connection.getPeerAddress() instanceof InetSocketAddress
-                            ? ((InetSocketAddress) connection.getPeerAddress()).getHostName()
-                            : connection.getPeerAddress().toString());
+                    request.createBindClient(Connections.getHostString(factory.getSocketAddress()));
         } catch (final Exception e) {
             // FIXME: I18N need to have a better error message.
             // FIXME: Is this the best result code?

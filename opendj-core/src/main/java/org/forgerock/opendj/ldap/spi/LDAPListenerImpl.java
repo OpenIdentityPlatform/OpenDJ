@@ -21,12 +21,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
 import java.io.Closeable;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 
 /**
  * Interface for all classes that actually implement {@code LDAPListener}.
@@ -45,7 +45,7 @@ public interface LDAPListenerImpl extends Closeable {
      *
      * @return The address that this LDAP listener is listening on.
      */
-    public SocketAddress getSocketAddress();
+    public InetSocketAddress getSocketAddress();
 
     /**
      * Closes this stream and releases any system resources associated

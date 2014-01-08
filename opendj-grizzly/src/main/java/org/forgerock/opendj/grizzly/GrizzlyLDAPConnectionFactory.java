@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.grizzly;
@@ -32,7 +32,7 @@ import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 import static org.forgerock.opendj.ldap.TimeoutChecker.TIMEOUT_CHECKER;
 
 import java.io.IOException;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -207,7 +207,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
     private final LDAPClientFilter clientFilter;
     private final FilterChain defaultFilterChain;
     private final LDAPOptions options;
-    private final SocketAddress socketAddress;
+    private final InetSocketAddress socketAddress;
 
     /**
      * Prevents the transport and timeoutChecker being released when there are
@@ -235,7 +235,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
      * @param options
      *            The LDAP connection options to use when creating connections.
      */
-    public GrizzlyLDAPConnectionFactory(final SocketAddress address, final LDAPOptions options) {
+    public GrizzlyLDAPConnectionFactory(final InetSocketAddress address, final LDAPOptions options) {
         this(address, options, null);
     }
 
@@ -253,13 +253,14 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
      *            Grizzly TCP Transport NIO implementation to use for
      *            connections. If {@code null}, default transport will be used.
      */
-    public GrizzlyLDAPConnectionFactory(final SocketAddress address, final LDAPOptions options,
+    public GrizzlyLDAPConnectionFactory(final InetSocketAddress address, final LDAPOptions options,
             TCPNIOTransport transport) {
         this.transport = DEFAULT_TRANSPORT.acquireIfNull(transport);
         this.socketAddress = address;
         this.options = new LDAPOptions(options);
         this.clientFilter = new LDAPClientFilter(this.options.getDecodeOptions(), 0);
-        this.defaultFilterChain = GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(), clientFilter);
+        this.defaultFilterChain =
+                GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(), clientFilter);
 
     }
 
@@ -293,12 +294,8 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
         return future;
     }
 
-    /**
-     * Returns the address of the Directory Server.
-     *
-     * @return The address of the Directory Server.
-     */
-    public SocketAddress getSocketAddress() {
+    @Override
+    public InetSocketAddress getSocketAddress() {
         return socketAddress;
     }
 

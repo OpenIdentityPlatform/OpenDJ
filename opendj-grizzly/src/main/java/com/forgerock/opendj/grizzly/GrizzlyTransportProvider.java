@@ -21,12 +21,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package com.forgerock.opendj.grizzly;
 
 import java.io.IOException;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 
 import org.forgerock.opendj.grizzly.GrizzlyLDAPConnectionFactory;
 import org.forgerock.opendj.grizzly.GrizzlyLDAPListener;
@@ -43,23 +43,19 @@ import org.forgerock.opendj.ldap.spi.TransportProvider;
  */
 public class GrizzlyTransportProvider implements TransportProvider {
 
-    /** {@inheritDoc} */
     @Override
-    public LDAPConnectionFactoryImpl getLDAPConnectionFactory(SocketAddress address, LDAPOptions options) {
+    public LDAPConnectionFactoryImpl getLDAPConnectionFactory(InetSocketAddress address,
+            LDAPOptions options) {
         return new GrizzlyLDAPConnectionFactory(address, options);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public LDAPListenerImpl getLDAPListener(
-            SocketAddress address,
-            ServerConnectionFactory<LDAPClientContext, Integer> factory,
-            LDAPListenerOptions options)
+    public LDAPListenerImpl getLDAPListener(InetSocketAddress address,
+            ServerConnectionFactory<LDAPClientContext, Integer> factory, LDAPListenerOptions options)
             throws IOException {
         return new GrizzlyLDAPListener(address, factory, options);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getName() {
         return "Grizzly";

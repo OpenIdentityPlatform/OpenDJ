@@ -21,11 +21,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 
 import org.forgerock.opendj.ldap.ConnectionFactory;
 
@@ -47,6 +47,6 @@ public interface LDAPConnectionFactoryImpl extends ConnectionFactory {
      *
      * @return The address used by the connections.
      */
-    public SocketAddress getSocketAddress();
+    public InetSocketAddress getSocketAddress();
 
 }
