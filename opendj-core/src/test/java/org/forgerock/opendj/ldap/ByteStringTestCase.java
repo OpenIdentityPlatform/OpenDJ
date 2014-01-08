@@ -255,8 +255,13 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
     }
 
     @Test
-    public void testValueOfHex() throws Exception {
+    public void testValueOfHex() {
         ByteString byteString = ByteString.valueOfHex("636E3D7465737476616C7565");
         assertThat(byteString.toString()).isEqualTo("cn=testvalue");
+    }
+
+    @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
+    public void testValueOfInvalidHex() {
+        ByteString.valueOfHex("636E3D746573x7476616C7565");
     }
 }
