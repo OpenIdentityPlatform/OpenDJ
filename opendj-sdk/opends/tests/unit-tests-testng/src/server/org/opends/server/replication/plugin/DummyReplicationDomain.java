@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 

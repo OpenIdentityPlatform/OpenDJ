@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -41,7 +41,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.*;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.api.AlertGenerator;
@@ -71,7 +71,7 @@ import org.opends.server.types.operation.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -285,13 +285,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private boolean forceBadDataSet = false;
 
   /**
-   * This flag is used by the fractional replication ldif import plugin to
-   * stop the (online) import process if a fractional configuration
-   * inconsistency is detected by it.
-   */
-  private boolean followImport = true;
-
-  /**
    * The message id to be used when an import is stopped with error by
    * the fractional replication ldif import plugin.
    */
@@ -481,7 +474,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     storeECLConfiguration(configuration);
     solveConflictFlag = isSolveConflict(configuration);
 
-    Backend backend = retrievesBackend(getBaseDN());
+    Backend backend = getBackend();
     if (backend == null)
     {
       throw new ConfigException(ERR_SEARCHING_DOMAIN_BACKEND.get(
@@ -544,20 +537,22 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * error by the fractional replication ldif import plugin.
    * @param importErrorMessageId The message to use.
    */
-  public void setImportErrorMessageId(int importErrorMessageId)
+  void setImportErrorMessageId(int importErrorMessageId)
   {
     this.importErrorMessageId = importErrorMessageId;
   }
 
   /**
-   * Sets the boolean telling if the online import currently in progress should
-   * continue.
-   * @param followImport The boolean telling if the online import currently in
-   * progress should continue.
+   * This flag is used by the fractional replication ldif import plugin to stop
+   * the (online) import process if a fractional configuration inconsistency is
+   * detected by it.
+   *
+   * @return true if the online import currently in progress should continue,
+   *         false otherwise.
    */
-  public void setFollowImport(boolean followImport)
+  private boolean isFollowImport()
   {
-    this.followImport = followImport;
+    return importErrorMessageId == -1;
   }
 
   /**
@@ -1067,7 +1062,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * @return true if the operation contains some attributes subject to filtering
    * by the fractional configuration
    */
-  public boolean fractionalFilterOperation(
+  private boolean fractionalFilterOperation(
     PreOperationAddOperation addOperation, boolean performFiltering)
   {
     return fractionalRemoveAttributesFromEntry(fractionalConfig,
@@ -1088,7 +1083,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * @return true if the operation is inconsistent with fractional
    * configuration
    */
-  public boolean fractionalFilterOperation(
+  private boolean fractionalFilterOperation(
     PreOperationModifyDNOperation modifyDNOperation, boolean performFiltering)
   {
     // Quick exit if not called for analyze and
@@ -1406,7 +1401,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * @return FRACTIONAL_HAS_FRACTIONAL_FILTERED_ATTRIBUTES,
    * FRACTIONAL_HAS_NO_FRACTIONAL_FILTERED_ATTRIBUTES or FRACTIONAL_BECOME_NO_OP
    */
-  public int fractionalFilterOperation(PreOperationModifyOperation
+  private int fractionalFilterOperation(PreOperationModifyOperation
     modifyOperation, boolean performFiltering)
   {
     /*
@@ -1494,7 +1489,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   @Override
   protected byte[] receiveEntryBytes()
   {
-    if (followImport)
+    if (isFollowImport())
     {
       // Ok, next entry is allowed to be received
       return super.receiveEntryBytes();
@@ -1505,19 +1500,20 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // process:
     // This is an error termination during the import
     // The error is stored and the import is ended by returning null
+    final IEContext ieCtx = getImportExportContext();
     Message msg = null;
     switch (importErrorMessageId)
     {
     case IMPORT_ERROR_MESSAGE_BAD_REMOTE:
       msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_BAD_REMOTE.get(
-          getBaseDNString(), Integer.toString(ieContext.getImportSource()));
+          getBaseDNString(), Integer.toString(ieCtx.getImportSource()));
       break;
     case IMPORT_ERROR_MESSAGE_REMOTE_IS_FRACTIONAL:
       msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_REMOTE_IS_FRACTIONAL.get(
-          getBaseDNString(), Integer.toString(ieContext.getImportSource()));
+          getBaseDNString(), Integer.toString(ieCtx.getImportSource()));
       break;
     }
-    ieContext.setException(new DirectoryException(UNWILLING_TO_PERFORM, msg));
+    ieCtx.setException(new DirectoryException(UNWILLING_TO_PERFORM, msg));
     return null;
   }
 
@@ -1552,7 +1548,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * @return A SynchronizationProviderResult indicating if the operation
    *         can continue.
    */
-  public SynchronizationProviderResult handleConflictResolution(
+  SynchronizationProviderResult handleConflictResolution(
          PreOperationDeleteOperation deleteOperation)
   {
     if (!deleteOperation.isSynchronizationOperation() && !brokerIsConnected())
@@ -1624,7 +1620,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * @return A SynchronizationProviderResult indicating if the operation
    *         can continue.
    */
-  public SynchronizationProviderResult handleConflictResolution(
+  SynchronizationProviderResult handleConflictResolution(
       PreOperationAddOperation addOperation)
   {
     if (!addOperation.isSynchronizationOperation() && !brokerIsConnected())
@@ -1754,7 +1750,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * @return A SynchronizationProviderResult indicating if the operation
    *         can continue.
    */
-  public SynchronizationProviderResult handleConflictResolution(
+  SynchronizationProviderResult handleConflictResolution(
       PreOperationModifyDNOperation modifyDNOperation)
   {
     if (!modifyDNOperation.isSynchronizationOperation() && !brokerIsConnected())
@@ -1872,7 +1868,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * @param modifyOperation the operation
    * @return code indicating is operation must proceed
    */
-  public SynchronizationProviderResult handleConflictResolution(
+  SynchronizationProviderResult handleConflictResolution(
          PreOperationModifyOperation modifyOperation)
   {
     if (!modifyOperation.isSynchronizationOperation() && !brokerIsConnected())
@@ -2243,7 +2239,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    *
    * @return The number of updates in the pending list
    */
-  public int getPendingUpdatesCount()
+  private int getPendingUpdatesCount()
   {
     if (pendingChanges != null)
       return pendingChanges.size();
@@ -2255,7 +2251,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    *
    * @return The number of updates replayed successfully
    */
-  public int getNumReplayedPostOpCalled()
+  private int getNumReplayedPostOpCalled()
   {
     return numReplayedPostOpCalled;
   }
@@ -2518,7 +2514,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    *
    * @param csn the CSN of the operation with error.
    */
-  public void updateError(CSN csn)
+  private void updateError(CSN csn)
   {
     try
     {
@@ -3217,7 +3213,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Get the number of modify conflicts successfully resolved.
    * @return The number of modify conflicts successfully resolved.
    */
-  public int getNumResolvedModifyConflicts()
+  private int getNumResolvedModifyConflicts()
   {
     return numResolvedModifyConflicts.get();
   }
@@ -3226,7 +3222,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Get the number of naming conflicts successfully resolved.
    * @return The number of naming conflicts successfully resolved.
    */
-  public int getNumResolvedNamingConflicts()
+  private int getNumResolvedNamingConflicts()
   {
     return numResolvedNamingConflicts.get();
   }
@@ -3235,7 +3231,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Get the number of unresolved conflicts.
    * @return The number of unresolved conflicts.
    */
-  public int getNumUnresolvedNamingConflicts()
+  private int getNumUnresolvedNamingConflicts()
   {
     return numUnresolvedNamingConflicts.get();
   }
@@ -3322,7 +3318,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @return The computed generationId.
    * @throws DirectoryException When an error occurs.
    */
-  public long computeGenerationId() throws DirectoryException
+  private long computeGenerationId() throws DirectoryException
   {
     long genId = exportBackend(null, true);
 
@@ -3503,7 +3499,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Do whatever is needed when a backup is started.
    * We need to make sure that the serverState is correctly save.
    */
-  public void backupStart()
+  void backupStart()
   {
     state.save();
   }
@@ -3511,7 +3507,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   /**
    * Do whatever is needed when a backup is finished.
    */
-  public void backupEnd()
+  void backupEnd()
   {
     // Nothing is needed at the moment
   }
@@ -3549,7 +3545,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   private long exportBackend(OutputStream output, boolean checksumOutput)
       throws DirectoryException
   {
-    Backend backend = retrievesBackend(getBaseDN());
+    Backend backend = getBackend();
 
     //  Acquire a shared lock for the backend.
     try
@@ -3678,20 +3674,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   }
 
   /**
-   * Retrieves the backend related to the domain.
-   *
-   * @return The backend of that domain.
-   * @param baseDN The baseDN to retrieve the backend
-   */
-  protected static Backend retrievesBackend(DN baseDN)
-  {
-    // Retrieves the backend related to this domain
-    return DirectoryServer.getBackend(baseDN);
-  }
-
-
-
-  /**
    * Process backend before import.
    *
    * @param backend
@@ -3731,13 +3713,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     LDIFImportConfig importConfig = null;
 
-    Backend backend = retrievesBackend(getBaseDN());
+    Backend backend = getBackend();
 
+    IEContext ieCtx = getImportExportContext();
     try
     {
       if (!backend.supportsLDIFImport())
       {
-        ieContext.setExceptionIfNoneSet(new DirectoryException(OTHER,
+        ieCtx.setExceptionIfNoneSet(new DirectoryException(OTHER,
             ERR_INIT_IMPORT_NOT_SUPPORTED.get(backend.getBackendID())));
       }
       else
@@ -3754,7 +3737,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         importConfig.setInvokeImportPlugins(true);
         // Reset the follow import flag and message before starting the import
         importErrorMessageId = -1;
-        followImport = true;
 
         // TODO How to deal with rejected entries during the import
         importConfig.writeRejectedEntries(
@@ -3771,7 +3753,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch(Exception e)
     {
-      ieContext.setExceptionIfNoneSet(new DirectoryException(ResultCode.OTHER,
+      ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.OTHER,
           ERR_INIT_IMPORT_FAILURE.get(stackTraceToSingleLineString(e))));
     }
     finally
@@ -3783,12 +3765,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         {
           importConfig.close();
           closeBackendImport(backend); // Re-enable backend
-          backend = retrievesBackend(getBaseDN());
+          backend = getBackend();
         }
 
         loadDataState();
 
-        if (ieContext.getException() != null)
+        if (ieCtx.getException() != null)
         {
           // When an error occurred during an import, most of times
           // the generationId coming in the root entry of the imported data,
@@ -3804,14 +3786,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         // so we don't bother about the new Exception.
         // However if there was no Exception before we want
         // to return this Exception to the task creator.
-        ieContext.setExceptionIfNoneSet(new DirectoryException(
+        ieCtx.setExceptionIfNoneSet(new DirectoryException(
             ResultCode.OTHER,
             ERR_INIT_IMPORT_FAILURE.get(stackTraceToSingleLineString(fe))));
       }
     }
 
-    if (ieContext.getException() != null)
-      throw ieContext.getException();
+    if (ieCtx.getException() != null)
+      throw ieCtx.getException();
   }
 
   /**
@@ -3887,9 +3869,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Returns the backend associated to this domain.
    * @return The associated backend.
    */
-  public Backend getBackend()
+  private Backend getBackend()
   {
-    return retrievesBackend(getBaseDN());
+    return DirectoryServer.getBackend(getBaseDN());
   }
 
   /*
@@ -3946,7 +3928,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
 
     // Check that the base DN is configured as a base-dn of the directory server
-    if (retrievesBackend(dn) == null)
+    if (DirectoryServer.getBackend(dn) == null)
     {
       unacceptableReasons.add(ERR_UNKNOWN_DN.get(dn.toString()));
       return false;
@@ -3997,7 +3979,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
   {
     // Check that a import/export is not in progress
-    if (importInProgress() || exportInProgress())
+    if (ieRunning())
     {
       unacceptableReasons.add(
           NOTE_ERR_CANNOT_CHANGE_CONFIG_DURING_TOTAL_UPDATE.get());
@@ -4059,7 +4041,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Remove from this domain configuration, the configuration of the
    * external change log.
    */
-  public void removeECLDomainCfg()
+  private void removeECLDomainCfg()
   {
     try
     {
@@ -4082,8 +4064,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @param  domCfg       The provided configuration.
    * @throws ConfigException When an error occurred.
    */
-  public void storeECLConfiguration(ReplicationDomainCfg domCfg)
-  throws ConfigException
+  private void storeECLConfiguration(ReplicationDomainCfg domCfg)
+      throws ConfigException
   {
     ExternalChangelogDomainCfg eclDomCfg = null;
     // create the ecl config if it does not exist
@@ -4434,7 +4416,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   @Override
   public long countEntries() throws DirectoryException
   {
-    Backend backend = retrievesBackend(getBaseDN());
+    Backend backend = getBackend();
     if (!backend.supportsLDIFExport())
     {
       Message msg = ERR_INIT_EXPORT_NOT_SUPPORTED.get(backend.getBackendID());
@@ -5105,7 +5087,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Specifies whether this domain is enabled/disabled regarding the ECL.
    * @return enabled/disabled for the ECL.
    */
-  public boolean isECLEnabled()
+  boolean isECLEnabled()
   {
     return this.eclDomain.isEnabled();
   }
@@ -5116,7 +5098,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    *
    * @return the purge delay.
    */
-  public long getHistoricalPurgeDelay()
+  long getHistoricalPurgeDelay()
   {
     return config.getConflictsHistoricalPurgeDelay() * 60 * 1000;
   }
