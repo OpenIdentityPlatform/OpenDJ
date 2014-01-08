@@ -26,6 +26,8 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.util.StaticUtils.*;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -552,6 +554,103 @@ public final class ByteString implements ByteSequence {
      */
     public String toBase64String() {
         return Base64.encode(this);
+    }
+
+    /**
+     * Returns a string representation of the contents of this byte sequence
+     * using hexadecimal characters and a space between each byte.
+     *
+     * @return A string representation of the contents of this byte sequence
+     *         using hexadecimal characters.
+     */
+    public String toHexString() {
+        StringBuilder builder = new StringBuilder((length - 1) * 3 + 2);
+        builder.append(StaticUtils.byteToHex(buffer[offset]));
+        for (int i = 1; i < length; i++) {
+            builder.append(" ");
+            builder.append(StaticUtils.byteToHex(buffer[offset + i]));
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Appends a string representation of the data in this byte sequence to the
+     * given buffer using the specified indent.
+     * <p>
+     * The data will be formatted with sixteen hex bytes in a row followed by
+     * the ASCII representation, then wrapping to a new line as necessary. The
+     * state of the byte buffer is not changed.
+     *
+     * @param builder
+     *            The buffer to which the information is to be appended.
+     * @param indent
+     *            The number of spaces to indent the output.
+     */
+    public void toHexPlusAsciiString(StringBuilder builder, int indent) {
+        StringBuilder indentBuf = new StringBuilder(indent);
+        for (int i = 0; i < indent; i++) {
+            indentBuf.append(' ');
+        }
+        int pos = 0;
+        while ((length - pos) >= 16) {
+            StringBuilder asciiBuf = new StringBuilder(17);
+            byte currentByte = buffer[offset + pos];
+            builder.append(indentBuf);
+            builder.append(byteToHex(currentByte));
+            asciiBuf.append(byteToASCII(currentByte));
+            pos++;
+
+            for (int i = 1; i < 16; i++, pos++) {
+                currentByte = buffer[offset + pos];
+                builder.append(' ');
+                builder.append(byteToHex(currentByte));
+                asciiBuf.append(byteToASCII(currentByte));
+
+                if (i == 7) {
+                    builder.append("  ");
+                    asciiBuf.append(' ');
+                }
+            }
+
+            builder.append("  ");
+            builder.append(asciiBuf);
+            builder.append(EOL);
+        }
+
+        int remaining = (length - pos);
+        if (remaining > 0) {
+            StringBuilder asciiBuf = new StringBuilder(remaining + 1);
+
+            byte currentByte = buffer[offset + pos];
+            builder.append(indentBuf);
+            builder.append(byteToHex(currentByte));
+            asciiBuf.append(byteToASCII(currentByte));
+            pos++;
+
+            for (int i = 1; i < 16; i++, pos++) {
+                builder.append(' ');
+
+                if (i < remaining) {
+                    currentByte = buffer[offset + pos];
+                    builder.append(byteToHex(currentByte));
+                    asciiBuf.append(byteToASCII(currentByte));
+                } else {
+                    builder.append("  ");
+                }
+
+                if (i == 7) {
+                    builder.append("  ");
+
+                    if (i < remaining) {
+                        asciiBuf.append(' ');
+                    }
+                }
+            }
+
+            builder.append("  ");
+            builder.append(asciiBuf);
+            builder.append(EOL);
+        }
     }
 
     /**
