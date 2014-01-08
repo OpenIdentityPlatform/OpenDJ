@@ -48,15 +48,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.DataFormatException;
-import java.util.zip.Deflater;
-import java.util.zip.Inflater;
 
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ProviderNotFoundException;
 import org.forgerock.opendj.ldap.spi.Provider;
 import org.forgerock.util.Reject;
@@ -1236,76 +1232,6 @@ public final class StaticUtils {
     }
 
     /**
-     * Attempts to compress the data in the provided source array into the given
-     * destination array. If the compressed data will fit into the destination
-     * array, then this method will return the number of bytes of compressed
-     * data in the array. Otherwise, it will return -1 to indicate that the
-     * compression was not successful. Note that if -1 is returned, then the
-     * data in the destination array should be considered invalid.
-     *
-     * @param src
-     *            The array containing the raw data to compress.
-     * @param srcOff
-     *            The start offset of the source data.
-     * @param srcLen
-     *            The maximum number of source data bytes to compress.
-     * @param dst
-     *            The array into which the compressed data should be written.
-     * @param dstOff
-     *            The start offset of the compressed data.
-     * @param dstLen
-     *            The maximum number of bytes of compressed data.
-     * @return The number of bytes of compressed data, or -1 if it was not
-     *         possible to actually compress the data.
-     */
-    public static int compress(final byte[] src, final int srcOff, final int srcLen,
-            final byte[] dst, final int dstOff, final int dstLen) {
-        final Deflater deflater = new Deflater();
-        try {
-            deflater.setInput(src, srcOff, srcLen);
-            deflater.finish();
-
-            final int compressedLength = deflater.deflate(dst, dstOff, dstLen);
-            if (deflater.finished()) {
-                return compressedLength;
-            } else {
-                return -1;
-            }
-        } finally {
-            deflater.end();
-        }
-    }
-
-    /**
-     * Attempts to compress the data in the provided byte sequence into the
-     * provided byte string builder. Note that if compression was not
-     * successful, then the byte string builder will be left unchanged.
-     *
-     * @param input
-     *            The source data to be compressed.
-     * @param output
-     *            The destination buffer to which the compressed data will be
-     *            appended.
-     * @return <code>true</code> if compression was successful or
-     *         <code>false</code> otherwise.
-     */
-    public static boolean compress(final ByteSequence input, final ByteStringBuilder output) {
-        final byte[] inputBytes = input.toByteArray();
-        final byte[] outputBytes = new byte[inputBytes.length];
-
-        final int compressedSize =
-                compress(inputBytes, 0, inputBytes.length, outputBytes, 0, outputBytes.length);
-
-        if (compressedSize != -1) {
-            DEFAULT_LOG.debug("Compression {}/{}", compressedSize, inputBytes.length);
-            output.append(outputBytes, 0, compressedSize);
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Returns a string containing provided date formatted using the generalized
      * time syntax.
      *
@@ -1877,102 +1803,6 @@ public final class StaticUtils {
         }
 
         return builder;
-    }
-
-    /**
-     * Attempts to uncompress the data in the provided source array into the
-     * given destination array. If the uncompressed data will fit into the given
-     * destination array, then this method will return the number of bytes of
-     * uncompressed data written into the destination buffer. Otherwise, it will
-     * return a negative value to indicate that the destination buffer was not
-     * large enough. The absolute value of that negative return value will
-     * indicate the buffer size required to fully decompress the data. Note that
-     * if a negative value is returned, then the data in the destination array
-     * should be considered invalid.
-     *
-     * @param src
-     *            The array containing the raw data to compress.
-     * @param srcOff
-     *            The start offset of the source data.
-     * @param srcLen
-     *            The maximum number of source data bytes to compress.
-     * @param dst
-     *            The array into which the compressed data should be written.
-     * @param dstOff
-     *            The start offset of the compressed data.
-     * @param dstLen
-     *            The maximum number of bytes of compressed data.
-     * @return A positive value containing the number of bytes of uncompressed
-     *         data written into the destination buffer, or a negative value
-     *         whose absolute value is the size of the destination buffer
-     *         required to fully decompress the provided data.
-     * @throws java.util.zip.DataFormatException
-     *             If a problem occurs while attempting to uncompress the data.
-     */
-    public static int uncompress(final byte[] src, final int srcOff, final int srcLen,
-            final byte[] dst, final int dstOff, final int dstLen) throws DataFormatException {
-        final Inflater inflater = new Inflater();
-        try {
-            inflater.setInput(src, srcOff, srcLen);
-
-            final int decompressedLength = inflater.inflate(dst, dstOff, dstLen);
-            if (inflater.finished()) {
-                return decompressedLength;
-            } else {
-                int totalLength = decompressedLength;
-
-                while (!inflater.finished()) {
-                    totalLength += inflater.inflate(dst, dstOff, dstLen);
-                }
-
-                return -totalLength;
-            }
-        } finally {
-            inflater.end();
-        }
-    }
-
-    /**
-     * Attempts to uncompress the data in the provided byte sequence into the
-     * provided byte string builder. Note that if uncompression was not
-     * successful, then the data in the destination buffer should be considered
-     * invalid.
-     *
-     * @param input
-     *            The source data to be uncompressed.
-     * @param output
-     *            The destination buffer to which the uncompressed data will be
-     *            appended.
-     * @param uncompressedSize
-     *            The uncompressed size of the data if known or 0 otherwise.
-     * @return <code>true</code> if decompression was successful or
-     *         <code>false</code> otherwise.
-     * @throws java.util.zip.DataFormatException
-     *             If a problem occurs while attempting to uncompress the data.
-     */
-    public static boolean uncompress(final ByteSequence input, final ByteStringBuilder output,
-            final int uncompressedSize) throws DataFormatException {
-        final byte[] inputBytes = input.toByteArray();
-        byte[] outputBytes = new byte[uncompressedSize > 0 ? uncompressedSize : 0];
-
-        int decompressResult =
-                uncompress(inputBytes, 0, inputBytes.length, outputBytes, 0, outputBytes.length);
-
-        if (decompressResult < 0) {
-            // The destination buffer wasn't big enough. Resize and retry.
-            outputBytes = new byte[-decompressResult];
-            decompressResult =
-                    uncompress(inputBytes, 0, inputBytes.length, outputBytes, 0, outputBytes.length);
-        }
-
-        if (decompressResult >= 0) {
-            // It was successful.
-            output.append(outputBytes, 0, decompressResult);
-            return true;
-        }
-
-        // Still unsuccessful. Give up.
-        return false;
     }
 
     /**
