@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -30,7 +30,7 @@ package org.forgerock.opendj.ldap;
 import static com.forgerock.opendj.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
 
 import java.io.IOException;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -225,8 +225,8 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                         final Map<String, String> props = new HashMap<String, String>();
                         props.put(Sasl.QOP, "auth-conf,auth-int,auth");
                         saslServer =
-                                Sasl.createSaslServer(saslMech, "ldap", clientContext
-                                        .getLocalAddress().getHostName(), props,
+                                Sasl.createSaslServer(saslMech, "ldap",
+                                        listener.getHostName(), props,
                                         new CallbackHandler() {
                                             public void handle(Callback[] callbacks)
                                                     throws IOException,
@@ -563,7 +563,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
      *
      * @return The socket address of the server.
      */
-    public synchronized SocketAddress getSocketAddress() {
+    public synchronized InetSocketAddress getSocketAddress() {
         if (!isRunning) {
             throw new IllegalStateException("Server is not running");
         }

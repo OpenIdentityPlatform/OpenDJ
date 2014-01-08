@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -32,7 +32,6 @@ import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,6 +81,7 @@ import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
+import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -253,11 +253,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         final int messageID = nextMsgID.getAndIncrement();
         final BindClient context;
         try {
-            context =
-                    request.createBindClient(
-                            connection.getPeerAddress() instanceof InetSocketAddress
-                            ? ((InetSocketAddress) connection.getPeerAddress()).getHostName()
-                            : connection.getPeerAddress().toString());
+            context = request.createBindClient(StaticUtils.getHostName(factory.getSocketAddress()));
         } catch (final Exception e) {
             // FIXME: I18N need to have a better error message.
             // FIXME: Is this the best result code?
