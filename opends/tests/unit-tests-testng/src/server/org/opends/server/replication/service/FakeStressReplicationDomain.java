@@ -58,14 +58,20 @@ public class FakeStressReplicationDomain extends ReplicationDomain
       SortedSet<String> replicationServers, long heartbeatInterval,
       BlockingQueue<UpdateMsg> queue) throws ConfigException
   {
-    super(baseDN, serverID, 100);
+    super(newConfig(baseDN, serverID, replicationServers, heartbeatInterval), 1);
+    startPublishService(getConfig());
+    startListenService();
+    this.queue = queue;
+  }
+
+  private static DomainFakeCfg newConfig(DN baseDN, int serverID,
+      SortedSet<String> replicationServers, long heartbeatInterval)
+  {
     final DomainFakeCfg fakeCfg =
         new DomainFakeCfg(baseDN, serverID, replicationServers);
     fakeCfg.setHeartbeatInterval(heartbeatInterval);
     fakeCfg.setChangetimeHeartbeatInterval(500);
-    startPublishService(fakeCfg);
-    startListenService();
-    this.queue = queue;
+    return fakeCfg;
   }
 
   private static final int IMPORT_SIZE = 100000000;
@@ -95,12 +101,6 @@ public class FakeStressReplicationDomain extends ReplicationDomain
           ERR_BACKEND_EXPORT_ENTRY.get("", ""));
     }
     System.out.println("export finished");
-  }
-
-  @Override
-  public long getGenerationID()
-  {
-    return 1;
   }
 
   @Override

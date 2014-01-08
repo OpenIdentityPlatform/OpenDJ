@@ -61,7 +61,7 @@ import static org.testng.Assert.*;
  */
 public class TopologyViewTest extends ReplicationTestCase
 {
-  // Server id definitions
+  /** Server id definitions */
   private static final int DS1_ID = 1;
   private static final int DS2_ID = 2;
   private static final int DS3_ID = 3;
@@ -72,7 +72,7 @@ public class TopologyViewTest extends ReplicationTestCase
   private static final int RS2_ID = 52;
   private static final int RS3_ID = 53;
 
-  // Group id definitions
+  /** Group id definitions */
   private static final int DS1_GID = 1;
   private static final int DS2_GID = 1;
   private static final int DS3_GID = 2;
@@ -83,7 +83,7 @@ public class TopologyViewTest extends ReplicationTestCase
   private static final int RS2_GID = 2;
   private static final int RS3_GID = 3;
 
-  // Assured conf definitions
+  /** Assured conf definitions */
   private static final AssuredType DS1_AT = AssuredType.NOT_ASSURED;
   private static final int DS1_SDL = -1;
   private static SortedSet<String> DS1_RU = new TreeSet<String>();
@@ -140,7 +140,7 @@ public class TopologyViewTest extends ReplicationTestCase
   private ReplicationServer rs2 = null;
   private ReplicationServer rs3 = null;
 
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
 
   private void debugInfo(String s)
@@ -460,7 +460,7 @@ public class TopologyViewTest extends ReplicationTestCase
     return replicationDomain;
   }
 
-  // Definitions of steps for the test case
+  /** Definitions of steps for the test case */
   private static final int STEP_1 = 1;
   private static final int STEP_2 = 2;
   private static final int STEP_3 = 3;
@@ -824,17 +824,13 @@ public class TopologyViewTest extends ReplicationTestCase
       }
 
     // Perform necessary conversions
-    boolean assuredFlag = (assuredType != AssuredType.NOT_ASSURED);
-    AssuredMode assMode = ( (assuredType == AssuredType.SAFE_READ) ?
-      AssuredMode.SAFE_READ_MODE : AssuredMode.SAFE_DATA_MODE);
-    List<String> urls = new ArrayList<String>();
-    for(String str : refUrls)
-    {
-      urls.add(str);
-    }
+    boolean assuredFlag = assuredType != AssuredType.NOT_ASSURED;
+    AssuredMode assMode = assuredType == AssuredType.SAFE_READ
+        ? AssuredMode.SAFE_READ_MODE
+        : AssuredMode.SAFE_DATA_MODE;
 
     return new DSInfo(dsId, "dummy:1234", rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assMode,
-       (byte)assuredSdLevel, groupId, urls, eclIncludes, eclIncludes, protocolVersion);
+       (byte)assuredSdLevel, groupId, refUrls, eclIncludes, eclIncludes, protocolVersion);
   }
 
   /**
@@ -1018,36 +1014,20 @@ public class TopologyViewTest extends ReplicationTestCase
      /**
       * Get the topo view of the current analyzed DS
       */
-     List<DSInfo> internalDsList = rd.getReplicasList();
      // Add info for DS itself:
      // we need to clone the list as we don't want to modify the list kept
      // inside the DS.
-     List<DSInfo> dsList = new ArrayList<DSInfo>();
-     for (DSInfo aDsInfo : internalDsList)
-     {
-       dsList.add(aDsInfo);
-     }
-     int dsId = rd.getServerId();
-     int rsId = rd.getRsServerId();
-     ServerStatus status = rd.getStatus();
-     boolean assuredFlag = rd.isAssured();
-     AssuredMode assuredMode = rd.getAssuredMode();
-     byte safeDataLevel = rd.getAssuredSdLevel();
-     byte groupId = rd.getGroupId();
-     List<String> refUrls = rd.getRefUrls();
-     Set<String> eclInclude = rd.getEclIncludes();
-     Set<String> eclIncludeForDeletes = rd.getEclIncludesForDeletes();
-     short protocolVersion = ProtocolVersion.getCurrentVersion();
-     DSInfo dsInfo = new DSInfo(dsId, "dummy:1234", rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assuredMode,
-       safeDataLevel, groupId, refUrls, eclInclude, eclIncludeForDeletes, protocolVersion);
-     dsList.add(dsInfo);
+      final DSInfo dsInfo = new DSInfo(rd.getServerId(), "dummy:1234", rd.getRsServerId(),
+          TEST_DN_WITH_ROOT_ENTRY_GENID,
+          rd.getStatus(),
+          rd.isAssured(), rd.getAssuredMode(), rd.getAssuredSdLevel(),
+          rd.getGroupId(), rd.getRefUrls(),
+          rd.getEclIncludes(), rd.getEclIncludesForDeletes(),
+          ProtocolVersion.getCurrentVersion());
+      final List<DSInfo> dsList = new ArrayList<DSInfo>(rd.getReplicasList());
+      dsList.add(dsInfo);
 
      TopoView dsTopoView = new TopoView(dsList, rd.getRsList());
-
-     /**
-      * Compare to what is the expected view
-      */
-
      assertEquals(dsTopoView, theoricalTopoView, " in DSid=" + currentDsId);
    }
   }
@@ -1058,8 +1038,8 @@ public class TopologyViewTest extends ReplicationTestCase
    */
   private class TopoView
   {
-    private List<DSInfo> dsList = null;
-    private List<RSInfo> rsList = null;
+    private List<DSInfo> dsList;
+    private List<RSInfo> rsList;
 
     public TopoView(List<DSInfo> dsList, List<RSInfo> rsList)
     {
@@ -1073,20 +1053,23 @@ public class TopologyViewTest extends ReplicationTestCase
     @Override
     public boolean equals(Object obj)
     {
-      assertNotNull(obj);
-      assertFalse(obj.getClass() != this.getClass());
-
-      TopoView topoView = (TopoView) obj;
-
-      // Check dsList
-      if (topoView.dsList.size() != dsList.size())
+      if (obj == null || getClass() != obj.getClass())
         return false;
-      for (DSInfo dsInfo : topoView.dsList)
+      TopoView other = (TopoView) obj;
+      return checkLists(dsList, other.dsList)
+          && checkLists(rsList, other.rsList);
+    }
+
+    private boolean checkLists(List<?> list, List<?> otherList)
+    {
+      if (otherList.size() != list.size())
+        return false;
+      for (Object otherObj : otherList)
       {
         int found = 0;
-        for (DSInfo thisDsInfo : dsList)
+        for (Object thisObj : list)
         {
-          if (thisDsInfo.equals(dsInfo))
+          if (thisObj.equals(otherObj))
             found++;
         }
         // Not found
@@ -1096,51 +1079,32 @@ public class TopologyViewTest extends ReplicationTestCase
         assertFalse(found > 1);
       // Ok, found exactly once in the list, examine next structure
       }
-
-      // Check rsList
-      if (topoView.rsList.size() != rsList.size())
-        return false;
-      for (RSInfo rsInfo : topoView.rsList)
-      {
-        int found = 0;
-        for (RSInfo thisRsInfo : rsList)
-        {
-          if (thisRsInfo.equals(rsInfo))
-            found++;
-        }
-        // Not found
-        if (found == 0)
-          return false;
-        // Should never see twice as rsInfo structure in a dsList
-        assertFalse(found > 1);
-      // Ok, found exactly once in the list, examine next structure
-      }
-
       return true;
     }
 
     @Override
     public String toString()
     {
-      String dsStr = "";
+      final StringBuilder sb = new StringBuilder("TopoView:");
+      sb.append("\n----------------------------\n");
+      sb.append("CONNECTED DS SERVERS:\n");
       for (DSInfo dsInfo : dsList)
       {
-        dsStr += dsInfo.toString() + "\n----------------------------\n";
+        sb.append(dsInfo).append("\n----------------------------\n");
       }
-
-      String rsStr = "";
+      sb.append("CONNECTED RS SERVERS:\n");
       for (RSInfo rsInfo : rsList)
       {
-        rsStr += rsInfo.toString() + "\n----------------------------\n";
+        sb.append(rsInfo).append("\n----------------------------\n");
       }
+      return sb.toString();
+    }
 
-      return ("TopoView:" +
-        "\n----------------------------\n" + "CONNECTED DS SERVERS:\n" + dsStr +
-        "CONNECTED RS SERVERS:\n" + rsStr);
+    private TopologyViewTest getOuterType()
+    {
+      return TopologyViewTest.this;
     }
   }
-
-
 
   private String getHostPort(int port)
   {

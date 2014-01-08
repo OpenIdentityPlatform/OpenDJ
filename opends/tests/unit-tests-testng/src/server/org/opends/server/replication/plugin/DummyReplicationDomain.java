@@ -27,6 +27,7 @@ package org.opends.server.replication.plugin;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
@@ -39,12 +40,9 @@ import org.opends.server.types.DirectoryException;
 public class DummyReplicationDomain extends ReplicationDomain
 {
 
-  private final long generationId;
-
   public DummyReplicationDomain(long generationId)
   {
-    super(null, -1, 0);
-    this.generationId = generationId;
+    super(new DomainFakeCfg(null, -1, new TreeSet<String>()), generationId);
   }
 
   @Override
@@ -90,12 +88,6 @@ public class DummyReplicationDomain extends ReplicationDomain
   public boolean processUpdate(UpdateMsg updateMsg)
   {
     return false;
-  }
-
-  @Override
-  public long getGenerationID()
-  {
-    return this.generationId;
   }
 
 }

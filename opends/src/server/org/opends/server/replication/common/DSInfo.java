@@ -26,8 +26,7 @@
  */
 package org.opends.server.replication.common;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class holds information about a DS connected to the topology. This
@@ -35,8 +34,7 @@ import java.util.Set;
  * messages, to keep every member (RS or DS) of the topology aware of the DS
  * topology.
  * <p>
- * This class is almost immutable, because it does not copy the List and Set
- * passed into the ctor.
+ * @Immutable
  */
 public final class DSInfo
 {
@@ -66,7 +64,6 @@ public final class DSInfo
 
   private final Set<String> eclIncludes;
   private final Set<String> eclIncludesForDeletes;
-
 
 
   /**
@@ -101,8 +98,8 @@ public final class DSInfo
   public DSInfo(int dsId, String dsUrl, int rsId, long generationId,
       ServerStatus status, boolean assuredFlag,
       AssuredMode assuredMode, byte safeDataLevel, byte groupId,
-      List<String> refUrls, Set<String> eclIncludes,
-      Set<String> eclIncludesForDeletes, short protocolVersion)
+      Collection<String> refUrls, Collection<String> eclIncludes,
+      Collection<String> eclIncludesForDeletes, short protocolVersion)
   {
     this.dsId = dsId;
     this.dsUrl = dsUrl;
@@ -113,9 +110,11 @@ public final class DSInfo
     this.assuredMode = assuredMode;
     this.safeDataLevel = safeDataLevel;
     this.groupId = groupId;
-    this.refUrls = refUrls;
-    this.eclIncludes = eclIncludes;
-    this.eclIncludesForDeletes = eclIncludesForDeletes;
+    this.refUrls = Collections.unmodifiableList(new ArrayList<String>(refUrls));
+    this.eclIncludes =
+        Collections.unmodifiableSet(new HashSet<String>(eclIncludes));
+    this.eclIncludesForDeletes =
+        Collections.unmodifiableSet(new HashSet<String>(eclIncludesForDeletes));
     this.protocolVersion = protocolVersion;
   }
 

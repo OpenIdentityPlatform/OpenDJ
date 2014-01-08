@@ -77,7 +77,6 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.replication.common.AssuredMode.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.service.ReplicationMonitor.*;
@@ -186,7 +185,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private final PersistentServerState state;
   private int numReplayedPostOpCalled = 0;
 
-  private volatile long generationId = -1;
   private volatile boolean generationIdSavedStatus = false;
 
   private final CSNGenerator generator;
@@ -227,7 +225,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private final SortedMap<CSN, FakeOperation> replayOperations =
     new TreeMap<CSN, FakeOperation>();
 
-  private ReplicationDomainCfg config;
   private ExternalChangelogDomain eclDomain;
 
   /**
@@ -471,11 +468,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public LDAPReplicationDomain(ReplicationDomainCfg configuration,
       BlockingQueue<UpdateToReplay> updateToReplayQueue) throws ConfigException
   {
-    super(configuration.getBaseDN(),
-          configuration.getServerId(),
-          configuration.getInitializationWindowSize());
+    super(configuration, -1);
 
-    this.config = configuration;
     this.updateToReplayQueue = updateToReplayQueue;
 
     // Get assured configuration
@@ -484,12 +478,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // Get fractional configuration
     fractionalConfig = new FractionalConfig(getBaseDN());
     readFractionalConfig(configuration, false);
-
-    setGroupId((byte)configuration.getGroupId());
-    setURLs(configuration.getReferralsUrl());
-
     storeECLConfiguration(configuration);
-
     solveConflictFlag = isSolveConflict(configuration);
 
     Backend backend = retrievesBackend(getBaseDN());
@@ -548,76 +537,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     return !getBaseDN().equals(DirectoryServer.getSchemaDN())
         && cfg.isSolveConflicts();
-  }
-
-  /**
-   * Gets and stores the assured replication configuration parameters. Returns
-   * a boolean indicating if the passed configuration has changed compared to
-   * previous values and the changes require a reconnection.
-   * @param configuration The configuration object
-   * @param allowReconnection Tells if one must reconnect if significant changes
-   *        occurred
-   */
-  private void readAssuredConfig(ReplicationDomainCfg configuration,
-    boolean allowReconnection)
-  {
-    final boolean needReconnection = needReconnection(configuration);
-
-    // Disconnect if required: changing configuration values before
-    // disconnection would make assured replication used immediately and
-    // disconnection could cause some timeouts error.
-    if (needReconnection && allowReconnection)
-      disableService();
-
-    switch (configuration.getAssuredType())
-    {
-    case NOT_ASSURED:
-      setAssured(false);
-      break;
-    case SAFE_DATA:
-      setAssured(true);
-      setAssuredMode(AssuredMode.SAFE_DATA_MODE);
-      break;
-    case SAFE_READ:
-      setAssured(true);
-      setAssuredMode(AssuredMode.SAFE_READ_MODE);
-      break;
-    }
-    setAssuredSdLevel((byte) configuration.getAssuredSdLevel());
-    setAssuredTimeout(configuration.getAssuredTimeout());
-
-    // Reconnect if required
-    if (needReconnection && allowReconnection)
-      enableService();
-  }
-
-  private boolean needReconnection(ReplicationDomainCfg cfg)
-  {
-    switch (cfg.getAssuredType())
-    {
-    case NOT_ASSURED:
-      if (isAssured())
-      {
-        return true;
-      }
-      break;
-    case SAFE_DATA:
-      if (!isAssured() || getAssuredMode() == SAFE_READ_MODE)
-      {
-        return true;
-      }
-      break;
-    case SAFE_READ:
-      if (!isAssured() || getAssuredMode() == SAFE_DATA_MODE)
-      {
-        return true;
-      }
-      break;
-    }
-
-    return isAssured()
-        && getAssuredMode() == SAFE_DATA_MODE
-        && cfg.getAssuredSdLevel() != getAssuredSdLevel();
   }
 
   /**
@@ -686,7 +605,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
 
     // Disable service if configuration changed
-    if (needReconnection && allowReconnection)
+    final boolean needRestart = needReconnection && allowReconnection;
+    if (needRestart)
     {
       disableService();
     }
@@ -713,7 +633,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
 
     // Reconnect if required
-    if (needReconnection && allowReconnection)
+    if (needRestart)
       enableService();
   }
 
@@ -1622,7 +1542,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
     // FIXME should the next call use the initWindow parameter rather than the
     // instance variable?
-    super.initializeRemote(target, requestorID, initTask, this.initWindow);
+    super.initializeRemote(target, requestorID, initTask, getInitWindow());
   }
 
   /**
@@ -2377,7 +2297,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       DirectoryServer.deregisterAlertGenerator(this);
 
       // stop the ReplicationDomain
-      stopDomain();
+      disableService();
     }
 
     // wait for completion of the persistentServerState thread.
@@ -3411,14 +3331,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     return genId;
   }
-
-  /** {@inheritDoc} */
-  @Override
-  public long getGenerationID()
-  {
-    return generationId;
-  }
-
 
   /**
    * Run a modify operation to update the entry whose DN is given as
