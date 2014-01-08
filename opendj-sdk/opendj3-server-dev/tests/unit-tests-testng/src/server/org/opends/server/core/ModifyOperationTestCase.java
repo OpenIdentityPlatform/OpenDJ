@@ -819,7 +819,7 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-        conn.processAdd(entry.getDN(), entry.getObjectClasses(), entry
+        conn.processAdd(entry.getName(), entry.getObjectClasses(), entry
             .getUserAttributes(), entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }

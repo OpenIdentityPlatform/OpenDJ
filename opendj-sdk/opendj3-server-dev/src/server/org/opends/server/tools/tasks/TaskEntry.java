@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.tools.tasks;
@@ -115,7 +116,7 @@ public class TaskEntry {
    * @param entry to wrap
    */
   public TaskEntry(Entry entry) {
-    dn = entry.getDN();
+    dn = entry.getName();
 
     String p = "ds-task-";
     id =         getSingleStringValue(entry, p + "id");

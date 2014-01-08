@@ -108,11 +108,11 @@ public class AddOperationTestCase
                        noControls, ByteString.valueOf("ou=People,o=test"),
                        ldapAttrList),
       new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                       null, entry.getDN(), entry.getObjectClasses(),
+                       null, entry.getName(), entry.getObjectClasses(),
                        entry.getUserAttributes(),
                        entry.getOperationalAttributes()),
       new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                       noControls, entry.getDN(), entry.getObjectClasses(),
+                       noControls, entry.getName(), entry.getObjectClasses(),
                        entry.getUserAttributes(),
                        entry.getOperationalAttributes()),
     };
@@ -223,7 +223,7 @@ public class AddOperationTestCase
 
     AddOperationBasis addOperation =
          new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          null, entry.getDN(), entry.getObjectClasses(),
+                          null, entry.getName(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
     assertNotNull(addOperation.getEntryDN());
@@ -253,7 +253,7 @@ public class AddOperationTestCase
 
     AddOperationBasis addOperation =
          new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          null, entry.getDN(), entry.getObjectClasses(),
+                          null, entry.getName(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
     assertNotNull(addOperation.getEntryDN());
@@ -338,7 +338,7 @@ public class AddOperationTestCase
     UpdatePreOpPlugin.addObjectClassToAdd(oc);
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -379,7 +379,7 @@ public class AddOperationTestCase
     UpdatePreOpPlugin.addObjectClassToRemove(oc);
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -421,7 +421,7 @@ public class AddOperationTestCase
     UpdatePreOpPlugin.addAttributeToSet(a);
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -484,7 +484,7 @@ public class AddOperationTestCase
     UpdatePreOpPlugin.addAttributeToSet(a);
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -528,7 +528,7 @@ public class AddOperationTestCase
     UpdatePreOpPlugin.addAttributeToRemove(attrType);
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -619,7 +619,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -927,7 +927,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1090,7 +1090,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1153,7 +1153,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1188,7 +1188,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -1223,7 +1223,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1270,7 +1270,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -1299,7 +1299,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -1329,7 +1329,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -1362,7 +1362,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -1396,7 +1396,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -1432,7 +1432,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -1469,7 +1469,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -1508,7 +1508,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1547,7 +1547,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(), userAttrs,
+         conn.processAdd(entry.getName(), entry.getObjectClasses(), userAttrs,
                          entry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
@@ -1584,7 +1584,7 @@ public class AddOperationTestCase
     DirectoryServer.setWritabilityMode(WritabilityMode.DISABLED);
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -1624,7 +1624,7 @@ public class AddOperationTestCase
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1731,7 +1731,7 @@ public class AddOperationTestCase
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -1772,7 +1772,7 @@ public class AddOperationTestCase
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1876,7 +1876,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1915,7 +1915,7 @@ public class AddOperationTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -1948,7 +1948,7 @@ public class AddOperationTestCase
 
     AddOperationBasis addOperation =
          new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          null, entry.getDN(), entry.getObjectClasses(),
+                          null, entry.getName(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
 
@@ -1981,7 +1981,7 @@ public class AddOperationTestCase
 
     AddOperationBasis addOperation =
          new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          null, entry.getDN(), entry.getObjectClasses(),
+                          null, entry.getName(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
 
@@ -2023,7 +2023,7 @@ public class AddOperationTestCase
            InternalClientConnection.getRootConnection();
 
       AddOperation addOperation =
-           conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+           conn.processAdd(entry.getName(), entry.getObjectClasses(),
                            entry.getUserAttributes(),
                            entry.getOperationalAttributes());
       assertEquals(addOperation.getResultCode(), ResultCode.BUSY);

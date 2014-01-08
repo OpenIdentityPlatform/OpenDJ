@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -197,7 +198,7 @@ public class TestJebFormat extends JebTestCase {
     buffer.append((byte)0x01);
 
     // TODO: Can we encode the DN directly into buffer?
-    byte[] dnBytes  = getBytes(entry.getDN().toString());
+    byte[] dnBytes  = getBytes(entry.getName().toString());
     buffer.appendBERLength(dnBytes.length);
     buffer.append(dnBytes);
 
@@ -300,7 +301,7 @@ public class TestJebFormat extends JebTestCase {
     if (! config.excludeDN())
     {
       // TODO: Can we encode the DN directly into buffer?
-      byte[] dnBytes  = getBytes(entry.getDN().toString());
+      byte[] dnBytes  = getBytes(entry.getName().toString());
       buffer.appendBERLength(dnBytes.length);
       buffer.append(dnBytes);
     }
@@ -439,7 +440,7 @@ public class TestJebFormat extends JebTestCase {
       assertEquals(entryBefore.getAttributes().size(), entryAfter
           .getAttributes().size());
 
-      assertEquals(entryBefore.getDN(), entryAfter.getDN());
+      assertEquals(entryBefore.getName(), entryAfter.getName());
 
       // check the object classes were not changed
       for (String ocBefore : entryBefore.getObjectClasses().values()) {
@@ -556,7 +557,7 @@ public class TestJebFormat extends JebTestCase {
       entryAfterV2 = Entry.decode(bsb.asReader());
       if (config.excludeDN())
       {
-        entryAfterV2.setDN(entryBefore.getDN());
+        entryAfterV2.setDN(entryBefore.getName());
       }
       assertEquals(entryBefore, entryAfterV2);
     }
@@ -588,7 +589,7 @@ public class TestJebFormat extends JebTestCase {
       entryAfterV3 = Entry.decode(bsb.asReader());
       if (config.excludeDN())
       {
-        entryAfterV3.setDN(entryBefore.getDN());
+        entryAfterV3.setDN(entryBefore.getName());
       }
       assertEquals(entryBefore, entryAfterV3);
     }

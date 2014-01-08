@@ -1062,7 +1062,7 @@ public class RootDSEBackend
          throws DirectoryException
   {
     Message message =
-        ERR_ROOTDSE_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getDN()));
+        ERR_ROOTDSE_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getName()));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -1090,7 +1090,7 @@ public class RootDSEBackend
       ModifyOperation modifyOperation) throws DirectoryException
   {
     Message message = ERR_ROOTDSE_MODIFY_NOT_SUPPORTED.get(
-        String.valueOf(newEntry.getDN()), String.valueOf(configEntryDN));
+        String.valueOf(newEntry.getName()), String.valueOf(configEntryDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 

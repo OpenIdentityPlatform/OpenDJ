@@ -475,8 +475,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     if (configEntry != null)
     {
       DirectoryServer.getConfigHandler().addEntry(configEntry, null);
-      assertNotNull(DirectoryServer.getConfigEntry(configEntry.getDN()), errorMessage);
-      configEntriesToCleanup.add(configEntry.getDN());
+      assertNotNull(DirectoryServer.getConfigEntry(configEntry.getName()), errorMessage);
+      configEntriesToCleanup.add(configEntry.getName());
     }
   }
 
@@ -644,7 +644,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     do
     {
       InternalSearchOperation searchOperation =
-           connection.processSearch(taskEntry.getDN(),
+           connection.processSearch(taskEntry.getName(),
                                     SearchScope.BASE_OBJECT,
                                     filter);
       if (searchOperation.getSearchEntries().isEmpty())
@@ -727,9 +727,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
 
     // Entry will be removed at the end of the test
-    entriesToCleanup.add(taskEntry.getDN());
+    entriesToCleanup.add(taskEntry.getName());
 
-    TRACER.debugInfo("AddedTask/" + taskEntry.getDN());
+    TRACER.debugInfo("AddedTask/" + taskEntry.getName());
   }
 
   protected void waitTaskState(Entry taskEntry, TaskState expectedTaskState,
@@ -743,7 +743,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     do
     {
       InternalSearchOperation searchOperation =
-          connection.processSearch(taskEntry.getDN(), SearchScope.BASE_OBJECT, filter);
+          connection.processSearch(taskEntry.getName(), SearchScope.BASE_OBJECT, filter);
       resultEntry = searchOperation.getSearchEntries().getFirst();
 
       // Check that the task state is as expected.
@@ -806,12 +806,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       AddOperation addOp = connection.processAdd(entry);
       if (addOp.getResultCode() != ResultCode.SUCCESS)
       {
-        TRACER.debugInfo("Failed to add entry " + entry.getDN()
+        TRACER.debugInfo("Failed to add entry " + entry.getName()
             + "Result code = : " + addOp.getResultCode());
       }
       else
       {
-        TRACER.debugInfo(entry.getDN() + " added " + addOp.getResultCode());
+        TRACER.debugInfo(entry.getName() + " added " + addOp.getResultCode());
       }
     }
   }
@@ -864,7 +864,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     {
       if (entry != null)
       {
-        deleteEntry(entry.getDN());
+        deleteEntry(entry.getName());
       }
     }
   }

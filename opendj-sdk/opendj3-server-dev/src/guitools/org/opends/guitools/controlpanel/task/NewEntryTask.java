@@ -92,7 +92,7 @@ public class NewEntryTask extends Task
     this.ldif = ldif;
     this.parentNode = parentNode;
     this.controller = controller;
-    dn = newEntry.getDN();
+    dn = newEntry.getName();
     for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
     {
       for (BaseDNDescriptor baseDN : backend.getBaseDns())
@@ -240,7 +240,7 @@ public class NewEntryTask extends Task
         }
       });
 
-      ctx.createSubcontext(Utilities.getJNDIName(newEntry.getDN().toString()),
+      ctx.createSubcontext(Utilities.getJNDIName(newEntry.getName().toString()),
           attrs);
 
       SwingUtilities.invokeLater(new Runnable()
@@ -257,7 +257,7 @@ public class NewEntryTask extends Task
             {
               DN parentDN = DN.valueOf(parentNode.getDN());
               isReallyParentNode =
-                parentDN.equals(newEntry.getDN().parent());
+                parentDN.equals(newEntry.getName().parent());
             }
             catch (Throwable t)
             {
@@ -267,29 +267,29 @@ public class NewEntryTask extends Task
             }
             if (isReallyParentNode)
             {
-              insertNode(parentNode, newEntry.getDN(),
-                  isBaseDN(newEntry.getDN()));
+              insertNode(parentNode, newEntry.getName(),
+                  isBaseDN(newEntry.getName()));
               entryInserted = true;
             }
           }
           if (!entryInserted)
           {
             BasicNode root = (BasicNode)controller.getTreeModel().getRoot();
-            BasicNode realParentNode = findParentNode(newEntry.getDN(), root);
+            BasicNode realParentNode = findParentNode(newEntry.getName(), root);
             if (realParentNode != null)
             {
-              insertNode(realParentNode, newEntry.getDN(), false);
+              insertNode(realParentNode, newEntry.getName(), false);
             }
             else
             {
-              if (isBaseDN(newEntry.getDN()))
+              if (isBaseDN(newEntry.getName()))
               {
                 int nRootChildren = controller.getTreeModel().getChildCount(
                   controller.getTreeModel().getRoot());
                 if (nRootChildren > 1)
                 {
                   // Insert in the root.
-                  insertNode(root, newEntry.getDN(), true);
+                  insertNode(root, newEntry.getName(), true);
                 }
               }
             }

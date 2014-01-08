@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -173,7 +174,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
         // Unexpected error: getEntry() should work after calling checkSyntax
         throw new RuntimeException("Unexpected error: "+t, t);
       }
-      String dn = entry.getDN().toString();
+      String dn = entry.getName().toString();
       // Checking for the existence of an entry is fast enough so we can do
       // it on the event thread.
       if (entryExists(dn))

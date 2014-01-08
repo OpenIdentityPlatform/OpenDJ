@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -265,8 +265,8 @@ public class SubjectDNToUserAttributeCertificateMapper
         else
         {
           Message message = ERR_SDTUACM_MULTIPLE_MATCHING_ENTRIES.
-              get(peerName, String.valueOf(userEntry.getDN()),
-                  String.valueOf(entry.getDN()));
+              get(peerName, String.valueOf(userEntry.getName()),
+                  String.valueOf(entry.getName()));
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
         }
       }

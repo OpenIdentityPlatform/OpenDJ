@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -109,7 +109,7 @@ public final class AuthenticationInfo
     isAuthenticated     = (authenticationEntry != null);
     mustChangePassword  = false;
     simpleBindDN        = authenticationEntry != null ?
-        authenticationEntry.getDN() : null;
+        authenticationEntry.getName() : null;
     authorizationEntry  = authenticationEntry;
     saslMechanism       = null;
     authenticationType  = AuthenticationType.INTERNAL;
@@ -322,7 +322,7 @@ public final class AuthenticationInfo
   {
     if (authenticationEntry != null)
     {
-      return authenticationEntry.getDN();
+      return authenticationEntry.getName();
     }
     return null;
   }
@@ -374,7 +374,7 @@ public final class AuthenticationInfo
   {
     if (authorizationEntry != null)
     {
-      return authorizationEntry.getDN();
+      return authorizationEntry.getName();
     }
     return null;
   }
@@ -466,7 +466,7 @@ public final class AuthenticationInfo
 
     if (authenticationEntry != null)
     {
-      authenticationEntry.getDN().toString(buffer);
+      authenticationEntry.getName().toString(buffer);
     }
 
     if (authorizationEntry == null)
@@ -476,7 +476,7 @@ public final class AuthenticationInfo
     else
     {
       buffer.append("\",authorizationDN=\"");
-      authorizationEntry.getDN().toString(buffer);
+      authorizationEntry.getName().toString(buffer);
       buffer.append("\"");
     }
 

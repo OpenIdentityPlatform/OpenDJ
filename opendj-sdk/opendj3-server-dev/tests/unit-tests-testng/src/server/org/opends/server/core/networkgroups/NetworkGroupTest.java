@@ -886,7 +886,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     Entry userEntry = DirectoryServer.getEntry(
             DN.valueOf("cn=Directory Manager, cn=Root DNs, cn=config"));
     ClientConnection connection2 = new InternalClientConnection(
-          new AuthenticationInfo(userEntry, userEntry.getDN(), true));
+          new AuthenticationInfo(userEntry, userEntry.getName(), true));
     ng = NetworkGroup.findMatchingNetworkGroup(connection2);
     assertEquals(ng, networkGroup2);
 
@@ -936,7 +936,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     Entry userEntry = DirectoryServer.getEntry(
             DN.valueOf("cn=Directory Manager, cn=Root DNs, cn=config"));
     ClientConnection connection2 = new InternalClientConnection(
-          new AuthenticationInfo(userEntry, userEntry.getDN(), true));
+          new AuthenticationInfo(userEntry, userEntry.getName(), true));
     ng = NetworkGroup.findMatchingNetworkGroup(connection2);
     if (match) {
       assertEquals(ng, networkGroup);
@@ -1131,7 +1131,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
         "o: " + namingAttribute);
 
    AddOperation addOperation = connection.processAdd(
-       e.getDN(),
+       e.getName(),
        e.getObjectClasses(),
        e.getUserAttributes(),
        e.getOperationalAttributes());

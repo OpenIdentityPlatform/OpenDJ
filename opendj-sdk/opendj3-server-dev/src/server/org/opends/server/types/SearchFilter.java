@@ -2269,7 +2269,7 @@ public final class SearchFilter
         return false;
       default:
         Message message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-            get(String.valueOf(entry.getDN()), toString(),
+            get(String.valueOf(entry.getName()), toString(),
                 String.valueOf(result));
         logError(message);
         return false;
@@ -2339,7 +2339,7 @@ public final class SearchFilter
       default:
         // This is an invalid filter type.
         Message message = ERR_SEARCH_FILTER_INVALID_FILTER_TYPE.
-            get(String.valueOf(entry.getDN()), toString(),
+            get(String.valueOf(entry.getName()), toString(),
                 filterType.toString());
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                      message);
@@ -2377,7 +2377,7 @@ public final class SearchFilter
       // The set of subcomponents was null.  This is not allowed.
       Message message =
           ERR_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL.
-            get(String.valueOf(entry.getDN()),
+            get(String.valueOf(entry.getName()),
                 String.valueOf(completeFilter),
                 String.valueOf(filterType));
       throw new DirectoryException(
@@ -2405,7 +2405,7 @@ public final class SearchFilter
       if (depth >= MAX_NESTED_FILTER_DEPTH)
       {
         Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
-            get(String.valueOf(entry.getDN()),
+            get(String.valueOf(entry.getName()),
                 String.valueOf(completeFilter));
         throw new DirectoryException(
                        DirectoryServer.getServerErrorResultCode(),
@@ -2427,7 +2427,7 @@ public final class SearchFilter
               TRACER.debugVerbose(
                   "Returning FALSE for AND component %s in " +
                   "filter %s for entry %s",
-                           f, completeFilter, entry.getDN());
+                           f, completeFilter, entry.getName());
             }
             return result;
           case UNDEFINED:
@@ -2435,13 +2435,13 @@ public final class SearchFilter
             {
               TRACER.debugInfo(
              "Undefined result for AND component %s in filter " +
-             "%s for entry %s", f, completeFilter, entry.getDN());
+             "%s for entry %s", f, completeFilter, entry.getName());
             }
             return result;
           default:
             Message message =
                 ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                  get(String.valueOf(entry.getDN()),
+                  get(String.valueOf(entry.getName()),
                       String.valueOf(completeFilter),
                       String.valueOf(result));
             throw new
@@ -2457,7 +2457,7 @@ public final class SearchFilter
       {
         TRACER.debugVerbose(
             "Returning TRUE for AND component %s in filter %s " +
-            "for entry %s", this, completeFilter, entry.getDN());
+            "for entry %s", this, completeFilter, entry.getName());
       }
       return ConditionResult.TRUE;
     }
@@ -2494,7 +2494,7 @@ public final class SearchFilter
       // The set of subcomponents was null.  This is not allowed.
       Message message =
           ERR_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL.
-            get(String.valueOf(entry.getDN()),
+            get(String.valueOf(entry.getName()),
                 String.valueOf(completeFilter),
                 String.valueOf(filterType));
       throw new DirectoryException(
@@ -2522,7 +2522,7 @@ public final class SearchFilter
       if (depth >= MAX_NESTED_FILTER_DEPTH)
       {
         Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
-            get(String.valueOf(entry.getDN()),
+            get(String.valueOf(entry.getName()),
                 String.valueOf(completeFilter));
         throw new DirectoryException(
                        DirectoryServer.getServerErrorResultCode(),
@@ -2541,7 +2541,7 @@ public final class SearchFilter
               TRACER.debugVerbose(
                 "Returning TRUE for OR component %s in filter " +
                 "%s for entry %s",
-                f, completeFilter, entry.getDN());
+                f, completeFilter, entry.getName());
             }
             return ConditionResult.TRUE;
           case FALSE:
@@ -2552,14 +2552,14 @@ public final class SearchFilter
               TRACER.debugInfo(
               "Undefined result for OR component %s in filter " +
               "%s for entry %s",
-              f, completeFilter, entry.getDN());
+              f, completeFilter, entry.getName());
             }
             result = ConditionResult.UNDEFINED;
             break;
           default:
             Message message =
                 ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                  get(String.valueOf(entry.getDN()),
+                  get(String.valueOf(entry.getName()),
                       String.valueOf(completeFilter),
                       String.valueOf(result));
             throw new
@@ -2575,7 +2575,7 @@ public final class SearchFilter
         TRACER.debugVerbose(
             "Returning %s for OR component %s in filter %s for " +
             "entry %s", result, this, completeFilter,
-                        entry.getDN());
+                        entry.getName());
       }
       return result;
     }
@@ -2611,7 +2611,7 @@ public final class SearchFilter
     {
       // The NOT subcomponent was null.  This is not allowed.
       Message message = ERR_SEARCH_FILTER_NOT_COMPONENT_NULL.
-          get(String.valueOf(entry.getDN()),
+          get(String.valueOf(entry.getName()),
               String.valueOf(completeFilter));
       throw new DirectoryException(
                      DirectoryServer.getServerErrorResultCode(),
@@ -2625,7 +2625,7 @@ public final class SearchFilter
       if (depth >= MAX_NESTED_FILTER_DEPTH)
       {
         Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
-            get(String.valueOf(entry.getDN()),
+            get(String.valueOf(entry.getName()),
                 String.valueOf(completeFilter));
         throw new DirectoryException(
                        DirectoryServer.getServerErrorResultCode(),
@@ -2643,7 +2643,7 @@ public final class SearchFilter
             TRACER.debugVerbose(
                "Returning FALSE for NOT component %s in filter " +
                "%s for entry %s",
-               notComponent, completeFilter, entry.getDN());
+               notComponent, completeFilter, entry.getName());
           }
           return ConditionResult.FALSE;
         case FALSE:
@@ -2652,7 +2652,7 @@ public final class SearchFilter
             TRACER.debugVerbose(
                 "Returning TRUE for NOT component %s in filter " +
                 "%s for entry %s",
-                notComponent, completeFilter, entry.getDN());
+                notComponent, completeFilter, entry.getName());
           }
           return ConditionResult.TRUE;
         case UNDEFINED:
@@ -2661,12 +2661,12 @@ public final class SearchFilter
             TRACER.debugInfo(
               "Undefined result for NOT component %s in filter " +
               "%s for entry %s",
-              notComponent, completeFilter, entry.getDN());
+              notComponent, completeFilter, entry.getName());
           }
           return ConditionResult.UNDEFINED;
         default:
           Message message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-              get(String.valueOf(entry.getDN()),
+              get(String.valueOf(entry.getName()),
                   String.valueOf(completeFilter),
                   String.valueOf(result));
           throw new
@@ -2704,7 +2704,7 @@ public final class SearchFilter
     {
       Message message =
           ERR_SEARCH_FILTER_EQUALITY_NO_ATTRIBUTE_TYPE.
-            get(String.valueOf(entry.getDN()), toString());
+            get(String.valueOf(entry.getName()), toString());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
     }
@@ -2714,7 +2714,7 @@ public final class SearchFilter
     {
       Message message =
           ERR_SEARCH_FILTER_EQUALITY_NO_ASSERTION_VALUE.
-            get(String.valueOf(entry.getDN()), toString(),
+            get(String.valueOf(entry.getName()), toString(),
                 attributeType.getNameOrOID());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
@@ -2731,7 +2731,7 @@ public final class SearchFilter
             "Returning FALSE for equality component %s in " +
             "filter %s because entry %s didn't have attribute " +
             "type %s",
-                     this, completeFilter, entry.getDN(),
+                     this, completeFilter, entry.getName(),
                      attributeType.getNameOrOID());
       }
       return ConditionResult.FALSE;
@@ -2748,7 +2748,7 @@ public final class SearchFilter
           TRACER.debugVerbose(
               "Returning TRUE for equality component %s in " +
               "filter %s for entry %s",
-                       this, completeFilter, entry.getDN());
+                       this, completeFilter, entry.getName());
         }
         return ConditionResult.TRUE;
       }
@@ -2760,7 +2760,7 @@ public final class SearchFilter
           "Returning FALSE for equality component %s in filter " +
           "%s because entry %s didn't have attribute type " +
           "%s with value %s",
-                   this, completeFilter, entry.getDN(),
+                   this, completeFilter, entry.getName(),
                    attributeType.getNameOrOID(),
                    assertionValue.getValue().toString());
     }
@@ -2795,7 +2795,7 @@ public final class SearchFilter
     {
       Message message =
           ERR_SEARCH_FILTER_SUBSTRING_NO_ATTRIBUTE_TYPE.
-            get(String.valueOf(entry.getDN()), toString());
+            get(String.valueOf(entry.getName()), toString());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
     }
@@ -2808,7 +2808,7 @@ public final class SearchFilter
     {
       Message message =
           ERR_SEARCH_FILTER_SUBSTRING_NO_SUBSTRING_COMPONENTS.
-            get(String.valueOf(entry.getDN()), toString(),
+            get(String.valueOf(entry.getName()), toString(),
                 attributeType.getNameOrOID());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
@@ -2825,7 +2825,7 @@ public final class SearchFilter
             "Returning FALSE for substring component %s in " +
             "filter %s because entry %s didn't have attribute " +
             "type %s",
-                     this, completeFilter, entry.getDN(),
+                     this, completeFilter, entry.getName(),
                      attributeType.getNameOrOID());
       }
       return ConditionResult.FALSE;
@@ -2846,7 +2846,7 @@ public final class SearchFilter
             TRACER.debugVerbose(
                 "Returning TRUE for substring component %s in " +
                 "filter %s for entry %s",
-                         this, completeFilter, entry.getDN());
+                         this, completeFilter, entry.getName());
           }
           return ConditionResult.TRUE;
         case FALSE:
@@ -2857,7 +2857,7 @@ public final class SearchFilter
             TRACER.debugVerbose(
                 "Undefined result encountered for substring " +
                 "component %s in filter %s for entry %s",
-                         this, completeFilter, entry.getDN());
+                         this, completeFilter, entry.getName());
           }
           result = ConditionResult.UNDEFINED;
           break;
@@ -2870,7 +2870,7 @@ public final class SearchFilter
       TRACER.debugVerbose(
           "Returning %s for substring component %s in filter " +
           "%s for entry %s",
-          result, this, completeFilter, entry.getDN());
+          result, this, completeFilter, entry.getName());
     }
     return result;
   }
@@ -2903,7 +2903,7 @@ public final class SearchFilter
     {
       Message message =
           ERR_SEARCH_FILTER_GREATER_OR_EQUAL_NO_ATTRIBUTE_TYPE.
-            get(String.valueOf(entry.getDN()), toString());
+            get(String.valueOf(entry.getName()), toString());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
     }
@@ -2913,7 +2913,7 @@ public final class SearchFilter
     {
       Message message =
           ERR_SEARCH_FILTER_GREATER_OR_EQUAL_NO_VALUE.
-            get(String.valueOf(entry.getDN()), toString(),
+            get(String.valueOf(entry.getName()), toString(),
                 attributeType.getNameOrOID());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
@@ -2929,7 +2929,7 @@ public final class SearchFilter
         TRACER.debugVerbose("Returning FALSE for " +
             "greater-or-equal component %s in filter %s " +
             "because entry %s didn't have attribute type %s",
-                     this, completeFilter, entry.getDN(),
+                     this, completeFilter, entry.getName(),
                      attributeType.getNameOrOID());
       }
       return ConditionResult.FALSE;
@@ -2948,7 +2948,7 @@ public final class SearchFilter
             TRACER.debugVerbose(
                 "Returning TRUE for greater-or-equal component " +
                 "%s in filter %s for entry %s",
-                         this, completeFilter, entry.getDN());
+                         this, completeFilter, entry.getName());
           }
           return ConditionResult.TRUE;
         case FALSE:
@@ -2960,7 +2960,7 @@ public final class SearchFilter
                 "Undefined result encountered for " +
                 "greater-or-equal component %s in filter %s " +
                 "for entry %s", this, completeFilter,
-                entry.getDN());
+                entry.getName());
           }
           result = ConditionResult.UNDEFINED;
           break;
@@ -2973,7 +2973,7 @@ public final class SearchFilter
       TRACER.debugVerbose(
           "Returning %s for greater-or-equal component %s in " +
           "filter %s for entry %s",
-                   result, this, completeFilter, entry.getDN());
+                   result, this, completeFilter, entry.getName());
     }
     return result;
   }
@@ -3006,7 +3006,7 @@ public final class SearchFilter
     {
       Message message =
           ERR_SEARCH_FILTER_LESS_OR_EQUAL_NO_ATTRIBUTE_TYPE.
-            get(String.valueOf(entry.getDN()), toString());
+            get(String.valueOf(entry.getName()), toString());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
     }
@@ -3016,7 +3016,7 @@ public final class SearchFilter
     {
       Message message =
           ERR_SEARCH_FILTER_LESS_OR_EQUAL_NO_ASSERTION_VALUE.
-            get(String.valueOf(entry.getDN()), toString(),
+            get(String.valueOf(entry.getName()), toString(),
                 attributeType.getNameOrOID());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
@@ -3032,7 +3032,7 @@ public final class SearchFilter
         TRACER.debugVerbose(
             "Returning FALSE for less-or-equal component %s in " +
             "filter %s because entry %s didn't have attribute " +
-            "type %s", this, completeFilter, entry.getDN(),
+            "type %s", this, completeFilter, entry.getName(),
                        attributeType.getNameOrOID());
       }
       return ConditionResult.FALSE;
@@ -3051,7 +3051,7 @@ public final class SearchFilter
             TRACER.debugVerbose(
                 "Returning TRUE for less-or-equal component %s " +
                 "in filter %s for entry %s",
-                         this, completeFilter, entry.getDN());
+                         this, completeFilter, entry.getName());
           }
           return ConditionResult.TRUE;
         case FALSE:
@@ -3063,7 +3063,7 @@ public final class SearchFilter
                 "Undefined result encountered for " +
                     "less-or-equal component %s in filter %s " +
                     "for entry %s",
-                    this, completeFilter, entry.getDN());
+                    this, completeFilter, entry.getName());
           }
           result = ConditionResult.UNDEFINED;
           break;
@@ -3076,7 +3076,7 @@ public final class SearchFilter
       TRACER.debugVerbose(
           "Returning %s for less-or-equal component %s in " +
           "filter %s for entry %s",
-                   result, this, completeFilter, entry.getDN());
+                   result, this, completeFilter, entry.getName());
     }
     return result;
   }
@@ -3108,7 +3108,7 @@ public final class SearchFilter
     {
       Message message =
           ERR_SEARCH_FILTER_PRESENCE_NO_ATTRIBUTE_TYPE.
-            get(String.valueOf(entry.getDN()), toString());
+            get(String.valueOf(entry.getName()), toString());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
     }
@@ -3123,7 +3123,7 @@ public final class SearchFilter
         TRACER.debugVerbose(
             "Returning TRUE for presence component %s in " +
             "filter %s for entry %s",
-            this, completeFilter, entry.getDN());
+            this, completeFilter, entry.getName());
       }
       return ConditionResult.TRUE;
     }
@@ -3134,7 +3134,7 @@ public final class SearchFilter
         TRACER.debugVerbose(
             "Returning FALSE for presence component %s in " +
             "filter %s for entry %s",
-            this, completeFilter, entry.getDN());
+            this, completeFilter, entry.getName());
       }
       return ConditionResult.FALSE;
     }
@@ -3168,7 +3168,7 @@ public final class SearchFilter
     {
       Message message =
           ERR_SEARCH_FILTER_APPROXIMATE_NO_ATTRIBUTE_TYPE.
-            get(String.valueOf(entry.getDN()), toString());
+            get(String.valueOf(entry.getName()), toString());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
     }
@@ -3178,7 +3178,7 @@ public final class SearchFilter
     {
       Message message =
           ERR_SEARCH_FILTER_APPROXIMATE_NO_ASSERTION_VALUE.
-            get(String.valueOf(entry.getDN()), toString(),
+            get(String.valueOf(entry.getName()), toString(),
                 attributeType.getNameOrOID());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
@@ -3194,7 +3194,7 @@ public final class SearchFilter
         TRACER.debugVerbose(
             "Returning FALSE for approximate component %s in " +
             "filter %s because entry %s didn't have attribute " +
-            "type %s", this, completeFilter, entry.getDN(),
+            "type %s", this, completeFilter, entry.getName(),
                        attributeType.getNameOrOID());
       }
       return ConditionResult.FALSE;
@@ -3213,7 +3213,7 @@ public final class SearchFilter
             TRACER.debugVerbose(
                "Returning TRUE for approximate component %s in " +
                "filter %s for entry %s",
-               this, completeFilter, entry.getDN());
+               this, completeFilter, entry.getName());
           }
           return ConditionResult.TRUE;
         case FALSE:
@@ -3224,7 +3224,7 @@ public final class SearchFilter
             TRACER.debugVerbose(
                 "Undefined result encountered for approximate " +
                 "component %s in filter %s for entry %s",
-                         this, completeFilter, entry.getDN());
+                         this, completeFilter, entry.getName());
           }
           result = ConditionResult.UNDEFINED;
           break;
@@ -3237,7 +3237,7 @@ public final class SearchFilter
       TRACER.debugVerbose(
           "Returning %s for approximate component %s in filter " +
           "%s for entry %s",
-          result, this, completeFilter, entry.getDN());
+          result, this, completeFilter, entry.getName());
     }
     return result;
   }
@@ -3274,7 +3274,7 @@ public final class SearchFilter
     {
       Message message =
           ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_ASSERTION_VALUE.
-            get(String.valueOf(entry.getDN()),
+            get(String.valueOf(entry.getName()),
                 String.valueOf(completeFilter));
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
@@ -3306,7 +3306,7 @@ public final class SearchFilter
       {
         Message message =
             ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_RULE_OR_TYPE.
-              get(String.valueOf(entry.getDN()),
+              get(String.valueOf(entry.getName()),
                   String.valueOf(completeFilter));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                      message);
@@ -3406,7 +3406,7 @@ public final class SearchFilter
                 default:
                   Message message =
                       ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                        get(String.valueOf(entry.getDN()),
+                        get(String.valueOf(entry.getName()),
                             String.valueOf(completeFilter),
                             String.valueOf(r));
                   throw new DirectoryException(
@@ -3454,7 +3454,7 @@ public final class SearchFilter
                 default:
                   Message message =
                       ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                        get(String.valueOf(entry.getDN()),
+                        get(String.valueOf(entry.getName()),
                             String.valueOf(completeFilter),
                             String.valueOf(r));
                   throw new DirectoryException(
@@ -3496,7 +3496,7 @@ public final class SearchFilter
               break;
             default:
               Message message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                  get(String.valueOf(entry.getDN()),
+                  get(String.valueOf(entry.getName()),
                       String.valueOf(completeFilter),
                       String.valueOf(r));
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -3544,7 +3544,7 @@ public final class SearchFilter
                 default:
                   Message message =
                       ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                        get(String.valueOf(entry.getDN()),
+                        get(String.valueOf(entry.getName()),
                             String.valueOf(completeFilter),
                             String.valueOf(r));
                   throw new DirectoryException(
@@ -3574,7 +3574,7 @@ public final class SearchFilter
     // attributes, then do so.
     if (dnAttributes)
     {
-      DN entryDN = entry.getDN();
+      DN entryDN = entry.getName();
       int count = entryDN.size();
       for (int rdnIndex = 0; rdnIndex < count; rdnIndex++)
       {
@@ -3605,7 +3605,7 @@ public final class SearchFilter
                 default:
                   Message message =
                       ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                        get(String.valueOf(entry.getDN()),
+                        get(String.valueOf(entry.getName()),
                             String.valueOf(completeFilter),
                             String.valueOf(r));
                   throw new DirectoryException(

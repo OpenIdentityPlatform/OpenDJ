@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -148,7 +149,7 @@ public final class SevenBitCleanPlugin
       boolean found = true;
       for (DN baseDN : baseDNs)
       {
-        if (baseDN.isAncestorOf(entry.getDN()))
+        if (baseDN.isAncestorOf(entry.getName()))
         {
           found = true;
           break;

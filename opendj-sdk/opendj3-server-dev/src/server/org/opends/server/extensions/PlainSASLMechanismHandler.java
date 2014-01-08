@@ -358,11 +358,11 @@ public class PlainSASLMechanismHandler
           authzDN = actualAuthzDN;
         }
 
-        if (! authzDN.equals(userEntry.getDN()))
+        if (! authzDN.equals(userEntry.getName()))
         {
           AuthenticationInfo tempAuthInfo =
             new AuthenticationInfo(userEntry,
-                     DirectoryServer.isRootDN(userEntry.getDN()));
+                     DirectoryServer.isRootDN(userEntry.getName()));
           InternalClientConnection tempConn =
                new InternalClientConnection(tempAuthInfo);
           if (! tempConn.hasPrivilege(Privilege.PROXIED_AUTH, bindOperation))
@@ -370,7 +370,7 @@ public class PlainSASLMechanismHandler
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
             Message message = ERR_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES.get(
-                    String.valueOf(userEntry.getDN()));
+                    String.valueOf(userEntry.getName()));
             bindOperation.setAuthFailureReason(message);
             return;
           }
@@ -460,11 +460,11 @@ public class PlainSASLMechanismHandler
         }
 
         if ((authZEntry == null) ||
-            (! authZEntry.getDN().equals(userEntry.getDN())))
+            (! authZEntry.getName().equals(userEntry.getName())))
         {
           AuthenticationInfo tempAuthInfo =
             new AuthenticationInfo(userEntry,
-                     DirectoryServer.isRootDN(userEntry.getDN()));
+                     DirectoryServer.isRootDN(userEntry.getName()));
           InternalClientConnection tempConn =
                new InternalClientConnection(tempAuthInfo);
           if (! tempConn.hasPrivilege(Privilege.PROXIED_AUTH, bindOperation))
@@ -472,7 +472,7 @@ public class PlainSASLMechanismHandler
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
             Message message = ERR_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES.get(
-                    String.valueOf(userEntry.getDN()));
+                    String.valueOf(userEntry.getName()));
             bindOperation.setAuthFailureReason(message);
             return;
           }
@@ -518,7 +518,7 @@ public class PlainSASLMechanismHandler
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
       Message message = ERR_SASLPLAIN_CANNOT_CHECK_PASSWORD_VALIDITY.get(
-              String.valueOf(userEntry.getDN()),
+              String.valueOf(userEntry.getName()),
               String.valueOf(e));
       bindOperation.setAuthFailureReason(message);
       return;
@@ -531,7 +531,7 @@ public class PlainSASLMechanismHandler
     AuthenticationInfo authInfo =
          new AuthenticationInfo(userEntry, authZEntry, SASL_MECHANISM_PLAIN,
                                 bindOperation.getSASLCredentials(),
-                                DirectoryServer.isRootDN(userEntry.getDN()));
+                                DirectoryServer.isRootDN(userEntry.getName()));
     bindOperation.setAuthenticationInfo(authInfo);
     return;
   }

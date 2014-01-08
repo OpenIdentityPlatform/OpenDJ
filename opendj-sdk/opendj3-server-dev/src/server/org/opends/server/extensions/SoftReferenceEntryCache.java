@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -300,7 +300,7 @@ public class SoftReferenceEntryCache
     SoftReference<CacheEntry> ref =
          new SoftReference<CacheEntry>(cacheEntry, referenceQueue);
 
-    SoftReference<CacheEntry> oldRef = dnMap.put(entry.getDN(), ref);
+    SoftReference<CacheEntry> oldRef = dnMap.put(entry.getName(), ref);
     if (oldRef != null)
     {
       oldRef.clear();
@@ -333,7 +333,7 @@ public class SoftReferenceEntryCache
                                   long entryID)
   {
     // See if the entry already exists.  If so, then return false.
-    if (dnMap.containsKey(entry.getDN()))
+    if (dnMap.containsKey(entry.getName()))
     {
       return false;
     }
@@ -344,7 +344,7 @@ public class SoftReferenceEntryCache
     SoftReference<CacheEntry> ref =
          new SoftReference<CacheEntry>(cacheEntry, referenceQueue);
 
-    dnMap.put(entry.getDN(), ref);
+    dnMap.put(entry.getName(), ref);
 
     ConcurrentHashMap<Long,SoftReference<CacheEntry>> map = idMap.get(backend);
     if (map == null)

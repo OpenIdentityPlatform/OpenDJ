@@ -165,7 +165,7 @@ public class InternalSearchMonitorTestCase
       SearchFilter filter =
            SearchFilter.createFilterFromString("(objectClass=*)");
       searchOperation =
-           conn.processSearch(sre.getDN(), SearchScope.BASE_OBJECT, filter);
+           conn.processSearch(sre.getName(), SearchScope.BASE_OBJECT, filter);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }

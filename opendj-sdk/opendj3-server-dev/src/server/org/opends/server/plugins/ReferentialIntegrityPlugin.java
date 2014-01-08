@@ -432,8 +432,8 @@ public class ReferentialIntegrityPlugin
       modDNmap=new LinkedHashMap<DN,DN>();
       modifyDNOperation.setAttachment(MODIFYDN_DNS, modDNmap);
     }
-    DN oldEntryDN=modifyDNOperation.getOriginalEntry().getDN();
-    DN newEntryDN=modifyDNOperation.getUpdatedEntry().getDN();
+    DN oldEntryDN=modifyDNOperation.getOriginalEntry().getName();
+    DN newEntryDN=modifyDNOperation.getUpdatedEntry().getName();
     modDNmap.put(oldEntryDN, newEntryDN);
 
     processModifyDN(modDNmap, (interval != 0));
@@ -491,7 +491,7 @@ public class ReferentialIntegrityPlugin
       modDNmap=new LinkedHashMap<DN,DN>();
       modifyDNOperation.setAttachment(MODIFYDN_DNS, modDNmap);
     }
-    modDNmap.put(oldEntry.getDN(), newEntry.getDN());
+    modDNmap.put(oldEntry.getName(), newEntry.getName());
     return PluginResult.SubordinateModifyDN.continueOperationProcessing();
   }
 
@@ -514,7 +514,7 @@ public class ReferentialIntegrityPlugin
       deleteDNset = new HashSet<DN>();
       deleteOperation.setAttachment(DELETE_DNS, deleteDNset);
     }
-    deleteDNset.add(entry.getDN());
+    deleteDNset.add(entry.getName());
     return PluginResult.SubordinateDelete.continueOperationProcessing();
   }
 
@@ -793,7 +793,7 @@ public class ReferentialIntegrityPlugin
   private void deleteAddAttributesEntry(Entry e, DN oldEntryDN, DN newEntryDN)
   {
     LinkedList<Modification> mods = new LinkedList<Modification>();
-    DN entryDN=e.getDN();
+    DN entryDN=e.getName();
     for(AttributeType type : attributeTypes)
     {
       if(e.hasAttribute(type))
@@ -1133,7 +1133,7 @@ public class ReferentialIntegrityPlugin
     /* Make sure the entry belongs to one of the configured naming
      * contexts.
      */
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
     DN entryBaseDN = getEntryBaseDN(entryDN);
     if (entryBaseDN == null)
     {
@@ -1192,7 +1192,7 @@ public class ReferentialIntegrityPlugin
     /* Make sure the entry belongs to one of the configured naming
      * contexts.
      */
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
     DN entryBaseDN = getEntryBaseDN(entryDN);
     if (entryBaseDN == null)
     {
@@ -1316,7 +1316,7 @@ public class ReferentialIntegrityPlugin
           return PluginResult.PreOperation.stopProcessing(
             ResultCode.CONSTRAINT_VIOLATION,
             ERR_PLUGIN_REFERENT_FILTER_MISMATCH.get(
-              valueEntry.getDN().toString(),
+              valueEntry.getName().toString(),
               attr.getName(),
               entryDN.toString(),
               filter.toString())

@@ -223,7 +223,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test@example.com");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
+    assertEquals(mappedEntry.getName(), DN.valueOf("uid=test,o=test"));
 
     mapper.finalizeIdentityMapper();
   }
@@ -288,7 +288,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test@example.com");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
+    assertEquals(mappedEntry.getName(), DN.valueOf("uid=test,o=test"));
 
     mapper.finalizeIdentityMapper();
   }
@@ -353,7 +353,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test@example.com");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
+    assertEquals(mappedEntry.getName(), DN.valueOf("uid=test,o=test"));
 
     mapper.finalizeIdentityMapper();
   }
@@ -483,7 +483,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test@example.com");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
+    assertEquals(mappedEntry.getName(), DN.valueOf("uid=test,o=test"));
 
     mapper.finalizeIdentityMapper();
   }
@@ -547,7 +547,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
+    assertEquals(mappedEntry.getName(), DN.valueOf("uid=test,o=test"));
 
     mapper.finalizeIdentityMapper();
   }
@@ -609,7 +609,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test@example.com");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test,o=test"));
+    assertEquals(mappedEntry.getName(), DN.valueOf("uid=test,o=test"));
 
     mapper.finalizeIdentityMapper();
   }
@@ -672,7 +672,7 @@ public class RegularExpressionIdentityMapperTestCase
     // successfully.
     Entry mappedEntry = mapper.getEntryForID("test");
     assertNotNull(mappedEntry);
-    assertEquals(mappedEntry.getDN(), DN.valueOf("uid=test@example.com,o=test"));
+    assertEquals(mappedEntry.getName(), DN.valueOf("uid=test@example.com,o=test"));
 
     mapper.finalizeIdentityMapper();
   }

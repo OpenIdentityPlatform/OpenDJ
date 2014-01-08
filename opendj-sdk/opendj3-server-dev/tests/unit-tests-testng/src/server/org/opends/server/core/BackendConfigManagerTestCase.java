@@ -93,7 +93,7 @@ public class BackendConfigManagerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(backendEntry.getDN(), backendEntry.getObjectClasses(),
+         conn.processAdd(backendEntry.getName(), backendEntry.getObjectClasses(),
                          backendEntry.getUserAttributes(),
                          backendEntry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -135,7 +135,7 @@ public class BackendConfigManagerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(backendEntry.getDN(), backendEntry.getObjectClasses(),
+         conn.processAdd(backendEntry.getName(), backendEntry.getObjectClasses(),
                          backendEntry.getUserAttributes(),
                          backendEntry.getOperationalAttributes());
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
@@ -160,14 +160,14 @@ public class BackendConfigManagerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(backendEntry.getDN(), backendEntry.getObjectClasses(),
+         conn.processAdd(backendEntry.getName(), backendEntry.getObjectClasses(),
                          backendEntry.getUserAttributes(),
                          backendEntry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(backendID));
     assertNull(DirectoryServer.getBackendWithBaseDN(baseDN));
 
-    DeleteOperation deleteOperation = conn.processDelete(backendEntry.getDN());
+    DeleteOperation deleteOperation = conn.processDelete(backendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -190,7 +190,7 @@ public class BackendConfigManagerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(backendEntry.getDN(), backendEntry.getObjectClasses(),
+         conn.processAdd(backendEntry.getName(), backendEntry.getObjectClasses(),
                          backendEntry.getUserAttributes(),
                          backendEntry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -204,13 +204,13 @@ public class BackendConfigManagerTestCase
     assertTrue(DirectoryServer.isNamingContext(baseDN));
 
     Entry e = createEntry(baseDN);
-    addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                    e.getUserAttributes(),
                                    e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(backend.entryExists(baseDN));
 
-    DeleteOperation deleteOperation = conn.processDelete(backendEntry.getDN());
+    DeleteOperation deleteOperation = conn.processDelete(backendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(backendID));
   }
@@ -236,7 +236,7 @@ public class BackendConfigManagerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(backendEntry.getDN(), backendEntry.getObjectClasses(),
+         conn.processAdd(backendEntry.getName(), backendEntry.getObjectClasses(),
                          backendEntry.getUserAttributes(),
                          backendEntry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -249,7 +249,7 @@ public class BackendConfigManagerTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-enabled", "true")));
     ModifyOperation modifyOperation =
-         conn.processModify(backendEntry.getDN(), mods);
+         conn.processModify(backendEntry.getName(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     Backend backend = DirectoryServer.getBackend(backendID);
@@ -261,7 +261,7 @@ public class BackendConfigManagerTestCase
     assertTrue(DirectoryServer.isNamingContext(baseDN));
 
     Entry e = createEntry(baseDN);
-    addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                    e.getUserAttributes(),
                                    e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -273,14 +273,14 @@ public class BackendConfigManagerTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-enabled", "false")));
     modifyOperation =
-         conn.processModify(backendEntry.getDN(), mods);
+         conn.processModify(backendEntry.getName(), mods);
     assertNull(DirectoryServer.getBackend(backendID));
     assertFalse(DirectoryServer.entryExists(baseDN));
     assertFalse(DirectoryServer.isNamingContext(baseDN));
 
 
     // Delete the disabled backend.
-    DeleteOperation deleteOperation = conn.processDelete(backendEntry.getDN());
+    DeleteOperation deleteOperation = conn.processDelete(backendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -305,7 +305,7 @@ public class BackendConfigManagerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(parentBackendEntry.getDN(),
+         conn.processAdd(parentBackendEntry.getName(),
                          parentBackendEntry.getObjectClasses(),
                          parentBackendEntry.getUserAttributes(),
                          parentBackendEntry.getOperationalAttributes());
@@ -321,7 +321,7 @@ public class BackendConfigManagerTestCase
     assertTrue(DirectoryServer.isNamingContext(parentBaseDN));
 
     Entry e = createEntry(parentBaseDN);
-    addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                    e.getUserAttributes(),
                                    e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -335,7 +335,7 @@ public class BackendConfigManagerTestCase
                                                  childBaseDN);
 
     addOperation =
-         conn.processAdd(childBackendEntry.getDN(),
+         conn.processAdd(childBackendEntry.getName(),
                          childBackendEntry.getObjectClasses(),
                          childBackendEntry.getUserAttributes(),
                          childBackendEntry.getOperationalAttributes());
@@ -352,7 +352,7 @@ public class BackendConfigManagerTestCase
     assertFalse(DirectoryServer.isNamingContext(childBaseDN));
 
     e = createEntry(childBaseDN);
-    addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                    e.getUserAttributes(),
                                    e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -371,17 +371,17 @@ public class BackendConfigManagerTestCase
     // Make sure that we can't remove the parent backend with the child still
     // in place.
     DeleteOperation deleteOperation =
-         conn.processDelete(parentBackendEntry.getDN());
+         conn.processDelete(parentBackendEntry.getName());
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getBackend(parentBackendID));
 
     // Delete the child and then delete the parent.
-    deleteOperation = conn.processDelete(childBackendEntry.getDN());
+    deleteOperation = conn.processDelete(childBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(childBackendID));
     assertTrue(parentBackend.getSubordinateBackends().length == 0);
 
-    deleteOperation = conn.processDelete(parentBackendEntry.getDN());
+    deleteOperation = conn.processDelete(parentBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(parentBackendID));
   }
@@ -408,7 +408,7 @@ public class BackendConfigManagerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(childBackendEntry.getDN(),
+         conn.processAdd(childBackendEntry.getName(),
                          childBackendEntry.getObjectClasses(),
                          childBackendEntry.getUserAttributes(),
                          childBackendEntry.getOperationalAttributes());
@@ -424,7 +424,7 @@ public class BackendConfigManagerTestCase
     assertFalse(childBackend.entryExists(childBaseDN));
 
     Entry e = createEntry(childBaseDN);
-    addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                    e.getUserAttributes(),
                                    e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -440,7 +440,7 @@ public class BackendConfigManagerTestCase
                                                   parentBaseDN);
 
     addOperation =
-         conn.processAdd(parentBackendEntry.getDN(),
+         conn.processAdd(parentBackendEntry.getName(),
                          parentBackendEntry.getObjectClasses(),
                          parentBackendEntry.getUserAttributes(),
                          parentBackendEntry.getOperationalAttributes());
@@ -455,7 +455,7 @@ public class BackendConfigManagerTestCase
     assertTrue(parentBackend.getSubordinateBackends().length == 1);
 
     e = createEntry(parentBaseDN);
-    addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                    e.getUserAttributes(),
                                    e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -474,12 +474,12 @@ public class BackendConfigManagerTestCase
 
     // Delete the backends from the server.
     DeleteOperation deleteOperation =
-         conn.processDelete(childBackendEntry.getDN());
+         conn.processDelete(childBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(childBackendID));
     assertTrue(parentBackend.getSubordinateBackends().length == 0);
 
-    deleteOperation = conn.processDelete(parentBackendEntry.getDN());
+    deleteOperation = conn.processDelete(parentBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(parentBackendID));
   }
@@ -506,7 +506,7 @@ public class BackendConfigManagerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(parentBackendEntry.getDN(),
+         conn.processAdd(parentBackendEntry.getName(),
                          parentBackendEntry.getObjectClasses(),
                          parentBackendEntry.getUserAttributes(),
                          parentBackendEntry.getOperationalAttributes());
@@ -521,7 +521,7 @@ public class BackendConfigManagerTestCase
     assertFalse(parentBackend.entryExists(parentBaseDN));
 
     Entry e = createEntry(parentBaseDN);
-    addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                    e.getUserAttributes(),
                                    e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -536,7 +536,7 @@ public class BackendConfigManagerTestCase
                                                       grandchildBaseDN);
 
     addOperation =
-         conn.processAdd(grandchildBackendEntry.getDN(),
+         conn.processAdd(grandchildBackendEntry.getName(),
                          grandchildBackendEntry.getObjectClasses(),
                          grandchildBackendEntry.getUserAttributes(),
                          grandchildBackendEntry.getOperationalAttributes());
@@ -554,7 +554,7 @@ public class BackendConfigManagerTestCase
     // Verify that we can't create the grandchild base entry because its parent
     // doesn't exist.
     e = createEntry(grandchildBaseDN);
-    addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                    e.getUserAttributes(),
                                    e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.NO_SUCH_OBJECT);
@@ -568,7 +568,7 @@ public class BackendConfigManagerTestCase
                                                  childBaseDN);
 
     addOperation =
-         conn.processAdd(childBackendEntry.getDN(),
+         conn.processAdd(childBackendEntry.getName(),
                          childBackendEntry.getObjectClasses(),
                          childBackendEntry.getUserAttributes(),
                          childBackendEntry.getOperationalAttributes());
@@ -587,7 +587,7 @@ public class BackendConfigManagerTestCase
     assertEquals(grandchildBackend.getParentBackend(), childBackend);
 
     e = createEntry(childBaseDN);
-    addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                    e.getUserAttributes(),
                                    e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -595,7 +595,7 @@ public class BackendConfigManagerTestCase
 
     // Now we can create the grandchild base entry.
     e = createEntry(grandchildBaseDN);
-    addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                    e.getUserAttributes(),
                                    e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -616,7 +616,7 @@ public class BackendConfigManagerTestCase
         Attributes.create("ds-cfg-enabled",
                                             "false")));
     ModifyOperation modifyOperation =
-         conn.processModify(childBackendEntry.getDN(), mods);
+         conn.processModify(childBackendEntry.getName(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -633,7 +633,7 @@ public class BackendConfigManagerTestCase
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-enabled", "true")));
-    modifyOperation = conn.processModify(childBackendEntry.getDN(), mods);
+    modifyOperation = conn.processModify(childBackendEntry.getName(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -667,7 +667,7 @@ public class BackendConfigManagerTestCase
     // Add the child entry back into the server to get things back to the way
     // they were before we disabled the backend.
     e = createEntry(childBaseDN);
-    addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                    e.getUserAttributes(),
                                    e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -685,18 +685,18 @@ public class BackendConfigManagerTestCase
 
     // Get rid of the entries in the proper order.
     DeleteOperation deleteOperation =
-         conn.processDelete(grandchildBackendEntry.getDN());
+         conn.processDelete(grandchildBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(grandchildBackendID));
     assertTrue(childBackend.getSubordinateBackends().length == 0);
     assertTrue(parentBackend.getSubordinateBackends().length == 1);
 
-    deleteOperation = conn.processDelete(childBackendEntry.getDN());
+    deleteOperation = conn.processDelete(childBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(childBackendID));
     assertTrue(parentBackend.getSubordinateBackends().length == 0);
 
-    deleteOperation = conn.processDelete(parentBackendEntry.getDN());
+    deleteOperation = conn.processDelete(parentBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(parentBackendID));
   }

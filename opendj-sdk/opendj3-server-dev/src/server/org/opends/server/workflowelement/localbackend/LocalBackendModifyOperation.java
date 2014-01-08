@@ -805,7 +805,7 @@ public class LocalBackendModifyOperation
           }
           else
           {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
+            setProxiedAuthorizationDN(authorizationEntry.getName());
           }
         }
         else if (oid.equals(OID_PROXIED_AUTH_V2))
@@ -829,7 +829,7 @@ public class LocalBackendModifyOperation
           }
           else
           {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
+            setProxiedAuthorizationDN(authorizationEntry.getName());
           }
         }
         else if (oid.equals(OID_PASSWORD_POLICY_CONTROL))
@@ -1567,7 +1567,7 @@ public class LocalBackendModifyOperation
       {
         AttributeType t = attr.getAttributeType();
 
-        RDN rdn = modifiedEntry.getDN().rdn();
+        RDN rdn = modifiedEntry.getName().rdn();
         if ((rdn !=  null) && rdn.hasAttributeType(t) &&
             (! modifiedEntry.hasValue(t, attr.getOptions(),
                                       rdn.getAttributeValue(t))))
@@ -1690,7 +1690,7 @@ public class LocalBackendModifyOperation
 
     // Make sure that the RDN attribute value(s) has not been removed.
     AttributeType t = attr.getAttributeType();
-    RDN rdn = modifiedEntry.getDN().rdn();
+    RDN rdn = modifiedEntry.getName().rdn();
     if ((rdn != null)
         && rdn.hasAttributeType(t)
         && (!modifiedEntry.hasValue(t, attr.getOptions(), rdn
@@ -1719,7 +1719,7 @@ public class LocalBackendModifyOperation
   {
     // The specified attribute type must not be an RDN attribute.
     AttributeType t = attr.getAttributeType();
-    RDN rdn = modifiedEntry.getDN().rdn();
+    RDN rdn = modifiedEntry.getName().rdn();
     if ((rdn != null) && rdn.hasAttributeType(t))
     {
       throw newDirectoryException(modifiedEntry, ResultCode.NOT_ALLOWED_ON_RDN,
@@ -2012,7 +2012,7 @@ public class LocalBackendModifyOperation
       if (selfChange)
       {
         AuthenticationInfo authInfo = clientConnection.getAuthenticationInfo();
-        if (authInfo.getAuthenticationDN().equals(modifiedEntry.getDN()))
+        if (authInfo.getAuthenticationDN().equals(modifiedEntry.getName()))
         {
           clientConnection.setMustChangePassword(false);
         }

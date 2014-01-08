@@ -287,7 +287,7 @@ public class DN2URI extends DatabaseContainer
                           List<Modification> mods)
        throws DatabaseException
   {
-    DN entryDN = before.getDN();
+    DN entryDN = before.getName();
     for (Modification mod : mods)
     {
       Attribute modAttr = mod.getAttribute();
@@ -374,7 +374,7 @@ public class DN2URI extends DatabaseContainer
     Set<String> labeledURIs = entry.getReferralURLs();
     if (labeledURIs != null)
     {
-      DN dn = entry.getDN();
+      DN dn = entry.getName();
       for (String labeledURI : labeledURIs)
       {
         if(!insert(txn, dn, labeledURI))
@@ -400,7 +400,7 @@ public class DN2URI extends DatabaseContainer
     Set<String> labeledURIs = entry.getReferralURLs();
     if (labeledURIs != null)
     {
-      delete(txn, entry.getDN());
+      delete(txn, entry.getName());
     }
   }
 
@@ -421,7 +421,7 @@ public class DN2URI extends DatabaseContainer
     Set<String> referralURLs = entry.getReferralURLs();
     if (referralURLs != null)
     {
-      throwReferralException(entry.getDN(), entry.getDN(), referralURLs,
+      throwReferralException(entry.getName(), entry.getName(), referralURLs,
                              searchScope);
     }
   }

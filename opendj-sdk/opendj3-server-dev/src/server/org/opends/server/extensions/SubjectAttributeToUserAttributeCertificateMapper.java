@@ -365,8 +365,8 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         else
         {
           Message message = ERR_SATUACM_MULTIPLE_MATCHING_ENTRIES.
-              get(String.valueOf(peerDN), String.valueOf(userEntry.getDN()),
-                  String.valueOf(entry.getDN()));
+              get(String.valueOf(peerDN), String.valueOf(userEntry.getName()),
+                  String.valueOf(entry.getName()));
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
         }
       }

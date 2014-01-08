@@ -283,7 +283,7 @@ public class InitOnLineTest extends ReplicationTestCase
     do
     {
       InternalSearchOperation searchOperation = connection.processSearch(
-          taskEntry.getDN(), SearchScope.BASE_OBJECT, filter);
+          taskEntry.getName(), SearchScope.BASE_OBJECT, filter);
       Entry resultEntry = searchOperation.getSearchEntries().getFirst();
 
       String completionTime = resultEntry.getAttributeValue(
@@ -332,7 +332,7 @@ public class InitOnLineTest extends ReplicationTestCase
       log("addEntry: Failed" + addOp.getResultCode());
     }
 
-    entriesToCleanup.add(entry.getDN());
+    entriesToCleanup.add(entry.getName());
   }
 
   /**

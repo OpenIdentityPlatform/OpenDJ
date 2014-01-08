@@ -220,7 +220,7 @@ public class AuthenticatedUsers
     lock.writeLock().lock();
     try
     {
-      userMap.removeSubtree(entry.getDN(), arraySet);
+      userMap.removeSubtree(entry.getName(), arraySet);
     }
     finally
     {
@@ -232,7 +232,7 @@ public class AuthenticatedUsers
       for (ClientConnection conn : connectionSet)
       {
         Message message = WARN_CLIENTCONNECTION_DISCONNECT_DUE_TO_DELETE.get(
-                String.valueOf(entry.getDN()));
+                String.valueOf(entry.getName()));
 
         conn.disconnect(DisconnectReason.INVALID_CREDENTIALS, true, message);
       }
@@ -261,7 +261,7 @@ public class AuthenticatedUsers
     try
     {
       CopyOnWriteArraySet<ClientConnection> connectionSet =
-           userMap.get(oldEntry.getDN());
+           userMap.get(oldEntry.getName());
       if (connectionSet != null)
       {
         for (ClientConnection conn : connectionSet)
@@ -291,8 +291,8 @@ public class AuthenticatedUsers
                    PostResponseModifyDNOperation modifyDNOperation,
                    Entry oldEntry, Entry newEntry)
   {
-    String oldDNString = oldEntry.getDN().toNormalizedString();
-    String newDNString = newEntry.getDN().toNormalizedString();
+    String oldDNString = oldEntry.getName().toNormalizedString();
+    String newDNString = newEntry.getName().toNormalizedString();
 
     // Identify any client connections that may be authenticated
     // or authorized as the user whose entry has been modified
@@ -302,7 +302,7 @@ public class AuthenticatedUsers
     {
       Set<CopyOnWriteArraySet<ClientConnection>> arraySet =
         new HashSet<CopyOnWriteArraySet<ClientConnection>>();
-      userMap.removeSubtree(oldEntry.getDN(), arraySet);
+      userMap.removeSubtree(oldEntry.getName(), arraySet);
       for (CopyOnWriteArraySet<ClientConnection>
               connectionSet : arraySet)
       {
@@ -359,7 +359,7 @@ public class AuthenticatedUsers
             }
           }
           if ((newAuthNDN != null) && (authNDN != null) &&
-               authNDN.isDescendantOf(oldEntry.getDN()))
+               authNDN.isDescendantOf(oldEntry.getName()))
           {
             if (newAuthNSet == null)
             {
@@ -369,7 +369,7 @@ public class AuthenticatedUsers
             newAuthNSet.add(conn);
           }
           if ((newAuthZDN != null) && (authZDN != null) &&
-               authZDN.isDescendantOf(oldEntry.getDN()))
+               authZDN.isDescendantOf(oldEntry.getName()))
           {
             if (newAuthZSet == null)
             {

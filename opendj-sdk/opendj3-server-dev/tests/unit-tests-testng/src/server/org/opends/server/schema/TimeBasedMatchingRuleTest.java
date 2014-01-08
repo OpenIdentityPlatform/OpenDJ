@@ -515,8 +515,8 @@ public final class TimeBasedMatchingRuleTest
       boolean found = false;
       for(SearchResultEntry entry: entries)
       {
-        System.out.println("dn from the current entry is " + entry.getDN());
-        if(entry.getDN().equals(dn))
+        System.out.println("dn from the current entry is " + entry.getName());
+        if(entry.getName().equals(dn))
         {
           found = true;
         }

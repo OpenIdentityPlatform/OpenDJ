@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
@@ -1674,7 +1674,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             InternalClientConnection conn = InternalClientConnection
                 .getRootConnection();
             ModifyOperation internalModify = conn.processModify(userEntry
-                .getDN().toString(), modifications);
+                .getName().toString(), modifications);
 
             ResultCode resultCode = internalModify.getResultCode();
             if (resultCode != ResultCode.SUCCESS)
@@ -1687,7 +1687,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               {
                 TRACER.debugWarning(
                     "An error occurred while trying to update the LDAP PTA "
-                        + "cached password for user %s: %s", userEntry.getDN()
+                        + "cached password for user %s: %s", userEntry.getName()
                         .toString(), String.valueOf(internalModify
                         .getErrorMessage()));
               }
@@ -1738,7 +1738,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           {
           case UNMAPPED:
             // The bind DN is the name of the user's entry.
-            username = ByteString.valueOf(userEntry.getDN().toString());
+            username = ByteString.valueOf(userEntry.getName().toString());
             break;
           case MAPPED_BIND:
             // The bind DN is contained in an attribute in the user's entry.
@@ -1768,7 +1768,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                */
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                   ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(
-                      String.valueOf(userEntry.getDN()),
+                      String.valueOf(userEntry.getName()),
                       String.valueOf(cfg.dn()),
                       mappedAttributesAsString(cfg.getMappedAttribute())));
             }
@@ -1807,7 +1807,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                */
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                   ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(
-                      String.valueOf(userEntry.getDN()),
+                      String.valueOf(userEntry.getName()),
                       String.valueOf(cfg.dn()),
                       mappedAttributesAsString(cfg.getMappedAttribute())));
             }
@@ -1845,7 +1845,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                   // More than one matching entry was returned.
                   throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                       ERR_LDAP_PTA_MAPPED_SEARCH_TOO_MANY_CANDIDATES.get(
-                          String.valueOf(userEntry.getDN()),
+                          String.valueOf(userEntry.getName()),
                           String.valueOf(cfg.dn()), String.valueOf(baseDN),
                           String.valueOf(filter)));
                 default:
@@ -1854,7 +1854,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                   // error.
                   throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                       ERR_LDAP_PTA_MAPPED_SEARCH_FAILED.get(
-                          String.valueOf(userEntry.getDN()),
+                          String.valueOf(userEntry.getName()),
                           String.valueOf(cfg.dn()), e.getMessageObject()), e);
                 }
               }
@@ -1874,7 +1874,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                */
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                   ERR_LDAP_PTA_MAPPED_SEARCH_NO_CANDIDATES.get(
-                      String.valueOf(userEntry.getDN()),
+                      String.valueOf(userEntry.getName()),
                       String.valueOf(cfg.dn()), String.valueOf(filter)));
             }
 
@@ -1907,7 +1907,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               // error.
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                   ERR_LDAP_PTA_MAPPED_BIND_FAILED.get(
-                      String.valueOf(userEntry.getDN()),
+                      String.valueOf(userEntry.getName()),
                       String.valueOf(cfg.dn()), e.getMessageObject()), e);
             }
           }

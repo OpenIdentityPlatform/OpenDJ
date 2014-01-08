@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -167,7 +168,8 @@ public class DynamicGroup
             }
 
             Message message = ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL.
-                get(v.getValue().toString(), String.valueOf(groupEntry.getDN()),
+                get(v.getValue().toString(),
+                    String.valueOf(groupEntry.getName()),
                     de.getMessageObject());
             ErrorLogger.logError(message);
           }
@@ -175,7 +177,7 @@ public class DynamicGroup
       }
     }
 
-    return new DynamicGroup(groupEntry.getDN(), memberURLs);
+    return new DynamicGroup(groupEntry.getName(), memberURLs);
   }
 
 

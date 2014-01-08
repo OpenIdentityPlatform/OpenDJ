@@ -1701,7 +1701,8 @@ public class PluginConfigManager
 
         Message message = ERR_PLUGIN_LDIF_IMPORT_PLUGIN_EXCEPTION.
             get(String.valueOf(p.getPluginEntryDN()),
-                String.valueOf(entry.getDN()), stackTraceToSingleLineString(e));
+                String.valueOf(entry.getName()),
+                stackTraceToSingleLineString(e));
         logError(message);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
@@ -1711,7 +1712,7 @@ public class PluginConfigManager
       {
         Message message = ERR_PLUGIN_LDIF_IMPORT_PLUGIN_RETURNED_NULL.
             get(String.valueOf(p.getPluginEntryDN()),
-                String.valueOf(entry.getDN()));
+                String.valueOf(entry.getName()));
         logError(message);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
@@ -1800,7 +1801,8 @@ public class PluginConfigManager
 
         Message message = ERR_PLUGIN_LDIF_EXPORT_PLUGIN_EXCEPTION.
             get(String.valueOf(p.getPluginEntryDN()),
-                String.valueOf(entry.getDN()), stackTraceToSingleLineString(e));
+                String.valueOf(entry.getName()),
+                stackTraceToSingleLineString(e));
         logError(message);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
@@ -1810,7 +1812,7 @@ public class PluginConfigManager
       {
         Message message = ERR_PLUGIN_LDIF_EXPORT_PLUGIN_RETURNED_NULL.
             get(String.valueOf(p.getPluginEntryDN()),
-                String.valueOf(entry.getDN()));
+                String.valueOf(entry.getName()));
         logError(message);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
@@ -4586,7 +4588,7 @@ public class PluginConfigManager
             get(String.valueOf(p.getPluginEntryDN()),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
-                String.valueOf(searchEntry.getDN()),
+                String.valueOf(searchEntry.getName()),
                 stackTraceToSingleLineString(e));
         logError(message);
 
@@ -4600,7 +4602,7 @@ public class PluginConfigManager
             get(String.valueOf(p.getPluginEntryDN()),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
-                String.valueOf(searchEntry.getDN()));
+                String.valueOf(searchEntry.getName()));
         logError(message);
 
         return PluginResult.IntermediateResponse.stopProcessing(false,
@@ -4670,7 +4672,7 @@ public class PluginConfigManager
             get(String.valueOf(p.getPluginEntryDN()),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
-                String.valueOf(searchEntry.getDN()),
+                String.valueOf(searchEntry.getName()),
                 stackTraceToSingleLineString(e));
         logError(message);
 
@@ -4684,7 +4686,7 @@ public class PluginConfigManager
             get(String.valueOf(p.getPluginEntryDN()),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
-                String.valueOf(searchEntry.getDN()));
+                String.valueOf(searchEntry.getName()));
         logError(message);
 
         return PluginResult.IntermediateResponse.stopProcessing(false,

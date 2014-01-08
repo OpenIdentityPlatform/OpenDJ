@@ -900,7 +900,7 @@ public class VirtualStaticGroupTestCase
               SearchFilter.createFilterFromString("(objectClass=*)"));
     for (Entry e : searchOperation.getSearchEntries())
     {
-      conn.processDelete(e.getDN());
+      conn.processDelete(e.getName());
     }
   }
 }

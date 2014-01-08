@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
@@ -103,7 +103,8 @@ public class AddSchemaFileTask
     if ((attrList == null) || attrList.isEmpty())
     {
       Message message = ERR_TASK_ADDSCHEMAFILE_NO_FILENAME.get(
-          ATTR_TASK_ADDSCHEMAFILE_FILENAME, String.valueOf(taskEntry.getDN()));
+          ATTR_TASK_ADDSCHEMAFILE_FILENAME,
+          String.valueOf(taskEntry.getName()));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 

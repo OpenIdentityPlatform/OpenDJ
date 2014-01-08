@@ -2253,7 +2253,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
      if (entryToRename != null)
      {
-       DN entryDN = entryToRename.getDN();
+       DN entryDN = entryToRename.getName();
        ModifyDNOperation newOp = renameEntry(
            entryDN, freedDN.rdn(), freedDN.parent(), false);
 
@@ -2695,7 +2695,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           SearchResultEntry resultEntry = result.get(0);
           if (resultEntry != null)
           {
-            return resultEntry.getDN();
+            return resultEntry.getName();
           }
         }
       }
@@ -3126,7 +3126,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
              * and keep the entry as a conflicting entry,
              */
             conflict = true;
-            renameConflictEntry(conflictOp, entry.getDN(),
+            renameConflictEntry(conflictOp, entry.getName(),
                 EntryHistorical.getEntryUUID(entry));
           }
         }
@@ -5285,7 +5285,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
              conn, InternalClientConnection.nextOperationID(),
              InternalClientConnection.nextMessageID(),
              new ArrayList<Control>(0),
-             entry.getDN(),
+             entry.getName(),
              mods);
       runAsSynchronizedOperation(newOp);
 

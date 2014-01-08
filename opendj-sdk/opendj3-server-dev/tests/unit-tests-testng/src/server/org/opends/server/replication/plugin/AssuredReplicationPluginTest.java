@@ -173,10 +173,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    */
   private void addEntry(Entry entry) throws Exception
   {
-    debugInfo("AddEntry " + entry.getDN());
+    debugInfo("AddEntry " + entry.getName());
     AddOperation addOp = connection.processAdd(entry);
     waitOpResult(addOp, ResultCode.SUCCESS);
-    assertNotNull(getEntry(entry.getDN(), 1000, true));
+    assertNotNull(getEntry(entry.getName(), 1000, true));
   }
 
   /**
@@ -231,7 +231,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     // Add the config entry to create the replicated domain
     DirectoryServer.getConfigHandler().addEntry(domainCfgEntry, null);
-    assertNotNull(DirectoryServer.getConfigEntry(domainCfgEntry.getDN()),
+    assertNotNull(DirectoryServer.getConfigEntry(domainCfgEntry.getName()),
       "Unable to add the domain config entry: " + configEntryLdif);
 
     return domainCfgEntry;
@@ -259,7 +259,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     // Add the config entry to create the replicated domain
     DirectoryServer.getConfigHandler().addEntry(domainCfgEntry, null);
-    assertNotNull(DirectoryServer.getConfigEntry(domainCfgEntry.getDN()),
+    assertNotNull(DirectoryServer.getConfigEntry(domainCfgEntry.getName()),
       "Unable to add the domain config entry: " + configEntryLdif);
 
     return domainCfgEntry;
@@ -587,7 +587,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       {
         AddMsg addMsg =
-          new AddMsg(gen.newCSN(), entry.getDN(), UUID.randomUUID().toString(),
+          new AddMsg(gen.newCSN(), entry.getName(), UUID.randomUUID().toString(),
                      parentUid,
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
@@ -1161,7 +1161,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
            fail("Should only go here for RS with same group id as DS");
 
         // Ack received, replay has occurred
-        assertNotNull(DirectoryServer.getEntry(entry.getDN()));
+        assertNotNull(DirectoryServer.getEntry(entry.getName()));
 
         // Check that DS replied an ack without errors anyway
         assertFalse(ackMsg.hasTimeout());

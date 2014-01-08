@@ -498,7 +498,7 @@ public class LocalBackendBindOperation
       }
       else
       {
-        setUserEntryDN(userEntry.getDN());
+        setUserEntryDN(userEntry.getName());
       }
 
 
@@ -543,7 +543,7 @@ public class LocalBackendBindOperation
                 ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
           }
           setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
-              DirectoryServer.isRootDN(userEntry.getDN())));
+              DirectoryServer.isRootDN(userEntry.getName())));
 
           // Set resource limits for the authenticated user.
           setResourceLimits(userEntry);
@@ -613,7 +613,7 @@ public class LocalBackendBindOperation
                 ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
           }
           setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
-              DirectoryServer.isRootDN(userEntry.getDN())));
+              DirectoryServer.isRootDN(userEntry.getName())));
 
           // Set resource limits for the authenticated user.
           setResourceLimits(userEntry);
@@ -735,7 +735,7 @@ public class LocalBackendBindOperation
     // Create the password policy state object.
     if (saslAuthUserEntry != null)
     {
-      setUserEntryDN(saslAuthUserEntry.getDN());
+      setUserEntryDN(saslAuthUserEntry.getName());
 
       // FIXME -- Need to have a way to enable debugging.
       authPolicyState = AuthenticationPolicyState.forUser(
@@ -914,11 +914,11 @@ public class LocalBackendBindOperation
     {
       // This policy isn't applicable to root users, so if it's a root
       // user then ignore it.
-      if (! DirectoryServer.isRootDN(userEntry.getDN()))
+      if (! DirectoryServer.isRootDN(userEntry.getName()))
       {
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                        ERR_BIND_OPERATION_WRITABILITY_DISABLED.get(
-                            String.valueOf(userEntry.getDN())));
+                            String.valueOf(userEntry.getName())));
       }
     }
 
@@ -935,7 +935,7 @@ public class LocalBackendBindOperation
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                          ERR_BIND_OPERATION_INSECURE_SASL_BIND.get(
                               saslMechanism,
-                              String.valueOf(userEntry.getDN())));
+                              String.valueOf(userEntry.getName())));
         }
       }
       else
@@ -1168,13 +1168,13 @@ public class LocalBackendBindOperation
           }
 
           logError(cannotProcessAttributeMessage.get(v.getValue().toString(),
-              String.valueOf(userEntry.getDN())));
+              String.valueOf(userEntry.getName())));
         }
       }
       else if (a.size() > 1)
       {
         logError(nonUniqueAttributeMessage.get(String
-            .valueOf(userEntry.getDN())));
+            .valueOf(userEntry.getName())));
       }
     }
     return null;

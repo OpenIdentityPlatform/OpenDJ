@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -81,7 +81,7 @@ public class EntryUUIDVirtualAttributeProvider
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
   {
-    String normDNString = entry.getDN().toNormalizedString();
+    String normDNString = entry.getName().toNormalizedString();
     String uuidString =
          UUID.nameUUIDFromBytes(getBytes(normDNString)).toString();
     AttributeValue value = AttributeValues.create(
@@ -105,7 +105,7 @@ public class EntryUUIDVirtualAttributeProvider
   {
     try
     {
-      String normalizedDN = entry.getDN().toNormalizedString();
+      String normalizedDN = entry.getName().toNormalizedString();
       String uuidString =
            UUID.nameUUIDFromBytes(getBytes(normalizedDN)).toString();
 

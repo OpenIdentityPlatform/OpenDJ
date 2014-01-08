@@ -320,7 +320,7 @@ public class ProxiedAuthV1Control
       if (state.isDisabled())
       {
         Message message = ERR_PROXYAUTH1_UNUSABLE_ACCOUNT.get(String
-            .valueOf(userEntry.getDN()));
+            .valueOf(userEntry.getName()));
         throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
       }
 

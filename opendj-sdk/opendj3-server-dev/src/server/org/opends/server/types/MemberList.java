@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -70,7 +70,7 @@ public abstract class MemberList implements Closeable
     Entry e = nextMemberEntry();
     if (e != null)
     {
-      return e.getDN();
+      return e.getName();
     }
     return null;
   }

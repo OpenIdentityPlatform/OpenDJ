@@ -539,7 +539,7 @@ public abstract class AbstractOperation
   {
     if (authorizationEntry != null)
     {
-      return authorizationEntry.getDN();
+      return authorizationEntry.getName();
     }
     return DN.rootDN();
   }

@@ -1266,7 +1266,7 @@ public final class TestCaseUtils {
    */
   public static void deleteEntry(Entry entry) throws Exception
   {
-    deleteEntry(entry.getDN());
+    deleteEntry(entry.getName());
   }
 
   /**

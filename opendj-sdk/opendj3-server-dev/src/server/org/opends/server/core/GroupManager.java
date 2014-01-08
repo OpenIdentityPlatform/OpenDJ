@@ -659,7 +659,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
             try
             {
               Group groupInstance = groupImplementation.newInstance(entry);
-              groupInstances.put(entry.getDN(), groupInstance);
+              groupInstances.put(entry.getName(), groupInstance);
               refreshToken++;
             }
             catch (DirectoryException e)
@@ -761,7 +761,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     lock.writeLock().lock();
     try
     {
-      if (groupInstances.removeSubtree(entry.getDN(), null))
+      if (groupInstances.removeSubtree(entry.getName(), null))
       {
         refreshToken++;
       }
@@ -791,7 +791,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     lock.readLock().lock();
     try
     {
-      if (!groupInstances.containsKey(oldEntry.getDN()))
+      if (!groupInstances.containsKey(oldEntry.getName()))
       {
         // If the modified entry is not in any group instance, it's probably
         // not a group, exit fast
@@ -806,12 +806,12 @@ public class GroupManager extends InternalDirectoryServerPlugin
     lock.writeLock().lock();
     try
     {
-      if (groupInstances.containsKey(oldEntry.getDN()))
+      if (groupInstances.containsKey(oldEntry.getName()))
       {
-        if (! oldEntry.getDN().equals(newEntry.getDN()))
+        if (! oldEntry.getName().equals(newEntry.getName()))
         {
           // This should never happen, but check for it anyway.
-          groupInstances.remove(oldEntry.getDN());
+          groupInstances.remove(oldEntry.getName());
         }
         createAndRegisterGroup(newEntry);
       }
@@ -843,9 +843,9 @@ public class GroupManager extends InternalDirectoryServerPlugin
     try
     {
       Set<Group> groupSet = new HashSet<Group>();
-      groupInstances.removeSubtree(oldEntry.getDN(), groupSet);
-      String oldDNString = oldEntry.getDN().toNormalizedString();
-      String newDNString = newEntry.getDN().toNormalizedString();
+      groupInstances.removeSubtree(oldEntry.getName(), groupSet);
+      String oldDNString = oldEntry.getName().toNormalizedString();
+      String newDNString = newEntry.getName().toNormalizedString();
       for (Group group : groupSet)
       {
         StringBuilder builder = new StringBuilder(
@@ -1024,7 +1024,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
           lock.writeLock().lock();
           try
           {
-            groupInstances.put(entry.getDN(), groupInstance);
+            groupInstances.put(entry.getName(), groupInstance);
             refreshToken++;
           }
           finally

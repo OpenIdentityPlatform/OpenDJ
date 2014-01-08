@@ -111,15 +111,15 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
 
-    assertFalse(cache.containsEntry(testEntriesList.get(0).getDN()),
-      "Not expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertFalse(cache.containsEntry(testEntriesList.get(0).getName()),
+      "Not expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
     cache.putEntry(testEntriesList.get(0), b, 1);
 
-    assertTrue(cache.containsEntry(testEntriesList.get(0).getDN()),
-      "Expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertTrue(cache.containsEntry(testEntriesList.get(0).getName()),
+      "Expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -145,15 +145,15 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
 
-    assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
-      "Not expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertNull(cache.getEntry(testEntriesList.get(0).getName()),
+      "Not expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
     cache.putEntry(testEntriesList.get(0), b, 1);
 
-    assertNotNull(cache.getEntry(testEntriesList.get(0).getDN()),
-      "Expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertNotNull(cache.getEntry(testEntriesList.get(0).getName()),
+      "Expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -179,15 +179,15 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
 
-    assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
-      "Not expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertNull(cache.getEntry(testEntriesList.get(0).getName()),
+      "Not expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
     cache.putEntry(testEntriesList.get(0), b, 1);
 
-    assertNotNull(cache.getEntry(testEntriesList.get(0).getDN()),
-      "Expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertNotNull(cache.getEntry(testEntriesList.get(0).getName()),
+      "Expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -246,15 +246,15 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
 
-    assertEquals(cache.getEntryID(testEntriesList.get(0).getDN()), -1,
-      "Not expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertEquals(cache.getEntryID(testEntriesList.get(0).getName()), -1,
+      "Not expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
     cache.putEntry(testEntriesList.get(0), b, 1);
 
-    assertEquals(cache.getEntryID(testEntriesList.get(0).getDN()), 1,
-      "Expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertEquals(cache.getEntryID(testEntriesList.get(0).getName()), 1,
+      "Expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -281,8 +281,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
 
     cache.putEntry(testEntriesList.get(0), b, 1);
 
-    assertNotNull(cache.getEntry(testEntriesList.get(0).getDN()),
-      "Expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertNotNull(cache.getEntry(testEntriesList.get(0).getName()),
+      "Expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -313,17 +313,17 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
     Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
 
     assertTrue(cache.putEntryIfAbsent(testEntriesList.get(0), b, 1),
-      "Not expected to find " + testEntriesList.get(0).getDN().toString() +
+      "Not expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
     assertFalse(cache.putEntryIfAbsent(testEntriesList.get(0), b, 1),
-      "Expected to find " + testEntriesList.get(0).getDN().toString() +
+      "Expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
-    assertNotNull(cache.getEntry(testEntriesList.get(0).getDN()),
-      "Expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertNotNull(cache.getEntry(testEntriesList.get(0).getName()),
+      "Expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -353,12 +353,12 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
     TestCaseUtils.initializeTestBackend(false);
     Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
 
-    cache.removeEntry(testEntriesList.get(0).getDN());
+    cache.removeEntry(testEntriesList.get(0).getName());
     cache.putEntry(testEntriesList.get(0), b, 1);
-    cache.removeEntry(testEntriesList.get(0).getDN());
+    cache.removeEntry(testEntriesList.get(0).getName());
 
-    assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
-      "Not expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertNull(cache.getEntry(testEntriesList.get(0).getName()),
+      "Not expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -392,8 +392,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
     cache.putEntry(testEntriesList.get(0), b, 1);
     cache.clear();
 
-    assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
-      "Not expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertNull(cache.getEntry(testEntriesList.get(0).getName()),
+      "Not expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -434,8 +434,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       b.getBackendID() + " in the cache.  Cache contents:" +
       ServerConstants.EOL + cache.toVerboseString());
 
-    assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
-      "Not expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertNull(cache.getEntry(testEntriesList.get(0).getName()),
+      "Not expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -468,14 +468,14 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
 
     cache.putEntry(testEntriesList.get(0), b, 1);
     Entry testEntry = testEntriesList.get(1);
-    testEntry.getDN();
+    testEntry.getName();
     testEntry.setDN(DN.valueOf(
-      testEntry.getDN().rdn() + ",cn=config"));
+      testEntry.getName().rdn() + ",cn=config"));
     cache.putEntry(testEntry, c, 1);
     cache.clearSubtree(DN.valueOf("o=test"));
 
-    assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
-      "Not expected to find " + testEntriesList.get(0).getDN().toString() +
+    assertNull(cache.getEntry(testEntriesList.get(0).getName()),
+      "Not expected to find " + testEntriesList.get(0).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -484,8 +484,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
-    assertNotNull(cache.getEntry(testEntry.getDN()),
-      "Expected to find " + testEntry.getDN().toString() +
+    assertNotNull(cache.getEntry(testEntry.getName()),
+      "Expected to find " + testEntry.getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -529,8 +529,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
     for(int loops = 0; loops < CONCURRENCYLOOPS; loops++) {
       for(int i = 0; i < NUMTESTENTRIES; i++) {
         cache.putEntry(testEntriesList.get(i), b, i);
-        cache.getEntry(testEntriesList.get(i).getDN());
-        cache.removeEntry(testEntriesList.get(i).getDN());
+        cache.getEntry(testEntriesList.get(i).getName());
+        cache.removeEntry(testEntriesList.get(i).getName());
         cache.putEntryIfAbsent(testEntriesList.get(i), b, i);
         cache.getEntry(b, i);
       }

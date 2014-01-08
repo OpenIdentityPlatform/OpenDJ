@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.api;
@@ -84,7 +85,7 @@ public abstract class AuthenticationPolicy
       boolean useDefaultOnError) throws DirectoryException
   {
     // First check to see if the ds-pwp-password-policy-dn is present.
-    String userDNString = userEntry.getDN().toString();
+    String userDNString = userEntry.getName().toString();
     AttributeType type = DirectoryServer.getAttributeType(
         OP_ATTR_PWPOLICY_POLICY_DN, true);
     List<Attribute> attrList = userEntry.getAttribute(type);

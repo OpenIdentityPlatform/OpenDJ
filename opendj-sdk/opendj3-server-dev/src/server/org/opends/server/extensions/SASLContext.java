@@ -277,7 +277,7 @@ public class SASLContext implements CallbackHandler,
         bindOp.setSASLAuthUserEntry(authEntry);
         final AuthenticationInfo authInfo = new AuthenticationInfo(authEntry,
             authzEntry, mechanism, clientCredentials,
-            DirectoryServer.isRootDN(authEntry.getDN()));
+            DirectoryServer.isRootDN(authEntry.getName()));
         bindOp.setAuthenticationInfo(authInfo);
 
         // If confidentiality/integrity has been negotiated then
@@ -373,7 +373,7 @@ public class SASLContext implements CallbackHandler,
       bindOp.setSASLAuthUserEntry(authEntry);
       final AuthenticationInfo authInfo = new AuthenticationInfo(authEntry,
           authzEntry, mechanism, clientCredentials,
-          DirectoryServer.isRootDN(authEntry.getDN()));
+          DirectoryServer.isRootDN(authEntry.getName()));
       bindOp.setAuthenticationInfo(authInfo);
 
       // If confidentiality/integrity has been negotiated, then create a
@@ -746,7 +746,7 @@ public class SASLContext implements CallbackHandler,
       authzDN = actualAuthzDN;
     }
 
-    if (!authzDN.equals(authEntry.getDN()))
+    if (!authzDN.equals(authEntry.getName()))
     {
       if (authzDN.isRootDN())
       {
@@ -777,7 +777,7 @@ public class SASLContext implements CallbackHandler,
         }
       }
       final AuthenticationInfo authInfo = new AuthenticationInfo(authEntry,
-          DirectoryServer.isRootDN(authEntry.getDN()));
+          DirectoryServer.isRootDN(authEntry.getName()));
       if (!hasPrivilege(authInfo))
       {
         callback.setAuthorized(false);
@@ -842,12 +842,13 @@ public class SASLContext implements CallbackHandler,
       }
     }
 
-    if ((authzEntry == null) || (!authzEntry.getDN().equals(authEntry.getDN())))
+    if ((authzEntry == null) || (!authzEntry.getName().
+        equals(authEntry.getName())))
     {
       // Create temporary authorization information and run it both
       // through the privilege and then the access control subsystems.
       final AuthenticationInfo authInfo = new AuthenticationInfo(authEntry,
-          DirectoryServer.isRootDN(authEntry.getDN()));
+          DirectoryServer.isRootDN(authEntry.getName()));
       if (!hasPrivilege(authInfo))
       {
         callback.setAuthorized(false);
@@ -1002,7 +1003,7 @@ public class SASLContext implements CallbackHandler,
         .mayProxy(authInfo.getAuthenticationEntry(), e, bindOp))
     {
       setCallbackMsg(ERR_SASL_AUTHZID_INSUFFICIENT_ACCESS.get(String
-          .valueOf(authEntry.getDN())));
+          .valueOf(authEntry.getName())));
       ret = false;
     }
 
@@ -1028,7 +1029,7 @@ public class SASLContext implements CallbackHandler,
     if (!tempConn.hasPrivilege(Privilege.PROXIED_AUTH, bindOp))
     {
       setCallbackMsg(ERR_SASL_AUTHZID_INSUFFICIENT_PRIVILEGES.get(String
-          .valueOf(authEntry.getDN())));
+          .valueOf(authEntry.getName())));
       ret = false;
     }
     return ret;
@@ -1181,7 +1182,7 @@ public class SASLContext implements CallbackHandler,
       if (!authState.isPasswordPolicy())
       {
         final Message message = ERR_SASL_ACCOUNT_NOT_LOCAL.get(mechanism,
-            String.valueOf(authEntry.getDN()));
+            String.valueOf(authEntry.getName()));
         setCallbackMsg(ResultCode.INAPPROPRIATE_AUTHENTICATION, message);
         return;
       }
@@ -1192,7 +1193,7 @@ public class SASLContext implements CallbackHandler,
       if ((clearPasswords == null) || clearPasswords.isEmpty())
       {
         setCallbackMsg(ERR_SASL_NO_REVERSIBLE_PASSWORDS.get(mechanism,
-            String.valueOf(authEntry.getDN())));
+            String.valueOf(authEntry.getName())));
         return;
       }
     }
@@ -1203,7 +1204,7 @@ public class SASLContext implements CallbackHandler,
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       setCallbackMsg(ERR_SASL_CANNOT_GET_REVERSIBLE_PASSWORDS.get(
-          String.valueOf(authEntry.getDN()), mechanism, String.valueOf(e)));
+          String.valueOf(authEntry.getName()), mechanism, String.valueOf(e)));
       return;
     }
 

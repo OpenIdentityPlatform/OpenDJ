@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -175,7 +176,7 @@ public class DynamicGroupSearchThread
         if (! memberList.addResult(searchEntry))
         {
           Message message = ERR_DYNAMICGROUP_CANNOT_RETURN_ENTRY.
-              get(String.valueOf(searchEntry.getDN()),
+              get(String.valueOf(searchEntry.getName()),
                   String.valueOf(memberList.getDynamicGroupDN()));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message);

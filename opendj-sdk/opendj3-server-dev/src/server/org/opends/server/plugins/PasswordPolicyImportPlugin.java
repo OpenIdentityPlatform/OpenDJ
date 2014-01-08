@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -372,7 +372,7 @@ policyLoop:
             if (authPolicy == null)
             {
               Message message = WARN_PLUGIN_PWIMPORT_NO_SUCH_POLICY.get(
-                  String.valueOf(entry.getDN()), String.valueOf(policyDN));
+                  String.valueOf(entry.getName()), String.valueOf(policyDN));
               logError(message);
             }
             else if (authPolicy.isPasswordPolicy())
@@ -385,7 +385,7 @@ policyLoop:
           catch (DirectoryException de)
           {
             Message message = WARN_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN.get(
-                String.valueOf(entry.getDN()), de.getMessageObject());
+                String.valueOf(entry.getName()), de.getMessageObject());
             logError(message);
             break policyLoop;
           }
@@ -435,7 +435,7 @@ policyLoop:
                     Message message =
                       ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
                         .get(policy.getPasswordAttribute().getNameOrOID(),
-                            String.valueOf(entry.getDN()),
+                            String.valueOf(entry.getName()),
                             stackTraceToSingleLineString(e));
                     logError(message);
                     gotError = true;
@@ -470,7 +470,7 @@ policyLoop:
                     Message message =
                       ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
                         .get(policy.getPasswordAttribute().getNameOrOID(),
-                            String.valueOf(entry.getDN()),
+                            String.valueOf(entry.getName()),
                             stackTraceToSingleLineString(e));
                     logError(message);
                     gotError = true;
@@ -533,7 +533,7 @@ policyLoop:
               }
 
               Message message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
-                  .get(t.getNameOrOID(), String.valueOf(entry.getDN()),
+                  .get(t.getNameOrOID(), String.valueOf(entry.getName()),
                       stackTraceToSingleLineString(e));
               logError(message);
               gotError = true;
@@ -591,7 +591,7 @@ policyLoop:
               }
 
               Message message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
-                  .get(t.getNameOrOID(), String.valueOf(entry.getDN()),
+                  .get(t.getNameOrOID(), String.valueOf(entry.getName()),
                       stackTraceToSingleLineString(e));
               logError(message);
               gotError = true;

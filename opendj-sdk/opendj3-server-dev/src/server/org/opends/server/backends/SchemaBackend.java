@@ -1091,7 +1091,7 @@ public class SchemaBackend
          throws DirectoryException
   {
     Message message =
-        ERR_SCHEMA_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getDN()));
+        ERR_SCHEMA_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getName()));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 

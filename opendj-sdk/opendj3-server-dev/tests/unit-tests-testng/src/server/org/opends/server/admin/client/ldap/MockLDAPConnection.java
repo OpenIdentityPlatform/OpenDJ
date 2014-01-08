@@ -296,7 +296,7 @@ public class MockLDAPConnection extends LDAPConnection {
    */
   private void addEntry(Entry entry) {
     MockEntry parent = rootEntry;
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
 
     // Create required glue entries.
     for (int i = 0; i < entryDN.size() - 1; i++) {

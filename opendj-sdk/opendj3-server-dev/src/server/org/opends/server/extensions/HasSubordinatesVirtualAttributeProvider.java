@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -77,11 +77,11 @@ public class HasSubordinatesVirtualAttributeProvider
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
   {
-    Backend backend = DirectoryServer.getBackend(entry.getDN());
+    Backend backend = DirectoryServer.getBackend(entry.getName());
 
     try
     {
-      ConditionResult ret = backend.hasSubordinates(entry.getDN());
+      ConditionResult ret = backend.hasSubordinates(entry.getName());
       if(ret != null && ret != ConditionResult.UNDEFINED)
       {
         AttributeValue value =
@@ -105,11 +105,11 @@ public class HasSubordinatesVirtualAttributeProvider
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
-    Backend backend = DirectoryServer.getBackend(entry.getDN());
+    Backend backend = DirectoryServer.getBackend(entry.getName());
 
     try
     {
-      ConditionResult ret = backend.hasSubordinates(entry.getDN());
+      ConditionResult ret = backend.hasSubordinates(entry.getName());
        return ret != null && ret != ConditionResult.UNDEFINED;
     }
     catch(DirectoryException de)
@@ -128,11 +128,11 @@ public class HasSubordinatesVirtualAttributeProvider
   public boolean hasValue(Entry entry, VirtualAttributeRule rule,
                           AttributeValue value)
   {
-     Backend backend = DirectoryServer.getBackend(entry.getDN());
+     Backend backend = DirectoryServer.getBackend(entry.getName());
 
     try
     {
-      ConditionResult ret = backend.hasSubordinates(entry.getDN());
+      ConditionResult ret = backend.hasSubordinates(entry.getName());
       return ret != null
           && ret != ConditionResult.UNDEFINED
           && ConditionResult.valueOf(value.getNormalizedValue().toString())

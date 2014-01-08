@@ -98,7 +98,7 @@ public class StressTest extends ReplicationTestCase
       // Create an Entry (add operation) that will be later used in the test.
       Entry tmp = personEntry.duplicate(false);
       AddOperation addOp = connection.processAdd(tmp);
-      assertTrue(DirectoryServer.entryExists(personEntry.getDN()),
+      assertTrue(DirectoryServer.entryExists(personEntry.getName()),
         "The Add Entry operation failed");
       if (ResultCode.SUCCESS == addOp.getResultCode())
       {
@@ -110,7 +110,7 @@ public class StressTest extends ReplicationTestCase
         Operation receivedOp = addMsg.createOperation(connection);
         assertEquals(receivedOp.getOperationType(), OperationType.ADD,
         "The received replication message is not an ADD msg");
-        assertEquals(addMsg.getDN(), personEntry.getDN(),
+        assertEquals(addMsg.getDN(), personEntry.getName(),
         "The received ADD replication message is not for the excepted DN");
       }
 
@@ -236,7 +236,7 @@ public class StressTest extends ReplicationTestCase
         List<Modification> mods = generatemods("telephonenumber", "01 02 45");
 
         ModifyOperation modOp =
-          connection.processModify(personEntry.getDN(), mods);
+          connection.processModify(personEntry.getName(), mods);
         assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
       }
     }

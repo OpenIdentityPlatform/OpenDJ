@@ -275,25 +275,26 @@ public final class PersistentSearch
     switch (scope)
     {
     case BASE_OBJECT:
-      if (!baseDN.equals(entry.getDN()))
+      if (!baseDN.equals(entry.getName()))
       {
         return;
       }
       break;
     case SINGLE_LEVEL:
-      if (!baseDN.equals(entry.getDN().getParentDNInSuffix()))
+      if (!baseDN.equals(entry.getName().getParentDNInSuffix()))
       {
         return;
       }
       break;
     case WHOLE_SUBTREE:
-      if (!baseDN.isAncestorOf(entry.getDN()))
+      if (!baseDN.isAncestorOf(entry.getName()))
       {
         return;
       }
       break;
     case SUBORDINATE_SUBTREE:
-      if (baseDN.equals(entry.getDN()) || (!baseDN.isAncestorOf(entry.getDN())))
+      if (baseDN.equals(entry.getName()) || (!baseDN.isAncestorOf(
+          entry.getName())))
       {
         return;
       }
@@ -391,25 +392,26 @@ public final class PersistentSearch
     switch (scope)
     {
     case BASE_OBJECT:
-      if (!baseDN.equals(entry.getDN()))
+      if (!baseDN.equals(entry.getName()))
       {
         return;
       }
       break;
     case SINGLE_LEVEL:
-      if (!baseDN.equals(entry.getDN().getParentDNInSuffix()))
+      if (!baseDN.equals(entry.getName().getParentDNInSuffix()))
       {
         return;
       }
       break;
     case WHOLE_SUBTREE:
-      if (!baseDN.isAncestorOf(entry.getDN()))
+      if (!baseDN.isAncestorOf(entry.getName()))
       {
         return;
       }
       break;
     case SUBORDINATE_SUBTREE:
-      if (baseDN.equals(entry.getDN()) || (!baseDN.isAncestorOf(entry.getDN())))
+      if (baseDN.equals(entry.getName()) || (!baseDN.isAncestorOf(
+          entry.getName())))
       {
         return;
       }
@@ -523,26 +525,26 @@ public final class PersistentSearch
     switch (scope)
     {
     case BASE_OBJECT:
-      if (!baseDN.equals(oldEntry.getDN()))
+      if (!baseDN.equals(oldEntry.getName()))
       {
         return;
       }
       break;
     case SINGLE_LEVEL:
-      if (!baseDN.equals(oldEntry.getDN().parent()))
+      if (!baseDN.equals(oldEntry.getName().parent()))
       {
         return;
       }
       break;
     case WHOLE_SUBTREE:
-      if (!baseDN.isAncestorOf(oldEntry.getDN()))
+      if (!baseDN.isAncestorOf(oldEntry.getName()))
       {
         return;
       }
       break;
     case SUBORDINATE_SUBTREE:
-      if (baseDN.equals(oldEntry.getDN())
-          || (!baseDN.isAncestorOf(oldEntry.getDN())))
+      if (baseDN.equals(oldEntry.getName())
+          || (!baseDN.isAncestorOf(oldEntry.getName())))
       {
         return;
       }
@@ -646,7 +648,7 @@ public final class PersistentSearch
     {
     case BASE_OBJECT:
       oldMatches = baseDN.equals(oldDN);
-      newMatches = baseDN.equals(entry.getDN());
+      newMatches = baseDN.equals(entry.getName());
 
       if (!(oldMatches || newMatches))
       {
@@ -656,7 +658,7 @@ public final class PersistentSearch
       break;
     case SINGLE_LEVEL:
       oldMatches = baseDN.equals(oldDN.parent());
-      newMatches = baseDN.equals(entry.getDN().parent());
+      newMatches = baseDN.equals(entry.getName().parent());
 
       if (!(oldMatches || newMatches))
       {
@@ -666,7 +668,7 @@ public final class PersistentSearch
       break;
     case WHOLE_SUBTREE:
       oldMatches = baseDN.isAncestorOf(oldDN);
-      newMatches = baseDN.isAncestorOf(entry.getDN());
+      newMatches = baseDN.isAncestorOf(entry.getName());
 
       if (!(oldMatches || newMatches))
       {
@@ -676,8 +678,8 @@ public final class PersistentSearch
       break;
     case SUBORDINATE_SUBTREE:
       oldMatches = ((!baseDN.equals(oldDN)) && baseDN.isAncestorOf(oldDN));
-      newMatches = ((!baseDN.equals(entry.getDN())) && baseDN
-          .isAncestorOf(entry.getDN()));
+      newMatches = ((!baseDN.equals(entry.getName())) && baseDN
+          .isAncestorOf(entry.getName()));
 
       if (!(oldMatches || newMatches))
       {

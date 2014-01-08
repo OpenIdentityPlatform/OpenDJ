@@ -72,12 +72,12 @@ public class SubentryPasswordPolicyTestCase
     {
       Entry suffixEntry = StaticUtils.createEntry(suffixDN);
       AddOperation addOperation =
-           connection.processAdd(suffixEntry.getDN(),
+           connection.processAdd(suffixEntry.getName(),
                                  suffixEntry.getObjectClasses(),
                                  suffixEntry.getUserAttributes(),
                                  suffixEntry.getOperationalAttributes());
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-      assertNotNull(DirectoryServer.getEntry(suffixEntry.getDN()));
+      assertNotNull(DirectoryServer.getEntry(suffixEntry.getName()));
     }
 
     // Add base entry.
@@ -86,12 +86,12 @@ public class SubentryPasswordPolicyTestCase
     {
       Entry baseEntry = StaticUtils.createEntry(baseDN);
       AddOperation addOperation =
-           connection.processAdd(baseEntry.getDN(),
+           connection.processAdd(baseEntry.getName(),
                                  baseEntry.getObjectClasses(),
                                  baseEntry.getUserAttributes(),
                                  baseEntry.getOperationalAttributes());
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-      assertNotNull(DirectoryServer.getEntry(baseEntry.getDN()));
+      assertNotNull(DirectoryServer.getEntry(baseEntry.getName()));
     }
 
     // Add test entry.
@@ -110,12 +110,12 @@ public class SubentryPasswordPolicyTestCase
          "title: Sales, Director"
     );
     AddOperation addOperation =
-         connection.processAdd(testEntry.getDN(),
+         connection.processAdd(testEntry.getName(),
                                testEntry.getObjectClasses(),
                                testEntry.getUserAttributes(),
                                testEntry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(testEntry.getDN()));
+    assertNotNull(DirectoryServer.getEntry(testEntry.getName()));
   }
 
   @AfterClass
@@ -220,12 +220,12 @@ public class SubentryPasswordPolicyTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         connection.processAdd(e.getDN(),
+         connection.processAdd(e.getName(),
                                e.getObjectClasses(),
                                e.getUserAttributes(),
                                e.getOperationalAttributes());
     assertTrue(addOperation.getResultCode() != ResultCode.SUCCESS);
-    assertNull(DirectoryServer.getEntry(e.getDN()));
+    assertNull(DirectoryServer.getEntry(e.getName()));
   }
 
   /**
@@ -269,12 +269,12 @@ public class SubentryPasswordPolicyTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         connection.processAdd(policyEntry.getDN(),
+         connection.processAdd(policyEntry.getName(),
                                policyEntry.getObjectClasses(),
                                policyEntry.getUserAttributes(),
                                policyEntry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(policyEntry.getDN()));
+    assertNotNull(DirectoryServer.getEntry(policyEntry.getName()));
 
     PasswordPolicy policy = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(
             DN.valueOf("cn=Temp Policy," + SUFFIX));
@@ -311,7 +311,7 @@ public class SubentryPasswordPolicyTestCase
 
     // Make sure this policy is gone and default
     // policy is in effect instead.
-    TestCaseUtils.deleteEntry(policyEntry.getDN());
+    TestCaseUtils.deleteEntry(policyEntry.getName());
     statePolicy = AuthenticationPolicy.forUser(testEntry, false);
     assertNotNull(statePolicy);
     assertEquals(defaultPolicy, statePolicy);
@@ -366,12 +366,12 @@ public class SubentryPasswordPolicyTestCase
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         connection.processAdd(policyEntry.getDN(),
+         connection.processAdd(policyEntry.getName(),
                                policyEntry.getObjectClasses(),
                                policyEntry.getUserAttributes(),
                                policyEntry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(policyEntry.getDN()));
+    assertNotNull(DirectoryServer.getEntry(policyEntry.getName()));
 
     // Make sure just added policy is in effect.
     testEntry = DirectoryServer.getEntry(DN.valueOf(
@@ -385,7 +385,7 @@ public class SubentryPasswordPolicyTestCase
 
     // Remove subentry policy and make sure
     // default policy is in effect again.
-    TestCaseUtils.deleteEntry(policyEntry.getDN());
+    TestCaseUtils.deleteEntry(policyEntry.getName());
 
     testEntry = DirectoryServer.getEntry(DN.valueOf(
             "uid=rogasawara," + BASE));

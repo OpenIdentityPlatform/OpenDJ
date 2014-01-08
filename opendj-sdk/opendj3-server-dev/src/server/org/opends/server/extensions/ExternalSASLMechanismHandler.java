@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -241,7 +241,7 @@ public class ExternalSASLMechanismHandler
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
             Message message = ERR_SASLEXTERNAL_NO_CERT_IN_ENTRY.get(
-                    String.valueOf(userEntry.getDN()));
+                    String.valueOf(userEntry.getName()));
             bindOperation.setAuthFailureReason(message);
             return;
           }
@@ -270,7 +270,7 @@ public class ExternalSASLMechanismHandler
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
               Message message = ERR_SASLEXTERNAL_PEER_CERT_NOT_FOUND.get(
-                      String.valueOf(userEntry.getDN()));
+                      String.valueOf(userEntry.getName()));
               bindOperation.setAuthFailureReason(message);
               return;
             }
@@ -285,7 +285,7 @@ public class ExternalSASLMechanismHandler
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
             Message message = ERR_SASLEXTERNAL_CANNOT_VALIDATE_CERT.get(
-                    String.valueOf(userEntry.getDN()),
+                    String.valueOf(userEntry.getName()),
                     getExceptionMessage(e));
             bindOperation.setAuthFailureReason(message);
             return;
@@ -318,7 +318,7 @@ public class ExternalSASLMechanismHandler
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
               Message message = ERR_SASLEXTERNAL_PEER_CERT_NOT_FOUND.get(
-                      String.valueOf(userEntry.getDN()));
+                      String.valueOf(userEntry.getName()));
               bindOperation.setAuthFailureReason(message);
               return;
             }
@@ -333,7 +333,7 @@ public class ExternalSASLMechanismHandler
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
             Message message = ERR_SASLEXTERNAL_CANNOT_VALIDATE_CERT.get(
-                    String.valueOf(userEntry.getDN()),
+                    String.valueOf(userEntry.getName()),
                     getExceptionMessage(e));
             bindOperation.setAuthFailureReason(message);
             return;
@@ -343,7 +343,7 @@ public class ExternalSASLMechanismHandler
 
 
     AuthenticationInfo authInfo = new AuthenticationInfo(userEntry,
-        SASL_MECHANISM_EXTERNAL, DirectoryServer.isRootDN(userEntry.getDN()));
+        SASL_MECHANISM_EXTERNAL, DirectoryServer.isRootDN(userEntry.getName()));
     bindOperation.setAuthenticationInfo(authInfo);
     bindOperation.setResultCode(ResultCode.SUCCESS);
   }

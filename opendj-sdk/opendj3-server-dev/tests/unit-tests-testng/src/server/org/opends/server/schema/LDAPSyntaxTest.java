@@ -348,7 +348,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    AddOperation addOperation = conn.processAdd(entry.getDN(),
+    AddOperation addOperation = conn.processAdd(entry.getName(),
                                      entry.getObjectClasses(),
                                      entry.getUserAttributes(),
                                      entry.getOperationalAttributes());
@@ -451,7 +451,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    AddOperation addOperation = conn.processAdd(entry.getDN(),
+    AddOperation addOperation = conn.processAdd(entry.getName(),
                                      entry.getObjectClasses(),
                                      entry.getUserAttributes(),
                                      entry.getOperationalAttributes());
@@ -588,7 +588,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       SearchResultEntry e = entries.get(0);
       //An entry must be returned.
       assertNotNull(e);
-      assertTrue(e.getDN().equals(DN.valueOf("cn=test1,o=test")));
+      assertTrue(e.getName().equals(DN.valueOf("cn=test1,o=test")));
     }
     finally
     {

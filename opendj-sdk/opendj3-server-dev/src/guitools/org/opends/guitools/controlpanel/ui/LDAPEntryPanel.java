@@ -224,7 +224,7 @@ implements EntryReadListener
           else
           {
             boolean modified =
-              !Utilities.areDnsEqual(ev.getEntry().getDN().toString(),
+              !Utilities.areDnsEqual(ev.getEntry().getName().toString(),
                   searchResult.getDN()) ||
                   !ModifyEntryTask.getModifications(ev.getEntry(), searchResult,
                       getInfo()).isEmpty();
@@ -591,7 +591,7 @@ implements EntryReadListener
       }
       if ((errors.size() == 0) && newTask.hasModifications())
       {
-        String dn = entry.getDN().toString();
+        String dn = entry.getName().toString();
         launchOperation(newTask,
             INFO_CTRL_PANEL_MODIFYING_ENTRY_SUMMARY.get(dn),
             INFO_CTRL_PANEL_MODIFYING_ENTRY_COMPLETE.get(),

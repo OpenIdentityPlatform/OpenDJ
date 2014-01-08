@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -200,8 +201,8 @@ public class PreloadEntryCacheTestCase
     // Check that all test entries are preloaded.
     for(int i = 0; i < NUMTESTENTRIES; i++ ) {
       assertNotNull(DirectoryServer.getEntryCache().getEntry(
-        testEntriesList.get(i).getDN()), "Expected to find " +
-        testEntriesList.get(i).getDN().toString() +
+        testEntriesList.get(i).getName()), "Expected to find " +
+        testEntriesList.get(i).getName().toString() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + toVerboseString());
     }

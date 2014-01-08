@@ -206,7 +206,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -262,7 +262,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -384,7 +384,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -466,7 +466,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -536,7 +536,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -601,7 +601,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -688,7 +688,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 

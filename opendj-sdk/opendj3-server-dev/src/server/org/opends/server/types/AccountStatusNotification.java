@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -133,7 +133,7 @@ public final class AccountStatusNotification
    */
   public DN getUserDN()
   {
-    return userEntry.getDN();
+    return userEntry.getName();
   }
 
 
@@ -319,7 +319,7 @@ public final class AccountStatusNotification
   public String toString()
   {
     return "AccountStatusNotification(type=" +
-           notificationType.getName() + ",dn=" + userEntry.getDN() +
+           notificationType.getName() + ",dn=" + userEntry.getName() +
            ",message=" + message + ")";
   }
 }

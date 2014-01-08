@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -409,7 +409,7 @@ outerLoop:
 
 
     // First, write the DN.
-    writeDN("dn", entry.getDN(), writer, wrapLines, wrapColumn);
+    writeDN("dn", entry.getName(), writer, wrapLines, wrapColumn);
 
 
     // Next, the changetype.
@@ -478,7 +478,7 @@ outerLoop:
 
 
     // Add the DN and changetype lines.
-    writeDN("dn", entry.getDN(), writer, wrapLines, wrapColumn);
+    writeDN("dn", entry.getName(), writer, wrapLines, wrapColumn);
 
     StringBuilder changeTypeLine = new StringBuilder("changetype: delete");
     writeLDIFLine(changeTypeLine, writer, wrapLines, wrapColumn);

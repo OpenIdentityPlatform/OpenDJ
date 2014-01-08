@@ -426,7 +426,7 @@ public class HistoricalTest extends ReplicationTestCase
     }
 
     Entry newEntry = DirectoryServer.getEntry(dn2);
-    assertEquals(entry.getDN(), newEntry.getDN());
+    assertEquals(entry.getName(), newEntry.getName());
   }
 
   /**

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -163,7 +163,7 @@ public class PlainSASLMechanismHandlerTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                                 e.getUserAttributes(),
                                                 e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -212,7 +212,7 @@ public class PlainSASLMechanismHandlerTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                                 e.getUserAttributes(),
                                                 e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -262,7 +262,7 @@ public class PlainSASLMechanismHandlerTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                                 e.getUserAttributes(),
                                                 e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -312,7 +312,7 @@ public class PlainSASLMechanismHandlerTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                                 e.getUserAttributes(),
                                                 e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -321,7 +321,7 @@ public class PlainSASLMechanismHandlerTestCase
     ByteStringBuilder saslCredBytes = new ByteStringBuilder();
     saslCredBytes.append((byte)0);
     saslCredBytes.append("dn:");
-    saslCredBytes.append(e.getDN().toString());
+    saslCredBytes.append(e.getName().toString());
     saslCredBytes.append((byte)0);
     saslCredBytes.append(password);
     InternalClientConnection anonymousConn =
@@ -363,7 +363,7 @@ public class PlainSASLMechanismHandlerTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                                 e.getUserAttributes(),
                                                 e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -371,10 +371,10 @@ public class PlainSASLMechanismHandlerTestCase
 
     ByteStringBuilder saslCredBytes = new ByteStringBuilder();
     saslCredBytes.append("dn:");
-    saslCredBytes.append(e.getDN().toString());
+    saslCredBytes.append(e.getName().toString());
     saslCredBytes.append((byte)0);
     saslCredBytes.append("dn:");
-    saslCredBytes.append(e.getDN().toString());
+    saslCredBytes.append(e.getName().toString());
     saslCredBytes.append((byte)0);
     saslCredBytes.append(password);
     InternalClientConnection anonymousConn =
@@ -500,7 +500,7 @@ public class PlainSASLMechanismHandlerTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
                                                 e.getUserAttributes(),
                                                 e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);

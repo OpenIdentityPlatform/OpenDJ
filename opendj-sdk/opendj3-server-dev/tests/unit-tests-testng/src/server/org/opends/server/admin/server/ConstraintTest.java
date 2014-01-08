@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -542,7 +543,7 @@ public final class ConstraintTest extends AdminTestCase {
     InternalClientConnection conn = InternalClientConnection
         .getRootConnection();
 
-    AddOperation add = conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+    AddOperation add = conn.processAdd(entry.getName(), entry.getObjectClasses(),
         entry.getUserAttributes(), entry.getOperationalAttributes());
 
     Assert.assertEquals(add.getResultCode(), expected, add.getErrorMessage()

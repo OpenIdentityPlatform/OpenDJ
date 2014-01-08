@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -114,7 +115,7 @@ public class SearchResultEntryProtocolOp
    */
   public SearchResultEntryProtocolOp(SearchResultEntry searchEntry)
   {
-    this(searchEntry.getDN(), null, searchEntry, 3);
+    this(searchEntry.getName(), null, searchEntry, 3);
   }
 
 
@@ -130,7 +131,7 @@ public class SearchResultEntryProtocolOp
   public SearchResultEntryProtocolOp(SearchResultEntry searchEntry,
           int ldapVersion)
   {
-    this(searchEntry.getDN(), null, searchEntry, ldapVersion);
+    this(searchEntry.getName(), null, searchEntry, ldapVersion);
   }
 
 

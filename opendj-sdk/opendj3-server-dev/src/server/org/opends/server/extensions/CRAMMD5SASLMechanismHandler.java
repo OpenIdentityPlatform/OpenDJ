@@ -424,7 +424,7 @@ public class CRAMMD5SASLMechanismHandler
       {
         bindOperation.setResultCode(ResultCode.INAPPROPRIATE_AUTHENTICATION);
         Message message = ERR_SASL_ACCOUNT_NOT_LOCAL
-            .get(SASL_MECHANISM_CRAM_MD5, String.valueOf(userEntry.getDN()));
+            .get(SASL_MECHANISM_CRAM_MD5, String.valueOf(userEntry.getName()));
         bindOperation.setAuthFailureReason(message);
         return;
       }
@@ -436,7 +436,7 @@ public class CRAMMD5SASLMechanismHandler
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
         Message message = ERR_SASLCRAMMD5_NO_REVERSIBLE_PASSWORDS.get(
-                String.valueOf(userEntry.getDN()));
+                String.valueOf(userEntry.getName()));
         bindOperation.setAuthFailureReason(message);
         return;
       }
@@ -446,7 +446,7 @@ public class CRAMMD5SASLMechanismHandler
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
       Message message = ERR_SASLCRAMMD5_CANNOT_GET_REVERSIBLE_PASSWORDS.get(
-              String.valueOf(userEntry.getDN()),
+              String.valueOf(userEntry.getName()),
               String.valueOf(e));
       bindOperation.setAuthFailureReason(message);
       return;
@@ -480,7 +480,7 @@ public class CRAMMD5SASLMechanismHandler
     bindOperation.setResultCode(ResultCode.SUCCESS);
 
     AuthenticationInfo authInfo = new AuthenticationInfo(userEntry,
-        SASL_MECHANISM_CRAM_MD5, DirectoryServer.isRootDN(userEntry.getDN()));
+        SASL_MECHANISM_CRAM_MD5, DirectoryServer.isRootDN(userEntry.getName()));
     bindOperation.setAuthenticationInfo(authInfo);
   }
 

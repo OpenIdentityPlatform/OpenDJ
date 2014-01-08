@@ -225,7 +225,7 @@ public class LocalBackendModifyDNOperation
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
             psearch.processModifyDN(newEntry, getChangeNumber(), currentEntry
-                .getDN());
+                .getName());
           }
 
           // Notify change listeners.
@@ -705,7 +705,7 @@ public class LocalBackendModifyDNOperation
           }
           else
           {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
+            setProxiedAuthorizationDN(authorizationEntry.getName());
           }
         }
         else if (oid.equals(OID_PROXIED_AUTH_V2))
@@ -729,7 +729,7 @@ public class LocalBackendModifyDNOperation
           }
           else
           {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
+            setProxiedAuthorizationDN(authorizationEntry.getName());
           }
         }
 

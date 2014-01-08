@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -552,7 +552,7 @@ public final class TextAccessLogPublisher extends
           && bindOperation.getSASLAuthUserEntry() != null)
       { // SASL bind and we have successfully found a user entry for auth
         appendLabel(buffer, "authDN", bindOperation.getSASLAuthUserEntry()
-            .getDN());
+            .getName());
       }
       else
       { // SASL bind failed to find user entry for auth or simple bind

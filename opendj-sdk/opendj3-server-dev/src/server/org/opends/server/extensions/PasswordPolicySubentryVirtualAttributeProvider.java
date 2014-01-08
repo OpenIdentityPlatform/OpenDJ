@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -100,7 +100,7 @@ public class PasswordPolicySubentryVirtualAttributeProvider
         {
           TRACER.debugError("Failed to retrieve password " +
                 "policy for user %s: %s",
-                entry.getDN().toString(),
+                entry.getName().toString(),
                 stackTraceToSingleLineString(de));
         }
       }
@@ -112,7 +112,7 @@ public class PasswordPolicySubentryVirtualAttributeProvider
         if (debugEnabled())
         {
           TRACER.debugError("No applicable password policy for user %s", entry
-              .getDN().toString());
+              .getName().toString());
         }
       }
       else if (policy.isPasswordPolicy())
@@ -131,7 +131,7 @@ public class PasswordPolicySubentryVirtualAttributeProvider
         {
           TRACER.debugVerbose("Authentication policy %s found for user %s is "
               + "not a password policy", policy.getDN().toString(), entry
-              .getDN().toString());
+              .getName().toString());
         }
       }
     }

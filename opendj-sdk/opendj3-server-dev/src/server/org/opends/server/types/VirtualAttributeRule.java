@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -266,7 +266,7 @@ public final class VirtualAttributeRule
 
     // If there are any base DNs defined, then the entry must be below
     // one of them.
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
     if (! baseDNs.isEmpty())
     {
       boolean found = false;

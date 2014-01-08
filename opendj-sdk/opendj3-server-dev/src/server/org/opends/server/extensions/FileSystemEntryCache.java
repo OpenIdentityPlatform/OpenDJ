@@ -619,7 +619,7 @@ public class FileSystemEntryCache
       // TODO: Cache the buffer?
       ByteStringBuilder buffer = new ByteStringBuilder();
       entry.encode(buffer, encodeConfig);
-      putEntryToDB(entry.getDN().toNormalizedString(),
+      putEntryToDB(entry.getName().toNormalizedString(),
         backend, entryID, buffer);
     } catch (Exception e) {
       if (debugEnabled()) {
@@ -639,7 +639,7 @@ public class FileSystemEntryCache
       // See if the entry already exists in the cache. If it does, then we
       // will fail and not actually store the entry.
       if (entryCacheIndex.dnMap.containsKey(
-        entry.getDN().toNormalizedString())) {
+        entry.getName().toNormalizedString())) {
         return false;
       }
     } finally {
@@ -649,7 +649,7 @@ public class FileSystemEntryCache
       // TODO: Cache the buffer?
       ByteStringBuilder buffer = new ByteStringBuilder();
       entry.encode(buffer, encodeConfig);
-      return putEntryToDB(entry.getDN().toNormalizedString(),
+      return putEntryToDB(entry.getName().toNormalizedString(),
         backend, entryID, buffer);
     } catch (Exception e) {
       if (debugEnabled()) {

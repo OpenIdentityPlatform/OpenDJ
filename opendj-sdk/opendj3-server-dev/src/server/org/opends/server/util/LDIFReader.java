@@ -361,7 +361,7 @@ public final class LDIFReader implements Closeable
         }
         suffix.removePending(entryDN);
         Message message = ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.
-            get(String.valueOf(entry.getDN()), lastEntryLineNumber,
+            get(String.valueOf(entry.getName()), lastEntryLineNumber,
                 String.valueOf(e));
         logToSkipWriter(lines, message);
         suffix.removePending(entryDN);
@@ -559,7 +559,7 @@ public final class LDIFReader implements Closeable
         }
 
         Message message = ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.
-            get(String.valueOf(entry.getDN()), lastEntryLineNumber,
+            get(String.valueOf(entry.getName()), lastEntryLineNumber,
                 String.valueOf(e));
         throw new LDIFException(message, lastEntryLineNumber, true, e);
       }
@@ -1337,7 +1337,7 @@ public final class LDIFReader implements Closeable
           rejectWriter.write(message.toString());
           rejectWriter.newLine();
         }
-        rejectWriter.write(e.getDN().toString());
+        rejectWriter.write(e.getName().toString());
         rejectWriter.newLine();
         List<StringBuilder> eLDIF = e.toLDIF();
         for(StringBuilder l : eLDIF) {

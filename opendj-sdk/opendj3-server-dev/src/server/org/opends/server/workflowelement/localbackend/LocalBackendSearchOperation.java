@@ -446,7 +446,7 @@ public class LocalBackendSearchOperation
           }
           else
           {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
+            setProxiedAuthorizationDN(authorizationEntry.getName());
           }
         }
         else if (oid.equals(OID_PROXIED_AUTH_V2))
@@ -470,7 +470,7 @@ public class LocalBackendSearchOperation
           }
           else
           {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
+            setProxiedAuthorizationDN(authorizationEntry.getName());
           }
         }
         else if (oid.equals(OID_PERSISTENT_SEARCH))

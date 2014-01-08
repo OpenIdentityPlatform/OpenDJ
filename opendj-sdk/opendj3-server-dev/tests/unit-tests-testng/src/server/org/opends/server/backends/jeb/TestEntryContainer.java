@@ -166,7 +166,7 @@ public class TestEntryContainer extends JebTestCase {
 
       for (Entry entry : entryList) {
         entryContainer.addEntry(entry, null);
-        Entry afterEntry = entryContainer.getEntry(entry.getDN());
+        Entry afterEntry = entryContainer.getEntry(entry.getName());
         assertTrue(afterEntry != null);
       }
       actualHighestID = entryContainer.getHighestEntryID();

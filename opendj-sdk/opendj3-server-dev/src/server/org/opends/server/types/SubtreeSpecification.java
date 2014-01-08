@@ -1616,7 +1616,7 @@ public final class SubtreeSpecification
   public boolean isWithinScope(final Entry entry)
   {
 
-    if (isDNWithinScope(entry.getDN()))
+    if (isDNWithinScope(entry.getName()))
     {
       if (refinements != null)
       {

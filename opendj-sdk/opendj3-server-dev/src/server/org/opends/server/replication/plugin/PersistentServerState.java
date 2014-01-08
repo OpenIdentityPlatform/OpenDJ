@@ -298,7 +298,7 @@ public class PersistentServerState
       SearchResultEntry configEntry = searchConfigEntry();
       if (configEntry != null)
       {
-        DN configDN = configEntry.getDN();
+        DN configDN = configEntry.getName();
         result = runUpdateStateEntry(configDN);
       }
     }

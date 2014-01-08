@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -187,14 +187,14 @@ public class StaticGroup
       if (groupEntry.hasObjectClass(groupOfNamesClass))
       {
         Message message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
-            get(String.valueOf(groupEntry.getDN()), OC_GROUP_OF_ENTRIES,
+            get(String.valueOf(groupEntry.getName()), OC_GROUP_OF_ENTRIES,
                 OC_GROUP_OF_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
       else if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
       {
         Message message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
-            get(String.valueOf(groupEntry.getDN()), OC_GROUP_OF_ENTRIES,
+            get(String.valueOf(groupEntry.getName()), OC_GROUP_OF_ENTRIES,
                 OC_GROUP_OF_UNIQUE_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
@@ -207,7 +207,7 @@ public class StaticGroup
       if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
       {
         Message message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
-            get(String.valueOf(groupEntry.getDN()), OC_GROUP_OF_NAMES,
+            get(String.valueOf(groupEntry.getName()), OC_GROUP_OF_NAMES,
                 OC_GROUP_OF_UNIQUE_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
@@ -223,7 +223,7 @@ public class StaticGroup
     else
     {
       Message message = ERR_STATICGROUP_NO_VALID_OC.
-          get(String.valueOf(groupEntry.getDN()), OC_GROUP_OF_NAMES,
+          get(String.valueOf(groupEntry.getName()), OC_GROUP_OF_NAMES,
               OC_GROUP_OF_UNIQUE_NAMES);
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
@@ -261,7 +261,8 @@ public class StaticGroup
             Message message = ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN.
                 get(v.getValue().toString(),
                     someMemberAttributeType.getNameOrOID(),
-                    String.valueOf(groupEntry.getDN()), de.getMessageObject());
+                    String.valueOf(groupEntry.getName()),
+                    de.getMessageObject());
             ErrorLogger.logError(message);
           }
         }
@@ -269,7 +270,7 @@ public class StaticGroup
     }
 
 
-    return new StaticGroup(groupEntry.getDN(),
+    return new StaticGroup(groupEntry.getName(),
             someMemberAttributeType, someMemberDNs);
   }
 
@@ -561,7 +562,7 @@ public class StaticGroup
   public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
          throws DirectoryException
   {
-    return isMember(userEntry.getDN(), examinedGroups);
+    return isMember(userEntry.getName(), examinedGroups);
   }
 
 
@@ -675,7 +676,7 @@ public class StaticGroup
 
     synchronized (this)
     {
-      DN userDN = userEntry.getDN();
+      DN userDN = userEntry.getName();
       ByteString userDNString = ByteString.valueOf(userDN.toNormalizedString());
 
       if (memberDNs.contains(userDNString))

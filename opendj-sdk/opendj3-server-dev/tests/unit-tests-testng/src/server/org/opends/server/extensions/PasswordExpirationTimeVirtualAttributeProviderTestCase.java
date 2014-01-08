@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2012 profiq, s.r.o.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -66,7 +67,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
                                          "sn: User",
                                          "userPassword: password",
                                          "createTimestamp: 20120315163235Z");
-    
+
     expired = TestCaseUtils.makeEntry("dn: uid=tuser," + TestCaseUtils.TEST_ROOT_DN_STRING,
                                        "objectClass: top",
                                        "objectClass: person",
@@ -99,7 +100,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
                            "pwdMaxAge: 2592000", // 30 days
                            "subtreeSpecification: {minimum 1, specificationFilter \"(objectclass=*)\"}");
 
-    
+
     long expirationTime = getTimeValueFromAttribute("ds-pwp-password-expiration-time");
     long createTime = getTimeValueFromAttribute("pwdchangedtime");
     assertEquals(expirationTime, createTime + 2592000000L);
@@ -143,7 +144,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
   public void testPwPolicyExpiring() throws Exception
   {
     TestCaseUtils.addEntry(notExpired);
-    
+
     TestCaseUtils.addEntry("dn: cn=Subentry Password Policy,"  + TestCaseUtils.TEST_ROOT_DN_STRING,
                            "objectClass: top",
                            "objectClass: subentry",
@@ -168,7 +169,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
   public void testPwPolicyExpired() throws Exception
   {
     TestCaseUtils.addEntry(expired);
-    
+
     TestCaseUtils.addEntry("dn: cn=Subentry Password Policy,"  + TestCaseUtils.TEST_ROOT_DN_STRING,
                            "objectClass: top",
                            "objectClass: subentry",
@@ -209,7 +210,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
     // Process the search request
 
     InternalSearchOperation search =
-      conn.processSearch(notExpired.getDN().toString(),
+      conn.processSearch(notExpired.getName().toString(),
                          SearchScope.BASE_OBJECT,
                          DereferencePolicy.DEREF_ALWAYS,
                          0,
@@ -239,7 +240,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
     AttributeValue val = it.next();
 
     conn.disconnect(DisconnectReason.UNBIND, true, Message.EMPTY);
-    
+
     return
       GeneralizedTimeSyntax.decodeGeneralizedTimeValue(val.getValue());
   }

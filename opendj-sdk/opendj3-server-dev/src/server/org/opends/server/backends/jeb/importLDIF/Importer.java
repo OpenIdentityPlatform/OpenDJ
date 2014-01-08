@@ -1512,7 +1512,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         DirectoryException, JebException, InterruptedException
 
     {
-      DN entryDN = entry.getDN();
+      DN entryDN = entry.getName();
       DN2ID dn2id = suffix.getDN2ID();
       EntryID oldID = dn2id.get(null, entryDN, LockMode.DEFAULT);
       if (oldID != null)
@@ -1640,7 +1640,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         InterruptedException
 
     {
-      DN entryDN = entry.getDN();
+      DN entryDN = entry.getName();
       if (!skipDNValidation)
       {
         if (!dnSanityCheck(entryDN, entry, suffix))
@@ -3952,7 +3952,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       if (dn2id != null)
       {
-        processDN2ID(suffix, entry.getDN(), entryID);
+        processDN2ID(suffix, entry.getName(), entryID);
       }
       if (dn2uri != null)
       {

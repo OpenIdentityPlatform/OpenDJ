@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -690,7 +690,8 @@ public class EntryHistorical
                * Log information for the repair tool.
                */
               Message message = ERR_UNKNOWN_ATTRIBUTE_IN_HISTORICAL.get(
-                  entry.getDN().toNormalizedString(), histVal.getAttrString());
+                  entry.getName().toNormalizedString(),
+                  histVal.getAttrString());
               logError(message);
               continue;
             }
@@ -733,7 +734,7 @@ public class EntryHistorical
       // Any exception happening here means that the coding of the historical
       // information was wrong.
       // Log an error and continue with an empty historical.
-      Message message = ERR_BAD_HISTORICAL.get(entry.getDN().toString());
+      Message message = ERR_BAD_HISTORICAL.get(entry.getName().toString());
       logError(message);
     }
 
@@ -800,7 +801,7 @@ public class EntryHistorical
             {
               String uuidString = getEntryUUID(entry);
               FakeModifyOperation modifyFakeOperation =
-                  new FakeModifyOperation(entry.getDN(), csn, uuidString);
+                  new FakeModifyOperation(entry.getName(), csn, uuidString);
               modifyFakeOperation.addModification(mod);
               operations.put(histVal.getCSN(), modifyFakeOperation);
             }
@@ -839,7 +840,7 @@ public class EntryHistorical
       DirectoryServer.getSchema().getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidAttrs =
              entry.getOperationalAttribute(entryuuidAttrType);
-    return extractEntryUUID(uuidAttrs, entry.getDN());
+    return extractEntryUUID(uuidAttrs, entry.getName());
   }
 
   /**

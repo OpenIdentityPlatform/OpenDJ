@@ -286,7 +286,7 @@ public class MonitorTest extends ReplicationTestCase
 
     // Create and publish an update message to add an entry.
     return new AddMsg(csn,
-        personWithUUIDEntry.getDN(),
+        personWithUUIDEntry.getName(),
         user1entryUUID,
         baseUUID,
         personWithUUIDEntry.getObjectClassAttribute(),

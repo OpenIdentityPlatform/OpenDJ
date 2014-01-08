@@ -353,7 +353,7 @@ public final class TestLDIFWriter extends UtilTestCase {
     Entry readEntry = reader.readEntry();
     reader.close();
 
-    Assert.assertEquals(readEntry.getDN(), entry.getDN());
+    Assert.assertEquals(readEntry.getName(), entry.getName());
   }
 
   /**
@@ -380,7 +380,7 @@ public final class TestLDIFWriter extends UtilTestCase {
     reader.close();
 
     Assert.assertTrue(add instanceof AddChangeRecordEntry);
-    Assert.assertEquals(add.getDN(), entry.getDN());
+    Assert.assertEquals(add.getDN(), entry.getName());
   }
 
   /**
@@ -438,7 +438,7 @@ public final class TestLDIFWriter extends UtilTestCase {
     ldifWriter.writeDeleteChangeRecord(entry, false);
 
     String[] expectedLDIF = new String[] {
-      "dn: " + entry.getDN(),
+      "dn: " + entry.getName(),
       "changetype: delete"
     };
 

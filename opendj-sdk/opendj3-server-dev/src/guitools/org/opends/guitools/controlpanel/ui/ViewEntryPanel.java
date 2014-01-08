@@ -342,7 +342,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   protected void addValuesInRDN(Entry entry)
   {
 //  Add the values in the RDN if  they are not there
-    RDN rdn = entry.getDN().rdn();
+    RDN rdn = entry.getName().rdn();
     for (int i=0; i<rdn.getNumValues(); i++)
     {
       String attrName = rdn.getAttributeName(i);

@@ -533,7 +533,7 @@ public class TaskBackend
     Entry e = entry.duplicate(false);
 
     // Get the DN for the entry and then get its parent.
-    DN entryDN = e.getDN();
+    DN entryDN = e.getName();
     DN parentDN = entryDN.getParentDNInSuffix();
 
     if (parentDN == null)
@@ -660,7 +660,7 @@ public class TaskBackend
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
-    DN entryDN = newEntry.getDN();
+    DN entryDN = newEntry.getName();
 
     Lock entryLock = null;
     if (! taskScheduler.holdsSchedulerLock())
