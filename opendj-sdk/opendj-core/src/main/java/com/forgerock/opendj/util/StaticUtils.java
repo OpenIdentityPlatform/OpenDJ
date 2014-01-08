@@ -2342,7 +2342,7 @@ public final class StaticUtils {
      *         space if the provided byte does not have printable ASCII
      *         representation.
      */
-    private static char byteToASCII(final byte b) {
+    public static char byteToASCII(final byte b) {
         if (b >= 32 && b <= 126) {
             return (char) b;
         }
