@@ -998,7 +998,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         if (!ava.getAttributeType().getNames().iterator().hasNext()) {
             builder.append(ava.getAttributeType().getOID());
             builder.append("=#");
-            StaticUtils.toHex(value, builder);
+            builder.append(value.toHexString());
         } else {
             final String name = ava.getAttributeType().getNameOrOID();
             // Normalizing.
@@ -1009,7 +1009,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             final Syntax syntax = ava.getAttributeType().getSyntax();
             if (!syntax.isHumanReadable()) {
                 builder.append("#");
-                StaticUtils.toHex(value, builder);
+                builder.append(value.toHexString());
             } else {
                 final String str = value.toString();
                 if (str.length() == 0) {

@@ -531,7 +531,7 @@ public final class AVA implements Comparable<AVA> {
             // octet string.
             try {
                 reader.reset();
-                return ByteString.wrap(hexStringToByteArray(reader.read(length)));
+                return ByteString.valueOfHex(reader.read(length));
             } catch (final Exception e) {
                 final LocalizableMessage message =
                         ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(reader.getString(), String
@@ -738,7 +738,7 @@ public final class AVA implements Comparable<AVA> {
         if (!attributeType.getNames().iterator().hasNext()) {
             builder.append(attributeType.getOID());
             builder.append("=#");
-            StaticUtils.toHex(attributeValue, builder);
+            builder.append(attributeValue.toHexString());
         } else {
             final String name = attributeType.getNameOrOID();
             builder.append(name);
@@ -747,7 +747,7 @@ public final class AVA implements Comparable<AVA> {
             final Syntax syntax = attributeType.getSyntax();
             if (!syntax.isHumanReadable()) {
                 builder.append("#");
-                StaticUtils.toHex(attributeValue, builder);
+                builder.append(attributeValue.toHexString());
             } else {
                 escapeAttributeValue(attributeValue.toString(), builder);
             }

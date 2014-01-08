@@ -28,7 +28,6 @@ package org.forgerock.opendj.ldap.controls;
 
 import org.forgerock.opendj.ldap.ByteString;
 
-import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.util.Reject;
 
 /**
@@ -168,7 +167,7 @@ public final class GenericControl implements Control {
         builder.append(isCritical());
         if (value != null) {
             builder.append(", value=");
-            StaticUtils.toHexPlusAscii(value, builder, 4);
+            builder.append(value.toHexPlusAsciiString(4));
         }
         builder.append(")");
         return builder.toString();

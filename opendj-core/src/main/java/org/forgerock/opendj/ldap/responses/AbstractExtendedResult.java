@@ -30,8 +30,6 @@ package org.forgerock.opendj.ldap.responses;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 
-import com.forgerock.opendj.util.StaticUtils;
-
 /**
  * An abstract Extended result which can be used as the basis for implementing
  * new Extended operations.
@@ -91,7 +89,7 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult> extends
         builder.append(getOID() == null ? "" : getOID());
         if (hasValue()) {
             builder.append(", responseValue=");
-            StaticUtils.toHexPlusAscii(getValue(), builder, 4);
+            builder.append(getValue().toHexPlusAsciiString(4));
         }
         builder.append(", controls=");
         builder.append(getControls());

@@ -28,8 +28,6 @@
 package com.forgerock.opendj.util;
 
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_CHARACTER;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_LENGTH;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -1529,37 +1527,6 @@ public final class StaticUtils {
     }
 
     /**
-     * Converts the provided hexadecimal string to a byte array.
-     *
-     * @param hexString
-     *            The hexadecimal string to convert to a byte array.
-     * @return The byte array containing the binary representation of the
-     *         provided hex string.
-     * @throws java.text.ParseException
-     *             If the provided string contains invalid hexadecimal digits or
-     *             does not contain an even number of digits.
-     */
-    public static byte[] hexStringToByteArray(final String hexString) throws ParseException {
-        int length;
-        if (hexString == null || (length = hexString.length()) == 0) {
-            return new byte[0];
-        }
-
-        if (length % 2 != 0) {
-            final LocalizableMessage message = ERR_HEX_DECODE_INVALID_LENGTH.get(hexString);
-            throw new ParseException(message.toString(), 0);
-        }
-
-        final int arrayLength = length / 2;
-        final byte[] returnArray = new byte[arrayLength];
-        for (int i = 0; i < arrayLength; i++) {
-            returnArray[i] = hexToByte(hexString.charAt(i * 2), hexString.charAt(i * 2 + 1));
-        }
-
-        return returnArray;
-    }
-
-    /**
      * Converts the provided pair of characters to a byte.
      *
      * @param c1
@@ -1910,131 +1877,6 @@ public final class StaticUtils {
 
             buffer.append(")");
         }
-    }
-
-    /**
-     * Returns a string representation of the contents of the provided byte
-     * sequence using hexadecimal characters and a space between each byte.
-     *
-     * @param bytes
-     *            The byte sequence.
-     * @return A string representation of the contents of the provided byte
-     *         sequence using hexadecimal characters.
-     */
-    public static String toHex(final ByteSequence bytes) {
-        return toHex(bytes, new StringBuilder((bytes.length() - 1) * 3 + 2)).toString();
-    }
-
-    /**
-     * Appends the string representation of the contents of the provided byte
-     * sequence to a string builder using hexadecimal characters and a space
-     * between each byte.
-     *
-     * @param bytes
-     *            The byte sequence.
-     * @param builder
-     *            The string builder to which the hexadecimal representation of
-     *            {@code bytes} should be appended.
-     * @return The string builder.
-     */
-    public static StringBuilder toHex(final ByteSequence bytes, final StringBuilder builder) {
-        final int length = bytes.length();
-        builder.ensureCapacity(builder.length() + (length - 1) * 3 + 2);
-        builder.append(StaticUtils.byteToHex(bytes.byteAt(0)));
-        for (int i = 1; i < length; i++) {
-            builder.append(" ");
-            builder.append(StaticUtils.byteToHex(bytes.byteAt(i)));
-        }
-        return builder;
-    }
-
-    /**
-     * Appends a string representation of the data in the provided byte sequence
-     * to the given string builder using the specified indent.
-     * <p>
-     * The data will be formatted with sixteen hex bytes in a row followed by
-     * the ASCII representation, then wrapping to a new line as necessary. The
-     * state of the byte buffer is not changed.
-     *
-     * @param bytes
-     *            The byte sequence.
-     * @param builder
-     *            The string builder to which the information is to be appended.
-     * @param indent
-     *            The number of spaces to indent the output.
-     * @return The string builder.
-     */
-    public static StringBuilder toHexPlusAscii(final ByteSequence bytes,
-            final StringBuilder builder, final int indent) {
-        final StringBuilder indentBuf = new StringBuilder(indent);
-        for (int i = 0; i < indent; i++) {
-            indentBuf.append(' ');
-        }
-
-        final int length = bytes.length();
-        int pos = 0;
-        while (length - pos >= 16) {
-            final StringBuilder asciiBuf = new StringBuilder(17);
-
-            byte currentByte = bytes.byteAt(pos);
-            builder.append(indentBuf);
-            builder.append(StaticUtils.byteToHex(currentByte));
-            asciiBuf.append(byteToASCII(currentByte));
-            pos++;
-
-            for (int i = 1; i < 16; i++, pos++) {
-                currentByte = bytes.byteAt(pos);
-                builder.append(' ');
-                builder.append(StaticUtils.byteToHex(currentByte));
-                asciiBuf.append(byteToASCII(currentByte));
-
-                if (i == 7) {
-                    builder.append("  ");
-                    asciiBuf.append(' ');
-                }
-            }
-
-            builder.append("  ");
-            builder.append(asciiBuf);
-            builder.append(EOL);
-        }
-
-        final int remaining = length - pos;
-        if (remaining > 0) {
-            final StringBuilder asciiBuf = new StringBuilder(remaining + 1);
-
-            byte currentByte = bytes.byteAt(pos);
-            builder.append(indentBuf);
-            builder.append(StaticUtils.byteToHex(currentByte));
-            asciiBuf.append(byteToASCII(currentByte));
-            pos++;
-
-            for (int i = 1; i < 16; i++, pos++) {
-                builder.append(' ');
-
-                if (i < remaining) {
-                    currentByte = bytes.byteAt(pos);
-                    builder.append(StaticUtils.byteToHex(currentByte));
-                    asciiBuf.append(byteToASCII(currentByte));
-                } else {
-                    builder.append("  ");
-                }
-
-                if (i == 7) {
-                    builder.append("  ");
-
-                    if (i < remaining) {
-                        asciiBuf.append(' ');
-                    }
-                }
-            }
-
-            builder.append("  ");
-            builder.append(asciiBuf);
-            builder.append(EOL);
-        }
-
-        return builder;
     }
 
     /**

@@ -31,8 +31,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
 
-import com.forgerock.opendj.util.StaticUtils;
-
 /**
  * An abstract Extended request which can be used as the basis for implementing
  * new Extended operations.
@@ -84,7 +82,7 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
         builder.append(getOID());
         if (hasValue()) {
             builder.append(", requestValue=");
-            StaticUtils.toHexPlusAscii(getValue(), builder, 4);
+            builder.append(getValue().toHexPlusAsciiString(4));
         }
         builder.append(", controls=");
         builder.append(getControls());

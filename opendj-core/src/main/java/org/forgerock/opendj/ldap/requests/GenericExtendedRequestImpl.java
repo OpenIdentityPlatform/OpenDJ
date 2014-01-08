@@ -38,7 +38,6 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
 import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 
-import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.util.Reject;
 
 /**
@@ -154,7 +153,7 @@ final class GenericExtendedRequestImpl extends
         builder.append(getOID());
         if (hasValue()) {
             builder.append(", requestValue=");
-            StaticUtils.toHexPlusAscii(getValue(), builder, 4);
+            builder.append(getValue().toHexPlusAsciiString(4));
         }
         builder.append(", controls=");
         builder.append(getControls());
