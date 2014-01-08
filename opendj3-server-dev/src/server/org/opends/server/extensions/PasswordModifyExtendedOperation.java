@@ -309,7 +309,7 @@ public class PasswordModifyExtendedOperation
 
 
         // Retrieve a write lock on that user's entry.
-        userDN = requestorEntry.getDN();
+        userDN = requestorEntry.getName();
 
         userLock = LockManager.lockWrite(userDN);
         if (userLock == null)
@@ -373,7 +373,7 @@ public class PasswordModifyExtendedOperation
               return;
             }
 
-            userDN = userEntry.getDN();
+            userDN = userEntry.getName();
           }
           catch (DirectoryException de)
           {
@@ -437,7 +437,7 @@ public class PasswordModifyExtendedOperation
             return;
           }
 
-          userDN = userEntry.getDN();
+          userDN = userEntry.getName();
         }
       }
 
@@ -490,7 +490,7 @@ public class PasswordModifyExtendedOperation
       }
       else
       {
-        selfChange = userDN.equals(requestorEntry.getDN());
+        selfChange = userDN.equals(requestorEntry.getName());
       }
 
       if (! selfChange)
@@ -991,7 +991,7 @@ public class PasswordModifyExtendedOperation
       }
 
       // Get an internal connection and use it to perform the modification.
-      boolean isRoot = DirectoryServer.isRootDN(requestorEntry.getDN());
+      boolean isRoot = DirectoryServer.isRootDN(requestorEntry.getName());
       AuthenticationInfo authInfo = new AuthenticationInfo(requestorEntry,
                                                            isRoot);
       InternalClientConnection internalConnection = new

@@ -118,7 +118,7 @@ public class MonitorBackend extends Backend implements
       throws DirectoryException
   {
     final Message message = ERR_MONITOR_ADD_NOT_SUPPORTED.get(String
-        .valueOf(entry.getDN()));
+        .valueOf(entry.getName()));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -717,7 +717,7 @@ public class MonitorBackend extends Backend implements
       final ModifyOperation modifyOperation) throws DirectoryException
   {
     final Message message = ERR_MONITOR_MODIFY_NOT_SUPPORTED.get(
-        String.valueOf(newEntry.getDN()), String.valueOf(configEntryDN));
+        String.valueOf(newEntry.getName()), String.valueOf(configEntryDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 

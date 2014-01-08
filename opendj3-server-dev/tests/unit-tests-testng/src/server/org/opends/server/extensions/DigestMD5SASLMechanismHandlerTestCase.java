@@ -231,7 +231,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -282,7 +282,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -333,7 +333,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -384,7 +384,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -433,7 +433,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -482,7 +482,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -531,7 +531,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -580,7 +580,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -629,7 +629,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -843,7 +843,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -863,7 +863,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
 
 
-    DeleteOperation deleteOperation = conn.processDelete(e.getDN());
+    DeleteOperation deleteOperation = conn.processDelete(e.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -274,7 +274,7 @@ public class LDIFModify
 
       // If the entry is to be deleted, then just skip over it without writing
       // it to the output.
-      DN entryDN = entry.getDN();
+      DN entryDN = entry.getName();
       if (deletes.remove(entryDN) != null)
       {
         continue;
@@ -310,7 +310,7 @@ public class LDIFModify
 
       // If we've gotten here, then the (possibly updated) entry should be
       // written to the LDIF entry Map.
-      ldifEntries.put(entry.getDN(),entry);
+      ldifEntries.put(entry.getName(),entry);
     }
 
 
@@ -362,7 +362,7 @@ public class LDIFModify
       Entry e = new Entry(add.getDN(), objectClasses, userAttributes,
                           operationalAttributes);
       //Put the entry to be added into the LDIF entry map.
-      ldifEntries.put(e.getDN(),e);
+      ldifEntries.put(e.getName(),e);
     }
 
 

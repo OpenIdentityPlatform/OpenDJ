@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -731,7 +732,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -803,7 +804,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -951,7 +952,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -1015,7 +1016,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -1252,7 +1253,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -1314,7 +1315,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -1391,7 +1392,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -1453,7 +1454,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -1767,7 +1768,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -2240,7 +2241,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -2309,7 +2310,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -2381,7 +2382,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -2442,7 +2443,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -2518,7 +2519,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -2582,7 +2583,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -2662,7 +2663,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -3306,7 +3307,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -3376,7 +3377,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -3766,7 +3767,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -3824,7 +3825,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -3966,7 +3967,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -4061,7 +4062,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -4123,7 +4124,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -4183,7 +4184,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -4249,7 +4250,7 @@ public class LDAPAuthenticationHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 

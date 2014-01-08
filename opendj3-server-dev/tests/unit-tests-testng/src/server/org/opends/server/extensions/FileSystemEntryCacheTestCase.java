@@ -525,8 +525,8 @@ public class FileSystemEntryCacheTestCase
     // Make sure first NUMTESTENTRIES - MAXENTRIES got rotated.
     for(int i = 0; i < (super.NUMTESTENTRIES - super.MAXENTRIES); i++ ) {
       assertFalse(super.cache.containsEntry(
-        super.testEntriesList.get(i).getDN()), "Not expected to find " +
-        super.testEntriesList.get(i).getDN().toString() + " in the " +
+        super.testEntriesList.get(i).getName()), "Not expected to find " +
+        super.testEntriesList.get(i).getName().toString() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
         cache.toVerboseString());
     }
@@ -537,8 +537,8 @@ public class FileSystemEntryCacheTestCase
         i++)
     {
       assertTrue(super.cache.containsEntry(
-        super.testEntriesList.get(i).getDN()), "Expected to find " +
-        super.testEntriesList.get(i).getDN().toString() + " in the " +
+        super.testEntriesList.get(i).getName()), "Expected to find " +
+        super.testEntriesList.get(i).getName().toString() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
         cache.toVerboseString());
     }
@@ -566,25 +566,25 @@ public class FileSystemEntryCacheTestCase
       // Sacrifice one cache entry to support rotation.
       for(int j = 0; j < (super.MAXENTRIES - 1); j++) {
         // Generate access.
-        super.cache.getEntry(super.testEntriesList.get(j).getDN());
+        super.cache.getEntry(super.testEntriesList.get(j).getName());
       }
     }
 
     // Make sure MAXENTRIES - 1 are still in the cache.
     for(int i = 0; i < (super.MAXENTRIES - 1); i++) {
         assertTrue(super.cache.containsEntry(
-          super.testEntriesList.get(i).getDN()),
+          super.testEntriesList.get(i).getName()),
           "Expected to find " +
-          super.testEntriesList.get(i).getDN().toString() + " in the " +
+          super.testEntriesList.get(i).getName().toString() + " in the " +
           "cache.  Cache contents:" + ServerConstants.EOL +
           cache.toVerboseString());
     }
 
     // Plus the last cache entry added.
     assertTrue(super.cache.containsEntry(
-      super.testEntriesList.get(super.NUMTESTENTRIES - 1).getDN()),
+      super.testEntriesList.get(super.NUMTESTENTRIES - 1).getName()),
       "Expected to find " +
-      super.testEntriesList.get(super.NUMTESTENTRIES - 1).getDN().toString() +
+      super.testEntriesList.get(super.NUMTESTENTRIES - 1).getName().toString() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -593,9 +593,9 @@ public class FileSystemEntryCacheTestCase
         i < (super.NUMTESTENTRIES - 1);
         i++) {
         assertFalse(super.cache.containsEntry(
-          super.testEntriesList.get(i).getDN()),
+          super.testEntriesList.get(i).getName()),
           "Not expected to find " +
-          super.testEntriesList.get(i).getDN().toString() + " in the " +
+          super.testEntriesList.get(i).getName().toString() + " in the " +
           "cache.  Cache contents:" + ServerConstants.EOL +
           cache.toVerboseString());
     }
@@ -641,9 +641,9 @@ public class FileSystemEntryCacheTestCase
     // Check that this cache is persistent indeed.
     for(int i = 0; i < super.NUMTESTENTRIES; i++) {
       assertTrue(super.cache.containsEntry(
-          super.testEntriesList.get(i).getDN()),
+          super.testEntriesList.get(i).getName()),
           "Expected to find " +
-          super.testEntriesList.get(i).getDN().toString() + " in the " +
+          super.testEntriesList.get(i).getName().toString() + " in the " +
           "cache.  Cache contents:" + ServerConstants.EOL +
           cache.toVerboseString());
     }
@@ -706,9 +706,9 @@ public class FileSystemEntryCacheTestCase
     // Check that this cache is persistent indeed.
     for(int i = 0; i < super.NUMTESTENTRIES; i++) {
       assertFalse(super.cache.containsEntry(
-          super.testEntriesList.get(i).getDN()),
+          super.testEntriesList.get(i).getName()),
           "Not expected to find " +
-          super.testEntriesList.get(i).getDN().toString() + " in the " +
+          super.testEntriesList.get(i).getName().toString() + " in the " +
           "cache.  Cache contents:" + ServerConstants.EOL +
           cache.toVerboseString());
     }

@@ -147,7 +147,7 @@ public class AciList {
     try
     {
       for (Entry entry : entries) {
-        DN dn=entry.getDN();
+        DN dn=entry.getName();
         List<Attribute> attributeList =
              entry.getOperationalAttribute(AciHandler.aciType);
         validAcis += addAciAttributeList(aciList, dn, configDN,
@@ -205,7 +205,7 @@ public class AciList {
       //Process global "ds-cfg-global-aci" attribute type. The oldentry
       //DN is checked to verify it is equal to the config DN. If not those
       //attributes are skipped.
-      if(hasGlobalAci && entry.getDN().equals(configDN)) {
+      if(hasGlobalAci && entry.getName().equals(configDN)) {
           List<Attribute> attributeList = entry.getAttribute(globalAciType);
           validAcis = addAciAttributeList(aciList, DN.rootDN(), configDN,
                                           attributeList, failedACIMsgs);
@@ -213,7 +213,7 @@ public class AciList {
 
       if(hasAci) {
           List<Attribute> attributeList = entry.getAttribute(aciType);
-          validAcis += addAciAttributeList(aciList, entry.getDN(), configDN,
+          validAcis += addAciAttributeList(aciList, entry.getName(), configDN,
                                            attributeList, failedACIMsgs);
       }
     }
@@ -298,16 +298,16 @@ public class AciList {
       LinkedList<Message>failedACIMsgs=new LinkedList<Message>();
       //Process "aci" attribute types.
       if(hasAci) {
-          aciList.remove(oldEntry.getDN());
+          aciList.remove(oldEntry.getName());
           List<Attribute> attributeList =
                   newEntry.getOperationalAttribute(aciType);
-          addAciAttributeList(aciList,newEntry.getDN(), configDN,
+          addAciAttributeList(aciList,newEntry.getName(), configDN,
                               attributeList, failedACIMsgs);
       }
       //Process global "ds-cfg-global-aci" attribute type. The oldentry
       //DN is checked to verify it is equal to the config DN. If not those
       //attributes are skipped.
-      if(hasGlobalAci && oldEntry.getDN().equals(configDN)) {
+      if(hasGlobalAci && oldEntry.getName().equals(configDN)) {
           aciList.remove(DN.rootDN());
           List<Attribute> attributeList =
                   newEntry.getAttribute(globalAciType);
@@ -354,7 +354,7 @@ public class AciList {
    */
   public boolean removeAci(Entry entry,  boolean hasAci,
                                                       boolean hasGlobalAci) {
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
 
     lock.writeLock().lock();
     try

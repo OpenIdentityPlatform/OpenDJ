@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -151,7 +152,7 @@ public class VirtualStaticGroup
           if (targetDN != null)
           {
             Message message = ERR_VIRTUAL_STATIC_GROUP_MULTIPLE_TARGETS.get(
-                String.valueOf(groupEntry.getDN()));
+                String.valueOf(groupEntry.getName()));
             throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
                                          message);
           }
@@ -168,7 +169,8 @@ public class VirtualStaticGroup
             }
 
             Message message = ERR_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET.
-                get(v.getValue().toString(), String.valueOf(groupEntry.getDN()),
+                get(v.getValue().toString(),
+                    String.valueOf(groupEntry.getName()),
                     de.getMessageObject());
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, de);
@@ -180,11 +182,11 @@ public class VirtualStaticGroup
     if (targetDN == null)
     {
       Message message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET.get(
-          String.valueOf(groupEntry.getDN()));
+          String.valueOf(groupEntry.getName()));
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
-    return new VirtualStaticGroup(groupEntry.getDN(), targetDN);
+    return new VirtualStaticGroup(groupEntry.getName(), targetDN);
   }
 
 

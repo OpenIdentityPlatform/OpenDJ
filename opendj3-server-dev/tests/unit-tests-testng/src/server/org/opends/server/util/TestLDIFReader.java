@@ -321,7 +321,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
 
-      Assert.assertEquals(entry.getDN(), DN
+      Assert.assertEquals(entry.getName(), DN
           .valueOf("cn=john, dc=foo, dc=com"));
       Assert.assertTrue(entry.hasObjectClass(OC_TOP));
       Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
@@ -415,7 +415,7 @@ public final class TestLDIFReader extends UtilTestCase {
 
       Assert.assertNotNull(entry);
 
-      Assert.assertEquals(entry.getDN(), DN
+      Assert.assertEquals(entry.getName(), DN
           .valueOf("cn=anne, dc=foo, dc=com"));
       Assert.assertTrue(entry.hasObjectClass(OC_TOP));
       Assert.assertTrue(entry.hasObjectClass(OC_PERSON));

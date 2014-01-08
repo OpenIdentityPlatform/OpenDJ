@@ -301,7 +301,7 @@ public class CryptoManagerSync
   private void handleInstanceKeySearchEntry(SearchResultEntry searchEntry)
        throws DirectoryException
   {
-    RDN srcRDN = searchEntry.getDN().rdn();
+    RDN srcRDN = searchEntry.getName().rdn();
 
     // Only process the entry if it has the expected form of RDN.
     if (!srcRDN.isMultiValued() &&
@@ -416,7 +416,7 @@ public class CryptoManagerSync
     {
       // The trust store backend does not implement modify so we need to
       // delete then add.
-      DN dstDN = dstEntry.getDN();
+      DN dstDN = dstEntry.getName();
       deleteEntry(dstDN);
       addEntry(srcEntry, dstDN);
     }
@@ -522,7 +522,7 @@ public class CryptoManagerSync
 
   private void handleInstanceKeyAddOperation(Entry entry)
   {
-    RDN srcRDN = entry.getDN().rdn();
+    RDN srcRDN = entry.getName().rdn();
 
     // Only process the entry if it has the expected form of RDN.
     if (!srcRDN.isMultiValued() &&
@@ -548,7 +548,7 @@ public class CryptoManagerSync
       return;
     }
 
-    RDN srcRDN = entry.getDN().rdn();
+    RDN srcRDN = entry.getName().rdn();
 
     // Only process the entry if it has the expected form of RDN.
     // FIXME: Technically it is possible to perform a subtree in
@@ -597,7 +597,7 @@ public class CryptoManagerSync
 
   private void handleInstanceKeyModifyOperation(Entry newEntry)
   {
-    RDN srcRDN = newEntry.getDN().rdn();
+    RDN srcRDN = newEntry.getName().rdn();
 
     // Only process the entry if it has the expected form of RDN.
     if (!srcRDN.isMultiValued() &&

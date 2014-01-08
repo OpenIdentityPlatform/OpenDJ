@@ -176,7 +176,7 @@ public class Entry
    *
    * @return  The distinguished name for this entry.
    */
-  public DN getDN()
+  public DN getName()
   {
     return dn;
   }
@@ -2432,7 +2432,7 @@ public class Entry
       }
       else if (! parentProvided)
       {
-        DN parentDN = getDN().getParentDNInSuffix();
+        DN parentDN = getName().getParentDNInSuffix();
         if (parentDN != null)
         {
           // Get the parent entry and check its structural class.
@@ -2518,7 +2518,7 @@ public class Entry
         {
           Message message = ERR_ENTRY_SCHEMA_DSR_NO_PARENT_OC.get(
                   String.valueOf(dn),
-                  String.valueOf(parentEntry.getDN()));
+                  String.valueOf(parentEntry.getName()));
 
           if (structuralPolicy == AcceptRejectWarn.REJECT)
           {
@@ -2547,7 +2547,7 @@ public class Entry
                   Message message =
                        ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR.get(
                                String.valueOf(dn),
-                               String.valueOf(parentEntry.getDN()));
+                               String.valueOf(parentEntry.getName()));
 
                   if (structuralPolicy == AcceptRejectWarn.REJECT)
                   {
@@ -2601,7 +2601,7 @@ public class Entry
     {
       Message message = ERR_ENTRY_SCHEMA_DSR_NO_PARENT_OC.get(
               String.valueOf(dn),
-              String.valueOf(parentEntry.getDN()));
+              String.valueOf(parentEntry.getName()));
 
       if (structuralPolicy == AcceptRejectWarn.REJECT)
       {

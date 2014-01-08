@@ -424,7 +424,7 @@ public class ProxiedAuthV1ControlTestCase
     ProxiedAuthV1Control proxyControl =
          new ProxiedAuthV1Control(DN.valueOf("uid=test,o=test"));
 
-    assertEquals(proxyControl.getAuthorizationEntry().getDN(),
+    assertEquals(proxyControl.getAuthorizationEntry().getName(),
                  DN.valueOf("uid=test,o=test"));
   }
 

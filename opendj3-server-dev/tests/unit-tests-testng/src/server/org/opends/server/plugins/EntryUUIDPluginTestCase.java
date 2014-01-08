@@ -379,11 +379,11 @@ public class EntryUUIDPluginTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    e = DirectoryConfig.getEntry(e.getDN());
+    e = DirectoryConfig.getEntry(e.getName());
     assertNotNull(e);
     assertNotNull(e.getAttribute("entryuuid"));
   }
@@ -411,11 +411,11 @@ public class EntryUUIDPluginTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    e = DirectoryConfig.getEntry(e.getDN());
+    e = DirectoryConfig.getEntry(e.getName());
     assertNotNull(e);
     assertNotNull(e.getAttribute("entryuuid"));
   }

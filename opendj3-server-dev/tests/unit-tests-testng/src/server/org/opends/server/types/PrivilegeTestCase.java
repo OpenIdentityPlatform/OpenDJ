@@ -466,12 +466,12 @@ public class PrivilegeTestCase extends TypesTestCase
       "userPassword: password");
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
-    DN dnToRemove = entry.getDN();
+    DN dnToRemove = entry.getName();
     if (!hasPrivilege)
     {
       dnToRemove = DN.valueOf("cn=Telex Number,cn=Syntaxes,cn=config");
@@ -594,12 +594,12 @@ public class PrivilegeTestCase extends TypesTestCase
       "subtreeSpecification: {}");
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
-    DN dnToRemove = entry.getDN();
+    DN dnToRemove = entry.getName();
     if (!hasPrivilege)
     {
       dnToRemove = DN.valueOf("cn=Subentry Target,o=test");
@@ -718,13 +718,13 @@ public class PrivilegeTestCase extends TypesTestCase
       userDN       = "";
       userPassword = "";
     }
-    else if (authNEntry.getDN().toString().equalsIgnoreCase(INTERNAL_ROOT_DN))
+    else if (authNEntry.getName().toString().equalsIgnoreCase(INTERNAL_ROOT_DN))
     {
       return;
     }
     else
     {
-      userDN       = authNEntry.getDN().toString();
+      userDN       = authNEntry.getName().toString();
       userPassword = "password";
     }
 
@@ -793,13 +793,13 @@ public class PrivilegeTestCase extends TypesTestCase
       userDN       = "";
       userPassword = "";
     }
-    else if (authNEntry.getDN().toString().equalsIgnoreCase(INTERNAL_ROOT_DN))
+    else if (authNEntry.getName().toString().equalsIgnoreCase(INTERNAL_ROOT_DN))
     {
       return;
     }
     else
     {
-      userDN       = authNEntry.getDN().toString();
+      userDN       = authNEntry.getName().toString();
       userPassword = "password";
     }
 
@@ -921,7 +921,7 @@ public class PrivilegeTestCase extends TypesTestCase
     }
     else
     {
-      identifier = authNEntry.getDN().toString();
+      identifier = authNEntry.getName().toString();
       identifier = identifier.replace(',', '-');
       identifier = identifier.replace(' ', '-');
       identifier = identifier.replace('=', '-');
@@ -955,14 +955,14 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-schema-file-name: 05-" + identifier + ".ldif");
 
     AddOperation addOperation =
-         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
                          taskEntry.getUserAttributes(),
                          taskEntry.getOperationalAttributes());
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
     {
-      Task task = getCompletedTask(taskEntry.getDN());
+      Task task = getCompletedTask(taskEntry.getName());
       assertNotNull(task);
       assertTrue(TaskState.isSuccessful(task.getTaskState()));
     }
@@ -1003,14 +1003,14 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-backup-all: TRUE");
 
     AddOperation addOperation =
-         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
                          taskEntry.getUserAttributes(),
                          taskEntry.getOperationalAttributes());
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
     {
-      Task task = getCompletedTask(taskEntry.getDN());
+      Task task = getCompletedTask(taskEntry.getName());
       assertNotNull(task);
       assertTrue(TaskState.isSuccessful(task.getTaskState()));
     }
@@ -1047,14 +1047,14 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-backup-directory-path: bak" + File.separator + "userRoot");
 
     AddOperation addOperation =
-         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
                          taskEntry.getUserAttributes(),
                          taskEntry.getOperationalAttributes());
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
     {
-      Task task = getCompletedTask(taskEntry.getDN());
+      Task task = getCompletedTask(taskEntry.getName());
       assertNotNull(task);
       assertTrue(TaskState.isSuccessful(task.getTaskState()));
     }
@@ -1094,14 +1094,14 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-export-ldif-file: " + tempFilePath);
 
     AddOperation addOperation =
-         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
                          taskEntry.getUserAttributes(),
                          taskEntry.getOperationalAttributes());
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
     {
-      Task task = getCompletedTask(taskEntry.getDN());
+      Task task = getCompletedTask(taskEntry.getName());
       assertNotNull(task);
       assertTrue(TaskState.isSuccessful(task.getTaskState()));
 
@@ -1145,14 +1145,14 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-import-ldif-file: " + path);
 
     AddOperation addOperation =
-         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
                          taskEntry.getUserAttributes(),
                          taskEntry.getOperationalAttributes());
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
     {
-      Task task = getCompletedTask(taskEntry.getDN());
+      Task task = getCompletedTask(taskEntry.getName());
       assertNotNull(task);
       assertTrue(TaskState.isSuccessful(task.getTaskState()));
     }
@@ -1185,14 +1185,14 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-rebuild-index: cn");
 
     AddOperation addOperation =
-         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
                          taskEntry.getUserAttributes(),
                          taskEntry.getOperationalAttributes());
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
     {
-      Task task = getCompletedTask(taskEntry.getDN());
+      Task task = getCompletedTask(taskEntry.getName());
       assertNotNull(task);
       assertTrue(TaskState.isSuccessful(task.getTaskState()));
     }
@@ -1240,7 +1240,7 @@ public class PrivilegeTestCase extends TypesTestCase
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
     AddOperation addOperation = new AddOperationBasis(conn, nextOperationID(), nextMessageID(),
-                          controls, e.getDN(), e.getObjectClasses(),
+                          controls, e.getName(), e.getObjectClasses(),
                           e.getUserAttributes(), e.getOperationalAttributes());
     addOperation.run();
     assertProxyPrivilege(addOperation.getResultCode(), hasProxyPrivilege);
@@ -1257,19 +1257,19 @@ public class PrivilegeTestCase extends TypesTestCase
         Attributes.create("description", "foo")));
 
     ModifyOperation modifyOperation = new ModifyOperationBasis(conn, nextOperationID(), nextMessageID(),
-                             controls, e.getDN(), mods);
+                             controls, e.getName(), mods);
     modifyOperation.run();
     assertProxyPrivilege(modifyOperation.getResultCode(), hasProxyPrivilege);
 
 
     // Try to rename the entry.
     ModifyDNOperation modifyDNOperation = new ModifyDNOperationBasis(conn, nextOperationID(),
-                               nextMessageID(), controls, e.getDN(),
+                               nextMessageID(), controls, e.getName(),
                                RDN.decode("cn=Proxy V1 Test"), true, null);
     modifyDNOperation.run();
     assertProxyPrivilege(modifyOperation.getResultCode(), hasProxyPrivilege);
 
-    DN newEntryDN = e.getDN();
+    DN newEntryDN = e.getName();
     if (hasProxyPrivilege)
     {
       newEntryDN = modifyDNOperation.getNewDN();
@@ -1392,7 +1392,7 @@ public class PrivilegeTestCase extends TypesTestCase
     // with a root connection so we can do other things with it.
     AddOperation addOperation =
          new AddOperationBasis(conn, nextOperationID(), nextMessageID(),
-                          controls, e.getDN(), e.getObjectClasses(),
+                          controls, e.getName(), e.getObjectClasses(),
                           e.getUserAttributes(), e.getOperationalAttributes());
     addOperation.run();
     assertProxyPrivilege(addOperation.getResultCode(), hasProxyPrivilege);
@@ -1410,19 +1410,19 @@ public class PrivilegeTestCase extends TypesTestCase
 
     ModifyOperation modifyOperation =
          new ModifyOperationBasis(conn, nextOperationID(), nextMessageID(),
-                             controls, e.getDN(), mods);
+                             controls, e.getName(), mods);
     modifyOperation.run();
     assertProxyPrivilege(modifyOperation.getResultCode(), hasProxyPrivilege);
 
 
     // Try to rename the entry.
     ModifyDNOperation modifyDNOperation = new ModifyDNOperationBasis(conn, nextOperationID(),
-                               nextMessageID(), controls, e.getDN(),
+                               nextMessageID(), controls, e.getName(),
                                RDN.decode("cn=Proxy V2 Test"), true, null);
     modifyDNOperation.run();
     assertProxyPrivilege(modifyDNOperation.getResultCode(), hasProxyPrivilege);
 
-    DN newEntryDN = e.getDN();
+    DN newEntryDN = e.getName();
     if (hasProxyPrivilege)
     {
       newEntryDN = modifyDNOperation.getNewDN();

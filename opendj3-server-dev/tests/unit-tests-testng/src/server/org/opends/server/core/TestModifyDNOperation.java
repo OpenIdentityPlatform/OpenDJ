@@ -120,28 +120,28 @@ public class TestModifyDNOperation extends OperationTestCase
     );
 
     AddOperation addOperation =
-         connection.processAdd(exampleCom.getDN(),
+         connection.processAdd(exampleCom.getName(),
                                exampleCom.getObjectClasses(),
                                exampleCom.getUserAttributes(),
                                exampleCom.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(exampleCom.getDN()));
+    assertNotNull(DirectoryServer.getEntry(exampleCom.getName()));
 
     addOperation =
-         connection.processAdd(people.getDN(),
+         connection.processAdd(people.getName(),
                                people.getObjectClasses(),
                                people.getUserAttributes(),
                                people.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(people.getDN()));
+    assertNotNull(DirectoryServer.getEntry(people.getName()));
 
     addOperation =
-         connection.processAdd(entry.getDN(),
+         connection.processAdd(entry.getName(),
                                entry.getObjectClasses(),
                                entry.getUserAttributes(),
                                entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(entry.getDN()));
+    assertNotNull(DirectoryServer.getEntry(entry.getName()));
 
     // Add a user capable of using the proxied authorization control.
     TestCaseUtils.addEntry(
@@ -300,7 +300,7 @@ public class TestModifyDNOperation extends OperationTestCase
     final Entry newEntry = DirectoryServer.getEntry(DN.valueOf(entryDN));
     assertNotNull(newEntry);
 
-    final RDN rdn = newEntry.getDN().rdn();
+    final RDN rdn = newEntry.getName().rdn();
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
@@ -383,7 +383,7 @@ public class TestModifyDNOperation extends OperationTestCase
         "uid=user.0,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
 
-    assertEquals(newEntry.getDN().toString(),
+    assertEquals(newEntry.getName().toString(),
         "uid=USER.0,ou=People,dc=example,dc=com");
 
     AttributeType at = DirectoryServer.getAttributeType("uid");
@@ -394,7 +394,7 @@ public class TestModifyDNOperation extends OperationTestCase
 
     // Because deleteOldRDN is true, the values from RDN and the entry have to be identical
     ByteString valueFromEntry = attrList.get(0).iterator().next().getValue();
-    ByteString valueFromRDN = newEntry.getDN().rdn().getAttributeValue(at).getValue();
+    ByteString valueFromRDN = newEntry.getName().rdn().getAttributeValue(at).getValue();
     assertEquals(valueFromEntry,valueFromRDN);
 
     examineCompletedOperation(modifyDNOperation);
@@ -448,7 +448,7 @@ public class TestModifyDNOperation extends OperationTestCase
         "uid=userid.0+cn=test,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
 
-    assertEquals(newEntry.getDN().toString(),
+    assertEquals(newEntry.getName().toString(),
         "uid=UserID.0+cn=Test,ou=People,dc=example,dc=com");
 
     AttributeType at = DirectoryServer.getAttributeType("uid");
@@ -459,7 +459,7 @@ public class TestModifyDNOperation extends OperationTestCase
 
     // Even though the value of the RDN changed, the representation of the entry's value should be preserved
     ByteString valueFromEntry = attrList.get(0).iterator().next().getValue();
-    ByteString valueFromRDN = newEntry.getDN().rdn().getAttributeValue(at).getValue();
+    ByteString valueFromRDN = newEntry.getName().rdn().getAttributeValue(at).getValue();
     assertEquals(valueFromEntry,ByteString.valueOf("userid.0"));
 
     examineCompletedOperation(modifyDNOperation);
@@ -498,7 +498,7 @@ public class TestModifyDNOperation extends OperationTestCase
         "uid=userid.0+sn=jensen,ou=People,dc=example,dc=com"));
     assertNotNull(newEntry);
 
-    assertEquals(newEntry.getDN().toString(),
+    assertEquals(newEntry.getName().toString(),
         "uid=userid.0+sn=JENSEN,ou=People,dc=example,dc=com");
 
     AttributeType at = DirectoryServer.getAttributeType("sn");
@@ -510,7 +510,7 @@ public class TestModifyDNOperation extends OperationTestCase
     // Even though the representation of the sn value differs in the RDN,
     // the representation of the entry's value should be preserved
     ByteString valueFromEntry = attrList.get(0).iterator().next().getValue();
-    ByteString valueFromRDN = newEntry.getDN().rdn().getAttributeValue(at).getValue();
+    ByteString valueFromRDN = newEntry.getName().rdn().getAttributeValue(at).getValue();
     assertEquals(valueFromEntry,ByteString.valueOf("Jensen"));
 
     examineCompletedOperation(modifyDNOperation);
@@ -1020,7 +1020,7 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
     ModifyDNRequestProtocolOp modifyRequest =
         new ModifyDNRequestProtocolOp(
-            ByteString.valueOf(entry.getDN().toString()),
+            ByteString.valueOf(entry.getName().toString()),
             ByteString.valueOf("uid=user.test0"), false);
     LDAPMessage message = new LDAPMessage(2, modifyRequest,
                                           ShortCircuitPlugin.createShortCircuitControlList(80, "PreOperation"));
@@ -1069,7 +1069,7 @@ public class TestModifyDNOperation extends OperationTestCase
       assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
 
 
-      Lock writeLock = LockManager.lockWrite(entry.getDN());
+      Lock writeLock = LockManager.lockWrite(entry.getName());
       assertNotNull(writeLock);
 
       try
@@ -1081,7 +1081,7 @@ public class TestModifyDNOperation extends OperationTestCase
 
         ModifyDNRequestProtocolOp modifyRequest =
           new ModifyDNRequestProtocolOp(
-               ByteString.valueOf(entry.getDN().toString()),
+               ByteString.valueOf(entry.getName().toString()),
                ByteString.valueOf("uid=user.test0"), false);
         message = new LDAPMessage(2, modifyRequest);
         w.writeMessage(message);
@@ -1103,7 +1103,7 @@ public class TestModifyDNOperation extends OperationTestCase
 //                     modifyDNResponses+1);
       } finally
       {
-        LockManager.unlock(entry.getDN(), writeLock);
+        LockManager.unlock(entry.getName(), writeLock);
       }
     } finally
     {

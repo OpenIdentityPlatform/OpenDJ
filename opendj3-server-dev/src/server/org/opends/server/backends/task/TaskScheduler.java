@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
@@ -1117,7 +1117,7 @@ public class TaskScheduler
           break;
         }
 
-        DN entryDN = entry.getDN();
+        DN entryDN = entry.getName();
         if (entryDN.equals(taskBackend.getTaskRootDN()))
         {
           taskRootEntry = entry;
@@ -1611,7 +1611,7 @@ public class TaskScheduler
     {
       for (Task t : tasks.values())
       {
-        if (taskEntryDN.equals(t.getTaskEntry().getDN()))
+        if (taskEntryDN.equals(t.getTaskEntry().getName()))
         {
           return t;
         }
@@ -1721,7 +1721,7 @@ public class TaskScheduler
       {
         Entry taskEntry = task.getTaskEntry();
 
-        if (scheduledTaskEntryDN.equals(taskEntry.getDN()))
+        if (scheduledTaskEntryDN.equals(taskEntry.getName()))
         {
           return taskEntry.duplicate(true);
         }
@@ -1836,7 +1836,7 @@ public class TaskScheduler
     {
       for (RecurringTask rt : recurringTasks.values())
       {
-        if (recurringTaskEntryDN.equals(rt.getRecurringTaskEntry().getDN()))
+        if (recurringTaskEntryDN.equals(rt.getRecurringTaskEntry().getName()))
         {
           return rt;
         }
@@ -1872,7 +1872,7 @@ public class TaskScheduler
       {
         Entry recurringTaskEntry = recurringTask.getRecurringTaskEntry();
 
-        if (recurringTaskEntryDN.equals(recurringTaskEntry.getDN()))
+        if (recurringTaskEntryDN.equals(recurringTaskEntry.getName()))
         {
           return recurringTaskEntry.duplicate(true);
         }

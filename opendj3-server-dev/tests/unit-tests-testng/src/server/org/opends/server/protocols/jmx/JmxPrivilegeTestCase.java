@@ -570,14 +570,14 @@ public class JmxPrivilegeTestCase
       "userPassword: password");
 
     AddOperation addOperation =
-         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+         conn.processAdd(entry.getName(), entry.getObjectClasses(),
                          entry.getUserAttributes(),
                          entry.getOperationalAttributes());
     if (hasPrivilege)
     {
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-      DeleteOperation deleteOperation = conn.processDelete(entry.getDN());
+      DeleteOperation deleteOperation = conn.processDelete(entry.getName());
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
     else
@@ -764,7 +764,7 @@ public class JmxPrivilegeTestCase
     }
     else
     {
-      identifier = authNEntry.getDN().toString();
+      identifier = authNEntry.getName().toString();
       identifier = identifier.replace(',', '-');
       identifier = identifier.replace(' ', '-');
       identifier = identifier.replace('=', '-');
@@ -798,7 +798,7 @@ public class JmxPrivilegeTestCase
       "ds-task-schema-file-name: 05-" + identifier + ".ldif");
 
     AddOperation addOperation =
-         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
                          taskEntry.getUserAttributes(),
                          taskEntry.getOperationalAttributes());
 
@@ -806,7 +806,7 @@ public class JmxPrivilegeTestCase
     {
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-      Task task = getCompletedTask(taskEntry.getDN());
+      Task task = getCompletedTask(taskEntry.getName());
       assertNotNull(task);
       assertTrue(TaskState.isSuccessful(task.getTaskState()));
     }
@@ -852,7 +852,7 @@ public class JmxPrivilegeTestCase
       "ds-task-backup-all: TRUE");
 
     AddOperation addOperation =
-         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
                          taskEntry.getUserAttributes(),
                          taskEntry.getOperationalAttributes());
 
@@ -860,7 +860,7 @@ public class JmxPrivilegeTestCase
     {
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-      Task task = getCompletedTask(taskEntry.getDN());
+      Task task = getCompletedTask(taskEntry.getName());
       assertNotNull(task);
       assertTrue(TaskState.isSuccessful(task.getTaskState()));
     }
@@ -902,7 +902,7 @@ public class JmxPrivilegeTestCase
       "ds-backup-directory-path: bak" + File.separator + "userRoot");
 
     AddOperation addOperation =
-         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
                          taskEntry.getUserAttributes(),
                          taskEntry.getOperationalAttributes());
 
@@ -910,7 +910,7 @@ public class JmxPrivilegeTestCase
     {
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-      Task task = getCompletedTask(taskEntry.getDN());
+      Task task = getCompletedTask(taskEntry.getName());
       assertNotNull(task);
       assertTrue(TaskState.isSuccessful(task.getTaskState()));
     }
@@ -955,7 +955,7 @@ public class JmxPrivilegeTestCase
       "ds-task-export-ldif-file: " + tempFilePath);
 
     AddOperation addOperation =
-         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
                          taskEntry.getUserAttributes(),
                          taskEntry.getOperationalAttributes());
 
@@ -963,7 +963,7 @@ public class JmxPrivilegeTestCase
     {
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-      Task task = getCompletedTask(taskEntry.getDN());
+      Task task = getCompletedTask(taskEntry.getName());
       assertNotNull(task);
       assertTrue(TaskState.isSuccessful(task.getTaskState()));
 
@@ -1012,7 +1012,7 @@ public class JmxPrivilegeTestCase
       "ds-task-import-ldif-file: " + path);
 
     AddOperation addOperation =
-         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
                          taskEntry.getUserAttributes(),
                          taskEntry.getOperationalAttributes());
 
@@ -1020,7 +1020,7 @@ public class JmxPrivilegeTestCase
     {
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-      Task task = getCompletedTask(taskEntry.getDN());
+      Task task = getCompletedTask(taskEntry.getName());
       assertNotNull(task);
       assertTrue(TaskState.isSuccessful(task.getTaskState()));
     }
@@ -1058,7 +1058,7 @@ public class JmxPrivilegeTestCase
       "ds-task-rebuild-index: cn");
 
     AddOperation addOperation =
-         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
                          taskEntry.getUserAttributes(),
                          taskEntry.getOperationalAttributes());
 
@@ -1066,7 +1066,7 @@ public class JmxPrivilegeTestCase
     {
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-      Task task = getCompletedTask(taskEntry.getDN());
+      Task task = getCompletedTask(taskEntry.getName());
       assertNotNull(task);
       assertTrue(TaskState.isSuccessful(task.getTaskState()));
     }
@@ -1121,7 +1121,7 @@ public class JmxPrivilegeTestCase
     // with a root connection so we can do other things with it.
     AddOperationBasis addOperation =
          new AddOperationBasis(conn, conn
-        .nextOperationID(), conn.nextMessageID(), controls, e.getDN(), e
+        .nextOperationID(), conn.nextMessageID(), controls, e.getName(), e
         .getObjectClasses(), e.getUserAttributes(), e
         .getOperationalAttributes());
     addOperation.run();
@@ -1144,7 +1144,7 @@ public class JmxPrivilegeTestCase
         Attributes.create("description", "foo")));
 
     ModifyOperationBasis modifyOperation = new ModifyOperationBasis(conn,
-        conn.nextOperationID(), conn.nextMessageID(), controls, e.getDN(),
+        conn.nextOperationID(), conn.nextMessageID(), controls, e.getName(),
         mods);
     modifyOperation.run();
 
@@ -1162,7 +1162,7 @@ public class JmxPrivilegeTestCase
     // Try to rename the entry.
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(conn, conn.nextOperationID(),
-                               conn.nextMessageID(), controls, e.getDN(),
+                               conn.nextMessageID(), controls, e.getName(),
                                RDN.decode("cn=Proxy V1 Test"), true, null);
     modifyDNOperation.run();
 
@@ -1176,7 +1176,7 @@ public class JmxPrivilegeTestCase
     {
       assertEquals(modifyDNOperation.getResultCode(),
                    ResultCode.AUTHORIZATION_DENIED);
-      newEntryDN = e.getDN();
+      newEntryDN = e.getName();
     }
 
 
@@ -1318,7 +1318,7 @@ public class JmxPrivilegeTestCase
     DN authDN = conn.getAuthenticationInfo().getAuthenticationDN();
     AddOperationBasis addOperation =
          new AddOperationBasis(conn, conn
-        .nextOperationID(), conn.nextMessageID(), controls, e.getDN(), e
+        .nextOperationID(), conn.nextMessageID(), controls, e.getName(), e
         .getObjectClasses(), e.getUserAttributes(), e
         .getOperationalAttributes());
     addOperation.run();
@@ -1344,7 +1344,7 @@ public class JmxPrivilegeTestCase
 
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(conn,
-        conn.nextOperationID(), conn.nextMessageID(), controls, e.getDN(),
+        conn.nextOperationID(), conn.nextMessageID(), controls, e.getName(),
         mods);
     modifyOperation.run();
 
@@ -1364,7 +1364,7 @@ public class JmxPrivilegeTestCase
     // Try to rename the entry.
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(conn, conn.nextOperationID(),
-                               conn.nextMessageID(), controls, e.getDN(),
+                               conn.nextMessageID(), controls, e.getName(),
                                RDN.decode("cn=Proxy V2 Test"), true, null);
     modifyDNOperation.run();
 
@@ -1380,7 +1380,7 @@ public class JmxPrivilegeTestCase
       assertEquals(modifyDNOperation.getResultCode(),
                    ResultCode.AUTHORIZATION_DENIED,
                    "Unexpected moddn success for user " + authDN);
-      newEntryDN = e.getDN();
+      newEntryDN = e.getName();
     }
 
 

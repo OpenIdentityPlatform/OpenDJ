@@ -1262,7 +1262,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     boolean matchFound = false;
     for (Entry e : searchOperation.getSearchEntries())
     {
-      if (e.getDN().equals(userEntry.getDN()))
+      if (e.getName().equals(userEntry.getName()))
       {
         if (matchFound)
         {

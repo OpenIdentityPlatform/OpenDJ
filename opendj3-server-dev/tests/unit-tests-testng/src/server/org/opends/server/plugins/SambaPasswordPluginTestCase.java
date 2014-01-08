@@ -234,7 +234,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
         "userPassword", "password")));
 
-    ModifyOperation modOp = conn.processModify(testEntry.getDN(), mods);
+    ModifyOperation modOp = conn.processModify(testEntry.getName(), mods);
 
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
 
@@ -249,7 +249,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
   private void assertThatPasswordsAreEqualTo(Entry testEntry,
       String ntPassword, String lmPassword) throws DirectoryException
   {
-    Entry entry = DirectoryServer.getEntry(testEntry.getDN());
+    Entry entry = DirectoryServer.getEntry(testEntry.getName());
     assertNotNull(entry);
 
     List<Attribute> sambaAttribute = entry.getAttribute("sambantpassword");
@@ -311,7 +311,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
         "userPassword", "password")));
 
-    ModifyOperation modOp = conn.processModify(testEntry.getDN(), mods);
+    ModifyOperation modOp = conn.processModify(testEntry.getName(), mods);
 
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
 
@@ -358,13 +358,13 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
         "userPassword", "password1")));
 
-    ModifyOperation modOp = conn.processModify(testEntry.getDN(), mods);
+    ModifyOperation modOp = conn.processModify(testEntry.getName(), mods);
 
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
 
     // Verification of the result
 
-    Entry entry = DirectoryServer.getEntry(testEntry.getDN());
+    Entry entry = DirectoryServer.getEntry(testEntry.getName());
     assertNotNull(entry);
 
     List<Attribute> sambaAttribute = entry.getAttribute("sambantpassword");
@@ -413,7 +413,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     mods.add(new Modification(ModificationType.ADD, Attributes.create(
         "userPassword", "password3")));
 
-    ModifyOperation modOp = conn.processModify(testEntry.getDN(), mods);
+    ModifyOperation modOp = conn.processModify(testEntry.getName(), mods);
 
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
 
@@ -579,7 +579,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     // Verification of the result
 
-    Entry entry = DirectoryServer.getEntry(testEntry.getDN());
+    Entry entry = DirectoryServer.getEntry(testEntry.getName());
     assertNotNull(entry);
     
     List<Attribute> sambaAttribute = entry.getAttribute("sambantpassword");
@@ -716,7 +716,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
       mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
           "userPassword", "password")));
 
-      ModifyOperation modOp = conn.processModify(testEntry.getDN(), mods);
+      ModifyOperation modOp = conn.processModify(testEntry.getName(), mods);
 
       assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
 
@@ -829,7 +829,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
       // Verification of the result
 
-      Entry entry = DirectoryServer.getEntry(testEntry.getDN());
+      Entry entry = DirectoryServer.getEntry(testEntry.getName());
       assertNotNull(entry);
 
       Attribute sambaPwdLastSetAttr =

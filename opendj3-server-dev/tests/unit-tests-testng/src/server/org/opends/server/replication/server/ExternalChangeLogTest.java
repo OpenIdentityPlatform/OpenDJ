@@ -572,7 +572,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private void addEntry(Entry entry) throws Exception
   {
     waitOpResult(connection.processAdd(entry), ResultCode.SUCCESS);
-    assertNotNull(getEntry(entry.getDN(), 1000, true));
+    assertNotNull(getEntry(entry.getName(), 1000, true));
   }
 
   private void ECLOnPrivateBackend() throws Exception
@@ -1159,7 +1159,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
   private void checkDn(CSN csn, SearchResultEntry resultEntry)
   {
-    String actualDN = resultEntry.getDN().toNormalizedString();
+    String actualDN = resultEntry.getName().toNormalizedString();
     String expectedDN =
         "replicationcsn=" + csn + "," + TEST_ROOT_DN_STRING + ",cn=changelog";
     assertThat(actualDN).isEqualToIgnoringCase(expectedDN);
@@ -2164,7 +2164,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       Entry entry = TestCaseUtils.entryFromLdifString(lentry);
       AddMsg addMsg = new AddMsg(
           csns[1],
-          entry.getDN(),
+          entry.getName(),
           user1entryUUID,
           baseUUID,
           entry.getObjectClassAttribute(),
@@ -2276,7 +2276,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
   private void assertDNEquals(SearchResultEntry resultEntry, long changeNumber)
   {
-    String actualDN = resultEntry.getDN().toNormalizedString();
+    String actualDN = resultEntry.getName().toNormalizedString();
     String expectedDN = "changenumber=" + changeNumber + ",cn=changelog";
     assertThat(actualDN).isEqualToIgnoringCase(expectedDN);
   }
@@ -2297,7 +2297,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // check the entry has the right content
     SearchResultEntry resultEntry = searchOp.getSearchEntries().get(0);
-    assertTrue("changenumber=6,cn=changelog".equalsIgnoreCase(resultEntry.getDN().toNormalizedString()));
+    assertTrue("changenumber=6,cn=changelog".equalsIgnoreCase(resultEntry.getName().toNormalizedString()));
     checkValue(resultEntry, "replicationcsn", csn.toString());
     checkValue(resultEntry, "replicaidentifier", String.valueOf(SERVER_ID_1));
     checkValue(resultEntry, "changetype", "add");
@@ -2703,12 +2703,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // mod 'sn' of fiona (o=test2) with 'sn' configured as ecl-incl-att
       final ModifyOperation modOp1 = connection.processModify(
-          uentry1.getDN(), createMods("sn", "newsn"));
+          uentry1.getName(), createMods("sn", "newsn"));
       waitOpResult(modOp1, ResultCode.SUCCESS);
 
       // mod 'telephonenumber' of robert (o=test3)
       final ModifyOperation modOp2 = connection.processModify(
-          uentry2.getDN(), createMods("telephonenumber", "555555"));
+          uentry2.getName(), createMods("telephonenumber", "555555"));
       waitOpResult(modOp2, ResultCode.SUCCESS);
 
       // moddn robert (o=test3) to robert2 (o=test3)

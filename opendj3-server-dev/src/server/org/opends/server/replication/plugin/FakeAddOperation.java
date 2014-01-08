@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -60,10 +60,10 @@ public class FakeAddOperation extends FakeOperation
   @Override
   public AddMsg generateMessage()
   {
-    return new AddMsg(getCSN(), entry.getDN(),
+    return new AddMsg(getCSN(), entry.getName(),
                EntryHistorical.getEntryUUID(entry),
                LDAPReplicationDomain.findEntryUUID(
-                   entry.getDN().getParentDNInSuffix()),
+                   entry.getName().getParentDNInSuffix()),
                entry.getObjectClasses(),
                entry.getUserAttributes(), entry.getOperationalAttributes());
   }

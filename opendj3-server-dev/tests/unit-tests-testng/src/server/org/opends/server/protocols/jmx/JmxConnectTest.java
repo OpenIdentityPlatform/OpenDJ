@@ -308,7 +308,7 @@ public class JmxConnectTest extends JmxTestCase {
     AddOperationBasis addOp = new AddOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
-        newJmxConnectionJmx.getDN(), newJmxConnectionJmx
+        newJmxConnectionJmx.getName(), newJmxConnectionJmx
             .getObjectClasses(), newJmxConnectionJmx
             .getUserAttributes(), newJmxConnectionJmx
             .getOperationalAttributes());
@@ -326,13 +326,13 @@ public class JmxConnectTest extends JmxTestCase {
     assertNotNull(jmxc);
 
     // Disable the "new" connector
-    toggleEnableJmxConnector(connector, newJmxConnectionJmx.getDN(), false);
+    toggleEnableJmxConnector(connector, newJmxConnectionJmx.getName(), false);
     Thread.sleep(100);
     OpendsJmxConnector jmxcDisabled = connect("cn=Privileged User,o=test",
         "password", serverJmxPort);
     assertNull(jmxcDisabled);
 
-    toggleEnableJmxConnector(connector, newJmxConnectionJmx.getDN(), true);
+    toggleEnableJmxConnector(connector, newJmxConnectionJmx.getName(), true);
     Thread.sleep(100);
     jmxcDisabled = connect("cn=Privileged User,o=test", "password", serverJmxPort);
     assertNotNull(jmxcDisabled);
@@ -343,7 +343,7 @@ public class JmxConnectTest extends JmxTestCase {
     DeleteOperationBasis delOp = new DeleteOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
-        newJmxConnectionJmx.getDN());
+        newJmxConnectionJmx.getName());
     delOp.run();
   }
 

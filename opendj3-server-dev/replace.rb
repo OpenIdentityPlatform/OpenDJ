@@ -85,17 +85,48 @@ class Replace
   }
 
   # Replacement for types
-  # Modify 688 files, for a total of 783 replacements - leaves 7605 compilation errors
   TYPES = {
     :dirs => JAVA_DIRS,
     :extensions => ["java"],
     :replacements =>
       [
-        /import org.opends.server.types.(DN|RDN|Attribute|ByteString|Entry|ResultCode);/,
+        /import org.opends.server.types.(DN|RDN|Attribute|Entry|ResultCode);/,
         'import org.forgerock.opendj.ldap.\1;',
 
         /import org.opends.server.(types|api).(AttributeType|MatchingRule);/,
         'import org.forgerock.opendj.ldap.schema.\2;',
+
+      ]
+  }
+
+  BYTESTRING_TYPE = {
+    :dirs => JAVA_DIRS,
+    :extensions => ["java"],
+    :replacements =>
+      [
+        /package org.opends.server.types;/,
+        "package org.opends.server.types;\n\n" +
+        "import org.forgerock.opendj.ldap.ByteString;\n" +
+        "import org.forgerock.opendj.ldap.ByteStringBuilder;\n" +
+        "import org.forgerock.opendj.ldap.ByteSequence;\n" +
+        "import org.forgerock.opendj.ldap.ByteSequenceReader;",
+
+        /import org.opends.server.types.\*;/,
+        "import org.opends.server.types.*;\n" +
+        "import org.forgerock.opendj.ldap.ByteString;\n" +
+        "import org.forgerock.opendj.ldap.ByteStringBuilder;\n" +
+        "import org.forgerock.opendj.ldap.ByteSequence;\n" +
+        "import org.forgerock.opendj.ldap.ByteSequenceReader;",
+
+        /import org.opends.server.types.(ByteString|ByteStringBuilder|ByteSequence|ByteSequenceReader);/,
+        'import org.forgerock.opendj.ldap.\1;',
+
+        /package org.opends.server.protocols.asn1;/,
+        "package org.opends.server.protocols.asn1;\n\n" +
+        "import com.forgerock.opendj.util.ByteSequenceOutputStream;",
+
+        /import org.opends.server.protocols.asn1.ByteSequenceOutputStream;/,
+        "import com.forgerock.opendj.util.ByteSequenceOutputStream;",
 
       ]
   }
@@ -214,8 +245,8 @@ class Replace
   }
 
   # List of replacements to run
-  REPLACEMENTS = [ I18N_LOGGERS ]
-  #REPLACEMENTS = [ VALIDATOR, MESSAGES, TYPES, EXCEPTIONS, LOGGERS ]
+  REPLACEMENTS = [ BYTESTRING_TYPE ]
+  #REPLACEMENTS = [ VALIDATOR, MESSAGES, TYPES, EXCEPTIONS, LOGGERS, I18N_LOGGERS ]
 
   # Run replacements
   def run

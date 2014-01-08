@@ -549,7 +549,7 @@ public class CryptoManagerImpl
             final Entry entry = new Entry(entryDN, null, null, null);
             entry.addObjectClass(DirectoryServer.getTopObjectClass());
             entry.addObjectClass(ocCertRequest);
-            AddOperation addOperation = icc.processAdd(entry.getDN(),
+            AddOperation addOperation = icc.processAdd(entry.getName(),
                     entry.getObjectClasses(),
                     entry.getUserAttributes(),
                     entry.getOperationalAttributes());
@@ -557,7 +557,7 @@ public class CryptoManagerImpl
               throw new DirectoryException(
                       addOperation.getResultCode(),
          ERR_CRYPTOMGR_FAILED_TO_INITIATE_INSTANCE_KEY_GENERATION.get(
-                 entry.getDN().toString()));
+                 entry.getName().toString()));
             }
           }
           else {
@@ -697,7 +697,7 @@ public class CryptoManagerImpl
         entry.addAttribute(certificateAttr,
                 new ArrayList<AttributeValue>(0));
 
-        AddOperation addOperation = icc.processAdd(entry.getDN(),
+        AddOperation addOperation = icc.processAdd(entry.getName(),
                 entry.getObjectClasses(),
                 entry.getUserAttributes(),
                 entry.getOperationalAttributes());
@@ -705,7 +705,7 @@ public class CryptoManagerImpl
           throw new DirectoryException(
                   addOperation.getResultCode(),
             ERR_CRYPTOMGR_FAILED_TO_ADD_INSTANCE_KEY_ENTRY_TO_ADS.get(
-                    entry.getDN().toString()));
+                    entry.getName().toString()));
         }
       }
     } catch (DirectoryException ex) {
@@ -1209,7 +1209,7 @@ public class CryptoManagerImpl
       {
         throw new CryptoManagerException(
                 ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_DECODE.get(
-                        entry.getDN().toString()));
+                        entry.getName().toString()));
       }
       secretKey = decodeSymmetricKeyAttribute(symmetricKey);
       CipherKeyEntry.importCipherKeyEntry(this, keyID, transformation,
@@ -1226,13 +1226,13 @@ public class CryptoManagerImpl
               new Modification(ModificationType.ADD, attribute,
                       false));
       ModifyOperation internalModify =
-              internalConnection.processModify(entry.getDN(),
+              internalConnection.processModify(entry.getName(),
                       modifications);
       if (internalModify.getResultCode() != ResultCode.SUCCESS)
       {
         throw new CryptoManagerException(
                 ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_ADD_KEY.get(
-                        entry.getDN().toString()));
+                        entry.getName().toString()));
       }
     }
     catch (DirectoryException ex)
@@ -1242,7 +1242,7 @@ public class CryptoManagerImpl
       }
       throw new CryptoManagerException(
               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_OTHER.get(
-                      entry.getDN().toString(), ex.getMessage()), ex);
+                      entry.getName().toString(), ex.getMessage()), ex);
     }
   }
 
@@ -1306,7 +1306,7 @@ public class CryptoManagerImpl
         {
           throw new CryptoManagerException(
                ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_DECODE.get(
-                    entry.getDN().toString()));
+                    entry.getName().toString()));
         }
         secretKey = decodeSymmetricKeyAttribute(symmetricKey);
         MacKeyEntry.importMacKeyEntry(this, keyID, algorithm,
@@ -1324,13 +1324,13 @@ public class CryptoManagerImpl
              new Modification(ModificationType.ADD, attribute,
                               false));
         ModifyOperation internalModify =
-             internalConnection.processModify(entry.getDN(),
+             internalConnection.processModify(entry.getName(),
                                               modifications);
         if (internalModify.getResultCode() != ResultCode.SUCCESS)
         {
           throw new CryptoManagerException(
                ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_ADD_KEY.get(
-                    entry.getDN().toString()));
+                    entry.getName().toString()));
         }
       }
       else
@@ -1348,7 +1348,7 @@ public class CryptoManagerImpl
       }
       throw new CryptoManagerException(
               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_OTHER.get(
-                      entry.getDN().toString(), ex.getMessage()), ex);
+                      entry.getName().toString(), ex.getMessage()), ex);
     }
   }
 
@@ -1807,7 +1807,7 @@ public class CryptoManagerImpl
       {
         throw new CryptoManagerException(
                 ERR_CRYPTOMGR_SYMMETRIC_KEY_ENTRY_ADD_FAILED.get(
-                        entry.getDN().toString(),
+                        entry.getName().toString(),
                         addOperation.getErrorMessage()));
       }
     }
@@ -2352,7 +2352,7 @@ public class CryptoManagerImpl
       {
         throw new CryptoManagerException(
                 ERR_CRYPTOMGR_SYMMETRIC_KEY_ENTRY_ADD_FAILED.get(
-                        entry.getDN().toString(),
+                        entry.getName().toString(),
                         addOperation.getErrorMessage()));
       }
     }

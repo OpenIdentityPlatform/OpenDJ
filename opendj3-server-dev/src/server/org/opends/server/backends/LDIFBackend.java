@@ -547,7 +547,7 @@ public class LDIFBackend
     {
       // Make sure that the target entry does not already exist, but that its
       // parent does exist (or that the entry being added is the base DN).
-      DN entryDN = entry.getDN();
+      DN entryDN = entry.getName();
       if (entryMap.containsKey(entryDN))
       {
         Message m = ERR_LDIF_BACKEND_ADD_ALREADY_EXISTS.get(entryDN.toString());
@@ -752,7 +752,7 @@ public class LDIFBackend
     try
     {
       // Make sure that the target entry exists.  If not, then fail.
-      DN entryDN = newEntry.getDN();
+      DN entryDN = newEntry.getName();
       if (! entryMap.containsKey(entryDN))
       {
         DN matchedDN = null;
@@ -798,7 +798,7 @@ public class LDIFBackend
     {
       // Make sure that the original entry exists and that the new entry doesn't
       // exist but its parent does.
-      DN newDN = entry.getDN();
+      DN newDN = entry.getName();
       if (! entryMap.containsKey(currentDN))
       {
         DN matchedDN = null;
@@ -1062,7 +1062,7 @@ public class LDIFBackend
       {
         for (Entry entry : entryMap.values())
         {
-          entryDN = entry.getDN();
+          entryDN = entry.getName();
           ldifWriter.writeEntry(entry);
         }
       }
@@ -1171,7 +1171,7 @@ public class LDIFBackend
 
           // Make sure that we don't already have an entry with the same DN.  If
           // a duplicate is encountered, then log a message and continue.
-          DN entryDN = e.getDN();
+          DN entryDN = e.getName();
           if (entryMap.containsKey(entryDN))
           {
             Message m = ERR_LDIF_BACKEND_DUPLICATE_ENTRY.get(ldifFilePath,

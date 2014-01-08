@@ -519,7 +519,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Add the config entry to create the replicated domain
       DirectoryServer.getConfigHandler().addEntry(fractionalDomainCfgEntry, null);
-      assertNotNull(DirectoryServer.getConfigEntry(fractionalDomainCfgEntry.getDN()),
+      assertNotNull(DirectoryServer.getConfigEntry(fractionalDomainCfgEntry.getName()),
         "Unable to add the domain config entry: " + configEntryLdif);
     }
   }
@@ -706,7 +706,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN(),
+        entry.getName(),
         ENTRY_UUID,
         null,
         entry.getObjectClassAttribute(),
@@ -760,7 +760,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private void addEntry(Entry entry) throws Exception
   {
     connection.processAdd(entry);
-    assertNotNull(getEntry(entry.getDN(), 1000, true));
+    assertNotNull(getEntry(entry.getName(), 1000, true));
   }
 
   /**
@@ -1357,7 +1357,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN(),
+        entry.getName(),
         ENTRY_UUID,
         null,
         entry.getObjectClassAttribute(),
@@ -1369,9 +1369,9 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * check that entry has been created and has attribute values from RDN
        * only
        */
-      Entry newEntry = getEntry(entry.getDN(), TIMEOUT, true);
+      Entry newEntry = getEntry(entry.getName(), TIMEOUT, true);
       assertNotNull(newEntry);
-      assertEquals(entry.getDN(), newEntry.getDN());
+      assertEquals(entry.getName(), newEntry.getName());
       ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
@@ -1393,7 +1393,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN(),
+        entry.getName(),
         ENTRY_UUID2,
         null,
         entry.getObjectClassAttribute(),
@@ -1405,9 +1405,9 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * check that entry has been created and has attribute values from RDN
        * only
        */
-      newEntry = getEntry(entry.getDN(), TIMEOUT, true);
+      newEntry = getEntry(entry.getName(), TIMEOUT, true);
       assertNotNull(newEntry);
-      assertEquals(entry.getDN(), newEntry.getDN());
+      assertEquals(entry.getName(), newEntry.getName());
       objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
@@ -1453,7 +1453,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN(),
+        entry.getName(),
         ENTRY_UUID,
         null,
         entry.getObjectClassAttribute(),
@@ -1465,9 +1465,9 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * check that entry has been created and has attribute values from RDN
        * only
        */
-      Entry newEntry = getEntry(entry.getDN(), TIMEOUT, true);
+      Entry newEntry = getEntry(entry.getName(), TIMEOUT, true);
       assertNotNull(newEntry);
-      assertEquals(entry.getDN(), newEntry.getDN());
+      assertEquals(entry.getName(), newEntry.getName());
       ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
@@ -1491,7 +1491,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN(),
+        entry.getName(),
         ENTRY_UUID2,
         null,
         entry.getObjectClassAttribute(),
@@ -1503,9 +1503,9 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * check that entry has been created and has attribute values from RDN
        * only
        */
-      newEntry = getEntry(entry.getDN(), TIMEOUT, true);
+      newEntry = getEntry(entry.getName(), TIMEOUT, true);
       assertNotNull(newEntry);
-      assertEquals(entry.getDN(), newEntry.getDN());
+      assertEquals(entry.getName(), newEntry.getName());
       objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
@@ -1550,7 +1550,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN(),
+        entry.getName(),
         ENTRY_UUID,
         null,
         entry.getObjectClassAttribute(),
@@ -1559,9 +1559,9 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       replicationDomain.publish(addMsg);
 
       // check that entry has been created and has attribute values from RDN
-      Entry newEntry = getEntry(entry.getDN(), TIMEOUT, true);
+      Entry newEntry = getEntry(entry.getName(), TIMEOUT, true);
       assertNotNull(newEntry);
-      assertEquals(entry.getDN(), newEntry.getDN());
+      assertEquals(entry.getName(), newEntry.getName());
       ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
@@ -1587,7 +1587,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        */
       newEntry = getEntry(newEntryDn, TIMEOUT, true);
       assertNotNull(newEntry);
-      assertEquals(newEntryDn, newEntry.getDN());
+      assertEquals(newEntryDn, newEntry.getName());
       objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
@@ -1631,7 +1631,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN(),
+        entry.getName(),
         ENTRY_UUID,
         null,
         entry.getObjectClassAttribute(),
@@ -1640,9 +1640,9 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       replicationDomain.publish(addMsg);
 
       // check that entry has been created and has attribute values from RDN
-      Entry newEntry = getEntry(entry.getDN(), TIMEOUT, true);
+      Entry newEntry = getEntry(entry.getName(), TIMEOUT, true);
       assertNotNull(newEntry);
-      assertEquals(entry.getDN(), newEntry.getDN());
+      assertEquals(entry.getName(), newEntry.getName());
       ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
@@ -1668,7 +1668,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        */
       newEntry = getEntry(newEntryDn, TIMEOUT, true);
       assertNotNull(newEntry);
-      assertEquals(newEntryDn, newEntry.getDN());
+      assertEquals(newEntryDn, newEntry.getName());
       objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");

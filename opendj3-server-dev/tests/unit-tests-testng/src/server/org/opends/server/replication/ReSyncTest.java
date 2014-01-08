@@ -135,7 +135,7 @@ public class ReSyncTest extends ReplicationTestCase
   {
     Entry entry = TestCaseUtils.entryFromLdifString(entryString);
     AddOperation addOp = connection.processAdd(entry);
-    entriesToCleanup.add(entry.getDN());
+    entriesToCleanup.add(entry.getName());
     return addOp.getResultCode();
   }
 

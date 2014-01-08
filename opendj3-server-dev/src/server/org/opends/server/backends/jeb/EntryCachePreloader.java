@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.backends.jeb;
@@ -303,7 +304,7 @@ class EntryCachePreloader
               TRACER.debugCaught(DebugLogLevel.ERROR, ex);
             }
             Message message = ERR_CACHE_PRELOAD_ENTRY_FAILED.get(
-              entry.getDN().toNormalizedString(),
+              entry.getName().toNormalizedString(),
               (ex.getCause() != null ? ex.getCause().getMessage() :
                 stackTraceToSingleLineString(ex)));
             logError(message);

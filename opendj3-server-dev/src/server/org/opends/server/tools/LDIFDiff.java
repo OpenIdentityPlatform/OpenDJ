@@ -444,9 +444,9 @@ public class LDIFDiff
           break;
         }
 
-        if (! ignoreEntries.contains(entry.getDN()))
+        if (! ignoreEntries.contains(entry.getName()))
         {
-          sourceMap.put(entry.getDN(), entry);
+          sourceMap.put(entry.getName(), entry);
         }
       }
     }
@@ -493,9 +493,9 @@ public class LDIFDiff
           break;
         }
 
-        if (! ignoreEntries.contains(entry.getDN()))
+        if (! ignoreEntries.contains(entry.getName()))
         {
-          targetMap.put(entry.getDN(), entry);
+          targetMap.put(entry.getName(), entry);
         }
       }
     }
@@ -980,7 +980,7 @@ public class LDIFDiff
           {
             LinkedList<Modification> attrMods = new LinkedList<Modification>();
             attrMods.add(m);
-            writer.writeModifyChangeRecord(sourceEntry.getDN(), attrMods);
+            writer.writeModifyChangeRecord(sourceEntry.getName(), attrMods);
           }
           else
           {
@@ -993,14 +993,14 @@ public class LDIFDiff
 
               attrMods.clear();
               attrMods.add(new Modification(m.getModificationType(), attr));
-              writer.writeModifyChangeRecord(sourceEntry.getDN(), attrMods);
+              writer.writeModifyChangeRecord(sourceEntry.getName(), attrMods);
             }
           }
         }
       }
       else
       {
-        writer.writeModifyChangeRecord(sourceEntry.getDN(), modifications);
+        writer.writeModifyChangeRecord(sourceEntry.getName(), modifications);
       }
 
       return true;

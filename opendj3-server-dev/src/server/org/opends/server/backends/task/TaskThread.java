@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
@@ -217,7 +217,7 @@ public class TaskThread extends DirectoryThread
         Task task = getAssociatedTask();
 
         Message message = ERR_TASK_EXECUTE_FAILED.
-            get(String.valueOf(task.getTaskEntry().getDN()),
+            get(String.valueOf(task.getTaskEntry().getName()),
                 stackTraceToSingleLineString(e));
         logError(message);
         task.setTaskState(TaskState.STOPPED_BY_ERROR);

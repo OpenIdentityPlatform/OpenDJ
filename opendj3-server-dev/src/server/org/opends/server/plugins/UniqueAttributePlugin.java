@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -183,14 +183,14 @@ public class UniqueAttributePlugin
     UniqueAttributePluginCfg config = currentConfiguration;
     Entry entry = addOperation.getEntryToAdd();
 
-    Set<DN> baseDNs = getBaseDNs(config, entry.getDN());
+    Set<DN> baseDNs = getBaseDNs(config, entry.getName());
     if (baseDNs == null)
     {
       // The entry is outside the scope of this plugin.
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
     List<AttributeValue> recordedValues = new LinkedList<AttributeValue>();
     for (AttributeType t : config.getType())
     {
@@ -366,7 +366,7 @@ public class UniqueAttributePlugin
     UniqueAttributePluginCfg config = currentConfiguration;
 
     Set<DN> baseDNs = getBaseDNs(config,
-                                 modifyDNOperation.getUpdatedEntry().getDN());
+                                 modifyDNOperation.getUpdatedEntry().getName());
     if (baseDNs == null)
     {
       // The entry is outside the scope of this plugin.
@@ -409,14 +409,14 @@ public class UniqueAttributePlugin
     UniqueAttributePluginCfg config = currentConfiguration;
     Entry entry = addOperation.getEntryToAdd();
 
-    Set<DN> baseDNs = getBaseDNs(config, entry.getDN());
+    Set<DN> baseDNs = getBaseDNs(config, entry.getName());
     if (baseDNs == null)
     {
       // The entry is outside the scope of this plugin.
       return;
     }
 
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
     for (AttributeType t : config.getType())
     {
       List<Attribute> attrList = entry.getAttribute(t);
@@ -518,7 +518,7 @@ public class UniqueAttributePlugin
     UniqueAttributePluginCfg config = currentConfiguration;
 
     Set<DN> baseDNs = getBaseDNs(config,
-                                 modifyDNOperation.getUpdatedEntry().getDN());
+                                 modifyDNOperation.getUpdatedEntry().getName());
     if (baseDNs == null)
     {
       // The entry is outside the scope of this plugin.
@@ -526,7 +526,7 @@ public class UniqueAttributePlugin
     }
 
     DN entryDN = modifyDNOperation.getEntryDN();
-    DN updatedEntryDN = modifyDNOperation.getUpdatedEntry().getDN();
+    DN updatedEntryDN = modifyDNOperation.getUpdatedEntry().getName();
     RDN newRDN = modifyDNOperation.getNewRDN();
     for (int i=0; i < newRDN.getNumValues(); i++)
     {
@@ -673,9 +673,9 @@ public class UniqueAttributePlugin
                               false, filter, SEARCH_ATTRS);
       for (SearchResultEntry e : searchOperation.getSearchEntries())
       {
-        if (! e.getDN().equals(targetDN))
+        if (! e.getName().equals(targetDN))
         {
-          return e.getDN();
+          return e.getName();
         }
       }
 
@@ -837,7 +837,7 @@ public class UniqueAttributePlugin
     UniqueAttributePluginCfg config = currentConfiguration;
     Entry entry = addOperation.getEntryToAdd();
 
-    Set<DN> baseDNs = getBaseDNs(config, entry.getDN());
+    Set<DN> baseDNs = getBaseDNs(config, entry.getName());
     if (baseDNs == null)
     {
       // The entry is outside the scope of this plugin.
@@ -947,7 +947,7 @@ public class UniqueAttributePlugin
   {
     UniqueAttributePluginCfg config = currentConfiguration;
     Set<DN> baseDNs = getBaseDNs(config,
-                                 modifyDNOperation.getUpdatedEntry().getDN());
+                                 modifyDNOperation.getUpdatedEntry().getName());
     if (baseDNs == null)
     {
       // The entry is outside the scope of this plugin.

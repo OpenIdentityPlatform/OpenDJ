@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -73,7 +73,7 @@ public class EntryDNVirtualAttributeProvider
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
   {
-    String normDNString = entry.getDN().toNormalizedString();
+    String normDNString = entry.getName().toNormalizedString();
     AttributeValue value = AttributeValues.create(
                                   ByteString.valueOf(normDNString),
                                   ByteString.valueOf(normDNString));
@@ -95,7 +95,7 @@ public class EntryDNVirtualAttributeProvider
   {
     try
     {
-      String normalizedDN    = entry.getDN().toNormalizedString();
+      String normalizedDN    = entry.getName().toNormalizedString();
       String normalizedValue = value.getNormalizedValue().toString();
       return normalizedDN.equals(normalizedValue);
     }
@@ -115,7 +115,7 @@ public class EntryDNVirtualAttributeProvider
   public boolean hasAnyValue(Entry entry, VirtualAttributeRule rule,
                              Collection<AttributeValue> values)
   {
-    String ndnString = entry.getDN().toNormalizedString();
+    String ndnString = entry.getName().toNormalizedString();
 
     AttributeValue v = AttributeValues.create(ByteString.valueOf(ndnString),
         ByteString.valueOf(ndnString));

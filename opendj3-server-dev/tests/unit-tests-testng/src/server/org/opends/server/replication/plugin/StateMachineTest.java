@@ -1101,7 +1101,7 @@ public class StateMachineTest extends ReplicationTestCase
 
       // Create an update message to add an entry.
       return new AddMsg(gen.newCSN(),
-        personWithUUIDEntry.getDN(),
+        personWithUUIDEntry.getName(),
         userEntryUUID,
         null,
         personWithUUIDEntry.getObjectClassAttribute(),

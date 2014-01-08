@@ -511,7 +511,7 @@ implements AciTargetMatchContext, AciEvalContext {
    * @return True if the authZid is equal to the authorization entry's DN.
    */
     public boolean isAuthzidAuthorizationDN() {
-     return this.authzid.equals(this.authorizationEntry.getDN());
+     return this.authzid.equals(this.authorizationEntry.getName());
     }
 
   /**
@@ -666,7 +666,7 @@ implements AciTargetMatchContext, AciEvalContext {
       if(this.useAuthzid)
         return this.authzid;
       else if (this.authorizationEntry != null)
-        return this.authorizationEntry.getDN();
+        return this.authorizationEntry.getName();
       return DN.rootDN();
     }
 
@@ -675,7 +675,7 @@ implements AciTargetMatchContext, AciEvalContext {
     */
     @Override
     public DN getResourceDN() {
-        return resourceEntry.getDN();
+        return resourceEntry.getName();
     }
 
    /**

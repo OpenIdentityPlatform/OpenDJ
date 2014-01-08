@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.task;
 import java.text.SimpleDateFormat;
@@ -154,7 +155,7 @@ public class RecurringTask
   {
     this.taskScheduler = taskScheduler;
     this.recurringTaskEntry = recurringTaskEntry;
-    this.recurringTaskEntryDN = recurringTaskEntry.getDN();
+    this.recurringTaskEntryDN = recurringTaskEntry.getName();
 
     // Get the recurring task ID from the entry.  If there isn't one, then fail.
     AttributeType attrType = DirectoryServer.getAttributeType(

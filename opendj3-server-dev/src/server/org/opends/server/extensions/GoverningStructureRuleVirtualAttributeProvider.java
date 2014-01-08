@@ -159,7 +159,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
                        AcceptRejectWarn structuralPolicy,
                        Entry entry)
   {
-    RDN rdn = entry.getDN().rdn();
+    RDN rdn = entry.getName().rdn();
     if (rdn != null)
     {
       // Make sure that all the required attributes are present.

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -81,9 +82,9 @@ public abstract class JebTestCase extends DirectoryServerTestCase {
             new LDIFReader(new LDIFImportConfig(ldifEntryStream));
         for(int i =0; i<numEntries;i++) {
             Entry entry = reader.readEntry(false);
-            entryTreeMap.put(entry.getDN(), entry);      
+            entryTreeMap.put(entry.getName(), entry);      
             AddOperation addOperation =
-                connection.processAdd(entry.getDN(),
+                connection.processAdd(entry.getName(),
                         entry.getObjectClasses(),
                         entry.getUserAttributes(),
                         entry.getOperationalAttributes());

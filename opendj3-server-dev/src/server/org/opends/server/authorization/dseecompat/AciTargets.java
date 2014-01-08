@@ -555,7 +555,7 @@ public class AciTargets {
     public static boolean isTargetApplicable(Aci aci,
                                              AciTargetMatchContext matchCtx) {
         return isTargetApplicable(aci, aci.getTargets(),
-                                        matchCtx.getResourceEntry().getDN());
+                                        matchCtx.getResourceEntry().getName());
     }
 
     /*

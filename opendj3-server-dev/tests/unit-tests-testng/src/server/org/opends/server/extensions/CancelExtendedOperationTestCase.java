@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -295,7 +295,7 @@ public class CancelExtendedOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -550,7 +550,7 @@ public class CancelExtendedOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 

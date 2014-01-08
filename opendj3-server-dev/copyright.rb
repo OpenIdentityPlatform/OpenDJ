@@ -41,11 +41,32 @@ class Copyright
 
 
   def update_copyright(content)
-    pattern = /(^\s+\*\s+)Portions Copyright (\d+)-(\d+) ForgeRock,? AS/i
+    # handle FG copyright with 1 date
+    pattern = /(^\s+\*\s+)Copyright (\d+) ForgeRock,? AS/i
+    mdata = content.match(pattern)
+    if !mdata.nil?
+      if  mdata[2]!="2014"
+        replace = '\1Portions Copyright \2-2014 ForgeRock AS'
+        is_replaced = content.gsub!(pattern, replace)
+      else
+        is_replaced = true # no action needed
+      end
+    end
+
+    # handle FG copyright with 2 dates
+    pattern = /(^\s+\*\s+)Copyright (\d+)-(\d+) ForgeRock,? AS/i
     replace = '\1Portions Copyright \2-2014 ForgeRock AS'
     is_replaced = content.gsub!(pattern, replace)
 
     if is_replaced.nil?
+      # handle FG portions copyright with 2 dates
+      pattern = /(^\s+\*\s+)Portions Copyright (\d+)-(\d+) ForgeRock,? AS/i
+      replace = '\1Portions Copyright \2-2014 ForgeRock AS'
+      is_replaced = content.gsub!(pattern, replace)
+    end
+
+    if is_replaced.nil?
+      # handle FG portions copyright with 1 date
       pattern = /(^\s+\*\s+)Portions Copyright (\d+) ForgeRock,? AS/i
       mdata = content.match(pattern)
       if !mdata.nil? && mdata[2]!="2014"
@@ -53,7 +74,7 @@ class Copyright
         is_replaced = content.gsub!(pattern, replace)
       end
       if is_replaced.nil?
-        # No portions line, add it
+        # Handle no FG portions
         pattern = /(^\s+\*)(\s+)Copyright (\d+-?\d*)\s(.*)$\n\s+\*\/$/i
         replace = '\1\2Copyright \3 \4' + "\n\\1\\2Portions Copyright 2014 ForgeRock AS\n\\1/"
         is_replaced = content.gsub!(pattern, replace)
@@ -66,7 +87,7 @@ class Copyright
     if args.size==0
       files = updated_files
     else
-      files = argv
+      files = args
     end
     files.each { |file|
       puts "Processing file #{file}"

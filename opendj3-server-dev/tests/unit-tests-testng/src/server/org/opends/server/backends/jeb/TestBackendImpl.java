@@ -552,12 +552,12 @@ public class TestBackendImpl extends JebTestCase {
   public void testAdd() throws Exception {
     for (Entry topEntry : topEntries) {
       backend.addEntry(topEntry, null);
-      assertNotNull(backend.getEntry(topEntry.getDN()));
+      assertNotNull(backend.getEntry(topEntry.getName()));
     }
 
     for (Entry entry : entries) {
       backend.addEntry(entry, null);
-      assertNotNull(backend.getEntry(entry.getDN()));
+      assertNotNull(backend.getEntry(entry.getName()));
     }
   }
 
@@ -572,7 +572,7 @@ public class TestBackendImpl extends JebTestCase {
     List<SearchResultEntry> result = search.getSearchEntries();
 
     assertEquals(result.size(), 1);
-    assertEquals(result.get(0).getDN().toString(), "dc=test,dc=com");
+    assertEquals(result.get(0).getName().toString(), "dc=test,dc=com");
 
     search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.BASE_OBJECT, LDAPFilter.decode("(ou=People)").toSearchFilter());
@@ -586,7 +586,7 @@ public class TestBackendImpl extends JebTestCase {
     result = search.getSearchEntries();
 
     assertEquals(result.size(), 1);
-    assertEquals(result.get(0).getDN().toString(),
+    assertEquals(result.get(0).getName().toString(),
         "ou=People,dc=test,dc=com");
 
     search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
@@ -596,7 +596,7 @@ public class TestBackendImpl extends JebTestCase {
 
     assertEquals(result.size(), 13);
     for (Entry entry : result) {
-      assertThat(entry.getDN().toString()).isNotEqualTo("dc=test,dc=com");
+      assertThat(entry.getName().toString()).isNotEqualTo("dc=test,dc=com");
     }
 
     search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
@@ -1176,7 +1176,7 @@ public class TestBackendImpl extends JebTestCase {
       DN subDN = DN.valueOf("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com");
       Entry subEntry = backend.getEntry(subDN);
       assertNotNull(subEntry);
-      assertEquals(subDN, subEntry.getDN());
+      assertEquals(subDN, subEntry.getName());
       EntryID newSubordinateID = ec.getDN2ID().get(null, subDN, LockMode.DEFAULT);
       assertTrue(newSubordinateID.compareTo(newID) > 0);
 
@@ -1465,7 +1465,7 @@ public class TestBackendImpl extends JebTestCase {
     //Add 2 more entries to overflow the index entry limit.
     for (Entry entry : additionalEntries) {
       backend.addEntry(entry, null);
-      assertNotNull(backend.getEntry(entry.getDN()));
+      assertNotNull(backend.getEntry(entry.getName()));
     }
 
     InternalClientConnection conn =

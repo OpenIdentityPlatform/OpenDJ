@@ -627,7 +627,7 @@ public class TrustStoreBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
 
     if (entryDN.equals(baseDN))
     {
@@ -1571,7 +1571,7 @@ public class TrustStoreBackend
   private void addCertificate(Entry entry)
        throws DirectoryException
   {
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
 
     // Make sure that the DN specifies a certificate alias.
     AttributeType t =

@@ -1331,7 +1331,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     CSN t = new CSN(date, 0, 0);
 
     ModifyOperationBasis modOpBasis =
-      new ModifyOperationBasis(aConnection, 1, 1, null, entry.getDN(), mods);
+      new ModifyOperationBasis(aConnection, 1, 1, null, entry.getName(), mods);
     LocalBackendModifyOperation modOp = new LocalBackendModifyOperation(modOpBasis);
     ModifyContext ctx = new ModifyContext(t, "uniqueId");
     modOp.setAttachment(SYNCHROCONTEXT, ctx);
@@ -1354,7 +1354,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     mods.add(mod);
 
     ModifyOperationBasis modOpBasis =
-      new ModifyOperationBasis(aConnection, 1, 1, null, entry.getDN(), mods);
+      new ModifyOperationBasis(aConnection, 1, 1, null, entry.getName(), mods);
     LocalBackendModifyOperation modOp = new LocalBackendModifyOperation(modOpBasis);
     ModifyContext ctx = new ModifyContext(t, "uniqueId");
     modOp.setAttachment(SYNCHROCONTEXT, ctx);
@@ -1364,7 +1364,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     {
       AddOperationBasis addOpBasis =
         new AddOperationBasis(aConnection, 1, 1, null, entry
-          .getDN(), entry.getObjectClasses(), entry.getUserAttributes(),
+          .getName(), entry.getObjectClasses(), entry.getUserAttributes(),
           entry.getOperationalAttributes());
       LocalBackendAddOperation addOp = new LocalBackendAddOperation(addOpBasis);
       testHistorical(addOp);

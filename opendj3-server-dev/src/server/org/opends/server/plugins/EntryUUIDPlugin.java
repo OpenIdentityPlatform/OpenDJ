@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -173,7 +174,7 @@ public final class EntryUUIDPlugin
     // Construct a new UUID.  In order to make sure that UUIDs are consistent
     // when the same LDIF is generated on multiple servers, we'll base the UUID
     // on the byte representation of the normalized DN.
-    byte[] dnBytes = getBytes(entry.getDN().toNormalizedString());
+    byte[] dnBytes = getBytes(entry.getName().toNormalizedString());
     UUID uuid = UUID.nameUUIDFromBytes(dnBytes);
 
     Attribute uuidAttr = Attributes.create(entryUUIDType,

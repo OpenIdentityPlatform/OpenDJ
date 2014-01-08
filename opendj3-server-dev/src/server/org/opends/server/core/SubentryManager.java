@@ -225,7 +225,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           dn2SubEntry.put(subDN, subList);
         }
       }
-      dit2SubEntry.put(entry.getDN(), subEntry);
+      dit2SubEntry.put(entry.getName(), subEntry);
       subList.add(subEntry);
     }
     finally
@@ -254,9 +254,9 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         while (listIterator.hasNext())
         {
           SubEntry subEntry = listIterator.next();
-          if (subEntry.getDN().equals(entry.getDN()))
+          if (subEntry.getDN().equals(entry.getName()))
           {
-            dit2SubEntry.remove(entry.getDN());
+            dit2SubEntry.remove(entry.getName());
             listIterator.remove();
             removed = true;
             break;
@@ -280,9 +280,9 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         while (listIterator.hasNext())
         {
           SubEntry subEntry = listIterator.next();
-          if (subEntry.getDN().equals(entry.getDN()))
+          if (subEntry.getDN().equals(entry.getName()))
           {
-            dit2SubEntry.remove(entry.getDN());
+            dit2SubEntry.remove(entry.getName());
             listIterator.remove();
             removed = true;
             break;
@@ -518,7 +518,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     lock.readLock().lock();
     try
     {
-      for (DN subDN = entry.getDN(); subDN != null;
+      for (DN subDN = entry.getName(); subDN != null;
            subDN = subDN.parent())
       {
         List<SubEntry> subList = dn2SubEntry.get(subDN);
@@ -610,7 +610,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     lock.readLock().lock();
     try
     {
-      for (DN subDN = entry.getDN(); subDN != null;
+      for (DN subDN = entry.getName(); subDN != null;
            subDN = subDN.parent())
       {
         List<SubEntry> subList = dn2CollectiveSubEntry.get(subDN);
@@ -779,7 +779,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     lock.writeLock().lock();
     try
     {
-      for (SubEntry subEntry : dit2SubEntry.getSubtree(entry.getDN()))
+      for (SubEntry subEntry : dit2SubEntry.getSubtree(entry.getName()))
       {
         removeSubEntry(subEntry.getEntry());
 
@@ -866,14 +866,14 @@ public class SubentryManager extends InternalDirectoryServerPlugin
 
   private void doPostModifyDN(Entry oldEntry, Entry newEntry)
   {
-    String oldDNString = oldEntry.getDN().toNormalizedString();
-    String newDNString = newEntry.getDN().toNormalizedString();
+    String oldDNString = oldEntry.getName().toNormalizedString();
+    String newDNString = newEntry.getName().toNormalizedString();
 
     lock.writeLock().lock();
     try
     {
       Collection<SubEntry> setToDelete =
-              dit2SubEntry.getSubtree(oldEntry.getDN());
+              dit2SubEntry.getSubtree(oldEntry.getName());
       for (SubEntry subentry : setToDelete)
       {
         removeSubEntry(subentry.getEntry());
@@ -881,7 +881,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         try
         {
           StringBuilder builder = new StringBuilder(
-              subentry.getEntry().getDN().toNormalizedString());
+              subentry.getEntry().getName().toNormalizedString());
           int oldDNIndex = builder.lastIndexOf(oldDNString);
           builder.replace(oldDNIndex, builder.length(),
                   newDNString);
@@ -980,7 +980,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     lock.readLock().lock();
     try
     {
-      for (SubEntry subEntry : dit2SubEntry.getSubtree(entry.getDN()))
+      for (SubEntry subEntry : dit2SubEntry.getSubtree(entry.getName()))
       {
         if (!hasSubentryWritePrivilege)
         {
@@ -1082,15 +1082,15 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   {
     Entry oldEntry = modifyDNOperation.getOriginalEntry();
     Entry newEntry = modifyDNOperation.getUpdatedEntry();
-    String oldDNString = oldEntry.getDN().toNormalizedString();
-    String newDNString = newEntry.getDN().toNormalizedString();
+    String oldDNString = oldEntry.getName().toNormalizedString();
+    String newDNString = newEntry.getName().toNormalizedString();
     boolean hasSubentryWritePrivilege = false;
 
     lock.readLock().lock();
     try
     {
       Collection<SubEntry> setToDelete =
-              dit2SubEntry.getSubtree(oldEntry.getDN());
+              dit2SubEntry.getSubtree(oldEntry.getName());
       for (SubEntry subentry : setToDelete)
       {
         if (!hasSubentryWritePrivilege)
@@ -1113,7 +1113,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         try
         {
           StringBuilder builder = new StringBuilder(
-              subentry.getEntry().getDN().toNormalizedString());
+              subentry.getEntry().getName().toNormalizedString());
           int oldDNIndex = builder.lastIndexOf(oldDNString);
           builder.replace(oldDNIndex, builder.length(),
                   newDNString);

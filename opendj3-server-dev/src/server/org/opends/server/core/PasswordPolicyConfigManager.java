@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -373,14 +373,14 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       try
       {
         PasswordPolicy policy = new SubentryPasswordPolicy(new SubEntry(entry));
-        DirectoryServer.registerAuthenticationPolicy(entry.getDN(), policy);
+        DirectoryServer.registerAuthenticationPolicy(entry.getName(), policy);
       }
       catch (Exception e)
       {
         if (debugEnabled())
         {
           TRACER.debugError("Could not create password policy subentry "
-              + "DN %s: %s", entry.getDN().toString(),
+              + "DN %s: %s", entry.getName().toString(),
               stackTraceToSingleLineString(e));
         }
       }
@@ -396,7 +396,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   {
     if (entry.isPasswordPolicySubentry())
     {
-      DirectoryServer.deregisterAuthenticationPolicy(entry.getDN());
+      DirectoryServer.deregisterAuthenticationPolicy(entry.getName());
     }
   }
 
@@ -409,7 +409,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   {
     if (oldEntry.isPasswordPolicySubentry())
     {
-      DirectoryServer.deregisterAuthenticationPolicy(oldEntry.getDN());
+      DirectoryServer.deregisterAuthenticationPolicy(oldEntry.getName());
     }
 
     if (newEntry.isPasswordPolicySubentry())
@@ -418,14 +418,15 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       {
         PasswordPolicy policy = new SubentryPasswordPolicy(new SubEntry(
             newEntry));
-        DirectoryServer.registerAuthenticationPolicy(newEntry.getDN(), policy);
+        DirectoryServer.registerAuthenticationPolicy(newEntry.getName(),
+            policy);
       }
       catch (Exception e)
       {
         if (debugEnabled())
         {
           TRACER.debugError("Could not create password policy subentry "
-              + "DN %s: %s", newEntry.getDN().toString(),
+              + "DN %s: %s", newEntry.getName().toString(),
               stackTraceToSingleLineString(e));
         }
       }
@@ -441,7 +442,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   {
     if (oldEntry.isPasswordPolicySubentry())
     {
-      DirectoryServer.deregisterAuthenticationPolicy(oldEntry.getDN());
+      DirectoryServer.deregisterAuthenticationPolicy(oldEntry.getName());
     }
 
     if (newEntry.isPasswordPolicySubentry())
@@ -450,14 +451,15 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       {
         PasswordPolicy policy = new SubentryPasswordPolicy(new SubEntry(
             newEntry));
-        DirectoryServer.registerAuthenticationPolicy(newEntry.getDN(), policy);
+        DirectoryServer.registerAuthenticationPolicy(newEntry.getName(),
+            policy);
       }
       catch (Exception e)
       {
         if (debugEnabled())
         {
           TRACER.debugError("Could not create password policy subentry "
-              + "DN %s: %s", newEntry.getDN().toString(),
+              + "DN %s: %s", newEntry.getName().toString(),
               stackTraceToSingleLineString(e));
         }
       }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -78,11 +78,11 @@ public class NumSubordinatesVirtualAttributeProvider
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
   {
-    Backend backend = DirectoryServer.getBackend(entry.getDN());
+    Backend backend = DirectoryServer.getBackend(entry.getName());
 
     try
     {
-      long count = backend.numSubordinates(entry.getDN(), false);
+      long count = backend.numSubordinates(entry.getName(), false);
       if(count >= 0)
       {
         AttributeValue value =
@@ -106,11 +106,11 @@ public class NumSubordinatesVirtualAttributeProvider
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
-    Backend backend = DirectoryServer.getBackend(entry.getDN());
+    Backend backend = DirectoryServer.getBackend(entry.getName());
 
     try
     {
-       return backend.numSubordinates(entry.getDN(), false) >= 0;
+       return backend.numSubordinates(entry.getName(), false) >= 0;
     }
     catch(DirectoryException de)
     {
@@ -128,11 +128,11 @@ public class NumSubordinatesVirtualAttributeProvider
   public boolean hasValue(Entry entry, VirtualAttributeRule rule,
                           AttributeValue value)
   {
-     Backend backend = DirectoryServer.getBackend(entry.getDN());
+     Backend backend = DirectoryServer.getBackend(entry.getName());
 
     try
     {
-      long count = backend.numSubordinates(entry.getDN(), false);
+      long count = backend.numSubordinates(entry.getName(), false);
       return count >= 0
           && Long.parseLong(value.getNormalizedValue().toString()) == count;
     }

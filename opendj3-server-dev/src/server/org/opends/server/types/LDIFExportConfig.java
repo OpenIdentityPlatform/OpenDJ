@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -875,7 +875,7 @@ public final class LDIFExportConfig extends OperationConfig
   public boolean includeEntry(Entry entry)
          throws DirectoryException
   {
-    DN dn = entry.getDN();
+    DN dn = entry.getName();
     if (! excludeBranches.isEmpty())
     {
       for (DN excludeBranch : excludeBranches)

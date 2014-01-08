@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -92,7 +93,7 @@ public class ShutdownTask
 
     restart         = false;
     shutdownMessage = INFO_TASK_SHUTDOWN_DEFAULT_MESSAGE.get(
-        String.valueOf(taskEntry.getDN()));
+        String.valueOf(taskEntry.getName()));
 
     AttributeType attrType =
          DirectoryServer.getAttributeType(ATTR_SHUTDOWN_MESSAGE, true);
@@ -106,7 +107,7 @@ public class ShutdownTask
             .getValue().toString();
 
         shutdownMessage = INFO_TASK_SHUTDOWN_CUSTOM_MESSAGE.get(String
-            .valueOf(taskEntry.getDN()), String.valueOf(valueString));
+            .valueOf(taskEntry.getName()), String.valueOf(valueString));
       }
     }
 

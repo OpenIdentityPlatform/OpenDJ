@@ -859,7 +859,7 @@ public final class InternalClientConnection
    */
   public AddOperation processAdd(Entry entry, List<Control> controls)
   {
-    return processAdd(entry.getDN(), entry.getObjectClasses(),
+    return processAdd(entry.getName(), entry.getObjectClasses(),
                       entry.getUserAttributes(),
                       entry.getOperationalAttributes(),
                       controls);

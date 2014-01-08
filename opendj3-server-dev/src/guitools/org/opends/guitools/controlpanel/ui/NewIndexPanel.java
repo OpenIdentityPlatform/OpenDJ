@@ -654,7 +654,7 @@ public class NewIndexPanel extends AbstractIndexPanel
           sb.append(" "+CommandBuilder.escapeValue(arg));
         }
 
-        ctx.createSubcontext(indexEntry.getDN().toString(), attrs);
+        ctx.createSubcontext(indexEntry.getName().toString(), attrs);
       }
       catch (Throwable t)
       {

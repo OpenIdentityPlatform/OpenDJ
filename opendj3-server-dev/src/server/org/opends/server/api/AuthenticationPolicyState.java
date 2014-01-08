@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.api;
@@ -131,7 +132,8 @@ public abstract class AuthenticationPolicyState
           if (debugEnabled())
           {
             TRACER.debugInfo("Attribute %s resolves to true for user entry "
-                + "%s", attributeType.getNameOrOID(), entry.getDN().toString());
+                + "%s", attributeType.getNameOrOID(),
+                entry.getName().toString());
           }
 
           return ConditionResult.TRUE;
@@ -143,7 +145,7 @@ public abstract class AuthenticationPolicyState
           if (debugEnabled())
           {
             TRACER.debugInfo("Attribute %s resolves to false for user "
-                + "entry %s", attributeType.getNameOrOID(), entry.getDN()
+                + "entry %s", attributeType.getNameOrOID(), entry.getName()
                 .toString());
           }
 
@@ -154,11 +156,11 @@ public abstract class AuthenticationPolicyState
         {
           TRACER.debugError("Unable to resolve value %s for attribute %s "
               + "in user entry %s as a Boolean.", valueString,
-              attributeType.getNameOrOID(), entry.getDN().toString());
+              attributeType.getNameOrOID(), entry.getName().toString());
         }
 
         final Message message = ERR_PWPSTATE_CANNOT_DECODE_BOOLEAN
-            .get(valueString, attributeType.getNameOrOID(), entry.getDN()
+            .get(valueString, attributeType.getNameOrOID(), entry.getName()
                 .toString());
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
             message);
@@ -169,7 +171,7 @@ public abstract class AuthenticationPolicyState
     {
       TRACER.debugInfo("Returning %s because attribute %s does not exist "
           + "in user entry %s", ConditionResult.UNDEFINED.toString(),
-          attributeType.getNameOrOID(), entry.getDN().toString());
+          attributeType.getNameOrOID(), entry.getName().toString());
     }
 
     return ConditionResult.UNDEFINED;
@@ -221,13 +223,13 @@ public abstract class AuthenticationPolicyState
 
             TRACER.debugWarning("Unable to decode value %s for attribute %s "
                 + "in user entry %s: %s", v.getValue().toString(),
-                attributeType.getNameOrOID(), entry.getDN().toString(),
+                attributeType.getNameOrOID(), entry.getName().toString(),
                 stackTraceToSingleLineString(e));
           }
 
           final Message message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME
               .get(v.getValue().toString(), attributeType.getNameOrOID(), entry
-                  .getDN().toString(), String.valueOf(e));
+                  .getName().toString(), String.valueOf(e));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message, e);
         }
@@ -241,7 +243,7 @@ public abstract class AuthenticationPolicyState
       {
         TRACER.debugInfo("Returning -1 because attribute %s does not "
             + "exist in user entry %s", attributeType.getNameOrOID(), entry
-            .getDN().toString());
+            .getName().toString());
       }
     }
     // FIXME: else to be consistent...
@@ -331,7 +333,7 @@ public abstract class AuthenticationPolicyState
       {
         TRACER.debugWarning("User %s is considered administratively "
             + "disabled because an error occurred while "
-            + "attempting to make the determination: %s.", userEntry.getDN()
+            + "attempting to make the determination: %s.", userEntry.getName()
             .toString(), stackTraceToSingleLineString(e));
       }
 
@@ -345,7 +347,7 @@ public abstract class AuthenticationPolicyState
       {
         TRACER.debugInfo("User %s is not administratively disabled since "
             + "the attribute \"%s\" is not present in the entry.", userEntry
-            .getDN().toString(), OP_ATTR_ACCOUNT_DISABLED);
+            .getName().toString(), OP_ATTR_ACCOUNT_DISABLED);
       }
       return false;
     }
@@ -353,7 +355,7 @@ public abstract class AuthenticationPolicyState
     if (debugEnabled())
     {
       TRACER.debugInfo("User %s %s administratively disabled.", userEntry
-          .getDN().toString(), ((isDisabled == ConditionResult.TRUE) ? " is"
+          .getName().toString(), ((isDisabled == ConditionResult.TRUE) ? " is"
           : " is not"));
     }
 

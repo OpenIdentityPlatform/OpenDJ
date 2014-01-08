@@ -1427,7 +1427,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
           args.add(getNoPropertiesFileArgument());
           args.add("--no-prompt");
 
-          dns.add(indexEntry.getDN().toString());
+          dns.add(indexEntry.getName().toString());
           attributes.add(attrs);
         }
 

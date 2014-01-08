@@ -102,7 +102,7 @@ public class ModifyEntryTask extends Task
     this.newEntry = newEntry;
     this.controller = controller;
     this.treePath = path;
-    DN newDn = newEntry.getDN();
+    DN newDn = newEntry.getName();
     try
     {
       oldDn = DN.valueOf(oldEntry.getDN());
@@ -139,7 +139,7 @@ public class ModifyEntryTask extends Task
       modifications.remove(passwordModification);
     }
     hasModifications = modifications.size() > 0 ||
-    !oldDn.equals(newEntry.getDN()) ||
+    !oldDn.equals(newEntry.getName()) ||
     (passwordModification != null);
   }
 
@@ -254,7 +254,7 @@ public class ModifyEntryTask extends Task
           {
             public void run()
             {
-              printEquivalentCommandToModify(newEntry.getDN(), modifications,
+              printEquivalentCommandToModify(newEntry.getName(), modifications,
                   useAdminCtx);
               getProgressDialog().appendProgressHtml(
                   Utilities.getProgressWithPoints(
@@ -364,7 +364,7 @@ public class ModifyEntryTask extends Task
   throws CannotRenameException, NamingException
   {
     RDN oldRDN = oldDN.rdn();
-    RDN newRDN = newEntry.getDN().rdn();
+    RDN newRDN = newEntry.getName().rdn();
 
     boolean rdnTypeChanged =
     newRDN.getNumValues() != oldRDN.getNumValues();
@@ -418,17 +418,17 @@ public class ModifyEntryTask extends Task
     {
       public void run()
       {
-        printEquivalentRenameCommand(oldDN, newEntry.getDN(), useAdminCtx);
+        printEquivalentRenameCommand(oldDN, newEntry.getName(), useAdminCtx);
         getProgressDialog().appendProgressHtml(
             Utilities.getProgressWithPoints(
                 INFO_CTRL_PANEL_RENAMING_ENTRY.get(oldDN.toString(),
-                    newEntry.getDN().toString()),
+                    newEntry.getName().toString()),
                 ColorAndFontConstants.progressFont));
       }
     });
 
     ctx.rename(Utilities.getJNDIName(oldDn.toString()),
-        Utilities.getJNDIName(newEntry.getDN().toString()));
+        Utilities.getJNDIName(newEntry.getName().toString()));
 
     final TreePath[] newPath = {null};
 
@@ -443,7 +443,7 @@ public class ModifyEntryTask extends Task
             controller.getNodeInfoFromPath(treePath));
         newPath[0] = controller.notifyEntryAdded(
             controller.getNodeInfoFromPath(parentPath),
-            newEntry.getDN().toString());
+            newEntry.getName().toString());
       }
     });
 
@@ -456,7 +456,7 @@ public class ModifyEntryTask extends Task
       {
         public void run()
         {
-          DN dn = newEntry.getDN();
+          DN dn = newEntry.getName();
           printEquivalentCommandToModify(dn, originalMods, useAdminCtx);
           getProgressDialog().appendProgressHtml(
               Utilities.getProgressWithPoints(
@@ -465,7 +465,7 @@ public class ModifyEntryTask extends Task
         }
       });
 
-      ctx.modifyAttributes(Utilities.getJNDIName(newEntry.getDN().toString()),
+      ctx.modifyAttributes(Utilities.getJNDIName(newEntry.getName().toString()),
           mods);
 
       SwingUtilities.invokeLater(new Runnable()
@@ -522,7 +522,7 @@ public class ModifyEntryTask extends Task
 
       boolean isAttributeInNewRdn = false;
       AttributeValue rdnValue = null;
-      RDN rdn = newEntry.getDN().rdn();
+      RDN rdn = newEntry.getName().rdn();
       for (int i=0; i<rdn.getNumValues() && !isAttributeInNewRdn; i++)
       {
         isAttributeInNewRdn =

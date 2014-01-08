@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -636,7 +636,7 @@ public class LDAPSearchTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -691,7 +691,7 @@ public class LDAPSearchTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -747,7 +747,7 @@ public class LDAPSearchTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -803,7 +803,7 @@ public class LDAPSearchTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -861,7 +861,7 @@ public class LDAPSearchTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -912,7 +912,7 @@ public class LDAPSearchTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -1481,7 +1481,7 @@ public class LDAPSearchTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 

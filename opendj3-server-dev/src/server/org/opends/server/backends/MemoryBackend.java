@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -411,7 +412,7 @@ public class MemoryBackend
     Entry e = entry.duplicate(false);
 
     // See if the target entry already exists.  If so, then fail.
-    DN entryDN = e.getDN();
+    DN entryDN = e.getName();
     if (entryMap.containsKey(entryDN))
     {
       Message message =
@@ -553,7 +554,7 @@ public class MemoryBackend
     Entry e = newEntry.duplicate(false);
 
     // Make sure the entry exists.  If not, then throw an exception.
-    DN entryDN = e.getDN();
+    DN entryDN = e.getName();
     if (! entryMap.containsKey(entryDN))
     {
       Message message =
@@ -606,10 +607,10 @@ public class MemoryBackend
 
 
     // Make sure that no entry exists with the new DN.
-    if (entryMap.containsKey(e.getDN()))
+    if (entryMap.containsKey(e.getName()))
     {
-      Message message =
-          ERR_MEMORYBACKEND_ENTRY_ALREADY_EXISTS.get(String.valueOf(e.getDN()));
+      Message message = ERR_MEMORYBACKEND_ENTRY_ALREADY_EXISTS.get(
+          String.valueOf(e.getName()));
       throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
     }
 
@@ -618,7 +619,7 @@ public class MemoryBackend
     boolean matchFound = false;
     for (DN dn : baseDNs)
     {
-      if (dn.isAncestorOf(e.getDN()))
+      if (dn.isAncestorOf(e.getName()))
       {
         matchFound = true;
         break;
@@ -634,7 +635,7 @@ public class MemoryBackend
 
 
     // Make sure that the parent of the new entry exists.
-    DN parentDN = e.getDN().getParentDNInSuffix();
+    DN parentDN = e.getName().getParentDNInSuffix();
     if ((parentDN == null) || (! entryMap.containsKey(parentDN)))
     {
       Message message = ERR_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST.get(
@@ -781,7 +782,7 @@ public class MemoryBackend
     {
       for (Entry entry : entryMap.values())
       {
-        entryDN = entry.getDN();
+        entryDN = entry.getName();
         ldifWriter.writeEntry(entry);
       }
     }

@@ -461,21 +461,21 @@ public class DefaultEntryCacheTestCase
     // Ensure all test entries are available via default cache.
     for (int i = 0; i < NUMTESTENTRIES; i++) {
       assertNotNull(super.cache.getEntry(
-        testSoftRefEntriesList.get(0).getDN()),
+        testSoftRefEntriesList.get(0).getName()),
         "Expected to find " +
-        testSoftRefEntriesList.get(0).getDN().toString() +
+        testSoftRefEntriesList.get(0).getName().toString() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
       assertNotNull(super.cache.getEntry(
-        testFIFOEntriesList.get(0).getDN()),
+        testFIFOEntriesList.get(0).getName()),
         "Expected to find " +
-        testFIFOEntriesList.get(0).getDN().toString() +
+        testFIFOEntriesList.get(0).getName().toString() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
       assertNotNull(super.cache.getEntry(
-        testFSEntriesList.get(0).getDN()),
+        testFSEntriesList.get(0).getName()),
         "Expected to find " +
-        testFSEntriesList.get(0).getDN().toString() +
+        testFSEntriesList.get(0).getName().toString() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
     }
@@ -483,21 +483,21 @@ public class DefaultEntryCacheTestCase
     // Ensure all test entries landed on their levels.
     for (int i = 0; i < NUMTESTENTRIES; i++) {
       assertNotNull(softRefCache.getEntry(
-        testSoftRefEntriesList.get(0).getDN()),
+        testSoftRefEntriesList.get(0).getName()),
         "Expected to find " +
-        testSoftRefEntriesList.get(0).getDN().toString() +
+        testSoftRefEntriesList.get(0).getName().toString() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
       assertNotNull(fifoCache.getEntry(
-        testFIFOEntriesList.get(0).getDN()),
+        testFIFOEntriesList.get(0).getName()),
         "Expected to find " +
-        testFIFOEntriesList.get(0).getDN().toString() +
+        testFIFOEntriesList.get(0).getName().toString() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
       assertNotNull(fsCache.getEntry(
-        testFSEntriesList.get(0).getDN()),
+        testFSEntriesList.get(0).getName()),
         "Expected to find " +
-        testFSEntriesList.get(0).getDN().toString() +
+        testFSEntriesList.get(0).getName().toString() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
     }

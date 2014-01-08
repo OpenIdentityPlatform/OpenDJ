@@ -108,14 +108,14 @@ public class NamingConflictTest extends ReplicationTestCase
           + "userPassword: password\n" + "initials: AA\n");
 
       TestCaseUtils.addEntry(entry);
-      String entryUUID = getEntryUUID(entry.getDN());
+      String entryUUID = getEntryUUID(entry.getName());
 
       // generate two consecutive CSN that will be used in backward order
       CSN csn1 = gen.newCSN();
       CSN csn2 = gen.newCSN();
 
       ModifyDNMsg  modDnMsg = new ModifyDNMsg(
-          entry.getDN(), csn2,
+          entry.getName(), csn2,
           entryUUID, parentUUID, false,
           TEST_ROOT_DN_STRING,
       "uid=simultaneous2");
@@ -129,7 +129,7 @@ public class NamingConflictTest extends ReplicationTestCase
       // This MODIFY DN uses an older DN and should therefore be cancelled
       // at replay time.
       modDnMsg = new ModifyDNMsg(
-          entry.getDN(), csn1,
+          entry.getName(), csn1,
           entryUUID, parentUUID, false,
           TEST_ROOT_DN_STRING,
       "uid=simulatneouswrong");
@@ -142,7 +142,7 @@ public class NamingConflictTest extends ReplicationTestCase
       domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // Expect the conflict resolution
-      assertFalse(DirectoryServer.entryExists(entry.getDN()),
+      assertFalse(DirectoryServer.entryExists(entry.getName()),
       "The modDN conflict was not resolved as expected.");
     }
     finally
@@ -204,7 +204,7 @@ public class NamingConflictTest extends ReplicationTestCase
       // Now try to add the same entry with same DN but a different
       // unique ID though the replication
       AddMsg addMsg = new AddMsg(csn1,
-            entry.getDN(),
+            entry.getName(),
             "c9cb8c3c-615a-4122-865d-50323aaaed48", parentUUID,
             entry.getObjectClasses(), entry.getUserAttributes(),
             null);
@@ -216,13 +216,13 @@ public class NamingConflictTest extends ReplicationTestCase
       domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // Now delete the first entry that was added at the beginning
-      TestCaseUtils.deleteEntry(entry.getDN());
+      TestCaseUtils.deleteEntry(entry.getName());
 
       // Expect the conflict resolution : the second entry should now
       // have been renamed with the original DN.
-      Entry resultEntry = DirectoryServer.getEntry(entry.getDN());
+      Entry resultEntry = DirectoryServer.getEntry(entry.getName());
       assertNotNull(resultEntry, "The conflict was not cleared");
-      assertEquals(getEntryUUID(resultEntry.getDN()),
+      assertEquals(getEntryUUID(resultEntry.getName()),
           "c9cb8c3c-615a-4122-865d-50323aaaed48",
           "The wrong entry has been renamed");
       assertNull(resultEntry.getAttribute(LDAPReplicationDomain.DS_SYNC_CONFLICT));
@@ -288,7 +288,7 @@ public class NamingConflictTest extends ReplicationTestCase
       // Now try to add the same entry with same DN but a different
       // unique ID though the replication
       AddMsg addMsg = new AddMsg(csn1,
-            entry.getDN(),
+            entry.getName(),
             "c9cb8c3c-615a-4122-865d-50323aaaed48", parentUUID,
             entry.getObjectClasses(), entry.getUserAttributes(),
             null);
@@ -304,14 +304,14 @@ public class NamingConflictTest extends ReplicationTestCase
         InternalClientConnection.getRootConnection();
 
       ModifyDNOperation modDNOperation =
-        conn.processModifyDN(entry.getDN(), RDN.decode("cn=foo"), false);
+        conn.processModifyDN(entry.getName(), RDN.decode("cn=foo"), false);
       assertEquals(modDNOperation.getResultCode(), ResultCode.SUCCESS);
 
       // Expect the conflict resolution : the second entry should now
       // have been renamed with the original DN.
-      Entry resultEntry = DirectoryServer.getEntry(entry.getDN());
+      Entry resultEntry = DirectoryServer.getEntry(entry.getName());
       assertNotNull(resultEntry, "The conflict was not cleared");
-      assertEquals(getEntryUUID(resultEntry.getDN()),
+      assertEquals(getEntryUUID(resultEntry.getName()),
           "c9cb8c3c-615a-4122-865d-50323aaaed48",
           "The wrong entry has been renamed");
       assertNull(resultEntry.getAttribute(LDAPReplicationDomain.DS_SYNC_CONFLICT));
@@ -392,10 +392,10 @@ public class NamingConflictTest extends ReplicationTestCase
       TestCaseUtils.addEntry(parentEntry);
       TestCaseUtils.addEntry(childEntry);
 
-      String parentUUID = getEntryUUID(parentEntry.getDN());
+      String parentUUID = getEntryUUID(parentEntry.getName());
 
       CSN csn2 = gen.newCSN();
-      DeleteMsg  delMsg = new DeleteMsg(parentEntry.getDN(), csn2, parentUUID);
+      DeleteMsg  delMsg = new DeleteMsg(parentEntry.getName(), csn2, parentUUID);
       delMsg.setSubtreeDelete(true);
 
       // Put the message in the replay queue
@@ -404,9 +404,9 @@ public class NamingConflictTest extends ReplicationTestCase
       domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // Expect the subtree to be deleted and no conflict entry created
-      assertFalse(DirectoryServer.entryExists(parentEntry.getDN()),
+      assertFalse(DirectoryServer.entryExists(parentEntry.getName()),
       "DEL subtree on parent was not processed as expected.");
-      assertFalse(DirectoryServer.entryExists(parentEntry.getDN()),
+      assertFalse(DirectoryServer.entryExists(parentEntry.getName()),
       "DEL subtree on parent was not processed as expected.");
     }
     finally
@@ -461,16 +461,16 @@ public class NamingConflictTest extends ReplicationTestCase
       TestCaseUtils.addEntry(parentEntry);
       TestCaseUtils.addEntry(childEntry);
 
-      assertTrue(DirectoryServer.entryExists(parentEntry.getDN()),
+      assertTrue(DirectoryServer.entryExists(parentEntry.getName()),
       "Parent entry expected to exist.");
-      assertTrue(DirectoryServer.entryExists(childEntry.getDN()),
+      assertTrue(DirectoryServer.entryExists(childEntry.getName()),
       "Child  entry expected to be exist.");
 
-      String parentUUID = getEntryUUID(parentEntry.getDN());
-      String childUUID = getEntryUUID(childEntry.getDN());
+      String parentUUID = getEntryUUID(parentEntry.getName());
+      String childUUID = getEntryUUID(childEntry.getName());
 
       CSN csn2 = gen.newCSN();
-      DeleteMsg  delMsg = new DeleteMsg(parentEntry.getDN(), csn2, parentUUID);
+      DeleteMsg  delMsg = new DeleteMsg(parentEntry.getName(), csn2, parentUUID);
       // NOT SUBTREE
 
       // Put the message in the replay queue
@@ -479,8 +479,8 @@ public class NamingConflictTest extends ReplicationTestCase
       domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // Expect the parent entry to be deleted
-      assertTrue(!DirectoryServer.entryExists(parentEntry.getDN()),
-          "Parent entry expected to be deleted : " + parentEntry.getDN());
+      assertTrue(!DirectoryServer.entryExists(parentEntry.getName()),
+          "Parent entry expected to be deleted : " + parentEntry.getName());
 
       // Expect the child entry to be moved as conflict entry under the root
       // entry of the suffix
@@ -540,7 +540,7 @@ public class NamingConflictTest extends ReplicationTestCase
 
 
       TestCaseUtils.addEntry(parentEntry);
-      String parentUUID = getEntryUUID(parentEntry.getDN());
+      String parentUUID = getEntryUUID(parentEntry.getName());
       TestCaseUtils.deleteEntry(parentEntry);
 
       CSN csn1 = gen.newCSN();
@@ -549,7 +549,7 @@ public class NamingConflictTest extends ReplicationTestCase
       String childUUID = "44444444-4444-4444-4444-444444444444";
       AddMsg addMsg = new AddMsg(
           csn1,
-          childEntry.getDN(),
+          childEntry.getName(),
           childUUID,
           parentUUID,
           childEntry.getObjectClassAttribute(),
@@ -562,7 +562,7 @@ public class NamingConflictTest extends ReplicationTestCase
       domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // Expect the parent entry to be deleted
-      assertFalse(DirectoryServer.entryExists(parentEntry.getDN()),
+      assertFalse(DirectoryServer.entryExists(parentEntry.getName()),
           "Parent entry exists ");
 
       // Expect the child entry to be moved as conflict entry under the root

@@ -632,7 +632,7 @@ public class VerifyJob
         else
         {
           if (!Arrays.equals(JebFormat.dnToDNKey(
-              entry.getDN(), verifyConfig.getBaseDN().size()),
+              entry.getName(), verifyConfig.getBaseDN().size()),
                              key.getData()))
           {
             errorCount++;
@@ -640,7 +640,7 @@ public class VerifyJob
             {
               TRACER.debugError("File dn2id has DN <%s> referencing entry " +
                   "with wrong DN <%s>%n", new String(key.getData()),
-                                          entry.getDN().toNormalizedString());
+                                          entry.getName().toNormalizedString());
             }
           }
         }
@@ -769,17 +769,17 @@ public class VerifyJob
               continue;
             }
 
-            if (!childEntry.getDN().isDescendantOf(entry.getDN()) ||
-                 childEntry.getDN().size() !=
-                 entry.getDN().size() + 1)
+            if (!childEntry.getName().isDescendantOf(entry.getName()) ||
+                 childEntry.getName().size() !=
+                 entry.getName().size() + 1)
             {
               errorCount++;
               if (debugEnabled())
               {
                 TRACER.debugError("File id2children has ID %d with DN <%s> " +
                     "referencing ID %d with non-child DN <%s>%n",
-                           entryID.longValue(), entry.getDN().toString(),
-                           id.longValue(), childEntry.getDN().toString());
+                           entryID.longValue(), entry.getName().toString(),
+                           id.longValue(), childEntry.getName().toString());
               }
             }
           }
@@ -908,7 +908,7 @@ public class VerifyJob
               continue;
             }
 
-            if (!subordEntry.getDN().isDescendantOf(entry.getDN()))
+            if (!subordEntry.getName().isDescendantOf(entry.getName()))
             {
               errorCount++;
               if (debugEnabled())
@@ -916,8 +916,8 @@ public class VerifyJob
                 TRACER.debugError("File id2subtree has ID %d with DN <%s> " +
                     "referencing ID %d with non-subordinate " +
                     "DN <%s>%n",
-                           entryID.longValue(), entry.getDN().toString(),
-                           id.longValue(), subordEntry.getDN().toString());
+                           entryID.longValue(), entry.getName().toString(),
+                           id.longValue(), subordEntry.getName().toString());
               }
             }
           }
@@ -1241,7 +1241,8 @@ public class VerifyJob
               if (debugEnabled())
               {
                 TRACER.debugError("Reference to entry "
-                    + "<%s> which does not match the value%n%s", entry.getDN(),
+                    + "<%s> which does not match the value%n%s",
+                    entry.getName(),
                     keyDump(index, value));
               }
             }
@@ -1286,7 +1287,7 @@ public class VerifyJob
    */
   private void verifyDN2ID(EntryID entryID, Entry entry)
   {
-    DN dn = entry.getDN();
+    DN dn = entry.getName();
 
     // Check the ID is in dn2id with the correct DN.
     try
@@ -1366,7 +1367,7 @@ public class VerifyJob
    */
   private void verifyID2Children(EntryID entryID, Entry entry)
   {
-    DN dn = entry.getDN();
+    DN dn = entry.getName();
 
     DN parentDN = getParent(dn);
     if (parentDN != null)
@@ -1441,7 +1442,7 @@ public class VerifyJob
    */
   private void verifyID2Subtree(EntryID entryID, Entry entry)
   {
-    for (DN dn = getParent(entry.getDN()); dn != null; dn = getParent(dn))
+    for (DN dn = getParent(entry.getName()); dn != null; dn = getParent(dn))
     {
       EntryID id = null;
       try
@@ -1601,7 +1602,7 @@ public class VerifyJob
           TRACER.debugError("Error normalizing values of attribute %s in " +
               "entry <%s>: %s.%n",
                      attrIndex.getAttributeType().toString(),
-                     entry.getDN().toString(),
+                     entry.getName().toString(),
                      String.valueOf(e.getMessageObject()));
         }
       }
@@ -1619,7 +1620,7 @@ public class VerifyJob
             if(debugEnabled())
             {
               TRACER.debugError("Missing entry %s in VLV index %s",
-                                entry.getDN().toString(),
+                                entry.getName().toString(),
                                 vlvIndex.getName());
             }
             errorCount++;
@@ -1634,7 +1635,7 @@ public class VerifyJob
 
           TRACER.debugError("Error checking entry %s against filter or " +
               "base DN for VLV index %s: %s",
-                     entry.getDN().toString(),
+                     entry.getName().toString(),
                      vlvIndex.getName(),
                      String.valueOf(e.getMessageObject()));
         }
@@ -1648,7 +1649,7 @@ public class VerifyJob
 
           TRACER.debugError("Error reading VLV index %s for entry %s: %s",
                      vlvIndex.getName(),
-                     entry.getDN().toString(),
+                     entry.getName().toString(),
                      StaticUtils.getBacktrace(e));
         }
         errorCount++;
@@ -1661,7 +1662,7 @@ public class VerifyJob
 
           TRACER.debugError("Error reading VLV index %s for entry %s: %s",
                      vlvIndex.getName(),
-                     entry.getDN().toString(),
+                     entry.getName().toString(),
                      StaticUtils.getBacktrace(e));
         }
         errorCount++;

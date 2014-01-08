@@ -213,7 +213,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -263,7 +263,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -316,7 +316,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -366,7 +366,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -416,7 +416,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -464,7 +464,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -512,7 +512,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -560,7 +560,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -608,7 +608,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
+         conn.processAdd(e.getName(), e.getObjectClasses(),
                          e.getUserAttributes(), e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 

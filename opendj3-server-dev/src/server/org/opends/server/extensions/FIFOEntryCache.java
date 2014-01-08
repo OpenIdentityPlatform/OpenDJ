@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -351,7 +351,7 @@ public class FIFOEntryCache
       long usedMemory = runtime.totalMemory() - runtime.freeMemory();
       if (usedMemory > maxAllowedMemory)
       {
-        CacheEntry cachedEntry = dnMap.remove(entry.getDN());
+        CacheEntry cachedEntry = dnMap.remove(entry.getName());
         if (cachedEntry == null)
         {
           // The current entry wasn't there, let's remove an existing entry.
@@ -388,7 +388,7 @@ public class FIFOEntryCache
       {
         // Add the entry to the cache.  This will replace it if it is already
         // present and add it if it isn't.
-        dnMap.put(entry.getDN(), cacheEntry);
+        dnMap.put(entry.getName(), cacheEntry);
 
         HashMap<Long,CacheEntry> map = idMap.get(backend);
         if (map == null)
@@ -478,7 +478,7 @@ public class FIFOEntryCache
     {
       // See if the entry already exists in the cache.  If it does, then we will
       // fail and not actually store the entry.
-      if (dnMap.containsKey(entry.getDN()))
+      if (dnMap.containsKey(entry.getName()))
       {
         return false;
       }
@@ -507,7 +507,7 @@ public class FIFOEntryCache
       {
         // Add the entry to the cache.  This will replace it if it is already
         // present and add it if it isn't.
-        dnMap.put(entry.getDN(), cacheEntry);
+        dnMap.put(entry.getName(), cacheEntry);
 
         HashMap<Long,CacheEntry> map = idMap.get(backend);
         if (map == null)
@@ -702,7 +702,7 @@ public class FIFOEntryCache
       int entriesDeleted = 0;
       for (CacheEntry e : map.values())
       {
-        dnMap.remove(e.getEntry().getDN());
+        dnMap.remove(e.getEntry().getName());
         entriesDeleted++;
 
         if ((entriesDeleted % 1000)  == 0)
@@ -804,7 +804,7 @@ public class FIFOEntryCache
     while (iterator.hasNext())
     {
       CacheEntry e = iterator.next();
-      DN entryDN = e.getEntry().getDN();
+      DN entryDN = e.getEntry().getName();
       if (entryDN.isDescendantOf(baseDN))
       {
         iterator.remove();

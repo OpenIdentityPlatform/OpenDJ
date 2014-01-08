@@ -140,7 +140,7 @@ public class WhoAmIExtendedOperationTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    AddOperation addOp = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    AddOperation addOp = conn.processAdd(e.getName(), e.getObjectClasses(),
                                          e.getUserAttributes(),
                                          e.getOperationalAttributes());
     assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
@@ -243,7 +243,7 @@ public class WhoAmIExtendedOperationTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    AddOperation addOp = conn.processAdd(e.getDN(), e.getObjectClasses(),
+    AddOperation addOp = conn.processAdd(e.getName(), e.getObjectClasses(),
                                          e.getUserAttributes(),
                                          e.getOperationalAttributes());
     assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.config;
 
@@ -148,7 +149,7 @@ public final class ConfigEntry
    */
   public DN getDN()
   {
-    return entry.getDN();
+    return entry.getName();
   }
 
 
@@ -350,7 +351,7 @@ public final class ConfigEntry
     if (conflictingChild != null)
     {
       Message message = ERR_CONFIG_ENTRY_CONFLICTING_CHILD.get(
-          conflictingChild.getDN().toString(), entry.getDN().toString());
+          conflictingChild.getDN().toString(), entry.getName().toString());
       throw new ConfigException(message);
     }
   }
@@ -382,14 +383,14 @@ public final class ConfigEntry
         if (childEntry == null)
         {
           Message message = ERR_CONFIG_ENTRY_NO_SUCH_CHILD.get(
-              childDN.toString(), entry.getDN().toString());
+              childDN.toString(), entry.getName().toString());
           throw new ConfigException(message);
         }
 
         if (childEntry.hasChildren())
         {
           Message message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_NONLEAF.get(
-              childDN.toString(), entry.getDN().toString());
+              childDN.toString(), entry.getName().toString());
           throw new ConfigException(message);
         }
 
@@ -408,7 +409,7 @@ public final class ConfigEntry
         }
 
         Message message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_CHILD.
-            get(String.valueOf(childDN), String.valueOf(entry.getDN()),
+            get(String.valueOf(childDN), String.valueOf(entry.getName()),
                 stackTraceToSingleLineString(e));
         throw new ConfigException(message, e);
       }
@@ -562,6 +563,6 @@ public final class ConfigEntry
   @Override
   public String toString()
   {
-    return entry.getDN().toNormalizedString();
+    return entry.getName().toNormalizedString();
   }
 }

@@ -177,7 +177,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
 
         baseDNs = new DN[] { configRootEntry.getDN() };
 
-        configEntries.put(entry.getDN(), configRootEntry);
+        configEntries.put(entry.getName(), configRootEntry);
         // Iterate through the rest of the configuration file and process the
         // remaining entries.
         while (entry != null)
@@ -186,7 +186,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
           entry = reader.readEntry(checkSchema);
           if (entry != null)
           {
-            DN entryDN = entry.getDN();
+            DN entryDN = entry.getName();
             DN parentDN = entryDN.parent();
             ConfigEntry parentEntry = null;
             if (parentDN != null)

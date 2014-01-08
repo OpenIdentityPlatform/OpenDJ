@@ -302,7 +302,7 @@ public class FilteredStaticGroupMemberList
     }
     else
     {
-      return e.getDN();
+      return e.getName();
     }
   }
 

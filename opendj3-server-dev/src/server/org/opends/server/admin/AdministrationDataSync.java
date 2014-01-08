@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -263,7 +263,7 @@ public final class AdministrationDataSync
 
         if (entry != null)
         {
-          returnDN = entry.getDN();
+          returnDN = entry.getName();
         }
       }
 

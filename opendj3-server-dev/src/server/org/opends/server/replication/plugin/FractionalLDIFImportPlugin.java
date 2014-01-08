@@ -197,7 +197,7 @@ public final class FractionalLDIFImportPlugin
           sync.getReplicationDomain(domainName);
       // Is the entry a sub entry of the replicated domain main entry ?
       DN replicatedDn = replicationDomainCfg.getBaseDN();
-      DN entryDn = entry.getDN();
+      DN entryDn = entry.getName();
       if (entryDn.isDescendantOf(replicatedDn))
       {
         // Found the matching replicated domain configuration object
@@ -247,7 +247,7 @@ public final class FractionalLDIFImportPlugin
     ImportFractionalContext importFractionalContext =
       importSessionContexts.get(importConfig);
 
-    DN entryDn = entry.getDN();
+    DN entryDn = entry.getName();
     FractionalConfig localFractionalConfig = null;
 
     // If no context, create it
@@ -414,7 +414,7 @@ public final class FractionalLDIFImportPlugin
     // If we get here, local domain fractional configuration is enabled.
     // Now filter for potential attributes to be removed.
     LDAPReplicationDomain.fractionalRemoveAttributesFromEntry(
-      localFractionalConfig, entry.getDN().rdn(),
+      localFractionalConfig, entry.getName().rdn(),
       entry.getObjectClasses(), entry.getUserAttributes(), true);
 
     return PluginResult.ImportLDIF.continueEntryProcessing();

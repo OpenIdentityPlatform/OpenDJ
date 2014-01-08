@@ -95,12 +95,12 @@ public class CompareOperationTestCase extends OperationTestCase
               "allow(proxy) userdn=\"ldap:///uid=proxy.user,o=test\";)"
     );
     AddOperation addOperation =
-         connection.processAdd(entry.getDN(),
+         connection.processAdd(entry.getName(),
                                entry.getObjectClasses(),
                                entry.getUserAttributes(),
                                entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(entry.getDN()));
+    assertNotNull(DirectoryServer.getEntry(entry.getName()));
 
     // Add a user capable of using the proxied authorization control.
     TestCaseUtils.addEntry(
@@ -134,7 +134,7 @@ public class CompareOperationTestCase extends OperationTestCase
                            conn, InternalClientConnection.nextOperationID(),
                            InternalClientConnection.nextMessageID(),
                            new ArrayList<Control>(),
-                           ByteString.valueOf(entry.getDN().toString()),
+                           ByteString.valueOf(entry.getName().toString()),
                            "uid", ByteString.valueOf("rogasawara"))
     };
   }
@@ -211,7 +211,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
@@ -236,7 +236,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "uid", ByteString.valueOf("rogasawala"));
 
     compareOperation.run();
@@ -306,7 +306,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "description", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
@@ -330,7 +330,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "NotAnAttribute",
                               ByteString.valueOf("rogasawara"));
 
@@ -353,7 +353,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "name",
                               ByteString.valueOf("Ogasawara"));
 
@@ -373,7 +373,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "sn",
                               ByteString.valueOf("Ogasawara"));
 
@@ -393,7 +393,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "sn;lang-ja",
                               ByteString.valueOf("Ogasawara"));
 
@@ -413,7 +413,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "givenName;lAnG-En",
                               ByteString.valueOf("Rodney"));
 
@@ -441,7 +441,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
@@ -471,7 +471,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
@@ -498,7 +498,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
@@ -527,7 +527,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
@@ -554,7 +554,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
@@ -581,7 +581,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
@@ -609,7 +609,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
@@ -637,7 +637,7 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getName().toString()),
                               "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
@@ -680,7 +680,7 @@ public class CompareOperationTestCase extends OperationTestCase
       // operation has completed.
       TestCaseUtils.quiesceServer();
 
-      Lock writeLock = LockManager.lockWrite(entry.getDN());
+      Lock writeLock = LockManager.lockWrite(entry.getName());
       assertNotNull(writeLock);
 
       try
@@ -692,7 +692,7 @@ public class CompareOperationTestCase extends OperationTestCase
 
         CompareRequestProtocolOp compareRequest =
           new CompareRequestProtocolOp(
-               ByteString.valueOf(entry.getDN().toString()),
+               ByteString.valueOf(entry.getName().toString()),
                "uid", ByteString.valueOf("rogasawara"));
         message = new LDAPMessage(2, compareRequest);
         w.writeMessage(message);
@@ -714,7 +714,7 @@ public class CompareOperationTestCase extends OperationTestCase
         assertEquals(ldapStatistics.getCompareResponses(), compareResponses+1);
       } finally
       {
-        LockManager.unlock(entry.getDN(), writeLock);
+        LockManager.unlock(entry.getName(), writeLock);
       }
     } finally
     {

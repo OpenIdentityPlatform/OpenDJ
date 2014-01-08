@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -67,7 +68,7 @@ public final class SearchResultEntry
    */
   public SearchResultEntry(Entry entry)
   {
-    super(entry.getDN(), entry.getObjectClasses(),
+    super(entry.getName(), entry.getObjectClasses(),
           entry.getUserAttributes(),
           entry.getOperationalAttributes());
 
@@ -90,7 +91,7 @@ public final class SearchResultEntry
    */
   public SearchResultEntry(Entry entry, List<Control> controls)
   {
-    super(entry.getDN(), entry.getObjectClasses(),
+    super(entry.getName(), entry.getObjectClasses(),
           entry.getUserAttributes(),
           entry.getOperationalAttributes());
 

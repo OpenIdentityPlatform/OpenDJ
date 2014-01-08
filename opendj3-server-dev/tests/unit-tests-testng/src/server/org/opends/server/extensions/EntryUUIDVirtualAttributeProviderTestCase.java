@@ -169,7 +169,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     AddOperation addOperation = conn.processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    e = DirectoryServer.getEntry(e.getDN());
+    e = DirectoryServer.getEntry(e.getName());
     assertNotNull(e);
     assertTrue(e.hasAttribute(entryUUIDType));
 

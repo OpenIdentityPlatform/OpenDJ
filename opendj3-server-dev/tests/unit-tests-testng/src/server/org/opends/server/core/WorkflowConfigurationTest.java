@@ -372,7 +372,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(),
         null,
-        entry.getDN(),
+        entry.getName(),
         entry.getObjectClasses(),
         entry.getUserAttributes(),
         entry.getOperationalAttributes());

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
@@ -179,7 +180,7 @@ public abstract class Task
   {
     this.taskScheduler = taskScheduler;
     this.taskEntry     = taskEntry;
-    this.taskEntryDN   = taskEntry.getDN();
+    this.taskEntryDN   = taskEntry.getName();
 
     String taskDN = taskEntryDN.toString();
 
@@ -196,7 +197,7 @@ public abstract class Task
       if (recurringTaskID == null)
       {
         Message message = ERR_TASK_MISSING_ATTR.get(
-            String.valueOf(taskEntry.getDN()), ATTR_TASK_ID);
+            String.valueOf(taskEntry.getName()), ATTR_TASK_ID);
         throw new InitializationException(message);
       }
       else
@@ -388,7 +389,7 @@ public abstract class Task
       if (isRequired)
       {
         Message message = ERR_TASK_MISSING_ATTR.get(
-            String.valueOf(taskEntry.getDN()), attributeName);
+            String.valueOf(taskEntry.getName()), attributeName);
         throw new InitializationException(message);
       }
       else
@@ -400,7 +401,7 @@ public abstract class Task
     if (attrList.size() > 1)
     {
       Message message = ERR_TASK_MULTIPLE_ATTRS_FOR_TYPE.get(
-          attributeName, String.valueOf(taskEntry.getDN()));
+          attributeName, String.valueOf(taskEntry.getName()));
       throw new InitializationException(message);
     }
 
@@ -410,7 +411,7 @@ public abstract class Task
       if (isRequired)
       {
         Message message = ERR_TASK_NO_VALUES_FOR_ATTR.get(
-            attributeName, String.valueOf(taskEntry.getDN()));
+            attributeName, String.valueOf(taskEntry.getName()));
         throw new InitializationException(message);
       }
       else
@@ -423,7 +424,7 @@ public abstract class Task
     if (iterator.hasNext())
     {
       Message message = ERR_TASK_MULTIPLE_VALUES_FOR_ATTR.get(
-          attributeName, String.valueOf(taskEntry.getDN()));
+          attributeName, String.valueOf(taskEntry.getName()));
       throw new InitializationException(message);
     }
 
@@ -460,7 +461,7 @@ public abstract class Task
     if (attrList.size() > 1)
     {
       Message message = ERR_TASK_MULTIPLE_ATTRS_FOR_TYPE.get(
-          attributeName, String.valueOf(taskEntry.getDN()));
+          attributeName, String.valueOf(taskEntry.getName()));
       throw new InitializationException(message);
     }
 
@@ -1160,7 +1161,7 @@ public abstract class Task
       taskState = TaskState.STOPPED_BY_ERROR;
 
       Message message = ERR_TASK_EXECUTE_FAILED.get(
-          String.valueOf(taskEntry.getDN()), stackTraceToSingleLineString(e));
+          String.valueOf(taskEntry.getName()), stackTraceToSingleLineString(e));
       logError(message);
     }
 

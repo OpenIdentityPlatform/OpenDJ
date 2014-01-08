@@ -305,8 +305,8 @@ public class FIFOEntryCacheTestCase
     // cache are no longer there after handleLowMemory.
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       assertFalse(super.cache.containsEntry(
-        super.testEntriesList.get(i).getDN()), "Not expected to find " +
-        super.testEntriesList.get(i).getDN().toString() + " in the " +
+        super.testEntriesList.get(i).getName()), "Not expected to find " +
+        super.testEntriesList.get(i).getName().toString() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
         cache.toVerboseString());
     }
@@ -374,8 +374,8 @@ public class FIFOEntryCacheTestCase
     // Make sure first NUMTESTENTRIES - MAXENTRIES got rotated.
     for(int i = 0; i < (super.NUMTESTENTRIES - super.MAXENTRIES); i++ ) {
       assertFalse(super.cache.containsEntry(
-        super.testEntriesList.get(i).getDN()), "Not expected to find " +
-        super.testEntriesList.get(i).getDN().toString() + " in the " +
+        super.testEntriesList.get(i).getName()), "Not expected to find " +
+        super.testEntriesList.get(i).getName().toString() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
         cache.toVerboseString());
     }
@@ -386,8 +386,8 @@ public class FIFOEntryCacheTestCase
         i++)
     {
       assertTrue(super.cache.containsEntry(
-        super.testEntriesList.get(i).getDN()), "Expected to find " +
-        super.testEntriesList.get(i).getDN().toString() + " in the " +
+        super.testEntriesList.get(i).getName()), "Expected to find " +
+        super.testEntriesList.get(i).getName().toString() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
         cache.toVerboseString());
     }

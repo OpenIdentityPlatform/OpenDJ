@@ -486,7 +486,7 @@ public class ECLSearchOperation
           }
           else
           {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
+            setProxiedAuthorizationDN(authorizationEntry.getName());
           }
         }
         else if (OID_PROXIED_AUTH_V2.equals(oid))
@@ -510,7 +510,7 @@ public class ECLSearchOperation
           }
           else
           {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
+            setProxiedAuthorizationDN(authorizationEntry.getName());
           }
         }
         else if (OID_PERSISTENT_SEARCH.equals(oid))

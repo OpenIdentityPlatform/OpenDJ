@@ -77,7 +77,7 @@ public class LastCookieVirtualProvider
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
     // There's only a value for the rootDSE, i.e. the Null DN.
-    return entry.getDN().isRootDN();
+    return entry.getName().isRootDN();
 
   }
 

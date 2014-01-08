@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 
@@ -228,7 +229,7 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
     ASN1Writer writer = ASN1.getWriter(builder);
     writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
     writer.writeBoolean(true);
-    writer.writeOctetString(entry.getDN().toString());
+    writer.writeOctetString(entry.getName().toString());
 
     writer.writeStartSequence();
     for(Attribute attr : entry.getAttributes())
@@ -267,7 +268,7 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
     ByteStringBuilder builder = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(builder);
     writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
-    writer.writeOctetString(entry.getDN().toString());
+    writer.writeOctetString(entry.getName().toString());
     writer.writeOctetString("cn");
     writer.writeEndSequence();
 

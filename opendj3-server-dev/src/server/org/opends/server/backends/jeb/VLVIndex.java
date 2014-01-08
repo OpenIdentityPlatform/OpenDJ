@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -300,7 +300,7 @@ public class VLVIndex extends DatabaseContainer
   public boolean addEntry(Transaction txn, EntryID entryID, Entry entry)
       throws DatabaseException, DirectoryException, JebException
   {
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
     if(entryDN.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry))
     {
       return insertValues(txn, entryID.longValue(), entry);
@@ -322,7 +322,7 @@ public class VLVIndex extends DatabaseContainer
   public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
       throws DirectoryException
   {
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
     if(entryDN.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry))
     {
       SortValues sortValues = new SortValues(entryID, entry, sortOrder);
@@ -370,7 +370,7 @@ public class VLVIndex extends DatabaseContainer
   public boolean removeEntry(Transaction txn, EntryID entryID, Entry entry)
       throws DatabaseException, DirectoryException, JebException
   {
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
     if(entryDN.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry))
     {
       return removeValues(txn, entryID.longValue(), entry);
@@ -391,7 +391,7 @@ public class VLVIndex extends DatabaseContainer
   public boolean removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
       throws DirectoryException
   {
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
     if(entryDN.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry))
     {
       SortValues sortValues = new SortValues(entryID, entry, sortOrder);
@@ -448,8 +448,8 @@ public class VLVIndex extends DatabaseContainer
                           List<Modification> mods)
        throws DatabaseException, DirectoryException, JebException
   {
-    DN oldEntryDN = oldEntry.getDN();
-    DN newEntryDN = newEntry.getDN();
+    DN oldEntryDN = oldEntry.getName();
+    DN newEntryDN = newEntry.getName();
     if(oldEntryDN.matchesBaseAndScope(baseDN, scope) &&
         filter.matchesEntry(oldEntry))
     {
@@ -540,8 +540,8 @@ public class VLVIndex extends DatabaseContainer
                           List<Modification> mods)
        throws DatabaseException, DirectoryException
   {
-    DN oldEntryDN = oldEntry.getDN();
-    DN newEntryDN = newEntry.getDN();
+    DN oldEntryDN = oldEntry.getName();
+    DN newEntryDN = newEntry.getName();
     if(oldEntryDN.matchesBaseAndScope(baseDN, scope) &&
         filter.matchesEntry(oldEntry))
     {
@@ -1682,7 +1682,7 @@ public class VLVIndex extends DatabaseContainer
    */
   public boolean shouldInclude(Entry entry) throws DirectoryException
   {
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
     if(entryDN.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry))
     {
       return true;

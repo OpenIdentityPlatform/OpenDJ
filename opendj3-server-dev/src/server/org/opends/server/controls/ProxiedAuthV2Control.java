@@ -328,7 +328,7 @@ public class ProxiedAuthV2Control
     if (state.isDisabled())
     {
       Message message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(String
-          .valueOf(userEntry.getDN()));
+          .valueOf(userEntry.getName()));
       throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
     }
 
@@ -342,7 +342,7 @@ public class ProxiedAuthV2Control
           pwpState.isPasswordExpired())
       {
         Message message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(String
-            .valueOf(userEntry.getDN()));
+            .valueOf(userEntry.getName()));
         throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
             message);
       }

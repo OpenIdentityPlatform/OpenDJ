@@ -81,7 +81,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
 
     // Add the task.
     AddOperation addOperation =
-         connection.processAdd(taskEntry.getDN(),
+         connection.processAdd(taskEntry.getName(),
                                taskEntry.getObjectClasses(),
                                taskEntry.getUserAttributes(),
                                taskEntry.getOperationalAttributes());
@@ -99,7 +99,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
     do
     {
       InternalSearchOperation searchOperation =
-           connection.processSearch(taskEntry.getDN(),
+           connection.processSearch(taskEntry.getName(),
                                     SearchScope.BASE_OBJECT,
                                     filter);
       try

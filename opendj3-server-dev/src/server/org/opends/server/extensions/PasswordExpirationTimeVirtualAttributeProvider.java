@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2012 profiq s.r.o.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -153,7 +153,7 @@ public class PasswordExpirationTimeVirtualAttributeProvider
       {
         TRACER.debugError("Failed to retrieve password " +
               "policy for user %s: %s",
-              entry.getDN().toString(),
+              entry.getName().toString(),
               stackTraceToSingleLineString(de));
       }
     }
@@ -165,7 +165,7 @@ public class PasswordExpirationTimeVirtualAttributeProvider
       if (debugEnabled())
       {
         TRACER.debugError("No applicable password policy for user %s", entry
-            .getDN().toString());
+            .getName().toString());
       }
     }
     else if (policy.isPasswordPolicy())
@@ -185,7 +185,7 @@ public class PasswordExpirationTimeVirtualAttributeProvider
         {
           TRACER.debugError("Failed to retrieve password " +
                 "policy state for user %s: %s",
-                entry.getDN().toString(),
+                entry.getName().toString(),
                 stackTraceToSingleLineString(de));
         }
       }
@@ -200,7 +200,7 @@ public class PasswordExpirationTimeVirtualAttributeProvider
       {
         TRACER.debugVerbose("Authentication policy %s found for user %s is "
             + "not a password policy", policy.getDN().toString(), entry
-            .getDN().toString());
+            .getName().toString());
       }
     }
 

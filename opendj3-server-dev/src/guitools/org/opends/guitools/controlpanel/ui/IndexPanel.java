@@ -733,7 +733,7 @@ public class IndexPanel extends AbstractIndexPanel
         LDIFReader reader = new LDIFReader(ldifImportConfig);
         Entry newConfigEntry = reader.readEntry();
         Entry oldEntry = DirectoryServer.getConfigEntry(
-            newConfigEntry.getDN()).getEntry();
+            newConfigEntry.getName()).getEntry();
         DirectoryServer.getConfigHandler().replaceEntry(oldEntry,
             newConfigEntry,
             null);

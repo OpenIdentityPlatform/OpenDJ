@@ -108,9 +108,9 @@ public class ProtocolWindowTest extends ReplicationTestCase
 
     // Configure replication domain
     DirectoryServer.getConfigHandler().addEntry(repDomainEntry, null);
-    assertNotNull(DirectoryServer.getConfigEntry(repDomainEntry.getDN()),
+    assertNotNull(DirectoryServer.getConfigEntry(repDomainEntry.getName()),
           "Unable to add the synchronized server");
-    configEntriesToCleanup.add(repDomainEntry.getDN());
+    configEntriesToCleanup.add(repDomainEntry.getName());
 
     ReplicationBroker broker = openReplicationSession(baseDN, 12,
         WINDOW_SIZE, replServerPort, 1000);
@@ -130,7 +130,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
       Entry tmp = personEntry.duplicate(false);
       AddOperation addOp = connection.processAdd(tmp);
       assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
-      assertTrue(DirectoryServer.entryExists(personEntry.getDN()),
+      assertTrue(DirectoryServer.entryExists(personEntry.getName()),
         "The Add Entry operation failed");
 
       // Check if the client has received the MSG
@@ -142,7 +142,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
       assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
         "The received Replication message is not an ADD msg");
 
-      assertEquals(addMsg.getDN(), personEntry.getDN(),
+      assertEquals(addMsg.getDN(), personEntry.getName(),
         "The received ADD Replication message is not for the excepted DN");
 
       // send (2 * window + replicationServer queue) modify operations
@@ -176,7 +176,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
     finally {
       broker.stop();
       // Clean domain
-      DN dn = repDomainEntry.getDN();
+      DN dn = repDomainEntry.getName();
       try
       {
         DeleteOperation op = connection.processDelete(dn);
@@ -286,7 +286,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
       List<Modification> mods = generatemods("telephonenumber", "01 02 45");
 
       ModifyOperation modOp =
-        connection.processModify(personEntry.getDN(), mods);
+        connection.processModify(personEntry.getName(), mods);
       assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
     }
   }

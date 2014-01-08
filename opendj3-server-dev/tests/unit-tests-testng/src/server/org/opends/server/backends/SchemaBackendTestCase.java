@@ -109,7 +109,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     DN    schemaDN    = DN.valueOf("cn=schema");
     Entry schemaEntry = schemaBackend.getEntry(schemaDN);
     assertNotNull(schemaEntry);
-    assertEquals(schemaEntry.getDN(), schemaDN);
+    assertEquals(schemaEntry.getName(), schemaDN);
 
     AttributeType t = DirectoryServer.getAttributeType("attributetypes");
     assertTrue(schemaEntry.hasAttribute(t));
@@ -160,7 +160,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     DN    schemaDN    = DN.valueOf("cn=schema");
     Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
     assertNotNull(schemaEntry);
-    assertEquals(schemaEntry.getDN(), schemaDN);
+    assertEquals(schemaEntry.getName(), schemaDN);
 
     AttributeType t = DirectoryServer.getAttributeType("attributetypes");
     assertTrue(schemaEntry.hasAttribute(t));
@@ -178,7 +178,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     schemaDN    = DN.valueOf("cn=subschema");
     schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
     assertNotNull(schemaEntry);
-    assertEquals(schemaEntry.getDN(), schemaDN);
+    assertEquals(schemaEntry.getName(), schemaDN);
 
     t = DirectoryServer.getAttributeType("attributetypes");
     assertTrue(schemaEntry.hasAttribute(t));

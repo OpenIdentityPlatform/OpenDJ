@@ -1523,7 +1523,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         if (entry != null)
         {
           boolean isInScope = false;
-          DN entryDN = entry.getDN();
+          DN entryDN = entry.getName();
 
           if (candidatesAreInScope)
           {
@@ -1646,15 +1646,15 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   throws DatabaseException, DirectoryException, CanceledOperationException
   {
     Transaction txn = beginTransaction();
-    DN parentDN = getParentWithinBase(entry.getDN());
+    DN parentDN = getParentWithinBase(entry.getName());
 
     try
     {
       // Check whether the entry already exists.
-      if (dn2id.get(txn, entry.getDN(), LockMode.DEFAULT) != null)
+      if (dn2id.get(txn, entry.getName(), LockMode.DEFAULT) != null)
       {
         Message message =
-          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
+          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
             message);
       }
@@ -1664,14 +1664,14 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       if (parentDN != null)
       {
         // Check for referral entries above the target.
-        dn2uri.targetEntryReferrals(entry.getDN(), null);
+        dn2uri.targetEntryReferrals(entry.getName(), null);
 
         // Read the parent ID from dn2id.
         parentID = dn2id.get(txn, parentDN, LockMode.DEFAULT);
         if (parentID == null)
         {
           Message message = ERR_JEB_ADD_NO_SUCH_OBJECT.get(
-              entry.getDN().toString());
+              entry.getName().toString());
           DN matchedDN = getMatchedDN(baseDN);
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
               message, matchedDN, null);
@@ -1681,11 +1681,11 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       EntryID entryID = rootContainer.getNextEntryID();
 
       // Insert into dn2id.
-      if (!dn2id.insert(txn, entry.getDN(), entryID))
+      if (!dn2id.insert(txn, entry.getName(), entryID))
       {
         // Do not ever expect to come through here.
         Message message =
-          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
+          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
             message);
       }
@@ -1695,7 +1695,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       {
         // Do not ever expect to come through here.
         Message message =
-          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
+          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
             message);
       }
@@ -1705,7 +1705,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       {
         // Do not ever expect to come through here.
         Message message =
-          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
+          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
             message);
       }
@@ -2135,7 +2135,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     if (entryCache != null)
     {
-      entryCache.removeEntry(entry.getDN());
+      entryCache.removeEntry(entry.getName());
     }
   }
 
@@ -2261,12 +2261,12 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     try
     {
       // Read dn2id.
-      EntryID entryID = dn2id.get(txn, newEntry.getDN(), LockMode.RMW);
+      EntryID entryID = dn2id.get(txn, newEntry.getName(), LockMode.RMW);
       if (entryID == null)
       {
         // The entry does not exist.
         Message message =
-          ERR_JEB_MODIFY_NO_SUCH_OBJECT.get(newEntry.getDN().toString());
+          ERR_JEB_MODIFY_NO_SUCH_OBJECT.get(newEntry.getName().toString());
         DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
@@ -2380,7 +2380,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   {
     Transaction txn = beginTransaction();
     DN oldSuperiorDN = getParentWithinBase(currentDN);
-    DN newSuperiorDN = getParentWithinBase(entry.getDN());
+    DN newSuperiorDN = getParentWithinBase(entry.getName());
     boolean isApexEntryMoved;
 
     if(oldSuperiorDN != null)
@@ -2401,11 +2401,11 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     try
     {
       // Check whether the renamed entry already exists.
-      if (!currentDN.equals(entry.getDN()) &&
-          dn2id.get(txn, entry.getDN(), LockMode.DEFAULT) != null)
+      if (!currentDN.equals(entry.getName()) &&
+          dn2id.get(txn, entry.getName(), LockMode.DEFAULT) != null)
       {
         Message message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(
-            entry.getDN().toString());
+            entry.getName().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
             message);
       }
@@ -2472,7 +2472,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
                 "Old entry ID: %d " +
                 "New entry ID: %d " +
                 "New Superior ID: %d" +
-                oldApexEntry.getDN(), entry.getDN(),
+                oldApexEntry.getName(), entry.getName(),
                 oldApexID.longValue(), newApexID.longValue(),
                 newSuperiorID.longValue());
           }
@@ -2540,9 +2540,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           Entry oldEntry = id2entry.get(txn, oldID, LockMode.DEFAULT);
 
           // Construct the new DN of the entry.
-          DN newDN = modDN(oldEntry.getDN(),
+          DN newDN = modDN(oldEntry.getName(),
               currentDN.size(),
-              entry.getDN());
+              entry.getName());
 
           // Assign a new entry ID if we are renumbering.
           EntryID newID = oldID;
@@ -2558,7 +2558,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
                   "New DN: %s " +
                   "Old entry ID: %d " +
                   "New entry ID: %d",
-                  oldEntry.getDN(), newDN, oldID.longValue(),
+                  oldEntry.getName(), newDN, oldID.longValue(),
                   newID.longValue());
             }
           }
@@ -2663,10 +2663,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
                            ModifyDNOperation modifyDNOperation)
       throws DirectoryException, DatabaseException
   {
-    if (!dn2id.insert(txn, newEntry.getDN(), newID))
+    if (!dn2id.insert(txn, newEntry.getName(), newID))
     {
       Message message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(
-          newEntry.getDN().toString());
+          newEntry.getName().toString());
       throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
                                    message);
     }
@@ -2685,7 +2685,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       EntryID parentID;
       byte[] parentIDKeyBytes;
       boolean isParent = true;
-      for (DN dn = getParentWithinBase(newEntry.getDN()); dn != null;
+      for (DN dn = getParentWithinBase(newEntry.getName()); dn != null;
            dn = getParentWithinBase(dn))
       {
         parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
@@ -2710,7 +2710,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       MovedEntry tail)
   throws DirectoryException, DatabaseException
   {
-    DN oldDN = oldEntry.getDN();
+    DN oldDN = oldEntry.getName();
 
     // Remove the old DN from dn2id.
     dn2id.remove(txn, oldDN);
@@ -2783,7 +2783,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       MovedEntry tail)
   throws DirectoryException, DatabaseException
   {
-    DN oldDN = oldEntry.getDN();
+    DN oldDN = oldEntry.getName();
     Entry newEntry = oldEntry.duplicate(false);
     newEntry.setDN(newDN);
     List<Modification> modifications =

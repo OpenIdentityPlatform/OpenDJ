@@ -682,7 +682,7 @@ public class BackendImpl
   {
     checkDiskSpace(addOperation);
     writerBegin();
-    DN entryDN = entry.getDN();
+    DN entryDN = entry.getName();
 
     EntryContainer ec;
     if (rootContainer != null)
@@ -769,7 +769,7 @@ public class BackendImpl
     checkDiskSpace(modifyOperation);
     writerBegin();
 
-    DN entryDN = newEntry.getDN();
+    DN entryDN = newEntry.getName();
     EntryContainer ec;
     if (rootContainer != null)
     {
@@ -826,7 +826,7 @@ public class BackendImpl
               message);
     }
 
-    EntryContainer container = rootContainer.getEntryContainer(entry.getDN());
+    EntryContainer container = rootContainer.getEntryContainer(entry.getName());
 
     if (currentContainer != container)
     {

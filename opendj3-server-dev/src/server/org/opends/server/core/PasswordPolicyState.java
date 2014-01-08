@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -153,7 +153,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     super(userEntry);
     this.currentTime = currentTime;
-    this.userDNString     = userEntry.getDN().toString();
+    this.userDNString     = userEntry.getName().toString();
     this.passwordPolicy   = policy;
   }
 
@@ -3700,7 +3700,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       // If this is a root user, or if the password policy says that we should
       // ignore these problems, then log a warning message.  Otherwise, cause
       // the bind to fail.
-      if ((DirectoryServer.isRootDN(userEntry.getDN()) ||
+      if ((DirectoryServer.isRootDN(userEntry.getName()) ||
           (passwordPolicy.getStateUpdateFailurePolicy() ==
            PasswordPolicyCfgDefn.StateUpdateFailurePolicy.IGNORE)))
       {

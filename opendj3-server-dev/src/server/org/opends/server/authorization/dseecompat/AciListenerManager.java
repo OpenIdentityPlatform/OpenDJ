@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -138,7 +138,7 @@ public class AciListenerManager implements
       Entry entry = modifyDNOperation.getUpdatedEntry();
       if (entry != null)
       {
-        doPostModifyDN(entry.getDN(), entry.getDN());
+        doPostModifyDN(entry.getName(), entry.getName());
       }
     }
 
@@ -208,8 +208,8 @@ public class AciListenerManager implements
       // has been a change.
       if (modifyDNOperation.getResultCode() == ResultCode.SUCCESS)
       {
-        doPostModifyDN(modifyDNOperation.getOriginalEntry().getDN(),
-          modifyDNOperation.getUpdatedEntry().getDN());
+        doPostModifyDN(modifyDNOperation.getOriginalEntry().getName(),
+          modifyDNOperation.getUpdatedEntry().getName());
       }
 
       // If we've gotten here, then everything is acceptable.

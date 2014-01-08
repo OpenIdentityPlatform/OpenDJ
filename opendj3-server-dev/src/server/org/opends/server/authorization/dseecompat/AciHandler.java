@@ -409,7 +409,7 @@ public final class AciHandler extends
       return true;
     }
 
-    final RDN oldRDN = operation.getOriginalEntry().getDN().rdn();
+    final RDN oldRDN = operation.getOriginalEntry().getName().rdn();
     final RDN newRDN = operation.getNewRDN();
     final DN newSuperiorDN = operation.getNewSuperior();
 
@@ -502,7 +502,7 @@ public final class AciHandler extends
 
     final AuthenticationInfo authInfo =
         new AuthenticationInfo(proxyUser, DirectoryServer.isRootDN(proxyUser
-            .getDN()));
+            .getName()));
     final AciContainer container =
         new AciLDAPOperationContainer(op, proxiedUser, authInfo, ACI_PROXY);
     return accessAllowedEntry(container);
@@ -810,7 +810,7 @@ public final class AciHandler extends
       throws DirectoryException
   {
     Entry resourceEntry = container.getResourceEntry();
-    DN dn = resourceEntry.getDN();
+    DN dn = resourceEntry.getName();
     List<Modification> modifications =  operation.getModifications();
 
     for (Modification m : modifications)
@@ -1473,7 +1473,7 @@ public final class AciHandler extends
           Privilege.MODIFY_ACL, operation))
       {
         Message message = INFO_ACI_ADD_FAILED_PRIVILEGE.get(
-            String.valueOf(entry.getDN()), String.valueOf(clientDN));
+            String.valueOf(entry.getName()), String.valueOf(clientDN));
         logError(message);
         return false;
       }
@@ -1485,12 +1485,12 @@ public final class AciHandler extends
         {
           try
           {
-            Aci.decode(value.getValue(), entry.getDN());
+            Aci.decode(value.getValue(), entry.getName());
           }
           catch (AciException ex)
           {
             Message message = WARN_ACI_ADD_FAILED_DECODE.get(
-                String.valueOf(entry.getDN()), ex.getMessage());
+                String.valueOf(entry.getName()), ex.getMessage());
             throw new DirectoryException(
                 ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
           }

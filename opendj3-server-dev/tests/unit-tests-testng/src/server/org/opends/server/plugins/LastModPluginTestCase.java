@@ -331,11 +331,11 @@ public class LastModPluginTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    e = DirectoryConfig.getEntry(e.getDN());
+    e = DirectoryConfig.getEntry(e.getName());
     assertNotNull(e);
     assertNotNull(e.getAttribute("creatorsname"));
     assertNotNull(e.getAttribute("createtimestamp"));
@@ -391,13 +391,13 @@ public class LastModPluginTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN(e.getDN(), RDN.decode("cn=test2"), false);
+         conn.processModifyDN(e.getName(), RDN.decode("cn=test2"), false);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
 
     e = DirectoryConfig.getEntry(DN.valueOf("cn=test2,o=test"));

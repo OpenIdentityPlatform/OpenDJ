@@ -396,10 +396,10 @@ public class ConfigFileHandler
     try
     {
       DN configRootDN = DN.valueOf(DN_CONFIG_ROOT);
-      if (! entry.getDN().equals(configRootDN))
+      if (! entry.getName().equals(configRootDN))
       {
         Message message = ERR_CONFIG_FILE_INVALID_BASE_DN.get(
-                               f.getAbsolutePath(), entry.getDN().toString(),
+                               f.getAbsolutePath(), entry.getName().toString(),
                                DN_CONFIG_ROOT);
         throw new InitializationException(message);
       }
@@ -434,7 +434,7 @@ public class ConfigFileHandler
     // hash.
     configEntries   = new ConcurrentHashMap<DN,ConfigEntry>();
     configRootEntry = new ConfigEntry(entry, null);
-    configEntries.put(entry.getDN(), configRootEntry);
+    configEntries.put(entry.getName(), configRootEntry);
 
 
     // Iterate through the rest of the configuration file and process the
@@ -485,7 +485,7 @@ public class ConfigFileHandler
 
 
       // Make sure that the DN of the entry read doesn't already exist.
-      DN entryDN = entry.getDN();
+      DN entryDN = entry.getName();
       if (configEntries.containsKey(entryDN))
       {
         close(reader);
@@ -1184,7 +1184,7 @@ public class ConfigFileHandler
     {
       // Make sure that the target DN does not already exist.  If it does, then
       // fail.
-      DN entryDN = e.getDN();
+      DN entryDN = e.getName();
       if (configEntries.containsKey(entryDN))
       {
         Message message =
@@ -1530,7 +1530,7 @@ public class ConfigFileHandler
     synchronized (configLock)
     {
       // Get the DN of the target entry for future reference.
-      DN entryDN = e.getDN();
+      DN entryDN = e.getName();
 
 
       // Get the target entry.  If it does not exist, then fail.

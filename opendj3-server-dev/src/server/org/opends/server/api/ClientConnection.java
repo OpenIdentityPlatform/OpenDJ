@@ -221,23 +221,23 @@ public abstract class ClientConnection
     if (authNEntry != null)
     {
       if ((authZEntry == null) ||
-          authZEntry.getDN().equals(authNEntry.getDN()))
+          authZEntry.getName().equals(authNEntry.getName()))
       {
         DirectoryServer.getAuthenticatedUsers().remove(
-             authNEntry.getDN(), this);
+             authNEntry.getName(), this);
       }
       else
       {
         DirectoryServer.getAuthenticatedUsers().remove(
-             authNEntry.getDN(), this);
+             authNEntry.getName(), this);
         DirectoryServer.getAuthenticatedUsers().remove(
-             authZEntry.getDN(), this);
+             authZEntry.getName(), this);
       }
     }
     else if (authZEntry != null)
     {
       DirectoryServer.getAuthenticatedUsers().remove(
-           authZEntry.getDN(), this);
+           authZEntry.getName(), this);
     }
 
     networkGroup.removeConnection(this);
@@ -884,23 +884,23 @@ public abstract class ClientConnection
       if (authNEntry != null)
       {
         if ((authZEntry == null) ||
-            authZEntry.getDN().equals(authNEntry.getDN()))
+            authZEntry.getName().equals(authNEntry.getName()))
         {
           DirectoryServer.getAuthenticatedUsers().remove(
-               authNEntry.getDN(), this);
+               authNEntry.getName(), this);
         }
         else
         {
           DirectoryServer.getAuthenticatedUsers().remove(
-               authNEntry.getDN(), this);
+               authNEntry.getName(), this);
           DirectoryServer.getAuthenticatedUsers().remove(
-               authZEntry.getDN(), this);
+               authZEntry.getName(), this);
         }
       }
       else if (authZEntry != null)
       {
         DirectoryServer.getAuthenticatedUsers().remove(
-             authZEntry.getDN(), this);
+             authZEntry.getName(), this);
       }
     }
 
@@ -919,17 +919,17 @@ public abstract class ClientConnection
       if (authNEntry != null)
       {
         if ((authZEntry == null) ||
-            authZEntry.getDN().equals(authNEntry.getDN()))
+            authZEntry.getName().equals(authNEntry.getName()))
         {
           DirectoryServer.getAuthenticatedUsers().put(
-               authNEntry.getDN(), this);
+               authNEntry.getName(), this);
         }
         else
         {
           DirectoryServer.getAuthenticatedUsers().put(
-               authNEntry.getDN(), this);
+               authNEntry.getName(), this);
           DirectoryServer.getAuthenticatedUsers().put(
-               authZEntry.getDN(), this);
+               authZEntry.getName(), this);
         }
       }
       else
@@ -937,7 +937,7 @@ public abstract class ClientConnection
         if (authZEntry != null)
         {
           DirectoryServer.getAuthenticatedUsers().put(
-               authZEntry.getDN(), this);
+               authZEntry.getName(), this);
         }
       }
 
@@ -965,10 +965,10 @@ public abstract class ClientConnection
     Entry authZEntry = authenticationInfo.getAuthorizationEntry();
 
     if ((authNEntry != null) &&
-        authNEntry.getDN().equals(oldEntry.getDN()))
+        authNEntry.getName().equals(oldEntry.getName()))
     {
       if ((authZEntry == null) ||
-          (! authZEntry.getDN().equals(authNEntry.getDN())))
+          (! authZEntry.getName().equals(authNEntry.getName())))
       {
         setAuthenticationInfo(
              authenticationInfo.duplicate(newEntry, authZEntry));
@@ -982,7 +982,7 @@ public abstract class ClientConnection
       }
     }
     else if ((authZEntry != null) &&
-             (authZEntry.getDN().equals(oldEntry.getDN())))
+             (authZEntry.getName().equals(oldEntry.getName())))
     {
       setAuthenticationInfo(
            authenticationInfo.duplicate(authNEntry, newEntry));
@@ -1019,7 +1019,7 @@ public abstract class ClientConnection
   public static boolean hasPrivilege(Entry authorizationEntry,
                                    Privilege privilege) {
       boolean isRoot =
-          DirectoryServer.isRootDN(authorizationEntry.getDN());
+          DirectoryServer.isRootDN(authorizationEntry.getName());
       return getPrivileges(authorizationEntry,
               isRoot).contains(privilege) ||
               DirectoryServer.isDisabled(privilege);
@@ -1101,7 +1101,7 @@ public abstract class ClientConnection
         else
         {
           boolean isRoot =
-               DirectoryServer.isRootDN(authorizationEntry.getDN());
+               DirectoryServer.isRootDN(authorizationEntry.getName());
           result = getPrivileges(authorizationEntry,
                                  isRoot).contains(privilege) ||
                    DirectoryServer.isDisabled(privilege);

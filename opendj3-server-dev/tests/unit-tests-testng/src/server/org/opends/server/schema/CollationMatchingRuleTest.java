@@ -487,7 +487,7 @@ public final class CollationMatchingRuleTest
       ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
       for (Entry e : internalSearch.getSearchEntries())
       {
-        returnedDNOrder.add(e.getDN());
+        returnedDNOrder.add(e.getName());
       }
      assertEquals(returnedDNOrder, expectedDNOrder);
     }
