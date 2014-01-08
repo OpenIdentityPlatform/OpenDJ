@@ -27,6 +27,8 @@
 
 package org.forgerock.opendj.ldap;
 
+import static org.fest.assertions.Assertions.*;
+
 import java.util.Arrays;
 
 import javax.xml.bind.DatatypeConverter;
@@ -238,5 +240,23 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
         final byte[] data = DatatypeConverter.parseHexBinary(hexData);
         final byte[] decodedData = ByteString.valueOfBase64(encodedData).toByteArray();
         Assert.assertEquals(decodedData, data);
+    }
+
+    @Test
+    public void testToHexPlusAsciiString() throws Exception {
+        ByteString byteString = new ByteStringBuilder().append("cn=testvalue,org=example").toByteString();
+        assertThat(byteString.toHexPlusAsciiString(10)).isEqualTo(
+            "          63 6E 3D 74 65 73 74 76   61 6C 75 65 2C 6F 72 67  cn=testv alue,org\n"
+            + "          3D 65 78 61 6D 70 6C 65                            =example \n");
+
+        assertThat(byteString.toHexPlusAsciiString(0)).isEqualTo(
+            "63 6E 3D 74 65 73 74 76   61 6C 75 65 2C 6F 72 67  cn=testv alue,org\n"
+            + "3D 65 78 61 6D 70 6C 65                            =example \n");
+    }
+
+    @Test
+    public void testValueOfHex() throws Exception {
+        ByteString byteString = ByteString.valueOfHex("636E3D7465737476616C7565");
+        assertThat(byteString.toString()).isEqualTo("cn=testvalue");
     }
 }
