@@ -23,11 +23,11 @@
   ! CDDL HEADER END
   !
   !      Copyright 2011-2013 ForgeRock AS
-  !    
+  !
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  
+
   <!-- This is Maven build file is just a hack in order to leverage
        Maven's site generation capabilities. It duplicates version information,
        and the Ant build is not split into phases: we just do it in one single
@@ -40,6 +40,7 @@
     <version>2.7.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server</artifactId>
+  <version>3.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>OpenDJ Directory Server</name>
   <description>
@@ -68,7 +69,7 @@
       </notifier>
     </notifiers>
   </ciManagement>
-  
+
   <repositories>
     <repository>
       <id>forgerock-staging-repository</id>

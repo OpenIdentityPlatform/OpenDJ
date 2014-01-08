@@ -8,10 +8,10 @@ SHORT_NAME=OpenDJ
 PKG_NAME=opendj
 
 # The major version number for the Directory Server.  It must be an integer.
-MAJOR_VERSION=2
+MAJOR_VERSION=3
 
 # The minor version number for the Directory Server.  It must be an integer.
-MINOR_VERSION=7
+MINOR_VERSION=0
 
 # The point version number for the Directory Server.  It must be an integer.
 POINT_VERSION=0
