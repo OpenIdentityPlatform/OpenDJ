@@ -38,6 +38,30 @@ import java.nio.charset.Charset;
  * A mutable sequence of bytes backed by a byte array.
  */
 public final class ByteStringBuilder implements ByteSequence {
+    /**
+     *  Output stream implementation.
+     */
+    private final class OutputStreamImpl extends OutputStream {
+        @Override
+        public void close() {
+            // Do nothing.
+        }
+
+        @Override
+        public void write(final byte[] bytes) {
+            append(bytes);
+        }
+
+        @Override
+        public void write(final byte[] bytes, final int i, final int i1) {
+            append(bytes, i, i1);
+        }
+
+        @Override
+        public void write(final int i) {
+            append(((byte) (i & 0xFF)));
+        }
+    }
 
     /**
      * A sub-sequence of the parent byte string builder. The sub-sequence will
@@ -652,6 +676,20 @@ public final class ByteStringBuilder implements ByteSequence {
             buffer[this.length++] = (byte) (length & 0xFF);
         }
         return this;
+    }
+
+    /**
+     * Returns an {@link OutputStream} whose write operations append data to
+     * this byte string builder. The returned output stream will never throw an
+     * {@link IOException} and its {@link OutputStream#close() close} method
+     * does not do anything.
+     *
+     * @return An {@link OutputStream} whose write operations append data to
+     *         this byte string builder.
+     */
+    public OutputStream asOutputStream() {
+        // Is it worth caching this?
+        return new OutputStreamImpl();
     }
 
     /**

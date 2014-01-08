@@ -29,8 +29,11 @@ package org.forgerock.opendj.ldap;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterOutputStream;
 
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -149,6 +152,34 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
         Assert.assertTrue(bsb.getBackingArray().length > 8);
         bsb.trimToSize();
         Assert.assertEquals(bsb.getBackingArray().length, 8);
+    }
+
+    @Test
+    public void testAsOutputStream() throws Exception {
+        final ByteStringBuilder bsb = new ByteStringBuilder();
+        final OutputStream os = bsb.asOutputStream();
+        os.write((byte) 0x01);
+        os.write(2);
+        os.write(new byte[] { 2, 3, 4, 5 }, 1, 2);
+        os.close();
+        Assert.assertEquals(bsb.length(), 4);
+        Assert.assertEquals(bsb.toByteArray(), new byte[] { 1, 2, 3, 4 });
+    }
+
+    @Test
+    public void testAsOutputStreamCompress() throws Exception {
+        final ByteString data = ByteString.wrap(new byte[4000]);
+        final ByteStringBuilder compressedData = new ByteStringBuilder();
+        final OutputStream compressor = new DeflaterOutputStream(compressedData.asOutputStream());
+        data.copyTo(compressor);
+        compressor.close();
+        Assert.assertTrue(compressedData.length() > 0 && compressedData.length() < 4000);
+
+        final ByteStringBuilder decompressedData = new ByteStringBuilder();
+        final OutputStream decompressor = new InflaterOutputStream(decompressedData.asOutputStream());
+        compressedData.copyTo(decompressor);
+        decompressor.close();
+        Assert.assertEquals(decompressedData.toByteString(), data);
     }
 
     @DataProvider(name = "builderProvider")

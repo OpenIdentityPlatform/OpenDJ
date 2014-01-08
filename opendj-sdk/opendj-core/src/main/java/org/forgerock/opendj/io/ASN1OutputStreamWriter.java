@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.io;
 
@@ -37,7 +37,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 
-import com.forgerock.opendj.util.ByteSequenceOutputStream;
 import com.forgerock.opendj.util.StaticUtils;
 
 /**
@@ -46,7 +45,7 @@ import com.forgerock.opendj.util.StaticUtils;
 final class ASN1OutputStreamWriter extends AbstractASN1Writer implements ASN1Writer {
     private final OutputStream rootStream;
     private OutputStream out;
-    private final ArrayList<ByteSequenceOutputStream> streamStack;
+    private final ArrayList<ByteStringBuilder> streamStack;
     private int stackDepth;
 
     /**
@@ -58,7 +57,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements ASN1Wri
     ASN1OutputStreamWriter(final OutputStream stream) {
         this.out = stream;
         this.rootStream = stream;
-        this.streamStack = new ArrayList<ByteSequenceOutputStream>();
+        this.streamStack = new ArrayList<ByteStringBuilder>();
         this.stackDepth = -1;
     }
 
@@ -70,7 +69,6 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements ASN1Wri
             writeEndSequence();
         }
         rootStream.flush();
-
         streamStack.clear();
         rootStream.close();
     }
@@ -104,23 +102,23 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements ASN1Wri
             throw new IllegalStateException(message.toString());
         }
 
-        final ByteSequenceOutputStream childStream = streamStack.get(stackDepth);
+        final ByteStringBuilder childStream = streamStack.get(stackDepth);
 
         // Decrement the stack depth and get the parent stream
         --stackDepth;
-
-        final OutputStream parentStream = stackDepth < 0 ? rootStream : streamStack.get(stackDepth);
+        final OutputStream parentStream =
+                stackDepth < 0 ? rootStream : streamStack.get(stackDepth).asOutputStream();
 
         // Switch to parent stream and reset the sub-stream
         out = parentStream;
 
         // Write the length and contents of the sub-stream
         writeLength(childStream.length());
-        childStream.writeTo(parentStream);
+        childStream.copyTo(parentStream);
 
         IO_LOG.trace("WRITE ASN.1 END SEQUENCE(length={})", childStream.length());
 
-        childStream.reset();
+        childStream.clear();
         return this;
     }
 
@@ -318,12 +316,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements ASN1Wri
 
         // Make sure we have a cached sub-stream at this depth
         if (stackDepth >= streamStack.size()) {
-            final ByteSequenceOutputStream subStream =
-                    new ByteSequenceOutputStream(new ByteStringBuilder());
+            final ByteStringBuilder subStream = new ByteStringBuilder();
             streamStack.add(subStream);
-            out = subStream;
+            out = subStream.asOutputStream();
         } else {
-            out = streamStack.get(stackDepth);
+            out = streamStack.get(stackDepth).asOutputStream();
         }
 
         IO_LOG.trace("WRITE ASN.1 START SEQUENCE(type=0x{})", byteToHex(type));

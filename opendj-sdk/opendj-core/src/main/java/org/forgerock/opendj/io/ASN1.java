@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.io;
@@ -34,8 +34,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-
-import com.forgerock.opendj.util.ByteSequenceOutputStream;
 
 /**
  * This class contains various static factory methods for creating ASN.1 readers
@@ -280,8 +278,7 @@ public final class ASN1 {
      * @return The new ASN.1 writer.
      */
     public static ASN1Writer getWriter(final ByteStringBuilder builder) {
-        final ByteSequenceOutputStream outputStream = new ByteSequenceOutputStream(builder);
-        return getWriter(outputStream);
+        return getWriter(builder.asOutputStream());
     }
 
     /**
