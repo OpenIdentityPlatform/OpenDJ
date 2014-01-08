@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -35,7 +35,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.text.ParseException;
 import java.util.Arrays;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -170,11 +169,11 @@ public final class ByteString implements ByteSequence {
      *            The hexadecimal string to convert to a byte array.
      * @return The byte string containing the binary representation of the
      *         provided hex string.
-     * @throws java.text.ParseException
+     * @throws LocalizedIllegalArgumentException
      *             If the provided string contains invalid hexadecimal digits or
      *             does not contain an even number of digits.
      */
-    public static ByteString valueOfHex(final String hexString) throws ParseException {
+    public static ByteString valueOfHex(final String hexString) {
         byte[] bytes = null;
         int length = 0;
         if (hexString == null || (length = hexString.length()) == 0) {
@@ -182,12 +181,13 @@ public final class ByteString implements ByteSequence {
         } else {
             if (length % 2 != 0) {
                 final LocalizableMessage message = ERR_HEX_DECODE_INVALID_LENGTH.get(hexString);
-                throw new ParseException(message.toString(), 0);
+                throw new LocalizedIllegalArgumentException(message);
             }
             final int arrayLength = length / 2;
             bytes = new byte[arrayLength];
             for (int i = 0; i < arrayLength; i++) {
-                bytes[i] = hexToByte(hexString.charAt(i * 2), hexString.charAt(i * 2 + 1));
+                bytes[i] =
+                        hexToByte(hexString, hexString.charAt(i * 2), hexString.charAt(i * 2 + 1));
             }
         }
         return valueOf(bytes);
@@ -406,6 +406,131 @@ public final class ByteString implements ByteSequence {
         }
 
         return stringValue;
+    }
+
+    private static byte hexToByte(final String value, final char c1, final char c2) {
+        byte b;
+        switch (c1) {
+        case '0':
+            b = 0x00;
+            break;
+        case '1':
+            b = 0x10;
+            break;
+        case '2':
+            b = 0x20;
+            break;
+        case '3':
+            b = 0x30;
+            break;
+        case '4':
+            b = 0x40;
+            break;
+        case '5':
+            b = 0x50;
+            break;
+        case '6':
+            b = 0x60;
+            break;
+        case '7':
+            b = 0x70;
+            break;
+        case '8':
+            b = (byte) 0x80;
+            break;
+        case '9':
+            b = (byte) 0x90;
+            break;
+        case 'A':
+        case 'a':
+            b = (byte) 0xA0;
+            break;
+        case 'B':
+        case 'b':
+            b = (byte) 0xB0;
+            break;
+        case 'C':
+        case 'c':
+            b = (byte) 0xC0;
+            break;
+        case 'D':
+        case 'd':
+            b = (byte) 0xD0;
+            break;
+        case 'E':
+        case 'e':
+            b = (byte) 0xE0;
+            break;
+        case 'F':
+        case 'f':
+            b = (byte) 0xF0;
+            break;
+        default:
+            final LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER.get(value, c1);
+            throw new LocalizedIllegalArgumentException(message);
+        }
+
+        switch (c2) {
+        case '0':
+            // No action required.
+            break;
+        case '1':
+            b |= 0x01;
+            break;
+        case '2':
+            b |= 0x02;
+            break;
+        case '3':
+            b |= 0x03;
+            break;
+        case '4':
+            b |= 0x04;
+            break;
+        case '5':
+            b |= 0x05;
+            break;
+        case '6':
+            b |= 0x06;
+            break;
+        case '7':
+            b |= 0x07;
+            break;
+        case '8':
+            b |= 0x08;
+            break;
+        case '9':
+            b |= 0x09;
+            break;
+        case 'A':
+        case 'a':
+            b |= 0x0A;
+            break;
+        case 'B':
+        case 'b':
+            b |= 0x0B;
+            break;
+        case 'C':
+        case 'c':
+            b |= 0x0C;
+            break;
+        case 'D':
+        case 'd':
+            b |= 0x0D;
+            break;
+        case 'E':
+        case 'e':
+            b |= 0x0E;
+            break;
+        case 'F':
+        case 'f':
+            b |= 0x0F;
+            break;
+        default:
+            final LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER.get(value, c2);
+            throw new LocalizedIllegalArgumentException(message);
+        }
+
+        return b;
     }
 
     // These are package private so that compression and crypto

@@ -532,10 +532,10 @@ public final class AVA implements Comparable<AVA> {
             try {
                 reader.reset();
                 return ByteString.valueOfHex(reader.read(length));
-            } catch (final Exception e) {
+            } catch (final LocalizedIllegalArgumentException e) {
                 final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(reader.getString(), String
-                                .valueOf(e));
+                        ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(reader.getString(), e
+                                .getMessageObject());
                 throw new LocalizedIllegalArgumentException(message);
             }
         } else if (c == '"') {

@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package com.forgerock.opendj.util;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_CHARACTER;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -35,7 +34,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -1524,146 +1522,6 @@ public final class StaticUtils {
 
             return LocalizableMessage.raw(message.toString());
         }
-    }
-
-    /**
-     * Converts the provided pair of characters to a byte.
-     *
-     * @param c1
-     *            The first hexadecimal character.
-     * @param c2
-     *            The second hexadecimal character.
-     * @return The byte containing the binary representation of the provided hex
-     *         characters.
-     * @throws ParseException
-     *             If the provided string contains invalid hexadecimal digits or
-     *             does not contain an even number of digits.
-     */
-    public static byte hexToByte(final char c1, final char c2) throws ParseException {
-        byte b;
-        switch (c1) {
-        case '0':
-            b = 0x00;
-            break;
-        case '1':
-            b = 0x10;
-            break;
-        case '2':
-            b = 0x20;
-            break;
-        case '3':
-            b = 0x30;
-            break;
-        case '4':
-            b = 0x40;
-            break;
-        case '5':
-            b = 0x50;
-            break;
-        case '6':
-            b = 0x60;
-            break;
-        case '7':
-            b = 0x70;
-            break;
-        case '8':
-            b = (byte) 0x80;
-            break;
-        case '9':
-            b = (byte) 0x90;
-            break;
-        case 'A':
-        case 'a':
-            b = (byte) 0xA0;
-            break;
-        case 'B':
-        case 'b':
-            b = (byte) 0xB0;
-            break;
-        case 'C':
-        case 'c':
-            b = (byte) 0xC0;
-            break;
-        case 'D':
-        case 'd':
-            b = (byte) 0xD0;
-            break;
-        case 'E':
-        case 'e':
-            b = (byte) 0xE0;
-            break;
-        case 'F':
-        case 'f':
-            b = (byte) 0xF0;
-            break;
-        default:
-            final LocalizableMessage message =
-                    ERR_HEX_DECODE_INVALID_CHARACTER.get(new String(new char[] { c1, c2 }), c1);
-            throw new ParseException(message.toString(), 0);
-        }
-
-        switch (c2) {
-        case '0':
-            // No action required.
-            break;
-        case '1':
-            b |= 0x01;
-            break;
-        case '2':
-            b |= 0x02;
-            break;
-        case '3':
-            b |= 0x03;
-            break;
-        case '4':
-            b |= 0x04;
-            break;
-        case '5':
-            b |= 0x05;
-            break;
-        case '6':
-            b |= 0x06;
-            break;
-        case '7':
-            b |= 0x07;
-            break;
-        case '8':
-            b |= 0x08;
-            break;
-        case '9':
-            b |= 0x09;
-            break;
-        case 'A':
-        case 'a':
-            b |= 0x0A;
-            break;
-        case 'B':
-        case 'b':
-            b |= 0x0B;
-            break;
-        case 'C':
-        case 'c':
-            b |= 0x0C;
-            break;
-        case 'D':
-        case 'd':
-            b |= 0x0D;
-            break;
-        case 'E':
-        case 'e':
-            b |= 0x0E;
-            break;
-        case 'F':
-        case 'f':
-            b |= 0x0F;
-            break;
-        default:
-            final LocalizableMessage message =
-                    ERR_HEX_DECODE_INVALID_CHARACTER.get(new String(new char[] { c1, c2 }), c1);
-            throw new ParseException(message.toString(), 0);
-        }
-
-        return b;
     }
 
     /**
