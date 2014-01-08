@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -317,12 +317,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
           "exportAndImportData", 100);
       SortedSet<String> servers = newSortedSet("localhost:" + replServerPort);
 
-      StringBuilder exportedDataBuilder = new StringBuilder();
-      for (int i =0; i<ENTRYCOUNT; i++)
-      {
-        exportedDataBuilder.append("key : value"+i+"\n\n");
-      }
-      String exportedData=exportedDataBuilder.toString();
+      String exportedData = buildExportedData(ENTRYCOUNT);
       domain1 = new FakeReplicationDomain(
           testService, serverId1, servers, 0, exportedData, null, ENTRYCOUNT);
 
@@ -343,18 +338,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
         }
       }
 
-      int count = 0;
-      while ((importedData.length() < exportedData.length()) && (count < 500))
-      {
-        count ++;
-        Thread.sleep(100);
-      }
-      assertEquals(domain2.getLeftEntryCount(), 0,
-          "LeftEntryCount for export is " + domain2.getLeftEntryCount());
-      assertEquals(domain1.getLeftEntryCount(), 0,
-          "LeftEntryCount for import is " + domain1.getLeftEntryCount());
-      assertEquals(importedData.length(), exportedData.length());
-      assertEquals(importedData.toString(), exportedData);
+      waitEndExport(exportedData, importedData);
+      assertExportSucessful(domain1, domain2, exportedData, importedData);
     }
     finally
     {
@@ -393,12 +378,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       SortedSet<String> servers1 = newSortedSet("localhost:" + replServerPort1);
       SortedSet<String> servers2 = newSortedSet("localhost:" + replServerPort2);
 
-      StringBuilder exportedDataBuilder = new StringBuilder();
-      for (int i =0; i<ENTRYCOUNT; i++)
-      {
-        exportedDataBuilder.append("key : value"+i+"\n\n");
-      }
-      String exportedData=exportedDataBuilder.toString();
+      String exportedData = buildExportedData(ENTRYCOUNT);
       domain1 = new FakeReplicationDomain(
           testService, 1, servers1, 0, exportedData, null, ENTRYCOUNT);
 
@@ -408,24 +388,43 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       domain2.initializeFromRemote(1);
 
-      int count = 0;
-      while ((importedData.length() < exportedData.length()) && (count < 500))
-      {
-        count ++;
-        Thread.sleep(100);
-      }
-      assertEquals(domain2.getLeftEntryCount(), 0,
-          "LeftEntryCount for export is " + domain2.getLeftEntryCount());
-      assertEquals(domain1.getLeftEntryCount(), 0,
-          "LeftEntryCount for import is " + domain1.getLeftEntryCount());
-      assertEquals(importedData.length(), exportedData.length());
-      assertEquals(importedData.toString(), exportedData);
+      waitEndExport(exportedData, importedData);
+      assertExportSucessful(domain1, domain2, exportedData, importedData);
     }
     finally
     {
       disable(domain1, domain2);
       remove(replServer1, replServer2);
     }
+  }
+
+  private String buildExportedData(final int ENTRYCOUNT)
+  {
+    final StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < ENTRYCOUNT; i++)
+    {
+      sb.append("key : value" + i + "\n\n");
+    }
+    return sb.toString();
+  }
+
+  private void waitEndExport(String exportedData, StringBuilder importedData) throws Exception
+  {
+    int count = 0;
+    while (importedData.length() < exportedData.length() && count < 500)
+    {
+      count ++;
+      Thread.sleep(100);
+    }
+  }
+
+  private void assertExportSucessful(ReplicationDomain domain1,
+      ReplicationDomain domain2, String exportedData, StringBuilder importedData)
+  {
+    assertEquals(domain2.ieContext.getLeftEntryCount(), 0, "Wrong LeftEntryCount for export");
+    assertEquals(domain1.ieContext.getLeftEntryCount(), 0, "Wrong LeftEntryCount for import");
+    assertEquals(importedData.length(), exportedData.length());
+    assertEquals(importedData.toString(), exportedData);
   }
 
   /**
