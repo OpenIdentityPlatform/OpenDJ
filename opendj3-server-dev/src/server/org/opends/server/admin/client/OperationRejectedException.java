@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.client;
@@ -36,7 +37,7 @@ import java.util.Collections;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 
 
@@ -84,8 +85,8 @@ public class OperationRejectedException extends AdminClientException {
 
   // Gets the default message.
   private static Message getDefaultMessage(Collection<Message> messages) {
-    Validator.ensureNotNull(messages);
-    Validator.ensureTrue(!messages.isEmpty());
+    Reject.ifNull(messages);
+    Reject.ifFalse(!messages.isEmpty());
 
     if (messages.size() == 1) {
       return ERR_OPERATION_REJECTED_EXCEPTION_SINGLE.get(messages.iterator()

@@ -51,6 +51,7 @@ import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
+import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -140,8 +141,8 @@ public class TaskBackend
   public void configureBackend(Configuration config)
          throws ConfigException
   {
-    Validator.ensureNotNull(config);
-    Validator.ensureTrue(config instanceof TaskBackendCfg);
+    Reject.ifNull(config);
+    Reject.ifFalse(config instanceof TaskBackendCfg);
 
     TaskBackendCfg cfg = (TaskBackendCfg)config;
 

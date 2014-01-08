@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 /**
  * This class defines a data structure that may be used to store
@@ -129,7 +129,7 @@ public final class AuthenticationInfo
   public AuthenticationInfo(Entry authenticationEntry, DN simpleBindDN,
       boolean isRoot)
   {
-    ensureNotNull(authenticationEntry);
+    ifNull(authenticationEntry);
 
     this.authenticationEntry = authenticationEntry;
     this.simpleBindDN        = simpleBindDN;
@@ -162,7 +162,7 @@ public final class AuthenticationInfo
                             String saslMechanism,
                             boolean isRoot)
   {
-    ensureNotNull(authenticationEntry, saslMechanism);
+    ifNull(authenticationEntry, saslMechanism);
 
     this.authenticationEntry = authenticationEntry;
     this.isRoot              = isRoot;
@@ -206,7 +206,7 @@ public final class AuthenticationInfo
                             ByteString saslCredentials,
                             boolean isRoot)
   {
-    ensureNotNull(authenticationEntry, saslMechanism);
+    ifNull(authenticationEntry, saslMechanism);
 
     this.authenticationEntry = authenticationEntry;
     this.authorizationEntry  = authorizationEntry;

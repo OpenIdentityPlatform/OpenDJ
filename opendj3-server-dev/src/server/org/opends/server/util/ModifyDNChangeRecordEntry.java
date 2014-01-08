@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.RDN;
@@ -73,7 +74,7 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
   {
     super(dn);
 
-    ensureNotNull(newRDN);
+    ifNull(newRDN);
 
     this.newSuperiorDN = newSuperiorDN;
     this.newRDN = newRDN;

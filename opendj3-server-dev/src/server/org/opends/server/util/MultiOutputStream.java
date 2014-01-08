@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -30,6 +31,8 @@ package org.opends.server.util;
 import java.io.OutputStream;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
+import org.forgerock.util.Reject;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
@@ -69,7 +72,7 @@ public final class MultiOutputStream
    */
   public MultiOutputStream(OutputStream... targetStreams)
   {
-    Validator.ensureNotNull(targetStreams);
+    Reject.ifNull(targetStreams);
 
     this.targetStreams = targetStreams;
   }

@@ -39,7 +39,7 @@ import org.opends.server.tools.makeldif.TemplateEntry;
 import org.opends.server.types.*;
 
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 /**
  * This class provides a mechanism for writing entries in LDIF form to a file or
@@ -77,7 +77,7 @@ public final class LDIFWriter implements Closeable
   public LDIFWriter(LDIFExportConfig exportConfig)
          throws IOException
   {
-    ensureNotNull(exportConfig);
+    ifNull(exportConfig);
     this.exportConfig = exportConfig;
 
     writer = exportConfig.getWriter();
@@ -112,7 +112,7 @@ public final class LDIFWriter implements Closeable
   public void writeComment(Message comment, int wrapColumn)
          throws IOException
   {
-    ensureNotNull(comment);
+    ifNull(comment);
 
 
     // First, break up the comment into multiple lines to preserve the original
@@ -235,7 +235,7 @@ outerLoop:
   public boolean writeEntry(Entry entry)
          throws IOException, LDIFException
   {
-    ensureNotNull(entry);
+    ifNull(entry);
     return entry.toLDIF(exportConfig);
   }
 
@@ -260,7 +260,7 @@ outerLoop:
   public boolean writeTemplateEntry(TemplateEntry templateEntry)
   throws IOException, LDIFException
   {
-    ensureNotNull(templateEntry);
+    ifNull(templateEntry);
     return templateEntry.toLDIF(exportConfig);
   }
 
@@ -274,7 +274,7 @@ outerLoop:
   public void writeChangeRecord(ChangeRecordEntry changeRecord)
          throws IOException
   {
-    ensureNotNull(changeRecord);
+    ifNull(changeRecord);
 
 
     // Get the information necessary to write the LDIF.
@@ -399,7 +399,7 @@ outerLoop:
   public void writeAddChangeRecord(Entry entry)
          throws IOException
   {
-    ensureNotNull(entry);
+    ifNull(entry);
 
 
     // Get the information necessary to write the LDIF.
@@ -469,7 +469,7 @@ outerLoop:
   public void writeDeleteChangeRecord(Entry entry, boolean commentEntry)
          throws IOException
   {
-    ensureNotNull(entry);
+    ifNull(entry);
 
     // Get the information necessary to write the LDIF.
     BufferedWriter writer     = exportConfig.getWriter();
@@ -540,7 +540,7 @@ outerLoop:
   public void writeModifyChangeRecord(DN dn, List<Modification> modifications)
          throws IOException
   {
-    ensureNotNull(dn, modifications);
+    ifNull(dn, modifications);
 
     // If there aren't any modifications, then there's nothing to do.
     if (modifications.isEmpty())
@@ -621,7 +621,7 @@ outerLoop:
                                         DN newSuperior)
          throws IOException
   {
-    ensureNotNull(dn, newRDN);
+    ifNull(dn, newRDN);
 
 
     // Get the information necessary to write the LDIF.
@@ -750,7 +750,7 @@ outerLoop:
   public static void appendLDIFSeparatorAndValue(StringBuilder buffer,
       ByteSequence valueBytes, boolean isURL, boolean isBase64)
   {
-    ensureNotNull(buffer, valueBytes);
+    ifNull(buffer, valueBytes);
 
 
     // If the value is empty, then just append a single colon (the URL '<' if
@@ -805,7 +805,7 @@ outerLoop:
                                    boolean wrapLines, int wrapColumn)
           throws IOException
   {
-    ensureNotNull(line, writer);
+    ifNull(line, writer);
 
     int length = line.length();
     if (wrapLines && length > wrapColumn)

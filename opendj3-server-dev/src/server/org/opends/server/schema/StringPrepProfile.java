@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 
@@ -32,7 +33,7 @@ import java.util.HashSet;
 
 
 import org.opends.server.types.ByteSequence;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 import org.opends.server.util.Platform;
 
 
@@ -88,8 +89,8 @@ public final class StringPrepProfile
           boolean trim,
           boolean foldCase)
   {
-    ensureNotNull(buffer);
-    ensureNotNull(sequence);
+    ifNull(buffer);
+    ifNull(sequence);
     //Optimize in the case of purely ascii characters which is the most common
     //case.
     int length = sequence.length();

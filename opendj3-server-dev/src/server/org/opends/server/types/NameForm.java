@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -41,7 +41,7 @@ import org.opends.server.schema.NameFormSyntax;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 
 
@@ -125,7 +125,7 @@ public final class NameForm
                   Set<AttributeType> optionalAttributes,
                   Map<String,List<String>> extraProperties)
   {
-    ensureNotNull(definition, oid, structuralClass);
+    ifNull(definition, oid, structuralClass);
 
     this.oid             = oid;
     this.description     = description;
@@ -519,7 +519,7 @@ public final class NameForm
    */
   public void setExtraProperty(String name, String value)
   {
-    ensureNotNull(name);
+    ifNull(name);
 
     if (value == null)
     {
@@ -546,7 +546,7 @@ public final class NameForm
    */
   public void setExtraProperty(String name, List<String> values)
   {
-    ensureNotNull(name);
+    ifNull(name);
 
     if ((values == null) || values.isEmpty())
     {

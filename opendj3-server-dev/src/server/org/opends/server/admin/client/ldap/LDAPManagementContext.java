@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.client.ldap;
@@ -31,7 +32,7 @@ package org.opends.server.admin.client.ldap;
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.spi.Driver;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 
 
@@ -49,7 +50,7 @@ public final class LDAPManagementContext extends ManagementContext {
    * @return Returns the new management context.
    */
   public static ManagementContext createFromContext(LDAPConnection connection) {
-    Validator.ensureNotNull(connection);
+    Reject.ifNull(connection);
     return new LDAPManagementContext(connection, LDAPProfile.getInstance());
   }
 

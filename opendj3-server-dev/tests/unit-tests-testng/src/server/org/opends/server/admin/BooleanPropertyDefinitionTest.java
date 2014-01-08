@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -44,7 +45,7 @@ public class BooleanPropertyDefinitionTest extends DirectoryServerTestCase {
 
   /**
    * Sets up tests.
-   * 
+   *
    * @throws Exception
    *           If the server could not be initialized.
    */
@@ -70,7 +71,7 @@ public class BooleanPropertyDefinitionTest extends DirectoryServerTestCase {
   /**
    * Tests validateValue() with illegal data
    */
-  @Test(expectedExceptions = AssertionError.class)
+  @Test(expectedExceptions = NullPointerException.class)
   public void testValidateValue2() {
     BooleanPropertyDefinition d = createPropertyDefinition();
     d.validateValue(null);
@@ -113,7 +114,7 @@ public class BooleanPropertyDefinitionTest extends DirectoryServerTestCase {
    * @param value to decode
    */
   @Test(dataProvider = "testDecodeValueData2",
-          expectedExceptions = {AssertionError.class,IllegalPropertyValueStringException.class})
+          expectedExceptions = {NullPointerException.class,IllegalPropertyValueStringException.class})
   public void testDecodeValue2(String value) {
     BooleanPropertyDefinition d = createPropertyDefinition();
     d.decodeValue(value);

@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.forgerock.util.Reject.ifNull;
 
 import java.util.Collection;
 import java.util.Observable;
@@ -216,7 +217,7 @@ public class WorkflowImpl implements Workflow, Observer
   public void register()
       throws DirectoryException
   {
-    ensureNotNull(workflowID);
+    ifNull(workflowID);
 
     synchronized (registeredWorkflowsLock)
     {
@@ -241,7 +242,7 @@ public class WorkflowImpl implements Workflow, Observer
    */
   public void deregister()
   {
-    ensureNotNull(workflowID);
+    ifNull(workflowID);
 
     // Deregister the workflow with the list of objects to notify when
     // a workflow element is created or deleted.

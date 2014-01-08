@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,7 +72,7 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
     super(dn);
 
 
-    ensureNotNull(modifications);
+    ifNull(modifications);
 
     this.modifications = new ArrayList<RawModification>(modifications);
   }

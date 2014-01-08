@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 
@@ -37,7 +37,7 @@ import java.util.Map;
 
 import org.opends.server.schema.LDAPSyntaxDescriptionSyntax;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 
 
@@ -92,7 +92,7 @@ public final class LDAPSyntaxDescription
                   String description,
                   Map<String,List<String>> extraProperties)
   {
-    ensureNotNull(definition,descriptionSyntax);
+    ifNull(definition,descriptionSyntax);
 
     this.descriptionSyntax = descriptionSyntax;
     this.oid = descriptionSyntax.getOID();
@@ -277,7 +277,7 @@ public final class LDAPSyntaxDescription
    */
   public void setExtraProperty(String name, String value)
   {
-    ensureNotNull(name);
+    ifNull(name);
 
     if (value == null)
     {
@@ -305,7 +305,7 @@ public final class LDAPSyntaxDescription
    */
   public void setExtraProperty(String name, List<String> values)
   {
-    ensureNotNull(name);
+    ifNull(name);
 
     if ((values == null) || values.isEmpty())
     {

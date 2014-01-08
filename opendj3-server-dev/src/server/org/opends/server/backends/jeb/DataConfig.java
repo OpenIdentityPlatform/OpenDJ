@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
 import org.opends.server.types.EntryEncodeConfig;
 
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 /**
  * Configuration class to indicate desired compression and cryptographic options
@@ -61,7 +62,7 @@ public class DataConfig
 
     if (compressedSchema == null)
     {
-      ensureTrue(! compactEncoding);
+      ifFalse(! compactEncoding);
       this.encodeConfig = new EntryEncodeConfig(false, compactEncoding, false);
     }
     else
@@ -115,7 +116,7 @@ public class DataConfig
   {
     if (compressedSchema == null)
     {
-      ensureTrue(! compactEncoding);
+      ifFalse(! compactEncoding);
       this.encodeConfig = new EntryEncodeConfig(false, compactEncoding,
                                                 compactEncoding);
     }

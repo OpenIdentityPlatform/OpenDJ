@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
 
 
 
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.forgerock.util.Reject.ifNull;
 
 import java.util.EnumSet;
 
@@ -110,7 +111,7 @@ public final class IPAddressMaskPropertyDefinition extends
   @Override
   public void validateValue(AddressMask value)
       throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     // No additional validation required.
   }
@@ -123,7 +124,7 @@ public final class IPAddressMaskPropertyDefinition extends
   @Override
   public AddressMask decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    ifNull(value);
 
     try {
       return AddressMask.decode(value);

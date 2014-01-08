@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin;
 import org.opends.messages.Message;
@@ -36,7 +37,7 @@ import java.util.Map;
 import java.util.MissingResourceException;
 
 import org.opends.server.admin.std.meta.RootCfgDefn;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 
 
@@ -78,7 +79,7 @@ public final class Tag implements Comparable<Tag> {
    *           If the tag name was not recognized.
    */
   public static Tag valueOf(String name) throws IllegalArgumentException {
-    Validator.ensureNotNull(name);
+    Reject.ifNull(name);
 
     // Hack to force initialization of the tag definitions.
     RootCfgDefn.getInstance();

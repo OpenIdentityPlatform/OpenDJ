@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -40,7 +41,7 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -226,7 +227,7 @@ public class MatchedValuesFilter
                                          String rawAttributeType,
                                          ByteString rawAssertionValue)
   {
-    Validator.ensureNotNull(rawAttributeType,rawAssertionValue);
+    Reject.ifNull(rawAttributeType,rawAssertionValue);
 
     return new MatchedValuesFilter(EQUALITY_MATCH_TYPE, rawAttributeType,
                                    rawAssertionValue, null, null, null, null);
@@ -246,7 +247,7 @@ public class MatchedValuesFilter
                                          AttributeType attributeType,
                                          AttributeValue assertionValue)
   {
-    Validator.ensureNotNull(attributeType, assertionValue);
+    Reject.ifNull(attributeType, assertionValue);
     String rawAttributeType = attributeType.getNameOrOID();
     ByteString rawAssertionValue = assertionValue.getValue();
 
@@ -277,7 +278,7 @@ public class MatchedValuesFilter
                                          List<ByteString> subAny,
                                          ByteString subFinal)
   {
-    Validator.ensureNotNull(rawAttributeType);
+    Reject.ifNull(rawAttributeType);
     return new MatchedValuesFilter(SUBSTRINGS_TYPE, rawAttributeType, null,
                                    subInitial, subAny, subFinal, null);
   }
@@ -300,7 +301,7 @@ public class MatchedValuesFilter
                                          List<ByteString> subAny,
                                          ByteString subFinal)
   {
-    Validator.ensureNotNull(attributeType);
+    Reject.ifNull(attributeType);
     String rawAttributeType = attributeType.getNameOrOID();
 
     MatchedValuesFilter filter =
@@ -325,7 +326,7 @@ public class MatchedValuesFilter
                                          String rawAttributeType,
                                          ByteString rawAssertionValue)
   {
-   Validator.ensureNotNull(rawAttributeType, rawAssertionValue);
+   Reject.ifNull(rawAttributeType, rawAssertionValue);
 
     return new MatchedValuesFilter(GREATER_OR_EQUAL_TYPE, rawAttributeType,
                                    rawAssertionValue, null, null, null, null);
@@ -345,7 +346,7 @@ public class MatchedValuesFilter
                                          AttributeType attributeType,
                                          AttributeValue assertionValue)
   {
-    Validator.ensureNotNull(attributeType, assertionValue);
+    Reject.ifNull(attributeType, assertionValue);
 
     String          rawAttributeType  = attributeType.getNameOrOID();
     ByteString rawAssertionValue = assertionValue.getValue();
@@ -373,7 +374,7 @@ public class MatchedValuesFilter
                                          String rawAttributeType,
                                          ByteString rawAssertionValue)
   {
-    Validator.ensureNotNull(rawAttributeType, rawAssertionValue);
+    Reject.ifNull(rawAttributeType, rawAssertionValue);
     return new MatchedValuesFilter(LESS_OR_EQUAL_TYPE, rawAttributeType,
                                    rawAssertionValue, null, null, null, null);
   }
@@ -392,7 +393,7 @@ public class MatchedValuesFilter
                                          AttributeType attributeType,
                                          AttributeValue assertionValue)
   {
-    Validator.ensureNotNull(attributeType, assertionValue);
+    Reject.ifNull(attributeType, assertionValue);
 
     String          rawAttributeType = attributeType.getNameOrOID();
     ByteString rawAssertionValue = assertionValue.getValue();
@@ -417,7 +418,7 @@ public class MatchedValuesFilter
    */
   public static MatchedValuesFilter createPresentFilter(String rawAttributeType)
   {
-    Validator.ensureNotNull(rawAttributeType) ;
+    Reject.ifNull(rawAttributeType) ;
     return new MatchedValuesFilter(PRESENT_TYPE, rawAttributeType, null, null,
                                    null, null, null);
   }
@@ -434,7 +435,7 @@ public class MatchedValuesFilter
   public static MatchedValuesFilter createPresentFilter(
                                          AttributeType attributeType)
   {
-    Validator.ensureNotNull(attributeType);
+    Reject.ifNull(attributeType);
     String rawAttributeType = attributeType.getNameOrOID();
 
     MatchedValuesFilter filter =
@@ -459,7 +460,7 @@ public class MatchedValuesFilter
                                          String rawAttributeType,
                                          ByteString rawAssertionValue)
   {
-    Validator.ensureNotNull(rawAttributeType,rawAssertionValue);
+    Reject.ifNull(rawAttributeType,rawAssertionValue);
 
     return new MatchedValuesFilter(APPROXIMATE_MATCH_TYPE, rawAttributeType,
                                    rawAssertionValue, null, null, null, null);
@@ -479,7 +480,7 @@ public class MatchedValuesFilter
                                          AttributeType attributeType,
                                          AttributeValue assertionValue)
   {
-    Validator.ensureNotNull(attributeType,assertionValue);
+    Reject.ifNull(attributeType,assertionValue);
     String          rawAttributeType  = attributeType.getNameOrOID();
     ByteString rawAssertionValue = assertionValue.getValue();
 
@@ -508,8 +509,7 @@ public class MatchedValuesFilter
                                          String matchingRuleID,
                                          ByteString rawAssertionValue)
   {
-    Validator
-        .ensureNotNull(rawAttributeType, matchingRuleID, rawAssertionValue);
+    Reject.ifNull(rawAttributeType, matchingRuleID, rawAssertionValue);
     return new MatchedValuesFilter(EXTENSIBLE_MATCH_TYPE, rawAttributeType,
                                    rawAssertionValue, null, null, null,
                                    matchingRuleID);
@@ -531,7 +531,7 @@ public class MatchedValuesFilter
                                          MatchingRule matchingRule,
                                          AttributeValue assertionValue)
   {
-    Validator.ensureNotNull(attributeType, matchingRule, assertionValue);
+    Reject.ifNull(attributeType, matchingRule, assertionValue);
     String rawAttributeType = attributeType.getNameOrOID();
     String matchingRuleID = matchingRule.getOID();
     ByteString rawAssertionValue = assertionValue.getValue();

@@ -52,7 +52,7 @@ import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class defines an operation used to modify an entry in a local backend
@@ -1503,7 +1503,7 @@ public class LocalBackendModifyOperation
    */
   private void validateObjectClasses(Attribute attr) throws DirectoryException
   {
-    Validator.ensureTrue(attr.getAttributeType().isObjectClassType());
+    Reject.ifFalse(attr.getAttributeType().isObjectClassType());
     for (AttributeValue v : attr)
     {
       String name = v.getValue().toString();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -42,7 +42,7 @@ import org.opends.server.schema.AttributeTypeSyntax;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 
 
@@ -276,7 +276,7 @@ public final class AttributeType
         extraProperties);
 
 
-    ensureNotNull(definition, oid);
+    ifNull(definition, oid);
 
     this.superiorType = superiorType;
     this.isCollective = isCollective;

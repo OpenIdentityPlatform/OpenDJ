@@ -37,7 +37,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.operation.PostResponseOperation;
 import org.opends.server.types.operation.PreParseOperation;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
@@ -407,7 +407,7 @@ public abstract class AbstractOperation
   @Override
   public void addAdditionalLogItem(AdditionalLogItem item)
   {
-    Validator.ensureNotNull(item);
+    Reject.ifNull(item);
     if (additionalLogItems == null)
     {
       additionalLogItems = new LinkedList<AdditionalLogItem>();

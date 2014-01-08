@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.server;
@@ -39,7 +40,7 @@ import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.DecodingException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyException;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 
 
@@ -60,8 +61,8 @@ public class ServerManagedObjectDecodingException extends DecodingException {
   private static Message createMessage(
       ServerManagedObject<?> partialManagedObject,
       Collection<PropertyException> causes) {
-    Validator.ensureNotNull(causes);
-    Validator.ensureTrue(!causes.isEmpty());
+    Reject.ifNull(causes);
+    Reject.ifFalse(!causes.isEmpty());
 
     ManagedObjectDefinition<?, ?> d = partialManagedObject
         .getManagedObjectDefinition();

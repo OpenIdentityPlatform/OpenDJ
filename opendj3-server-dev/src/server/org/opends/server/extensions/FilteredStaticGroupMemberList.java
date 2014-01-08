@@ -47,7 +47,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 
 
@@ -116,7 +116,7 @@ public class FilteredStaticGroupMemberList
                                        DN baseDN, SearchScope scope,
                                        SearchFilter filter)
   {
-    ensureNotNull(groupDN, memberDNs);
+    ifNull(groupDN, memberDNs);
 
     this.groupDN   = groupDN;
     this.memberDNs = new ArrayList<ByteString>(memberDNs);

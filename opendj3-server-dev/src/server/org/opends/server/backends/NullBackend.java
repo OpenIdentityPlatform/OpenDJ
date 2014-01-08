@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -65,7 +66,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -160,7 +161,7 @@ public class NullBackend extends Backend
   {
     if (config != null)
     {
-      Validator.ensureTrue(config instanceof BackendCfg);
+      Reject.ifFalse(config instanceof BackendCfg);
       BackendCfg cfg = (BackendCfg)config;
       DN[] cfgBaseDNs = new DN[cfg.getBaseDN().size()];
       cfg.getBaseDN().toArray(cfgBaseDNs);

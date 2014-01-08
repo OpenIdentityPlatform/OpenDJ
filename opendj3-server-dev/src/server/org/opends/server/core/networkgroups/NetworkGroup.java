@@ -33,7 +33,7 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -1414,7 +1414,7 @@ public class NetworkGroup
    */
   void register() throws InitializationException
   {
-    ensureNotNull(networkGroupID);
+    ifNull(networkGroupID);
 
     synchronized (registeredNetworkGroupsLock)
     {
@@ -1564,7 +1564,7 @@ public class NetworkGroup
       throws DirectoryException
   {
     String workflowID = workflowNode.getWorkflowImpl().getWorkflowId();
-    ensureNotNull(workflowID);
+    ifNull(workflowID);
 
     // If the network group is the "internal" network group then bypass
     // the check because the internal network group may contain
@@ -1967,7 +1967,7 @@ public class NetworkGroup
       throws DirectoryException
   {
     String workflowID = workflowNode.getWorkflowImpl().getWorkflowId();
-    ensureNotNull(workflowID);
+    ifNull(workflowID);
 
     synchronized (registeredWorkflowNodesLock)
     {

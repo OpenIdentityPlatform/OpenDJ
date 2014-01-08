@@ -68,7 +68,7 @@ import org.opends.server.types.SearchScope;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -168,7 +168,7 @@ public class MemoryBackend
   {
     if (config != null)
     {
-      Validator.ensureTrue(config instanceof MemoryBackendCfg);
+      Reject.ifFalse(config instanceof MemoryBackendCfg);
       MemoryBackendCfg cfg = (MemoryBackendCfg)config;
       DN[] baseDNs = new DN[cfg.getBaseDN().size()];
       cfg.getBaseDN().toArray(baseDNs);

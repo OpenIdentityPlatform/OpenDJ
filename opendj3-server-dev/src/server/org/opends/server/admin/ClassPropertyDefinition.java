@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.server.admin;
 
 
 
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.forgerock.util.Reject.ifNull;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -84,7 +84,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      *          implement.
      */
     public final void addInstanceOf(String className) {
-      ensureNotNull(className);
+      ifNull(className);
 
       /*
        * Do some basic checks to make sure the string representation is valid.
@@ -245,7 +245,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
   @Override
   public String decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    ifNull(value);
 
     try {
       validateValue(value);
@@ -293,7 +293,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
   public <T> Class<? extends T> loadClass(String className,
       Class<T> instanceOf) throws IllegalPropertyValueException,
       ClassCastException {
-    ensureNotNull(className, instanceOf);
+    ifNull(className, instanceOf);
 
     // Make sure that the named class is valid.
     validateClassName(className);
@@ -311,7 +311,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
   @Override
   public String normalizeValue(String value)
       throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     return value.trim();
   }
@@ -324,7 +324,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
   @Override
   public void validateValue(String value)
       throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     // Always make sure the name is a valid class name.
     validateClassName(value);

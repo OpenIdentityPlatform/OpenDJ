@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -116,7 +117,7 @@ public class EnumPropertyDefinitionTest extends DirectoryServerTestCase {
    * @param value to decode
    */
   @Test(dataProvider = "decodeValueData2",
-          expectedExceptions = {AssertionError.class,
+          expectedExceptions = {NullPointerException.class,
                   IllegalPropertyValueStringException.class} )
   public void testDecodeValue2(String value) {
     EnumPropertyDefinition epd = builder.getInstance();

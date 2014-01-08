@@ -31,7 +31,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.api.Backend;
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.forgerock.util.Reject.ifNull;
 import org.opends.messages.Message;
 import static org.opends.messages.CoreMessages.*;
 
@@ -275,7 +275,7 @@ public class BaseDnRegistry {
   {
     LinkedList<Message> errors = new LinkedList<Message>();
 
-    ensureNotNull(baseDN);
+    ifNull(baseDN);
 
     // Make sure that the Directory Server actually contains a backend with
     // the specified base DN.

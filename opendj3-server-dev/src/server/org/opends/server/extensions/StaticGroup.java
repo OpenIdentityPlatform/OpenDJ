@@ -70,7 +70,7 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 
 
@@ -140,7 +140,7 @@ public class StaticGroup
     super();
 
 
-    ensureNotNull(groupEntryDN, memberAttributeType, memberDNs);
+    ifNull(groupEntryDN, memberAttributeType, memberDNs);
 
     this.groupEntryDN        = groupEntryDN;
     this.memberAttributeType = memberAttributeType;
@@ -170,7 +170,7 @@ public class StaticGroup
   public StaticGroup newInstance(Entry groupEntry)
          throws DirectoryException
   {
-    ensureNotNull(groupEntry);
+    ifNull(groupEntry);
 
 
     // Determine whether it is a groupOfNames, groupOfEntries or
@@ -300,7 +300,7 @@ public class StaticGroup
   @Override()
   public boolean isGroupDefinition(Entry entry)
   {
-    ensureNotNull(entry);
+    ifNull(entry);
 
     // FIXME -- This needs to exclude enhanced groups once we have support for
     //them.
@@ -404,7 +404,7 @@ public class StaticGroup
   public void addNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-     ensureNotNull(nestedGroupDN);
+     ifNull(nestedGroupDN);
 
     synchronized (this)
     {
@@ -465,7 +465,7 @@ public class StaticGroup
   public void removeNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-    ensureNotNull(nestedGroupDN);
+    ifNull(nestedGroupDN);
 
     synchronized (this)
     {
@@ -672,7 +672,7 @@ public class StaticGroup
   public void addMember(Entry userEntry)
          throws UnsupportedOperationException, DirectoryException
   {
-    ensureNotNull(userEntry);
+    ifNull(userEntry);
 
     synchronized (this)
     {
@@ -729,7 +729,7 @@ public class StaticGroup
   public void removeMember(DN userDN)
          throws UnsupportedOperationException, DirectoryException
   {
-    ensureNotNull(userDN);
+    ifNull(userDN);
 
     ByteString userDNString = ByteString.valueOf(userDN.toNormalizedString());
     synchronized (this)

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -29,7 +30,7 @@ package org.opends.server.admin;
 
 import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -945,7 +946,7 @@ public final class AggregationPropertyDefinition
   @Override
   public String decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    ifNull(value);
 
     try {
       validateValue(value);

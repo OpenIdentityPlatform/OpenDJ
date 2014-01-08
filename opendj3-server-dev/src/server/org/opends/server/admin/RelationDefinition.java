@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -29,7 +30,7 @@ import org.opends.messages.Message;
 
 
 
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 import java.util.EnumSet;
 import java.util.Locale;
@@ -145,7 +146,7 @@ public abstract class RelationDefinition
      *          The relation option.
      */
     public final void setOption(RelationOption option) {
-      ensureNotNull(option);
+      ifNull(option);
       common.options.add(option);
     }
 

@@ -29,7 +29,7 @@ package org.opends.server.admin;
 
 
 
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.forgerock.util.Reject.ifNull;
 
 import java.util.EnumSet;
 
@@ -172,7 +172,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
   @Override
   public void validateValue(DN value)
       throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     if (baseDN != null) {
       DN parent = value.parent();
@@ -195,7 +195,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
   @Override
   public DN decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    ifNull(value);
 
     try {
       DN dn = DN.valueOf(value);

@@ -38,7 +38,7 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -174,7 +174,7 @@ public final class DN implements Comparable<DN>, Serializable
    */
   public DN(RDN rdn, DN parentDN)
   {
-    ensureNotNull(rdn, parentDN);
+    ifNull(rdn, parentDN);
     if (parentDN.isRootDN())
     {
       rdnComponents = new RDN[] { rdn };

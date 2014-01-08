@@ -21,13 +21,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
 
 
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 
 
@@ -59,7 +59,7 @@ public final class AdditionalLogItem
   public static AdditionalLogItem keyOnly(final Class<?> source,
       final String key)
   {
-    Validator.ensureNotNull(source, key);
+    Reject.ifNull(source, key);
     return new AdditionalLogItem(source, key, null, false);
   }
 
@@ -80,7 +80,7 @@ public final class AdditionalLogItem
   public static AdditionalLogItem quotedKeyValue(final Class<?> source,
       final String key, final Object value)
   {
-    Validator.ensureNotNull(source, key, value);
+    Reject.ifNull(source, key, value);
     return new AdditionalLogItem(source, key, value, true);
   }
 
@@ -102,7 +102,7 @@ public final class AdditionalLogItem
   public static AdditionalLogItem unquotedKeyValue(final Class<?> source,
       final String key, final Object value)
   {
-    Validator.ensureNotNull(source, key, value);
+    Reject.ifNull(source, key, value);
     return new AdditionalLogItem(source, key, value, false);
   }
 

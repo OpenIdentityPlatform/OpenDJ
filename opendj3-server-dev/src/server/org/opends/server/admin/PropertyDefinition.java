@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
 
 
 
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -126,7 +127,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
      *          The administrator action.
      */
     public final void setAdministratorAction(AdministratorAction adminAction) {
-      ensureNotNull(adminAction);
+      ifNull(adminAction);
       this.adminAction = adminAction;
     }
 
@@ -140,7 +141,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
      */
     public final void setDefaultBehaviorProvider(
         DefaultBehaviorProvider<T> defaultBehavior) {
-      ensureNotNull(defaultBehavior);
+      ifNull(defaultBehavior);
       this.defaultBehavior = defaultBehavior;
     }
 
@@ -153,7 +154,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
      *          The property option.
      */
     public final void setOption(PropertyOption option) {
-      ensureNotNull(option);
+      ifNull(option);
       options.add(option);
     }
 
@@ -223,8 +224,8 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
       Class<T> theClass, String propertyName, EnumSet<PropertyOption> options,
       AdministratorAction adminAction,
       DefaultBehaviorProvider<T> defaultBehavior) {
-    ensureNotNull(d, theClass, propertyName);
-    ensureNotNull(options, adminAction, defaultBehavior);
+    ifNull(d, theClass, propertyName);
+    ifNull(options, adminAction, defaultBehavior);
 
     this.definition = d;
     this.theClass = theClass;
@@ -323,7 +324,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    *         the second.
    */
   public int compare(T o1, T o2) {
-    ensureNotNull(o1, o2);
+    ifNull(o1, o2);
 
     String s1 = normalizeValue(o1);
     String s2 = normalizeValue(o2);
@@ -386,7 +387,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    *           If the property value is invalid.
    */
   public String encodeValue(T value) throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     return value.toString();
   }
@@ -605,7 +606,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    *           If the property value is invalid.
    */
   public String normalizeValue(T value) throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     return encodeValue(value);
   }

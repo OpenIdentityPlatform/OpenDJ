@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -29,7 +30,7 @@ import org.opends.messages.Message;
 
 
 
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.forgerock.util.Reject.ifNull;
 
 import java.util.EnumSet;
 import java.util.Locale;
@@ -203,7 +204,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
   @Override
   public String decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    ifNull(value);
 
     try {
       validateValue(value);
@@ -306,7 +307,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
   @Override
   public String normalizeValue(String value)
       throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     if (isCaseInsensitive()) {
       return value.trim().toLowerCase();
@@ -322,7 +323,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
    */
   @Override
   public void validateValue(String value) throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     if (pattern != null) {
       Matcher matcher = pattern.matcher(value);

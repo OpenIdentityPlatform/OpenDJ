@@ -47,7 +47,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -127,7 +127,7 @@ public class BackupBackend
     }
 
 
-    Validator.ensureTrue(config instanceof BackupBackendCfg);
+    Reject.ifFalse(config instanceof BackupBackendCfg);
 
     currentConfig = (BackupBackendCfg)config;
   }

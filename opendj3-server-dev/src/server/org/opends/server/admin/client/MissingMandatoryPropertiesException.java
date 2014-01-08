@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.client;
@@ -38,7 +39,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.PropertyIsMandatoryException;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 
 
@@ -59,8 +60,8 @@ public class MissingMandatoryPropertiesException extends OperationsException {
   // Create the message.
   private static Message createMessage(
       Collection<PropertyIsMandatoryException> causes) {
-    Validator.ensureNotNull(causes);
-    Validator.ensureTrue(!causes.isEmpty());
+    Reject.ifNull(causes);
+    Reject.ifFalse(!causes.isEmpty());
 
     if (causes.size() == 1) {
       return ERR_MISSING_MANDATORY_PROPERTIES_EXCEPTION_SINGLE.get(causes

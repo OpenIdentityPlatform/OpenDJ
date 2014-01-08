@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.client.ldap;
 
@@ -39,7 +40,7 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 import org.testng.Assert;
 
 
@@ -90,8 +91,8 @@ public final class ModifyEntryMockLDAPConnection extends MockLDAPConnection {
    */
   public void addExpectedModification(String expectedName,
       String... expectedValues) {
-    Validator.ensureNotNull(expectedName);
-    Validator.ensureNotNull(expectedValues);
+    Reject.ifNull(expectedName);
+    Reject.ifNull(expectedValues);
     modifications.put(expectedName, Arrays.asList(expectedValues));
   }
 

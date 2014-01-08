@@ -37,7 +37,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -89,6 +89,7 @@ import org.opends.server.schema.*;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
+import org.forgerock.util.Reject;
 import org.opends.server.util.args.*;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.WorkflowElementConfigManager;
@@ -2998,7 +2999,7 @@ public final class DirectoryServer
   public static void setOfflineSchemaChanges(List<Modification>
                                                   offlineSchemaChanges)
   {
-    ensureNotNull(offlineSchemaChanges);
+    ifNull(offlineSchemaChanges);
 
     directoryServer.offlineSchemaChanges = offlineSchemaChanges;
   }
@@ -5023,7 +5024,7 @@ public final class DirectoryServer
    */
   public static AuthenticationPolicy getAuthenticationPolicy(DN configEntryDN)
   {
-    Validator.ensureNotNull(configEntryDN);
+    Reject.ifNull(configEntryDN);
     return directoryServer.authenticationPolicies.get(configEntryDN);
   }
 
@@ -5043,7 +5044,7 @@ public final class DirectoryServer
   public static void registerAuthenticationPolicy(DN configEntryDN,
       AuthenticationPolicy policy)
   {
-    Validator.ensureNotNull(configEntryDN, policy);
+    Reject.ifNull(configEntryDN, policy);
 
     // Ensure default policy is synchronized.
     synchronized (directoryServer.authenticationPolicies)
@@ -5076,7 +5077,7 @@ public final class DirectoryServer
    */
   public static void deregisterAuthenticationPolicy(DN configEntryDN)
   {
-    Validator.ensureNotNull(configEntryDN);
+    Reject.ifNull(configEntryDN);
 
     // Ensure default policy is synchronized.
     synchronized (directoryServer.authenticationPolicies)
@@ -5184,7 +5185,7 @@ public final class DirectoryServer
    */
   public static RotationPolicy getRotationPolicy(DN configEntryDN)
   {
-    Validator.ensureNotNull(configEntryDN);
+    Reject.ifNull(configEntryDN);
 
     return directoryServer.rotationPolicies.get(configEntryDN);
   }
@@ -5201,7 +5202,7 @@ public final class DirectoryServer
   public static void registerRotationPolicy(DN configEntryDN,
                                             RotationPolicy policy)
   {
-    Validator.ensureNotNull(configEntryDN, policy);
+    Reject.ifNull(configEntryDN, policy);
 
     directoryServer.rotationPolicies.put(configEntryDN, policy);
   }
@@ -5217,7 +5218,7 @@ public final class DirectoryServer
    */
   public static void deregisterRotationPolicy(DN configEntryDN)
   {
-    Validator.ensureNotNull(configEntryDN);
+    Reject.ifNull(configEntryDN);
 
     directoryServer.rotationPolicies.remove(configEntryDN);
   }
@@ -5234,7 +5235,7 @@ public final class DirectoryServer
    */
   public static RetentionPolicy getRetentionPolicy(DN configEntryDN)
   {
-    Validator.ensureNotNull(configEntryDN);
+    Reject.ifNull(configEntryDN);
 
     return directoryServer.retentionPolicies.get(configEntryDN);
   }
@@ -5251,7 +5252,7 @@ public final class DirectoryServer
   public static void registerRetentionPolicy(DN configEntryDN,
                                             RetentionPolicy policy)
   {
-    Validator.ensureNotNull(configEntryDN, policy);
+    Reject.ifNull(configEntryDN, policy);
 
     directoryServer.retentionPolicies.put(configEntryDN, policy);
   }
@@ -5267,7 +5268,7 @@ public final class DirectoryServer
    */
   public static void deregisterRetentionPolicy(DN configEntryDN)
   {
-    Validator.ensureNotNull(configEntryDN);
+    Reject.ifNull(configEntryDN);
 
     directoryServer.retentionPolicies.remove(configEntryDN);
   }
@@ -6015,10 +6016,10 @@ public final class DirectoryServer
   public static void registerBackend(Backend backend)
          throws DirectoryException
   {
-    ensureNotNull(backend);
+    ifNull(backend);
 
     String backendID = backend.getBackendID();
-    ensureNotNull(backendID);
+    ifNull(backendID);
 
     synchronized (directoryServer)
     {
@@ -6064,7 +6065,7 @@ public final class DirectoryServer
    */
   public static void deregisterBackend(Backend backend)
   {
-    ensureNotNull(backend);
+    ifNull(backend);
 
     synchronized (directoryServer)
     {
@@ -6226,7 +6227,7 @@ public final class DirectoryServer
                                     boolean isPrivate)
          throws DirectoryException
   {
-    ensureNotNull(baseDN, backend);
+    ifNull(baseDN, backend);
 
     synchronized (directoryServer)
     {
@@ -6275,7 +6276,7 @@ public final class DirectoryServer
   public static void deregisterBaseDN(DN baseDN)
          throws DirectoryException
   {
-    ensureNotNull(baseDN);
+    ifNull(baseDN);
 
     synchronized(directoryServer) {
 
@@ -9707,10 +9708,10 @@ public final class DirectoryServer
    */
   public static void registerWorkflowElement(WorkflowElement we)
     throws DirectoryException {
-    ensureNotNull(we);
+    ifNull(we);
 
     String workflowElementID = we.getWorkflowElementID();
-    ensureNotNull(workflowElementID);
+    ifNull(workflowElementID);
 
     synchronized (directoryServer)
     {
@@ -9730,10 +9731,10 @@ public final class DirectoryServer
    *                  {@code null}.
    */
   public static void deregisterWorkflowElement(WorkflowElement we) {
-    ensureNotNull(we);
+    ifNull(we);
 
     String workflowElementID = we.getWorkflowElementID();
-    ensureNotNull(workflowElementID);
+    ifNull(workflowElementID);
 
     synchronized (directoryServer)
     {
