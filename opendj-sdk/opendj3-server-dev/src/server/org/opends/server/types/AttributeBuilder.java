@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -47,7 +47,7 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 
 /**
@@ -1059,7 +1059,7 @@ public final class AttributeBuilder
     public void setInitialCapacity(int initialCapacity)
         throws IllegalStateException
     {
-      Validator.ensureTrue(initialCapacity >= 0);
+      Reject.ifFalse(initialCapacity >= 0);
 
       if (elements != null)
       {
@@ -1244,7 +1244,7 @@ public final class AttributeBuilder
    */
   public AttributeBuilder(AttributeType attributeType, String name)
   {
-    Validator.ensureNotNull(attributeType, name);
+    Reject.ifNull(attributeType, name);
 
     this.attributeType = attributeType;
     this.name = name;
@@ -1610,7 +1610,7 @@ public final class AttributeBuilder
       AttributeType attributeType,
       String name)
   {
-    Validator.ensureNotNull(attributeType, name);
+    Reject.ifNull(attributeType, name);
 
     this.attributeType = attributeType;
     this.name = name;

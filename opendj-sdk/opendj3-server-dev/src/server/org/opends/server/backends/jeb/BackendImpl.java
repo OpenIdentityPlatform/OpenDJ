@@ -54,7 +54,7 @@ import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.util.RuntimeInformation;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Durability;
@@ -268,8 +268,8 @@ public class BackendImpl
   public void configureBackend(Configuration cfg)
       throws ConfigException
   {
-    Validator.ensureNotNull(cfg);
-    Validator.ensureTrue(cfg instanceof LocalDBBackendCfg);
+    Reject.ifNull(cfg);
+    Reject.ifFalse(cfg instanceof LocalDBBackendCfg);
 
     this.cfg = (LocalDBBackendCfg)cfg;
 

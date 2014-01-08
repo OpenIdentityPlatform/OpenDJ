@@ -66,7 +66,7 @@ import org.opends.server.core.ModifyOperation;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.Base64;
@@ -1378,7 +1378,7 @@ public class CryptoManagerImpl
      * {@code KeyEntryID}.
      */
     public KeyEntryID(final byte[] keyEntryID) {
-      Validator.ensureTrue(getByteValueLength() == keyEntryID.length);
+      Reject.ifFalse(getByteValueLength() == keyEntryID.length);
       long hiBytes = 0;
       long loBytes = 0;
       for (int i = 0; i < 8; ++i) {
@@ -1854,8 +1854,8 @@ public class CryptoManagerImpl
             final int ivLengthBits,
             final boolean isCompromised)
             throws CryptoManagerException {
-      Validator.ensureNotNull(keyIDString, transformation, secretKey);
-      Validator.ensureTrue(0 <= ivLengthBits);
+      Reject.ifNull(keyIDString, transformation, secretKey);
+      Reject.ifFalse(0 <= ivLengthBits);
 
       final KeyEntryID keyID = new KeyEntryID(keyIDString);
 
@@ -1920,8 +1920,8 @@ public class CryptoManagerImpl
             final CryptoManagerImpl cryptoManager,
             final String transformation,
             final int keyLengthBits) {
-      Validator.ensureNotNull(cryptoManager, transformation);
-      Validator.ensureTrue(0 < keyLengthBits);
+      Reject.ifNull(cryptoManager, transformation);
+      Reject.ifFalse(0 < keyLengthBits);
 
       CipherKeyEntry keyEntry = null;
       // search for an existing key that satisfies the request
@@ -2082,7 +2082,7 @@ public class CryptoManagerImpl
      * @param ivLengthBits The initiazliation vector length in bits.
      */
     private void setIVLengthBits(int ivLengthBits) {
-      Validator.ensureTrue(-1 == fIVLengthBits && 0 <= ivLengthBits);
+      Reject.ifFalse(-1 == fIVLengthBits && 0 <= ivLengthBits);
       fIVLengthBits = ivLengthBits;
     }
 
@@ -2131,13 +2131,13 @@ public class CryptoManagerImpl
                                   final int mode,
                                   final byte[] initializationVector)
           throws CryptoManagerException {
-    Validator.ensureTrue(Cipher.ENCRYPT_MODE == mode
+    Reject.ifFalse(Cipher.ENCRYPT_MODE == mode
             || Cipher.DECRYPT_MODE == mode);
-    Validator.ensureTrue(Cipher.ENCRYPT_MODE != mode
+    Reject.ifFalse(Cipher.ENCRYPT_MODE != mode
             || null == initializationVector);
-    Validator.ensureTrue(-1 != keyEntry.getIVLengthBits()
+    Reject.ifFalse(-1 != keyEntry.getIVLengthBits()
             || Cipher.ENCRYPT_MODE == mode);
-    Validator.ensureTrue(null == initializationVector
+    Reject.ifFalse(null == initializationVector
             || initializationVector.length * Byte.SIZE
                                        == keyEntry.getIVLengthBits());
 
@@ -2237,7 +2237,7 @@ public class CryptoManagerImpl
             final String algorithm,
             final int keyLengthBits)
     throws CryptoManagerException {
-      Validator.ensureNotNull(algorithm);
+      Reject.ifNull(algorithm);
 
       final Map<KeyEntryID, MacKeyEntry> cache = (null == cryptoManager)
               ? null : cryptoManager.macKeyEntryCache;
@@ -2392,7 +2392,7 @@ public class CryptoManagerImpl
             final int secretKeyLengthBits,
             final boolean isCompromised)
             throws CryptoManagerException {
-      Validator.ensureNotNull(keyIDString, secretKey);
+      Reject.ifNull(keyIDString, secretKey);
 
       final KeyEntryID keyID = new KeyEntryID(keyIDString);
 
@@ -2451,8 +2451,8 @@ public class CryptoManagerImpl
             final CryptoManagerImpl cryptoManager,
             final String algorithm,
             final int keyLengthBits) {
-      Validator.ensureNotNull(cryptoManager, algorithm);
-      Validator.ensureTrue(0 < keyLengthBits);
+      Reject.ifNull(cryptoManager, algorithm);
+      Reject.ifFalse(0 < keyLengthBits);
 
       MacKeyEntry keyEntry = null;
       // search for an existing key that satisfies the request
@@ -2717,7 +2717,7 @@ public class CryptoManagerImpl
   public String getMacEngineKeyEntryID(final String macAlgorithm,
                                        final int keyLengthBits)
          throws CryptoManagerException {
-    Validator.ensureNotNull(macAlgorithm);
+    Reject.ifNull(macAlgorithm);
 
     MacKeyEntry keyEntry = MacKeyEntry.getKeyEntry(this, macAlgorithm,
                                                    keyLengthBits);
@@ -2755,7 +2755,7 @@ public class CryptoManagerImpl
                         byte[] data)
          throws GeneralSecurityException, CryptoManagerException
   {
-    Validator.ensureNotNull(cipherTransformation, data);
+    Reject.ifNull(cipherTransformation, data);
 
     CipherKeyEntry keyEntry = CipherKeyEntry.getKeyEntry(this,
             cipherTransformation, keyLengthBits);
@@ -2801,7 +2801,7 @@ public class CryptoManagerImpl
           OutputStream outputStream)
          throws CryptoManagerException
   {
-    Validator.ensureNotNull(cipherTransformation, outputStream);
+    Reject.ifNull(cipherTransformation, outputStream);
 
     CipherKeyEntry keyEntry = CipherKeyEntry.getKeyEntry(
             this, cipherTransformation, keyLengthBits);

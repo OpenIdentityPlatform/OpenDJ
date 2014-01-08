@@ -42,6 +42,7 @@ import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
+import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -1340,7 +1341,7 @@ public class LDIFBackend
   {
     if (config != null)
     {
-      Validator.ensureTrue(config instanceof LDIFBackendCfg);
+      Reject.ifFalse(config instanceof LDIFBackendCfg);
       currentConfig = (LDIFBackendCfg) config;
       currentConfig.addLDIFChangeListener(this);
 

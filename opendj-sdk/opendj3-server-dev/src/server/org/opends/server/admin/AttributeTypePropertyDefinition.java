@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
 
 
 
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.forgerock.util.Reject.ifNull;
 
 import java.util.EnumSet;
 
@@ -174,7 +175,7 @@ public final class AttributeTypePropertyDefinition extends
   @Override
   public AttributeType decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    ifNull(value);
 
     String name = value.trim().toLowerCase();
     AttributeType type = DirectoryServer.getAttributeType(name,
@@ -211,7 +212,7 @@ public final class AttributeTypePropertyDefinition extends
   @Override
   public void validateValue(AttributeType value)
       throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     // No implementation required.
   }

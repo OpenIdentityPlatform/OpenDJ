@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -29,7 +30,7 @@ import org.opends.messages.Message;
 
 
 
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.forgerock.util.Reject.ifNull;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -179,7 +180,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
   @Override
   public E decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    ifNull(value);
 
     String nvalue = value.trim().toLowerCase();
     E eValue = decodeMap.get(nvalue);
@@ -254,7 +255,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
   @Override
   public String normalizeValue(E value)
       throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     return value.toString().trim().toLowerCase();
   }
@@ -267,7 +268,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
   @Override
   public void validateValue(E value)
       throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     // No additional validation required.
   }

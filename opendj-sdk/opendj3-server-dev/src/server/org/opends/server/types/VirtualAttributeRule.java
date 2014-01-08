@@ -38,7 +38,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 /**
  * This class defines a virtual attribute rule, which associates a
@@ -130,8 +130,8 @@ public final class VirtualAttributeRule
               VirtualAttributeCfgDefn.ConflictBehavior
                    conflictBehavior)
   {
-    ensureNotNull(attributeType, provider, baseDNs, groupDNs);
-    ensureNotNull(filters, conflictBehavior);
+    ifNull(attributeType, provider, baseDNs, groupDNs);
+    ifNull(filters, conflictBehavior);
 
     this.attributeType    = attributeType;
     this.provider         = provider;

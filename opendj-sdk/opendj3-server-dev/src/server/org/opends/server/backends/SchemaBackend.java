@@ -86,7 +86,7 @@ import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -274,7 +274,7 @@ public class SchemaBackend
       throw new ConfigException(message);
     }
 
-    Validator.ensureTrue(config instanceof SchemaBackendCfg);
+    Reject.ifFalse(config instanceof SchemaBackendCfg);
     SchemaBackendCfg cfg = (SchemaBackendCfg)config;
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
 

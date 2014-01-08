@@ -56,7 +56,7 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 
 
@@ -106,7 +106,7 @@ public class VirtualStaticGroup
   {
     super();
 
-    ensureNotNull(groupEntryDN, targetGroupDN);
+    ifNull(groupEntryDN, targetGroupDN);
 
     this.groupEntryDN  = groupEntryDN;
     this.targetGroupDN = targetGroupDN;
@@ -135,7 +135,7 @@ public class VirtualStaticGroup
   public VirtualStaticGroup newInstance(Entry groupEntry)
          throws DirectoryException
   {
-    ensureNotNull(groupEntry);
+    ifNull(groupEntry);
 
 
     // Get the target group DN attribute from the entry, if there is one.
@@ -212,7 +212,7 @@ public class VirtualStaticGroup
   @Override()
   public boolean isGroupDefinition(Entry entry)
   {
-    ensureNotNull(entry);
+    ifNull(entry);
 
     // FIXME -- This needs to exclude enhanced groups once we have support for
     //them.

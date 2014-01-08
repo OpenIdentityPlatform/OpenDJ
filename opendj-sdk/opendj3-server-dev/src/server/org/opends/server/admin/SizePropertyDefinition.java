@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
 
 
 
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.forgerock.util.Reject.ifNull;
 
 import java.util.EnumSet;
 
@@ -278,7 +279,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
    */
   @Override
   public void validateValue(Long value) throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     if (!allowUnlimited && value < lowerLimit) {
       throw new IllegalPropertyValueException(this, value);
@@ -300,7 +301,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
    */
   @Override
   public String encodeValue(Long value) throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     // Make sure that we correctly encode negative values as "unlimited".
     if (allowUnlimited) {
@@ -329,7 +330,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
   @Override
   public Long decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    ifNull(value);
 
     // First check for the special "unlimited" value when necessary.
     if (allowUnlimited) {

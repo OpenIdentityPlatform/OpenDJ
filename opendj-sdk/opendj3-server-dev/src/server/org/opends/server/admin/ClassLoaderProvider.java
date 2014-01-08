@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.admin;
 
@@ -63,7 +63,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 
 
@@ -215,7 +215,7 @@ public final class ClassLoaderProvider {
   public synchronized void addExtension(String... extensions)
       throws InitializationException, IllegalStateException,
       IllegalArgumentException {
-    Validator.ensureNotNull(extensions);
+    Reject.ifNull(extensions);
 
     if (loader == null) {
       throw new IllegalStateException(

@@ -59,7 +59,7 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 
 
@@ -112,7 +112,7 @@ public class DynamicGroup
   {
     super();
 
-    ensureNotNull(groupEntryDN, memberURLs);
+    ifNull(groupEntryDN, memberURLs);
 
     this.groupEntryDN = groupEntryDN;
     this.memberURLs   = memberURLs;
@@ -141,7 +141,7 @@ public class DynamicGroup
   public DynamicGroup newInstance(Entry groupEntry)
          throws DirectoryException
   {
-    ensureNotNull(groupEntry);
+    ifNull(groupEntry);
 
 
     // Get the memberURL attribute from the entry, if there is one, and parse
@@ -203,7 +203,7 @@ public class DynamicGroup
   @Override()
   public boolean isGroupDefinition(Entry entry)
   {
-    ensureNotNull(entry);
+    ifNull(entry);
 
     // FIXME -- This needs to exclude enhanced groups once we have support for
     //them.

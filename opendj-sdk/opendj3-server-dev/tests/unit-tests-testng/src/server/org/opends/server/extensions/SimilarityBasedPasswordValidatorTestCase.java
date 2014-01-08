@@ -55,7 +55,7 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 
 
 /**
- * A set of test cases for the Similarity-Based Password Validator.
+ * A set of test cases for the Similarity-Based Password Reject.
  */
 public class SimilarityBasedPasswordValidatorTestCase
        extends ExtensionsTestCase

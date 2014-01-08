@@ -78,7 +78,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 
 
@@ -149,8 +149,8 @@ public class TrustStoreBackend
   @Override()
   public void configureBackend(Configuration config) throws ConfigException
   {
-    Validator.ensureNotNull(config);
-    Validator.ensureTrue(config instanceof TrustStoreBackendCfg);
+    Reject.ifNull(config);
+    Reject.ifFalse(config instanceof TrustStoreBackendCfg);
 
     configuration = (TrustStoreBackendCfg)config;
   }

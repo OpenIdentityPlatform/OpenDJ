@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -29,7 +30,7 @@ import org.opends.messages.Message;
 
 
 
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -130,7 +131,7 @@ public final class InstantiableRelationDefinition
      */
     public void setNamingProperty(
         PropertyDefinition<?> namingPropertyDefinition) {
-      ensureNotNull(namingPropertyDefinition);
+      ifNull(namingPropertyDefinition);
       this.namingPropertyDefinition = namingPropertyDefinition;
     }
 

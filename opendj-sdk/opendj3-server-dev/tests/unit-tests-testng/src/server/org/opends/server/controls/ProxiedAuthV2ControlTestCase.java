@@ -67,7 +67,7 @@ public class ProxiedAuthV2ControlTestCase
   /**
    * Tests the constructor with a {@code null} authorization ID.
    */
-  @Test(expectedExceptions = { AssertionError.class })
+  @Test(expectedExceptions = { NullPointerException.class })
   public void testConstructorNullAuthzID()
   {
     new ProxiedAuthV2Control(null);

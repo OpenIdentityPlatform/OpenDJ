@@ -53,6 +53,7 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
+import org.forgerock.util.Reject;
 
 import static java.util.Collections.*;
 
@@ -148,7 +149,7 @@ public class ReplicationBackend extends Backend
   {
     if (config != null)
     {
-      Validator.ensureTrue(config instanceof BackendCfg);
+      Reject.ifFalse(config instanceof BackendCfg);
       BackendCfg cfg = (BackendCfg) config;
       DN[] newBaseDNs = new DN[cfg.getBaseDN().size()];
       cfg.getBaseDN().toArray(newBaseDNs);

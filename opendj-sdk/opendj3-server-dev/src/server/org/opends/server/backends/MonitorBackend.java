@@ -53,7 +53,7 @@ import org.opends.server.types.*;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 
 
@@ -193,8 +193,8 @@ public class MonitorBackend extends Backend implements
   public void configureBackend(final Configuration config)
       throws ConfigException
   {
-    Validator.ensureNotNull(config);
-    Validator.ensureTrue(config instanceof MonitorBackendCfg);
+    Reject.ifNull(config);
+    Reject.ifFalse(config instanceof MonitorBackendCfg);
 
     final MonitorBackendCfg cfg = (MonitorBackendCfg) config;
     final ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());

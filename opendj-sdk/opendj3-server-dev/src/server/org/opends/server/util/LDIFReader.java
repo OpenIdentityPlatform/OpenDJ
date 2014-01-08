@@ -30,7 +30,7 @@ import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 import java.io.*;
 import java.net.URL;
@@ -131,7 +131,7 @@ public final class LDIFReader implements Closeable
   public LDIFReader(LDIFImportConfig importConfig)
          throws IOException
   {
-    ensureNotNull(importConfig);
+    ifNull(importConfig);
     this.importConfig = importConfig;
 
     reader               = importConfig.getReader();
@@ -165,7 +165,7 @@ public final class LDIFReader implements Closeable
   public LDIFReader(LDIFImportConfig importConfig, RootContainer rootContainer)
          throws IOException
   {
-    ensureNotNull(importConfig);
+    ifNull(importConfig);
     this.importConfig = importConfig;
     this.reader               = importConfig.getReader();
     this.lineNumber           = 0;

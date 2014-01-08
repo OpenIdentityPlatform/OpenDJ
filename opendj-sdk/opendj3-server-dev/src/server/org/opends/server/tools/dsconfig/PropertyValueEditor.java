@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -76,7 +76,7 @@ import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.HelpCallback;
@@ -696,7 +696,7 @@ final class PropertyValueEditor {
     // Creates a new property editor for the specified property.
     private MultiValuedPropertyEditor(ManagedObject<?> mo,
         PropertyDefinition<?> pd) {
-      Validator.ensureTrue(pd.hasOption(PropertyOption.MULTI_VALUED));
+      Reject.ifFalse(pd.hasOption(PropertyOption.MULTI_VALUED));
 
       this.mo = mo;
       this.pd = pd;
@@ -1599,7 +1599,7 @@ final class PropertyValueEditor {
     // Creates a new property editor for the specified property.
     private SingleValuedPropertyEditor(ManagedObject<?> mo,
         PropertyDefinition<?> pd) {
-      Validator.ensureTrue(!pd.hasOption(PropertyOption.MULTI_VALUED));
+      Reject.ifFalse(!pd.hasOption(PropertyOption.MULTI_VALUED));
 
       this.mo = mo;
       this.pd = pd;

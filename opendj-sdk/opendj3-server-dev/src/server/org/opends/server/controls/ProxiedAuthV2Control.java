@@ -44,7 +44,7 @@ import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 /**
  * This class implements version 2 of the proxied authorization control as
@@ -166,7 +166,7 @@ public class ProxiedAuthV2Control
   {
     super(OID_PROXIED_AUTH_V2, isCritical);
 
-    ensureNotNull(authorizationID);
+    ifNull(authorizationID);
 
     this.authorizationID = authorizationID;
   }

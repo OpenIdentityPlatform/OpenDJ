@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public abstract class RawAttribute
    */
   public static RawAttribute create(String attributeType)
   {
-    ensureNotNull(attributeType);
+    ifNull(attributeType);
 
     return new LDAPAttribute(attributeType);
   }
@@ -91,7 +91,7 @@ public abstract class RawAttribute
   public static RawAttribute create(String attributeType,
                                     String value)
   {
-    ensureNotNull(attributeType, value);
+    ifNull(attributeType, value);
 
     return new LDAPAttribute(attributeType, value);
   }
@@ -111,7 +111,7 @@ public abstract class RawAttribute
   public static RawAttribute create(String attributeType,
                                     ByteString value)
   {
-    ensureNotNull(attributeType);
+    ifNull(attributeType);
 
     return new LDAPAttribute(attributeType, value);
   }
@@ -130,7 +130,7 @@ public abstract class RawAttribute
   public static RawAttribute create(String attributeType,
                                     ArrayList<ByteString> values)
   {
-    ensureNotNull(attributeType);
+    ifNull(attributeType);
 
     return new LDAPAttribute(attributeType, values);
   }
@@ -147,7 +147,7 @@ public abstract class RawAttribute
    */
   public static RawAttribute create(Attribute attribute)
   {
-    ensureNotNull(attribute);
+    ifNull(attribute);
 
     return new LDAPAttribute(attribute);
   }

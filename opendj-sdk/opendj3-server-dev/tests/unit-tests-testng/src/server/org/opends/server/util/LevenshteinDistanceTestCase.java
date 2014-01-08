@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -160,7 +161,7 @@ public class LevenshteinDistanceTestCase
       // ===+++======= --> 3
       new Object[] { "brad+angelina", "brangelina", 3 },
 
-      // test international chars 
+      // test international chars
       // ?e?uli?ka
       //  e?uli?ka
       // -======== --> 1
@@ -229,7 +230,7 @@ public class LevenshteinDistanceTestCase
    * @param  t  The target string to compare.
    */
   @Test(dataProvider = "testnulls",
-        expectedExceptions = { AssertionError.class })
+        expectedExceptions = { NullPointerException.class })
   public void testNullStrings(String s, String t)
   {
     LevenshteinDistance.calculate(s, t);

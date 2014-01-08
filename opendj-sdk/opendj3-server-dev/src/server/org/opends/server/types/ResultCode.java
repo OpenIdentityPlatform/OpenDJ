@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
 
 
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 import static org.opends.messages.CoreMessages.*;
 
@@ -705,7 +706,7 @@ public enum ResultCode
    */
   private ResultCode(int intValue, Message name)
   {
-    Validator.ensureNotNull(name);
+    Reject.ifNull(name);
     this.intValue       = intValue;
     this.resultCodeName = name;
   }

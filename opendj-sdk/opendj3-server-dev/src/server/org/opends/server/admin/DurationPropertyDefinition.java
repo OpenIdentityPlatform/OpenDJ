@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
 
 
 
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 import java.util.EnumSet;
 
@@ -135,7 +136,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
      *           than the maximum unit.
      */
     public final void setBaseUnit(String unit) throws IllegalArgumentException {
-      ensureNotNull(unit);
+      ifNull(unit);
 
       setBaseUnit(DurationUnit.getUnit(unit));
     }
@@ -155,7 +156,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
      */
     public final void setBaseUnit(DurationUnit unit)
         throws IllegalArgumentException {
-      ensureNotNull(unit);
+      ifNull(unit);
 
       // Make sure that the base unit is not bigger than the maximum
       // unit.
@@ -462,7 +463,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
    */
   @Override
   public void validateValue(Long value) throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     long nvalue = baseUnit.toMilliSeconds(value);
     if (!allowUnlimited && nvalue < lowerLimit) {
@@ -485,7 +486,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
    */
   @Override
   public String encodeValue(Long value) throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     // Make sure that we correctly encode negative values as
     // "unlimited".
@@ -511,7 +512,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
   @Override
   public Long decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    ifNull(value);
 
     // First check for the special "unlimited" value when necessary.
     if (allowUnlimited) {

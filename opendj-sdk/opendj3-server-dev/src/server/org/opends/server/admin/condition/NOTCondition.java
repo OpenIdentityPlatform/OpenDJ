@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.condition;
 
@@ -34,7 +35,7 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.config.ConfigException;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 
 
@@ -58,7 +59,7 @@ public final class NOTCondition implements Condition {
    *          The sub-condition which will be inverted.
    */
   public NOTCondition(Condition condition) {
-    Validator.ensureNotNull(condition);
+    Reject.ifNull(condition);
     this.condition = condition;
   }
 

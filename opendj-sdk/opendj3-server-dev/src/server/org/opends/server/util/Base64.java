@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -56,7 +57,7 @@ import org.opends.server.util.args.SubCommandArgumentParser;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 
 
@@ -96,7 +97,7 @@ public final class Base64
    */
   public static String encode(byte[] rawData)
   {
-    ensureNotNull(rawData);
+    ifNull(rawData);
 
 
     StringBuilder buffer = new StringBuilder(4 * rawData.length / 3);
@@ -143,7 +144,7 @@ public final class Base64
    */
   public static String encode(ByteSequence rawData)
   {
-    ensureNotNull(rawData);
+    ifNull(rawData);
 
 
     StringBuilder buffer = new StringBuilder(4 * rawData.length() / 3);
@@ -199,7 +200,7 @@ public final class Base64
   public static byte[] decode(String encodedData)
          throws ParseException
   {
-    ensureNotNull(encodedData);
+    ifNull(encodedData);
 
 
     // The encoded value must have  length that is a multiple of four bytes.

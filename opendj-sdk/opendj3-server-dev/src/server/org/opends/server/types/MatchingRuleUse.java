@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -42,7 +42,7 @@ import org.opends.server.schema.MatchingRuleUseSyntax;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 
 
@@ -119,7 +119,7 @@ public final class MatchingRuleUse
                          Set<AttributeType> attributes,
                          Map<String,List<String>> extraProperties)
   {
-    ensureNotNull(definition, matchingRule);
+    ifNull(definition, matchingRule);
 
     this.matchingRule = matchingRule;
     this.description  = description;
@@ -419,7 +419,7 @@ public final class MatchingRuleUse
    */
   public void setExtraProperty(String name, String value)
   {
-    ensureNotNull(name);
+    ifNull(name);
 
     if (value == null)
     {
@@ -447,7 +447,7 @@ public final class MatchingRuleUse
    */
   public void setExtraProperty(String name, List<String> values)
   {
-    ensureNotNull(name);
+    ifNull(name);
 
     if ((values == null) || values.isEmpty())
     {

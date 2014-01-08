@@ -43,6 +43,7 @@ import java.util.*;
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 
+import org.forgerock.util.Reject;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.MessageDescriptor;
@@ -165,7 +166,7 @@ public final class StaticUtils
    */
   public static String decodeUTF8(final byte[] bytes)
   {
-    Validator.ensureNotNull(bytes);
+    Reject.ifNull(bytes);
 
     if (bytes.length == 0)
     {
@@ -3937,7 +3938,7 @@ public final class StaticUtils
    */
   public static String wrapText(String text, int width, int indent)
   {
-    Validator.ensureTrue(indent >= 0 && indent < width);
+    Reject.ifFalse(indent >= 0 && indent < width);
 
     // Calculate the real width and indentation padding.
     width -= indent;

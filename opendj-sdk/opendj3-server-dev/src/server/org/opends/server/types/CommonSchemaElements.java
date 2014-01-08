@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -30,7 +30,7 @@ import org.opends.messages.Message;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -467,7 +467,7 @@ public abstract class CommonSchemaElements {
    */
   public final void setExtraProperty(String name, String value) {
 
-    ensureNotNull(name);
+    ifNull(name);
 
     if (value == null)
     {
@@ -500,7 +500,7 @@ public abstract class CommonSchemaElements {
   public final void setExtraProperty(String name,
                                      List<String> values) {
 
-    ensureNotNull(name);
+    ifNull(name);
 
     if ((values == null) || values.isEmpty())
     {

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -30,7 +31,7 @@ import org.opends.server.authorization.dseecompat.Aci;
 import org.opends.server.authorization.dseecompat.AciException;
 import org.opends.server.types.DN;
 import org.opends.server.types.ByteString;
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.forgerock.util.Reject.ifNull;
 
 import java.util.EnumSet;
 
@@ -101,7 +102,7 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
   @Override
   public void validateValue(Aci value)
       throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     // No additional validation required.
   }
@@ -112,7 +113,7 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
   @Override
   public Aci decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    ifNull(value);
 
     try {
       return Aci.decode(ByteString.valueOf(value), DN.NULL_DN);

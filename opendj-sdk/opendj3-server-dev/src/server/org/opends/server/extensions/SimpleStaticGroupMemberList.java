@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -45,7 +45,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.Validator.*;
+import static org.forgerock.util.Reject.*;
 
 
 
@@ -88,7 +88,7 @@ public class SimpleStaticGroupMemberList
    */
   public SimpleStaticGroupMemberList(DN groupDN, Set<ByteString> memberDNs)
   {
-    ensureNotNull(groupDN, memberDNs);
+    ifNull(groupDN, memberDNs);
 
     this.groupDN   = groupDN;
     this.memberDNs = new ArrayList<ByteString>(memberDNs);

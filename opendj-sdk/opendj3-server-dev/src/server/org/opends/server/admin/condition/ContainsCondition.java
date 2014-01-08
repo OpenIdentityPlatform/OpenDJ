@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.condition;
 
@@ -38,7 +39,7 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.config.ConfigException;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 
 
@@ -134,7 +135,7 @@ public final class ContainsCondition implements Condition {
    *          value.
    */
   public ContainsCondition(String propertyName, String stringValue) {
-    Validator.ensureNotNull(propertyName, stringValue);
+    Reject.ifNull(propertyName, stringValue);
     this.propertyName = propertyName;
     this.propertyStringValue = stringValue;
   }

@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
 
 
 
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.forgerock.util.Reject.ifNull;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -124,7 +125,7 @@ public final class BooleanPropertyDefinition extends
   @Override
   public void validateValue(Boolean value)
       throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    ifNull(value);
 
     // No additional validation required.
   }
@@ -137,7 +138,7 @@ public final class BooleanPropertyDefinition extends
   @Override
   public Boolean decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    ifNull(value);
 
     String nvalue = value.trim().toLowerCase();
     Boolean b = VALUE_MAP.get(nvalue);

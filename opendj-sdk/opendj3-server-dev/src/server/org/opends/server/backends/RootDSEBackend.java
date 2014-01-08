@@ -62,7 +62,7 @@ import org.opends.server.core.WorkflowTopologyNode;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.
@@ -158,8 +158,8 @@ public class RootDSEBackend
   public void configureBackend(Configuration config)
          throws ConfigException
   {
-    Validator.ensureNotNull(config);
-    Validator.ensureTrue(config instanceof RootDSEBackendCfg);
+    Reject.ifNull(config);
+    Reject.ifFalse(config instanceof RootDSEBackendCfg);
     currentConfig = (RootDSEBackendCfg)config;
     configEntryDN = config.dn();
   }

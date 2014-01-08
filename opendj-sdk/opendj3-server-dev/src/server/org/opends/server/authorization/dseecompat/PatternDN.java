@@ -34,7 +34,7 @@ import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.util.StaticUtils.isDigit;
 import static org.opends.server.util.StaticUtils.isHexDigit;
 import static org.opends.server.util.StaticUtils.hexStringToByteArray;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -121,7 +121,7 @@ public class PatternDN
                     List<PatternRDN[]> subAnyElements,
                     PatternRDN[] subFinal)
   {
-    Validator.ensureNotNull(subAnyElements);
+    Reject.ifNull(subAnyElements);
     this.subInitial = subInitial;
     this.subAnyElements = subAnyElements;
     this.subFinal = subFinal;
