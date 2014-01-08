@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -32,7 +32,7 @@ import static com.forgerock.opendj.ldap.TimeoutChecker.TIMEOUT_CHECKER;
 import static org.forgerock.opendj.ldap.ErrorResultException.*;
 
 import java.io.IOException;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -208,7 +208,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
     private final LDAPClientFilter clientFilter;
     private final FilterChain defaultFilterChain;
     private final LDAPOptions options;
-    private final SocketAddress socketAddress;
+    private final InetSocketAddress socketAddress;
 
     /**
      * Prevents the transport and timeoutChecker being released when there are
@@ -236,7 +236,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
      * @param options
      *            The LDAP connection options to use when creating connections.
      */
-    public LDAPConnectionFactoryImpl(final SocketAddress address, final LDAPOptions options) {
+    public LDAPConnectionFactoryImpl(final InetSocketAddress address, final LDAPOptions options) {
         this.transport = DEFAULT_TRANSPORT.acquireIfNull(options.getTCPNIOTransport());
         this.socketAddress = address;
         this.options = new LDAPOptions(options);
@@ -281,7 +281,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
      *
      * @return The address of the Directory Server.
      */
-    public SocketAddress getSocketAddress() {
+    public InetSocketAddress getSocketAddress() {
         return socketAddress;
     }
 

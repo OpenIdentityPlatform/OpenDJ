@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -32,7 +32,7 @@ import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
@@ -48,6 +48,7 @@ import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 import com.forgerock.opendj.util.ReferenceCountedObject;
+import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * LDAP listener implementation.
@@ -58,6 +59,7 @@ public final class LDAPListenerImpl implements Closeable {
     private final ServerConnectionFactory<LDAPClientContext, Integer> connectionFactory;
     private final TCPNIOServerConnection serverConnection;
     private final AtomicBoolean isClosed = new AtomicBoolean();
+    private final InetSocketAddress socketAddress;
 
     /**
      * Creates a new LDAP listener implementation which will listen for LDAP
@@ -74,7 +76,7 @@ public final class LDAPListenerImpl implements Closeable {
      *             If an error occurred while trying to listen on the provided
      *             address.
      */
-    public LDAPListenerImpl(final SocketAddress address,
+    public LDAPListenerImpl(final InetSocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final LDAPListenerOptions options) throws IOException {
         this.transport = DEFAULT_TRANSPORT.acquireIfNull(options.getTCPNIOTransport());
@@ -88,6 +90,14 @@ public final class LDAPListenerImpl implements Closeable {
         final TCPNIOBindingHandler bindingHandler =
                 TCPNIOBindingHandler.builder(transport.get()).processor(defaultFilterChain).build();
         this.serverConnection = bindingHandler.bind(address, options.getBacklog());
+
+        /*
+         * Get the socket address now, ensuring that the host is the same as the
+         * one provided in the constructor. The port will have changed if 0 was
+         * passed in.
+         */
+        final int port = ((InetSocketAddress) serverConnection.getLocalAddress()).getPort();
+        socketAddress = new InetSocketAddress(StaticUtils.getHostName(address), port);
     }
 
     @Override
@@ -110,8 +120,8 @@ public final class LDAPListenerImpl implements Closeable {
      *
      * @return The address that this LDAP listener is listening on.
      */
-    public SocketAddress getSocketAddress() {
-        return serverConnection.getLocalAddress();
+    public InetSocketAddress getSocketAddress() {
+        return socketAddress;
     }
 
     @Override

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -80,14 +80,14 @@ public final class TestCaseUtils {
      *
      * @return The free port.
      */
-    public static SocketAddress findFreeSocketAddress() {
+    public static InetSocketAddress findFreeSocketAddress() {
         try {
             ServerSocket serverLdapSocket = new ServerSocket();
             serverLdapSocket.setReuseAddress(true);
             serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", 0));
             final SocketAddress address = serverLdapSocket.getLocalSocketAddress();
             serverLdapSocket.close();
-            return address;
+            return (InetSocketAddress) address;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -129,7 +129,7 @@ public final class TestCaseUtils {
      *
      * @return The socket address of the server.
      */
-    public static SocketAddress getServerSocketAddress() {
+    public static InetSocketAddress getServerSocketAddress() {
         return LDAPServer.getInstance().getSocketAddress();
     }
 

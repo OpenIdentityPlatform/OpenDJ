@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.Connections;
@@ -75,7 +75,7 @@ public class LDAPConnectionTestCase extends LDAPTestCase {
     }
 
     private void doTestRequestTimeout(boolean isPersistentSearch) throws Exception {
-        SocketAddress address = TestCaseUtils.findFreeSocketAddress();
+        InetSocketAddress address = TestCaseUtils.findFreeSocketAddress();
 
         /*
          * Use a mock server implementation which will ignore incoming requests

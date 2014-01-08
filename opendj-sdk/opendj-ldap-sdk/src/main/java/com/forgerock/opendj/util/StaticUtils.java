@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package com.forgerock.opendj.util;
@@ -33,6 +33,8 @@ import static org.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_LENG
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -2221,6 +2223,48 @@ public final class StaticUtils {
         }
 
         return ' ';
+    }
+
+    /**
+     * Returns the host name associated with the provided {@code InetSocketAddress},
+     * without performing a DNS lookup.
+     *
+     * @param socketAddress
+     *            The socket address which is expected to be an instance of
+     *            {@code InetSocketAddress}.
+     * @return The host name associated with the provided {@code SocketAddress},
+     *         or {@code null} if it is unknown.
+     */
+    public static String getHostName(final InetSocketAddress socketAddress) {
+        /*
+         * See OPENDJ-1270 for more information about slow DNS queries.
+         *
+         * We must avoid calling getHostName() in the case where it is likely to
+         * perform a blocking DNS query. Ideally we would call getHostString(),
+         * but the method was only added in JDK7.
+         */
+        if (socketAddress.isUnresolved()) {
+            /*
+             * Usually socket addresses are resolved on creation. If the address
+             * is unresolved then there must be a user provided hostname instead
+             * and getHostName will not perform a reverse lookup.
+             */
+            return socketAddress.getHostName();
+        } else {
+            /*
+             * Simulate getHostString() by parsing the toString()
+             * representation. This assumes that the toString() representation
+             * is stable, which I assume it is because it is documented.
+             */
+            final InetAddress address = socketAddress.getAddress();
+            final String hostSlashIp = address.toString();
+            final int slashPos = hostSlashIp.indexOf('/');
+            if (slashPos == 0) {
+                return hostSlashIp.substring(1);
+            } else {
+                return hostSlashIp.substring(0, slashPos);
+            }
+        }
     }
 
     // Prevent instantiation.
