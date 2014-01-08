@@ -29,8 +29,6 @@ package org.forgerock.opendj.ldap.responses;
 
 import org.forgerock.opendj.ldap.ByteString;
 
-import com.forgerock.opendj.util.StaticUtils;
-
 /**
  * An abstract Intermediate response which can be used as the basis for
  * implementing new Intermediate responses.
@@ -77,7 +75,7 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
         builder.append(getOID() == null ? "" : getOID());
         if (hasValue()) {
             builder.append(", responseValue=");
-            StaticUtils.toHexPlusAscii(getValue(), builder, 4);
+            builder.append(getValue().toHexPlusAsciiString(4));
         }
         builder.append(", controls=");
         builder.append(getControls());

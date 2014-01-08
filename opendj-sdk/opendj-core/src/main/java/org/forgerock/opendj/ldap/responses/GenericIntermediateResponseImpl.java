@@ -29,8 +29,6 @@ package org.forgerock.opendj.ldap.responses;
 
 import org.forgerock.opendj.ldap.ByteString;
 
-import com.forgerock.opendj.util.StaticUtils;
-
 /**
  * Generic intermediate response implementation.
  */
@@ -85,7 +83,7 @@ final class GenericIntermediateResponseImpl extends
         builder.append(getOID() == null ? "" : getOID());
         if (hasValue()) {
             builder.append(", requestValue=");
-            StaticUtils.toHexPlusAscii(getValue(), builder, 4);
+            builder.append(getValue().toHexPlusAsciiString(4));
         }
         builder.append(", controls=");
         builder.append(getControls());

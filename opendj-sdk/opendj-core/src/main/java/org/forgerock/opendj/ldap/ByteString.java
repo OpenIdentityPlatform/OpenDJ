@@ -26,6 +26,7 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.IOException;
@@ -34,8 +35,10 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.text.ParseException;
 import java.util.Arrays;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
 import com.forgerock.opendj.util.StaticUtils;
@@ -158,6 +161,36 @@ public final class ByteString implements ByteSequence {
      */
     public static ByteString valueOfBase64(final String s) {
         return Base64.decode(s);
+    }
+
+    /**
+     * Returns a byte string containing the bytes of the provided hexadecimal string.
+     *
+     * @param hexString
+     *            The hexadecimal string to convert to a byte array.
+     * @return The byte string containing the binary representation of the
+     *         provided hex string.
+     * @throws java.text.ParseException
+     *             If the provided string contains invalid hexadecimal digits or
+     *             does not contain an even number of digits.
+     */
+    public static ByteString valueOfHex(final String hexString) throws ParseException {
+        byte[] bytes = null;
+        int length = 0;
+        if (hexString == null || (length = hexString.length()) == 0) {
+            bytes = new byte[0];
+        } else {
+            if (length % 2 != 0) {
+                final LocalizableMessage message = ERR_HEX_DECODE_INVALID_LENGTH.get(hexString);
+                throw new ParseException(message.toString(), 0);
+            }
+            final int arrayLength = length / 2;
+            bytes = new byte[arrayLength];
+            for (int i = 0; i < arrayLength; i++) {
+                bytes[i] = hexToByte(hexString.charAt(i * 2), hexString.charAt(i * 2 + 1));
+            }
+        }
+        return valueOf(bytes);
     }
 
     /**
@@ -574,19 +607,19 @@ public final class ByteString implements ByteSequence {
     }
 
     /**
-     * Appends a string representation of the data in this byte sequence to the
-     * given buffer using the specified indent.
+     * Returns a string representation of the data in this byte sequence using
+     * the specified indent.
      * <p>
      * The data will be formatted with sixteen hex bytes in a row followed by
      * the ASCII representation, then wrapping to a new line as necessary. The
      * state of the byte buffer is not changed.
      *
-     * @param builder
-     *            The buffer to which the information is to be appended.
      * @param indent
      *            The number of spaces to indent the output.
+     * @return the string representation of this byte string
      */
-    public void toHexPlusAsciiString(StringBuilder builder, int indent) {
+    public String toHexPlusAsciiString(int indent) {
+        StringBuilder builder = new StringBuilder();
         StringBuilder indentBuf = new StringBuilder(indent);
         for (int i = 0; i < indent; i++) {
             indentBuf.append(' ');
@@ -651,6 +684,7 @@ public final class ByteString implements ByteSequence {
             builder.append(asciiBuf);
             builder.append(EOL);
         }
+        return builder.toString();
     }
 
     /**

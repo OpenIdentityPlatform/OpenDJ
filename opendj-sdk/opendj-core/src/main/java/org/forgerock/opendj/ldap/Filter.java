@@ -43,8 +43,6 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Reject;
 
-import com.forgerock.opendj.util.StaticUtils;
-
 /**
  * A search filter as defined in RFC 4511. In addition this class also provides
  * support for the absolute true and absolute false filters as defined in RFC
@@ -422,7 +420,7 @@ public final class Filter {
                     builder.append('(');
                     builder.append(byteToHex(filterTag));
                     builder.append(':');
-                    StaticUtils.toHex(filterBytes, builder);
+                    builder.append(filterBytes.toHexString());
                     builder.append(')');
                     return builder;
                 }
