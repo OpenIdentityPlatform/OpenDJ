@@ -720,6 +720,16 @@ public final class ByteStringBuilder implements ByteSequence {
     }
 
     /**
+     * Returns the current capacity of this byte string builder. The capacity
+     * may increase as more data is appended.
+     *
+     * @return The current capacity of this byte string builder.
+     */
+    public int capacity() {
+        return buffer.length;
+    }
+
+    /**
      * Sets the length of this byte string builder to zero.
      * <p>
      * <b>NOTE:</b> if this method is called, then
@@ -730,6 +740,32 @@ public final class ByteStringBuilder implements ByteSequence {
      * @see #asReader()
      */
     public ByteStringBuilder clear() {
+        length = 0;
+        return this;
+    }
+
+    /**
+     * Sets the length of this byte string builder to zero, and resets the
+     * capacity to the specified size.
+     * <p>
+     * <b>NOTE:</b> if this method is called, then
+     * {@code ByteSequenceReader.rewind()} must also be called on any associated
+     * byte sequence readers in order for them to remain valid.
+     *
+     * @param capacity
+     *            The new capacity.
+     * @return This byte string builder.
+     * @throws IllegalArgumentException
+     *             If the {@code capacity} is negative.
+     * @see #asReader()
+     */
+    public ByteStringBuilder clear(int capacity) {
+        if (capacity < 0) {
+            throw new IllegalArgumentException();
+        }
+        if (capacity != buffer.length) {
+            buffer = new byte[capacity];
+        }
         length = 0;
         return this;
     }

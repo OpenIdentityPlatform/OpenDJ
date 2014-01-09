@@ -124,6 +124,14 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
         bs.byteAt(0);
     }
 
+    @Test(dataProvider = "builderProvider", expectedExceptions = IndexOutOfBoundsException.class)
+    public void testClearWithNewCapacity(ByteStringBuilder bs, byte[] ba) {
+        bs.clear(123);
+        Assert.assertEquals(bs.length(), 0);
+        Assert.assertEquals(bs.capacity(), 123);
+        bs.byteAt(0);
+    }
+
     @Test
     public void testEnsureAdditionalCapacity() {
         final ByteStringBuilder bsb = new ByteStringBuilder(8);
