@@ -538,6 +538,16 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     replicationServer = new ReplicationServer(conf);
   }
 
+  private static DomainFakeCfg newConfig(DN baseDN, int serverID,
+      SortedSet<String> replicationServers, long heartbeatInterval)
+  {
+    DomainFakeCfg fakeCfg =
+        new DomainFakeCfg(baseDN, serverID, replicationServers);
+    fakeCfg.setHeartbeatInterval(heartbeatInterval);
+    fakeCfg.setChangetimeHeartbeatInterval(500);
+    return fakeCfg;
+  }
+
   /**
    * This class is the minimum implementation of a Concrete ReplicationDomain
    * used to be able to connect to the RS with a known genid. Also to be able
@@ -561,18 +571,14 @@ public class FractionalReplicationTest extends ReplicationTestCase {
      */
     private StringBuilder importString;
     private int exportedEntryCount;
-    private long generationID = -1;
 
     public FakeReplicationDomain(DN baseDN, int serverID,
         SortedSet<String> replicationServers, long heartbeatInterval,
         long generationId) throws ConfigException
     {
-      super(baseDN, serverID, 100);
-      generationID = generationId;
-      DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverID, replicationServers);
-      fakeCfg.setHeartbeatInterval(heartbeatInterval);
-      fakeCfg.setChangetimeHeartbeatInterval(500);
-      startPublishService(fakeCfg);
+      super(newConfig(baseDN, serverID, replicationServers, heartbeatInterval),
+          generationId);
+      startPublishService(getConfig());
       startListenService();
     }
 
@@ -601,12 +607,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
           ERR_BACKEND_EXPORT_ENTRY.get("", ""));
       }
-    }
-
-    @Override
-    public long getGenerationID()
-    {
-      return generationID;
     }
 
     @Override
