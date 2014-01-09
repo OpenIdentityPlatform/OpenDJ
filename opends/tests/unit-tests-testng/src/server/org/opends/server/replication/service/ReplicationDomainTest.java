@@ -40,6 +40,7 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.service.ReplicationDomain.IEContext;
 import org.opends.server.types.DN;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -421,10 +422,20 @@ public class ReplicationDomainTest extends ReplicationTestCase
   private void assertExportSucessful(ReplicationDomain domain1,
       ReplicationDomain domain2, String exportedData, StringBuilder importedData)
   {
-    assertEquals(domain2.ieContext.getLeftEntryCount(), 0, "Wrong LeftEntryCount for export");
-    assertEquals(domain1.ieContext.getLeftEntryCount(), 0, "Wrong LeftEntryCount for import");
+    assertEquals(getLeftEntryCount(domain2), 0, "Wrong LeftEntryCount for export");
+    assertEquals(getLeftEntryCount(domain1), 0, "Wrong LeftEntryCount for import");
     assertEquals(importedData.length(), exportedData.length());
     assertEquals(importedData.toString(), exportedData);
+  }
+
+  private long getLeftEntryCount(ReplicationDomain domain)
+  {
+    final IEContext ieContext = domain.getImportExportContext();
+    if (ieContext != null)
+    {
+      return ieContext.getLeftEntryCount();
+    }
+    return 0; // import/export is finished 
   }
 
   /**
