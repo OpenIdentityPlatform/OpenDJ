@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -65,19 +65,24 @@ public class FakeReplicationDomain extends ReplicationDomain
 
   private int exportedEntryCount;
 
-  private long generationID = 1;
-
   private FakeReplicationDomain(DN baseDN, int serverID,
       SortedSet<String> replicationServers, int window, long heartbeatInterval)
       throws ConfigException
   {
-    super(baseDN, serverID, 100);
+    super(newConfig(baseDN, serverID, replicationServers, window,
+        heartbeatInterval), 1);
+    startPublishService(getConfig());
+    startListenService();
+  }
+
+  private static DomainFakeCfg newConfig(DN baseDN, int serverID,
+      SortedSet<String> replicationServers, int window, long heartbeatInterval)
+  {
     DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverID, replicationServers);
     fakeCfg.setHeartbeatInterval(heartbeatInterval);
     fakeCfg.setChangetimeHeartbeatInterval(500);
     fakeCfg.setWindowSize(window);
-    startPublishService(fakeCfg);
-    startListenService();
+    return fakeCfg;
   }
 
   public FakeReplicationDomain(DN baseDN, int serverID,
@@ -122,12 +127,6 @@ public class FakeReplicationDomain extends ReplicationDomain
   }
 
   @Override
-  public long getGenerationID()
-  {
-    return generationID;
-  }
-
-  @Override
   protected void importBackend(InputStream input) throws DirectoryException
   {
     byte[] buffer = new byte[1000];
@@ -157,8 +156,4 @@ public class FakeReplicationDomain extends ReplicationDomain
     return true;
   }
 
-  public void setGenerationID(long newGenerationID)
-  {
-    generationID = newGenerationID;
-  }
 }

@@ -22,17 +22,14 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.protocols.asn1.ASN1;
@@ -43,6 +40,7 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.types.ByteSequenceReader;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.util.StaticUtils;
 
 /**
  * This message is used by DS to confirm a RS he wants to connect to him (open
@@ -60,19 +58,18 @@ import org.opends.server.types.ByteStringBuilder;
  */
 public class StartSessionMsg extends ReplicationMsg
 {
-  // The list of referrals URLs to the sending DS
-  private List<String> referralsURLs = new ArrayList<String>();
-  // The initial status the DS starts with
+  /** The list of referrals URLs to the sending DS. */
+  private final List<String> referralsURLs = new ArrayList<String>();
+  /** The initial status the DS starts with. */
   private ServerStatus status = ServerStatus.INVALID_STATUS;
-  // Assured replication enabled on DS or not
-  private boolean assuredFlag = false;
-  // DS assured mode (relevant if assured replication enabled)
+  /** Assured replication enabled on DS or not. */
+  private boolean assuredFlag;
+  /** DS assured mode (relevant if assured replication enabled). */
   private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
-  // DS safe data level (relevant if assured mode is safe data)
-  private byte safeDataLevel = (byte) 1;
+  /** DS safe data level (relevant if assured mode is safe data). */
+  private byte safeDataLevel = 1;
 
   private Set<String> eclIncludes = new HashSet<String>();
-
   private Set<String> eclIncludesForDeletes = new HashSet<String>();
 
   /**
@@ -103,10 +100,10 @@ public class StartSessionMsg extends ReplicationMsg
    * @param assuredMode Assured type
    * @param safeDataLevel Assured mode safe data level
    */
-  public StartSessionMsg(ServerStatus status, List<String> referralsURLs,
+  public StartSessionMsg(ServerStatus status, Collection<String> referralsURLs,
     boolean assuredFlag, AssuredMode assuredMode, byte safeDataLevel)
   {
-    this.referralsURLs = referralsURLs;
+    this.referralsURLs.addAll(referralsURLs);
     this.status = status;
     this.assuredFlag = assuredFlag;
     this.assuredMode = assuredMode;
@@ -119,9 +116,9 @@ public class StartSessionMsg extends ReplicationMsg
    * @param status Status we are starting with
    * @param referralsURLs Referrals URLs to be used by peer DSs
    */
-  public StartSessionMsg(ServerStatus status, List<String> referralsURLs)
+  public StartSessionMsg(ServerStatus status, Collection<String> referralsURLs)
   {
-    this.referralsURLs = referralsURLs;
+    this.referralsURLs.addAll(referralsURLs);
     this.status = status;
     this.assuredFlag = false;
   }
@@ -130,9 +127,7 @@ public class StartSessionMsg extends ReplicationMsg
   // Msg encoding
   // ============
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short reqProtocolVersion)
     throws UnsupportedEncodingException
@@ -334,7 +329,6 @@ public class StartSessionMsg extends ReplicationMsg
 
       /* Read the referrals URLs */
       int pos = 5;
-      referralsURLs = new ArrayList<String>();
       while (pos < in.length)
       {
         /*
@@ -373,24 +367,18 @@ public class StartSessionMsg extends ReplicationMsg
     return status;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
-    String urls = "";
-    for (String s : referralsURLs)
-    {
-      urls += s + " | ";
-    }
-    return ("StartSessionMsg content:\nstatus: " + status +
+    String urls = StaticUtils.collectionToString(referralsURLs, " | ");
+    return "StartSessionMsg content:\nstatus: " + status +
       "\nassuredFlag: " + assuredFlag +
       "\nassuredMode: " + assuredMode +
       "\nsafeDataLevel: " + safeDataLevel +
       "\nreferralsURLs: " + urls +
       "\nEclIncludes " + eclIncludes +
-      "\nEclIncludeForDeletes: " + eclIncludesForDeletes);
+      "\nEclIncludeForDeletes: " + eclIncludesForDeletes;
   }
 
   /**
