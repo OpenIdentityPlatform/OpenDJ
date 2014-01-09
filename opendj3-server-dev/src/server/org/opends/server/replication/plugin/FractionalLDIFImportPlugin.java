@@ -42,6 +42,7 @@ import org.opends.server.types.*;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class implements a Directory Server plugin that is used in fractional
@@ -61,7 +62,7 @@ public final class FractionalLDIFImportPlugin
 {
   /**
    * Holds the fractional configuration and if available the replication domain
-   * matching this import session (they form the importfractional context).
+   * matching this import session (they form the import fractional context).
    * Domain is available if the server is online (import-ldif, online full
    * update..) otherwise, this is an import-ldif with server off. The key is the
    * ImportConfig object of the session which acts as a cookie for the whole
@@ -126,9 +127,7 @@ public final class FractionalLDIFImportPlugin
     super();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public final void initializePlugin(Set<PluginType> pluginTypes,
     FractionalLDIFImportPluginCfg configuration)
@@ -153,9 +152,7 @@ public final class FractionalLDIFImportPlugin
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public final void finalizePlugin()
   {
@@ -217,9 +214,7 @@ public final class FractionalLDIFImportPlugin
     return FractionalConfig.toFractionalConfig(matchingReplicatedDomainCfg);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public final void doLDIFImportEnd(LDIFImportConfig importConfig)
   {
@@ -343,26 +338,20 @@ public final class FractionalLDIFImportPlugin
       }
 
       // Compare backend and local fractional configuration
-      boolean sameConfig =
-        isFractionalConfigConsistent(localFractionalConfig, exclIt, inclIt);
+      if (isFractionalConfigConsistent(localFractionalConfig, exclIt, inclIt))
+      {
+        // local and remote non/fractional config are equivalent :
+        // follow import, no need to go with filtering as remote backend
+        // should be ok
+        // let import finish
+        return PluginResult.ImportLDIF.continueEntryProcessing();
+      }
+
       if (localFractionalConfig.isFractional())
       {
-        // Local domain is fractional
-        if (sameConfig)
-        {
-          // Both local and remote fractional configuration are equivalent :
-          // follow import, no need to go with filtering as remote backend
-          // should be ok
-          return PluginResult.ImportLDIF.continueEntryProcessing();
-        }
-
         // Local domain is fractional, remote domain has not same config
-        boolean remoteDomainHasSomeConfig = false;
-        if ((exclAttr != null && (exclAttr.size() > 0))
-            || (inclAttr != null && (inclAttr.size() > 0)))
-        {
-          remoteDomainHasSomeConfig = true;
-        }
+        boolean remoteDomainHasSomeConfig =
+            isNotEmpty(exclAttr) || isNotEmpty(inclAttr);
         if (remoteDomainHasSomeConfig)
         {
           LDAPReplicationDomain domain = importFractionalContext.getDomain();
@@ -372,7 +361,6 @@ public final class FractionalLDIFImportPlugin
             // is different : stop import (error will be logged when import is
             // stopped)
             domain.setImportErrorMessageId(IMPORT_ERROR_MESSAGE_BAD_REMOTE);
-            domain.setFollowImport(false);
             return PluginResult.ImportLDIF.stopEntryProcessing(null);
           }
 
@@ -384,16 +372,10 @@ public final class FractionalLDIFImportPlugin
         // Local domain is fractional but remote domain has no config :
         // flush local config into root entry and follow import with filtering
         flushFractionalConfigIntoEntry(localFractionalConfig, entry);
-      } else
+      }
+      else
       {
         // Local domain is not fractional
-        if (sameConfig)
-        {
-          // None of the local or remote domain has fractional config : nothing
-          // more to do : let import finish
-          return PluginResult.ImportLDIF.continueEntryProcessing();
-        }
-
         LDAPReplicationDomain domain = importFractionalContext.getDomain();
         if (domain != null)
         {
@@ -401,7 +383,6 @@ public final class FractionalLDIFImportPlugin
           //local domain should be configured with the same config as remote one
           domain.setImportErrorMessageId(
               IMPORT_ERROR_MESSAGE_REMOTE_IS_FRACTIONAL);
-          domain.setFollowImport(false);
           return PluginResult.ImportLDIF.stopEntryProcessing(null);
         }
 
@@ -418,6 +399,11 @@ public final class FractionalLDIFImportPlugin
       entry.getObjectClasses(), entry.getUserAttributes(), true);
 
     return PluginResult.ImportLDIF.continueEntryProcessing();
+  }
+
+  private boolean isNotEmpty(Attribute attr)
+  {
+    return attr != null && attr.size() > 0;
   }
 
   private Attribute getAttribute(String attributeName, Entry entry)
@@ -459,51 +445,19 @@ public final class FractionalLDIFImportPlugin
       String fractAttribute = fractionalExclusive ?
           REPLICATION_FRACTIONAL_EXCLUDE : REPLICATION_FRACTIONAL_INCLUDE;
       AttributeBuilder attrBuilder = new AttributeBuilder(fractAttribute);
-      boolean somethingToFlush = false;
-
       // Add attribute values for all classes
-      int size = fractionalAllClassesAttributes.size();
-      if (size > 0)
-      {
-        String fracValue = "*:";
-        int i = 1;
-        for (String attrName : fractionalAllClassesAttributes)
-        {
-          fracValue += attrName;
-          if (i < size)
-          {
-            fracValue += ",";
-          }
-          i++;
-        }
-        somethingToFlush = true;
-        attrBuilder.add(fracValue);
-      }
+      boolean somethingToFlush =
+          add(attrBuilder, "*", fractionalAllClassesAttributes);
 
       // Add attribute values for specific classes
-      size = fractionalSpecificClassesAttributes.size();
-      if (size > 0)
+      if (fractionalSpecificClassesAttributes.size() > 0)
       {
-        for (String className : fractionalSpecificClassesAttributes.keySet())
+        for (Map.Entry<String, Set<String>> specific
+            : fractionalSpecificClassesAttributes.entrySet())
         {
-          int valuesSize =
-            fractionalSpecificClassesAttributes.get(className).size();
-          if (valuesSize > 0)
+          if (add(attrBuilder, specific.getKey(), specific.getValue()))
           {
-            String fracValue = className + ":";
-            int i = 1;
-            for (String attrName : fractionalSpecificClassesAttributes.get(
-              className))
-            {
-              fracValue += attrName;
-              if (i < valuesSize)
-              {
-                fracValue += ",";
-              }
-              i++;
-            }
             somethingToFlush = true;
-            attrBuilder.add(fracValue);
           }
         }
       }
@@ -517,9 +471,18 @@ public final class FractionalLDIFImportPlugin
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  private static boolean add(AttributeBuilder attrBuilder, String className,
+      Set<String> values)
+  {
+    if (values.size() > 0)
+    {
+      attrBuilder.add(className + ":" + collectionToString(values, ","));
+      return true;
+    }
+    return false;
+  }
+
+  /** {@inheritDoc} */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
     List<Message> unacceptableReasons)
@@ -527,9 +490,7 @@ public final class FractionalLDIFImportPlugin
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
     FractionalLDIFImportPluginCfg configuration,
@@ -538,9 +499,7 @@ public final class FractionalLDIFImportPlugin
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
     FractionalLDIFImportPluginCfg configuration)

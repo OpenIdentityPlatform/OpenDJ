@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.service;
 
@@ -34,6 +34,7 @@ import java.util.Map.Entry;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.replication.service.ReplicationDomain.IEContext;
 import org.opends.server.types.*;
 
 /**
@@ -130,21 +131,15 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
         String.valueOf(domain.getGenerationID())));
 
     // Add import/export monitoring attributes
-    if (domain.importInProgress())
+    final IEContext ieContext = domain.getImportExportContext();
+    if (ieContext != null)
     {
-      addMonitorData(attributes, "total-update", "import");
-      addMonitorData(
-          attributes, "total-update-entry-count", domain.getTotalEntryCount());
-      addMonitorData(
-          attributes, "total-update-entry-left", domain.getLeftEntryCount());
-    }
-    if (domain.exportInProgress())
-    {
-      addMonitorData(attributes, "total-update", "export");
-      addMonitorData(
-          attributes, "total-update-entry-count", domain.getTotalEntryCount());
-      addMonitorData(
-          attributes, "total-update-entry-left", domain.getLeftEntryCount());
+      addMonitorData(attributes, "total-update",
+          ieContext.importInProgress() ? "import" : "export");
+      addMonitorData(attributes, "total-update-entry-count",
+          ieContext.getTotalEntryCount());
+      addMonitorData(attributes, "total-update-entry-left",
+          ieContext.getLeftEntryCount());
     }
 
 
