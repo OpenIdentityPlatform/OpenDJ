@@ -32,6 +32,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
 
 /**
@@ -821,6 +822,21 @@ public final class ByteStringBuilder implements ByteSequence {
     public OutputStream copyTo(final OutputStream stream) throws IOException {
         stream.write(buffer, 0, length);
         return stream;
+    }
+
+    /**
+     * Copies the entire contents of this byte string to the provided
+     * {@code WritableByteChannel}.
+     *
+     * @param channel
+     *            The {@code WritableByteChannel} to copy to.
+     * @return The number of bytes written, possibly zero
+     * @throws IOException
+     *             If some other I/O error occurs
+     * @see WritableByteChannel#write(java.nio.ByteBuffer)
+     */
+    public int copyTo(WritableByteChannel channel) throws IOException {
+        return channel.write(ByteBuffer.wrap(buffer, 0, length));
     }
 
     /**
