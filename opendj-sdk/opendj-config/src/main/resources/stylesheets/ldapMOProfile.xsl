@@ -25,8 +25,8 @@
   ! -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:adm="http://www.opends.org/admin"
-  xmlns:ldap="http://www.opends.org/admin-ldap">
+  xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
   <xsl:import href="java-utilities.xsl" />
   <xsl:import href="preprocessor.xsl" />
   <xsl:import href="property-types.xsl" />

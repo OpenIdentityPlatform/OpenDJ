@@ -23,7 +23,7 @@
   !
   !      Copyright 2008 Sun Microsystems, Inc.
   ! -->
-<xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
+<xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <!--
     

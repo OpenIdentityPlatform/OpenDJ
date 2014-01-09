@@ -24,8 +24,8 @@
   !      Copyright 2007-2010 Sun Microsystems, Inc.
   !      Portions copyright 2011 ForgeRock AS.
   ! -->
-<xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
-  xmlns:admpp="http://www.opends.org/admin-preprocessor"
+<xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:exsl="http://exslt.org/common">
   <xsl:import href="java-utilities.xsl" />
@@ -1745,11 +1745,11 @@
     <xsl:call-template name="generate-import-statements">
       <xsl:with-param name="imports">
         <xsl:if test="not(boolean($this/@extends))">
-          <import>org.opends.server.admin.TopCfgDefn</import>
+          <import>org.forgerock.opendj.config.TopCfgDefn</import>
         </xsl:if>
         <xsl:if test="$this/adm:constraint">
-          <import>org.opends.server.admin.GenericConstraint</import>
-          <import>org.opends.server.admin.condition.Conditions</import>
+          <import>org.forgerock.opendj.config.GenericConstraint</import>
+          <import>org.forgerock.opendj.config.conditions.Conditions</import>
         </xsl:if>
         <xsl:if
           test="$this-local-properties[@multi-valued='true' or
@@ -1758,42 +1758,42 @@
                                        @hidden='true' or
                                        @advanced='true' or
                                        @mandatory='true']">
-          <import>org.opends.server.admin.PropertyOption</import>
+          <import>org.forgerock.opendj.config.PropertyOption</import>
         </xsl:if>
         <xsl:if test="$this-local-properties">
-          <import>org.opends.server.admin.AdministratorAction</import>
+          <import>org.forgerock.opendj.config.AdministratorAction</import>
         </xsl:if>
         <xsl:if test="$this/adm:tag-definition or $this/adm:tag">
-          <import>org.opends.server.admin.Tag</import>
+          <import>org.forgerock.opendj.config.Tag</import>
         </xsl:if>
         <xsl:if
           test="$this-local-properties[adm:default-behavior/adm:undefined or not(adm:default-behavior)]">
           <import>
-            org.opends.server.admin.UndefinedDefaultBehaviorProvider
+            org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider
           </import>
         </xsl:if>
         <xsl:if
           test="$this-local-properties/adm:default-behavior/adm:alias">
           <import>
-            org.opends.server.admin.AliasDefaultBehaviorProvider
+            org.forgerock.opendj.config.AliasDefaultBehaviorProvider
           </import>
         </xsl:if>
         <xsl:if
           test="$this-local-properties/adm:default-behavior/adm:inherited/adm:absolute">
           <import>
-            org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider
+            org.forgerock.opendj.config.AbsoluteInheritedDefaultBehaviorProvider
           </import>
           <import>
-            org.opends.server.admin.DefaultBehaviorProvider
+            org.forgerock.opendj.config.DefaultBehaviorProvider
           </import>
         </xsl:if>
         <xsl:if
           test="$this-local-properties/adm:default-behavior/adm:inherited/adm:relative">
           <import>
-            org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider
+            org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider
           </import>
           <import>
-            org.opends.server.admin.DefaultBehaviorProvider
+            org.forgerock.opendj.config.DefaultBehaviorProvider
           </import>
           <xsl:for-each
             select="$this-local-properties/adm:default-behavior/adm:inherited/adm:relative">
@@ -1814,10 +1814,10 @@
         <xsl:if
           test="$this-local-properties/adm:default-behavior/adm:defined">
           <import>
-            org.opends.server.admin.DefinedDefaultBehaviorProvider
+            org.forgerock.opendj.config.DefinedDefaultBehaviorProvider
           </import>
           <import>
-            org.opends.server.admin.DefaultBehaviorProvider
+            org.forgerock.opendj.config.DefaultBehaviorProvider
           </import>
         </xsl:if>
         <xsl:element name="import">
@@ -1855,7 +1855,7 @@
         </xsl:for-each>
         <xsl:if
           test="$this-local-relations/*/adm:default-managed-object">
-          <import>org.opends.server.admin.DefaultManagedObject</import>
+          <import>org.forgerock.opendj.config.DefaultManagedObject</import>
         </xsl:if>
         <xsl:for-each
           select="$this-local-relations/*/adm:default-managed-object">
@@ -1880,66 +1880,66 @@
         </xsl:for-each>
         <xsl:if
           test="$this-local-relations[@advanced='true' or @hidden='true']">
-          <import>org.opends.server.admin.RelationOption</import>
+          <import>org.forgerock.opendj.config.RelationOption</import>
         </xsl:if>
         <xsl:if test="$this-is-hidden or $this-is-advanced">
-          <import>org.opends.server.admin.ManagedObjectOption</import>
+          <import>org.forgerock.opendj.config.ManagedObjectOption</import>
         </xsl:if>
         <xsl:if test="$this-all-relations/adm:one-to-many[not(@unique = 'true')]">
           <import>
-            org.opends.server.admin.InstantiableRelationDefinition
+            org.forgerock.opendj.config.InstantiableRelationDefinition
           </import>
         </xsl:if>
         <xsl:if test="$this-all-relations/adm:one-to-many[@unique = 'true']">
           <import>
-            org.opends.server.admin.SetRelationDefinition
+            org.forgerock.opendj.config.SetRelationDefinition
           </import>
         </xsl:if>
         <xsl:if test="$this-all-relations/adm:one-to-zero-or-one">
           <import>
-            org.opends.server.admin.OptionalRelationDefinition
+            org.forgerock.opendj.config.OptionalRelationDefinition
           </import>
         </xsl:if>
         <xsl:if test="$this-all-relations/adm:one-to-one">
           <import>
-            org.opends.server.admin.SingletonRelationDefinition
+            org.forgerock.opendj.config.SingletonRelationDefinition
           </import>
         </xsl:if>
         <xsl:choose>
           <xsl:when test="$this-is-abstract">
             <import>
-              org.opends.server.admin.AbstractManagedObjectDefinition
+              org.forgerock.opendj.config.AbstractManagedObjectDefinition
             </import>
           </xsl:when>
           <xsl:otherwise>
             <import>
-              org.opends.server.admin.ManagedObjectDefinition
+              org.forgerock.opendj.config.ManagedObjectDefinition
             </import>
-            <import>org.opends.server.admin.PropertyProvider</import>
+            <import>org.forgerock.opendj.config.PropertyProvider</import>
             <import>
-              org.opends.server.admin.client.MissingMandatoryPropertiesException
+              org.forgerock.opendj.config.client.MissingMandatoryPropertiesException
             </import>
             <import>
-              org.opends.server.admin.ManagedObjectAlreadyExistsException
+              org.forgerock.opendj.config.ManagedObjectAlreadyExistsException
             </import>
             <import>
               org.forgerock.opendj.ldap.ErrorResultException
             </import>
             <import>
-              org.opends.server.admin.client.ConcurrentModificationException
+              org.forgerock.opendj.config.client.ConcurrentModificationException
             </import>
             <import>
-              org.opends.server.admin.client.OperationRejectedException
+              org.forgerock.opendj.config.client.OperationRejectedException
             </import>
             <import>
-              org.opends.server.admin.client.ManagedObject
+              org.forgerock.opendj.config.client.ManagedObject
             </import>
             <import>
-              org.opends.server.admin.server.ServerManagedObject
+              org.forgerock.opendj.config.server.ServerManagedObject
             </import>
             <xsl:if test="not($this-is-root)">
               <import>
-                org.opends.server.admin.server.ConfigurationChangeListener
+                org.forgerock.opendj.config.server.ConfigurationChangeListener
               </import>
               <xsl:call-template
                 name="generate-change-listener-import-statements" />
@@ -1947,48 +1947,48 @@
             <import>org.forgerock.opendj.ldap.DN</import>
             <xsl:if test="$this-all-relations">
               <import>
-                org.opends.server.admin.DefinitionDecodingException
+                org.forgerock.opendj.config.DefinitionDecodingException
               </import>
               <import>
-                org.opends.server.admin.ManagedObjectNotFoundException
+                org.forgerock.opendj.config.ManagedObjectNotFoundException
               </import>
               <import>
-                org.opends.server.admin.client.ManagedObjectDecodingException
+                org.forgerock.opendj.config.client.ManagedObjectDecodingException
               </import>
             </xsl:if>
             <xsl:if test="$this-all-relations/adm:one-to-many">
               <import>java.util.Collection</import>
               <xsl:if test="$this-all-relations/adm:one-to-many[not(@unique = 'true')]">
                 <import>
-                  org.opends.server.admin.client.IllegalManagedObjectNameException
+                  org.forgerock.opendj.config.client.IllegalManagedObjectNameException
                 </import>
               </xsl:if>
               <import>
-                org.opends.server.admin.DefaultBehaviorException
+                org.forgerock.opendj.config.DefaultBehaviorException
               </import>
               <import>
-                org.opends.server.admin.server.ConfigurationAddListener
+                org.forgerock.opendj.config.server.ConfigurationAddListener
               </import>
               <import>
-                org.opends.server.admin.server.ConfigurationDeleteListener
+                org.forgerock.opendj.config.server.ConfigurationDeleteListener
               </import>
-              <import>org.opends.server.config.ConfigException</import>
+              <import>org.forgerock.opendj.config.server.ConfigException</import>
             </xsl:if>
             <xsl:if test="$this-all-relations/adm:one-to-zero-or-one">
               <import>java.util.Collection</import>
               <import>
-                org.opends.server.admin.DefaultBehaviorException
+                org.forgerock.opendj.config.DefaultBehaviorException
               </import>
               <import>
-                org.opends.server.admin.server.ConfigurationAddListener
+                org.forgerock.opendj.config.server.ConfigurationAddListener
               </import>
               <import>
-                org.opends.server.admin.server.ConfigurationDeleteListener
+                org.forgerock.opendj.config.server.ConfigurationDeleteListener
               </import>
-              <import>org.opends.server.config.ConfigException</import>
+              <import>org.forgerock.opendj.config.server.ConfigException</import>
             </xsl:if>
             <xsl:if test="$this-all-relations/adm:one-to-one">
-              <import>org.opends.server.config.ConfigException</import>
+              <import>org.forgerock.opendj.config.server.ConfigException</import>
             </xsl:if>
             <xsl:if test="$this-all-properties[@multi-valued='true']">
               <import>java.util.SortedSet</import>
@@ -1996,7 +1996,7 @@
             </xsl:if>
             <xsl:if test="$this-all-properties[@read-only='true']">
               <import>
-                org.opends.server.admin.PropertyIsReadOnlyException
+                org.forgerock.opendj.config.PropertyIsReadOnlyException
               </import>
             </xsl:if>
           </xsl:otherwise>

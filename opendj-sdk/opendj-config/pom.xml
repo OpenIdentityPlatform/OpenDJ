@@ -99,7 +99,7 @@
             <configuration>
               <sources>
                 <source>${project.build.directory}/generated-sources/java</source>
-                <source>${project.build.directory}/generated-sources/admin</source>
+                <source>${project.build.directory}/generated-sources/config</source>
               </sources>
             </configuration>
           </execution>
@@ -189,7 +189,8 @@
             <goals>
               <goal>generate</goal>
             </goals>
-            <configuration>            
+            <configuration>
+              <packageName>org.forgerock.opendj.server.config</packageName>   
             </configuration>
           </execution>
         </executions>
@@ -220,10 +221,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
       </plugin>
     </plugins>
   </build>

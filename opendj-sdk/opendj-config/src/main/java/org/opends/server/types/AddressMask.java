@@ -35,7 +35,7 @@ import java.util.BitSet;
 import java.util.Collection;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.config.spi.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 
 /**
  * This class defines an address mask, which can be used to perform efficient

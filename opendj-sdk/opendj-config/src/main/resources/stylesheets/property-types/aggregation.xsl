@@ -23,7 +23,7 @@
   !
   !      Copyright 2008-2010 Sun Microsystems, Inc.
   ! -->
-<xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
+<xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:import href="../java-utilities.xsl" />
   <xsl:include href="../conditions.xsl" />
@@ -46,13 +46,13 @@
       <import>java.util.TreeSet</import>
     </xsl:if>
     <xsl:if test="adm:constraint/adm:target-needs-enabling-condition">
-      <import>org.opends.server.admin.condition.Conditions</import>
+      <import>org.forgerock.opendj.config.conditions.Conditions</import>
     </xsl:if>
     <xsl:if test="adm:constraint/adm:target-is-enabled-condition">
-      <import>org.opends.server.admin.condition.Conditions</import>
+      <import>org.forgerock.opendj.config.conditions.Conditions</import>
     </xsl:if>
     <import>
-      org.opends.server.admin.AggregationPropertyDefinition
+      org.forgerock.opendj.config.AggregationPropertyDefinition
     </import>
   </xsl:template>
   <xsl:template match="adm:aggregation" mode="java-value-type">

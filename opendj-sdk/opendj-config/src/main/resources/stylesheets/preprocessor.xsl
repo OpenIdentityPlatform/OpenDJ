@@ -24,8 +24,8 @@
   !      Copyright 2008-2010 Sun Microsystems, Inc.
   !      Portions copyright 2011 ForgeRock AS.
   ! -->
-<xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
-  xmlns:admpp="http://www.opends.org/admin-preprocessor"
+<xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:exsl="http://exslt.org/common"
   xmlns:file="xalan://java.io.File">
@@ -273,7 +273,7 @@
       <xsl:apply-templates mode="pre-process">
         <xsl:with-param name="moname" select="'root'" />
         <xsl:with-param name="mopackage"
-          select="'org.forgerock.opendj.admin'" />
+          select="'org.forgerock.opendj.server.config'" />
       </xsl:apply-templates>
     </xsl:copy>
   </xsl:template>
@@ -310,7 +310,7 @@
     <xsl:variable name="uri">
       <xsl:call-template name="get-managed-object-uri">
         <xsl:with-param name="package"
-          select="'org.forgerock.opendj.admin'" />
+          select="'org.forgerock.opendj.server.config'" />
         <xsl:with-param name="name" select="'root'" />
       </xsl:call-template>
     </xsl:variable>
@@ -1167,7 +1167,7 @@
         <xsl:value-of select="$this/@package" />
       </xsl:when>
       <xsl:otherwise>
-        <xsl:value-of select="'org.forgerock.opendj.admin'" />
+        <xsl:value-of select="'org.forgerock.opendj.server.config'" />
       </xsl:otherwise>
     </xsl:choose>
   </xsl:variable>

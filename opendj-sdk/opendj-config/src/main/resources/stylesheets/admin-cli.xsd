@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema targetNamespace="http://www.opends.org/admin-cli"
+<xsd:schema targetNamespace="http://opendj.forgerock.org/admin-cli"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  elementFormDefault="qualified" xmlns:adm="http://www.opends.org/admin"
-  xmlns:tns="http://www.opends.org/admin-cli">
-  <xsd:import namespace="http://www.opends.org/admin"
+  elementFormDefault="qualified" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:tns="http://opendj.forgerock.org/admin-cli">
+  <xsd:import namespace="http://opendj.forgerock.org/admin"
     schemaLocation="admin.xsd" />
   <xsd:annotation>
     <xsd:documentation>
