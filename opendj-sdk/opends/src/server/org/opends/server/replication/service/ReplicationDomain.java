@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -146,7 +147,8 @@ public abstract class ReplicationDomain
    * The context related to an import or export being processed
    * Null when none is being processed.
    */
-  volatile IEContext ieContext;
+  private final AtomicReference<IEContext> ieContext =
+      new AtomicReference<IEContext>();
 
   /**
    * The Thread waiting for incoming update messages for this domain and pushing
@@ -732,7 +734,7 @@ public abstract class ReplicationDomain
         else if (msg instanceof ErrorMsg)
         {
           ErrorMsg errorMsg = (ErrorMsg)msg;
-          IEContext ieCtx = ieContext;
+          IEContext ieCtx = ieContext.get();
           if (ieCtx != null)
           {
             /*
@@ -785,7 +787,7 @@ public abstract class ReplicationDomain
         }
         else if (msg instanceof InitializeRcvAckMsg)
         {
-          IEContext ieCtx = ieContext;
+          IEContext ieCtx = ieContext.get();
           if (ieCtx != null)
           {
             InitializeRcvAckMsg ackMsg = (InitializeRcvAckMsg) msg;
@@ -1277,7 +1279,7 @@ public abstract class ReplicationDomain
 
       // Recompute the server with the minAck returned,means the slowest server.
       slowestServerId = serverId;
-      for (Integer sid : ieContext.ackVals.keySet())
+      for (Integer sid : ieContext.get().ackVals.keySet())
       {
         if (this.ackVals.get(sid) < this.ackVals.get(slowestServerId))
         {
@@ -1382,10 +1384,7 @@ public abstract class ReplicationDomain
       int serverRunningTheTask, Task initTask, int initWindow)
   throws DirectoryException
   {
-    DirectoryException exportRootException = null;
-
-    // Acquire and initialize the export context
-    acquireIEContext(false);
+    final IEContext ieCtx = acquireIEContext(false);
 
     /*
     We manage the list of servers to initialize in order :
@@ -1394,7 +1393,6 @@ public abstract class ReplicationDomain
     - to update the task with the server(s) where this test failed
     */
 
-    IEContext ieCtx = ieContext;
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
     {
       logError(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START_ALL.get(
@@ -1431,6 +1429,8 @@ public abstract class ReplicationDomain
         }
       }
     }
+
+    DirectoryException exportRootException = null;
 
     // loop for the case where the exporter is the initiator
     int attempt = 0;
@@ -1566,7 +1566,7 @@ public abstract class ReplicationDomain
     }
 
     // Don't forget to release IEcontext acquired at beginning.
-    releaseIEContext();
+    releaseIEContext(); // FIXME should not this be in a finally?
 
     final String cause = exportRootException == null ? ""
         : exportRootException.getLocalizedMessage();
@@ -1753,23 +1753,26 @@ public abstract class ReplicationDomain
     return state;
   }
 
-
-  private synchronized void acquireIEContext(boolean importInProgress)
-  throws DirectoryException
+  /**
+   * Acquire and initialize the import/export context, verifying no other
+   * import/export is in progress.
+   */
+  private IEContext acquireIEContext(boolean importInProgress)
+      throws DirectoryException
   {
-    if (ieContext != null)
+    final IEContext ieCtx = new IEContext(importInProgress);
+    if (!ieContext.compareAndSet(null, ieCtx))
     {
       // Rejects 2 simultaneous exports
       Message message = ERR_SIMULTANEOUS_IMPORT_EXPORT_REJECTED.get();
       throw new DirectoryException(ResultCode.OTHER, message);
     }
-
-    ieContext = new IEContext(importInProgress);
+    return ieCtx;
   }
 
-  private synchronized void releaseIEContext()
+  private void releaseIEContext()
   {
-    ieContext = null;
+    ieContext.set(null);
   }
 
   /**
@@ -1816,7 +1819,7 @@ public abstract class ReplicationDomain
     ReplicationMsg msg;
     while (true)
     {
-      IEContext ieCtx = ieContext;
+      IEContext ieCtx = ieContext.get();
       try
       {
         // In the context of the total update, we don't want any automatic
@@ -1993,7 +1996,7 @@ public abstract class ReplicationDomain
           Arrays.toString(lDIFEntry));
 
     // build the message
-    IEContext ieCtx = ieContext;
+    IEContext ieCtx = ieContext.get();
     EntryMsg entryMessage = new EntryMsg(
         getServerId(), ieCtx.getExportTarget(), lDIFEntry, pos, length,
         ++ieCtx.msgCnt);
@@ -2164,17 +2167,14 @@ public abstract class ReplicationDomain
   public void initializeFromRemote(int source, Task initTask)
   throws DirectoryException
   {
-    Message errMsg = null;
-
     if (debugEnabled())
     {
       TRACER.debugInfo("[IE] Entering initializeFromRemote for " + this);
     }
 
-    if (!broker.isConnected())
-    {
-      errMsg = ERR_INITIALIZATION_FAILED_NOCONN.get(getBaseDNString());
-    }
+    Message errMsg = !broker.isConnected()
+        ? ERR_INITIALIZATION_FAILED_NOCONN.get(getBaseDNString())
+        : null;
 
     /*
     We must not test here whether the remote source is connected to
@@ -2193,8 +2193,7 @@ public abstract class ReplicationDomain
       update the task.
       */
 
-      acquireIEContext(true);  //test and set if no import already in progress
-      IEContext ieCtx = ieContext;
+      final IEContext ieCtx = acquireIEContext(true);
       ieCtx.initializeTask = initTask;
       ieCtx.attemptCnt = 0;
       ieCtx.initReqMsgSent = new InitializeRequestMsg(
@@ -2255,7 +2254,7 @@ public abstract class ReplicationDomain
 
     int source = initTargetMsgReceived.getSenderID();
 
-    IEContext ieCtx = ieContext;
+    IEContext ieCtx = ieContext.get();
     try
     {
       // Log starting
@@ -2273,7 +2272,7 @@ public abstract class ReplicationDomain
         server.
         Test and set if no import already in progress
         */
-        acquireIEContext(true);
+        ieCtx = acquireIEContext(true);
       }
 
       // Initialize stuff
@@ -2472,7 +2471,7 @@ public abstract class ReplicationDomain
    */
   public boolean ieRunning()
   {
-    return ieContext != null;
+    return ieContext.get() != null;
   }
 
   /**
@@ -3492,7 +3491,7 @@ public abstract class ReplicationDomain
    */
   protected IEContext getImportExportContext()
   {
-    return ieContext;
+    return ieContext.get();
   }
 
   /**
