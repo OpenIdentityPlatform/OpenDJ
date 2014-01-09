@@ -51,7 +51,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.Validator;
+import org.forgerock.util.Reject;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -349,7 +349,7 @@ public class SNMPClassLoaderProvider {
     private SnmpV3AdaptorServer getSnmpAdaptor(
             SNMPConnectionHandlerCfg configuration) {
 
-        Validator.ensureNotNull(configuration);
+        Reject.ifNull(configuration);
         SnmpV3AdaptorServer adaptor = null;
         try {
 
