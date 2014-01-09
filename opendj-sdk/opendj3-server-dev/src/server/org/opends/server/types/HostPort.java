@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -260,7 +260,7 @@ public final class HostPort
               + hostPort + "'. The only allowed format for providing IPv6 "
               + "addresses is '[IPv6 address]:port'");
     }
-    String host = sepIndex != -1 ? hostPort.substring(0, sepIndex) : hostPort;
+    String host = hostPort.substring(0, sepIndex);
     int port = Integer.parseInt(hostPort.substring(sepIndex + 1));
     return new HostPort(host, port);
   }
@@ -426,7 +426,7 @@ public final class HostPort
       }
       return hostName + ":" + port;
     }
-    return ":" + port;
+    return WILDCARD_ADDRESS + ":" + port;
   }
 
   /**
@@ -510,8 +510,10 @@ public final class HostPort
 
     HostPort other = (HostPort) obj;
     if (normalizedHost == null)
+    {
       if (other.normalizedHost != null)
         return false;
+    }
     else if (!normalizedHost.equals(other.normalizedHost))
       return false;
 
