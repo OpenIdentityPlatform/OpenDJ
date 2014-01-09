@@ -23,7 +23,7 @@
   !
   !      Copyright 2008 Sun Microsystems, Inc.
   ! -->
-<xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
+<xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:import href="java-utilities.xsl" />
   <xsl:output method="text" encoding="us-ascii" />
@@ -34,7 +34,7 @@
     <xsl:choose>
       <xsl:when test="adm:root-managed-object">
         <xsl:value-of
-          select="'org.forgerock.opendj.admin.meta.RootCfgDefn&#xa;'" />
+          select="'org.forgerock.opendj.server.config.meta.RootCfgDefn&#xa;'" />
       </xsl:when>
       <xsl:when test="adm:managed-object">
         <xsl:value-of

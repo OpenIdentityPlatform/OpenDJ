@@ -23,8 +23,8 @@
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
-<xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
-  xmlns:admpp="http://www.opends.org/admin-preprocessor"
+<xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:import href="java-utilities.xsl" />
   <xsl:import href="preprocessor.xsl" />
@@ -363,24 +363,24 @@
             </xsl:if>
           </xsl:when>
           <xsl:otherwise>
-            <import>org.opends.server.admin.Configuration</import>
+            <import>org.forgerock.opendj.config.Configuration</import>
           </xsl:otherwise>
         </xsl:choose>
         <xsl:if test="not($this-is-root)">
           <import>
-            org.opends.server.admin.server.ConfigurationChangeListener
+            org.forgerock.opendj.config.server.ConfigurationChangeListener
           </import>
         </xsl:if>
         <xsl:if test="$this-local-relations">
-          <import>org.opends.server.config.ConfigException</import>
+          <import>org.forgerock.opendj.config.server.ConfigException</import>
         </xsl:if>
         <xsl:if
           test="$this-local-relations/adm:one-to-zero-or-one|$this-local-relations/adm:one-to-many">
           <import>
-            org.opends.server.admin.server.ConfigurationAddListener
+            org.forgerock.opendj.config.server.ConfigurationAddListener
           </import>
           <import>
-            org.opends.server.admin.server.ConfigurationDeleteListener
+            org.forgerock.opendj.config.server.ConfigurationDeleteListener
           </import>
         </xsl:if>
       </xsl:with-param>

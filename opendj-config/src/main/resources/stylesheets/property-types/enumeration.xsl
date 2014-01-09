@@ -23,8 +23,8 @@
   !
   !      Copyright 2008 Sun Microsystems, Inc.
   ! -->
-<xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
-  xmlns:admpp="http://www.opends.org/admin-preprocessor"
+<xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <!-- 
     Templates for processing enumeration properties.
@@ -64,7 +64,7 @@
     mode="java-definition-imports">
     <xsl:element name="import">
       <xsl:value-of
-        select="'org.opends.server.admin.EnumPropertyDefinition'" />
+        select="'org.forgerock.opendj.config.EnumPropertyDefinition'" />
     </xsl:element>
     <xsl:variable name="pp"
       select="../../adm:profile[@name='preprocessor']" />

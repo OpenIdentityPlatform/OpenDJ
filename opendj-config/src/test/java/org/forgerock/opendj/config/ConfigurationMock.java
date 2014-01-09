@@ -33,19 +33,19 @@ import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.forgerock.opendj.config.AbsoluteInheritedDefaultBehaviorProvider;
+import org.forgerock.opendj.config.AliasDefaultBehaviorProvider;
+import org.forgerock.opendj.config.Configuration;
+import org.forgerock.opendj.config.DefaultBehaviorProvider;
+import org.forgerock.opendj.config.DefaultBehaviorProviderVisitor;
+import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.config.PropertyDefinition;
+import org.forgerock.opendj.config.PropertyDefinitionsOptions;
+import org.forgerock.opendj.config.PropertyOption;
+import org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider;
+import org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider;
 import org.mockito.invocation.InvocationOnMock;
-import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
-import org.opends.server.admin.AliasDefaultBehaviorProvider;
-import org.opends.server.admin.Configuration;
-import org.opends.server.admin.DefaultBehaviorProvider;
-import org.opends.server.admin.DefaultBehaviorProviderVisitor;
-import org.opends.server.admin.DefinedDefaultBehaviorProvider;
-import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.PropertyDefinitionsOptions;
-import org.opends.server.admin.PropertyOption;
-import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
-import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 
 /**
  * Provides Mockito mocks for Configuration objects with default values
@@ -116,11 +116,12 @@ public final class ConfigurationMock {
         /**
          * Retrieve class name of definition from class name of configuration.
          * <p>
-         * Convert class name "[package].admin.server.FooCfg" to
-         * "[package].admin.meta.FooCfgDef"
+         * Convert class name "[package].server.FooCfg" to "[package].meta.FooCfgDef"
          */
         private String toDefinitionClassName(String configClassName) {
-            return configClassName.replaceAll("\\.admin\\.server", ".admin.meta") + "Defn";
+            int finalDot = configClassName.lastIndexOf('.');
+            return configClassName.substring(0, finalDot - 6) + "meta."
+                    + configClassName.substring(finalDot + 1) + "Defn";
         }
 
         /**

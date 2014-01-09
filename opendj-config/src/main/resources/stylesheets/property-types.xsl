@@ -23,7 +23,7 @@
   !
   !      Copyright 2008-2010 Sun Microsystems, Inc.
   ! -->
-<xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
+<xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:import href="java-utilities.xsl" />
   <!-- 
@@ -108,13 +108,13 @@
     required by the property's definition and its values.
     
     By default assume that the definition type is in
-    org.opends.server.admin and is derived directly from the
+    org.forgerock.opendj.config and is derived directly from the
     java-definition-type (might not be the case for parameterized
     types. In addition pull in the value imports.
   -->
   <xsl:template match="*" mode="java-definition-imports">
     <xsl:element name="import">
-      <xsl:value-of select="'org.opends.server.admin.'" />
+      <xsl:value-of select="'org.forgerock.opendj.config.'" />
       <xsl:apply-templates select="." mode="java-definition-type" />
     </xsl:element>
     <xsl:apply-templates select="." mode="java-value-imports">

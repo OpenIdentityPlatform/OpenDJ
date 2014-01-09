@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema targetNamespace="http://www.opends.org/admin"
+<xsd:schema targetNamespace="http://opendj.forgerock.org/admin"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   elementFormDefault="qualified"
-  xmlns:tns="http://www.opends.org/admin">
-  <xsd:import namespace="http://www.opends.org/admin-ldap"
+  xmlns:tns="http://opendj.forgerock.org/admin">
+  <xsd:import namespace="http://opendj.forgerock.org/admin-ldap"
     schemaLocation="admin-ldap.xsd" />
-  <xsd:import namespace="http://www.opends.org/admin-cli"
+  <xsd:import namespace="http://opendj.forgerock.org/admin-cli"
     schemaLocation="admin-cli.xsd" />
-  <xsd:import namespace="http://www.opends.org/admin-preprocessor"
+  <xsd:import namespace="http://opendj.forgerock.org/admin-preprocessor"
     schemaLocation="admin-preprocessor.xsd" />
   <xsd:annotation>
     <xsd:documentation>
@@ -1933,11 +1933,11 @@
             </xsd:annotation>
           </xsd:attribute>
           <xsd:attribute name="package" type="tns:package-type"
-            fixed="org.forgerock.opendj.admin">
+            fixed="org.forgerock.opendj.server.config">
             <xsd:annotation>
               <xsd:documentation>
                 The package containing this root managed object, which
-                is always "org.forgerock.opendj.admin".
+                is always "org.forgerock.opendj.server.config".
               </xsd:documentation>
             </xsd:annotation>
           </xsd:attribute>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema targetNamespace="http://www.opends.org/admin-preprocessor"
+<xsd:schema targetNamespace="http://opendj.forgerock.org/admin-preprocessor"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:admin="http://www.opends.org/admin"
+  xmlns:admin="http://opendj.forgerock.org/admin"
   elementFormDefault="qualified"
-  xmlns:tns="http://www.opends.org/admin-preprocessor">
-  <xsd:import namespace="http://www.opends.org/admin"
+  xmlns:tns="http://opendj.forgerock.org/admin-preprocessor">
+  <xsd:import namespace="http://opendj.forgerock.org/admin"
     schemaLocation="admin.xsd" />
   <xsd:annotation>
     <xsd:documentation>

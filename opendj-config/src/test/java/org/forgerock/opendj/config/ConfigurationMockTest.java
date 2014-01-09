@@ -28,11 +28,11 @@ package org.forgerock.opendj.config;
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.config.ConfigurationMock.*;
 
-import org.forgerock.opendj.admin.meta.PluginCfgDefn.PluginType;
-import org.forgerock.opendj.admin.server.AttributeCleanupPluginCfg;
-import org.forgerock.opendj.admin.server.CollectiveAttributeSubentriesVirtualAttributeCfg;
-import org.forgerock.opendj.admin.server.GoverningStructureRuleVirtualAttributeCfg;
-import org.forgerock.opendj.admin.server.LDAPConnectionHandlerCfg;
+import org.forgerock.opendj.server.config.meta.PluginCfgDefn.PluginType;
+import org.forgerock.opendj.server.config.server.AttributeCleanupPluginCfg;
+import org.forgerock.opendj.server.config.server.CollectiveAttributeSubentriesVirtualAttributeCfg;
+import org.forgerock.opendj.server.config.server.GoverningStructureRuleVirtualAttributeCfg;
+import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.testng.annotations.Test;
 

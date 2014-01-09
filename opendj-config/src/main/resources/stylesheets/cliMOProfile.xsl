@@ -25,8 +25,8 @@
   ! -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:adm="http://www.opends.org/admin"
-  xmlns:cli="http://www.opends.org/admin-cli">
+  xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:cli="http://opendj.forgerock.org/admin-cli">
   <xsl:import href="preprocessor.xsl" />
   <xsl:output method="text" encoding="us-ascii" />
   <!--

@@ -23,8 +23,8 @@
   !
   !      Copyright 2008-2009 Sun Microsystems, Inc.
   ! -->
-<xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
-  xmlns:admpp="http://www.opends.org/admin-preprocessor"
+<xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:import href="java-utilities.xsl" />
   <xsl:import href="preprocessor.xsl" />
@@ -386,26 +386,26 @@
         <xsl:if
           test="$this-local-properties[not(@monitoring='true')]">
           <import>
-            org.opends.server.admin.IllegalPropertyValueException
+            org.forgerock.opendj.config.IllegalPropertyValueException
           </import>
         </xsl:if>
         <xsl:if test="$this-local-properties[@read-only='true']">
           <import>
-            org.opends.server.admin.PropertyIsReadOnlyException
+            org.forgerock.opendj.config.PropertyIsReadOnlyException
           </import>
         </xsl:if>
         <xsl:if test="$this-local-relations">
           <import>
-            org.opends.server.admin.DefinitionDecodingException
+            org.forgerock.opendj.config.DefinitionDecodingException
           </import>
           <import>
-            org.opends.server.admin.ManagedObjectNotFoundException
+            org.forgerock.opendj.config.ManagedObjectNotFoundException
           </import>
           <import>
-            org.opends.server.admin.client.ManagedObjectDecodingException
+            org.forgerock.opendj.config.client.ManagedObjectDecodingException
           </import>
           <import>
-            org.opends.server.admin.client.ConcurrentModificationException
+            org.forgerock.opendj.config.client.ConcurrentModificationException
           </import>
           <import>
             org.forgerock.opendj.ldap.ErrorResultException
@@ -428,15 +428,15 @@
           test="$this-local-relations/adm:one-to-zero-or-one|$this-local-relations/adm:one-to-many">
           <import>java.util.Collection</import>
           <import>
-            org.opends.server.admin.DefaultBehaviorException
+            org.forgerock.opendj.config.DefaultBehaviorException
           </import>
           <import>
-            org.opends.server.admin.client.OperationRejectedException
+            org.forgerock.opendj.config.client.OperationRejectedException
           </import>
         </xsl:if>
         <xsl:if test="$this-local-relations/adm:one-to-many[not(@unique = 'true')]">
           <import>
-            org.opends.server.admin.client.IllegalManagedObjectNameException
+            org.forgerock.opendj.config.client.IllegalManagedObjectNameException
           </import>
         </xsl:if>
         <xsl:choose>
@@ -449,14 +449,14 @@
             </xsl:if>
           </xsl:when>
           <xsl:otherwise>
-            <import>org.opends.server.admin.ConfigurationClient</import>
+            <import>org.forgerock.opendj.config.ConfigurationClient</import>
           </xsl:otherwise>
         </xsl:choose>
         <xsl:element name="import">
           <xsl:value-of
             select="concat($this-package, '.server.', $this-java-class, 'Cfg')" />
         </xsl:element>
-        <import>org.opends.server.admin.ManagedObjectDefinition</import>
+        <import>org.forgerock.opendj.config.ManagedObjectDefinition</import>
       </xsl:with-param>
     </xsl:call-template>
     <xsl:text>&#xa;</xsl:text>
