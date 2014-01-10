@@ -35,18 +35,17 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 
-// @Checkstyle:off
 /**
  * Generate configuration classes from XML definition files for OpenDJ server.
  * <p>
  * There is a single goal that generate java sources, manifest files, I18N messages
  * and cli/ldap profiles.
  *
+ * @Checkstyle:ignoreFor 3
  * @goal generate
  * @phase generate-sources
  * @requiresDependencyResolution compile+runtime
  */
-// @Checkstyle:on
 public class OpendjConfigMojo extends AbstractBuildMojo {
 
     /**
@@ -105,6 +104,7 @@ public class OpendjConfigMojo extends AbstractBuildMojo {
      * responsibility of project that use this plugin to concatenate all
      * generated files into a single file.
      *
+     * @Checkstyle:ignoreFor 1
      * @parameter default-value="${project.build.outputDirectory}/META-INF/services/org.forgerock.opendj.config.AbstractManagedObjectDefinition"
      * @required
      */
