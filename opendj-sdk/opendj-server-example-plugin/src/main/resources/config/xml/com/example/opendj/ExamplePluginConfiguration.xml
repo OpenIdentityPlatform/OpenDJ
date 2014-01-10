@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <adm:managed-object name="example-plugin" plural-name="example-plugins"
   package="com.example.opendj" extends="plugin"
-  parent-package="org.opends.server.admin.std"
+  parent-package="org.forgerock.opendj.server.config"
   xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
   <adm:synopsis>An example "Hello World" plugin.</adm:synopsis>
