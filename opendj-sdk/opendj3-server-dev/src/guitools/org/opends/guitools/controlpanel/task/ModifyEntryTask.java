@@ -63,6 +63,7 @@ import org.opends.messages.Message;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * The task that is called when we must modify an entry.

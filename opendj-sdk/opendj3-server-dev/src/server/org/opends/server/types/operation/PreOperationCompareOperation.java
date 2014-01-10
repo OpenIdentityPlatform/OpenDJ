@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types.operation;
 
 
 
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 

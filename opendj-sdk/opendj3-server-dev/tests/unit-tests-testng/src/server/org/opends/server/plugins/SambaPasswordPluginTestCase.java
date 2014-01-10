@@ -50,6 +50,7 @@ import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.*;
 
@@ -581,7 +582,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     Entry entry = DirectoryServer.getEntry(testEntry.getName());
     assertNotNull(entry);
-    
+
     List<Attribute> sambaAttribute = entry.getAttribute("sambantpassword");
 
     assertNull(sambaAttribute);
@@ -700,7 +701,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
         "sn: User",
         "sambaSID: 123",
         "userPassword: password");
-    
+
     try
     {
       plugin.setTimeStampProvider(testTimeStampProvider);

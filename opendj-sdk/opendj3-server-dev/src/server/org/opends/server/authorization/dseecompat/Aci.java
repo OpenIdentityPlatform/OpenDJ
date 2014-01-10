@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2013 ForgeRock AS
+ *      Portions Copyright 2010-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.opends.messages.Message;
-import org.opends.server.types.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.types.DN;
 
 /**

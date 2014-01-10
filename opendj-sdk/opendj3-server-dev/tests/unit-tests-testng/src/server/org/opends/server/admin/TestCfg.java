@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -32,7 +33,7 @@ import java.util.ResourceBundle;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.ObjectClassSyntax;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.ObjectClass;
 
 

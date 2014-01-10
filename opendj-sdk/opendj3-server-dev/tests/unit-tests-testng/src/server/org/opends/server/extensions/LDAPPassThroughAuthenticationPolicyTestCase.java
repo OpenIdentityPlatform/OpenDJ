@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
@@ -58,6 +58,8 @@ import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -32,6 +33,7 @@ import java.util.Set;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.messages.MessageBuilder;
 
 

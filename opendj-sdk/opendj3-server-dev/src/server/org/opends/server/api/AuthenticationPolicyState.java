@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  *      Portions Copyright 2014 ForgeRock AS
  */
 
@@ -43,6 +43,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 
 
 

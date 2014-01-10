@@ -44,6 +44,7 @@ import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ConfigMessages.*;

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.client.cli;
@@ -77,7 +78,7 @@ public class CliTest extends DirectoryServerTestCase {
     }
   }
 
-  
+
   /**
    * Test if ADS errors are all associated with returncode.
    */
@@ -98,7 +99,7 @@ public class CliTest extends DirectoryServerTestCase {
   public void testServerGroupAttributeDisplayName()
   {
     DsFrameworkCliServerGroup cli = new DsFrameworkCliServerGroup();
-    
+
     try
     {
       cli.initializeCliGroup(new DsFrameworkCliParser(null, null, false),
@@ -114,7 +115,7 @@ public class CliTest extends DirectoryServerTestCase {
           + prop.toString() + " has no display value");
     }
   }
- 
+
 
 }
 

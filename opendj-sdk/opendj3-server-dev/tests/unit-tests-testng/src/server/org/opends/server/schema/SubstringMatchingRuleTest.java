@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -29,8 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

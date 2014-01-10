@@ -57,6 +57,7 @@ import org.opends.server.core.LockFileManager;
 import org.opends.server.tasks.RebuildTask;
 import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.DebugLogPublisher;

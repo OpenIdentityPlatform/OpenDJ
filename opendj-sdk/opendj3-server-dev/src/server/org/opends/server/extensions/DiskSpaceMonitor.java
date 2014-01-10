@@ -22,6 +22,7 @@
  *
  *
  *       Copyright 2010 Sun Microsystems, Inc.
+ *       Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.extensions;
@@ -34,7 +35,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
-
 import static org.opends.messages.CoreMessages.
     ERR_DISK_SPACE_MONITOR_UPDATE_FAILED;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -30,7 +31,7 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.replication.common.MultiDomainServerState;
-import org.opends.server.types.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

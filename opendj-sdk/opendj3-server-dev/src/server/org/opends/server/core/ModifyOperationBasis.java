@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -42,6 +42,7 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.workflowelement.localbackend.*;

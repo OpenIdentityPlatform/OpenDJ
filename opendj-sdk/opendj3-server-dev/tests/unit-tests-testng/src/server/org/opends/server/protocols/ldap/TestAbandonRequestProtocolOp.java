@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
 import org.opends.server.types.LDAPException;
-import org.opends.server.types.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.testng.annotations.Test;
 import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_ABANDON_REQUEST;
 import org.opends.server.protocols.asn1.ASN1;

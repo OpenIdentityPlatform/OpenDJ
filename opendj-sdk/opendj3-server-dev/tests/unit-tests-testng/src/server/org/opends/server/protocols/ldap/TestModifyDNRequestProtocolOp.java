@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.types.LDAPException;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;

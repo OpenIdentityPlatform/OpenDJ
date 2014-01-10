@@ -45,6 +45,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
 import static org.testng.Assert.*;

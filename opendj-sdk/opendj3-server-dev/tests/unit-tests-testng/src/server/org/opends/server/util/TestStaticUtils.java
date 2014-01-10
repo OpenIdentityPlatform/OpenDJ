@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -45,8 +45,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;

@@ -30,6 +30,7 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.messages.Message;

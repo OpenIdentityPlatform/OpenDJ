@@ -86,6 +86,7 @@ import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  This class implements the Directory Server cryptographic framework,

@@ -458,7 +458,7 @@ public final class ConstraintTest extends AdminTestCase {
       TestChildCfg child = parent.getTestChild("test child 1");
 
       TestCfg.addConstraint(constraint);
-      ChangeListener listener = new ChangeListener();            
+      ChangeListener listener = new ChangeListener();
       child.addChangeListener(listener);
 
       // Now modify it.

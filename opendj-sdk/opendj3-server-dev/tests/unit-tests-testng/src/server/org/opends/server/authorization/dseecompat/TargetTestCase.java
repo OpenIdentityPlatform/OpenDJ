@@ -29,7 +29,7 @@ package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;

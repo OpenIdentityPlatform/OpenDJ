@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.controls;
 import static org.opends.messages.ProtocolMessages.*;
@@ -37,7 +37,7 @@ import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.replication.common.MultiDomainServerState;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
@@ -90,7 +90,7 @@ public class ExternalChangelogRequestControl
         {
           Message message =
             ERR_CANNOT_DECODE_CONTROL_VALUE.get(
-                getOID() + " x=" + value.toHex() + " v="
+                getOID() + " x=" + value.toHexString() + " v="
                 + mdssValue , getExceptionMessage(e).toString());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
         }

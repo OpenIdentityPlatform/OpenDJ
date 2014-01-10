@@ -47,7 +47,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -35,6 +36,8 @@ import org.opends.server.schema.BooleanEqualityMatchingRuleFactory;
 import org.opends.server.schema.DistinguishedNameEqualityMatchingRuleFactory;
 import org.opends.server.schema.IntegerEqualityMatchingRuleFactory;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1;
 import org.testng.annotations.DataProvider;

@@ -779,8 +779,8 @@ public class ServerSideSortControlTestCase
     internalSearch.run();
     assertFalse(internalSearch.getResultCode() == ResultCode.SUCCESS);
   }
-  
-  
+
+
   /**
    * Tests performing an internal search using the non-critical server-side
    * sort control to sort the entries

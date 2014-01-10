@@ -25,6 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.types;
+
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;

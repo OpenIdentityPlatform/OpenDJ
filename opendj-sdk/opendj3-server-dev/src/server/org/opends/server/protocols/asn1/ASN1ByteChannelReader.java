@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.protocols.asn1;
 
-import org.opends.server.types.ByteSequenceReader;
-import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteString;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.IllegalBlockingModeException;

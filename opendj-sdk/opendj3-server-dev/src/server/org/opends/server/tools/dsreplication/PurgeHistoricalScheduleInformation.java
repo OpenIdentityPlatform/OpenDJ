@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.dsreplication;
 
@@ -34,7 +35,7 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.tools.tasks.TaskScheduleInformation;
 import org.opends.server.tools.tasks.TaskScheduleUserData;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.RawAttribute;
 
 /**

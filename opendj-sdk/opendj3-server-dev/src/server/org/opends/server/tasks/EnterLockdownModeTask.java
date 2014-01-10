@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -34,7 +35,6 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-
 import static org.opends.messages.TaskMessages.*;
 
 

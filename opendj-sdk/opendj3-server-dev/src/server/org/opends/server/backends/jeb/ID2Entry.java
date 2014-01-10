@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -31,11 +31,15 @@ import static org.opends.server.core.DirectoryServer.getMaxInternalBufferSize;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import org.opends.server.loggers.debug.DebugTracer;
+
 import static org.opends.messages.JebMessages.*;
 
+import com.forgerock.opendj.util.StaticUtils;
 import com.sleepycat.je.*;
 
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1;
@@ -44,7 +48,10 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.api.CompressedSchema;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.zip.DataFormatException;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterOutputStream;
 
 /**
  * Represents the database containing the LDAP entries. The database key is
@@ -161,10 +168,17 @@ public class ID2Entry extends DatabaseContainer
       {
         // It was compressed.
         reader.readOctetString(compressedEntryBuffer);
-        CryptoManager cryptoManager = DirectoryServer.getCryptoManager();
-        // TODO: Should handle the case where uncompress returns < 0
-        compressedEntryBuffer.uncompress(entryBuffer, cryptoManager,
-            uncompressedSize);
+
+        OutputStream decompressor = null;
+        try
+        {
+          // TODO: Should handle the case where uncompress fails
+          decompressor = new InflaterOutputStream(entryBuffer.asOutputStream());
+          compressedEntryBuffer.copyTo(decompressor);
+        }
+        finally {
+          StaticUtils.closeSilently(decompressor);
+        }
 
         // Since we are used the cached buffers (ByteStringBuilders),
         // the decoded attribute values will not refer back to the
@@ -209,11 +223,18 @@ public class ID2Entry extends DatabaseContainer
         // Then start the ASN1 sequence.
         writer.writeStartSequence(JebFormat.TAG_DATABASE_ENTRY);
 
-        // Do optional compression.
-        CryptoManager cryptoManager = DirectoryServer.getCryptoManager();
-        if (dataConfig.isCompressed() && cryptoManager != null &&
-            entryBuffer.compress(compressedEntryBuffer, cryptoManager))
+        if (dataConfig.isCompressed())
         {
+          OutputStream compressor = null;
+          try {
+            compressor = new DeflaterOutputStream(
+                compressedEntryBuffer.asOutputStream());
+            entryBuffer.copyTo(compressor);
+          }
+          finally {
+            StaticUtils.closeSilently(compressor);
+          }
+
           // Compression needed and successful.
           writer.writeInteger(entryBuffer.length());
           writer.writeOctetString(compressedEntryBuffer);

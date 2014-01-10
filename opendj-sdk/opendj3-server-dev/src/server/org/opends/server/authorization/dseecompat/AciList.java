@@ -37,6 +37,7 @@ import org.opends.messages.Message;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DITCacheMap;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * The AciList class performs caching of the ACI attribute values

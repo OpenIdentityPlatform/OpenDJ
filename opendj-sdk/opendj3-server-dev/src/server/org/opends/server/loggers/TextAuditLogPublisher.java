@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -44,6 +44,7 @@ import org.opends.server.admin.std.server.FileBasedAuditLogPublisherCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;

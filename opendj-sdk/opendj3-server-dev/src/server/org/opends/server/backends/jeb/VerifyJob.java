@@ -40,7 +40,7 @@ import org.opends.server.util.StaticUtils;
 import org.opends.server.util.ServerConstants;
 
 import org.opends.server.types.*;
-
+import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.JebMessages.*;
 
 import java.util.*;

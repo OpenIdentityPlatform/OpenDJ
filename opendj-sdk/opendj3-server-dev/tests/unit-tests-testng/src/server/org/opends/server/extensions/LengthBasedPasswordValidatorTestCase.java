@@ -43,7 +43,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;

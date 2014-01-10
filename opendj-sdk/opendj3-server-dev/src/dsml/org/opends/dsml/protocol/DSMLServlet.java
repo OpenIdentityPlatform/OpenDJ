@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.dsml.protocol;
 
@@ -81,7 +81,7 @@ import org.opends.server.tools.LDAPConnectionException;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.SSLConnectionFactory;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.SearchScope;

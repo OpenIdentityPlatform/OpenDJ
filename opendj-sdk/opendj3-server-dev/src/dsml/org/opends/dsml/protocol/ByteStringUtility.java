@@ -21,20 +21,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012 ForgeRock AS.
+ *      Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CodingErrorAction;
 
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.w3c.dom.Element;
 
 /**
@@ -111,12 +108,7 @@ public class ByteStringUtility
   {
     try
     {
-      CharsetDecoder decoder = UTF8.newDecoder();
-      decoder.onMalformedInput(CodingErrorAction.REPORT);
-      decoder.onUnmappableCharacter(CodingErrorAction.REPORT);
-      decoder.reset();
-      CharBuffer chars = decoder.decode(bs.asByteBuffer());
-      return chars.toString();
+      return new String(bs.toCharArray());
     }
     catch (Exception e)
     {

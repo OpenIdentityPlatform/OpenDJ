@@ -30,7 +30,7 @@ package org.opends.server.admin;
 import org.opends.server.authorization.dseecompat.Aci;
 import org.opends.server.authorization.dseecompat.AciException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import static org.forgerock.util.Reject.ifNull;
 
 import java.util.EnumSet;

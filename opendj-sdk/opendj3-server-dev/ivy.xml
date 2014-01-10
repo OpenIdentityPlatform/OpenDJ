@@ -22,12 +22,12 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2013 ForgeRock AS
+ !      Copyright 2013-2014 ForgeRock AS
  ! -->
 <!-- Using entities prevent constantly declaring the same versions -->
 <!DOCTYPE ivy-module [
     <!ENTITY grizzly.version    "2.3.6">
-    <!ENTITY opendj.sdk.version "2.7.0-SNAPSHOT">
+    <!ENTITY opendj.sdk.version "3.0.0-SNAPSHOT">
     <!ENTITY crest.version      "2.1.0-SNAPSHOT">
     <!ENTITY jackson.version    "1.9.2">
     <!ENTITY slf4j.version      "1.7.5">

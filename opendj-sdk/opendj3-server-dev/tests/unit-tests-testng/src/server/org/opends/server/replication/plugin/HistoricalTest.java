@@ -489,7 +489,7 @@ public class HistoricalTest extends ReplicationTestCase
 
     addEntriesWithHistorical(1, entryCnt);
     // leave a little delay between adding/modifying test entries
-    // and configuring the purge delay. 
+    // and configuring the purge delay.
     Thread.sleep(10);
 
     // set the purge delay to 1 minute

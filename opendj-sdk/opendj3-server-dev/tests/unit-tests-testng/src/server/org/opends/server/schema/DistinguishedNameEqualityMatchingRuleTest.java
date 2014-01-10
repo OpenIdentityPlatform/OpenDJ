@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -43,7 +44,7 @@ public class DistinguishedNameEqualityMatchingRuleTest extends
   public Object[][] createEqualityMatchingRuleInvalidValues()
   {
     return new Object[][] {
-        
+
     };
   }
 
@@ -59,7 +60,7 @@ public class DistinguishedNameEqualityMatchingRuleTest extends
      *  DN with correct syntax, just do a few such tests and then
      *  do more tests with invalid DNs
      */
-    
+
     return new Object[][] {
         // valid DNs
         { "", "" , true},
@@ -73,7 +74,7 @@ public class DistinguishedNameEqualityMatchingRuleTest extends
         { "dc=example ,dc=com", "dc=example,dc=com", true },
     };
   }
- 
+
   /**
    * {@inheritDoc}
    */

@@ -51,7 +51,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.loggers.debug.DebugTracer;
 
 import org.opends.server.types.Entry;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.logError;

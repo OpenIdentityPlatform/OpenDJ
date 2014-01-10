@@ -22,17 +22,18 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 Forgerock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.protocols.asn1;
+
 
 
 
 import java.io.Closeable;
 import java.io.IOException;
 
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 
 
 /**

@@ -76,6 +76,7 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;
 import org.forgerock.util.Reject;

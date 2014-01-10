@@ -41,7 +41,7 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.*;
-
+import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 

@@ -22,7 +22,7 @@
  *
  *
  *      Portions Copyright 2006-2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.config;
 
@@ -62,7 +62,7 @@ import org.opends.server.protocols.jmx.Credential;
 import org.opends.server.protocols.jmx.JmxClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
-
+import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -30,7 +31,7 @@ import java.io.IOException;
 
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.types.Control;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 
 import static org.opends.server.util.ServerConstants.*;
 
@@ -142,7 +143,7 @@ public class LDAPControl extends Control
     if (value != null)
     {
       buffer.append(", value=");
-      value.toHexPlusAscii(buffer, 4);
+      buffer.append(value.toHexPlusAsciiString(4));
     }
 
     buffer.append(")");
@@ -183,7 +184,7 @@ public class LDAPControl extends Control
     {
       buffer.append(indentBuf);
       buffer.append("  Value:");
-      value.toHexPlusAscii(buffer, indent+4);
+      buffer.append(value.toHexPlusAsciiString(indent+4));
     }
   }
 }

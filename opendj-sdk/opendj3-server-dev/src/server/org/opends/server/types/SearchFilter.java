@@ -25,6 +25,9 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
+
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.messages.Message;
 
 

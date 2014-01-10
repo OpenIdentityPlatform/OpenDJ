@@ -36,6 +36,7 @@ import java.util.List;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.LDIFException;
 
 import static org.opends.server.util.LDIFWriter.appendLDIFSeparatorAndValue;

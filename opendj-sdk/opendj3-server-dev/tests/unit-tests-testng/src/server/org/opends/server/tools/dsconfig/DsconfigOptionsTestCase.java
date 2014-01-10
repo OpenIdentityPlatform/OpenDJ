@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -38,7 +38,7 @@ import static org.testng.Assert.*;
  */
 @SuppressWarnings("javadoc")
 public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
- 
+
   /**
    * Ensures that the Directory Server is running and performs other necessary
    * setup.

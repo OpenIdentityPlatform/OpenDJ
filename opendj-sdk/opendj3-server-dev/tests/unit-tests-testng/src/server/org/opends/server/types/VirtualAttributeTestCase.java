@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
-
-
+import org.forgerock.opendj.ldap.ByteString;
 import static org.testng.Assert.*;
 
 import java.util.Collections;

@@ -30,7 +30,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DN;
 import org.opends.server.types.RDN;
-import org.opends.server.types.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
 

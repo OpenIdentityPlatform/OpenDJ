@@ -26,6 +26,7 @@
  */
 package org.opends.server.types;
 
+import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;

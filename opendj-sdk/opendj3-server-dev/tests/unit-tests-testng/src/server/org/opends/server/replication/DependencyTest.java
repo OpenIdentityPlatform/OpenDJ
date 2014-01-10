@@ -71,7 +71,7 @@ public class DependencyTest extends ReplicationTestCase
   {
      TEST_ROOT_DN = DN.valueOf(TEST_ROOT_DN_STRING);
   }
-  
+
   /**
    * Check that a sequence of dependents adds and mods is correctly ordered:
    * Using a deep dit :

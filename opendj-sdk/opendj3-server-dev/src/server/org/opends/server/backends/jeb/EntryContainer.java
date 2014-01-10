@@ -56,6 +56,7 @@ import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -1267,7 +1268,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        String str = pageRequest.getCookie().toHex();
+        String str = pageRequest.getCookie().toHexString();
         Message msg = ERR_JEB_INVALID_PAGED_RESULTS_COOKIE.get(str);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
             msg, e);
@@ -1460,7 +1461,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        String str = pageRequest.getCookie().toHex();
+        String str = pageRequest.getCookie().toHexString();
         Message msg = ERR_JEB_INVALID_PAGED_RESULTS_COOKIE.get(str);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
             msg, e);

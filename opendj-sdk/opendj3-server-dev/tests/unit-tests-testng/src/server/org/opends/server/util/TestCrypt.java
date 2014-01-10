@@ -23,6 +23,7 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2007 Brighton Consulting, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -45,7 +46,7 @@ public final class TestCrypt extends UtilTestCase {
   /**
    * Crypt valid test data provider.  All crypts are variants of the password
    * "password".
-   * 
+   *
    * @return Returns an array of all salted version of "password".
    */
   @DataProvider
@@ -69,7 +70,7 @@ public final class TestCrypt extends UtilTestCase {
    * single parameter serves as an input parameter (the salt at the
    * start of the parameter), as well as to validate that the parameter
    * was properly encrypted.
-   * 
+   *
    * @param saltedPassword
    *          A hashed value of "password".
    */

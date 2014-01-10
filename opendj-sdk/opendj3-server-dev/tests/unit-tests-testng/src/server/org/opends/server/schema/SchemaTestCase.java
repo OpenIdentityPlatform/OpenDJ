@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -31,7 +32,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
-* An abstract class that all schema unit test should extend. 
+* An abstract class that all schema unit test should extend.
 */
 @Test(groups = { "precommit", "schema" }, sequential = true)
 public abstract class SchemaTestCase extends DirectoryServerTestCase

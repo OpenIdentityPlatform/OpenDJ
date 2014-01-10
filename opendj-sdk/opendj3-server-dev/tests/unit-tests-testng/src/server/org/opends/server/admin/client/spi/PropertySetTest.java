@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.client.spi;
@@ -417,7 +418,7 @@ public class PropertySetTest extends AdminTestCase {
         defaultValues.add(pd.decodeValue(sv));
       }
     }
-    
+
     Collection<T> activeValues = pp.getPropertyValues(pd);
     ps.addProperty(pd, defaultValues, activeValues);
   }
@@ -466,7 +467,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   private class TestPropertyProvider<T> implements PropertyProvider {
-    
+
     PropertyDefinition<T> pd = null;
     Collection<T> values = null;
 

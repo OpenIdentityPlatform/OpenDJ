@@ -44,7 +44,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;

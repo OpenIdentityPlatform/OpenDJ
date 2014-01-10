@@ -36,7 +36,7 @@ import static org.opends.server.protocols.asn1.ASN1Constants.
 import static org.opends.server.protocols.asn1.ASN1Constants.
     UNIVERSAL_INTEGER_TYPE;
 import org.opends.server.types.*;
-
+import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ProtocolMessages.*;

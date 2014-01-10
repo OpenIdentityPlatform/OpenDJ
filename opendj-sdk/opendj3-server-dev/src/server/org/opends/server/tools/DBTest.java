@@ -44,6 +44,8 @@ import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.*;

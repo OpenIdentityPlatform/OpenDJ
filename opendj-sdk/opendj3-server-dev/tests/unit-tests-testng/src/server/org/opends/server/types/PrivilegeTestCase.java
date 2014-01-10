@@ -26,6 +26,7 @@
  */
 package org.opends.server.types;
 
+import org.forgerock.opendj.ldap.ByteString;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;

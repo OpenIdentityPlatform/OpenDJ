@@ -47,7 +47,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;

@@ -36,7 +36,8 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.types.*;
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import static org.testng.Assert.*;
 
 import static org.opends.server.util.ServerConstants.*;

@@ -82,7 +82,7 @@ public class RandomPasswordGeneratorTestCase
                       "cn=config");
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(dn);
     assertNotNull(configEntry);
-    
+
     RandomPasswordGeneratorCfg configuration =
       AdminTestCaseUtils.getConfiguration(
           RandomPasswordGeneratorCfgDefn.getInstance(),

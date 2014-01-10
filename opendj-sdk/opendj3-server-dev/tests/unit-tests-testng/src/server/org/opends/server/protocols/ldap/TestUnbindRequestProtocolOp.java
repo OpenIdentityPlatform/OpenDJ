@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.types.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
@@ -46,11 +47,11 @@ public class TestUnbindRequestProtocolOp  extends LdapTestCase {
       assertTrue(reqOp.getProtocolOpName() == req.getProtocolOpName());
       assertTrue(reqOp.getType() == req.getType());
   }
-  
+
   @Test ()
   public void testUnbindRequestToString() throws Exception
   {
-      UnbindRequestProtocolOp r = 
+      UnbindRequestProtocolOp r =
           new UnbindRequestProtocolOp();
       toString(r);
   }

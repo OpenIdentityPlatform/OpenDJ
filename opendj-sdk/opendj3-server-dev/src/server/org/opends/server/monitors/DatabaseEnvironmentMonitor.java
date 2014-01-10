@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.monitors;
 
@@ -45,7 +46,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
-
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentStats;
 import com.sleepycat.je.JEVersion;

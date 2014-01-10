@@ -26,6 +26,10 @@
  */
 package org.opends.server.types;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
+
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;

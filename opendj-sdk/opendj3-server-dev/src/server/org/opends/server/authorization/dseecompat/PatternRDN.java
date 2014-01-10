@@ -22,12 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
 import org.opends.messages.Message;
 
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.api.EqualityMatchingRule;
 import static org.opends.messages.AccessControlMessages.

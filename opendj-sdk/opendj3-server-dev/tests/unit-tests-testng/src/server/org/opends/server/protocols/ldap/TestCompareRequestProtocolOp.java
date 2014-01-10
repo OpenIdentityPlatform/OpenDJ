@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
 import org.opends.server.types.LDAPException;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1;
@@ -304,7 +305,7 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
     key.append(indentBuf);
     key.append("  Assertion Value:");
     key.append(EOL);
-    assertionValue.toHexPlusAscii(key, indent+4);
+    key.append(assertionValue.toHexPlusAsciiString(indent+4));
 
     assertEquals(buffer.toString(), key.toString());
   }

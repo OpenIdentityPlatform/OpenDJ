@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2013 ForgeRock AS
+ *      Portions Copyright 2010-2014 ForgeRock AS
  */
 package org.opends.server.util;
 
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * This class defines a set of constants that may be referenced throughout the

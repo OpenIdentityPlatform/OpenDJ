@@ -21,11 +21,9 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.types;
-
-
 
 import static org.testng.Assert.assertEquals;
 

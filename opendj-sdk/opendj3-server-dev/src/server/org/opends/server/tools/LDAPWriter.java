@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.tools;
@@ -34,7 +35,7 @@ import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.RecordingOutputStream;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.ServerConstants;
 
 import java.net.Socket;
@@ -106,7 +107,7 @@ public class LDAPWriter
       builder.append(bytesRead.length());
       builder.append("):");
       builder.append(ServerConstants.EOL);
-      bytesRead.toHexPlusAscii(builder, 4);
+      builder.append(bytesRead.toHexPlusAsciiString(4));
 
       TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, builder.toString());
     }

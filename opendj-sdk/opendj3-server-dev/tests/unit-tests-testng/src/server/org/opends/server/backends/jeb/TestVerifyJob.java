@@ -29,6 +29,7 @@ package org.opends.server.backends.jeb;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.server.util.ServerConstants.OC_TOP;

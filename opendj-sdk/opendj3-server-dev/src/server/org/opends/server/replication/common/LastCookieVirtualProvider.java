@@ -40,6 +40,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 

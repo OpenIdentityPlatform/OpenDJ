@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -38,7 +38,6 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
-
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 

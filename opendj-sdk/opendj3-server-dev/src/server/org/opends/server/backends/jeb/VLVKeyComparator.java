@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 
 import java.util.Comparator;
 import java.io.Serializable;

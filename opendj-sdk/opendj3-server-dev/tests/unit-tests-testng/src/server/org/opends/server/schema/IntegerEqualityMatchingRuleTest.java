@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -58,7 +59,7 @@ public class IntegerEqualityMatchingRuleTest extends EqualityMatchingRuleTest
   @DataProvider(name="equalitymatchingrules")
   public Object[][] createEqualityMatchingRuleTest()
   {
-    return new Object[][] {  
+    return new Object[][] {
         {"1234567890",  "1234567890",   true},
         {"-1",          "-1",           true},
         {"-9876543210", "-9876543210", true},

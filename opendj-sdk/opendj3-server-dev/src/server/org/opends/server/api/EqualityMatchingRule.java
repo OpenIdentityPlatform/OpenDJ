@@ -22,12 +22,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
 
 
 
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteSequence;
 
 
 

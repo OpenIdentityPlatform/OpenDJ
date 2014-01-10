@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -65,8 +65,8 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Control;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.util.Base64;
 import org.opends.server.util.PasswordReader;
 

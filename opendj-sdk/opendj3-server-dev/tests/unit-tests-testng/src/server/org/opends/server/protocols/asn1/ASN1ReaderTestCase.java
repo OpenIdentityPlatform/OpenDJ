@@ -22,14 +22,16 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.asn1;
+
 
 import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
 import static org.testng.Assert.*;
-import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.DirectoryServerTestCase;
 
 import java.io.IOException;

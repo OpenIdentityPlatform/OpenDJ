@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -32,7 +33,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 
 /**
- * An abstract class that all control unit test should extend. 
+ * An abstract class that all control unit test should extend.
  */
 @Test(groups = { "precommit", "controls" }, sequential = true)
 public abstract class ControlsTestCase extends DirectoryServerTestCase
@@ -40,7 +41,7 @@ public abstract class ControlsTestCase extends DirectoryServerTestCase
 
   /**
    * Set up the environment for performing the tests in this suite.
-   * 
+   *
    * @throws Exception
    *         If the environment could not be set up.
    */

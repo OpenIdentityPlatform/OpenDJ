@@ -67,6 +67,7 @@ import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TimeThread;

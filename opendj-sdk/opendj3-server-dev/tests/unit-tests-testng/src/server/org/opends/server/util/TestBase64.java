@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -49,7 +50,7 @@ public final class TestBase64 extends UtilTestCase {
 
   /**
    * Base 64 valid test data provider.
-   * 
+   *
    * @return Returns an array of decoded and valid encoded base64 data.
    */
   @DataProvider(name = "validData")
@@ -94,7 +95,7 @@ public final class TestBase64 extends UtilTestCase {
 
   /**
    * Base 64 invalid test data provider.
-   * 
+   *
    * @return Returns an array of invalid encoded base64 data.
    */
   @DataProvider(name = "invalidData")
@@ -113,7 +114,7 @@ public final class TestBase64 extends UtilTestCase {
 
   /**
    * Tests the encode method.
-   * 
+   *
    * @param hexData
    *          The decoded hex data.
    * @param encodedData
@@ -131,7 +132,7 @@ public final class TestBase64 extends UtilTestCase {
 
   /**
    * Tests the decode method against valid data.
-   * 
+   *
    * @param hexData
    *          The decoded hex data.
    * @param encodedData
@@ -149,7 +150,7 @@ public final class TestBase64 extends UtilTestCase {
 
   /**
    * Tests the decode method against invalid data.
-   * 
+   *
    * @param encodedData
    *          The invalid encoded data.
    * @throws Exception
@@ -163,7 +164,7 @@ public final class TestBase64 extends UtilTestCase {
 
   /**
    * Decode a hex string to a byte-array.
-   * 
+   *
    * @param hexData
    *          The string of hex.
    * @return Returns the decoded byte array.

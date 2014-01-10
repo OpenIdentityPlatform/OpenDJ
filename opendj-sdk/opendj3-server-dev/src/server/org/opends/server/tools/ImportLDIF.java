@@ -62,7 +62,7 @@ import org.opends.server.tasks.ImportTask;
 import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ExistingFileBehavior;

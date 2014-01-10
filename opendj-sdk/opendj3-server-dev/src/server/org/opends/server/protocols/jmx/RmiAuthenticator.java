@@ -44,6 +44,7 @@ import static org.opends.messages.ProtocolMessages.*;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * A <code>RMIAuthenticator</code> manages authentication for the secure

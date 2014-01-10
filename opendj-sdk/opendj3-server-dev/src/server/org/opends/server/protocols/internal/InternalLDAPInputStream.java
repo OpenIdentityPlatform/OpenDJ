@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -34,8 +35,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.types.ByteSequenceReader;
-import org.opends.server.types.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 
 
 /**

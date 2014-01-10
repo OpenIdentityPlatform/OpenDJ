@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-
+import org.forgerock.opendj.ldap.ByteString;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 Forgerock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -32,7 +32,7 @@ import org.opends.server.admin.std.server.CertificateAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.config.ConfigException;
 import org.testng.annotations.DataProvider;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.util.Base64;
 

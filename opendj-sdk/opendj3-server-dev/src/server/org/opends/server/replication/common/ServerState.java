@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -36,7 +36,7 @@ import java.util.zip.DataFormatException;
 
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.replication.protocol.ProtocolVersion;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.StaticUtils;
 
 /**

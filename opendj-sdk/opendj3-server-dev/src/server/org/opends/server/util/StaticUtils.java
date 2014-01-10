@@ -52,6 +52,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 

@@ -40,7 +40,7 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.extensions.GetConnectionIDExtendedOperation;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.DN;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 
 import static org.testng.Assert.*;
 

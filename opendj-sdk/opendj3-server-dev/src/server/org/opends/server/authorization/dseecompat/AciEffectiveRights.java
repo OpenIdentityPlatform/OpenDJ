@@ -30,7 +30,6 @@ import static org.opends.server.authorization.dseecompat.Aci.*;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;

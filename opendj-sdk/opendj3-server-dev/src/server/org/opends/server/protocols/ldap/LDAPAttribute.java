@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -35,6 +35,7 @@ import java.util.List;
 
 import org.opends.messages.Message;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * This class defines the data structures and methods to use when interacting
@@ -352,7 +353,7 @@ public class LDAPAttribute
 
     for (ByteString value : values)
     {
-      value.toHexPlusAscii(buffer, indent+4);
+      buffer.append(value.toHexPlusAsciiString(indent+4));
     }
   }
 }

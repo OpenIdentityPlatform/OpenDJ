@@ -29,6 +29,7 @@ package org.opends.server.authorization.dseecompat;
 import org.opends.messages.Message;
 
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.util.StaticUtils.isDigit;
