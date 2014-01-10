@@ -29,6 +29,7 @@ package org.opends.server.protocols.ldap;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.messages.Message;
 

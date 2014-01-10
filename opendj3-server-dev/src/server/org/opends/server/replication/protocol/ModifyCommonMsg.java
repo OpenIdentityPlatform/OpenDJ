@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -38,6 +38,7 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 
 /**
  * This class holds every common code for the modify messages (mod, moddn).

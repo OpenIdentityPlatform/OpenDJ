@@ -40,6 +40,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.annotations.AfterClass;

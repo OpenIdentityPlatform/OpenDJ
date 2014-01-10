@@ -40,7 +40,7 @@ import org.opends.server.core.DirectoryServer;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequence;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;

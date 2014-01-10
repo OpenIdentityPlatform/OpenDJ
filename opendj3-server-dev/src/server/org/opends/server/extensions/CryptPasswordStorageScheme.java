@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2013 ForgeRock AS
+ *      Portions Copyright 2010-2014 ForgeRock AS
  *      Portions Copyright 2012 Dariusz Janny <dariusz.janny@gmail.com>
  */
 package org.opends.server.extensions;
@@ -40,6 +40,8 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.util.BSDMD5Crypt;
 import org.opends.server.util.Crypt;
 

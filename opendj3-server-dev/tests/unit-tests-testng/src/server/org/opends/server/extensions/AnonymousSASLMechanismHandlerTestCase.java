@@ -40,7 +40,7 @@ import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 
 import static org.testng.Assert.*;
 

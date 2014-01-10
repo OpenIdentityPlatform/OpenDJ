@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
 import static org.testng.Assert.*;
 
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.messages.MessageBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

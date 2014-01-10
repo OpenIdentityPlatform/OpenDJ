@@ -37,7 +37,8 @@ import java.util.regex.Pattern;
 import org.opends.messages.Message;
 import org.opends.server.tools.makeldif.TemplateEntry;
 import org.opends.server.types.*;
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.util.Reject.*;
 

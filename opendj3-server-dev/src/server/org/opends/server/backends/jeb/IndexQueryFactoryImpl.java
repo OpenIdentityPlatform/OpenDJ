@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.backends.jeb;
@@ -36,7 +37,7 @@ import java.util.Map;
 
 import org.opends.messages.Message;
 import org.opends.server.api.IndexQueryFactory;
-import org.opends.server.types.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequence;
 
 import static org.opends.messages.JebMessages.
     INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED;

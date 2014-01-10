@@ -25,8 +25,6 @@
  */
 package org.opends.server.types;
 
-
-
 import org.forgerock.util.Reject;
 
 

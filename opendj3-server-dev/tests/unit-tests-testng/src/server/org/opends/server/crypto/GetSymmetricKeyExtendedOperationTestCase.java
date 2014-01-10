@@ -33,6 +33,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.ServerConstants;

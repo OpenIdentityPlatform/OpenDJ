@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.protocols.asn1;
+
 
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
 
@@ -32,8 +33,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.StaticUtils;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;

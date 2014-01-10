@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -33,6 +33,7 @@ import java.util.Set;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * This class defines a subclass of the core search operation that is

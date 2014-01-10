@@ -40,6 +40,9 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.opends.server.types.operation.*;
 
 /**

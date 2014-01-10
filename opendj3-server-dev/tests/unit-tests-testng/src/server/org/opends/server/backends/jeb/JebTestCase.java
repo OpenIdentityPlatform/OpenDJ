@@ -55,34 +55,34 @@ import org.testng.annotations.Test;
 public abstract class JebTestCase extends DirectoryServerTestCase {
     private TreeMap<DN,Entry> entryTreeMap = new TreeMap<DN,Entry>();
     int numEntries;
-    
+
     /**
      * This method takes an MakeLDIF template and a number of entries to create
      * and adds the created entries into server.
-     * 
+     *
      * @param template MakeLDIF template to use.
      * @param numEntries Number of entries to create and add.
      * @throws Exception if the entries cannot be created or if the add
      *                                   fails.
      */
-    protected void 
+    protected void
     createLoadEntries(String[] template, int numEntries) throws Exception {
         InternalClientConnection connection =
             InternalClientConnection.getRootConnection();
-        String makeLDIFPath = 
+        String makeLDIFPath =
             System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT) +
         File.separator + "resource"+File.separator+"MakeLDIF";
-        TemplateFile templateFile = 
+        TemplateFile templateFile =
             new TemplateFile(makeLDIFPath, new Random());
         ArrayList<Message> warnings = new ArrayList<Message>();
         templateFile.parse(template, warnings);
-        MakeLDIFInputStream ldifEntryStream = 
+        MakeLDIFInputStream ldifEntryStream =
             new MakeLDIFInputStream(templateFile);
-        LDIFReader reader = 
+        LDIFReader reader =
             new LDIFReader(new LDIFImportConfig(ldifEntryStream));
         for(int i =0; i<numEntries;i++) {
             Entry entry = reader.readEntry(false);
-            entryTreeMap.put(entry.getName(), entry);      
+            entryTreeMap.put(entry.getName(), entry);
             AddOperation addOperation =
                 connection.processAdd(entry.getName(),
                         entry.getObjectClasses(),
@@ -94,12 +94,12 @@ public abstract class JebTestCase extends DirectoryServerTestCase {
         reader.close();
         this.numEntries=numEntries;
     }
-    
+
     /**This method should be used to remove the entries created in the
      * above loadEntries method.
      * Note that it starts at the last key and works backwards so that the leaf
      * entries are removed first before the top level nodes.
-     * 
+     *
      * @throws Exception if the entries cannot be removed.
      */
     protected void

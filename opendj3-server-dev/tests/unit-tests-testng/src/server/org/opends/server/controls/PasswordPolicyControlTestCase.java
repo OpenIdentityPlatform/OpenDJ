@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.controls;
 
@@ -40,6 +40,7 @@ import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.StaticUtils;
 
 import static org.testng.Assert.*;

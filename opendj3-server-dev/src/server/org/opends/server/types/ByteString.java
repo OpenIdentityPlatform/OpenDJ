@@ -22,15 +22,12 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.types;
 
 
-
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -617,7 +614,7 @@ public final class ByteString implements ByteSequence
    * @return A string representation of the contents of this byte
    *         sequence using hexadecimal characters.
    */
-  public String toHex()
+  public String toHexString()
   {
     StringBuilder builder = new StringBuilder((length - 1) * 3 + 2);
     builder.append(StaticUtils.byteToHex(buffer[offset]));
@@ -630,104 +627,6 @@ public final class ByteString implements ByteSequence
 
     return builder.toString();
   }
-
-
-
-  /**
-   * Appends a string representation of the data in this byte sequence
-   * to the given buffer using the specified indent.
-   * <p>
-   * The data will be formatted with sixteen hex bytes in a row
-   * followed by the ASCII representation, then wrapping to a new line
-   * as necessary. The state of the byte buffer is not changed.
-   *
-   * @param builder
-   *          The buffer to which the information is to be appended.
-   * @param indent
-   *          The number of spaces to indent the output.
-   */
-  public void toHexPlusAscii(StringBuilder builder, int indent)
-  {
-    StringBuilder indentBuf = new StringBuilder(indent);
-    for (int i = 0; i < indent; i++)
-    {
-      indentBuf.append(' ');
-    }
-
-    int pos = 0;
-    while ((length - pos) >= 16)
-    {
-      StringBuilder asciiBuf = new StringBuilder(17);
-
-      byte currentByte = buffer[offset + pos];
-      builder.append(indentBuf);
-      builder.append(StaticUtils.byteToHex(currentByte));
-      asciiBuf.append(StaticUtils.byteToASCII(currentByte));
-      pos++;
-
-      for (int i = 1; i < 16; i++, pos++)
-      {
-        currentByte = buffer[offset + pos];
-        builder.append(' ');
-        builder.append(StaticUtils.byteToHex(currentByte));
-        asciiBuf.append(StaticUtils.byteToASCII(currentByte));
-
-        if (i == 7)
-        {
-          builder.append("  ");
-          asciiBuf.append(' ');
-        }
-      }
-
-      builder.append("  ");
-      builder.append(asciiBuf);
-      builder.append(EOL);
-    }
-
-    int remaining = (length - pos);
-    if (remaining > 0)
-    {
-      StringBuilder asciiBuf = new StringBuilder(remaining + 1);
-
-      byte currentByte = buffer[offset + pos];
-      builder.append(indentBuf);
-      builder.append(StaticUtils.byteToHex(currentByte));
-      asciiBuf.append(StaticUtils.byteToASCII(currentByte));
-      pos++;
-
-      for (int i = 1; i < 16; i++, pos++)
-      {
-        builder.append(' ');
-
-        if (i < remaining)
-        {
-          currentByte = buffer[offset + pos];
-          builder.append(StaticUtils.byteToHex(currentByte));
-          asciiBuf.append(StaticUtils.byteToASCII(currentByte));
-        }
-        else
-        {
-          builder.append("  ");
-        }
-
-        if (i == 7)
-        {
-          builder.append("  ");
-
-          if (i < remaining)
-          {
-            asciiBuf.append(' ');
-          }
-        }
-      }
-
-      builder.append("  ");
-      builder.append(asciiBuf);
-      builder.append(EOL);
-    }
-  }
-
-
 
   /**
    * Returns the integer value represented by the first four bytes of

@@ -36,7 +36,6 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.*;
-
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;

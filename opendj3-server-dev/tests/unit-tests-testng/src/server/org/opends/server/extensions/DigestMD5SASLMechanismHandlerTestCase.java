@@ -49,7 +49,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.*;
-
+import org.forgerock.opendj.ldap.ByteString;
 import static org.testng.Assert.*;
 
 import static org.opends.server.util.ServerConstants.*;
@@ -73,18 +73,18 @@ public class DigestMD5SASLMechanismHandlerTestCase
   {
     TestCaseUtils.startServer();
 
-    
+
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
             "--set", "server-fqdn:" + "127.0.0.1");
-    
+
   }
 
 
   @AfterClass
   public void tearDown() throws Exception {
-   
+
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",

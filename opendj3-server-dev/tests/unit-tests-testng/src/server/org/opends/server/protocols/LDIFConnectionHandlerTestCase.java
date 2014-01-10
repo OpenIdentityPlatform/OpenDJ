@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols;
 
@@ -355,7 +356,7 @@ public class LDIFConnectionHandlerTestCase
         "set-connection-handler-prop",
         "--handler-name", "LDIF Connection Handler",
         "--set", "enabled:true");
-    
+
     // Get the connection handler from the server.
     LDIFConnectionHandler connHandler = null;
     for (ConnectionHandler handler : DirectoryServer.getConnectionHandlers())

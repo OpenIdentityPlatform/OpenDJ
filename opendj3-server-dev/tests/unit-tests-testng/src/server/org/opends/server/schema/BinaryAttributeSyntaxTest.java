@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 Forgerock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
 import static org.testng.Assert.*;
 
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.messages.MessageBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -40,8 +40,8 @@ public abstract class BinaryAttributeSyntaxTest extends SchemaTestCase
    * Create data for the testAcceptableValues test.
    * This should be a table of tables with 2 elements.
    * The first one should be the value to test, the second the expected
-   * result of the test. 
-   * 
+   * result of the test.
+   *
    * @return a table containing data for the testAcceptableValues Test.
    */
   @DataProvider(name="acceptableValues")
@@ -49,7 +49,7 @@ public abstract class BinaryAttributeSyntaxTest extends SchemaTestCase
 
   /**
    * Get an instance of the attribute syntax that muste be tested.
-   * 
+   *
    * @return An instance of the attribute syntax that muste be tested.
    */
   protected abstract AttributeSyntax getRule();
@@ -68,9 +68,9 @@ public abstract class BinaryAttributeSyntaxTest extends SchemaTestCase
     // test the valueIsAcceptable method
     Boolean liveResult =
       syntax.valueIsAcceptable(value, reason);
-    
+
     if (liveResult != result)
-      fail(syntax + ".valueIsAcceptable gave bad result for " + value.toString() + 
+      fail(syntax + ".valueIsAcceptable gave bad result for " + value.toString() +
           "reason : " + reason);
 
     // call the getters

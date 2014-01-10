@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 
@@ -36,7 +37,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
@@ -146,7 +147,7 @@ public final class StringPrepProfileTestCase
     assertEquals(result, liveResult);
   }
 
-  
+
   //Generates data for case exact matching rules.
   @DataProvider(name="exactRuleData")
   private Object[][] createExactRuleData()

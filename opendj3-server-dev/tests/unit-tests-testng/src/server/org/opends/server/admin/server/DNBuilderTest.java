@@ -120,7 +120,7 @@ public final class DNBuilderTest extends AdminTestCase {
     // First create the path.
     ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath
         .emptyPath();
-    
+
     SingletonRelationDefinition.Builder<TestChildCfgClient, TestChildCfg> b =
       new SingletonRelationDefinition.Builder<TestChildCfgClient, TestChildCfg>(
         TestParentCfgDefn.getInstance(), "singleton-test-child",

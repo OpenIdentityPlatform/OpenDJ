@@ -29,6 +29,7 @@ package org.opends.server.controls;
 import org.opends.messages.Message;
 
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.protocols.asn1.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.
     UNIVERSAL_OCTET_STRING_TYPE;

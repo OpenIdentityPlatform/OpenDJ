@@ -26,8 +26,6 @@
  */
 package org.opends.server.types;
 
-
-
 import static org.opends.messages.SchemaMessages.*;
 
 import java.util.*;

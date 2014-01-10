@@ -44,6 +44,7 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.UtilTestCase;
 import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
@@ -80,7 +81,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
   private static final String workflowConfigModeAuto   = "auto";
   private static final String workflowConfigModeManual = "manual";
 
-  
+
 
   //===========================================================================
   //                      B E F O R E    C L A S S
@@ -136,7 +137,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-  
+
   /**
    * Checks that test backend is accessible as well as config backend
    * and rootDSE backend.
@@ -187,7 +188,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     modifyOperation.run();
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
- 
+
 
   /**
    * Sets the ds-cfg-workflow-configuration-mode attribute to 'auto'
@@ -204,7 +205,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
- 
+
   /**
    * Performs a search on a provided base DN.
    *
@@ -236,7 +237,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
 
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), expectedResultCode);
-    
+
     return searchOperation;
   }
 
@@ -262,7 +263,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
 
     ArrayList<RawModification> ldapMods = new ArrayList<RawModification>();
     ldapMods.add(new LDAPModification(modType, ldapAttr));
-    
+
     ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
         InternalClientConnection.getRootConnection(),
         InternalClientConnection.nextOperationID(),
@@ -274,7 +275,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     return modifyOperation;
   }
 
-  
+
   /**
    * Creates a workflow to handle a local backend. The internal network
    * group is used.
@@ -290,25 +291,25 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // Get the backend
     Backend backend = DirectoryServer.getBackend(backendID);
     assertNotNull(backend);
-    
+
     // Create the workflow element that wraps the local backend
     String workflowElementID = baseDN + "#" + backendID;
     LocalBackendWorkflowElement workflowElement =
       LocalBackendWorkflowElement.createAndRegister(workflowElementID, backend);
-    
+
     // Create a workflow and register it with the server
     String workflowID = baseDN + "#" + backendID;
     WorkflowImpl workflowImpl = new WorkflowImpl(
         workflowID, DN.valueOf(baseDN), workflowElementID, workflowElement);
     workflowImpl.register();
-    
+
     // Register the workflow with the internal network group
     NetworkGroup.getInternalNetworkGroup().registerWorkflow(workflowImpl);
-    
+
     return workflowImpl;
   }
-  
-  
+
+
   /**
    * Removes a workflow.
    *
@@ -329,8 +330,8 @@ public class WorkflowConfigurationTest extends UtilTestCase
     WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
     workflowImpl.deregister();
   }
-  
-  
+
+
   /**
    * Adds a new suffix in a backend.
    *
@@ -354,8 +355,8 @@ public class WorkflowConfigurationTest extends UtilTestCase
     modifyOperation.run();
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
-  
-  
+
+
   /**
    * Create a base entry for a new suffix.
    *
@@ -380,8 +381,8 @@ public class WorkflowConfigurationTest extends UtilTestCase
     addOperation.run();
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
-  
-  
+
+
   /**
    * Removes a new suffix in a backend.
    *
@@ -408,8 +409,8 @@ public class WorkflowConfigurationTest extends UtilTestCase
     modifyOperation.run();
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
-  
-  
+
+
   /**
    * Elaborates a DN for a backend config entry.
    *
@@ -422,7 +423,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     return backendDN;
   }
 
-  
+
   //===========================================================================
   //                 U T I L S  using  dsconfig
   //===========================================================================
@@ -452,7 +453,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
         "--set", "base-dn:" + baseDN,
         "--set", "writability-mode:enabled",
         "--set", "enabled:true");
-    
+
     Backend backend = DirectoryServer.getBackend(backendID);
     if (createBaseEntry)
     {
@@ -462,7 +463,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     return backend;
   }
 
-  
+
   /**
    * Remove a backend.
    *
@@ -515,7 +516,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     checkBackendIsAccessible(testBaseDN);
   }
 
- 
+
   /**
    * This test checks the basic operation routing when configuration
    * mode is 'manual'. Few workflows are configured for the test.
@@ -537,23 +538,23 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // workflows) so searches on the test backend should fail.
     setModeManual();
     checkBackendIsNotAccessible(testBaseDN);
-    
+
     // Create a workflow to handle o=test backend then check that test
     // backend is now accessible
     createWorkflow(testBaseDN, testBackendID);
     checkBackendIsAccessible(testBaseDN);
-    
+
     // Remove the workflow and check that searches are failing.
     removeWorkflow(testBaseDN, testBackendID);
     checkBackendIsNotAccessible(testBaseDN);
-    
+
     // Change workflow configuration mode back to auto and check that
     // test backend is still accessible
     setModeAuto();
     checkBackendIsAccessible(testBaseDN);
   }
 
- 
+
   /**
    * This test checks the add/remove of suffix in a backend in manual
    * configuration mode.
@@ -601,13 +602,13 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // is no more accessible.
     removeWorkflow(testBaseDN3, testBackendID2);
     removeSuffix(testBaseDN3, testBackendID2);
-    checkBackendIsNotAccessible(testBaseDN3);    
-    
+    checkBackendIsNotAccessible(testBaseDN3);
+
     // Back to the original configuration mode
     setModeAuto();
   }
 
- 
+
   /**
    * This test checks the add/remove of a backend in manual configuration
    * mode.
@@ -620,29 +621,29 @@ public class WorkflowConfigurationTest extends UtilTestCase
     String backendID2 = "addRemoveBackend_2";
     String baseDN1    = "o=addRemoveBackendBaseDN_1";
     String baseDN2    = "o=addRemoveBackendBaseDN_2";
-    
+
     // Make sure we are in auto mode and check the suffix is not accessible
     setModeAuto();
     checkBackendIsNotAccessible(baseDN1);
-    
+
     // Create a backend and check that the base entry is accessible.
     dsconfigCreateMemoryBackend(backendID1, baseDN1, true);
     checkBackendIsAccessible(baseDN1);
-    
+
     // Remove the backend and check that the suffix is no more accessible.
     dsconfigRemoveMemoryBackend(backendID1);
     checkBackendIsNotAccessible(baseDN1);
-    
+
     // Now move to the manual mode
     setModeManual();
     checkBackendIsNotAccessible(baseDN2);
-    
+
     // Create a backend and create a workflow to route operations to that
     // new backend. Then check that the base entry is accessible.
     dsconfigCreateMemoryBackend(backendID2, baseDN2, true);
     createWorkflow(baseDN2, backendID2);
     checkBackendIsAccessible(baseDN2);
-    
+
     // Remove the workflow and the backend and check that the base entry
     // is no more accessible.
     removeWorkflow(baseDN2, backendID2);
@@ -667,13 +668,13 @@ public class WorkflowConfigurationTest extends UtilTestCase
 
     // Move to the manual mode
     setModeManual();
-    
+
     // Create a route for o=test suffix in the internal network group.
     // Search on o=test should succeed.
     WorkflowImpl workflowImpl = createWorkflow(baseDN, backendID);
     InternalSearchOperation searchOperation =
       doSearch(baseDN, SearchScope.BASE_OBJECT, ResultCode.SUCCESS);
-    
+
     // Create a network group and store it in the client connection.
     // As the network group is empty, all searches should fail with a
     // no such object result code.
@@ -683,19 +684,19 @@ public class WorkflowConfigurationTest extends UtilTestCase
     clientConnection.setNetworkGroup(networkGroup);
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.NO_SUCH_OBJECT);
-    
+
     // Now register the o=test workflow and search again. The search
     // should succeed.
     networkGroup.registerWorkflow(workflowImpl);
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    
+
     // Put back the internal network group in the client connection
     // and check that searches are still working.
     clientConnection.setNetworkGroup(NetworkGroup.getInternalNetworkGroup());
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    
+
     // Back to the original configuration mode
     setModeAuto();
   }

@@ -47,7 +47,6 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
-
 import static org.opends.messages.AccessControlMessages.*;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.util.ServerConstants.*;

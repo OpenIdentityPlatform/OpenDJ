@@ -22,8 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
- 
+
 package org.opends.messages;
 
 import static org.testng.Assert.*;
@@ -77,7 +78,7 @@ public class MessageDescriptorRegistryTest extends MessagesTestCase
   /**
    * Tests that messages don't end with a period (.) excluding those that end
    * with an ellipsis (...)
-   * 
+   *
    * @param  messagesClass containing definitions of MessageDescriptor objects
    * @throws IllegalAccessException if there is a problem accessing the
    *         class through reflection
@@ -96,7 +97,7 @@ public class MessageDescriptorRegistryTest extends MessagesTestCase
           boolean bad = fmtString.endsWith(".") && !fmtString.endsWith("...");
           assertFalse(bad,
                   "Format string for message descriptor " + f.getName() +
-                  " obtained through key " + md.getKey() + 
+                  " obtained through key " + md.getKey() +
                   " defined in class " + messagesClass.getName() +
                   " \'" + md.getFormatString(Locale.getDefault()) +
                   "\' ends with a '.'");

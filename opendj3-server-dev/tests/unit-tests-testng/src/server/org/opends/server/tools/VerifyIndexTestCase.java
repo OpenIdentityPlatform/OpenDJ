@@ -53,7 +53,7 @@ import org.testng.annotations.Test;
 public class VerifyIndexTestCase
        extends ToolsTestCase
 {
-  
+
   private String configFilePath ;
 
   /**
@@ -68,7 +68,7 @@ public class VerifyIndexTestCase
   {
     TestCaseUtils.startServer();
     configFilePath = DirectoryServer.getConfigFile();
-    
+
     // Add the airius.com suffix to userRoot
     InternalClientConnection rootConnection =
       InternalClientConnection.getRootConnection();
@@ -81,7 +81,7 @@ public class VerifyIndexTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-  
+
   /**
    * Performs necessary cleanup.
    *

@@ -51,7 +51,7 @@ import org.opends.server.tools.LDAPAuthenticationHandler;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-
+import org.forgerock.opendj.ldap.ByteString;
 import static org.testng.Assert.*;
 
 import static org.opends.server.util.ServerConstants.*;

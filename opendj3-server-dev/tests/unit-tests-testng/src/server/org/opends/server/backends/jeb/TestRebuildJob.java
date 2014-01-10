@@ -38,7 +38,6 @@ import static org.opends.server.util.ServerConstants.OC_TOP;
 import static org.opends.server.util.ServerConstants.OC_EXTENSIBLE_OBJECT;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-
 import java.util.List;
 import java.util.HashMap;
 import java.util.LinkedHashMap;

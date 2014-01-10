@@ -25,6 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
+
 import org.opends.messages.Message;
 
 

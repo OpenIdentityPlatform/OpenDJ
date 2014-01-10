@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -41,7 +42,7 @@ public class BooleanEqualityMatchingRuleTest extends EqualityMatchingRuleTest
   @Override
   @DataProvider(name= "equalitymatchingrules")
   public Object[][] createEqualityMatchingRuleTest()
-  { 
+  {
     return new Object[][] {
         {"TRUE",  "true",  true},
         {"YES",   "true",  true},

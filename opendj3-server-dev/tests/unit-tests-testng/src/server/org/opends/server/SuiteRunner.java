@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server;
 
@@ -30,7 +31,7 @@ import static org.opends.server.TestCaseUtils.originalSystemErr;
 
 /**
  * This class wraps TestNG so that we can force the process to exit if there
- * is an uncaught exception (e.g. OutOfMemoryError).  
+ * is an uncaught exception (e.g. OutOfMemoryError).
  */
 public class SuiteRunner {
   public static void main(String[] args) {

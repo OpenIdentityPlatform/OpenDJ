@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- * Copyright 2010-2013 ForgeRock AS
+ * Portions Copyright 2010-2014 ForgeRock AS
  *
  * BSD-compatible md5 password crypt
  * Ported to Java from C based on crypt-md5.c by Poul-Henning Kamp,
@@ -35,8 +35,8 @@
  */
 package org.opends.server.util;
 
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 
 import java.security.MessageDigest;
 import java.security.SecureRandom;

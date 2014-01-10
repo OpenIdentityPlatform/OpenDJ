@@ -36,6 +36,7 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 
 import static org.opends.server.replication.protocol.OperationContext.*;

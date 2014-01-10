@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -44,7 +44,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;

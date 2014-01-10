@@ -62,6 +62,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 
 
 /**

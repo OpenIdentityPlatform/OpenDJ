@@ -21,11 +21,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * This abstract class wraps/decorates a given extended operation. This class

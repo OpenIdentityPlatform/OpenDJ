@@ -58,7 +58,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;

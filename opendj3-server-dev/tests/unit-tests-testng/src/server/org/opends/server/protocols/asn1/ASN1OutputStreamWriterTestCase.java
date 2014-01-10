@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.protocols.asn1;
+
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

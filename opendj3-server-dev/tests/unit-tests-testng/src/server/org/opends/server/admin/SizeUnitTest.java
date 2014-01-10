@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -184,7 +185,7 @@ public class SizeUnitTest extends DirectoryServerTestCase {
   public void testParseValue4(String value) {
     SizeUnit.parseValue(value, SizeUnit.KILO_BYTES);
   }
-  
+
   /**
    * Creates data for testing fromBytes
    *

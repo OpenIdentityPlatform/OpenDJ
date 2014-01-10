@@ -22,7 +22,7 @@
  *
  *
  *      Copyright  2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 Forgerock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.server.protocols.ldap;
@@ -42,6 +42,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.Base64;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;

@@ -33,7 +33,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Set;
 
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;

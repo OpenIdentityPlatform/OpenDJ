@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 
 
 /**

@@ -28,7 +28,7 @@
 
 package org.opends.server.types;
 
-
+import org.forgerock.opendj.ldap.ByteString;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;

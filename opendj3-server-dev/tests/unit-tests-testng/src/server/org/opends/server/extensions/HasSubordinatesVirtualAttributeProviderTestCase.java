@@ -27,6 +27,7 @@
 package org.opends.server.extensions;
 
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
 import static org.opends.server.util.StaticUtils.*;

@@ -57,6 +57,7 @@ import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ExtensionMessages.*;

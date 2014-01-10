@@ -43,7 +43,8 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.*;
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import static org.testng.Assert.*;
 
 

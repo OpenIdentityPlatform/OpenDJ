@@ -435,7 +435,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
     {
       return ieContext.getLeftEntryCount();
     }
-    return 0; // import/export is finished 
+    return 0; // import/export is finished
   }
 
   /**

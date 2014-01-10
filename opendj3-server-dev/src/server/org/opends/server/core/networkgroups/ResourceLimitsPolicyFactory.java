@@ -22,6 +22,7 @@
  *
  *
  *    Copyright 2009-2010 Sun Microsystems, Inc.
+ *    Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -40,7 +41,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.QOSPolicyFactory;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.RawFilter;

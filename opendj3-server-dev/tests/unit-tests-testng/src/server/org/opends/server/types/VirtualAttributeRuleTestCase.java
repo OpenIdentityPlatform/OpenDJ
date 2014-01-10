@@ -26,8 +26,6 @@
  */
 package org.opends.server.types;
 
-
-
 import java.util.Collections;
 import java.util.LinkedHashSet;
 

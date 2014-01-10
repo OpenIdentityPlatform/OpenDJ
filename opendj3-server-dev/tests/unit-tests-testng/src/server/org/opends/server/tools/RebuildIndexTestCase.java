@@ -53,9 +53,9 @@ import static org.testng.Assert.*;
 public class RebuildIndexTestCase
        extends ToolsTestCase
 {
-  
+
   private String configFilePath;
-  
+
   private String userRootDN = "ds-cfg-backend-id=userRoot,cn=Backends,cn=config";
   private String baseDN = "o=airius.com";
 
@@ -71,7 +71,7 @@ public class RebuildIndexTestCase
   {
     TestCaseUtils.startServer();
     configFilePath = DirectoryServer.getConfigFile();
-    
+
     // Add the airius.com suffix to userRoot
     final InternalClientConnection rootConnection =
       InternalClientConnection.getRootConnection();
@@ -86,7 +86,7 @@ public class RebuildIndexTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-  
+
   /**
    * Performs necessary cleanup.
    *
@@ -122,7 +122,7 @@ public class RebuildIndexTestCase
     };
     assertEquals(RebuildIndex.mainRebuildIndex(args, false, null, null), 1);
   }
-  
+
   /**
    * Tries to rebuild a valid index.
    */
@@ -135,5 +135,5 @@ public class RebuildIndexTestCase
         "-i", "ds-sync-hist"
     };
     assertEquals(RebuildIndex.mainRebuildIndex(args, false, null, null), 0);
-  }  
+  }
 }

@@ -299,26 +299,26 @@ public class ManagedObjectPathTest extends DirectoryServerTestCase {
     assertTrue(child2.matches(child2));
     assertTrue(child1.matches(child2));
     assertTrue(child2.matches(child1));
-    
+
     assertTrue(child1.equals(child1));
     assertTrue(child2.equals(child2));
     assertFalse(child1.equals(child2));
     assertFalse(child2.equals(child1));
-    
+
     assertFalse(child1.matches(child3));
     assertFalse(child2.matches(child3));
     assertFalse(child3.matches(child1));
     assertFalse(child3.matches(child2));
-    
+
     assertFalse(child1.equals(child3));
     assertFalse(child2.equals(child3));
     assertFalse(child3.equals(child1));
     assertFalse(child3.equals(child2));
   }
-  
+
   /**
    * Tests toDN method.
-   * 
+   *
    * @throws Exception
    *           If an unexpected error occurred.
    */
@@ -342,12 +342,12 @@ public class ManagedObjectPathTest extends DirectoryServerTestCase {
             .getConnectionHandlersRelationDefinition(),
             LDAPConnectionHandlerCfgDefn.getInstance(),
             "Another LDAP connection handler");
-    
+
     DN expectedEmpty = DN.rootDN();
     DN expectedChild1 = DN.valueOf("cn=LDAP connection handler,cn=connection handlers,cn=config");
     DN expectedChild2 = DN.valueOf("cn=LDAP connection handler,cn=connection handlers,cn=config");
     DN expectedChild3 = DN.valueOf("cn=Another LDAP connection handler,cn=connection handlers,cn=config");
-    
+
     assertEquals(path.toDN(), expectedEmpty);
     assertEquals(child1.toDN(), expectedChild1);
     assertEquals(child2.toDN(), expectedChild2);

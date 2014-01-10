@@ -43,6 +43,7 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PreOperationAddOperation;
 
 import static org.opends.messages.PluginMessages.*;

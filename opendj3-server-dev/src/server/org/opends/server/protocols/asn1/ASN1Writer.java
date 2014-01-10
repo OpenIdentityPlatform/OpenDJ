@@ -22,12 +22,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.asn1;
 
 
 
-import org.opends.server.types.ByteSequence;
+
+import org.forgerock.opendj.ldap.ByteSequence;
 
 import java.io.Closeable;
 import java.io.IOException;

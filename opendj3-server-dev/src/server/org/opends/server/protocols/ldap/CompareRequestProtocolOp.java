@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -29,7 +30,7 @@ package org.opends.server.protocols.ldap;
 import java.io.IOException;
 
 import org.opends.server.protocols.asn1.*;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -209,7 +210,7 @@ public class CompareRequestProtocolOp
     buffer.append(indentBuf);
     buffer.append("  Assertion Value:");
     buffer.append(EOL);
-    assertionValue.toHexPlusAscii(buffer, indent+4);
+    buffer.append(assertionValue.toHexPlusAsciiString(indent+4));
   }
 }
 

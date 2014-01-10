@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -410,7 +411,7 @@ public class FileManagerTest extends QuickSetupTestCase {
 
     File copiedSource = new File(dest, "source");
     assertTrue(copiedSource.exists());
-    assertTrue(count == countSelfAndAllChildren(copiedSource));    
+    assertTrue(count == countSelfAndAllChildren(copiedSource));
   }
 
   /**
@@ -455,7 +456,7 @@ public class FileManagerTest extends QuickSetupTestCase {
     assertTrue(copiedD2.exists());
     assertTrue(countSelfAndAllChildren(copiedD2) == 3);
     assertTrue(copiedD2b.exists());
-    assertTrue(countSelfAndAllChildren(copiedD2b) == 2);    
+    assertTrue(countSelfAndAllChildren(copiedD2b) == 2);
     assertTrue(copiedF2b1.exists());
   }
 
@@ -481,7 +482,7 @@ public class FileManagerTest extends QuickSetupTestCase {
     final File copiedF2b1 = new File(d2b, "f2b1");
     String ORIGINAL = "original";
     writeContents(copiedF2b1, ORIGINAL);
-    
+
     // Test that using a filter to delete one file works
     FileFilter copyChildFileFilter = new FileFilter() {
       public boolean accept(File f) {

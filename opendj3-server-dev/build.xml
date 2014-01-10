@@ -22,7 +22,7 @@
  !
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2013 ForgeRock AS
+ !      Portions Copyright 2011-2014 ForgeRock AS
  !      Portions Copyright 2012 Delta Victor Consultants
  ! -->
 
@@ -1580,6 +1580,7 @@ Please:
         <fileset dir="${dsml.lib.dir}">
           <include name="*.jar" />
         </fileset>
+      	<fileset refid="opendj.runtime.jars"/>
 
         <dirset dir="${classes.dir}" />
       </classpath>

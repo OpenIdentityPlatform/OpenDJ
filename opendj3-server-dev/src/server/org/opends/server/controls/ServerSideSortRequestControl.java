@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -39,7 +40,7 @@ import static org.opends.server.protocols.asn1.ASN1Constants.
     UNIVERSAL_OCTET_STRING_TYPE;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
-
+import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;

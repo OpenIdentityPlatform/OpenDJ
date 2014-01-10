@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS
  */
 package org.opends.server.snmp;
 
@@ -267,7 +268,7 @@ public abstract class SNMPConnectionManager extends DirectoryServerTestCase
 
     ModifyOperationBasis op = new ModifyOperationBasis(conn, conn
         .nextOperationID(), conn.nextMessageID(), new ArrayList<Control>(), DN
-        .decode("cn=SNMP Connection Handler,cn=Connection Handlers,cn=config"),
+        .valueOf("cn=SNMP Connection Handler,cn=Connection Handlers,cn=config"),
         mods);
     op.run();
 
@@ -278,7 +279,7 @@ public abstract class SNMPConnectionManager extends DirectoryServerTestCase
 
     op = new ModifyOperationBasis(conn, conn.nextOperationID(), conn
         .nextMessageID(), new ArrayList<Control>(), DN
-        .decode("cn=SNMP Connection Handler,cn=Connection Handlers,cn=config"),
+        .valueOf("cn=SNMP Connection Handler,cn=Connection Handlers,cn=config"),
         mods);
 
     op.run();
@@ -303,7 +304,7 @@ public abstract class SNMPConnectionManager extends DirectoryServerTestCase
 
     ModifyOperationBasis op = new ModifyOperationBasis(conn, conn
         .nextOperationID(), conn.nextMessageID(), new ArrayList<Control>(), DN
-        .decode("cn=JMX Connection Handler,cn=Connection Handlers,cn=config"),
+        .valueOf("cn=JMX Connection Handler,cn=Connection Handlers,cn=config"),
         mods);
     op.run();
   }

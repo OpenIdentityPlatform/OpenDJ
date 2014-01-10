@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.types;
-
-
 
 import static org.opends.server.util.StaticUtils.*;
 

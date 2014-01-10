@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.protocols.http;
 
@@ -93,7 +93,7 @@ import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Operation;
@@ -269,7 +269,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     final int messageID = nextMessageID.getAndIncrement();
     AddOperationBasis operation =
         new AddOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), to(valueOf(request.getName())),
+            to(request.getControls()), valueOf(request.getName()),
             to(request.getAllAttributes()));
 
     return enqueueOperation(operation, resultHandler);
@@ -293,8 +293,8 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     byte[] password = ((SimpleBindRequest) request).getPassword();
     BindOperationBasis operation =
         new BindOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), "3", to(userName), ByteString
-                .wrap(password));
+            to(request.getControls()), "3", ByteString.valueOf(userName),
+            ByteString.wrap(password));
 
     return enqueueOperation(operation, resultHandler);
   }
@@ -336,9 +336,9 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     final int messageID = nextMessageID.getAndIncrement();
     CompareOperationBasis operation =
         new CompareOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), to(valueOf(request.getName())),
+            to(request.getControls()), valueOf(request.getName()),
             request.getAttributeDescription().getAttributeType().getOID(),
-            to(request.getAssertionValue()));
+            request.getAssertionValue());
 
     return enqueueOperation(operation, resultHandler);
   }
@@ -352,7 +352,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     final int messageID = nextMessageID.getAndIncrement();
     DeleteOperationBasis operation =
         new DeleteOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), to(valueOf(request.getName())));
+            to(request.getControls()), valueOf(request.getName()));
 
     return enqueueOperation(operation, resultHandler);
   }
@@ -368,7 +368,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     ExtendedOperationBasis operation =
         new ExtendedOperationBasis(this.clientConnection, messageID, messageID,
             to(request.getControls()), request.getOID(),
-            to(request.getValue()));
+            request.getValue());
 
     return enqueueOperation(operation, resultHandler);
   }
@@ -444,7 +444,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     final int messageID = nextMessageID.getAndIncrement();
     SearchOperationBasis operation =
         new SearchOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), to(valueOf(request.getName())),
+            to(request.getControls()), valueOf(request.getName()),
             to(request.getScope()), to(request.getDereferenceAliasesPolicy()),
             request.getSizeLimit(), request.getTimeLimit(),
             request.isTypesOnly(), to(request.getFilter()),

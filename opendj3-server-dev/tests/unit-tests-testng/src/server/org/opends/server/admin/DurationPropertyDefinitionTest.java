@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
-package org.opends.server.admin;                                                                                  
+package org.opends.server.admin;
 
 import static org.testng.Assert.*;
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -41,7 +42,7 @@ public class UniqueMemberEqualityMatchingRuleTest extends
   @Override
   @DataProvider(name="equalityMatchingRuleInvalidValues")
   public Object[][] createEqualityMatchingRuleInvalidValues()
-  { 
+  {
     return new Object[][] {
         {"1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'123'B"},
         {"1.3.6.1.4.1.1466.01"}
@@ -55,7 +56,7 @@ public class UniqueMemberEqualityMatchingRuleTest extends
   @DataProvider(name="equalitymatchingrules")
   public Object[][] createEqualityMatchingRuleTest()
   {
-    return new Object [][] {  
+    return new Object [][] {
         {"1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B",
          "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B", true},
         {"1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B",

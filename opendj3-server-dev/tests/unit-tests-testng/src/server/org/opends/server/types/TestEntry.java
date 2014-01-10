@@ -26,6 +26,7 @@
  */
 package org.opends.server.types;
 
+import org.forgerock.opendj.ldap.ByteString;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;

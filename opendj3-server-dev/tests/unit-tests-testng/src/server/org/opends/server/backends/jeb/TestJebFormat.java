@@ -37,6 +37,8 @@ import java.util.Map;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
 import static org.opends.server.util.StaticUtils.getBytes;

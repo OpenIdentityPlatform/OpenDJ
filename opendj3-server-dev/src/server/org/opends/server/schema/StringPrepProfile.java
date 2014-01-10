@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 
-import org.opends.server.types.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequence;
 import static org.forgerock.util.Reject.*;
 import org.opends.server.util.Platform;
 

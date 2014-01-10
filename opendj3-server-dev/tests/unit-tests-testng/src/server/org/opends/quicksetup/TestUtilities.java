@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.quicksetup;
 
@@ -36,7 +36,7 @@ import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.ZipExtractor;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.types.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.OperatingSystem;
 
 @SuppressWarnings("javadoc")

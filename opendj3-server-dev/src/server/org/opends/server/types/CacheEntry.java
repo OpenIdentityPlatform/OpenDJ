@@ -26,8 +26,6 @@
  */
 package org.opends.server.types;
 
-
-
 import org.opends.server.api.Backend;
 
 

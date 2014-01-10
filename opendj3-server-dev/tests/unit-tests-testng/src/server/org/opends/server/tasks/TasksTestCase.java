@@ -43,7 +43,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.backends.task.*;
 import org.opends.server.types.*;
-
 import java.util.ArrayList;
 
 /**
