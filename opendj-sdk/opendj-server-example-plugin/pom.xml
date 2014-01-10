@@ -70,6 +70,7 @@
               <goal>generate-messages</goal>
             </goals>
             <configuration>
+              <resourceDirectory>${basedir}/src/main/java</resourceDirectory>
               <messageFiles>
                 <messageFile>com/example/opendj/example_plugin.properties</messageFile>
               </messageFiles>
@@ -91,6 +92,7 @@
             <configuration>
               <packageName>com.example.opendj</packageName>
               <xslDir>config/stylesheets</xslDir>
+              <xmlDefinitionsRootDir>${basedir}/src/main/java</xmlDefinitionsRootDir>
             </configuration>
           </execution>
         </executions>
