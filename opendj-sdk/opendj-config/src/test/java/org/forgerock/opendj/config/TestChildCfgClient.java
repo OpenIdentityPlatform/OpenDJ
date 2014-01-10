@@ -28,10 +28,6 @@ package org.forgerock.opendj.config;
 import java.util.Collection;
 import java.util.SortedSet;
 
-import org.forgerock.opendj.config.ConfigurationClient;
-import org.forgerock.opendj.config.IllegalPropertyValueException;
-import org.forgerock.opendj.config.ManagedObjectDefinition;
-import org.forgerock.opendj.config.PropertyIsReadOnlyException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 

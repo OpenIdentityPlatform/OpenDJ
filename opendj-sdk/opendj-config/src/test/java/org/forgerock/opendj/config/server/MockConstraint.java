@@ -31,8 +31,6 @@ import java.util.Collections;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.Constraint;
 import org.forgerock.opendj.config.client.ClientConstraintHandler;
-import org.forgerock.opendj.config.server.ServerConstraintHandler;
-import org.forgerock.opendj.config.server.ServerManagedObject;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.DN;
 import org.testng.Assert;

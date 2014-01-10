@@ -28,12 +28,8 @@ package org.forgerock.opendj.config;
 
 import static org.testng.Assert.assertEquals;
 
-import org.forgerock.opendj.server.config.meta.RootCfgDefn;
-import org.forgerock.opendj.config.DNPropertyDefinition;
-import org.forgerock.opendj.config.IllegalPropertyValueException;
-import org.forgerock.opendj.config.IllegalPropertyValueStringException;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

@@ -25,7 +25,7 @@
  */
 package org.forgerock.opendj.config.server;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 import org.forgerock.opendj.config.AdminTestCase;
 import org.forgerock.opendj.config.LDAPProfile;
@@ -37,7 +37,6 @@ import org.forgerock.opendj.config.TestChildCfg;
 import org.forgerock.opendj.config.TestChildCfgClient;
 import org.forgerock.opendj.config.TestChildCfgDefn;
 import org.forgerock.opendj.config.TestParentCfgDefn;
-import org.forgerock.opendj.config.server.DNBuilder;
 import org.forgerock.opendj.ldap.DN;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;

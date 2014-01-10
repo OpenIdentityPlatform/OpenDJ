@@ -33,11 +33,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
-import org.forgerock.opendj.config.LDAPProfile;
-import org.forgerock.opendj.config.PropertyDefinition;
-import org.forgerock.opendj.config.PropertyOption;
-import org.forgerock.opendj.config.TopCfgDefn;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;

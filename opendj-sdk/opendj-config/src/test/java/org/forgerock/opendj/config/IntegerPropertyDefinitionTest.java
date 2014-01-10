@@ -25,20 +25,10 @@
  */
 package org.forgerock.opendj.config;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
-import org.forgerock.opendj.config.DefaultBehaviorProvider;
-import org.forgerock.opendj.config.DefaultBehaviorProviderVisitor;
-import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.IllegalPropertyValueException;
-import org.forgerock.opendj.config.IllegalPropertyValueStringException;
-import org.forgerock.opendj.config.IntegerPropertyDefinition;
-import org.forgerock.opendj.config.PropertyDefinition;
-import org.forgerock.opendj.config.PropertyDefinitionVisitor;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
-import org.forgerock.opendj.config.PropertyOption;
-import org.forgerock.opendj.config.UnknownPropertyDefinitionException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

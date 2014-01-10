@@ -25,12 +25,11 @@
  */
 package org.forgerock.opendj.config;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertTrue;
 
 import java.util.List;
 
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
-import org.forgerock.opendj.config.LDAPProfile;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")

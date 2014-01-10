@@ -25,33 +25,28 @@
  */
 package org.forgerock.opendj.config.server;
 
-import static org.fest.assertions.Assertions.*;
-import static org.forgerock.opendj.ldif.LDIF.*;
-import static org.mockito.Mockito.*;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldif.LDIF.makeEntry;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 
-import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.config.AdminTestCase;
 import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.TestCfg;
 import org.forgerock.opendj.config.TestParentCfg;
-import org.forgerock.opendj.config.server.ConfigAddListenerAdaptor;
-import org.forgerock.opendj.config.server.ConfigDeleteListenerAdaptor;
-import org.forgerock.opendj.config.server.ConfigurationAddListener;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
-import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
-import org.forgerock.opendj.config.server.DelayedConfigAddListener;
-import org.forgerock.opendj.config.server.ServerManagedObject;
-import org.forgerock.opendj.config.server.ServerManagedObjectAddListenerAdaptor;
-import org.forgerock.opendj.config.server.ServerManagedObjectDeleteListenerAdaptor;
-import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.config.server.spi.ConfigAddListener;
 import org.forgerock.opendj.config.server.spi.ConfigChangeListener;
 import org.forgerock.opendj.config.server.spi.ConfigDeleteListener;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;

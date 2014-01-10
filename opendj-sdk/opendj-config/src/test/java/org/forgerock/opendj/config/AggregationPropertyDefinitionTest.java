@@ -26,8 +26,6 @@
 
 package org.forgerock.opendj.config;
 
-import org.forgerock.opendj.config.AggregationPropertyDefinition;
-import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.ldap.DN;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;

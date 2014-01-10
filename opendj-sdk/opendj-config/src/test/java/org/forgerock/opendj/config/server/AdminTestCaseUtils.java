@@ -25,7 +25,6 @@
  */
 package org.forgerock.opendj.config.server;
 
-import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
 import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.ConfigurationClient;
@@ -34,12 +33,8 @@ import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.RelationDefinition;
 import org.forgerock.opendj.config.SingletonRelationDefinition;
-import org.forgerock.opendj.config.server.ConfigExceptionFactory;
-import org.forgerock.opendj.config.server.ConstraintViolationException;
-import org.forgerock.opendj.config.server.ServerManagedObject;
-import org.forgerock.opendj.config.server.ServerManagedObjectDecodingException;
-import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 
 /**
  * This class defines some utility functions which can be used by test cases

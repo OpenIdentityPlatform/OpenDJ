@@ -25,11 +25,6 @@
  */
 package org.forgerock.opendj.config;
 
-import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
-import org.forgerock.opendj.config.InstantiableRelationDefinition;
-import org.forgerock.opendj.config.LDAPProfile;
-import org.forgerock.opendj.config.PropertyDefinition;
-import org.forgerock.opendj.config.RelationDefinition;
 
 /**
  * A mock LDAP profile wrapper for testing purposes.

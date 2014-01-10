@@ -25,9 +25,9 @@
  */
 package org.forgerock.opendj.config.server;
 
-import static org.fest.assertions.Assertions.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,12 +40,6 @@ import org.forgerock.opendj.config.TestCfg;
 import org.forgerock.opendj.config.TestChildCfg;
 import org.forgerock.opendj.config.TestChildCfgDefn;
 import org.forgerock.opendj.config.TestParentCfg;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigurationAddListener;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
-import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
-import org.forgerock.opendj.config.server.ConstraintViolationException;
-import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.config.server.spi.ConfigAddListener;
 import org.forgerock.opendj.config.server.spi.ConfigChangeListener;
 import org.forgerock.opendj.config.server.spi.ConfigDeleteListener;

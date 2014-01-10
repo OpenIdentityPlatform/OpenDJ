@@ -25,8 +25,12 @@
  */
 package org.forgerock.opendj.config;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.ConnectionHandlerCfgClient;
 import org.forgerock.opendj.server.config.client.GlobalCfgClient;
 import org.forgerock.opendj.server.config.client.LDAPConnectionHandlerCfgClient;
@@ -39,8 +43,6 @@ import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.GlobalCfg;
 import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
-import org.forgerock.opendj.config.ManagedObjectPath;
-import org.forgerock.opendj.ldap.DN;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
