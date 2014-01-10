@@ -60,6 +60,17 @@ public class OpendjConfigMojo extends AbstractBuildMojo {
     private String packageName;
 
     /**
+     * Package name for which artifacts are generated.
+     * <p>
+     * This relative path is used to locate xml definition files and to locate
+     * generated artifacts.
+     *
+     * @parameter default-value="true"
+     * @required
+     */
+    private Boolean isExtension;
+
+    /**
      * Root directory where definitions of configuration as xml files are
      * located.
      *
@@ -372,8 +383,18 @@ public class OpendjConfigMojo extends AbstractBuildMojo {
             xsltLibrary.setGroupId("saxon");
             xsltLibrary.setArtifactId("saxon");
             xsltLibrary.setVersion(SAXON_LIBRARY_VERSION);
+
             List<Dependency> deps = new ArrayList<Dependency>();
             deps.add(xsltLibrary);
+
+            if (isExtension) {
+                Dependency opendjConfig = new Dependency();
+                opendjConfig.setGroupId("org.forgerock.opendj");
+                opendjConfig.setArtifactId("opendj-config");
+                opendjConfig.setVersion("3.0.0-SNAPSHOT");
+                deps.add(opendjConfig);
+            }
+
             return plugin(groupId("org.codehaus.mojo"), artifactId("xml-maven-plugin"),
                 version(getXmlMavenPluginVersion()), deps);
         }
