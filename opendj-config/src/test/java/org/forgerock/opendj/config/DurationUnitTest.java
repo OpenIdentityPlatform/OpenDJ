@@ -26,10 +26,15 @@
 
 package org.forgerock.opendj.config;
 
-import static org.forgerock.opendj.config.DurationUnit.*;
-import static org.testng.Assert.*;
+import static org.forgerock.opendj.config.DurationUnit.DAYS;
+import static org.forgerock.opendj.config.DurationUnit.HOURS;
+import static org.forgerock.opendj.config.DurationUnit.MILLI_SECONDS;
+import static org.forgerock.opendj.config.DurationUnit.MINUTES;
+import static org.forgerock.opendj.config.DurationUnit.SECONDS;
+import static org.forgerock.opendj.config.DurationUnit.WEEKS;
+import static org.forgerock.opendj.config.DurationUnit.getUnit;
+import static org.testng.Assert.assertEquals;
 
-import org.forgerock.opendj.config.DurationUnit;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

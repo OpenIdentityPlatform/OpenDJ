@@ -25,14 +25,13 @@
  */
 package org.forgerock.opendj.config.client.ldap;
 
-import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.SortedSet;
 
-import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.opendj.config.AdminTestCase;
 import org.forgerock.opendj.config.Constraint;
 import org.forgerock.opendj.config.LDAPProfile;
@@ -47,12 +46,12 @@ import org.forgerock.opendj.config.TestParentCfgDefn;
 import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.OperationRejectedException;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;

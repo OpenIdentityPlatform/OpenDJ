@@ -26,11 +26,12 @@
  */
 package org.forgerock.opendj.config.server;
 
-import static org.fest.assertions.Assertions.*;
-import static org.forgerock.opendj.ldif.LDIF.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldif.LDIF.makeEntry;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 import java.util.List;
 import java.util.SortedSet;
@@ -38,8 +39,6 @@ import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.opendj.server.config.client.ConnectionHandlerCfgClient;
-import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.config.AdminTestCase;
 import org.forgerock.opendj.config.AdministratorAction;
 import org.forgerock.opendj.config.AggregationPropertyDefinition;
@@ -53,12 +52,6 @@ import org.forgerock.opendj.config.TestChildCfgDefn;
 import org.forgerock.opendj.config.TestParentCfg;
 import org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.conditions.Conditions;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
-import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
-import org.forgerock.opendj.config.server.ConstraintViolationException;
-import org.forgerock.opendj.config.server.ServerManagedObjectDecodingException;
-import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.config.server.spi.ConfigChangeListener;
 import org.forgerock.opendj.config.server.spi.ConfigDeleteListener;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
@@ -66,6 +59,8 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.LDIF;
+import org.forgerock.opendj.server.config.client.ConnectionHandlerCfgClient;
+import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.mockito.ArgumentCaptor;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;

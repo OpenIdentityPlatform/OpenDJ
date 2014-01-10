@@ -27,7 +27,6 @@ package org.forgerock.opendj.config;
 
 import java.util.SortedSet;
 
-import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;

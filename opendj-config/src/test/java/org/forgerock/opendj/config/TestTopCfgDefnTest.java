@@ -26,11 +26,13 @@
 
 package org.forgerock.opendj.config;
 
-import static org.fest.assertions.Assertions.*;
-import static org.testng.Assert.*;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
-import org.forgerock.opendj.config.TopCfgDefn;
 import org.testng.annotations.Test;
 
 

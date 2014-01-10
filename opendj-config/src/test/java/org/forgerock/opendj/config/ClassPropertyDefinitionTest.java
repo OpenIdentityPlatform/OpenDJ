@@ -27,14 +27,13 @@
 
 package org.forgerock.opendj.config;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Comparator;
 import java.util.List;
 
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
-import org.forgerock.opendj.config.ClassPropertyDefinition;
-import org.forgerock.opendj.config.IllegalPropertyValueException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

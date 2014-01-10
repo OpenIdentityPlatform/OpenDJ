@@ -26,15 +26,8 @@
 
 package org.forgerock.opendj.config;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
-import org.forgerock.opendj.config.AbsoluteInheritedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.AliasDefaultBehaviorProvider;
-import org.forgerock.opendj.config.DefaultBehaviorProviderVisitor;
-import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.ManagedObjectPath;
-import org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

@@ -35,9 +35,8 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.testng.Assert;
-
 import org.forgerock.util.Reject;
+import org.testng.Assert;
 
 /**
  * A mock LDAP connection which is used to verify that a modify operation was

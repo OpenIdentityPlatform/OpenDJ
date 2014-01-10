@@ -25,7 +25,7 @@
  */
 package org.forgerock.opendj.config;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -33,18 +33,6 @@ import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.forgerock.opendj.config.AbsoluteInheritedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.AliasDefaultBehaviorProvider;
-import org.forgerock.opendj.config.Configuration;
-import org.forgerock.opendj.config.DefaultBehaviorProvider;
-import org.forgerock.opendj.config.DefaultBehaviorProviderVisitor;
-import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.ManagedObjectDefinition;
-import org.forgerock.opendj.config.PropertyDefinition;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
-import org.forgerock.opendj.config.PropertyOption;
-import org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider;
 import org.mockito.invocation.InvocationOnMock;
 
 /**

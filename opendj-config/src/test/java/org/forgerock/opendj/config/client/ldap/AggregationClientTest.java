@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.opendj.config.AdminTestCase;
 import org.forgerock.opendj.config.IllegalPropertyValueStringException;
 import org.forgerock.opendj.config.LDAPProfile;
@@ -44,7 +43,7 @@ import org.forgerock.opendj.config.TestParentCfgClient;
 import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;

@@ -26,9 +26,8 @@
 
 package org.forgerock.opendj.config;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
-import org.forgerock.opendj.config.SizeUnit;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

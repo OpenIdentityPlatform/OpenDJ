@@ -25,13 +25,9 @@
  */
 package org.forgerock.opendj.config;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
-import org.forgerock.opendj.config.IllegalPropertyValueException;
-import org.forgerock.opendj.config.IllegalPropertyValueStringException;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
-import org.forgerock.opendj.config.StringPropertyDefinition;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")

@@ -25,8 +25,8 @@
  */
 package org.forgerock.opendj.config.client.ldap;
 
-import static org.fest.assertions.Assertions.*;
-import static org.forgerock.opendj.ldif.LDIF.*;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldif.LDIF.makeEntries;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -34,7 +34,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.forgerock.opendj.config.client.ldap.LDAPConnection;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.AttributeParser;

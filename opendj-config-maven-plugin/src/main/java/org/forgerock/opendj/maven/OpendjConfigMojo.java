@@ -64,7 +64,7 @@ public class OpendjConfigMojo extends AbstractBuildMojo {
      * Root directory where definitions of configuration as xml files are
      * located.
      *
-     * @parameter default-value="${basedir}/src/main/resources/definitions"
+     * @parameter default-value="${basedir}/src/main/resources/config/xml"
      * @required
      */
     private String xmlDefinitionsRootDir;
@@ -73,7 +73,7 @@ public class OpendjConfigMojo extends AbstractBuildMojo {
      * Directory containing stylesheets (xsl files) to generate code and other
      * artefacts.
      *
-     * @parameter default-value="${basedir}/src/main/resources/stylesheets"
+     * @parameter default-value="${basedir}/src/main/resources/config/stylesheets"
      * @required
      */
     private String xslDir;
@@ -93,7 +93,7 @@ public class OpendjConfigMojo extends AbstractBuildMojo {
      * responsibility of project that use this plugin to concatenate all
      * generated files into a single file.
      *
-     * @parameter default-value="${project.build.directory}/tmp"
+     * @parameter default-value="${project.build.directory}/config"
      * @required
      */
     private String generatedManifestsTempDir;
@@ -105,7 +105,7 @@ public class OpendjConfigMojo extends AbstractBuildMojo {
      * responsibility of project that use this plugin to concatenate all
      * generated files into a single file.
      *
-     * @parameter default-value="${project.build.directory}/admin/core.manifest"
+     * @parameter default-value="${project.build.outputDirectory}/META-INF/services/org.forgerock.opendj.config.AbstractManagedObjectDefinition"
      * @required
      */
     private String generatedManifestsLocation;
@@ -113,7 +113,7 @@ public class OpendjConfigMojo extends AbstractBuildMojo {
     /**
      * Root directory containing generated messages for configuration.
      *
-     * @parameter default-value="${basedir}/src/main/resources/config/messages"
+     * @parameter default-value="${project.build.outputDirectory}/config/messages"
      * @required
      */
     private String generatedMessagesRootDir;

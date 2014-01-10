@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
 import static com.forgerock.opendj.ldap.AdminMessages.*;
 import static com.forgerock.opendj.ldap.ExtensionMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
+
 import org.forgerock.util.Reject;
 
 import java.io.ByteArrayOutputStream;
@@ -80,6 +81,8 @@ import com.forgerock.opendj.ldap.AdminMessages;
  */
 public final class ClassLoaderProvider {
 
+    private static final String MANIFEST =
+            "META-INF/services/org.forgerock.opendj.config.AbstractManagedObjectDefinition";
     private static final LocalizedLogger adminLogger = LocalizedLogger.getLocalizedLogger(AdminMessages
         .resourceName());
     private static final Logger debugLogger = LoggerFactory.getLogger(ClassLoaderProvider.class);
@@ -123,14 +126,6 @@ public final class ClassLoaderProvider {
         }
 
     }
-
-    // The name of the manifest file listing the core configuration
-    // definition classes.
-    private static final String CORE_MANIFEST = "core.manifest";
-
-    // The name of the manifest file listing a extension's configuration
-    // definition classes.
-    private static final String EXTENSION_MANIFEST = "extension.manifest";
 
     // The name of the lib directory.
     private static final String LIB_DIR = "lib";
@@ -411,11 +406,10 @@ public final class ClassLoaderProvider {
 
         for (File extension : extensions) {
             // retrieve MANIFEST entry and display name, build number and
-            // revision
-            // number
+            // revision number
             try {
                 JarFile jarFile = new JarFile(extension);
-                JarEntry entry = jarFile.getJarEntry("admin/" + EXTENSION_MANIFEST);
+                JarEntry entry = jarFile.getJarEntry(MANIFEST);
                 if (entry == null) {
                     continue;
                 }
@@ -546,19 +540,17 @@ public final class ClassLoaderProvider {
      *             configuration definition classes could not be initialized.
      */
     private void initializeCoreComponents() throws InitializationException {
-        InputStream is = RootCfgDefn.class.getResourceAsStream("/admin/" + CORE_MANIFEST);
-
+        InputStream is = RootCfgDefn.class.getResourceAsStream(MANIFEST);
         if (is == null) {
-            LocalizableMessage message = ERR_ADMIN_CANNOT_FIND_CORE_MANIFEST.get(CORE_MANIFEST);
+            LocalizableMessage message = ERR_ADMIN_CANNOT_FIND_CORE_MANIFEST.get(MANIFEST);
             throw new InitializationException(message);
         }
-
         try {
             loadDefinitionClasses(is);
         } catch (InitializationException e) {
             debugLogger.trace("Unable to initialize core components", e);
             LocalizableMessage message =
-                ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(CORE_MANIFEST,
+                ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(MANIFEST,
                     stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
             throw new InitializationException(message);
         }
@@ -576,7 +568,7 @@ public final class ClassLoaderProvider {
      *             initialized.
      */
     private void initializeExtension(JarFile jarFile) throws InitializationException {
-        JarEntry entry = jarFile.getJarEntry("admin/" + EXTENSION_MANIFEST);
+        JarEntry entry = jarFile.getJarEntry(MANIFEST);
         if (entry != null) {
             InputStream is;
             try {
@@ -584,7 +576,7 @@ public final class ClassLoaderProvider {
             } catch (Exception e) {
                 debugLogger.trace("Unable to get input stream from jar", e);
                 LocalizableMessage message =
-                    ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.get(EXTENSION_MANIFEST, jarFile.getName(),
+                    ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.get(MANIFEST, jarFile.getName(),
                         stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
                 throw new InitializationException(message);
             }
@@ -594,7 +586,7 @@ public final class ClassLoaderProvider {
             } catch (InitializationException e) {
                 debugLogger.trace("Unable to load classes from input stream", e);
                 LocalizableMessage message =
-                    ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile.getName(), EXTENSION_MANIFEST,
+                    ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile.getName(), MANIFEST,
                         stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
                 throw new InitializationException(message);
             }

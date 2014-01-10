@@ -25,12 +25,11 @@
  */
 package org.forgerock.opendj.config;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertNotNull;
 
 import java.util.Locale;
 
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
-import org.forgerock.opendj.config.ManagedObjectDefinitionI18NResource;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

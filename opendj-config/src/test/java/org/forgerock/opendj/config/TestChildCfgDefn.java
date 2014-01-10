@@ -28,23 +28,6 @@ package org.forgerock.opendj.config;
 import java.util.Collection;
 import java.util.SortedSet;
 
-import org.forgerock.opendj.server.config.client.ConnectionHandlerCfgClient;
-import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
-import org.forgerock.opendj.config.AdministratorAction;
-import org.forgerock.opendj.config.AggregationPropertyDefinition;
-import org.forgerock.opendj.config.AttributeTypePropertyDefinition;
-import org.forgerock.opendj.config.BooleanPropertyDefinition;
-import org.forgerock.opendj.config.ClassPropertyDefinition;
-import org.forgerock.opendj.config.DNPropertyDefinition;
-import org.forgerock.opendj.config.DefaultBehaviorProvider;
-import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.ManagedObjectAlreadyExistsException;
-import org.forgerock.opendj.config.ManagedObjectDefinition;
-import org.forgerock.opendj.config.PropertyIsReadOnlyException;
-import org.forgerock.opendj.config.PropertyOption;
-import org.forgerock.opendj.config.PropertyProvider;
-import org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.client.ConcurrentModificationException;
 import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.MissingMandatoryPropertiesException;
@@ -54,6 +37,8 @@ import org.forgerock.opendj.config.server.ServerManagedObject;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.server.config.client.ConnectionHandlerCfgClient;
+import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 
 /**
  * An interface for querying the Test Child managed object definition meta

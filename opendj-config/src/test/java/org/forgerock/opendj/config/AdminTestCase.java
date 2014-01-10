@@ -25,14 +25,15 @@
  */
 package org.forgerock.opendj.config;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.config.server.ServerManagedObject;
 import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldif.LDIF;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.testng.annotations.Test;
 
 /**

@@ -26,17 +26,12 @@
 
 package org.forgerock.opendj.config;
 
-import static org.fest.assertions.Assertions.*;
-import static org.testng.Assert.*;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.testng.Assert.assertEquals;
 
 import java.util.Collection;
 import java.util.Collections;
 
-import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
-import org.forgerock.opendj.config.DefaultBehaviorProvider;
-import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.PropertyDefinition;
-import org.forgerock.opendj.config.RelationDefinition;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;

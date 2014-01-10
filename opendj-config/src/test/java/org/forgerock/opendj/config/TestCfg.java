@@ -28,14 +28,6 @@ package org.forgerock.opendj.config;
 import java.util.ResourceBundle;
 
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
-import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
-import org.forgerock.opendj.config.Constraint;
-import org.forgerock.opendj.config.InstantiableRelationDefinition;
-import org.forgerock.opendj.config.LDAPProfile;
-import org.forgerock.opendj.config.ManagedObjectDefinition;
-import org.forgerock.opendj.config.ManagedObjectDefinitionI18NResource;
-import org.forgerock.opendj.config.OptionalRelationDefinition;
-import org.forgerock.opendj.config.PropertyDefinition;
 
 /**
  * Common methods for hooking in the test components.
