@@ -189,7 +189,8 @@
               <goal>generate</goal>
             </goals>
             <configuration>
-              <packageName>org.forgerock.opendj.server.config</packageName>   
+              <packageName>org.forgerock.opendj.server.config</packageName>
+              <isExtension>false</isExtension>
             </configuration>
           </execution>
         </executions>
