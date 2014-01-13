@@ -1472,7 +1472,11 @@ public final class ECLServerHandler extends ServerHandler
    */
   public String getOperationId()
   {
-    return startECLSessionMsg.getOperationId();
+    if (startECLSessionMsg != null)
+    {
+      return startECLSessionMsg.getOperationId();
+    }
+    return "";
   }
 
   /**
