@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -38,7 +38,6 @@ import java.util.regex.Pattern;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
-
 import org.forgerock.util.Reject;
 
 /**
@@ -55,6 +54,117 @@ import org.forgerock.util.Reject;
  * or via the {@link #toString()} methods.
  */
 public final class Syntax extends SchemaElement {
+
+    /**
+     * A fluent API for incrementally constructing syntaxes.
+     */
+    public final static class Builder extends SchemaElementBuilder<Builder> {
+
+        private String oid;
+        private SyntaxImpl impl;
+
+        Builder(final Syntax syntax, final SchemaBuilder builder) {
+            super(builder, syntax);
+            this.oid = syntax.oid;
+            this.impl = syntax.impl;
+        }
+
+        Builder(final String oid, final SchemaBuilder builder) {
+            super(builder);
+            this.oid(oid);
+        }
+
+        /**
+         * Adds this syntax to the schema overwriting any existing syntax with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         */
+        public SchemaBuilder addToSchemaOverwrite() {
+            return this.getSchemaBuilder().addSyntax(new Syntax(this), true);
+        }
+
+        /**
+         * Adds this syntax to the schema, throwing an {@code  ConflictingSchemaElementException}
+         * if there is an existing syntax with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         * @throws ConflictingSchemaElementException
+         *             If there is an existing syntax with the same numeric OID.
+         */
+        public SchemaBuilder addToSchema() {
+            return this.getSchemaBuilder().addSyntax(new Syntax(this), false);
+        }
+
+        /**
+         * Adds this syntax to the schema - overwriting any existing syntax with the same numeric OID
+         * if the overwrite parameter is set to {@code true}.
+         *
+         * @param overwrite
+         *            {@code true} if any syntax with the same OID should be overwritten.
+         * @return The parent schema builder.
+         */
+        SchemaBuilder addToSchema(final boolean overwrite) {
+            if (overwrite) {
+                return this.addToSchemaOverwrite();
+            }
+            return this.addToSchema();
+        }
+
+        @Override
+        public Builder description(final String description) {
+            return description0(description);
+        }
+
+        @Override
+        public Builder extraProperties(final Map<String, List<String>> extraProperties) {
+            return extraProperties0(extraProperties);
+        }
+
+        @Override
+        public Builder extraProperties(final String extensionName, final String... extensionValues) {
+            return extraProperties0(extensionName, extensionValues);
+        }
+
+        /**
+         * Sets the numeric OID which uniquely identifies this syntax.
+         *
+         * @param oid
+         *            The numeric OID.
+         * @return This builder.
+         */
+        public Builder oid(final String oid) {
+            this.oid = oid;
+            return this;
+        }
+
+        @Override
+        public Builder removeAllExtraProperties() {
+            return removeAllExtraProperties0();
+        }
+
+        @Override
+        public Builder removeExtraProperty(final String extensionName, final String... extensionValues) {
+            return removeExtraProperty0(extensionName, extensionValues);
+        }
+
+        /**
+         * Sets the syntax implementation.
+         *
+         * @param implementation
+         *            The syntax implementation.
+         * @return This builder.
+         */
+        public Builder implementation(final SyntaxImpl implementation) {
+            this.impl = implementation;
+            return this;
+        }
+
+        @Override
+        Builder getThis() {
+            return this;
+        }
+    }
+
     private final String oid;
     private MatchingRule equalityMatchingRule;
     private MatchingRule orderingMatchingRule;
@@ -62,6 +172,18 @@ public final class Syntax extends SchemaElement {
     private MatchingRule approximateMatchingRule;
     private Schema schema;
     private SyntaxImpl impl;
+
+    private Syntax(final Builder builder) {
+        super(builder);
+
+        // Checks for required attributes.
+        if (builder.oid == null || builder.oid.isEmpty()) {
+            throw new IllegalArgumentException("An OID must be specified.");
+        }
+
+        oid = builder.oid;
+        impl = builder.impl;
+    }
 
     /**
      * Creates a syntax representing an unrecognized syntax and whose
@@ -73,24 +195,13 @@ public final class Syntax extends SchemaElement {
      *            The numeric OID of the unrecognized syntax.
      */
     Syntax(final Schema schema, final String oid) {
-        super("", Collections.singletonMap("X-SUBST",
-                Collections.singletonList(schema.getDefaultSyntax().getOID())),
+        super("", Collections.singletonMap("X-SUBST", Collections.singletonList(schema.getDefaultSyntax().getOID())),
                 null);
 
         Reject.ifNull(oid);
         this.oid = oid;
         this.schema = schema;
         this.impl = schema.getDefaultSyntax().impl;
-    }
-
-    Syntax(final String oid, final String description,
-            final Map<String, List<String>> extraProperties, final String definition,
-            final SyntaxImpl implementation) {
-        super(description, extraProperties, definition);
-
-        Reject.ifNull(oid);
-        this.oid = oid;
-        this.impl = implementation;
     }
 
     /**
@@ -225,10 +336,6 @@ public final class Syntax extends SchemaElement {
         return impl.valueIsAcceptable(schema, value, invalidReason);
     }
 
-    Syntax duplicate() {
-        return new Syntax(oid, getDescription(), getExtraProperties(), toString(), impl);
-    }
-
     @Override
     void toStringContent(final StringBuilder buffer) {
         buffer.append(oid);
@@ -252,14 +359,10 @@ public final class Syntax extends SchemaElement {
                     if (values.hasNext()) {
                         final String value = values.next();
                         if (value.equals(oid)) {
-                            final LocalizableMessage message =
-                                    ERR_ATTR_SYNTAX_CYCLIC_SUB_SYNTAX.get(oid);
-                            throw new SchemaException(message);
+                            throw new SchemaException(ERR_ATTR_SYNTAX_CYCLIC_SUB_SYNTAX.get(oid));
                         }
                         if (!schema.hasSyntax(value)) {
-                            final LocalizableMessage message =
-                                    ERR_ATTR_SYNTAX_UNKNOWN_SUB_SYNTAX.get(oid, value);
-                            throw new SchemaException(message);
+                            throw new SchemaException(ERR_ATTR_SYNTAX_UNKNOWN_SUB_SYNTAX.get(oid, value));
                         }
                         final Syntax subSyntax = schema.getSyntax(value);
                         if (subSyntax.impl == null) {
@@ -276,10 +379,8 @@ public final class Syntax extends SchemaElement {
                             final Pattern pattern = Pattern.compile(value);
                             impl = new RegexSyntaxImpl(pattern);
                         } catch (final Exception e) {
-                            final LocalizableMessage message =
-                                    WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get(oid,
-                                            value);
-                            throw new SchemaException(message);
+                            throw new SchemaException(
+                                    WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get(oid, value));
                         }
                     }
                 }
@@ -300,9 +401,8 @@ public final class Syntax extends SchemaElement {
                     defaultSyntax.validate(schema, warnings);
                 }
                 impl = defaultSyntax.impl;
-                final LocalizableMessage message = WARN_ATTR_SYNTAX_NOT_IMPLEMENTED1
-                        .get(getDescription(), oid, schema.getDefaultSyntax()
-                                .getOID());
+                final LocalizableMessage message = WARN_ATTR_SYNTAX_NOT_IMPLEMENTED1.get(getDescription(), oid, schema
+                        .getDefaultSyntax().getOID());
                 warnings.add(message);
             }
         }

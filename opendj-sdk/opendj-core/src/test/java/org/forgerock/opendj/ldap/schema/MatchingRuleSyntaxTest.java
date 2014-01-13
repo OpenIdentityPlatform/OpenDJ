@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -32,7 +33,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Matching rule syntax tests.
  */
-public class MatchingRuleSyntaxTest extends SyntaxTestCase {
+public class MatchingRuleSyntaxTest extends AbstractSyntaxTestCase {
     /**
      * {@inheritDoc}
      */

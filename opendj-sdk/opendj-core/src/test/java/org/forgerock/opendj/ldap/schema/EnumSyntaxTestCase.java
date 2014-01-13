@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -38,7 +39,7 @@ import org.testng.annotations.Test;
  * Enum syntax tests.
  */
 @SuppressWarnings("javadoc")
-public class EnumSyntaxTestCase extends SyntaxTestCase {
+public class EnumSyntaxTestCase extends AbstractSyntaxTestCase {
     /**
      * {@inheritDoc}
      */
