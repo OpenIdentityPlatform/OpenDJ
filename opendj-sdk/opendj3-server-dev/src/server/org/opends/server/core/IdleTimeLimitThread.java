@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -127,7 +127,7 @@ public class IdleTimeLimitThread
               long idleTimeLimit = c.getIdleTimeLimit();
               if (idleTimeLimit > 0)
               {
-                if (idleTime > idleTimeLimit)
+                if (idleTime >= idleTimeLimit)
                 {
                   if (debugEnabled())
                   {
