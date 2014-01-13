@@ -22,13 +22,16 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013-2014 Manuel Gaupp
  */
 package org.opends.server.types;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.Base64;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.RawFilter;
 import org.opends.server.core.DirectoryServer;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -39,6 +42,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.text.ParseException;
 
 import static java.util.Arrays.asList;
 import static org.opends.server.util.StaticUtils.*;
@@ -1142,5 +1146,60 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     assertEquals(actualEquals, expectStringEquals,
                  "Expected " + filter1 + (expectStringEquals ? " == " : " != ") + filter2);
   }
+
+
+  /**
+   * Dataprovider for testing different normalization for value and assertion
+   */
+  @DataProvider(name = "differentNormalization")
+  public Object[][] differentNormalizationData() throws ParseException
+  {
+    final String BASE64_CERT_VALUE = 
+      "MIICpTCCAg6gAwIBAgIJALeoA6I3ZC/cMA0GCSqGSIb3DQEBBQUAMFYxCzAJBgNV" +
+      "BAYTAlVTMRMwEQYDVQQHEwpDdXBlcnRpb25lMRwwGgYDVQQLExNQcm9kdWN0IERl" +
+      "dmVsb3BtZW50MRQwEgYDVQQDEwtCYWJzIEplbnNlbjAeFw0xMjA1MDIxNjM0MzVa" +
+      "Fw0xMjEyMjExNjM0MzVaMFYxCzAJBgNVBAYTAlVTMRMwEQYDVQQHEwpDdXBlcnRp" +
+      "b25lMRwwGgYDVQQLExNQcm9kdWN0IERldmVsb3BtZW50MRQwEgYDVQQDEwtCYWJz" +
+      "IEplbnNlbjCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEApysa0c9qc8FB8gIJ" +
+      "8zAb1pbJ4HzC7iRlVGhRJjFORkGhyvU4P5o2wL0iz/uko6rL9/pFhIlIMbwbV8sm" +
+      "mKeNUPitwiKOjoFDmtimcZ4bx5UTAYLbbHMpEdwSpMC5iF2UioM7qdiwpAfZBd6Z" +
+      "69vqNxuUJ6tP+hxtr/aSgMH2i8ECAwEAAaN7MHkwCQYDVR0TBAIwADAsBglghkgB" +
+      "hvhCAQ0EHxYdT3BlblNTTCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwHQYDVR0OBBYE" +
+      "FLlZD3aKDa8jdhzoByOFMAJDs2osMB8GA1UdIwQYMBaAFLlZD3aKDa8jdhzoByOF" +
+      "MAJDs2osMA0GCSqGSIb3DQEBBQUAA4GBAE5vccY8Ydd7by2bbwiDKgQqVyoKrkUg" +
+      "6CD0WRmc2pBeYX2z94/PWO5L3Fx+eIZh2wTxScF+FdRWJzLbUaBuClrxuy0Y5ifj" +
+      "axuJ8LFNbZtsp1ldW3i84+F5+SYT+xI67ZcoAtwx/VFVI9s5I/Gkmu9f9nxjPpK7" +
+      "1AIUXiE3Qcck";
+    final String CERT_EXACT_ASSERTION = 
+      "{ serialNumber 13233831500277100508, issuer rdnSequence:\""+
+      "CN=Babs Jensen,OU=Product Development,L=Cupertione,C=US\" }";
+    final String CERTIFICATE_LDIF = TestCaseUtils.makeLdif(
+          "dn: cn=John Smith,dc=example,dc=com",
+          "objectclass: inetorgperson",
+          "cn: John Smith",
+          "sn: Smith",
+          "userCertificate;binary:: "+BASE64_CERT_VALUE
+          );
+    StringBuilder builder = new StringBuilder();
+    RawFilter.valueToFilterString(builder,ByteString.wrap(Base64.decode(BASE64_CERT_VALUE)));
+    final String CERTIFICATE_ENCODED = builder.toString();
+
+    return new Object[][]{
+            {CERTIFICATE_LDIF, "userCertificate="+CERT_EXACT_ASSERTION, true},
+            {CERTIFICATE_LDIF, "userCertificate="+CERTIFICATE_ENCODED, true}};
+  }
+
+  @Test(dataProvider = "differentNormalization")
+  public void testdifferentNormalization(String ldifEntry, String filterStr,
+                                         boolean expectMatch) throws Exception
+  {
+    Entry entry = TestCaseUtils.entryFromLdifString(ldifEntry);
+    boolean matches = SearchFilter.createFilterFromString(filterStr).matchesEntry(entry);
+    Assert.assertEquals(matches, expectMatch, "Filter=" + filterStr + "\nEntry=" + entry);
+  }
+
+
+
+
 }
 

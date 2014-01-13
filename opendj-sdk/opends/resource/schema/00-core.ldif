@@ -22,7 +22,7 @@
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
 #      Portions Copyright 2011-2012 ForgeRock AS
-#      Portions Copyright 2013 Manuel Gaupp
+#      Portions Copyright 2013-2014 Manuel Gaupp
 #
 #
 # This file contains a core set of attribute type and objectlass definitions
@@ -129,8 +129,10 @@ attributeTypes: ( 2.5.4.34 NAME 'seeAlso' SUP distinguishedName
 attributeTypes: ( 2.5.4.35 NAME 'userPassword'
   SYNTAX 1.3.6.1.4.1.26027.1.3.1 X-ORIGIN 'RFC 4519' )
 attributeTypes: ( 2.5.4.36 NAME 'userCertificate'
+  EQUALITY certificateExactMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.8 X-ORIGIN 'RFC 4523' )
 attributeTypes: ( 2.5.4.37 NAME 'cACertificate'
+  EQUALITY certificateExactMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.8 X-ORIGIN 'RFC 4523' )
 attributeTypes: ( 2.5.4.38 NAME 'authorityRevocationList'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.9 X-ORIGIN 'RFC 4523' )
