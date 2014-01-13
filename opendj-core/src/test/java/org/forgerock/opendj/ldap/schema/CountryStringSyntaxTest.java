@@ -23,6 +23,7 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2012 Manuel Gaupp
+ *      Portions copyright 2014 ForgeRock AS.
  *
  */
 package org.forgerock.opendj.ldap.schema;
@@ -34,7 +35,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Country String syntax tests.
  */
-public class CountryStringSyntaxTest extends SyntaxTestCase {
+public class CountryStringSyntaxTest extends AbstractSyntaxTestCase {
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {

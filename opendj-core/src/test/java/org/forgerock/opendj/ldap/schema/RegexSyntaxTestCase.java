@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -35,7 +36,7 @@ import org.testng.annotations.Test;
  * Regex syntax tests.
  */
 @SuppressWarnings("javadoc")
-public class RegexSyntaxTestCase extends SyntaxTestCase {
+public class RegexSyntaxTestCase extends AbstractSyntaxTestCase {
     /**
      * {@inheritDoc}
      */

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -897,11 +897,13 @@ public final class SchemaBuilder {
         lazyInitBuilder();
 
         final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, Arrays.asList(enumerations));
-        final Syntax enumSyntax =
-                new Syntax(oid, description, Collections.singletonMap("X-ENUM", Arrays
-                        .asList(enumerations)), null, enumImpl);
 
-        addSyntax(enumSyntax, overwrite);
+        final Syntax.Builder syntaxBuilder = buildSyntax(oid).description(description)
+                .extraProperties(Collections.singletonMap("X-ENUM", Arrays.asList(enumerations)))
+                .implementation(enumImpl);
+
+        syntaxBuilder.addToSchema(overwrite);
+
         try {
             buildMatchingRule(enumImpl.getOrderingMatchingRule())
                     .names(OMR_GENERIC_ENUM_NAME + oid)
@@ -1379,6 +1381,24 @@ public final class SchemaBuilder {
     }
 
     /**
+     * Returns a builder which can be used for incrementally constructing a new
+     * syntax before adding it to the schema. Example usage:
+     *
+     * <pre>
+     * SchemaBuilder builder = ...;
+     * builder.buildSyntax("1.2.3.4").addToSchema();
+     * </pre>
+     *
+     * @param oid
+     *            The OID of the syntax definition.
+     * @return A builder to continue building the syntax.
+     */
+    public Syntax.Builder buildSyntax(final String oid) {
+        lazyInitBuilder();
+        return new Syntax.Builder(oid, this);
+    }
+
+    /**
      * Sets the default syntax which will be used when parsing unrecognized
      * attributes.
      * <p>
@@ -1468,6 +1488,18 @@ public final class SchemaBuilder {
     public NameForm.Builder buildNameForm(final NameForm nameForm) {
         lazyInitBuilder();
         return new NameForm.Builder(nameForm, this);
+    }
+
+    /**
+     * Duplicates the syntax.
+     *
+     * @param syntax
+     *            The syntax to duplicate.
+     * @return A syntax builder.
+     */
+    public Syntax.Builder buildSyntax(final Syntax syntax) {
+        lazyInitBuilder();
+        return new Syntax.Builder(syntax, this);
     }
 
     /**
@@ -1700,8 +1732,11 @@ public final class SchemaBuilder {
 
         lazyInitBuilder();
 
-        addSyntax(new Syntax(oid, description, Collections.singletonMap("X-PATTERN", Collections
-                .singletonList(pattern.toString())), null, null), overwrite);
+        final Syntax.Builder syntaxBuilder = buildSyntax(oid).description(description).extraProperties(
+                Collections.singletonMap("X-PATTERN", Collections.singletonList(pattern.toString())));
+
+        syntaxBuilder.addToSchema(overwrite);
+
         return this;
     }
 
@@ -2052,8 +2087,11 @@ public final class SchemaBuilder {
 
         lazyInitBuilder();
 
-        addSyntax(new Syntax(oid, description, Collections.singletonMap("X-SUBST", Collections
-                .singletonList(substituteSyntax)), null, null), overwrite);
+        final Syntax.Builder syntaxBuilder = buildSyntax(oid).description(description).extraProperties(
+                Collections.singletonMap("X-SUBST", Collections.singletonList(substituteSyntax)));
+
+        syntaxBuilder.addToSchema(overwrite);
+
         return this;
     }
 
@@ -2110,9 +2148,7 @@ public final class SchemaBuilder {
 
             // The next set of characters must be the OID.
             final String oid = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
-
-            String description = "".intern();
-            Map<String, List<String>> extraProperties = Collections.emptyMap();
+            final Syntax.Builder syntaxBuilder = new Syntax.Builder(oid, this).definition(definition);
 
             // At this point, we should have a pretty specific syntax that
             // describes what may come next, but some of the components are
@@ -2131,17 +2167,15 @@ public final class SchemaBuilder {
                 } else if (tokenName.equalsIgnoreCase("desc")) {
                     // This specifies the description for the syntax. It is an
                     // arbitrary string of characters enclosed in single quotes.
-                    description = SchemaUtils.readQuotedString(reader);
+                    syntaxBuilder.description(SchemaUtils.readQuotedString(reader));
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    if (extraProperties.isEmpty()) {
-                        extraProperties = new HashMap<String, List<String>>();
-                    }
-                    extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
+                    final List<String> extensions = SchemaUtils.readExtensions(reader);
+                    syntaxBuilder.extraProperties(tokenName, extensions.toArray(new String[extensions.size()]));
                 } else {
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_TOKEN1.get(definition, tokenName);
@@ -2149,17 +2183,13 @@ public final class SchemaBuilder {
                 }
             }
 
-            if (!extraProperties.isEmpty()) {
-                extraProperties = Collections.unmodifiableMap(extraProperties);
-            }
-
             // See if it is a enum syntax
-            for (final Map.Entry<String, List<String>> property : extraProperties.entrySet()) {
+            for (final Map.Entry<String, List<String>> property : syntaxBuilder.getExtraProperties().entrySet()) {
                 if (property.getKey().equalsIgnoreCase("x-enum")) {
                     final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, property.getValue());
-                    final Syntax enumSyntax =
-                            new Syntax(oid, description, extraProperties, definition, enumImpl);
-                    addSyntax(enumSyntax, overwrite);
+                    syntaxBuilder.implementation(enumImpl);
+
+                    syntaxBuilder.addToSchema(overwrite);
 
                     buildMatchingRule(enumImpl.getOrderingMatchingRule())
                         .names(OMR_GENERIC_ENUM_NAME + oid)
@@ -2171,44 +2201,12 @@ public final class SchemaBuilder {
                 }
             }
 
-            addSyntax(new Syntax(oid, description, extraProperties, definition, null), overwrite);
+            syntaxBuilder.addToSchema(overwrite);
         } catch (final DecodeException e) {
             final LocalizableMessage msg =
                     ERR_ATTR_SYNTAX_ATTRSYNTAX_INVALID1.get(definition, e.getMessageObject());
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
         }
-        return this;
-    }
-
-    /**
-     * Adds the provided syntax definition to this schema builder.
-     *
-     * @param oid
-     *            The OID of the syntax definition.
-     * @param description
-     *            The description of the syntax definition.
-     * @param extraProperties
-     *            A map containing additional properties associated with the
-     *            syntax definition.
-     * @param implementation
-     *            The implementation of the syntax.
-     * @param overwrite
-     *            {@code true} if any existing syntax with the same OID should
-     *            be overwritten.
-     * @return A reference to this schema builder.
-     * @throws ConflictingSchemaElementException
-     *             If {@code overwrite} was {@code false} and a conflicting
-     *             schema element was found.
-     * @throws NullPointerException
-     *             If {@code definition} was {@code null}.
-     */
-    SchemaBuilder addSyntax(final String oid, final String description,
-            final Map<String, List<String>> extraProperties, final SyntaxImpl implementation,
-            final boolean overwrite) {
-        lazyInitBuilder();
-
-        addSyntax(new Syntax(oid, description, unmodifiableCopyOfExtraProperties(extraProperties),
-                null, implementation), overwrite);
         return this;
     }
 
@@ -2755,7 +2753,7 @@ public final class SchemaBuilder {
         // unlikely, may be different in the new schema.
 
         for (final Syntax syntax : schema.getSyntaxes()) {
-            addSyntax(syntax.duplicate(), overwrite);
+            addSyntax(syntax, overwrite);
         }
 
         for (final MatchingRule matchingRule : schema.getMatchingRules()) {
@@ -2787,19 +2785,19 @@ public final class SchemaBuilder {
         }
     }
 
-    private void addSyntax(final Syntax syntax, final boolean overwrite) {
+    SchemaBuilder addSyntax(final Syntax syntax, final boolean overwrite) {
         Syntax conflictingSyntax;
         if (numericOID2Syntaxes.containsKey(syntax.getOID())) {
             conflictingSyntax = numericOID2Syntaxes.get(syntax.getOID());
             if (!overwrite) {
-                final LocalizableMessage message =
-                        ERR_SCHEMA_CONFLICTING_SYNTAX_OID.get(syntax.toString(), syntax.getOID(),
-                                conflictingSyntax.getOID());
+                final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.get(syntax.toString(),
+                        syntax.getOID(), conflictingSyntax.getOID());
                 throw new ConflictingSchemaElementException(message);
             }
             removeSyntax(conflictingSyntax);
         }
         numericOID2Syntaxes.put(syntax.getOID(), syntax);
+        return this;
     }
 
     private void lazyInitBuilder() {

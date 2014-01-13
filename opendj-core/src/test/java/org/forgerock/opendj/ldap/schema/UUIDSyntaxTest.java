@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -32,7 +33,7 @@ import org.testng.annotations.DataProvider;
 /**
  * UUID syntax tests.
  */
-public class UUIDSyntaxTest extends SyntaxTestCase {
+public class UUIDSyntaxTest extends AbstractSyntaxTestCase {
     /**
      * {@inheritDoc}
      */
