@@ -23,6 +23,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -971,8 +972,10 @@ public class AttributeIndex
     try
     {
       // Make a key from the normalized assertion value.
-      byte[] keyBytes =
-          equalityFilter.getAssertionValue().getNormalizedValue().toByteArray();
+      EqualityMatchingRule equalityRule = equalityFilter.getAttributeType().
+        getEqualityMatchingRule();
+      byte[] keyBytes = equalityRule.normalizeAssertionValue(equalityFilter.
+        getAssertionValue().getValue()).toByteArray();
       DatabaseEntry key = new DatabaseEntry(keyBytes);
 
       if(debugBuffer != null)
