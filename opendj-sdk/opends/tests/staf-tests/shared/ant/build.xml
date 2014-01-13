@@ -22,7 +22,7 @@
  !
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2013 ForgeRock AS
+ !      Portions Copyright 2011-2014 ForgeRock AS
  ! -->
 <project name="opends-staf-tests" basedir="../.." default="usage">
 
@@ -481,18 +481,18 @@
 
   <!-- Run functional tests -->
   <target name="tests-func-run"
-          depends="set-func-type,global-init,opends-build,staf-start">
+          depends="set-func-type,global-init,staf-start">
     <ant antfile="${antfile.dir}/tests.xml" target="run"/>
   </target>
 
   <target name="tests-func-coverage"
-          depends="set-func-type,global-init,opends-build,staf-start">
+          depends="set-func-type,global-init,staf-start">
     <ant antfile="${antfile.dir}/tests.xml" target="testwithcoverage"/>
   </target>
 
   <!-- Run stress tests -->
   <target name="tests-stress-run"
-          depends="set-stress-type,global-init,opends-build,staf-start">
+          depends="set-stress-type,global-init,staf-start">
     <ant antfile="${antfile.dir}/tests.xml" target="run"/>
   </target>
 
