@@ -187,7 +187,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimits(1,4,true);
   }
 
-  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerTest1() throws Exception
   {
     getCNIndexDB().setPurgeDelay(0);
@@ -195,7 +195,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLTwoDomains();
   }
 
-  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerTest2() throws Exception
   {
     // Test ECL after changelog trimming
@@ -236,7 +236,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLOperationalAttributesFailTest();
   }
 
-  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest() throws Exception
   {
     // ***********************************************
@@ -261,7 +261,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLEmpty();
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest3() throws Exception
   {
     getCNIndexDB().setPurgeDelay(0);
@@ -278,28 +278,28 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimits(1, 4, true);
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest4() throws Exception
   {
     // Test remote API (ECL through replication protocol) with NON empty ECL
     ECLRemoteNonEmpty();
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest7() throws Exception
   {
     // Persistent search with changesOnly request
     ECLPsearch(true, false);
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest8() throws Exception
   {
     // Persistent search with init values request
     ECLPsearch(false, false);
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest9() throws Exception
   {
     // Simultaneous psearches
@@ -312,7 +312,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   // TODO:ECL Test the attributes list and values returned in ECL entries
   // TODO:ECL Test search -s base, -s one
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest11() throws Exception
   {
     // Test directly from the java object that the changeTimeHeartbeatState
@@ -345,7 +345,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatBadSeqnum();
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest15() throws Exception
   {
     final JEChangeNumberIndexDB cnIndexDB = getCNIndexDB();
@@ -381,7 +381,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLPsearch(true, true);
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest16() throws Exception
   {
     // Persistent search in init + changes mode
