@@ -413,7 +413,7 @@ public final class ECLServerHandler extends ServerHandler
     super(session, queueSize, replicationServer, rcvWindowSize);
     try
     {
-      DN baseDN = DN.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+      DN baseDN = DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
       setBaseDNAndDomain(baseDN, true);
     }
     catch(DirectoryException de)
@@ -1472,7 +1472,11 @@ public final class ECLServerHandler extends ServerHandler
    */
   public String getOperationId()
   {
-    return startECLSessionMsg.getOperationId();
+    if (startECLSessionMsg != null)
+    {
+      return startECLSessionMsg.getOperationId();
+    }
+    return "";
   }
 
   /**
