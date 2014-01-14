@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !
 --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -433,7 +433,7 @@
   <licenses>
    <license>
     <name>CDDL-1.0</name>
-    <url>http://www.opensource.org/licenses/cddl1.php</url>
+    <url>http://www.opensource.org/licenses/CDDL-1.0</url>
     <comments>Common Development and Distribution License (CDDL) 1.0.
     This license applies to OpenDJ source code as indicated in the
     source files.</comments>
