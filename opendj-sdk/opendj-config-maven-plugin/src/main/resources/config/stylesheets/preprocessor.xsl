@@ -27,15 +27,14 @@
 <xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:exsl="http://exslt.org/common"
-  xmlns:file="xalan://java.io.File">
+  xmlns:exsl="http://exslt.org/common">
   <xsl:import href="java-utilities.xsl" />
   <xsl:output method="xml" indent="yes" />
   <!--
     Global parameter: the absolute path of the base directory where
     XML managed object definitions can be found.
   -->
-  <xsl:param name="base-dir" select="'src/main/java'" />
+  <xsl:param name="base-dir" select="''" />
   <!-- 
     Get an absolute URI from a package, object name, and suffix.
   -->
@@ -58,10 +57,7 @@
     <!--
       Get the absolute path.
     -->
-    <xsl:variable name="base-file" select="file:new($base-dir)" />
-    <xsl:variable name="base-dir-uri" select="file:toURI($base-file)" />
-    <xsl:value-of
-      select="concat($base-dir-uri, '/', $rpath, '/', $java-name, $suffix)" />
+    <xsl:value-of select="concat($base-dir, $rpath, '/', $java-name, $suffix)" />
   </xsl:template>
   <!--
     Get the URI of the named package definition.

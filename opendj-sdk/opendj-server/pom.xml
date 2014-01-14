@@ -33,7 +33,7 @@
     <version>3.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server</artifactId>
-  <name>OpenDJ LDAP Directory Server</name>
+  <name>OpenDJ Server</name>
   <description> 
     This module includes the core functionality of the OpenDJ LDAP Directory Server.
   </description>
