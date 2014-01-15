@@ -64,98 +64,9 @@
       com.sun.security.auth*;resolution:=optional,
       *
     </opendj.osgi.import>
-
-    <!-- properties used to generate DynamicConstant class -->
-    <serverProductName>OpenDJ</serverProductName>
-    <serverShortProductName>OpenDJ</serverShortProductName>
-    <issuesFixIds></issuesFixIds>
-    <isDebugBuild>false</isDebugBuild>
-    <docReferenceHome>http://opendj.forgerock.org/</docReferenceHome>
-    <docReferenceWiki>http://opendj.forgerock.org/docs.html</docReferenceWiki>
-    <docQuickRefGuide>http://opendj.forgerock.org/doc/admin-guide/index.html</docQuickRefGuide>
-    <adminGuideUrl>http://opendj.forgerock.org/doc/admin-guide/index.html</adminGuideUrl>
   </properties>
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.8</version>
-        <executions>
-          <!-- Parse the maven version to get version parts (major, minor, ...) -->
-          <execution>
-            <id>parse-version</id>
-            <goals>
-              <goal>parse-version</goal>
-            </goals>
-          </execution>
-          <!-- Add generated source directories to build -->
-          <execution>
-            <id>add-source</id>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>add-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>${project.build.directory}/generated-sources/java</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <!-- Retrieve the SVN revision number and the build timestamp -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>buildnumber-maven-plugin</artifactId>
-        <version>1.2</version>
-        <executions>
-          <execution>
-            <id>generate-buildnumber</id>
-            <goals>
-              <goal>create</goal>
-            </goals>
-            <configuration>
-              <useLastCommittedRevision>true</useLastCommittedRevision>
-              <buildNumberPropertyName>buildRevision</buildNumberPropertyName>
-            </configuration>
-          </execution>
-          <execution>
-            <id>generate-timestamp</id>
-            <goals>
-              <goal>create</goal>
-            </goals>
-            <configuration>
-              <format>{0,date,yyyyMMddHHmmss}</format>
-              <items>
-                <item>timestamp</item>
-              </items>
-              <buildNumberPropertyName>buildDateTime</buildNumberPropertyName>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy-resources</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}/generated-sources/java</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>src/main/java-templates</directory>
-                  <filtering>true</filtering>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>i18n-maven-plugin</artifactId>
@@ -200,39 +111,6 @@
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
     </plugins>
-    <pluginManagement>
-      <plugins>
-        <!--This plugin's configuration is used to store Eclipse m2e settings only.
-            It has no influence on the Maven build itself.-->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.forgerock.opendj</groupId>
-                    <artifactId>opendj-config-maven-plugin</artifactId>
-                    <versionRange>[3.0.0-SNAPSHOT,)</versionRange>
-                    <goals>
-                      <goal>generate</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <execute>
-                        <runOnIncremental>true</runOnIncremental>
-                        <runOnConfiguration>true</runOnConfiguration>
-                    </execute>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
   <reporting>
     <plugins>
