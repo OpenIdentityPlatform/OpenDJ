@@ -30,7 +30,6 @@ import static org.testng.Assert.assertEquals;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
-import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -46,7 +45,7 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
 
 
     @Test(dataProvider = "baseDN")
-    public void testBuilderSetBaseDN(String baseDN) throws DirectoryException {
+    public void testBuilderSetBaseDN(String baseDN) {
         DNPropertyDefinition.Builder localBuilder = DNPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),
                 "test-property");
         localBuilder.setBaseDN(baseDN);
@@ -90,7 +89,7 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
     }
 
     @Test(dataProvider = "legalValues")
-    public void testValidateLegalValues(String baseDN, String valueToValidate) throws DirectoryException {
+    public void testValidateLegalValues(String baseDN, String valueToValidate) {
         DNPropertyDefinition.Builder localBuilder = DNPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),
                 "test-property");
         localBuilder.setBaseDN(baseDN);
@@ -99,7 +98,7 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
     }
 
     @Test(dataProvider = "illegalValues", expectedExceptions = IllegalPropertyValueException.class)
-    public void testValidateIllegalValues(String baseDN, String valueToValidate) throws DirectoryException {
+    public void testValidateIllegalValues(String baseDN, String valueToValidate) {
         DNPropertyDefinition.Builder localBuilder = DNPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),
                 "test-property");
         localBuilder.setBaseDN(baseDN);

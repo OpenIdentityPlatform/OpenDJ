@@ -27,9 +27,8 @@
 package org.forgerock.opendj.config;
 
 import org.forgerock.util.Reject;
-
 import org.opends.server.authorization.dseecompat.Aci;
-import org.opends.server.authorization.dseecompat.AciException;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 
@@ -101,7 +100,7 @@ public final class ACIPropertyDefinition extends PropertyDefinition<Aci> {
 
         try {
             return Aci.decode(ByteString.valueOf(value), DN.rootDN());
-        } catch (AciException e) {
+        } catch (LocalizedIllegalArgumentException e) {
             // TODO: it would be nice to throw the cause.
             throw new IllegalPropertyValueStringException(this, value);
         }

@@ -26,7 +26,6 @@
 package org.opends.server.core;
 
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
@@ -95,36 +94,6 @@ public final class DirectoryServer {
      */
     public static String getServerRoot() {
         throw new RuntimeException("Not implemented");
-    }
-
-    /**
-     * Retrieves the objectclass for the provided lowercase name or OID.
-     *
-     * @param lowerName
-     *            The lowercase name or OID for the objectclass to retrieve.
-     * @return The requested objectclass, or <CODE>null</CODE> if there is no
-     *         such objectclass defined in the server schema.
-     */
-    public static ObjectClass getObjectClass(String lowerName) {
-        try {
-            return Schema.getDefaultSchema().getObjectClass(lowerName);
-        } catch (UnknownSchemaElementException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Causes the Directory Server to construct a new objectclass definition
-     * with the provided name and with no required or allowed attributes. This
-     * should only be used if there is no objectclass for the specified name. It
-     * will not register the created objectclass with the Directory Server.
-     *
-     * @param name
-     *            The name to use for the objectclass, as provided by the user.
-     * @return The constructed objectclass definition.
-     */
-    public static ObjectClass getDefaultObjectClass(String name) {
-        return getObjectClass(name);
     }
 
 }

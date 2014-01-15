@@ -26,13 +26,14 @@
 
 package org.forgerock.opendj.config;
 
+import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.types.OpenDsException;
 
 /**
  * Exceptions thrown when interacting with administration framework.
  */
-public abstract class AdminException extends OpenDsException {
+public abstract class AdminException extends Exception implements LocalizableException {
+    private final LocalizableMessage message;
 
     /**
      * Fake serialization ID.
@@ -48,7 +49,8 @@ public abstract class AdminException extends OpenDsException {
      *            The cause.
      */
     protected AdminException(LocalizableMessage message, Throwable cause) {
-        super(message, cause);
+        super(cause);
+        this.message = message;
     }
 
     /**
@@ -58,6 +60,11 @@ public abstract class AdminException extends OpenDsException {
      *            The message.
      */
     protected AdminException(LocalizableMessage message) {
-        super(message);
+        this.message = message;
+    }
+
+    @Override
+    public LocalizableMessage getMessageObject() {
+        return message;
     }
 }

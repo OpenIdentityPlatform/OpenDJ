@@ -26,6 +26,7 @@
  */
 package org.opends.server.authorization.dseecompat;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 
@@ -48,10 +49,10 @@ public class Aci implements Comparable<Aci> {
      * @param dn
      *            DN of the ACI entry.
      * @return Returns a decoded ACI representing the string argument.
-     * @throws AciException
+     * @throws LocalizedIllegalArgumentException
      *             If the parsing of the ACI string fails.
      */
-    public static Aci decode(ByteString byteString, DN dn) throws AciException {
+    public static Aci decode(ByteString byteString, DN dn) {
         throw new RuntimeException("This class is not implemented");
     }
 }
