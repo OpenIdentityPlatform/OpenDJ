@@ -56,9 +56,9 @@ import java.util.jar.Manifest;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.InitializationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -179,7 +179,7 @@ public final class ClassLoaderProvider {
      *            The names of the extensions to be loaded. The names should not
      *            contain any path elements and must be located within the
      *            extensions folder.
-     * @throws InitializationException
+     * @throws ConfigException
      *             If one of the extensions could not be loaded and initialized.
      * @throws IllegalStateException
      *             If this class loader provider is disabled.
@@ -187,7 +187,7 @@ public final class ClassLoaderProvider {
      *             If one of the extension names was not a single relative path
      *             name element or was an absolute path.
      */
-    public synchronized void addExtension(String... extensions) throws InitializationException {
+    public synchronized void addExtension(String... extensions) throws ConfigException {
         Reject.ifNull(extensions);
 
         if (loader == null) {
@@ -236,13 +236,13 @@ public final class ClassLoaderProvider {
      * Enable this class loader provider using the application's class loader as
      * the parent class loader.
      *
-     * @throws InitializationException
+     * @throws ConfigException
      *             If the class loader provider could not initialize
      *             successfully.
      * @throws IllegalStateException
      *             If this class loader provider is already enabled.
      */
-    public synchronized void enable() throws InitializationException {
+    public synchronized void enable() throws ConfigException {
         enable(RootCfgDefn.class.getClassLoader());
     }
 
@@ -251,13 +251,13 @@ public final class ClassLoaderProvider {
      *
      * @param parent
      *            The parent class loader.
-     * @throws InitializationException
+     * @throws ConfigException
      *             If the class loader provider could not initialize
      *             successfully.
      * @throws IllegalStateException
      *             If this class loader provider is already enabled.
      */
-    public synchronized void enable(ClassLoader parent) throws InitializationException {
+    public synchronized void enable(ClassLoader parent) throws ConfigException {
         if (loader != null) {
             throw new IllegalStateException("Class loader provider already enabled.");
         }
@@ -335,10 +335,10 @@ public final class ClassLoaderProvider {
      *
      * @param extensions
      *            The names of the extensions to be loaded.
-     * @throws InitializationException
+     * @throws ConfigException
      *             If one of the extensions could not be loaded and initialized.
      */
-    private synchronized void addExtension(File... extensions) throws InitializationException {
+    private synchronized void addExtension(File... extensions) throws ConfigException {
         // First add the Jar files to the class loader.
         List<JarFile> jars = new LinkedList<JarFile>();
         for (File extension : extensions) {
@@ -358,7 +358,7 @@ public final class ClassLoaderProvider {
                 LocalizableMessage message =
                     ERR_ADMIN_CANNOT_OPEN_JAR_FILE.get(extension.getName(), extension.getParent(),
                         stackTraceToSingleLineString(e, true));
-                throw new InitializationException(message);
+                throw new ConfigException(message);
             }
             jarFiles.add(extension);
         }
@@ -477,12 +477,12 @@ public final class ClassLoaderProvider {
      *
      * @param extensionsPath
      *            Indicates where extensions are located.
-     * @throws InitializationException
+     * @throws ConfigException
      *             If the extensions folder could not be accessed or if a
      *             extension jar file could not be accessed or if one of the
      *             configuration definition classes could not be initialized.
      */
-    private void initializeAllExtensions(File extensionsPath) throws InitializationException {
+    private void initializeAllExtensions(File extensionsPath) throws ConfigException {
 
         try {
             if (!extensionsPath.exists()) {
@@ -497,7 +497,7 @@ public final class ClassLoaderProvider {
                 // critical.
                 LocalizableMessage message =
                     ERR_ADMIN_EXTENSIONS_DIR_NOT_DIRECTORY.get(String.valueOf(extensionsPath));
-                throw new InitializationException(message);
+                throw new ConfigException(message);
             }
 
             // Get each extension file name.
@@ -519,7 +519,7 @@ public final class ClassLoaderProvider {
 
             // Add and initialize the extensions.
             addExtension(extensionsPath.listFiles(filter));
-        } catch (InitializationException e) {
+        } catch (ConfigException e) {
             debugLogger.trace("Unable to initialize all extensions", e);
             throw e;
         } catch (Exception e) {
@@ -527,31 +527,31 @@ public final class ClassLoaderProvider {
             LocalizableMessage message =
                 ERR_ADMIN_EXTENSIONS_CANNOT_LIST_FILES.get(String.valueOf(extensionsPath),
                     stackTraceToSingleLineString(e, true));
-            throw new InitializationException(message, e);
+            throw new ConfigException(message, e);
         }
     }
 
     /**
      * Make sure all core configuration definitions are loaded.
      *
-     * @throws InitializationException
+     * @throws ConfigException
      *             If the core manifest file could not be read or if one of the
      *             configuration definition classes could not be initialized.
      */
-    private void initializeCoreComponents() throws InitializationException {
+    private void initializeCoreComponents() throws ConfigException {
         InputStream is = RootCfgDefn.class.getResourceAsStream(MANIFEST);
         if (is == null) {
             LocalizableMessage message = ERR_ADMIN_CANNOT_FIND_CORE_MANIFEST.get(MANIFEST);
-            throw new InitializationException(message);
+            throw new ConfigException(message);
         }
         try {
             loadDefinitionClasses(is);
-        } catch (InitializationException e) {
+        } catch (ConfigException e) {
             debugLogger.trace("Unable to initialize core components", e);
             LocalizableMessage message =
                 ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(MANIFEST,
                     stackTraceToSingleLineString(e, true));
-            throw new InitializationException(message);
+            throw new ConfigException(message);
         }
     }
 
@@ -561,12 +561,12 @@ public final class ClassLoaderProvider {
      *
      * @param jarFile
      *            The extension's Jar file.
-     * @throws InitializationException
+     * @throws ConfigException
      *             If the extension jar file could not be accessed or if one of
      *             the configuration definition classes could not be
      *             initialized.
      */
-    private void initializeExtension(JarFile jarFile) throws InitializationException {
+    private void initializeExtension(JarFile jarFile) throws ConfigException {
         JarEntry entry = jarFile.getJarEntry(MANIFEST);
         if (entry != null) {
             InputStream is;
@@ -577,17 +577,17 @@ public final class ClassLoaderProvider {
                 LocalizableMessage message =
                     ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.get(MANIFEST, jarFile.getName(),
                         stackTraceToSingleLineString(e, true));
-                throw new InitializationException(message);
+                throw new ConfigException(message);
             }
 
             try {
                 loadDefinitionClasses(is);
-            } catch (InitializationException e) {
+            } catch (ConfigException e) {
                 debugLogger.trace("Unable to load classes from input stream", e);
                 LocalizableMessage message =
                     ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile.getName(), MANIFEST,
                         stackTraceToSingleLineString(e, true));
-                throw new InitializationException(message);
+                throw new ConfigException(message);
             }
             try {
                 // Log build information of extensions in the error log
@@ -607,11 +607,11 @@ public final class ClassLoaderProvider {
      *
      * @param is
      *            The manifest file input stream.
-     * @throws InitializationException
+     * @throws ConfigException
      *             If the definition classes could not be loaded and
      *             initialized.
      */
-    private void loadDefinitionClasses(InputStream is) throws InitializationException {
+    private void loadDefinitionClasses(InputStream is) throws ConfigException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         List<AbstractManagedObjectDefinition<?, ?>> definitions =
             new LinkedList<AbstractManagedObjectDefinition<?, ?>>();
@@ -622,7 +622,7 @@ public final class ClassLoaderProvider {
             } catch (IOException e) {
                 LocalizableMessage msg =
                     ERR_CLASS_LOADER_CANNOT_READ_MANIFEST_FILE.get(String.valueOf(e.getMessage()));
-                throw new InitializationException(msg, e);
+                throw new ConfigException(msg, e);
             }
 
             // Break out when the end of the manifest is reached.
@@ -650,7 +650,7 @@ public final class ClassLoaderProvider {
             } catch (Exception e) {
                 LocalizableMessage msg =
                     ERR_CLASS_LOADER_CANNOT_LOAD_CLASS.get(className, String.valueOf(e.getMessage()));
-                throw new InitializationException(msg, e);
+                throw new ConfigException(msg, e);
             }
             if (AbstractManagedObjectDefinition.class.isAssignableFrom(theClass)) {
                 // We need to instantiate it using its getInstance() static
@@ -662,7 +662,7 @@ public final class ClassLoaderProvider {
                     LocalizableMessage msg =
                         ERR_CLASS_LOADER_CANNOT_FIND_GET_INSTANCE_METHOD.get(className,
                             String.valueOf(e.getMessage()));
-                    throw new InitializationException(msg, e);
+                    throw new ConfigException(msg, e);
                 }
 
                 // Get the definition instance.
@@ -673,7 +673,7 @@ public final class ClassLoaderProvider {
                     LocalizableMessage msg =
                         ERR_CLASS_LOADER_CANNOT_INVOKE_GET_INSTANCE_METHOD.get(className,
                             String.valueOf(e.getMessage()));
-                    throw new InitializationException(msg, e);
+                    throw new ConfigException(msg, e);
                 }
                 definitions.add(d);
             }
@@ -687,7 +687,7 @@ public final class ClassLoaderProvider {
                 LocalizableMessage msg =
                     ERR_CLASS_LOADER_CANNOT_INITIALIZE_DEFN.get(d.getName(), d.getClass().getName(),
                         String.valueOf(e.getMessage()));
-                throw new InitializationException(msg, e);
+                throw new ConfigException(msg, e);
             }
         }
     }
@@ -698,10 +698,10 @@ public final class ClassLoaderProvider {
      * @param jar
      *            The name of the Jar file to load.
      * @return Returns the loaded Jar file.
-     * @throws InitializationException
+     * @throws ConfigException
      *             If the Jar file could not be loaded.
      */
-    private JarFile loadJarFile(File jar) throws InitializationException {
+    private JarFile loadJarFile(File jar) throws ConfigException {
         JarFile jarFile;
 
         try {
@@ -713,7 +713,7 @@ public final class ClassLoaderProvider {
             LocalizableMessage message =
                 ERR_ADMIN_CANNOT_OPEN_JAR_FILE.get(jar.getName(), jar.getParent(),
                     stackTraceToSingleLineString(e, true));
-            throw new InitializationException(message);
+            throw new ConfigException(message);
         }
         return jarFile;
     }

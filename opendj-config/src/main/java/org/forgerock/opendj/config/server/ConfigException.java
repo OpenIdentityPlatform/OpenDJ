@@ -33,9 +33,7 @@ import org.forgerock.i18n.LocalizableMessage;
  * configuration.
  */
 public final class ConfigException extends Exception implements LocalizableException {
-
     private static final long serialVersionUID = -540463620272921157L;
-
     private final LocalizableMessage message;
 
     /**
