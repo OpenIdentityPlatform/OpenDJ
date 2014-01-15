@@ -34,14 +34,24 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 @Test
 public class ProductInformationTest extends ForgeRockTestCase {
+    /*
+     * This test class verifies that the product information has been generated
+     * and can be loaded at runtime. It does not attempt to exhaustively check
+     * all methods.
+     */
 
     @Test
-    public void testGetName() {
+    public void testProductName() {
         assertThat(ProductInformation.getInstance().productName()).isNotNull();
     }
 
     @Test
-    public void testGetShortName() {
+    public void testProductShortName() {
         assertThat(ProductInformation.getInstance().productShortName()).isEqualTo("OpenDJ");
+    }
+
+    @Test
+    public void testVersionMajor() {
+        assertThat(ProductInformation.getInstance().versionMajorNumber()).isGreaterThanOrEqualTo(3);
     }
 }

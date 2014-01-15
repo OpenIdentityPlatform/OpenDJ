@@ -39,14 +39,14 @@
   </description>
   <packaging>jar</packaging>
   <properties>
-    <!-- Product properties -->
+    <!-- Product information properties -->
     <shortProductName>OpenDJ</shortProductName>
-    <issuesFixIds></issuesFixIds>
+    <patchFixIds></patchFixIds>
     <isDebugBuild>false</isDebugBuild>
-    <docReferenceHome>http://opendj.forgerock.org/</docReferenceHome>
-    <docReferenceWiki>http://opendj.forgerock.org/docs.html</docReferenceWiki>
-    <docQuickRefGuide>http://opendj.forgerock.org/doc/admin-guide/index.html</docQuickRefGuide>
-    <adminGuideUrl>http://opendj.forgerock.org/doc/admin-guide/index.html</adminGuideUrl>
+    <docHomepageUrl>http://opendj.forgerock.org/</docHomepageUrl>
+    <docWikiUrl>http://opendj.forgerock.org/docs.html</docWikiUrl>
+    <docGuideRefUrl>http://opendj.forgerock.org/doc/admin-guide/index.html</docGuideRefUrl>
+    <docGuideAdminUrl>http://opendj.forgerock.org/doc/admin-guide/index.html</docGuideAdminUrl>
   </properties>
   <dependencies>
     <dependency>
@@ -125,6 +125,7 @@
             <configuration>
               <useLastCommittedRevision>true</useLastCommittedRevision>
               <buildNumberPropertyName>buildRevision</buildNumberPropertyName>
+              <revisionOnScmFailure>-1</revisionOnScmFailure>
             </configuration>
           </execution>
           <execution>
