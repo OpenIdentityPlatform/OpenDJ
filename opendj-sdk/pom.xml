@@ -323,6 +323,35 @@
             <tagNameFormat>@{project.version}-sdk</tagNameFormat>
           </configuration>
         </plugin>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only.
+            It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.forgerock.opendj</groupId>
+                    <artifactId>opendj-config-maven-plugin</artifactId>
+                    <versionRange>[3.0.0-SNAPSHOT,)</versionRange>
+                    <goals>
+                      <goal>generate</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute>
+                        <!-- <runOnIncremental>true</runOnIncremental> -->
+                        <runOnConfiguration>true</runOnConfiguration>
+                    </execute>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>

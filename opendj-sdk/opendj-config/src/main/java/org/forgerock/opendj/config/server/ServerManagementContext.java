@@ -80,7 +80,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.server.util.DynamicConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -819,7 +818,7 @@ public final class ServerManagementContext {
             debugLogger.trace("Unable to perform post add", e);
 
             LocalizableMessage message = ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(String.valueOf(dn),
-                    stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                    stackTraceToSingleLineString(e, true));
             throw new ConfigException(message, e);
         }
 

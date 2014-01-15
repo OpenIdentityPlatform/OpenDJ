@@ -35,9 +35,19 @@
   <artifactId>opendj-server</artifactId>
   <name>OpenDJ Server</name>
   <description> 
-    This module includes the core functionality of the OpenDJ LDAP Directory Server.
+    OpenDJ LDAP embedded directory server.
   </description>
   <packaging>jar</packaging>
+  <properties>
+    <!-- Product properties -->
+    <shortProductName>OpenDJ</shortProductName>
+    <issuesFixIds></issuesFixIds>
+    <isDebugBuild>false</isDebugBuild>
+    <docReferenceHome>http://opendj.forgerock.org/</docReferenceHome>
+    <docReferenceWiki>http://opendj.forgerock.org/docs.html</docReferenceWiki>
+    <docQuickRefGuide>http://opendj.forgerock.org/doc/admin-guide/index.html</docQuickRefGuide>
+    <adminGuideUrl>http://opendj.forgerock.org/doc/admin-guide/index.html</adminGuideUrl>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
@@ -81,7 +91,57 @@
     </dependency>
   </dependencies>
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>parse-version</id>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Retrieve the SVN revision number and the build timestamp -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <id>generate-buildnumber</id>
+            <goals>
+              <goal>create</goal>
+            </goals>
+            <configuration>
+              <useLastCommittedRevision>true</useLastCommittedRevision>
+              <buildNumberPropertyName>buildRevision</buildNumberPropertyName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-timestamp</id>
+            <goals>
+              <goal>create</goal>
+            </goals>
+            <configuration>
+              <format>{0,date,yyyyMMddHHmmss}</format>
+              <items>
+                <item>timestamp</item>
+              </items>
+              <buildNumberPropertyName>buildDateTime</buildNumberPropertyName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>i18n-maven-plugin</artifactId>

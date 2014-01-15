@@ -59,7 +59,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.server.util.DynamicConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -358,7 +357,7 @@ public final class ClassLoaderProvider {
                 debugLogger.trace("Unable to register the jar file with the class loader", e);
                 LocalizableMessage message =
                     ERR_ADMIN_CANNOT_OPEN_JAR_FILE.get(extension.getName(), extension.getParent(),
-                        stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                        stackTraceToSingleLineString(e, true));
                 throw new InitializationException(message);
             }
             jarFiles.add(extension);
@@ -527,7 +526,7 @@ public final class ClassLoaderProvider {
             debugLogger.trace("Unable to initialize all extensions", e);
             LocalizableMessage message =
                 ERR_ADMIN_EXTENSIONS_CANNOT_LIST_FILES.get(String.valueOf(extensionsPath),
-                    stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                    stackTraceToSingleLineString(e, true));
             throw new InitializationException(message, e);
         }
     }
@@ -551,7 +550,7 @@ public final class ClassLoaderProvider {
             debugLogger.trace("Unable to initialize core components", e);
             LocalizableMessage message =
                 ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(MANIFEST,
-                    stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                    stackTraceToSingleLineString(e, true));
             throw new InitializationException(message);
         }
     }
@@ -577,7 +576,7 @@ public final class ClassLoaderProvider {
                 debugLogger.trace("Unable to get input stream from jar", e);
                 LocalizableMessage message =
                     ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.get(MANIFEST, jarFile.getName(),
-                        stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                        stackTraceToSingleLineString(e, true));
                 throw new InitializationException(message);
             }
 
@@ -587,7 +586,7 @@ public final class ClassLoaderProvider {
                 debugLogger.trace("Unable to load classes from input stream", e);
                 LocalizableMessage message =
                     ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile.getName(), MANIFEST,
-                        stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                        stackTraceToSingleLineString(e, true));
                 throw new InitializationException(message);
             }
             try {
@@ -713,7 +712,7 @@ public final class ClassLoaderProvider {
 
             LocalizableMessage message =
                 ERR_ADMIN_CANNOT_OPEN_JAR_FILE.get(jar.getName(), jar.getParent(),
-                    stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                    stackTraceToSingleLineString(e, true));
             throw new InitializationException(message);
         }
         return jarFile;

@@ -30,7 +30,6 @@ import static com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.DefinitionDecodingException;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.server.util.DynamicConstants;
 
 import com.forgerock.opendj.ldap.AdminMessages;
 
@@ -67,7 +66,7 @@ final class ConfigExceptionFactory {
      */
     public ConfigException createDecodingExceptionAdaptor(DN dn, DefinitionDecodingException e) {
         LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(String.valueOf(dn),
-                stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                stackTraceToSingleLineString(e, true));
         return new ConfigException(message, e);
     }
 
@@ -83,7 +82,7 @@ final class ConfigExceptionFactory {
     public ConfigException createDecodingExceptionAdaptor(ServerManagedObjectDecodingException e) {
         DN dn = e.getPartialManagedObject().getDN();
         LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(String.valueOf(dn),
-                stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                stackTraceToSingleLineString(e, true));
         return new ConfigException(message, e);
     }
 
@@ -98,7 +97,7 @@ final class ConfigExceptionFactory {
     public ConfigException createDecodingExceptionAdaptor(ConstraintViolationException e) {
         DN dn = e.getManagedObject().getDN();
         LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(String.valueOf(dn),
-                stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                stackTraceToSingleLineString(e, true));
         return new ConfigException(message, e);
     }
 
@@ -118,7 +117,7 @@ final class ConfigExceptionFactory {
 
     public ConfigException createClassLoadingExceptionAdaptor(DN dn, String className, Exception e) {
         LocalizableMessage message = AdminMessages.ERR_ADMIN_CANNOT_INSTANTIATE_CLASS.get(String.valueOf(className),
-                String.valueOf(dn), stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+                String.valueOf(dn), stackTraceToSingleLineString(e, true));
         return new ConfigException(message, e);
     }
 }
