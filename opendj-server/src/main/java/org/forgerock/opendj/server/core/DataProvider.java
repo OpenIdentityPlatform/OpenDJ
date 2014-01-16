@@ -30,8 +30,8 @@ import java.util.Set;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.RequestHandler;
-import org.opends.server.types.DirectoryException;
 
 /**
  * An entry container which provides the content of one or more sub-trees.
@@ -81,12 +81,12 @@ public interface DataProvider extends RequestHandler<Operation> {
      *            The DN of the entry.
      * @return {@code true} if this data provider contains the specified entry,
      *         or {@code false} if it does not.
-     * @throws DirectoryException
+     * @throws ErrorResultException
      *             If a problem occurs while trying to make the determination,
      *             or if {@code dn} is not a DN equal to or subordinate to one
      *             of the base DNs managed by this data provider.
      */
-    boolean containsEntry(DN dn) throws DirectoryException;
+    boolean containsEntry(DN dn) throws ErrorResultException;
 
     /**
      * Deregisters an event listener from this data provider.
@@ -133,12 +133,12 @@ public interface DataProvider extends RequestHandler<Operation> {
      *            The DN of the entry.
      * @return The requested entry, or {@code null} if this data provider does
      *         not contain the specified entry.
-     * @throws DirectoryException
+     * @throws ErrorResultException
      *             If a problem occurs while trying to retrieve the entry, or if
      *             {@code dn} is not a DN equal to or subordinate to one of the
      *             base DNs managed by this data provider.
      */
-    Entry getEntry(DN dn) throws DirectoryException;
+    Entry getEntry(DN dn) throws ErrorResultException;
 
     /**
      * Returns the current status of the provided base DN in this data provider.
@@ -146,11 +146,11 @@ public interface DataProvider extends RequestHandler<Operation> {
      * @param baseDN
      *            The base DN in this data provider.
      * @return The current status of the provided base DN in this data provider.
-     * @throws DirectoryException
+     * @throws ErrorResultException
      *             If {@code baseDN} is not one of the base DNs managed by this
      *             data provider.
      */
-    DataProviderStatus getStatus(DN baseDN) throws DirectoryException;
+    DataProviderStatus getStatus(DN baseDN) throws ErrorResultException;
 
     /**
      * Returns an unmodifiable set containing the OIDs of the controls that may
@@ -160,11 +160,11 @@ public interface DataProvider extends RequestHandler<Operation> {
      *            The base DN in this data provider.
      * @return An unmodifiable set containing the OIDs of the controls that may
      *         be supported by the provided base DN in this data provider.
-     * @throws DirectoryException
+     * @throws ErrorResultException
      *             If {@code baseDN} is not one of the base DNs managed by this
      *             data provider.
      */
-    Set<String> getSupportedControls(DN baseDN) throws DirectoryException;
+    Set<String> getSupportedControls(DN baseDN) throws ErrorResultException;
 
     /**
      * Returns an unmodifiable set containing the OIDs of the features that may
@@ -174,11 +174,11 @@ public interface DataProvider extends RequestHandler<Operation> {
      *            The base DN in this data provider.
      * @return An unmodifiable set containing the OIDs of the features that may
      *         be supported by the provided base DN in this data provider.
-     * @throws DirectoryException
+     * @throws ErrorResultException
      *             If {@code baseDN} is not one of the base DNs managed by this
      *             data provider.
      */
-    Set<String> getSupportedFeatures(DN baseDN) throws DirectoryException;
+    Set<String> getSupportedFeatures(DN baseDN) throws ErrorResultException;
 
     /**
      * Registers an event listener with this data provider.
@@ -241,10 +241,10 @@ public interface DataProvider extends RequestHandler<Operation> {
      *            The base DN in this data provider.
      * @return {@code true} if the provided base DN in this data provider
      *         supports change notification.
-     * @throws DirectoryException
+     * @throws ErrorResultException
      *             If {@code baseDN} is not one of the base DNs managed by this
      *             data provider.
      */
-    boolean supportsChangeNotification(DN baseDN) throws DirectoryException;
+    boolean supportsChangeNotification(DN baseDN) throws ErrorResultException;
 
 }

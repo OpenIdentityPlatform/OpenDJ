@@ -32,7 +32,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      * {@code true} if the entry was successfully retrieved.
      */
     @Override
-    public boolean containsEntry(final DN dn) throws DirectoryException {
+    public boolean containsEntry(final DN dn) throws ErrorResultException {
         return getEntry(dn) != null;
     }
 
@@ -88,7 +88,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      * that change notification is not supported.
      */
     @Override
-    public boolean supportsChangeNotification(final DN baseDN) throws DirectoryException {
+    public boolean supportsChangeNotification(final DN baseDN) throws ErrorResultException {
         return false;
     }
 

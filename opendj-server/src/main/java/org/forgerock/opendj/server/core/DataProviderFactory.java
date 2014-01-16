@@ -30,7 +30,6 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.types.InitializationException;
 
 /**
  * A factory for creating data provider instances.
@@ -59,13 +58,9 @@ public interface DataProviderFactory<T extends DataProviderCfg> {
      * @throws ConfigException
      *             If an unrecoverable problem arises during initialization of
      *             the data provider as a result of the server configuration.
-     * @throws InitializationException
-     *             If a problem occurs during initialization of the data
-     *             provider that is not related to the server configuration.
      * @see DataProvider#startDataProvider()
      */
-    DataProvider createDataProvider(DataProviderID id, T configuration) throws ConfigException,
-            InitializationException;
+    DataProvider createDataProvider(DataProviderID id, T configuration) throws ConfigException;
 
     /**
      * Indicates whether the provided configuration is acceptable for creating
