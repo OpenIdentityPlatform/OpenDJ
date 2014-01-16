@@ -26,7 +26,6 @@
 package org.forgerock.opendj.ldif;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.getTestFilePath;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
@@ -44,6 +43,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.SdkTestCase;
+import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -389,7 +389,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
 
         try {
             templateFile.parse(lines, warns);
-            failWasExpected(DecodeException.class);
+            TestCaseUtils.failWasExpected(DecodeException.class);
         } catch (DecodeException e) {
             LocalizableMessage expected = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get("missingVar", 1);
             assertThat(e.getMessage()).isEqualTo(expected.toString());

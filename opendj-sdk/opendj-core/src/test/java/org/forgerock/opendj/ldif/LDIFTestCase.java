@@ -48,6 +48,7 @@ import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
@@ -2811,7 +2812,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     public void testMakeEntryEmpty() throws Exception {
         try {
             LDIF.makeEntry();
-            failWasExpected(LocalizedIllegalArgumentException.class);
+            TestCaseUtils.failWasExpected(LocalizedIllegalArgumentException.class);
         } catch (LocalizedIllegalArgumentException e) {
             assertThat(e.getMessageObject()).isEqualTo(CoreMessages.WARN_READ_LDIF_ENTRY_NO_ENTRY_FOUND.get());
         }
@@ -2821,7 +2822,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     public void testMakeEntryWithMultipleEntries() throws Exception {
         try {
             LDIF.makeEntry(LDIF_TWO_ENTRIES);
-            failWasExpected(LocalizedIllegalArgumentException.class);
+            TestCaseUtils.failWasExpected(LocalizedIllegalArgumentException.class);
         } catch (LocalizedIllegalArgumentException e) {
             assertThat(e.getMessageObject()).isEqualTo(
                 CoreMessages.WARN_READ_LDIF_ENTRY_MULTIPLE_ENTRIES_FOUND.get(2));
@@ -2837,7 +2838,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     public void testMakeEntriesEmpty() throws Exception {
         try {
             LDIF.makeEntries();
-            failWasExpected(LocalizedIllegalArgumentException.class);
+            TestCaseUtils.failWasExpected(LocalizedIllegalArgumentException.class);
         } catch (LocalizedIllegalArgumentException e) {
             assertThat(e.getMessageObject()).isEqualTo(CoreMessages.WARN_READ_LDIF_ENTRY_NO_ENTRY_FOUND.get());
         }

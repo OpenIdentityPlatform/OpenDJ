@@ -145,7 +145,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      */
     @BeforeClass()
     public void disableLogging() {
-        setDefaultLogLevel(Level.SEVERE);
+        TestCaseUtils.setDefaultLogLevel(Level.SEVERE);
     }
 
     /**
@@ -153,7 +153,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      */
     @AfterClass()
     public void enableLogging() {
-        setDefaultLogLevel(Level.INFO);
+        TestCaseUtils.setDefaultLogLevel(Level.INFO);
     }
 
     @DataProvider

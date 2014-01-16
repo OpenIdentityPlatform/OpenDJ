@@ -434,7 +434,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
                         "objectClass: top", "dc: example"));
         try {
             reader.hasNext();
-            failWasExpected(ErrorResultIOException.class);
+            TestCaseUtils.failWasExpected(ErrorResultIOException.class);
         } catch (ErrorResultIOException e) {
             assertThat(e.getCause().getResult().getResultCode()).isEqualTo(ResultCode.SIZE_LIMIT_EXCEEDED);
         }
@@ -463,7 +463,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
             connection.search(
                     Requests.newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=*)").
                     setSizeLimit(2), entries);
-            failWasExpected(ErrorResultException.class);
+            TestCaseUtils.failWasExpected(ErrorResultException.class);
         } catch (ErrorResultException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.SIZE_LIMIT_EXCEEDED);
             assertThat(entries).hasSize(2);
