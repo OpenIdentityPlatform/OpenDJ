@@ -26,15 +26,8 @@
  */
 package org.forgerock.opendj.ldap;
 
-import static org.fest.assertions.Fail.*;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.Test;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * An abstract class that all types unit tests should extend. A type represents
@@ -42,28 +35,5 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 @Test(groups = { "precommit", "types", "sdk" })
 public abstract class SdkTestCase extends ForgeRockTestCase {
-
-    /**
-     * Fail with precise message giving the exception that was expected.
-     *
-     * @param exceptionClass expected exception
-     */
-    protected void failWasExpected(Class<? extends Throwable> exceptionClass) {
-        fail("should throw an exception " + exceptionClass.getSimpleName());
-    }
-
-    /**
-     * Dynamically change log level using java.util.logging framework.
-     * <p>
-     * slf4j ERROR maps to java.util.logging SEVERE
-     * slf4j INFO maps to java.util.logging INFO
-     * slf4j DEBUG maps to java.util.logging FINE
-     * slf4j TRACE maps to java.util.logging FINEST
-     *
-     * @param level logging level to use
-     */
-    protected void setDefaultLogLevel(Level level) {
-        Logger.getLogger(StaticUtils.DEFAULT_LOG.getName()).setLevel(level);
-    }
 
 }

@@ -93,7 +93,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
      */
     @BeforeClass()
     public void disableLogging() {
-        setDefaultLogLevel(Level.SEVERE);
+        TestCaseUtils.setDefaultLogLevel(Level.SEVERE);
     }
 
     /**
@@ -101,7 +101,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
      */
     @AfterClass()
     public void enableLogging() {
-        setDefaultLogLevel(Level.INFO);
+        TestCaseUtils.setDefaultLogLevel(Level.INFO);
     }
 
     @AfterMethod(alwaysRun = true)

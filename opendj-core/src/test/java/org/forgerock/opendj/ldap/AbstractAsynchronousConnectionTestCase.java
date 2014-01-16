@@ -401,7 +401,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         List<SearchResultEntry> entries = new LinkedList<SearchResultEntry>();
         try {
             mockConnection.search(searchRequest, entries);
-            failWasExpected(ErrorResultException.class);
+            TestCaseUtils.failWasExpected(ErrorResultException.class);
         } catch (ErrorResultException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
             assertThat(entries.isEmpty());
@@ -439,7 +439,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         try {
             mockConnection.searchSingleEntry(request);
-            failWasExpected(EntryNotFoundException.class);
+            TestCaseUtils.failWasExpected(EntryNotFoundException.class);
         } catch (EntryNotFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED);
         }
@@ -453,7 +453,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         try {
             mockConnection.searchSingleEntry(request);
-            failWasExpected(MultipleEntriesFoundException.class);
+            TestCaseUtils.failWasExpected(MultipleEntriesFoundException.class);
         } catch (MultipleEntriesFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
         }
@@ -469,7 +469,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 Requests.newSingleEntrySearchRequest("cn=test", SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
         try {
             mockConnection.searchSingleEntry(request);
-            failWasExpected(MultipleEntriesFoundException.class);
+            TestCaseUtils.failWasExpected(MultipleEntriesFoundException.class);
         } catch (MultipleEntriesFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
         }
@@ -486,7 +486,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
 
         try {
             mockConnection.searchSingleEntryAsync(request, handler).get();
-            failWasExpected(MultipleEntriesFoundException.class);
+            TestCaseUtils.failWasExpected(MultipleEntriesFoundException.class);
         } catch (MultipleEntriesFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
             verify(handler).handleErrorResult(any(ErrorResultException.class));
@@ -505,7 +505,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
         try {
             mockConnection.searchSingleEntryAsync(request, handler).get();
-            failWasExpected(MultipleEntriesFoundException.class);
+            TestCaseUtils.failWasExpected(MultipleEntriesFoundException.class);
         } catch (MultipleEntriesFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
             verify(handler).handleErrorResult(any(ErrorResultException.class));
@@ -519,7 +519,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         try {
             mockConnection.searchSingleEntry(request);
-            failWasExpected(ErrorResultException.class);
+            TestCaseUtils.failWasExpected(ErrorResultException.class);
         } catch (ErrorResultException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
         }
@@ -534,7 +534,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
         try {
             mockConnection.searchSingleEntryAsync(request, handler).get();
-            failWasExpected(ErrorResultException.class);
+            TestCaseUtils.failWasExpected(ErrorResultException.class);
         } catch (ErrorResultException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
             verify(handler).handleErrorResult(any(ErrorResultException.class));

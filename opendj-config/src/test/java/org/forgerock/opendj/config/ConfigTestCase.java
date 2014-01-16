@@ -25,13 +25,13 @@
  */
 package org.forgerock.opendj.config;
 
-import org.forgerock.opendj.ldap.SdkTestCase;
+import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.Test;
 
 /**
  * An abstract class that all unit tests should extend.
  */
 @Test(groups = { "precommit", "config" })
-public abstract class ConfigTestCase extends SdkTestCase {
+public abstract class ConfigTestCase extends ForgeRockTestCase {
    // no implementation
 }

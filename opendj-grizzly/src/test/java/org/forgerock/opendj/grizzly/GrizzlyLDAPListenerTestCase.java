@@ -56,6 +56,7 @@ import org.forgerock.opendj.ldap.SdkTestCase;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.ServerConnection;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
+import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -240,7 +241,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
      */
     @BeforeClass()
     public void disableLogging() {
-        setDefaultLogLevel(Level.SEVERE);
+        TestCaseUtils.setDefaultLogLevel(Level.SEVERE);
     }
 
     /**
@@ -248,7 +249,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
      */
     @AfterClass()
     public void enableLogging() {
-        setDefaultLogLevel(Level.INFO);
+        TestCaseUtils.setDefaultLogLevel(Level.INFO);
     }
 
     /**

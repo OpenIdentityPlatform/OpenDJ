@@ -27,10 +27,12 @@
 
 package org.forgerock.opendj.ldap;
 
+import static org.fest.assertions.Fail.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -38,12 +40,15 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.OngoingStubbing;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
+import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.TimeSource;
 
 /**
@@ -239,6 +244,29 @@ public final class TestCaseUtils {
             stubbing = stubbing.thenReturn(t);
         }
         return mock;
+    }
+
+    /**
+     * Fail with precise message giving the exception that was expected.
+     *
+     * @param exceptionClass expected exception
+     */
+    public static void failWasExpected(Class<? extends Throwable> exceptionClass) {
+        fail("should throw an exception " + exceptionClass.getSimpleName());
+    }
+
+    /**
+     * Dynamically change log level using java.util.logging framework.
+     * <p>
+     * slf4j ERROR maps to java.util.logging SEVERE
+     * slf4j INFO maps to java.util.logging INFO
+     * slf4j DEBUG maps to java.util.logging FINE
+     * slf4j TRACE maps to java.util.logging FINEST
+     *
+     * @param level logging level to use
+     */
+    public static void setDefaultLogLevel(Level level) {
+        Logger.getLogger(StaticUtils.DEFAULT_LOG.getName()).setLevel(level);
     }
 
 }
