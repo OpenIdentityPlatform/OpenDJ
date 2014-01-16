@@ -155,7 +155,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
     private Templates stylesheetMessages;
     private Templates stylesheetManifest;
     private final List<Future<?>> tasks = new LinkedList<Future<?>>();
-    private final ExecutorService executor = Executors.newCachedThreadPool();
+
     private final URIResolver resolver = new URIResolver() {
 
         @Override
@@ -211,13 +211,10 @@ public final class GenerateConfigMojo extends AbstractMojo {
             project.addCompileSourceRoot(getGeneratedSourcesDirectory());
         } catch (final Exception e) {
             throw new MojoExecutionException("XSLT configuration transformation failed", e);
-        } finally {
-            executor.shutdown();
         }
-
     }
 
-    private void createTransformTask(final StreamSource input, final StreamResult output,
+    private void createTransformTask(final StreamSourceFactory inputFactory, final StreamResult output,
             final Templates stylesheet, final ExecutorService executor, final String... parameters)
             throws Exception {
         final Transformer transformer = stylesheet.newTransformer();
@@ -228,23 +225,31 @@ public final class GenerateConfigMojo extends AbstractMojo {
         final Future<Void> future = executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                transformer.transform(input, output);
+                transformer.transform(inputFactory.newStreamSource(), output);
                 return null;
             }
         });
         tasks.add(future);
     }
 
-    private void createTransformTask(final StreamSource input, final String outputFileName,
-            final Templates stylesheet, final String... parameters) throws Exception {
+    private void createTransformTask(final StreamSourceFactory inputFactory,
+            final String outputFileName, final Templates stylesheet,
+            final ExecutorService executor, final String... parameters) throws Exception {
         final File outputFile = new File(outputFileName);
         outputFile.getParentFile().mkdirs();
         final StreamResult output = new StreamResult(outputFile);
-        createTransformTask(input, output, stylesheet, executor, parameters);
+        createTransformTask(inputFactory, output, stylesheet, executor, parameters);
     }
 
     private void executeTransformXMLDefinitions() throws Exception {
         getLog().info("Transforming XML definitions...");
+
+        /*
+         * Restrict the size of the thread pool in order to throttle
+         * creation of transformers and ZIP input streams and prevent potential
+         * OOME.
+         */
+        final ExecutorService parallelExecutor = Executors.newFixedThreadPool(16);
 
         /*
          * The manifest is a single file containing the concatenated output of
@@ -256,68 +261,79 @@ public final class GenerateConfigMojo extends AbstractMojo {
         manifestFile.getParentFile().mkdirs();
         final FileOutputStream manifestFileOutputStream = new FileOutputStream(manifestFile);
         final StreamResult manifest = new StreamResult(manifestFileOutputStream);
+        try {
+            /*
+             * Generate Java classes and resources for each XML definition.
+             */
+            final String javaDir = getGeneratedSourcesDirectory() + "/" + getPackagePath() + "/";
+            final String metaDir = javaDir + "meta/";
+            final String serverDir = javaDir + "server/";
+            final String clientDir = javaDir + "client/";
+            final String ldapProfileDir =
+                    getGeneratedProfilesDirectory("ldap") + "/" + getPackagePath() + "/meta/";
+            final String cliProfileDir =
+                    getGeneratedProfilesDirectory("cli") + "/" + getPackagePath() + "/meta/";
+            final String i18nDir =
+                    getGeneratedMessagesDirectory() + "/" + getPackagePath() + "/meta/";
 
-        /*
-         * Generate Java classes and resources for each XML definition.
-         */
-        final String javaDir = getGeneratedSourcesDirectory() + "/" + getPackagePath() + "/";
-        final String metaDir = javaDir + "meta/";
-        final String serverDir = javaDir + "server/";
-        final String clientDir = javaDir + "client/";
+            for (final Map.Entry<String, StreamSourceFactory> entry : componentDescriptors
+                    .entrySet()) {
+                final String meta = metaDir + entry.getKey() + "CfgDefn.java";
+                createTransformTask(entry.getValue(), meta, stylesheetMetaJava, parallelExecutor);
 
-        final String ldapProfileDir =
-                getGeneratedProfilesDirectory("ldap") + "/" + getPackagePath() + "/meta/";
-        final String cliProfileDir =
-                getGeneratedProfilesDirectory("cli") + "/" + getPackagePath() + "/meta/";
-        final String i18nDir = getGeneratedMessagesDirectory() + "/" + getPackagePath() + "/meta/";
+                final String server = serverDir + entry.getKey() + "Cfg.java";
+                createTransformTask(entry.getValue(), server, stylesheetServerJava,
+                        parallelExecutor);
 
-        for (final Map.Entry<String, StreamSourceFactory> entry : componentDescriptors.entrySet()) {
-            final String meta = metaDir + entry.getKey() + "CfgDefn.java";
-            createTransformTask(entry.getValue().newStreamSource(), meta, stylesheetMetaJava);
+                final String client = clientDir + entry.getKey() + "CfgClient.java";
+                createTransformTask(entry.getValue(), client, stylesheetClientJava,
+                        parallelExecutor);
 
-            final String server = serverDir + entry.getKey() + "Cfg.java";
-            createTransformTask(entry.getValue().newStreamSource(), server, stylesheetServerJava);
+                final String ldap = ldapProfileDir + entry.getKey() + "CfgDefn.properties";
+                createTransformTask(entry.getValue(), ldap, stylesheetProfileLDAP, parallelExecutor);
 
-            final String client = clientDir + entry.getKey() + "CfgClient.java";
-            createTransformTask(entry.getValue().newStreamSource(), client, stylesheetClientJava);
+                final String cli = cliProfileDir + entry.getKey() + "CfgDefn.properties";
+                createTransformTask(entry.getValue(), cli, stylesheetProfileCLI, parallelExecutor);
 
-            final String ldap = ldapProfileDir + entry.getKey() + "CfgDefn.properties";
-            createTransformTask(entry.getValue().newStreamSource(), ldap, stylesheetProfileLDAP);
+                final String i18n = i18nDir + entry.getKey() + "CfgDefn.properties";
+                createTransformTask(entry.getValue(), i18n, stylesheetMessages, parallelExecutor);
 
-            final String cli = cliProfileDir + entry.getKey() + "CfgDefn.properties";
-            createTransformTask(entry.getValue().newStreamSource(), cli, stylesheetProfileCLI);
-
-            final String i18n = i18nDir + entry.getKey() + "CfgDefn.properties";
-            createTransformTask(entry.getValue().newStreamSource(), i18n, stylesheetMessages);
-
-            createTransformTask(entry.getValue().newStreamSource(), manifest, stylesheetManifest,
-                    sequentialExecutor);
-        }
-
-        // Generate package-info.java files.
-        final Map<String, Templates> profileMap = new LinkedHashMap<String, Templates>();
-        profileMap.put("meta", stylesheetMetaPackageInfo);
-        profileMap.put("server", stylesheetServerPackageInfo);
-        profileMap.put("client", stylesheetClientPackageInfo);
-        for (final Map.Entry<String, Templates> entry : profileMap.entrySet()) {
-            final StreamSource source;
-            if (isExtension) {
-                source = new StreamSource(new File(getXMLPackageDirectory() + "/Package.xml"));
-            } else {
-                source =
-                        new StreamSource(getClass().getResourceAsStream(
-                                "/" + getXMLPackageDirectory() + "/Package.xml"));
+                createTransformTask(entry.getValue(), manifest, stylesheetManifest,
+                        sequentialExecutor);
             }
-            final String profile = javaDir + "/" + entry.getKey() + "/package-info.java";
-            createTransformTask(source, profile, entry.getValue(), "type", entry.getKey());
-        }
 
-        // Wait for all transformations to complete and cleanup.
-        for (final Future<?> task : tasks) {
-            task.get();
+            // Generate package-info.java files.
+            final Map<String, Templates> profileMap = new LinkedHashMap<String, Templates>();
+            profileMap.put("meta", stylesheetMetaPackageInfo);
+            profileMap.put("server", stylesheetServerPackageInfo);
+            profileMap.put("client", stylesheetClientPackageInfo);
+            for (final Map.Entry<String, Templates> entry : profileMap.entrySet()) {
+                final StreamSourceFactory sourceFactory = new StreamSourceFactory() {
+                    @Override
+                    public StreamSource newStreamSource() throws IOException {
+                        if (isExtension) {
+                            return new StreamSource(new File(getXMLPackageDirectory()
+                                    + "/Package.xml"));
+                        } else {
+                            return new StreamSource(getClass().getResourceAsStream(
+                                    "/" + getXMLPackageDirectory() + "/Package.xml"));
+                        }
+                    }
+                };
+                final String profile = javaDir + "/" + entry.getKey() + "/package-info.java";
+                createTransformTask(sourceFactory, profile, entry.getValue(), parallelExecutor,
+                        "type", entry.getKey());
+            }
+
+            // Wait for all transformations to complete and cleanup.
+            for (final Future<?> task : tasks) {
+                task.get();
+            }
+        } finally {
+            parallelExecutor.shutdown();
+            sequentialExecutor.shutdown();
+            manifestFileOutputStream.close();
         }
-        sequentialExecutor.shutdown();
-        manifestFileOutputStream.close();
     }
 
     private void executeValidateXMLDefinitions() {
