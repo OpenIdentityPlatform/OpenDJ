@@ -308,6 +308,17 @@
           <version>${i18nFrameworkVersion}</version>
         </plugin>
         <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>cobertura-maven-plugin</artifactId>
+          <configuration>
+            <instrumentation>
+              <excludes>
+                <exclude>**/*Messages.class</exclude>
+              </excludes>
+            </instrumentation>
+          </configuration>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
           <version>2.2.2</version>
