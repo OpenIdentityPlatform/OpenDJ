@@ -34,8 +34,8 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -154,7 +154,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
     private Templates stylesheetProfileCLI;
     private Templates stylesheetMessages;
     private Templates stylesheetManifest;
-    private final List<Future<?>> tasks = new LinkedList<Future<?>>();
+    private final Queue<Future<?>> tasks = new LinkedList<Future<?>>();
 
     private final URIResolver resolver = new URIResolver() {
 
@@ -217,14 +217,14 @@ public final class GenerateConfigMojo extends AbstractMojo {
     private void createTransformTask(final StreamSourceFactory inputFactory, final StreamResult output,
             final Templates stylesheet, final ExecutorService executor, final String... parameters)
             throws Exception {
-        final Transformer transformer = stylesheet.newTransformer();
-        transformer.setURIResolver(resolver);
-        for (int i = 0; i < parameters.length; i += 2) {
-            transformer.setParameter(parameters[i], parameters[i + 1]);
-        }
         final Future<Void> future = executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
+                final Transformer transformer = stylesheet.newTransformer();
+                transformer.setURIResolver(resolver);
+                for (int i = 0; i < parameters.length; i += 2) {
+                    transformer.setParameter(parameters[i], parameters[i + 1]);
+                }
                 transformer.transform(inputFactory.newStreamSource(), output);
                 return null;
             }
@@ -325,8 +325,12 @@ public final class GenerateConfigMojo extends AbstractMojo {
                         "type", entry.getKey());
             }
 
-            // Wait for all transformations to complete and cleanup.
-            for (final Future<?> task : tasks) {
+            /*
+             * Wait for all transformations to complete and cleanup. Remove the
+             * completed tasks from the list as we go in order to free up
+             * memory.
+             */
+            for (Future<?> task = tasks.poll(); task != null; task = tasks.poll()) {
                 task.get();
             }
         } finally {
@@ -460,5 +464,4 @@ public final class GenerateConfigMojo extends AbstractMojo {
         }
         getLog().info("Found " + componentDescriptors.size() + " XML descriptors");
     }
-
 }
