@@ -59,7 +59,7 @@ public class ServerManagedObjectDecodingException extends DecodingException {
         ManagedObjectDefinition<?, ?> d = partialManagedObject.getManagedObjectDefinition();
         if (causes.size() == 1) {
             return ERR_MANAGED_OBJECT_DECODING_EXCEPTION_SINGLE.get(d.getUserFriendlyName(), causes.iterator().next()
-                    .getLocalizableMessageObject());
+                    .getMessageObject());
         } else {
             LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
@@ -68,7 +68,7 @@ public class ServerManagedObjectDecodingException extends DecodingException {
                 if (!isFirst) {
                     builder.append("; ");
                 }
-                builder.append(cause.getLocalizableMessageObject());
+                builder.append(cause.getMessageObject());
                 isFirst = false;
             }
 
