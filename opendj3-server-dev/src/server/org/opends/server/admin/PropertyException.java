@@ -39,7 +39,7 @@ import org.opends.messages.Message;
  * Exceptions thrown as a result of errors that occurred when decoding and
  * modifying property values.
  */
-public final class PropertyException extends AdminRuntimeException
+public final class PropertyException extends RuntimeException
 {
 
   /**
@@ -183,6 +183,9 @@ public final class PropertyException extends AdminRuntimeException
 
 
 
+  // Message that explains the problem.
+  private final Message message;
+
   /*
    * The property definition associated with the property that caused the
    * exception.
@@ -193,7 +196,8 @@ public final class PropertyException extends AdminRuntimeException
 
   private PropertyException(PropertyDefinition<?> pd, Message message)
   {
-    super(message);
+    super(message.toString());
+    this.message = message;
     this.pd = pd;
   }
 
@@ -202,8 +206,22 @@ public final class PropertyException extends AdminRuntimeException
   private PropertyException(PropertyDefinition<?> pd, Message message,
       Throwable cause)
   {
-    super(message, cause);
+    super(message.toString(), cause);
+    this.message = message;
     this.pd = pd;
+  }
+
+
+
+  /**
+   * Returns the message that explains the problem that occurred.
+   *
+   * @return Returns the message describing the problem that occurred (never
+   *         <code>null</code>).
+   */
+  public Message getMessageObject()
+  {
+    return message;
   }
 
 
