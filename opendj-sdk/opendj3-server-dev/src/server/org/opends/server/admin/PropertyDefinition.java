@@ -365,11 +365,11 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    * @param value
    *          The property string value (must not be <code>null</code>).
    * @return Returns the decoded property value.
-   * @throws IllegalPropertyValueStringException
+   * @throws PropertyException
    *           If the property value string is invalid.
    */
   public abstract T decodeValue(String value)
-      throws IllegalPropertyValueStringException;
+      throws PropertyException;
 
 
 
@@ -383,10 +383,10 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    * @param value
    *          The property value (must not be <code>null</code>).
    * @return Returns the encoded property string value.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If the property value is invalid.
    */
-  public String encodeValue(T value) throws IllegalPropertyValueException {
+  public String encodeValue(T value) throws PropertyException {
     ifNull(value);
 
     return value.toString();
@@ -602,10 +602,10 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    * @param value
    *          The property value to be normalized.
    * @return Returns the normalized property value.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If the property value is invalid.
    */
-  public String normalizeValue(T value) throws IllegalPropertyValueException {
+  public String normalizeValue(T value) throws PropertyException {
     ifNull(value);
 
     return encodeValue(value);
@@ -653,11 +653,11 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    *
    * @param value
    *          The property value (must not be <code>null</code>).
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If the property value is invalid.
    */
   public abstract void validateValue(T value)
-      throws IllegalPropertyValueException;
+      throws PropertyException;
 
 
 

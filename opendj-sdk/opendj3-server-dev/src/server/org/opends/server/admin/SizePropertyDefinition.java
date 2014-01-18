@@ -278,19 +278,19 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
    * {@inheritDoc}
    */
   @Override
-  public void validateValue(Long value) throws IllegalPropertyValueException {
+  public void validateValue(Long value) throws PropertyException {
     ifNull(value);
 
     if (!allowUnlimited && value < lowerLimit) {
-      throw new IllegalPropertyValueException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
 
     // unlimited allowed
     } else if (value >= 0 && value < lowerLimit) {
-      throw new IllegalPropertyValueException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
 
     if ((upperLimit != null) && (value > upperLimit)) {
-      throw new IllegalPropertyValueException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
 
@@ -300,7 +300,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
    * {@inheritDoc}
    */
   @Override
-  public String encodeValue(Long value) throws IllegalPropertyValueException {
+  public String encodeValue(Long value) throws PropertyException {
     ifNull(value);
 
     // Make sure that we correctly encode negative values as "unlimited".
@@ -329,7 +329,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
    */
   @Override
   public Long decodeValue(String value)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     ifNull(value);
 
     // First check for the special "unlimited" value when necessary.
@@ -344,13 +344,13 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
     try {
       i = SizeUnit.parseValue(value, SizeUnit.BYTES);
     } catch (NumberFormatException e) {
-      throw new IllegalPropertyValueStringException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
 
     try {
       validateValue(i);
-    } catch (IllegalPropertyValueException e) {
-      throw new IllegalPropertyValueStringException(this, value);
+    } catch (PropertyException e) {
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
     return i;
   }

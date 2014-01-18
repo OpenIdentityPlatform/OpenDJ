@@ -28,6 +28,8 @@ package org.opends.server.admin.client.spi;
 
 
 
+import static org.opends.server.admin.PropertyException.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,18 +44,15 @@ import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.Constraint;
-import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.PropertyException;
-import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyNotFoundException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelationDefinition;
@@ -91,7 +90,7 @@ public abstract class Driver {
 
     // Any exception that occurred whilst retrieving inherited default
     // values.
-    private DefaultBehaviorException exception = null;
+    private PropertyException exception = null;
 
     // The path of the managed object containing the first property.
     private final ManagedObjectPath<?, ?> firstPath;
@@ -123,7 +122,7 @@ public abstract class Driver {
       try {
         return getInheritedProperty(d.getManagedObjectPath(), d
             .getManagedObjectDefinition(), d.getPropertyName());
-      } catch (DefaultBehaviorException e) {
+      } catch (PropertyException e) {
         exception = e;
         return Collections.emptySet();
       }
@@ -151,8 +150,8 @@ public abstract class Driver {
       for (String stringValue : stringValues) {
         try {
           values.add(nextProperty.decodeValue(stringValue));
-        } catch (IllegalPropertyValueStringException e) {
-          exception = new DefaultBehaviorException(nextProperty, e);
+        } catch (PropertyException e) {
+          exception = defaultBehaviorException(nextProperty, e);
           break;
         }
       }
@@ -170,7 +169,7 @@ public abstract class Driver {
       try {
         return getInheritedProperty(d.getManagedObjectPath(nextPath), d
             .getManagedObjectDefinition(), d.getPropertyName());
-      } catch (DefaultBehaviorException e) {
+      } catch (PropertyException e) {
         exception = e;
         return Collections.emptySet();
       }
@@ -190,7 +189,7 @@ public abstract class Driver {
 
     // Find the default values for the next path/property.
     private Collection<T> find(ManagedObjectPath<?, ?> p,
-        PropertyDefinition<T> pd) throws DefaultBehaviorException {
+        PropertyDefinition<T> pd) throws PropertyException {
       this.nextPath = p;
       this.nextProperty = pd;
 
@@ -202,8 +201,8 @@ public abstract class Driver {
       }
 
       if (values.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
-        throw new DefaultBehaviorException(pd,
-            new PropertyIsSingleValuedException(pd));
+        throw PropertyException.defaultBehaviorException(pd,
+            PropertyException.propertyIsSingleValuedException(pd));
       }
 
       return values;
@@ -215,13 +214,13 @@ public abstract class Driver {
     @SuppressWarnings("unchecked")
     private Collection<T> getInheritedProperty(ManagedObjectPath target,
         AbstractManagedObjectDefinition<?, ?> d, String propertyName)
-        throws DefaultBehaviorException {
+        throws PropertyException {
       // First check that the requested type of managed object
       // corresponds to the path.
       AbstractManagedObjectDefinition<?, ?> supr = target
           .getManagedObjectDefinition();
       if (!supr.isParentOf(d)) {
-        throw new DefaultBehaviorException(
+        throw PropertyException.defaultBehaviorException(
             nextProperty, new DefinitionDecodingException(supr,
                 Reason.WRONG_TYPE_INFORMATION));
       }
@@ -263,21 +262,19 @@ public abstract class Driver {
           // inherits its defaults from the newly created managed object.
           return getPropertyValues(target, pd2);
         }
-      } catch (DefaultBehaviorException e) {
-        // Wrap any errors due to recursion.
-        throw new DefaultBehaviorException(pd1, e);
-      } catch (DefinitionDecodingException e) {
-        throw new DefaultBehaviorException(pd1, e);
-      } catch (PropertyNotFoundException e) {
-        throw new DefaultBehaviorException(pd1, e);
-      } catch (AuthorizationException e) {
-        throw new DefaultBehaviorException(pd1, e);
-      } catch (ManagedObjectNotFoundException e) {
-        throw new DefaultBehaviorException(pd1, e);
-      } catch (CommunicationException e) {
-        throw new DefaultBehaviorException(pd1, e);
       } catch (PropertyException e) {
-        throw new DefaultBehaviorException(pd1, e);
+        // Wrap any errors due to recursion.
+        throw PropertyException.defaultBehaviorException(pd1, e);
+      } catch (DefinitionDecodingException e) {
+        throw PropertyException.defaultBehaviorException(pd1, e);
+      } catch (PropertyNotFoundException e) {
+        throw PropertyException.defaultBehaviorException(pd1, e);
+      } catch (AuthorizationException e) {
+        throw PropertyException.defaultBehaviorException(pd1, e);
+      } catch (ManagedObjectNotFoundException e) {
+        throw PropertyException.defaultBehaviorException(pd1, e);
+      } catch (CommunicationException e) {
+        throw PropertyException.defaultBehaviorException(pd1, e);
       }
     }
   };
@@ -712,13 +709,13 @@ public abstract class Driver {
    *          Indicates whether the managed object has been created
    *          yet.
    * @return Returns the default values for the specified property.
-   * @throws DefaultBehaviorException
+   * @throws PropertyException
    *           If the default values could not be retrieved or decoded
    *           properly.
    */
   protected final <PD> Collection<PD> findDefaultValues(
       ManagedObjectPath<?, ?> p, PropertyDefinition<PD> pd, boolean isCreate)
-      throws DefaultBehaviorException {
+      throws PropertyException {
     DefaultValueFinder<PD> v = new DefaultValueFinder<PD>(p, isCreate);
     return v.find(p, pd);
   }

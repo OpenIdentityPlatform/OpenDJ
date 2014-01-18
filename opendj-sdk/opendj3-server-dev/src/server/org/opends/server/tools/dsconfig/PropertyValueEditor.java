@@ -53,8 +53,7 @@ import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.EnumPropertyDefinition;
-import org.opends.server.admin.IllegalPropertyValueException;
-import org.opends.server.admin.IllegalPropertyValueStringException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
@@ -62,13 +61,9 @@ import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionUsageBuilder;
 import org.opends.server.admin.PropertyDefinitionVisitor;
-import org.opends.server.admin.PropertyIsMandatoryException;
-import org.opends.server.admin.PropertyIsReadOnlyException;
-import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
-import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
@@ -652,7 +647,7 @@ final class PropertyValueEditor {
      */
     @Override
     public <T> MenuResult<Void> visitUnknown(PropertyDefinition<T> d,
-        Void p) throws UnknownPropertyDefinitionException {
+        Void p) throws PropertyException {
       app.println();
       displayPropertySyntax(app, d);
 
@@ -1951,9 +1946,9 @@ final class PropertyValueEditor {
 
     // Common menu processing.
     private <T> MenuResult<Boolean> runMenu(final PropertyDefinition<T> d,
-        MenuBuilder<T> builder) throws IllegalPropertyValueException,
-        PropertyIsSingleValuedException, PropertyIsReadOnlyException,
-        PropertyIsMandatoryException, IllegalArgumentException {
+        MenuBuilder<T> builder) throws PropertyException,
+        PropertyException, PropertyException,
+        PropertyException, IllegalArgumentException {
       builder.addHelpOption(new PropertyHelpCallback(mo
           .getManagedObjectDefinition(), d));
       builder.addQuitOption();
@@ -2169,7 +2164,7 @@ final class PropertyValueEditor {
           }
 
           break;
-        } catch (IllegalPropertyValueStringException e) {
+        } catch (PropertyException e) {
           app.println();
           app.println(ArgumentExceptionFactory.adaptPropertyException(e, d)
               .getMessageObject());
@@ -2197,7 +2192,7 @@ final class PropertyValueEditor {
           } else {
             values.add(value);
           }
-        } catch (IllegalPropertyValueStringException e) {
+        } catch (PropertyException e) {
           app.println();
           app.println(ArgumentExceptionFactory.adaptPropertyException(e, d)
               .getMessageObject());

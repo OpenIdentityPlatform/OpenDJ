@@ -41,7 +41,7 @@ import java.util.TreeSet;
 import org.opends.messages.Message;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.IllegalPropertyValueStringException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectDefinition;
@@ -49,7 +49,6 @@ import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
@@ -934,7 +933,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       T value;
       try {
         value = pd.decodeValue(s);
-      } catch (IllegalPropertyValueStringException e) {
+      } catch (PropertyException e) {
         throw ArgumentExceptionFactory.adaptPropertyException(e, mo
             .getManagedObjectDefinition());
       }

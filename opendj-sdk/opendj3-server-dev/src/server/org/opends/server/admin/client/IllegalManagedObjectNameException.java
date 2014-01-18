@@ -31,7 +31,7 @@ package org.opends.server.admin.client;
 import static org.opends.messages.AdminMessages.*;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.IllegalPropertyValueStringException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionUsageBuilder;
@@ -66,7 +66,7 @@ public class IllegalManagedObjectNameException extends OperationsException {
     } else if (namingPropertyDefinition != null) {
       try {
         namingPropertyDefinition.decodeValue(illegalName);
-      } catch (IllegalPropertyValueStringException e) {
+      } catch (PropertyException e) {
         PropertyDefinitionUsageBuilder builder =
           new PropertyDefinitionUsageBuilder(true);
         return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_SYNTAX.get(

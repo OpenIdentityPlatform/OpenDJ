@@ -35,10 +35,8 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.server.admin.IllegalPropertyValueException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.PropertyIsMandatoryException;
-import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyOption;
 
 
@@ -297,14 +295,13 @@ public final class PropertySet {
 
 
 
-
-
-
   /**
    * Makes all pending values active.
    */
-  void commit() {
-    for (MyProperty<?> p : properties.values()) {
+  void commit()
+  {
+    for (MyProperty<?> p : properties.values())
+    {
       p.commit();
     }
   }
@@ -314,44 +311,39 @@ public final class PropertySet {
   /**
    * Set a new pending values for the specified property.
    * <p>
-   * See the class description for more information regarding pending
-   * values.
+   * See the class description for more information regarding pending values.
    *
    * @param <T>
    *          The type of the property to be modified.
    * @param d
    *          The property to be modified.
    * @param values
-   *          A non-<code>null</code> set of new pending values for
-   *          the property (an empty set indicates that the property
-   *          should be reset to its default behavior). The set will
-   *          not be referenced by this managed object.
-   * @throws IllegalPropertyValueException
-   *           If a new pending value is deemed to be invalid
-   *           according to the property definition.
-   * @throws PropertyIsSingleValuedException
-   *           If an attempt was made to add multiple pending values
-   *           to a single-valued property.
-   * @throws PropertyIsMandatoryException
-   *           If an attempt was made to remove a mandatory property.
+   *          A non-<code>null</code> set of new pending values for the property
+   *          (an empty set indicates that the property should be reset to its
+   *          default behavior). The set will not be referenced by this managed
+   *          object.
+   * @throws PropertyException
+   *           If a new pending value is deemed to be invalid according to the
+   *           property definition, or if an attempt was made to add multiple
+   *           pending values to a single-valued property, or if an attempt was
+   *           made to remove a mandatory property.
    * @throws IllegalArgumentException
-   *           If the specified property definition is not associated
-   *           with this managed object.
+   *           If the specified property definition is not associated with this
+   *           managed object.
    */
-  <T> void setPropertyValues(PropertyDefinition<T> d,
-      Collection<T> values) throws IllegalPropertyValueException,
-      PropertyIsSingleValuedException, PropertyIsMandatoryException,
-      IllegalArgumentException {
+  <T> void setPropertyValues(PropertyDefinition<T> d, Collection<T> values)
+      throws PropertyException, IllegalArgumentException
+  {
     MyProperty<T> property = (MyProperty<T>) getProperty(d);
 
     if (values.size() > 1 && !d.hasOption(PropertyOption.MULTI_VALUED)) {
-      throw new PropertyIsSingleValuedException(d);
+      throw PropertyException.propertyIsSingleValuedException(d);
     }
 
     if (values.isEmpty() && d.hasOption(PropertyOption.MANDATORY)) {
       // But only if there are no default values.
       if (property.getDefaultValues().isEmpty()) {
-        throw new PropertyIsMandatoryException(d);
+        throw PropertyException.propertyIsMandatoryException(d);
       }
     }
 

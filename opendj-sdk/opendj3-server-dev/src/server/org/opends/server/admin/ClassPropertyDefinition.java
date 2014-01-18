@@ -30,6 +30,7 @@ package org.opends.server.admin;
 
 
 import static org.forgerock.util.Reject.ifNull;
+import static org.opends.server.admin.PropertyException.*;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -244,13 +245,13 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
    */
   @Override
   public String decodeValue(String value)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     ifNull(value);
 
     try {
       validateValue(value);
-    } catch (IllegalPropertyValueException e) {
-      throw new IllegalPropertyValueStringException(this, value, e.getCause());
+    } catch (PropertyException e) {
+      throw illegalPropertyValueException(this, value, e.getCause());
     }
 
     return value;
@@ -283,7 +284,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
    *          The class representing the requested type.
    * @return Returns the named class cast to a subclass of the
    *         specified class.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If the named class was invalid, could not be loaded, or
    *           did not implement the required interfaces.
    * @throws ClassCastException
@@ -291,7 +292,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
    *           requested type.
    */
   public <T> Class<? extends T> loadClass(String className,
-      Class<T> instanceOf) throws IllegalPropertyValueException,
+      Class<T> instanceOf) throws PropertyException,
       ClassCastException {
     ifNull(className, instanceOf);
 
@@ -310,7 +311,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
    */
   @Override
   public String normalizeValue(String value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     ifNull(value);
 
     return value.trim();
@@ -323,7 +324,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
    */
   @Override
   public void validateValue(String value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     ifNull(value);
 
     // Always make sure the name is a valid class name.
@@ -345,14 +346,14 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
    * definition.
    */
   private Class<?> validateClassInterfaces(String className, boolean initialize)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     Class<?> theClass = loadClassForValidation(className, className,
         initialize);
     for (String i : instanceOfInterfaces) {
       Class<?> instanceOfClass = loadClassForValidation(className, i,
           initialize);
       if (!instanceOfClass.isAssignableFrom(theClass)) {
-        throw new IllegalPropertyValueException(this, className);
+        throw PropertyException.illegalPropertyValueException(this, className);
       }
     }
     return theClass;
@@ -366,10 +367,10 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
       return loadClass(classToBeLoaded.trim(), initialize);
     } catch (ClassNotFoundException e) {
       // If the class cannot be loaded then it is an invalid value.
-      throw new IllegalPropertyValueException(this, componentClassName, e);
+      throw illegalPropertyValueException(this, componentClassName, e);
     } catch (LinkageError e) {
       // If the class cannot be initialized then it is an invalid value.
-      throw new IllegalPropertyValueException(this, componentClassName, e);
+      throw illegalPropertyValueException(this, componentClassName, e);
     }
   }
 
@@ -379,10 +380,10 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
    * Do some basic checks to make sure the string representation is valid.
    */
   private void validateClassName(String className)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     String nvalue = className.trim();
     if (!nvalue.matches(CLASS_RE)) {
-      throw new IllegalPropertyValueException(this, className);
+      throw PropertyException.illegalPropertyValueException(this, className);
     }
   }
 }

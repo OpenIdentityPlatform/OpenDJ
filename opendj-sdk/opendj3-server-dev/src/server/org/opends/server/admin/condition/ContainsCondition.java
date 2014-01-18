@@ -31,7 +31,7 @@ package org.opends.server.admin.condition;
 import java.util.SortedSet;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.IllegalPropertyValueStringException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
@@ -67,7 +67,7 @@ public final class ContainsCondition implements Condition {
 
     // Private constructor.
     private Impl(PropertyDefinition<T> pd, T value)
-        throws IllegalPropertyValueStringException {
+        throws PropertyException {
       this.pd = pd;
       this.value = value;
     }
@@ -189,7 +189,7 @@ public final class ContainsCondition implements Condition {
 
   // Creates the new private implementation.
   private <T> void buildImpl(PropertyDefinition<T> pd)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     T value = pd.decodeValue(propertyStringValue);
     this.impl = new Impl<T>(pd, value);
   }

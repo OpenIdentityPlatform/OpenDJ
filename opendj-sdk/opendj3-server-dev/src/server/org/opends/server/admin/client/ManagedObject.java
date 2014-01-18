@@ -33,9 +33,8 @@ import java.util.SortedSet;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
-import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.IllegalPropertyValueException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectDefinition;
@@ -44,9 +43,6 @@ import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.PropertyIsMandatoryException;
-import org.opends.server.admin.PropertyIsReadOnlyException;
-import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
@@ -168,7 +164,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
    *          The name of the child managed object.
    * @param exceptions
    *          A collection in which to place any
-   *          {@link DefaultBehaviorException}s that occurred whilst
+   *          {@link PropertyException}s that occurred whilst
    *          attempting to determine the managed object's default
    *          values.
    * @return Returns a new child managed object bound to the specified
@@ -182,7 +178,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
   <C extends ConfigurationClient, S extends Configuration, CC extends C>
   ManagedObject<CC> createChild(InstantiableRelationDefinition<C, S> r,
       ManagedObjectDefinition<CC, ? extends S> d, String name,
-      Collection<DefaultBehaviorException> exceptions)
+      Collection<PropertyException> exceptions)
       throws IllegalManagedObjectNameException, IllegalArgumentException;
 
 
@@ -209,7 +205,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
    *          The definition of the managed object to be created.
    * @param exceptions
    *          A collection in which to place any
-   *          {@link DefaultBehaviorException}s that occurred whilst
+   *          {@link PropertyException}s that occurred whilst
    *          attempting to determine the managed object's default
    *          values.
    * @return Returns a new child managed object bound to the specified
@@ -221,7 +217,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
   <C extends ConfigurationClient, S extends Configuration, CC extends C>
   ManagedObject<CC> createChild(OptionalRelationDefinition<C, S> r,
       ManagedObjectDefinition<CC, ? extends S> d,
-      Collection<DefaultBehaviorException> exceptions)
+      Collection<PropertyException> exceptions)
       throws IllegalArgumentException;
 
 
@@ -248,7 +244,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
    *          The definition of the managed object to be created.
    * @param exceptions
    *          A collection in which to place any
-   *          {@link DefaultBehaviorException}s that occurred whilst
+   *          {@link PropertyException}s that occurred whilst
    *          attempting to determine the managed object's default
    *          values.
    * @return Returns a new child managed object bound to the specified
@@ -260,7 +256,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
   <C extends ConfigurationClient, S extends Configuration, CC extends C>
   ManagedObject<CC> createChild(SetRelationDefinition<C, S> r,
       ManagedObjectDefinition<CC, ? extends S> d,
-      Collection<DefaultBehaviorException> exceptions)
+      Collection<PropertyException> exceptions)
       throws IllegalArgumentException;
 
 
@@ -870,68 +866,55 @@ public interface ManagedObject<T extends ConfigurationClient> extends
   /**
    * Sets a new pending value for the specified property.
    * <p>
-   * See the class description for more information regarding pending
-   * values.
+   * See the class description for more information regarding pending values.
    *
    * @param <PD>
    *          The type of the property to be modified.
    * @param pd
    *          The property to be modified.
    * @param value
-   *          The new pending value for the property, or
-   *          <code>null</code> if the property should be reset to
-   *          its default behavior.
-   * @throws IllegalPropertyValueException
-   *           If the new pending value is deemed to be invalid
-   *           according to the property definition.
-   * @throws PropertyIsReadOnlyException
-   *           If this is not a new managed object and the property is
-   *           read-only or for monitoring purposes.
-   * @throws PropertyIsMandatoryException
-   *           If an attempt was made to remove a mandatory property.
+   *          The new pending value for the property, or <code>null</code> if
+   *          the property should be reset to its default behavior.
+   * @throws PropertyException
+   *           If the new pending value is deemed to be invalid according to the
+   *           property definition, or if this is not a new managed object and
+   *           the property is read-only or for monitoring purposes, or if an
+   *           attempt was made to remove a mandatory property.
    * @throws IllegalArgumentException
-   *           If the specified property definition is not associated
-   *           with this managed object.
+   *           If the specified property definition is not associated with this
+   *           managed object.
    */
   <PD> void setPropertyValue(PropertyDefinition<PD> pd, PD value)
-      throws IllegalPropertyValueException, PropertyIsReadOnlyException,
-      PropertyIsMandatoryException, IllegalArgumentException;
+      throws PropertyException, IllegalArgumentException;
 
 
 
   /**
    * Sets a new pending values for the specified property.
    * <p>
-   * See the class description for more information regarding pending
-   * values.
+   * See the class description for more information regarding pending values.
    *
    * @param <PD>
    *          The type of the property to be modified.
    * @param pd
    *          The property to be modified.
    * @param values
-   *          A non-<code>null</code> set of new pending values for
-   *          the property (an empty set indicates that the property
-   *          should be reset to its default behavior). The set will
-   *          not be referenced by this managed object.
-   * @throws IllegalPropertyValueException
-   *           If a new pending value is deemed to be invalid
-   *           according to the property definition.
-   * @throws PropertyIsSingleValuedException
-   *           If an attempt was made to add multiple pending values
-   *           to a single-valued property.
-   * @throws PropertyIsReadOnlyException
-   *           If this is not a new managed object and the property is
-   *           read-only or for monitoring purposes.
-   * @throws PropertyIsMandatoryException
-   *           If an attempt was made to remove a mandatory property.
+   *          A non-<code>null</code> set of new pending values for the property
+   *          (an empty set indicates that the property should be reset to its
+   *          default behavior). The set will not be referenced by this managed
+   *          object.
+   * @throws PropertyException
+   *           If a new pending value is deemed to be invalid according to the
+   *           property definition, or if an attempt was made to add multiple
+   *           pending values to a single-valued property, or if this is not a
+   *           new managed object and the property is read-only or for
+   *           monitoring purposes, or if an attempt was made to remove a
+   *           mandatory property.
    * @throws IllegalArgumentException
-   *           If the specified property definition is not associated
-   *           with this managed object.
+   *           If the specified property definition is not associated with this
+   *           managed object.
    */
   <PD> void setPropertyValues(PropertyDefinition<PD> pd, Collection<PD> values)
-      throws IllegalPropertyValueException, PropertyIsSingleValuedException,
-      PropertyIsReadOnlyException, PropertyIsMandatoryException,
-      IllegalArgumentException;
+      throws PropertyException, IllegalArgumentException;
 
 }

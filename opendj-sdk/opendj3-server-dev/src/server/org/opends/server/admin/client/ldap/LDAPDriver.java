@@ -52,10 +52,9 @@ import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.DefinitionResolver;
-import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectDefinition;
@@ -63,14 +62,10 @@ import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionVisitor;
-import org.opends.server.admin.PropertyException;
-import org.opends.server.admin.PropertyIsMandatoryException;
-import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.Reference;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
-import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
@@ -106,12 +101,12 @@ final class LDAPDriver extends Driver {
      * @param value
      *          The LDAP string representation.
      * @return Returns the decoded LDAP value.
-     * @throws IllegalPropertyValueStringException
+     * @throws PropertyException
      *           If the property value could not be decoded because it
      *           was invalid.
      */
     public static <PD> PD decode(PropertyDefinition<PD> pd, Object value)
-        throws IllegalPropertyValueStringException {
+        throws PropertyException {
       String s = String.valueOf(value);
       return pd.castValue(pd.accept(new ValueDecoder(), s));
     }
@@ -138,7 +133,7 @@ final class LDAPDriver extends Driver {
             .getRelationDefinition(), p);
         return reference.getName();
       } catch (IllegalArgumentException e) {
-        throw new IllegalPropertyValueStringException(d, p);
+        throw PropertyException.illegalPropertyValueException(d, p);
       }
     }
 
@@ -149,7 +144,7 @@ final class LDAPDriver extends Driver {
      */
     @Override
     public <T> Object visitUnknown(PropertyDefinition<T> d, String p)
-        throws UnknownPropertyDefinitionException {
+        throws PropertyException {
       // By default the property definition's decoder will do.
       return d.decodeValue(p);
     }
@@ -316,11 +311,11 @@ final class LDAPDriver extends Driver {
 
       // Sanity check the returned values.
       if (values.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
-        throw new PropertyIsSingleValuedException(pd);
+        throw PropertyException.propertyIsSingleValuedException(pd);
       }
 
       if (values.isEmpty() && pd.hasOption(PropertyOption.MANDATORY)) {
-        throw new PropertyIsMandatoryException(pd);
+        throw PropertyException.propertyIsMandatoryException(pd);
       }
 
       if (values.isEmpty()) {
@@ -628,7 +623,7 @@ final class LDAPDriver extends Driver {
 
     if (activeValues.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
       // This exception takes precedence over previous exceptions.
-      exception = new PropertyIsSingleValuedException(pd);
+      exception = PropertyException.propertyIsSingleValuedException(pd);
       PD value = activeValues.first();
       activeValues.clear();
       activeValues.add(value);
@@ -638,7 +633,7 @@ final class LDAPDriver extends Driver {
     Collection<PD> defaultValues;
     try {
       defaultValues = findDefaultValues(p, pd, false);
-    } catch (DefaultBehaviorException e) {
+    } catch (PropertyException e) {
       defaultValues = Collections.emptySet();
       exception = e;
     }
@@ -650,7 +645,7 @@ final class LDAPDriver extends Driver {
       // The active values maybe empty because of a previous
       // exception.
       if (exception == null) {
-        exception = new PropertyIsMandatoryException(pd);
+        exception = PropertyException.propertyIsMandatoryException(pd);
       }
     }
 

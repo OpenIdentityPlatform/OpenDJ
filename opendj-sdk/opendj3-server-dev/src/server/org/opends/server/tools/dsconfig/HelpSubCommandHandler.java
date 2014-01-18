@@ -63,7 +63,7 @@ import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.StringPropertyDefinition;
 import org.opends.server.admin.Tag;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
-import org.opends.server.admin.UnknownPropertyDefinitionException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -305,7 +305,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
        */
       @Override
       public <T> Void visitUnknown(PropertyDefinition<T> d, PrintStream p)
-          throws UnknownPropertyDefinitionException {
+          throws PropertyException {
         PropertyDefinitionUsageBuilder usageBuilder =
           new PropertyDefinitionUsageBuilder(true);
         displayUsage(p, usageBuilder.getUsage(d));

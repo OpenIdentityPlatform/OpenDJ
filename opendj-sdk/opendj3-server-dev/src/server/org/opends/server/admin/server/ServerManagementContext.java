@@ -30,6 +30,7 @@ package org.opends.server.admin.server;
 
 
 import static org.opends.messages.AdminMessages.*;
+import static org.opends.server.admin.PropertyException.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -51,22 +52,17 @@ import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.DefinitionResolver;
-import org.opends.server.admin.IllegalPropertyValueException;
-import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionVisitor;
-import org.opends.server.admin.PropertyException;
-import org.opends.server.admin.PropertyIsMandatoryException;
-import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyNotFoundException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.Reference;
@@ -74,7 +70,6 @@ import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
-import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
@@ -108,7 +103,7 @@ public final class ServerManagementContext {
 
     // Any exception that occurred whilst retrieving inherited default
     // values.
-    private DefaultBehaviorException exception = null;
+    private PropertyException exception = null;
 
     // Optional new configuration entry which does not yet exist in
     // the configuration back-end.
@@ -137,7 +132,7 @@ public final class ServerManagementContext {
       try {
         return getInheritedProperty(d.getManagedObjectPath(), d
             .getManagedObjectDefinition(), d.getPropertyName());
-      } catch (DefaultBehaviorException e) {
+      } catch (PropertyException e) {
         exception = e;
         return Collections.emptySet();
       }
@@ -165,8 +160,8 @@ public final class ServerManagementContext {
       for (String stringValue : stringValues) {
         try {
           values.add(nextProperty.decodeValue(stringValue));
-        } catch (IllegalPropertyValueStringException e) {
-          exception = new DefaultBehaviorException(nextProperty, e);
+        } catch (PropertyException e) {
+          exception = defaultBehaviorException(nextProperty, e);
           break;
         }
       }
@@ -184,7 +179,7 @@ public final class ServerManagementContext {
       try {
         return getInheritedProperty(d.getManagedObjectPath(nextPath), d
             .getManagedObjectDefinition(), d.getPropertyName());
-      } catch (DefaultBehaviorException e) {
+      } catch (PropertyException e) {
         exception = e;
         return Collections.emptySet();
       }
@@ -204,7 +199,7 @@ public final class ServerManagementContext {
 
     // Find the default values for the next path/property.
     private Collection<T> find(ManagedObjectPath<?, ?> p,
-        PropertyDefinition<T> pd) throws DefaultBehaviorException {
+        PropertyDefinition<T> pd) throws PropertyException {
       nextPath = p;
       nextProperty = pd;
 
@@ -216,8 +211,8 @@ public final class ServerManagementContext {
       }
 
       if (values.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
-        throw new DefaultBehaviorException(pd,
-            new PropertyIsSingleValuedException(pd));
+        throw PropertyException.defaultBehaviorException(pd,
+            PropertyException.propertyIsSingleValuedException(pd));
       }
 
       return values;
@@ -229,13 +224,13 @@ public final class ServerManagementContext {
     @SuppressWarnings("unchecked")
     private Collection<T> getInheritedProperty(ManagedObjectPath target,
         AbstractManagedObjectDefinition<?, ?> d, String propertyName)
-        throws DefaultBehaviorException {
+        throws PropertyException {
       // First check that the requested type of managed object
       // corresponds to the path.
       AbstractManagedObjectDefinition<?, ?> supr = target
           .getManagedObjectDefinition();
       if (!supr.isParentOf(d)) {
-        throw new DefaultBehaviorException(
+        throw PropertyException.defaultBehaviorException(
             nextProperty, new DefinitionDecodingException(supr,
                 Reason.WRONG_TYPE_INFORMATION));
       }
@@ -286,15 +281,13 @@ public final class ServerManagementContext {
           return pvalues;
         }
       } catch (DefinitionDecodingException e) {
-        throw new DefaultBehaviorException(pd1, e);
+        throw PropertyException.defaultBehaviorException(pd1, e);
       } catch (PropertyNotFoundException e) {
-        throw new DefaultBehaviorException(pd1, e);
-      } catch (IllegalPropertyValueException e) {
-        throw new DefaultBehaviorException(pd1, e);
-      } catch (IllegalPropertyValueStringException e) {
-        throw new DefaultBehaviorException(pd1, e);
+        throw PropertyException.defaultBehaviorException(pd1, e);
+      } catch (PropertyException e) {
+        throw PropertyException.defaultBehaviorException(pd1, e);
       } catch (ConfigException e) {
-        throw new DefaultBehaviorException(pd1, e);
+        throw PropertyException.defaultBehaviorException(pd1, e);
       }
     }
   }
@@ -346,12 +339,12 @@ public final class ServerManagementContext {
      * @param value
      *          The LDAP string representation.
      * @return Returns the decoded LDAP value.
-     * @throws IllegalPropertyValueStringException
+     * @throws PropertyException
      *           If the property value could not be decoded because it
      *           was invalid.
      */
     public static <PD> PD decode(PropertyDefinition<PD> pd,
-        AttributeValue value) throws IllegalPropertyValueStringException {
+        AttributeValue value) throws PropertyException {
       String s = value.getValue().toString();
       return pd.castValue(pd.accept(new ValueDecoder(), s));
     }
@@ -378,7 +371,7 @@ public final class ServerManagementContext {
             .getRelationDefinition(), p);
         return reference.getName();
       } catch (IllegalArgumentException e) {
-        throw new IllegalPropertyValueStringException(d, p);
+        throw PropertyException.illegalPropertyValueException(d, p);
       }
     }
 
@@ -389,7 +382,7 @@ public final class ServerManagementContext {
      */
     @Override
     public <T> Object visitUnknown(PropertyDefinition<T> d, String p)
-        throws UnknownPropertyDefinitionException {
+        throws PropertyException {
       // By default the property definition's decoder will do.
       return d.decodeValue(p);
     }
@@ -867,7 +860,7 @@ public final class ServerManagementContext {
       for (AttributeValue value : values) {
         try {
           pvalues.add(ValueDecoder.decode(pd, value));
-        } catch (IllegalPropertyValueStringException e) {
+        } catch (PropertyException e) {
           exception = e;
         }
       }
@@ -875,14 +868,14 @@ public final class ServerManagementContext {
       // No values defined so get the defaults.
       try {
         pvalues.addAll(getDefaultValues(path, pd, newConfigEntry));
-      } catch (DefaultBehaviorException e) {
+      } catch (PropertyException e) {
         exception = e;
       }
     }
 
     if (pvalues.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
       // This exception takes precedence over previous exceptions.
-      exception = new PropertyIsSingleValuedException(pd);
+      exception = PropertyException.propertyIsSingleValuedException(pd);
       T value = pvalues.first();
       pvalues.clear();
       pvalues.add(value);
@@ -891,7 +884,7 @@ public final class ServerManagementContext {
     if (pvalues.isEmpty() && pd.hasOption(PropertyOption.MANDATORY)) {
       // The values maybe empty because of a previous exception.
       if (exception == null) {
-        exception = new PropertyIsMandatoryException(pd);
+        exception = PropertyException.propertyIsMandatoryException(pd);
       }
     }
 
@@ -936,7 +929,7 @@ public final class ServerManagementContext {
   // Get the default values for the specified property.
   private <T> Collection<T> getDefaultValues(ManagedObjectPath<?, ?> p,
       PropertyDefinition<T> pd, ConfigEntry newConfigEntry)
-      throws DefaultBehaviorException {
+      throws PropertyException {
     DefaultValueFinder<T> v = new DefaultValueFinder<T>(newConfigEntry);
     return v.find(p, pd);
   }

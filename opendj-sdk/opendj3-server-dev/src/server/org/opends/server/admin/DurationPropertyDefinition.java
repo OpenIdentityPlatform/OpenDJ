@@ -462,20 +462,20 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
    * {@inheritDoc}
    */
   @Override
-  public void validateValue(Long value) throws IllegalPropertyValueException {
+  public void validateValue(Long value) throws PropertyException {
     ifNull(value);
 
     long nvalue = baseUnit.toMilliSeconds(value);
     if (!allowUnlimited && nvalue < lowerLimit) {
-      throw new IllegalPropertyValueException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
 
       // unlimited allowed
     } else if (nvalue >= 0 && nvalue < lowerLimit) {
-      throw new IllegalPropertyValueException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
 
     if ((upperLimit != null) && (nvalue > upperLimit)) {
-      throw new IllegalPropertyValueException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
 
@@ -485,7 +485,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
    * {@inheritDoc}
    */
   @Override
-  public String encodeValue(Long value) throws IllegalPropertyValueException {
+  public String encodeValue(Long value) throws PropertyException {
     ifNull(value);
 
     // Make sure that we correctly encode negative values as
@@ -511,7 +511,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
    */
   @Override
   public Long decodeValue(String value)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     ifNull(value);
 
     // First check for the special "unlimited" value when necessary.
@@ -526,21 +526,21 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
     try {
       ms = DurationUnit.parseValue(value);
     } catch (NumberFormatException e) {
-      throw new IllegalPropertyValueStringException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
 
     // Check the unit is in range - values must not be more granular
     // than the base unit.
     if ((ms % baseUnit.getDuration()) != 0) {
-      throw new IllegalPropertyValueStringException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
 
     // Convert the value a long in the property's required unit.
     Long i = (long) baseUnit.fromMilliSeconds(ms);
     try {
       validateValue(i);
-    } catch (IllegalPropertyValueException e) {
-      throw new IllegalPropertyValueStringException(this, value);
+    } catch (PropertyException e) {
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
     return i;
   }

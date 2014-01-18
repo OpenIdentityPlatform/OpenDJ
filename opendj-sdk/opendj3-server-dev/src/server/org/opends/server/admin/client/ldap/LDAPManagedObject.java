@@ -54,7 +54,7 @@ import org.opends.server.admin.PropertyValueVisitor;
 import org.opends.server.admin.Reference;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
-import org.opends.server.admin.UnknownPropertyDefinitionException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
@@ -112,7 +112,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
      */
     @Override
     public <PD> Object visitUnknown(PropertyDefinition<PD> pd, PD v, Void p)
-        throws UnknownPropertyDefinitionException {
+        throws PropertyException {
       return pd.encodeValue(v);
     }
   }

@@ -30,9 +30,8 @@ package org.opends.server.admin;
 import java.util.Collection;
 import java.util.SortedSet;
 import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.IllegalPropertyValueException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.PropertyIsReadOnlyException;
 import org.opends.server.admin.TestChildCfg;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -75,10 +74,10 @@ public interface TestChildCfgClient extends ConfigurationClient {
    * An aggregation property which references connection handlers.
    *
    * @param values The values of the "aggregation-property" property.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If one or more of the new values are invalid.
    */
-  void setAggregationProperty(Collection<String> values) throws IllegalPropertyValueException;
+  void setAggregationProperty(Collection<String> values) throws PropertyException;
 
 
 
@@ -99,10 +98,10 @@ public interface TestChildCfgClient extends ConfigurationClient {
    * A mandatory boolean property.
    *
    * @param value The value of the "mandatory-boolean-property" property.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If the new value is invalid.
    */
-  void setMandatoryBooleanProperty(boolean value) throws IllegalPropertyValueException;
+  void setMandatoryBooleanProperty(boolean value) throws PropertyException;
 
 
 
@@ -123,10 +122,10 @@ public interface TestChildCfgClient extends ConfigurationClient {
    * A mandatory Java-class property requiring a component restart.
    *
    * @param value The value of the "mandatory-class-property" property.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If the new value is invalid.
    */
-  void setMandatoryClassProperty(String value) throws IllegalPropertyValueException;
+  void setMandatoryClassProperty(String value) throws PropertyException;
 
 
 
@@ -150,12 +149,12 @@ public interface TestChildCfgClient extends ConfigurationClient {
    * creation of a Test Child.
    *
    * @param value The value of the "mandatory-read-only-attribute-type-property" property.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If the new value is invalid.
-   * @throws PropertyIsReadOnlyException
+   * @throws PropertyException
    *           If this Test Child is not being initialized.
    */
-  void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws IllegalPropertyValueException, PropertyIsReadOnlyException;
+  void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyException, PropertyException;
 
 
 
@@ -178,10 +177,10 @@ public interface TestChildCfgClient extends ConfigurationClient {
    * from optional-multi-valued-dn-property in the parent.
    *
    * @param values The values of the "optional-multi-valued-dn-property1" property.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If one or more of the new values are invalid.
    */
-  void setOptionalMultiValuedDNProperty1(Collection<DN> values) throws IllegalPropertyValueException;
+  void setOptionalMultiValuedDNProperty1(Collection<DN> values) throws PropertyException;
 
 
 
@@ -204,9 +203,9 @@ public interface TestChildCfgClient extends ConfigurationClient {
    * from optional-multi-valued-dn-property1.
    *
    * @param values The values of the "optional-multi-valued-dn-property2" property.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If one or more of the new values are invalid.
    */
-  void setOptionalMultiValuedDNProperty2(Collection<DN> values) throws IllegalPropertyValueException;
+  void setOptionalMultiValuedDNProperty2(Collection<DN> values) throws PropertyException;
 
 }

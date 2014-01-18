@@ -41,7 +41,7 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
-import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.DefaultBehaviorProvider;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.DefinitionDecodingException;
@@ -51,7 +51,6 @@ import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.OptionalRelationDefinition;
-import org.opends.server.admin.PropertyIsReadOnlyException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -376,7 +375,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
     /**
      * {@inheritDoc}
      */
-    public void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyIsReadOnlyException {
+    public void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyException {
       impl.setPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition(), value);
     }
 
@@ -426,7 +425,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
      * {@inheritDoc}
      */
     public <M extends TestChildCfgClient> M createTestChild(
-        ManagedObjectDefinition<M, ? extends TestChildCfg> d, String name, Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException {
+        ManagedObjectDefinition<M, ? extends TestChildCfg> d, String name, Collection<PropertyException> exceptions) throws IllegalManagedObjectNameException {
       return impl.createChild(INSTANCE.getTestChildrenRelationDefinition(), d, name, exceptions).getConfiguration();
     }
 
@@ -469,7 +468,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
      * {@inheritDoc}
      */
     public <M extends TestChildCfgClient> M createOptionalTestChild(
-        ManagedObjectDefinition<M, ? extends TestChildCfg> d, Collection<DefaultBehaviorException> exceptions) {
+        ManagedObjectDefinition<M, ? extends TestChildCfg> d, Collection<PropertyException> exceptions) {
       return impl.createChild(INSTANCE.getOptionalTestChildRelationDefinition(), d, exceptions).getConfiguration();
     }
 

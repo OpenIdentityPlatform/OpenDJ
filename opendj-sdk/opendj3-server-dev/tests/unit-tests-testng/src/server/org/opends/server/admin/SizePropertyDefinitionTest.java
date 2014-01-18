@@ -169,7 +169,7 @@ public class SizePropertyDefinitionTest extends DirectoryServerTestCase {
   /**
    * Tests the allowUnlimited property
    */
-  @Test(expectedExceptions = IllegalPropertyValueStringException.class)
+  @Test(expectedExceptions = PropertyException.class)
   public void testIsAllowUnlimited2() {
     SizePropertyDefinition.Builder builder = createTestBuilder();
     builder.setAllowUnlimited(false);
@@ -180,7 +180,7 @@ public class SizePropertyDefinitionTest extends DirectoryServerTestCase {
   /**
    * Tests the allowUnlimited property
    */
-  @Test(expectedExceptions = IllegalPropertyValueException.class)
+  @Test(expectedExceptions = PropertyException.class)
   public void testIsAllowUnlimited3() {
     SizePropertyDefinition.Builder builder = createTestBuilder();
     builder.setAllowUnlimited(false);
@@ -242,7 +242,7 @@ public class SizePropertyDefinitionTest extends DirectoryServerTestCase {
    * @param allowUnlimited when true allows unlimited
    */
   @Test(dataProvider = "illegalValidateValueData",
-          expectedExceptions = {AssertionError.class,NullPointerException.class,IllegalPropertyValueException.class})
+          expectedExceptions = {AssertionError.class,NullPointerException.class,PropertyException.class})
   public void testValidateValue2(Long low, Long high, boolean allowUnlimited, Long value) {
     SizePropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(low);
@@ -306,7 +306,7 @@ public class SizePropertyDefinitionTest extends DirectoryServerTestCase {
       }
 
       public Boolean visitUnknown(PropertyDefinition d, Void o)
-          throws UnknownPropertyDefinitionException {
+          throws PropertyException {
         return false;
       }
 

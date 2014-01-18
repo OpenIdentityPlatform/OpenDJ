@@ -124,7 +124,7 @@ public final class BooleanPropertyDefinition extends
    */
   @Override
   public void validateValue(Boolean value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     ifNull(value);
 
     // No additional validation required.
@@ -137,14 +137,14 @@ public final class BooleanPropertyDefinition extends
    */
   @Override
   public Boolean decodeValue(String value)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     ifNull(value);
 
     String nvalue = value.trim().toLowerCase();
     Boolean b = VALUE_MAP.get(nvalue);
 
     if (b == null) {
-      throw new IllegalPropertyValueStringException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     } else {
       return b;
     }

@@ -171,7 +171,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
    */
   @Override
   public void validateValue(DN value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     ifNull(value);
 
     if (baseDN != null) {
@@ -182,7 +182,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
       }
 
       if (!parent.equals(baseDN)) {
-        throw new IllegalPropertyValueException(this, value);
+        throw PropertyException.illegalPropertyValueException(this, value);
       }
     }
   }
@@ -194,7 +194,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
    */
   @Override
   public DN decodeValue(String value)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     ifNull(value);
 
     try {
@@ -202,9 +202,9 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
       validateValue(dn);
       return dn;
     } catch (DirectoryException e) {
-      throw new IllegalPropertyValueStringException(this, value);
-    } catch (IllegalPropertyValueException e) {
-      throw new IllegalPropertyValueStringException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
+    } catch (PropertyException e) {
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
 

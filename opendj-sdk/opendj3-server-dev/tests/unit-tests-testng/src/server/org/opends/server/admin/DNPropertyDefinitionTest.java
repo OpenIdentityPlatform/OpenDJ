@@ -171,7 +171,7 @@ public class DNPropertyDefinitionTest extends DirectoryServerTestCase {
    * @throws DirectoryException
    *           If the DN could not be decoded.
    */
-  @Test(dataProvider = "testIllegalValues", expectedExceptions = IllegalPropertyValueException.class)
+  @Test(dataProvider = "testIllegalValues", expectedExceptions = PropertyException.class)
   public void testValidateIllegalValues(String baseDN, String value)
       throws DirectoryException {
     DNPropertyDefinition.Builder localBuilder = DNPropertyDefinition
@@ -210,7 +210,7 @@ public class DNPropertyDefinitionTest extends DirectoryServerTestCase {
    * @param value
    *          The value to be validated.
    */
-  @Test(dataProvider = "testIllegalValues", expectedExceptions = IllegalPropertyValueStringException.class)
+  @Test(dataProvider = "testIllegalValues", expectedExceptions = PropertyException.class)
   public void testDecodeIllegalValues(String baseDN, String value) {
     DNPropertyDefinition.Builder localBuilder = DNPropertyDefinition
         .createBuilder(RootCfgDefn.getInstance(), "test-property");

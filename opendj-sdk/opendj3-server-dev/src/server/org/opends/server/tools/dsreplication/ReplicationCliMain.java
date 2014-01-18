@@ -7576,7 +7576,7 @@ public class ReplicationCliMain extends ConsoleApplication
         ReplicationSynchronizationProviderCfgDefn.getInstance();
       sync = root.createSynchronizationProvider(provider,
           "Multimaster Synchronization",
-          new ArrayList<DefaultBehaviorException>());
+          new ArrayList<PropertyException>());
       sync.setJavaClass(
           org.opends.server.replication.plugin.MultimasterReplication.class.
           getName());
@@ -7610,7 +7610,7 @@ public class ReplicationCliMain extends ConsoleApplication
       usedReplicationServerIds.add(id);
       replicationServer = sync.createReplicationServer(
           ReplicationServerCfgDefn.getInstance(),
-          new ArrayList<DefaultBehaviorException>());
+          new ArrayList<PropertyException>());
       replicationServer.setReplicationServerId(id);
       replicationServer.setReplicationPort(replicationPort);
       replicationServer.setReplicationServer(replicationServers);
@@ -7789,7 +7789,7 @@ public class ReplicationCliMain extends ConsoleApplication
           InstallerHelper.getDomainName(domainNames, domainId, baseDN);
       domain = sync.createReplicationDomain(
           ReplicationDomainCfgDefn.getInstance(), domainName,
-          new ArrayList<DefaultBehaviorException>());
+          new ArrayList<PropertyException>());
       domain.setServerId(domainId);
       domain.setBaseDN(DN.valueOf(baseDN));
       domain.setReplicationServer(replicationServers);

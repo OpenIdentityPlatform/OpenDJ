@@ -31,16 +31,10 @@ import static org.opends.messages.DSConfigMessages.*;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.DefaultBehaviorException;
-import org.opends.server.admin.IllegalPropertyValueException;
-import org.opends.server.admin.IllegalPropertyValueStringException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionUsageBuilder;
-import org.opends.server.admin.PropertyException;
-import org.opends.server.admin.PropertyIsMandatoryException;
-import org.opends.server.admin.PropertyIsReadOnlyException;
-import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
@@ -88,7 +82,7 @@ public final class ArgumentExceptionFactory {
     } else if (pd != null) {
       try {
         pd.decodeValue(illegalName);
-      } catch (IllegalPropertyValueStringException e1) {
+      } catch (PropertyException e1) {
         PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
             true);
         Message syntax = b.getUsage(pd);
@@ -117,31 +111,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException adaptPropertyException(PropertyException e,
       AbstractManagedObjectDefinition<?, ?> d) {
-    if (e instanceof IllegalPropertyValueException) {
-      IllegalPropertyValueException pe = (IllegalPropertyValueException) e;
-      return adapt(d, pe);
-    } else if (e instanceof IllegalPropertyValueStringException) {
-      IllegalPropertyValueStringException pe =
-        (IllegalPropertyValueStringException) e;
-      return adapt(d, pe);
-    } else if (e instanceof PropertyIsMandatoryException) {
-      PropertyIsMandatoryException pe = (PropertyIsMandatoryException) e;
-      return adapt(d, pe);
-    } else if (e instanceof PropertyIsSingleValuedException) {
-      PropertyIsSingleValuedException pe = (PropertyIsSingleValuedException) e;
-      return adapt(d, pe);
-    } else if (e instanceof PropertyIsReadOnlyException) {
-      PropertyIsReadOnlyException pe = (PropertyIsReadOnlyException) e;
-      return adapt(d, pe);
-    } else if (e instanceof DefaultBehaviorException) {
-      DefaultBehaviorException pe = (DefaultBehaviorException) e;
-      return adapt(d, pe);
-    } else {
-      Message message = ERR_DSCFG_ERROR_PROPERTY_UNKNOWN_ERROR.
-          get(d.getUserFriendlyName(), e.getPropertyDefinition().getName(),
-              e.getMessage());
-      return new ArgumentException(message);
-    }
+    return new ArgumentException(e.getMessageObject());
   }
 
 
@@ -220,7 +190,7 @@ public final class ArgumentExceptionFactory {
     builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_SYNTAX.get());
 
     PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(true);
-    for (PropertyIsMandatoryException pe : e.getCauses()) {
+    for (PropertyException pe : e.getCauses()) {
       PropertyDefinition<?> pd = pe.getPropertyDefinition();
       builder.startRow();
       builder.appendCell(pd.getName());
@@ -676,143 +646,6 @@ public final class ArgumentExceptionFactory {
     Message msg = ERR_DSCFG_ERROR_TYPE_UNRECOGNIZED_FOR_SUBCOMMAND.get(
         d.getUserFriendlyName(), subcommandName);
     return new CLIException(msg);
-  }
-
-
-
-  /**
-   * Creates an argument exception from a default behavior exception.
-   *
-   * @param d
-   *          The managed object definition.
-   * @param e
-   *          The default behavior exception.
-   * @return Returns an argument exception.
-   */
-  private static ArgumentException adapt(
-      AbstractManagedObjectDefinition<?, ?> d, DefaultBehaviorException e) {
-    Message message = ERR_DSCFG_ERROR_PROPERTY_DEFAULT_BEHAVIOR.
-        get(d.getUserFriendlyName(), e.getPropertyDefinition().getName(),
-            e.getMessage());
-    return new ArgumentException(message);
-  }
-
-
-
-  /**
-   * Creates an argument exception from an illegal property value
-   * exception.
-   *
-   * @param d
-   *          The managed object definition.
-   * @param e
-   *          The illegal property value exception.
-   * @return Returns an argument exception.
-   */
-  private static ArgumentException adapt(
-      AbstractManagedObjectDefinition<?, ?> d,
-      IllegalPropertyValueException e) {
-    PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(true);
-    Message syntax = b.getUsage(e.getPropertyDefinition());
-
-    if (syntax.length() > 20) {
-      // syntax =
-      // INFO_DSCFG_DESCRIPTION_PROPERTY_SYNTAX_HELP.get();
-    }
-
-    Message message = ERR_DSCFG_ERROR_PROPERTY_INVALID_VALUE.
-        get(String.valueOf(e.getIllegalValue()), d.getUserFriendlyName(),
-            e.getPropertyDefinition().getName(), syntax);
-    return new ArgumentException(message);
-  }
-
-
-
-  /**
-   * Creates an argument exception from an illegal property string
-   * value exception.
-   *
-   * @param d
-   *          The managed object definition.
-   * @param e
-   *          The illegal property string value exception.
-   * @return Returns an argument exception.
-   */
-  private static ArgumentException adapt(
-      AbstractManagedObjectDefinition<?, ?> d,
-      IllegalPropertyValueStringException e) {
-    PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(true);
-    Message syntax = b.getUsage(e.getPropertyDefinition());
-
-    if (syntax.length() > 20) {
-      // syntax =
-      // INFO_DSCFG_DESCRIPTION_PROPERTY_SYNTAX_HELP.get();
-    }
-
-    Message message = ERR_DSCFG_ERROR_PROPERTY_INVALID_VALUE.
-        get(String.valueOf(e.getIllegalValueString()), d.getUserFriendlyName(),
-            e.getPropertyDefinition().getName(), syntax);
-    return new ArgumentException(message);
-  }
-
-
-
-  /**
-   * Creates an argument exception from a property is mandatory
-   * exception.
-   *
-   * @param d
-   *          The managed object definition.
-   * @param e
-   *          The property is mandatory exception.
-   * @return Returns an argument exception.
-   */
-  private static ArgumentException adapt(
-      AbstractManagedObjectDefinition<?, ?> d,
-      PropertyIsMandatoryException e) {
-    Message message = ERR_DSCFG_ERROR_PROPERTY_MANDATORY.get(
-        d.getUserFriendlyName(), e.getPropertyDefinition().getName());
-    return new ArgumentException(message);
-  }
-
-
-
-  /**
-   * Creates an argument exception from a property is read-only
-   * exception.
-   *
-   * @param d
-   *          The managed object definition.
-   * @param e
-   *          The property is read-only exception.
-   * @return Returns an argument exception.
-   */
-  private static ArgumentException adapt(
-      AbstractManagedObjectDefinition<?, ?> d,
-      PropertyIsReadOnlyException e) {
-    Message message = ERR_DSCFG_ERROR_PROPERTY_READ_ONLY.get(
-        d.getUserFriendlyName(), e.getPropertyDefinition().getName());
-    return new ArgumentException(message);
-  }
-
-
-
-  /**
-   * Creates an argument exception from a property is single-valued
-   * exception.
-   *
-   * @param d
-   *          The managed object definition.
-   * @param e
-   *          The property is single-valued exception.
-   * @return Returns an argument exception.
-   */
-  private static ArgumentException adapt(
-      AbstractManagedObjectDefinition<?, ?> d,
-      PropertyIsSingleValuedException e) {
-    Message message = ERR_DSCFG_ERROR_PROPERTY_SINGLE_VALUED.get(
-        d.getUserFriendlyName(), e.getPropertyDefinition().getName());
-    return new ArgumentException(message);
   }
 
 

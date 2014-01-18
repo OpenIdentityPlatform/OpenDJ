@@ -30,6 +30,7 @@ package org.opends.server.tools.dsconfig;
 
 import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.admin.PropertyException.*;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
 
 import java.util.Collection;
@@ -50,9 +51,8 @@ import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectDefinition;
@@ -62,8 +62,6 @@ import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionUsageBuilder;
-import org.opends.server.admin.PropertyException;
-import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.RelationDefinition;
@@ -214,7 +212,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       T value;
       try {
         value = pd.decodeValue(s);
-      } catch (IllegalPropertyValueStringException e) {
+      } catch (PropertyException e) {
         throw ArgumentExceptionFactory.adaptPropertyException(e, d);
       }
 
@@ -225,7 +223,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       values.add(value);
 
       if (values.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
-        PropertyException e = new PropertyIsSingleValuedException(pd);
+        PropertyException e = propertyIsSingleValuedException(pd);
         throw ArgumentExceptionFactory.adaptPropertyException(e, d);
       }
 
@@ -541,8 +539,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
     // Now create the component.
     // FIXME: handle default value exceptions?
-    List<DefaultBehaviorException> exceptions =
-      new LinkedList<DefaultBehaviorException>();
+    List<PropertyException> exceptions =
+      new LinkedList<PropertyException>();
     app.println();
     app.println();
     ManagedObject<? extends C> mo =
@@ -848,7 +846,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       ConsoleApplication app, final ManagedObject<?> parent,
       final InstantiableRelationDefinition<C, S> irelation,
       final ManagedObjectDefinition<? extends C, ? extends S> d,
-      final List<DefaultBehaviorException> exceptions) throws CLIException {
+      final List<PropertyException> exceptions) throws CLIException {
     ValidationCallback<ManagedObject<? extends C>> validator =
       new ValidationCallback<ManagedObject<? extends C>>() {
 
@@ -1293,8 +1291,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         namingPropertyDefinition, propertyArgs);
 
     ManagedObject<? extends C> child;
-    List<DefaultBehaviorException> exceptions =
-      new LinkedList<DefaultBehaviorException>();
+    List<PropertyException> exceptions =
+      new LinkedList<PropertyException>();
     boolean isNameProvidedInteractively = false;
     String providedNamingArgName = null;
     if (relation instanceof InstantiableRelationDefinition) {

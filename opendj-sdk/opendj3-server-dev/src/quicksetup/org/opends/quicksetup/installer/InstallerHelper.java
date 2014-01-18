@@ -52,7 +52,7 @@ import org.opends.quicksetup.util.Utils;
 
 import static org.opends.quicksetup.util.Utils.*;
 
-import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
@@ -497,7 +497,7 @@ public class InstallerHelper {
           ReplicationSynchronizationProviderCfgDefn.getInstance();
         sync = root.createSynchronizationProvider(provider,
             "Multimaster Synchronization",
-            new ArrayList<DefaultBehaviorException>());
+            new ArrayList<PropertyException>());
         sync.setJavaClass(
             org.opends.server.replication.plugin.MultimasterReplication.class.
             getName());
@@ -550,7 +550,7 @@ public class InstallerHelper {
         usedReplicationServerIds.add(id);
         replicationServer = sync.createReplicationServer(
             ReplicationServerCfgDefn.getInstance(),
-            new ArrayList<DefaultBehaviorException>());
+            new ArrayList<PropertyException>());
         replicationServer.setReplicationServerId(id);
         replicationServer.setReplicationPort(replicationPort);
         replicationServerCreated = true;
@@ -619,7 +619,7 @@ public class InstallerHelper {
           domainName = getDomainName(domainNames, domainId, dn);
           domain = sync.createReplicationDomain(
               ReplicationDomainCfgDefn.getInstance(), domainName,
-              new ArrayList<DefaultBehaviorException>());
+              new ArrayList<PropertyException>());
           domain.setServerId(domainId);
           domain.setBaseDN(DN.valueOf(dn));
           isCreated = true;

@@ -338,7 +338,7 @@ public final class PropertyDefinitionUsageBuilder {
      */
     @Override
     public <T> Message visitUnknown(PropertyDefinition<T> d, Void p)
-        throws UnknownPropertyDefinitionException {
+        throws PropertyException {
       return Message.raw("?");
     }
   }
