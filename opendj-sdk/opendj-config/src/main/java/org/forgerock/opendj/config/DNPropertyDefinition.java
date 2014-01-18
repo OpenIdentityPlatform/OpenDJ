@@ -145,7 +145,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
             }
 
             if (!parent.equals(baseDN)) {
-                throw new IllegalPropertyValueException(this, value);
+                throw PropertyException.illegalPropertyValueException(this, value);
             }
         }
     }
@@ -161,8 +161,8 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
             DN dn = DN.valueOf(value);
             validateValue(dn, options);
             return dn;
-        } catch (IllegalPropertyValueException e) {
-            throw new IllegalPropertyValueStringException(this, value);
+        } catch (PropertyException e) {
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
     }
 

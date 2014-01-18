@@ -97,7 +97,7 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
         propertyDef.validateValue(DN.valueOf(valueToValidate), PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
-    @Test(dataProvider = "illegalValues", expectedExceptions = IllegalPropertyValueException.class)
+    @Test(dataProvider = "illegalValues", expectedExceptions = PropertyException.class)
     public void testValidateIllegalValues(String baseDN, String valueToValidate) {
         DNPropertyDefinition.Builder localBuilder = DNPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),
                 "test-property");
@@ -115,7 +115,7 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
         propertyDef.decodeValue(valueToValidate, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
-    @Test(dataProvider = "illegalValues", expectedExceptions = IllegalPropertyValueStringException.class)
+    @Test(dataProvider = "illegalValues", expectedExceptions = PropertyException.class)
     public void testDecodeIllegalValues(String baseDN, String valueToValidate) {
         DNPropertyDefinition.Builder localBuilder = DNPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),
                 "test-property");

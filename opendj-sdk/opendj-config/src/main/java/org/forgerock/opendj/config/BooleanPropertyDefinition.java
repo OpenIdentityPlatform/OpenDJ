@@ -114,7 +114,7 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
         Boolean b = VALUE_MAP.get(nvalue);
 
         if (b == null) {
-            throw new IllegalPropertyValueStringException(this, value);
+            throw PropertyException.illegalPropertyValueException(this, value);
         } else {
             return b;
         }

@@ -63,10 +63,10 @@ public interface TestChildCfgClient extends ConfigurationClient {
      *
      * @param values
      *            The values of the "aggregation-property" property.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If one or more of the new values are invalid.
      */
-    void setAggregationProperty(Collection<String> values) throws IllegalPropertyValueException;
+    void setAggregationProperty(Collection<String> values) throws PropertyException;
 
     /**
      * Get the "mandatory-boolean-property" property.
@@ -84,10 +84,10 @@ public interface TestChildCfgClient extends ConfigurationClient {
      *
      * @param value
      *            The value of the "mandatory-boolean-property" property.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If the new value is invalid.
      */
-    void setMandatoryBooleanProperty(boolean value) throws IllegalPropertyValueException;
+    void setMandatoryBooleanProperty(boolean value) throws PropertyException;
 
     /**
      * Get the "mandatory-class-property" property.
@@ -105,10 +105,10 @@ public interface TestChildCfgClient extends ConfigurationClient {
      *
      * @param value
      *            The value of the "mandatory-class-property" property.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If the new value is invalid.
      */
-    void setMandatoryClassProperty(String value) throws IllegalPropertyValueException;
+    void setMandatoryClassProperty(String value) throws PropertyException;
 
     /**
      * Get the "mandatory-read-only-attribute-type-property" property.
@@ -131,13 +131,13 @@ public interface TestChildCfgClient extends ConfigurationClient {
      * @param value
      *            The value of the "mandatory-read-only-attribute-type-property"
      *            property.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If the new value is invalid.
-     * @throws PropertyIsReadOnlyException
+     * @throws PropertyException
      *             If this Test Child is not being initialized.
      */
-    void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws IllegalPropertyValueException,
-            PropertyIsReadOnlyException;
+    void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyException,
+            PropertyException;
 
     /**
      * Get the "optional-multi-valued-dn-property1" property.
@@ -159,10 +159,10 @@ public interface TestChildCfgClient extends ConfigurationClient {
      * @param values
      *            The values of the "optional-multi-valued-dn-property1"
      *            property.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If one or more of the new values are invalid.
      */
-    void setOptionalMultiValuedDNProperty1(Collection<DN> values) throws IllegalPropertyValueException;
+    void setOptionalMultiValuedDNProperty1(Collection<DN> values) throws PropertyException;
 
     /**
      * Get the "optional-multi-valued-dn-property2" property.
@@ -184,9 +184,9 @@ public interface TestChildCfgClient extends ConfigurationClient {
      * @param values
      *            The values of the "optional-multi-valued-dn-property2"
      *            property.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If one or more of the new values are invalid.
      */
-    void setOptionalMultiValuedDNProperty2(Collection<DN> values) throws IllegalPropertyValueException;
+    void setOptionalMultiValuedDNProperty2(Collection<DN> values) throws PropertyException;
 
 }

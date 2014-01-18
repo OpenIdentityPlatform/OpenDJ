@@ -114,7 +114,7 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
      *            to decode
      */
     @Test(dataProvider = "decodeValueIllegalData", expectedExceptions = { NullPointerException.class,
-            IllegalPropertyValueStringException.class })
+            PropertyException.class })
     public void testDecodeValueIllegalData(String value) {
         EnumPropertyDefinition<?> def = builder.getInstance();
         def.decodeValue(value, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);

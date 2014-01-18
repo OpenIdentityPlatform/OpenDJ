@@ -181,14 +181,14 @@
                        '         The definition of the ', $ufn,' to be created.&#xa;',
                        '@param exceptions&#xa;',
                        '         An optional collection in which to place any ',
-                       '{@link DefaultBehaviorException}s that occurred whilst ',
+                       '{@link PropertyException}s that occurred whilst ',
                        'attempting to determine the default values of the ', $ufn,
                        '. This argument can be &lt;code&gt;null&lt;code&gt;.&#xa;',
                        '@return Returns a new ', $ufn,' configuration instance.&#xa;')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
-                           '      ManagedObjectDefinition&lt;C, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;DefaultBehaviorException&gt; exceptions);&#xa;')" />
+                           '      ManagedObjectDefinition&lt;C, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;PropertyException&gt; exceptions);&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -291,7 +291,7 @@
                            '         The name of the new ', $ufn,'.&#xa;',
                            '@param exceptions&#xa;',
                            '         An optional collection in which to place any ',
-                           '{@link DefaultBehaviorException}s that occurred whilst ',
+                           '{@link PropertyException}s that occurred whilst ',
                            'attempting to determine the default values of the ', $ufn,
                            '. This argument can be &lt;code&gt;null&lt;code&gt;.&#xa;',
                            '@return Returns a new ', $ufn,' configuration instance.&#xa;',
@@ -300,7 +300,7 @@
             </xsl:call-template>
             <xsl:value-of
               select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
-                               '      ManagedObjectDefinition&lt;C, ? extends ', $java-class-name,'Cfg&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) throws IllegalManagedObjectNameException;&#xa;')" />
+                               '      ManagedObjectDefinition&lt;C, ? extends ', $java-class-name,'Cfg&gt; d, String name, Collection&lt;PropertyException&gt; exceptions) throws IllegalManagedObjectNameException;&#xa;')" />
           </xsl:when>
           <xsl:when test="string(adm:one-to-many/@unique) = 'true'">
             <xsl:call-template name="add-java-comment2">
@@ -319,14 +319,14 @@
                            '         The definition of the ', $ufn,' to be created.&#xa;',
                            '@param exceptions&#xa;',
                            '         An optional collection in which to place any ',
-                           '{@link DefaultBehaviorException}s that occurred whilst ',
+                           '{@link PropertyException}s that occurred whilst ',
                            'attempting to determine the default values of the ', $ufn,
                            '. This argument can be &lt;code&gt;null&lt;code&gt;.&#xa;',
                            '@return Returns a new ', $ufn,' configuration instance.&#xa;')" />
             </xsl:call-template>
             <xsl:value-of
               select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
-                               '      ManagedObjectDefinition&lt;C, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;DefaultBehaviorException&gt; exceptions);&#xa;')" />
+                               '      ManagedObjectDefinition&lt;C, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;PropertyException&gt; exceptions);&#xa;')" />
           </xsl:when>
         </xsl:choose>
         <xsl:text>&#xa;</xsl:text>
@@ -386,12 +386,12 @@
         <xsl:if
           test="$this-local-properties[not(@monitoring='true')]">
           <import>
-            org.forgerock.opendj.config.IllegalPropertyValueException
+            org.forgerock.opendj.config.PropertyException
           </import>
         </xsl:if>
         <xsl:if test="$this-local-properties[@read-only='true']">
           <import>
-            org.forgerock.opendj.config.PropertyIsReadOnlyException
+            org.forgerock.opendj.config.PropertyException
           </import>
         </xsl:if>
         <xsl:if test="$this-local-relations">
@@ -428,7 +428,7 @@
           test="$this-local-relations/adm:one-to-zero-or-one|$this-local-relations/adm:one-to-many">
           <import>java.util.Collection</import>
           <import>
-            org.forgerock.opendj.config.DefaultBehaviorException
+            org.forgerock.opendj.config.PropertyException
           </import>
           <import>
             org.forgerock.opendj.config.client.OperationRejectedException

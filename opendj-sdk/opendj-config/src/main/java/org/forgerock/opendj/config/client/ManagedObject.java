@@ -32,7 +32,7 @@ import java.util.SortedSet;
 import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
 import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.ConfigurationClient;
-import org.forgerock.opendj.config.DefaultBehaviorException;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.DefinitionDecodingException;
 import org.forgerock.opendj.config.InstantiableRelationDefinition;
 import org.forgerock.opendj.config.ManagedObjectAlreadyExistsException;
@@ -41,9 +41,6 @@ import org.forgerock.opendj.config.ManagedObjectNotFoundException;
 import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.OptionalRelationDefinition;
 import org.forgerock.opendj.config.PropertyDefinition;
-import org.forgerock.opendj.config.PropertyIsMandatoryException;
-import org.forgerock.opendj.config.PropertyIsReadOnlyException;
-import org.forgerock.opendj.config.PropertyIsSingleValuedException;
 import org.forgerock.opendj.config.PropertyProvider;
 import org.forgerock.opendj.config.SetRelationDefinition;
 import org.forgerock.opendj.config.SingletonRelationDefinition;
@@ -150,7 +147,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *            The name of the child managed object.
      * @param exceptions
      *            A collection in which to place any
-     *            {@link DefaultBehaviorException}s that occurred whilst
+     *            {@link PropertyException}s that occurred whilst
      *            attempting to determine the managed object's default values.
      * @return Returns a new child managed object bound to the specified
      *         instantiable relation.
@@ -162,7 +159,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      */
     <C extends ConfigurationClient, S extends Configuration, C1 extends C> ManagedObject<C1> createChild(
             InstantiableRelationDefinition<C, S> r, ManagedObjectDefinition<C1, ? extends S> d, String name,
-            Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException;
+            Collection<PropertyException> exceptions) throws IllegalManagedObjectNameException;
 
     /**
      * Creates a new child managed object bound to the specified optional
@@ -186,7 +183,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *            The definition of the managed object to be created.
      * @param exceptions
      *            A collection in which to place any
-     *            {@link DefaultBehaviorException}s that occurred whilst
+     *            {@link PropertyException}s that occurred whilst
      *            attempting to determine the managed object's default values.
      * @return Returns a new child managed object bound to the specified
      *         optional relation.
@@ -196,7 +193,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      */
     <C extends ConfigurationClient, S extends Configuration, C1 extends C> ManagedObject<C1> createChild(
             OptionalRelationDefinition<C, S> r, ManagedObjectDefinition<C1, ? extends S> d,
-            Collection<DefaultBehaviorException> exceptions);
+            Collection<PropertyException> exceptions);
 
     /**
      * Creates a new child managed object bound to the specified set relation.
@@ -220,7 +217,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *            The definition of the managed object to be created.
      * @param exceptions
      *            A collection in which to place any
-     *            {@link DefaultBehaviorException}s that occurred whilst
+     *            {@link PropertyException}s that occurred whilst
      *            attempting to determine the managed object's default values.
      * @return Returns a new child managed object bound to the specified set
      *         relation.
@@ -230,7 +227,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      */
     <C extends ConfigurationClient, S extends Configuration, C1 extends C> ManagedObject<C1> createChild(
             SetRelationDefinition<C, S> r, ManagedObjectDefinition<C1, ? extends S> d,
-            Collection<DefaultBehaviorException> exceptions);
+            Collection<PropertyException> exceptions);
 
     /**
      * Retrieves an instantiable child managed object.
@@ -702,10 +699,10 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @param value
      *            The new pending value for the property, or <code>null</code>
      *            if the property should be reset to its default behavior.
-     * @throws PropertyIsReadOnlyException
+     * @throws PropertyException
      *             If this is not a new managed object and the property is
      *             read-only or for monitoring purposes.
-     * @throws PropertyIsMandatoryException
+     * @throws PropertyException
      *             If an attempt was made to remove a mandatory property.
      */
     <P> void setPropertyValue(PropertyDefinition<P> pd, P value);
@@ -724,13 +721,13 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *            property (an empty set indicates that the property should be
      *            reset to its default behavior). The set will not be referenced
      *            by this managed object.
-     * @throws PropertyIsSingleValuedException
+     * @throws PropertyException
      *             If an attempt was made to add multiple pending values to a
      *             single-valued property.
-     * @throws PropertyIsReadOnlyException
+     * @throws PropertyException
      *             If this is not a new managed object and the property is
      *             read-only or for monitoring purposes.
-     * @throws PropertyIsMandatoryException
+     * @throws PropertyException
      *             If an attempt was made to remove a mandatory property.
      */
     <P> void setPropertyValues(PropertyDefinition<P> pd, Collection<P> values);

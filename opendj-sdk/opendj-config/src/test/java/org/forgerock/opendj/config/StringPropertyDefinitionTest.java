@@ -46,7 +46,7 @@ public class StringPropertyDefinitionTest extends ConfigTestCase {
     }
 
     // TODO : I18N problem
-    @Test(enabled = false, expectedExceptions = IllegalPropertyValueException.class)
+    @Test(enabled = false, expectedExceptions = PropertyException.class)
     public void testValidateValuePatternDoesNotMatch() {
         StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
         d.validateValue("abc123", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
@@ -59,7 +59,7 @@ public class StringPropertyDefinitionTest extends ConfigTestCase {
     }
 
     // TODO : I18N problem
-    @Test(enabled = false, expectedExceptions = IllegalPropertyValueStringException.class)
+    @Test(enabled = false, expectedExceptions = PropertyException.class)
     public void testDecodeValuePatternDoesNotMatch() {
         StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
         d.decodeValue("abc123", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);

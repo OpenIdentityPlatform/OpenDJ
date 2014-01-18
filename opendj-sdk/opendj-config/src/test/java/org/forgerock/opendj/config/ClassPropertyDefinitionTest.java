@@ -131,7 +131,7 @@ public class ClassPropertyDefinitionTest extends ConfigTestCase {
             { "java.lang.Runnable", "java.lang.String", Number.class, Number.class }, };
     }
 
-    @Test(dataProvider = "loadClassesIllegal", expectedExceptions = { IllegalPropertyValueException.class })
+    @Test(dataProvider = "loadClassesIllegal", expectedExceptions = { PropertyException.class })
     public <T> void testLoadClassIllegal(String interfaceName, String loadClassName, Class<T> instanceOfClass,
             Class<?> expectedClass) {
         ClassPropertyDefinition.Builder localBuilder = ClassPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),

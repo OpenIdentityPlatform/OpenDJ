@@ -321,7 +321,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      * @param options
      *            Options to use when decoding value.
      * @return Returns the decoded property value.
-     * @throws IllegalPropertyValueStringException
+     * @throws PropertyException
      *             If the property value string is invalid.
      */
     public abstract T decodeValue(String value, PropertyDefinitionsOptions options);
@@ -335,7 +335,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      * @param value
      *            The property value (must not be <code>null</code>).
      * @return Returns the encoded property string value.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If the property value is invalid.
      */
     public String encodeValue(T value) {
@@ -520,7 +520,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      * @param value
      *            The property value to be normalized.
      * @return Returns the normalized property value.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If the property value is invalid.
      */
     public String normalizeValue(T value) {
@@ -566,7 +566,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      *            The property value (must not be <code>null</code>).
      * @param options
      *            Options to use when decoding value.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If the property value is invalid.
      */
     public abstract void validateValue(T value, PropertyDefinitionsOptions options);

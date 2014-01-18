@@ -25,6 +25,9 @@
  */
 package org.forgerock.opendj.config.client.spi;
 
+import static org.forgerock.opendj.config.PropertyException.defaultBehaviorException;
+import static org.forgerock.opendj.config.PropertyException.propertyIsSingleValuedException;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,19 +43,16 @@ import org.forgerock.opendj.config.AliasDefaultBehaviorProvider;
 import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.ConfigurationClient;
 import org.forgerock.opendj.config.Constraint;
-import org.forgerock.opendj.config.DefaultBehaviorException;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.DefaultBehaviorProviderVisitor;
 import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.DefinitionDecodingException;
-import org.forgerock.opendj.config.IllegalPropertyValueStringException;
 import org.forgerock.opendj.config.InstantiableRelationDefinition;
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
 import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.OptionalRelationDefinition;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyDefinitionsOptions;
-import org.forgerock.opendj.config.PropertyException;
-import org.forgerock.opendj.config.PropertyIsSingleValuedException;
 import org.forgerock.opendj.config.PropertyNotFoundException;
 import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.RelationDefinition;
@@ -85,7 +85,7 @@ public abstract class Driver {
 
         // Any exception that occurred whilst retrieving inherited default
         // values.
-        private DefaultBehaviorException exception = null;
+        private PropertyException exception = null;
 
         // The path of the managed object containing the first property.
         private final ManagedObjectPath<?, ?> firstPath;
@@ -113,7 +113,7 @@ public abstract class Driver {
             try {
                 return getInheritedProperty(d.getManagedObjectPath(), d.getManagedObjectDefinition(),
                     d.getPropertyName());
-            } catch (DefaultBehaviorException e) {
+            } catch (PropertyException e) {
                 exception = e;
                 return Collections.emptySet();
             }
@@ -138,8 +138,8 @@ public abstract class Driver {
             for (String stringValue : stringValues) {
                 try {
                     values.add(nextProperty.decodeValue(stringValue, propertyDefOptions));
-                } catch (IllegalPropertyValueStringException e) {
-                    exception = new DefaultBehaviorException(nextProperty, e);
+                } catch (PropertyException e) {
+                    exception = PropertyException.defaultBehaviorException(nextProperty, e);
                     break;
                 }
             }
@@ -155,7 +155,7 @@ public abstract class Driver {
             try {
                 return getInheritedProperty(d.getManagedObjectPath(nextPath), d.getManagedObjectDefinition(),
                     d.getPropertyName());
-            } catch (DefaultBehaviorException e) {
+            } catch (PropertyException e) {
                 exception = e;
                 return Collections.emptySet();
             }
@@ -181,7 +181,7 @@ public abstract class Driver {
             }
 
             if (values.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
-                throw new DefaultBehaviorException(pd, new PropertyIsSingleValuedException(pd));
+                throw defaultBehaviorException(pd, propertyIsSingleValuedException(pd));
             }
 
             return values;
@@ -195,7 +195,7 @@ public abstract class Driver {
             // corresponds to the path.
             AbstractManagedObjectDefinition<?, ?> supr = target.getManagedObjectDefinition();
             if (!supr.isParentOf(d)) {
-                throw new DefaultBehaviorException(nextProperty, new DefinitionDecodingException(supr,
+                throw PropertyException.defaultBehaviorException(nextProperty, new DefinitionDecodingException(supr,
                     Reason.WRONG_TYPE_INFORMATION));
             }
 
@@ -238,19 +238,17 @@ public abstract class Driver {
                     // object.
                     return getPropertyValues(target, pd2);
                 }
-            } catch (DefaultBehaviorException e) {
-                // Wrap any errors due to recursion.
-                throw new DefaultBehaviorException(pd1, e);
-            } catch (DefinitionDecodingException e) {
-                throw new DefaultBehaviorException(pd1, e);
-            } catch (PropertyNotFoundException e) {
-                throw new DefaultBehaviorException(pd1, e);
-            } catch (ErrorResultException e) {
-                throw new DefaultBehaviorException(pd1, e);
-            } catch (ManagedObjectNotFoundException e) {
-                throw new DefaultBehaviorException(pd1, e);
             } catch (PropertyException e) {
-                throw new DefaultBehaviorException(pd1, e);
+                // Wrap any errors due to recursion.
+                throw PropertyException.defaultBehaviorException(pd1, e);
+            } catch (DefinitionDecodingException e) {
+                throw PropertyException.defaultBehaviorException(pd1, e);
+            } catch (PropertyNotFoundException e) {
+                throw PropertyException.defaultBehaviorException(pd1, e);
+            } catch (ErrorResultException e) {
+                throw PropertyException.defaultBehaviorException(pd1, e);
+            } catch (ManagedObjectNotFoundException e) {
+                throw PropertyException.defaultBehaviorException(pd1, e);
             }
         }
     };
@@ -588,7 +586,7 @@ public abstract class Driver {
      * @param isCreate
      *            Indicates whether the managed object has been created yet.
      * @return Returns the default values for the specified property.
-     * @throws DefaultBehaviorException
+     * @throws PropertyException
      *             If the default values could not be retrieved or decoded
      *             properly.
      */

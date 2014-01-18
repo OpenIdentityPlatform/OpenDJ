@@ -28,7 +28,7 @@ package org.forgerock.opendj.config.client;
 import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.IllegalPropertyValueStringException;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.OperationsException;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyDefinitionUsageBuilder;
@@ -60,7 +60,7 @@ public class IllegalManagedObjectNameException extends OperationsException {
         } else if (namingPropertyDefinition != null) {
             try {
                 namingPropertyDefinition.decodeValue(illegalName, options);
-            } catch (IllegalPropertyValueStringException e) {
+            } catch (PropertyException e) {
                 PropertyDefinitionUsageBuilder builder = new PropertyDefinitionUsageBuilder(true);
                 return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_SYNTAX.get(illegalName,
                     namingPropertyDefinition.getName(), builder.getUsage(namingPropertyDefinition));

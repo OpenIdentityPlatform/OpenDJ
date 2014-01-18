@@ -65,7 +65,7 @@ public class AttributeTypePropertyDefinitionTest extends ConfigTestCase {
         return new Object[][] { { "dummy-type-xxx" } };
     }
 
-    @Test(dataProvider = "valueIllegalData", expectedExceptions = { IllegalPropertyValueStringException.class })
+    @Test(dataProvider = "valueIllegalData", expectedExceptions = { PropertyException.class })
     public void testDecodeValueIllegal(String value) {
         AttributeTypePropertyDefinition propertyDef = createPropertyDefinition();
         propertyDef.decodeValue(value, new PropertyDefinitionsOptions());

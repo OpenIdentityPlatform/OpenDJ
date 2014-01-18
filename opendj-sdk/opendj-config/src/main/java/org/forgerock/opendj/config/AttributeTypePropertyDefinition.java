@@ -116,13 +116,13 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
         AttributeType type = DirectoryServer.getAttributeType(name, !options.checkSchemaForAttributes());
 
         if (type == null) {
-            throw new IllegalPropertyValueStringException(this, value);
+            throw PropertyException.illegalPropertyValueException(this, value);
         } else {
             try {
                 validateValue(type, options);
                 return type;
-            } catch (IllegalPropertyValueException e) {
-                throw new IllegalPropertyValueStringException(this, value);
+            } catch (PropertyException e) {
+                throw PropertyException.illegalPropertyValueException(this, value);
             }
         }
     }

@@ -334,7 +334,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         /**
          * {@inheritDoc}
          */
-        public void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyIsReadOnlyException {
+        public void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyException {
             impl.setPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition(), value);
         }
 

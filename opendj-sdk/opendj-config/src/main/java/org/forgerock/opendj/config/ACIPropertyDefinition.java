@@ -102,7 +102,7 @@ public final class ACIPropertyDefinition extends PropertyDefinition<Aci> {
             return Aci.decode(ByteString.valueOf(value), DN.rootDN());
         } catch (LocalizedIllegalArgumentException e) {
             // TODO: it would be nice to throw the cause.
-            throw new IllegalPropertyValueStringException(this, value);
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
     }
 

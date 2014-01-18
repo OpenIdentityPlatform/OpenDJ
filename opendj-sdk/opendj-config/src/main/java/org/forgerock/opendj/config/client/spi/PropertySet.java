@@ -33,11 +33,9 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.forgerock.opendj.config.IllegalPropertyValueException;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyDefinitionsOptions;
-import org.forgerock.opendj.config.PropertyIsMandatoryException;
-import org.forgerock.opendj.config.PropertyIsSingleValuedException;
 import org.forgerock.opendj.config.PropertyOption;
 
 /**
@@ -285,13 +283,13 @@ public final class PropertySet {
      *            by this managed object.
      * @param options
      *            Options to validate property definitions values.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If a new pending value is deemed to be invalid according to
      *             the property definition.
-     * @throws PropertyIsSingleValuedException
+     * @throws PropertyException
      *             If an attempt was made to add multiple pending values to a
      *             single-valued property.
-     * @throws PropertyIsMandatoryException
+     * @throws PropertyException
      *             If an attempt was made to remove a mandatory property.
      * @throws IllegalArgumentException
      *             If the specified property definition is not associated with
@@ -302,13 +300,13 @@ public final class PropertySet {
         MyProperty<T> property = (MyProperty<T>) getProperty(d);
 
         if (values.size() > 1 && !d.hasOption(PropertyOption.MULTI_VALUED)) {
-            throw new PropertyIsSingleValuedException(d);
+            throw PropertyException.propertyIsSingleValuedException(d);
         }
 
         if (values.isEmpty() && d.hasOption(PropertyOption.MANDATORY)) {
             // But only if there are no default values.
             if (property.getDefaultValues().isEmpty()) {
-                throw new PropertyIsMandatoryException(d);
+                throw PropertyException.propertyIsMandatoryException(d);
             }
         }
 

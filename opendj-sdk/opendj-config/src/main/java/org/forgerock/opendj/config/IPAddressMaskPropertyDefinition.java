@@ -103,7 +103,7 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
             return AddressMask.decode(value);
         } catch (ConfigException e) {
             // TODO: it would be nice to throw the cause.
-            throw new IllegalPropertyValueStringException(this, value);
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
     }
 

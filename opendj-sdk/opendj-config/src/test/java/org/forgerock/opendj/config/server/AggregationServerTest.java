@@ -42,9 +42,8 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.config.AdminTestCase;
 import org.forgerock.opendj.config.AdministratorAction;
 import org.forgerock.opendj.config.AggregationPropertyDefinition;
-import org.forgerock.opendj.config.IllegalPropertyValueStringException;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.PropertyException;
+import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.TestCfg;
 import org.forgerock.opendj.config.TestChildCfg;
@@ -307,11 +306,9 @@ public final class AggregationServerTest extends AdminTestCase {
             ServerManagedObjectDecodingException de = (ServerManagedObjectDecodingException) e.getCause();
             assertThat(de.getCauses()).hasSize(1);
             PropertyException propertyException = de.getCauses().iterator().next();
-            assertThat(propertyException).isInstanceOf(IllegalPropertyValueStringException.class);
-            IllegalPropertyValueStringException pe = (IllegalPropertyValueStringException) propertyException;
-            assertEquals(pe.getPropertyDefinition(), TestChildCfgDefn.getInstance()
+            assertThat(propertyException).isInstanceOf(PropertyException.class);
+            assertEquals(propertyException.getPropertyDefinition(), TestChildCfgDefn.getInstance()
                 .getAggregationPropertyPropertyDefinition());
-            assertEquals(pe.getIllegalValueString(), "cn=LDAP Connection Handler, cn=bad rdn, cn=config");
         }
     }
 

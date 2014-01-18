@@ -95,7 +95,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
         propertyDef.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
-    @Test(expectedExceptions = IllegalPropertyValueStringException.class)
+    @Test(expectedExceptions = PropertyException.class)
     public void testIsAllowUnlimitedFalse() {
         IntegerPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
@@ -103,7 +103,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
         propertyDef.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
-    @Test(expectedExceptions = IllegalPropertyValueException.class)
+    @Test(expectedExceptions = PropertyException.class)
     public void testIsAllowUnlimitedInteger() {
         IntegerPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
@@ -145,7 +145,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
     }
 
     @Test(dataProvider = "illegalValidateValueData", expectedExceptions = { AssertionError.class,
-            NullPointerException.class, IllegalPropertyValueException.class })
+            NullPointerException.class, PropertyException.class })
     public void testValidateValueIllegal(Integer low, Integer high, boolean allowUnlimited, Integer value) {
         IntegerPropertyDefinition.Builder builder = createTestBuilder();
         builder.setLowerLimit(low);
@@ -181,7 +181,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
             }
 
             @SuppressWarnings("unused")
-            public Boolean visitUnknown(PropertyDefinition<?> d, Void o) throws UnknownPropertyDefinitionException {
+            public Boolean visitUnknown(PropertyDefinition<?> d, Void o) throws PropertyException {
                 return false;
             }
         };

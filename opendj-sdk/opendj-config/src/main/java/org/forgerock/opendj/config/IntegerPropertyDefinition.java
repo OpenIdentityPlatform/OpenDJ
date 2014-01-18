@@ -233,15 +233,15 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         Reject.ifNull(value);
 
         if (!allowUnlimited && value < lowerLimit) {
-            throw new IllegalPropertyValueException(this, value);
+            throw PropertyException.illegalPropertyValueException(this, value);
 
             // unlimited allowed
         } else if (value >= 0 && value < lowerLimit) {
-            throw new IllegalPropertyValueException(this, value);
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
 
         if ((upperLimit != null) && (value > upperLimit)) {
-            throw new IllegalPropertyValueException(this, value);
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
     }
 
@@ -279,13 +279,13 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         try {
             i = Integer.valueOf(value);
         } catch (NumberFormatException e) {
-            throw new IllegalPropertyValueStringException(this, value);
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
 
         try {
             validateValue(i, options);
-        } catch (IllegalPropertyValueException e) {
-            throw new IllegalPropertyValueStringException(this, value);
+        } catch (PropertyException e) {
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
 
         return i;
