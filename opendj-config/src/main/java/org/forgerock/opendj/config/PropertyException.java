@@ -33,13 +33,14 @@ import static com.forgerock.opendj.ldap.AdminMessages.ERR_PROPERTY_IS_READ_ONLY_
 import static com.forgerock.opendj.ldap.AdminMessages.ERR_PROPERTY_IS_SINGLE_VALUED_EXCEPTION;
 import static com.forgerock.opendj.ldap.AdminMessages.ERR_UNKNOWN_PROPERTY_DEFINITION_EXCEPTION;
 
+import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Exceptions thrown as a result of errors that occurred when decoding and
  * modifying property values.
  */
-public final class PropertyException extends AdminRuntimeException {
+public final class PropertyException extends RuntimeException implements LocalizableException {
 
     /**
      * Version ID required by serializable classes.
@@ -94,7 +95,7 @@ public final class PropertyException extends AdminRuntimeException {
     }
 
     /**
-     * Create a new property is mandatory exception.
+     * Creates a new property is mandatory exception.
      *
      * @param pd
      *            The property definition.
@@ -105,7 +106,7 @@ public final class PropertyException extends AdminRuntimeException {
     }
 
     /**
-     * Create a new property is read-only exception.
+     * Creates a new property is read-only exception.
      *
      * @param pd
      *            The property definition.
@@ -116,7 +117,7 @@ public final class PropertyException extends AdminRuntimeException {
     }
 
     /**
-     * Create a new property is single valued exception.
+     * Creates a new property is single valued exception.
      *
      * @param pd
      *            The property definition.
@@ -149,27 +150,39 @@ public final class PropertyException extends AdminRuntimeException {
                 builder.getUsage(pd));
     }
 
+    // LocalizableMessage that explains the problem.
+    private final LocalizableMessage message;
+
     // The property definition associated with the property that caused
     // the exception.
     private final PropertyDefinition<?> pd;
 
     private PropertyException(final PropertyDefinition<?> pd, final LocalizableMessage message) {
-        super(message);
+        super(message.toString());
+        this.message = message;
         this.pd = pd;
     }
 
     private PropertyException(final PropertyDefinition<?> pd, final LocalizableMessage message,
             final Throwable cause) {
-        super(message, cause);
+        super(message.toString(), cause);
+        this.message = message;
         this.pd = pd;
     }
 
     /**
-     * Get the property definition associated with the property that caused the
-     * exception.
+     * {@inheritDoc}
+     */
+    public LocalizableMessage getMessageObject() {
+        return message;
+    }
+
+    /**
+     * Returns the property definition associated with the property that caused
+     * the exception.
      *
-     * @return Returns the property definition associated with the property that
-     *         caused the exception.
+     * @return The property definition associated with the property that caused
+     *         the exception.
      */
     public final PropertyDefinition<?> getPropertyDefinition() {
         return pd;
