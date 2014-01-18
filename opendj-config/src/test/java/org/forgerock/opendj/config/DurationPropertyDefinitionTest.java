@@ -127,7 +127,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         def.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
-    @Test(expectedExceptions = IllegalPropertyValueStringException.class)
+    @Test(expectedExceptions = PropertyException.class)
     public void testAllowUnlimitedIsFalse() {
         DurationPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
@@ -135,7 +135,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         def.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
     }
 
-    @Test(expectedExceptions = IllegalPropertyValueException.class)
+    @Test(expectedExceptions = PropertyException.class)
     public void testAllowUnlimitedIsFalseNumValue() {
         DurationPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
@@ -177,7 +177,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
     }
 
     @Test(dataProvider = "illegalValidateValueData", expectedExceptions = { AssertionError.class,
-            NullPointerException.class, IllegalPropertyValueException.class })
+            NullPointerException.class, PropertyException.class })
     public void testValidateValueIllegal(Long lowLimitInMillis, Long highLimitInMillis,
             boolean isAllowUnlimited, Long valueInSeconds) {
         DurationPropertyDefinition.Builder builder = createTestBuilder();
@@ -224,7 +224,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
                 return true;
             }
             @SuppressWarnings("unused")
-            public Boolean visitUnknown(PropertyDefinition<?> d, Void o) throws UnknownPropertyDefinitionException {
+            public Boolean visitUnknown(PropertyDefinition<?> d, Void o) throws PropertyException {
                 return false;
             }
         };
@@ -329,7 +329,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         };
     }
 
-    @Test(dataProvider = "decodeValueDataIllegal", expectedExceptions = { IllegalPropertyValueStringException.class })
+    @Test(dataProvider = "decodeValueDataIllegal", expectedExceptions = { PropertyException.class })
     public void testDecodeValue(String valueToDecode) {
         DurationPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);

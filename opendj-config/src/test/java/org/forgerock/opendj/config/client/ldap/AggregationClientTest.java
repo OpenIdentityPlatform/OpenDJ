@@ -32,10 +32,9 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.config.AdminTestCase;
-import org.forgerock.opendj.config.IllegalPropertyValueStringException;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.PropertyDefinitionsOptions;
-import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.TestCfg;
 import org.forgerock.opendj.config.TestChildCfgClient;
 import org.forgerock.opendj.config.TestChildCfgDefn;
@@ -248,11 +247,10 @@ public class AggregationClientTest extends AdminTestCase {
             Assert.assertEquals(causes.size(), 1);
 
             Throwable cause = causes.iterator().next();
-            if (cause instanceof IllegalPropertyValueStringException) {
-                IllegalPropertyValueStringException pe = (IllegalPropertyValueStringException) cause;
+            if (cause instanceof PropertyException) {
+                PropertyException pe = (PropertyException) cause;
                 Assert.assertEquals(pe.getPropertyDefinition(), TestChildCfgDefn.getInstance()
                         .getAggregationPropertyPropertyDefinition());
-                Assert.assertEquals(pe.getIllegalValueString(), "cn=LDAP Connection Handler, cn=bad rdn, cn=config");
             } else {
                 // Got an unexpected cause.
                 throw e;

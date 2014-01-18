@@ -192,7 +192,7 @@ public final class Reference<C extends ConfigurationClient, S extends Configurat
                 // TODO : is it correct to have no validation ?
                 T tvalue = pd.decodeValue(name, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
                 return pd.normalizeValue(tvalue);
-            } catch (IllegalPropertyValueStringException e) {
+            } catch (PropertyException e) {
                 // Fall through to default normalization.
             }
         }

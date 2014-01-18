@@ -156,7 +156,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
         String nvalue = value.trim().toLowerCase();
         E eValue = decodeMap.get(nvalue);
         if (eValue == null) {
-            throw new IllegalPropertyValueStringException(this, value);
+            throw PropertyException.illegalPropertyValueException(this, value);
         } else {
             return eValue;
         }

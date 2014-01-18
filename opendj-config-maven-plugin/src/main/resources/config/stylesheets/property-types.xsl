@@ -519,12 +519,12 @@
           <xsl:value-of
             select="concat('   *&#xa;',
                      '   * @param value The value of the &quot;', $name, '&quot; property.&#xa;',
-                     '   * @throws IllegalPropertyValueException&#xa;',
+                     '   * @throws PropertyException&#xa;',
                      '   *           If the new value is invalid.&#xa;')" />
           <xsl:if test="@read-only='true'">
             <xsl:value-of
               select="concat(
-                     '   * @throws PropertyIsReadOnlyException&#xa;',
+                     '   * @throws PropertyException&#xa;',
                      '   *           If this ', $this-ufn, ' is not being initialized.&#xa;')" />
           </xsl:if>
           <xsl:value-of
@@ -546,12 +546,12 @@
           <xsl:value-of
             select="concat('   *&#xa;',
                      '   * @param values The values of the &quot;', $name, '&quot; property.&#xa;',
-                     '   * @throws IllegalPropertyValueException&#xa;',
+                     '   * @throws PropertyException&#xa;',
                      '   *           If one or more of the new values are invalid.&#xa;')" />
           <xsl:if test="@read-only='true'">
             <xsl:value-of
               select="concat(
-                     '   * @throws PropertyIsReadOnlyException&#xa;',
+                     '   * @throws PropertyException&#xa;',
                      '   *           If this ', $this-ufn, ' is not being initialized.&#xa;')" />
           </xsl:if>
           <xsl:value-of
@@ -562,9 +562,9 @@
           <xsl:value-of select="'&gt; values'" />
         </xsl:otherwise>
       </xsl:choose>
-      <xsl:value-of select="') throws IllegalPropertyValueException'" />
+      <xsl:value-of select="') throws PropertyException'" />
       <xsl:if test="@read-only='true'">
-        <xsl:value-of select="', PropertyIsReadOnlyException'" />
+        <xsl:value-of select="', PropertyException'" />
       </xsl:if>
       <xsl:value-of select="';&#xa;'" />
     </xsl:if>
@@ -606,7 +606,7 @@
           <xsl:value-of select="' value)'" />
           <xsl:if test="@read-only='true'">
             <xsl:value-of
-              select="' throws PropertyIsReadOnlyException'" />
+              select="' throws PropertyException'" />
           </xsl:if>
           <xsl:value-of
             select="concat(' {&#xa;' ,
@@ -621,7 +621,7 @@
           <xsl:value-of select="'&gt; values)'" />
           <xsl:if test="@read-only='true'">
             <xsl:value-of
-              select="' throws PropertyIsReadOnlyException'" />
+              select="' throws PropertyException'" />
           </xsl:if>
           <xsl:value-of
             select="concat(' {&#xa;' ,

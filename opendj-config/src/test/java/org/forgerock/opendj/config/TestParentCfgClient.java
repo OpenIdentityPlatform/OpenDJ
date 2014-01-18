@@ -68,10 +68,10 @@ public interface TestParentCfgClient extends ConfigurationClient {
      *
      * @param value
      *            The value of the "mandatory-boolean-property" property.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If the new value is invalid.
      */
-    void setMandatoryBooleanProperty(boolean value) throws IllegalPropertyValueException;
+    void setMandatoryBooleanProperty(boolean value) throws PropertyException;
 
     /**
      * Get the "mandatory-class-property" property.
@@ -89,10 +89,10 @@ public interface TestParentCfgClient extends ConfigurationClient {
      *
      * @param value
      *            The value of the "mandatory-class-property" property.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If the new value is invalid.
      */
-    void setMandatoryClassProperty(String value) throws IllegalPropertyValueException;
+    void setMandatoryClassProperty(String value) throws PropertyException;
 
     /**
      * Get the "mandatory-read-only-attribute-type-property" property.
@@ -115,13 +115,13 @@ public interface TestParentCfgClient extends ConfigurationClient {
      * @param value
      *            The value of the "mandatory-read-only-attribute-type-property"
      *            property.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If the new value is invalid.
-     * @throws PropertyIsReadOnlyException
+     * @throws PropertyException
      *             If this Test Parent is not being initialized.
      */
-    void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws IllegalPropertyValueException,
-            PropertyIsReadOnlyException;
+    void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyException,
+            PropertyException;
 
     /**
      * Get the "optional-multi-valued-dn-property" property.
@@ -141,10 +141,10 @@ public interface TestParentCfgClient extends ConfigurationClient {
      * @param values
      *            The values of the "optional-multi-valued-dn-property"
      *            property.
-     * @throws IllegalPropertyValueException
+     * @throws PropertyException
      *             If one or more of the new values are invalid.
      */
-    void setOptionalMultiValuedDNProperty(Collection<DN> values) throws IllegalPropertyValueException;
+    void setOptionalMultiValuedDNProperty(Collection<DN> values) throws PropertyException;
 
     /**
      * Lists the Test Children.
@@ -195,7 +195,7 @@ public interface TestParentCfgClient extends ConfigurationClient {
      *            The name of the new Test Child.
      * @param exceptions
      *            An optional collection in which to place any
-     *            {@link DefaultBehaviorException}s that occurred whilst
+     *            {@link PropertyException}s that occurred whilst
      *            attempting to determine the default values of the Test Child.
      *            This argument can be <code>null<code>.
      * @return Returns a new Test Child configuration instance.
@@ -203,7 +203,7 @@ public interface TestParentCfgClient extends ConfigurationClient {
      *             If the name is invalid.
      */
     <C extends TestChildCfgClient> C createTestChild(ManagedObjectDefinition<C, ? extends TestChildCfg> d, String name,
-            Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException;
+            Collection<PropertyException> exceptions) throws IllegalManagedObjectNameException;
 
     /**
      * Removes the named Test Child.
@@ -270,13 +270,13 @@ public interface TestParentCfgClient extends ConfigurationClient {
      *            The definition of the Optional Test Child to be created.
      * @param exceptions
      *            An optional collection in which to place any
-     *            {@link DefaultBehaviorException}s that occurred whilst
+     *            {@link PropertyException}s that occurred whilst
      *            attempting to determine the default values of the Optional
      *            Test Child. This argument can be <code>null<code>.
      * @return Returns a new Optional Test Child configuration instance.
      */
     <C extends TestChildCfgClient> C createOptionalTestChild(ManagedObjectDefinition<C, ? extends TestChildCfg> d,
-            Collection<DefaultBehaviorException> exceptions);
+            Collection<PropertyException> exceptions);
 
     /**
      * Removes the Optional Test Child if it exists.

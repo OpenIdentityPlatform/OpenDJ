@@ -242,7 +242,7 @@ public abstract class PropertyDefinitionVisitor<R, P> {
      * types.
      * <p>
      * The default implementation of this method throws an
-     * {@link UnknownPropertyDefinitionException}. Sub-classes can override this
+     * {@link PropertyException}. Sub-classes can override this
      * method with their own default behavior.
      *
      * @param <T>
@@ -252,11 +252,11 @@ public abstract class PropertyDefinitionVisitor<R, P> {
      * @param p
      *            A visitor specified parameter.
      * @return Returns a visitor specified result.
-     * @throws UnknownPropertyDefinitionException
+     * @throws PropertyException
      *             Visitor implementations may optionally throw this exception.
      */
     public <T> R visitUnknown(PropertyDefinition<T> pd, P p) {
-        throw new UnknownPropertyDefinitionException(pd, p);
+        throw PropertyException.unknownPropertyDefinitionException(pd, p);
     }
 
 }

@@ -43,10 +43,9 @@ import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
 import org.forgerock.opendj.config.AggregationPropertyDefinition;
 import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.ConfigurationClient;
-import org.forgerock.opendj.config.DefaultBehaviorException;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.DefinitionDecodingException;
 import org.forgerock.opendj.config.DefinitionResolver;
-import org.forgerock.opendj.config.IllegalPropertyValueStringException;
 import org.forgerock.opendj.config.InstantiableRelationDefinition;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
@@ -55,9 +54,6 @@ import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyDefinitionVisitor;
 import org.forgerock.opendj.config.PropertyDefinitionsOptions;
-import org.forgerock.opendj.config.PropertyException;
-import org.forgerock.opendj.config.PropertyIsMandatoryException;
-import org.forgerock.opendj.config.PropertyIsSingleValuedException;
 import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.Reference;
 import org.forgerock.opendj.config.RelationDefinition;
@@ -100,7 +96,7 @@ final class LDAPDriver extends Driver {
          * @param options
          *            Decoding options for property definitions.
          * @return Returns the decoded LDAP value.
-         * @throws IllegalPropertyValueStringException
+         * @throws PropertyException
          *             If the property value could not be decoded because it was
          *             invalid.
          */
@@ -126,7 +122,7 @@ final class LDAPDriver extends Driver {
                 Reference<C, S> reference = Reference.parseDN(d.getParentPath(), d.getRelationDefinition(), p);
                 return reference.getName();
             } catch (IllegalArgumentException e) {
-                throw new IllegalPropertyValueStringException(d, p);
+                throw PropertyException.illegalPropertyValueException(d, p);
             }
         }
 
@@ -278,11 +274,11 @@ final class LDAPDriver extends Driver {
 
             // Sanity check the returned values.
             if (values.size() > 1 && !propertyDef.hasOption(PropertyOption.MULTI_VALUED)) {
-                throw new PropertyIsSingleValuedException(propertyDef);
+                throw PropertyException.propertyIsSingleValuedException(propertyDef);
             }
 
             if (values.isEmpty() && propertyDef.hasOption(PropertyOption.MANDATORY)) {
-                throw new PropertyIsMandatoryException(propertyDef);
+                throw PropertyException.propertyIsMandatoryException(propertyDef);
             }
 
             if (values.isEmpty()) {
@@ -503,7 +499,7 @@ final class LDAPDriver extends Driver {
 
         if (activeValues.size() > 1 && !propertyDef.hasOption(PropertyOption.MULTI_VALUED)) {
             // This exception takes precedence over previous exceptions.
-            exception = new PropertyIsSingleValuedException(propertyDef);
+            exception = PropertyException.propertyIsSingleValuedException(propertyDef);
             P value = activeValues.first();
             activeValues.clear();
             activeValues.add(value);
@@ -513,7 +509,7 @@ final class LDAPDriver extends Driver {
         Collection<P> defaultValues;
         try {
             defaultValues = findDefaultValues(path, propertyDef, false);
-        } catch (DefaultBehaviorException e) {
+        } catch (PropertyException e) {
             defaultValues = Collections.emptySet();
             exception = e;
         }
@@ -524,7 +520,7 @@ final class LDAPDriver extends Driver {
             // The active values maybe empty because of a previous
             // exception.
             if (exception == null) {
-                exception = new PropertyIsMandatoryException(propertyDef);
+                exception = PropertyException.propertyIsMandatoryException(propertyDef);
             }
         }
 

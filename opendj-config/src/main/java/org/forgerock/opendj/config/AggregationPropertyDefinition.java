@@ -818,8 +818,8 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         try {
             validateValue(value, options);
             return value;
-        } catch (IllegalPropertyValueException e) {
-            throw new IllegalPropertyValueStringException(this, value);
+        } catch (PropertyException e) {
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
     }
 
@@ -952,7 +952,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             Reference<C, S> reference = Reference.parseName(parentPath, relationDefinition, value);
             return reference.getNormalizedName();
         } catch (IllegalArgumentException e) {
-            throw new IllegalPropertyValueException(this, value);
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
     }
 
@@ -984,7 +984,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         try {
             Reference.parseName(parentPath, relationDefinition, value);
         } catch (IllegalArgumentException e) {
-            throw new IllegalPropertyValueException(this, value);
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
     }
 

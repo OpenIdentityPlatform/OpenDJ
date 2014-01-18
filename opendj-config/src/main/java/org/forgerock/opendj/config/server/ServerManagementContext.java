@@ -28,6 +28,8 @@ package org.forgerock.opendj.config.server;
 
 import static com.forgerock.opendj.ldap.AdminMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
+import static org.forgerock.opendj.config.PropertyException.defaultBehaviorException;
+import static org.forgerock.opendj.config.PropertyException.propertyIsSingleValuedException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,22 +52,17 @@ import org.forgerock.opendj.config.AggregationPropertyDefinition;
 import org.forgerock.opendj.config.AliasDefaultBehaviorProvider;
 import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.ConfigurationClient;
-import org.forgerock.opendj.config.DefaultBehaviorException;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.DefaultBehaviorProviderVisitor;
 import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.DefinitionDecodingException;
 import org.forgerock.opendj.config.DefinitionResolver;
-import org.forgerock.opendj.config.IllegalPropertyValueException;
-import org.forgerock.opendj.config.IllegalPropertyValueStringException;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyDefinitionVisitor;
 import org.forgerock.opendj.config.PropertyDefinitionsOptions;
-import org.forgerock.opendj.config.PropertyException;
-import org.forgerock.opendj.config.PropertyIsMandatoryException;
-import org.forgerock.opendj.config.PropertyIsSingleValuedException;
 import org.forgerock.opendj.config.PropertyNotFoundException;
 import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.Reference;
@@ -99,7 +96,7 @@ public final class ServerManagementContext {
 
         // Any exception that occurred whilst retrieving inherited default
         // values.
-        private DefaultBehaviorException exception = null;
+        private PropertyException exception = null;
 
         // Optional new configuration entry which does not yet exist in
         // the configuration back-end.
@@ -123,7 +120,7 @@ public final class ServerManagementContext {
             try {
                 return getInheritedProperty(d.getManagedObjectPath(), d.getManagedObjectDefinition(),
                         d.getPropertyName());
-            } catch (DefaultBehaviorException e) {
+            } catch (PropertyException e) {
                 exception = e;
                 return Collections.emptySet();
             }
@@ -146,8 +143,8 @@ public final class ServerManagementContext {
             for (String stringValue : stringValues) {
                 try {
                     values.add(nextProperty.decodeValue(stringValue, propertyDefOptions));
-                } catch (IllegalPropertyValueStringException e) {
-                    exception = new DefaultBehaviorException(nextProperty, e);
+                } catch (PropertyException e) {
+                    exception = PropertyException.defaultBehaviorException(nextProperty, e);
                     break;
                 }
             }
@@ -162,7 +159,7 @@ public final class ServerManagementContext {
             try {
                 return getInheritedProperty(d.getManagedObjectPath(nextPath), d.getManagedObjectDefinition(),
                         d.getPropertyName());
-            } catch (DefaultBehaviorException e) {
+            } catch (PropertyException e) {
                 exception = e;
                 return Collections.emptySet();
             }
@@ -187,7 +184,7 @@ public final class ServerManagementContext {
             }
 
             if (values.size() > 1 && !propertyDef.hasOption(PropertyOption.MULTI_VALUED)) {
-                throw new DefaultBehaviorException(propertyDef, new PropertyIsSingleValuedException(propertyDef));
+                throw defaultBehaviorException(propertyDef, propertyIsSingleValuedException(propertyDef));
             }
 
             return values;
@@ -201,7 +198,7 @@ public final class ServerManagementContext {
             // corresponds to the path.
             AbstractManagedObjectDefinition<?, ?> supr = target.getManagedObjectDefinition();
             if (!supr.isParentOf(definition)) {
-                throw new DefaultBehaviorException(nextProperty, new DefinitionDecodingException(supr,
+                throw PropertyException.defaultBehaviorException(nextProperty, new DefinitionDecodingException(supr,
                         Reason.WRONG_TYPE_INFORMATION));
             }
 
@@ -250,15 +247,13 @@ public final class ServerManagementContext {
                     return pvalues;
                 }
             } catch (DefinitionDecodingException e) {
-                throw new DefaultBehaviorException(propDef1, e);
+                throw PropertyException.defaultBehaviorException(propDef1, e);
             } catch (PropertyNotFoundException e) {
-                throw new DefaultBehaviorException(propDef1, e);
-            } catch (IllegalPropertyValueException e) {
-                throw new DefaultBehaviorException(propDef1, e);
-            } catch (IllegalPropertyValueStringException e) {
-                throw new DefaultBehaviorException(propDef1, e);
+                throw PropertyException.defaultBehaviorException(propDef1, e);
+            } catch (PropertyException e) {
+                throw PropertyException.defaultBehaviorException(propDef1, e);
             } catch (ConfigException e) {
-                throw new DefaultBehaviorException(propDef1, e);
+                throw PropertyException.defaultBehaviorException(propDef1, e);
             }
         }
     }
@@ -313,7 +308,7 @@ public final class ServerManagementContext {
          * @param options
          *            Options to decode property definitions values.
          * @return Returns the decoded LDAP value.
-         * @throws IllegalPropertyValueStringException
+         * @throws PropertyException
          *             If the property value could not be decoded because it was
          *             invalid.
          */
@@ -339,7 +334,7 @@ public final class ServerManagementContext {
                 Reference<C, S> reference = Reference.parseDN(d.getParentPath(), d.getRelationDefinition(), p);
                 return reference.getName();
             } catch (IllegalArgumentException e) {
-                throw new IllegalPropertyValueStringException(d, p);
+                throw PropertyException.illegalPropertyValueException(d, p);
             }
         }
 
@@ -726,7 +721,7 @@ public final class ServerManagementContext {
             for (String value : attributeValues) {
                 try {
                     pvalues.add(ValueDecoder.decode(propertyDef, value, propertyDefOptions));
-                } catch (IllegalPropertyValueStringException e) {
+                } catch (PropertyException e) {
                     exception = e;
                 }
             }
@@ -734,14 +729,14 @@ public final class ServerManagementContext {
             // No values defined so get the defaults.
             try {
                 pvalues.addAll(getDefaultValues(path, propertyDef, newConfigEntry));
-            } catch (DefaultBehaviorException e) {
+            } catch (PropertyException e) {
                 exception = e;
             }
         }
 
         if (pvalues.size() > 1 && !propertyDef.hasOption(PropertyOption.MULTI_VALUED)) {
             // This exception takes precedence over previous exceptions.
-            exception = new PropertyIsSingleValuedException(propertyDef);
+            exception = PropertyException.propertyIsSingleValuedException(propertyDef);
             T value = pvalues.first();
             pvalues.clear();
             pvalues.add(value);
@@ -750,7 +745,7 @@ public final class ServerManagementContext {
         if (pvalues.isEmpty() && propertyDef.hasOption(PropertyOption.MANDATORY)) {
             // The values maybe empty because of a previous exception.
             if (exception == null) {
-                exception = new PropertyIsMandatoryException(propertyDef);
+                exception = PropertyException.propertyIsMandatoryException(propertyDef);
             }
         }
 

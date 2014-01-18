@@ -102,7 +102,7 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
             return InetAddress.getByName(value);
         } catch (UnknownHostException e) {
             // TODO: it would be nice to throw the cause.
-            throw new IllegalPropertyValueStringException(this, value);
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
     }
 

@@ -71,7 +71,7 @@ public class BooleanPropertyDefinitionTest extends ConfigTestCase {
     }
 
     @Test(dataProvider = "decodeValueDataIllegal", expectedExceptions = { NullPointerException.class,
-            IllegalPropertyValueStringException.class })
+            PropertyException.class })
     public void testDecodeValueIllegal(String value) {
         BooleanPropertyDefinition def = createPropertyDefinition();
         def.decodeValue(value, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);

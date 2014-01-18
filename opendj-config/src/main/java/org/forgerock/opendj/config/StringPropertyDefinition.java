@@ -175,8 +175,8 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
 
         try {
             validateValue(value, options);
-        } catch (IllegalPropertyValueException e) {
-            throw new IllegalPropertyValueStringException(this, value);
+        } catch (PropertyException e) {
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
 
         return value;
@@ -275,7 +275,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
         if (pattern != null) {
             Matcher matcher = pattern.matcher(value);
             if (!matcher.matches()) {
-                throw new IllegalPropertyValueException(this, value);
+                throw PropertyException.illegalPropertyValueException(this, value);
             }
         }
     }

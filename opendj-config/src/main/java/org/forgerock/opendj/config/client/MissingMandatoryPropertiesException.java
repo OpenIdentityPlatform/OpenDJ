@@ -34,7 +34,7 @@ import java.util.Collections;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.config.OperationsException;
-import org.forgerock.opendj.config.PropertyIsMandatoryException;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.util.Reject;
 
 /**
@@ -49,7 +49,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
     private static final long serialVersionUID = 6342522125252055588L;
 
     // Create the message.
-    private static LocalizableMessage createMessage(Collection<PropertyIsMandatoryException> causes) {
+    private static LocalizableMessage createMessage(Collection<PropertyException> causes) {
         Reject.ifNull(causes);
         Reject.ifFalse(!causes.isEmpty(), "causes should not be empty");
 
@@ -60,7 +60,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
             LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
             boolean isFirst = true;
-            for (PropertyIsMandatoryException cause : causes) {
+            for (PropertyException cause : causes) {
                 if (!isFirst) {
                     builder.append(", ");
                 }
@@ -73,7 +73,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
     }
 
     // The causes of this exception.
-    private final Collection<PropertyIsMandatoryException> causes;
+    private final Collection<PropertyException> causes;
 
     // Indicates whether the exception occurred during managed object
     // creation.
@@ -98,10 +98,10 @@ public class MissingMandatoryPropertiesException extends OperationsException {
      *            creation.
      */
     public MissingMandatoryPropertiesException(LocalizableMessage ufn,
-        Collection<PropertyIsMandatoryException> causes, boolean isCreate) {
+        Collection<PropertyException> causes, boolean isCreate) {
         super(createMessage(causes));
 
-        this.causes = new ArrayList<PropertyIsMandatoryException>(causes);
+        this.causes = new ArrayList<PropertyException>(causes);
         this.ufn = ufn;
         this.isCreate = isCreate;
     }
@@ -112,7 +112,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
      * @return Returns the first exception that caused this exception.
      */
     @Override
-    public PropertyIsMandatoryException getCause() {
+    public PropertyException getCause() {
         return causes.iterator().next();
     }
 
@@ -122,7 +122,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
      * @return Returns an unmodifiable collection view of the causes of this
      *         exception.
      */
-    public Collection<PropertyIsMandatoryException> getCauses() {
+    public Collection<PropertyException> getCauses() {
         return Collections.unmodifiableCollection(causes);
     }
 

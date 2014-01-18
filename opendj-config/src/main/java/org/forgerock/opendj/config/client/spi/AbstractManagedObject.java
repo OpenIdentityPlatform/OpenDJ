@@ -38,10 +38,9 @@ import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
 import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.ConfigurationClient;
 import org.forgerock.opendj.config.Constraint;
-import org.forgerock.opendj.config.DefaultBehaviorException;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.DefaultManagedObject;
 import org.forgerock.opendj.config.DefinitionDecodingException;
-import org.forgerock.opendj.config.IllegalPropertyValueStringException;
 import org.forgerock.opendj.config.InstantiableRelationDefinition;
 import org.forgerock.opendj.config.ManagedObjectAlreadyExistsException;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
@@ -50,8 +49,6 @@ import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.OptionalRelationDefinition;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyDefinitionsOptions;
-import org.forgerock.opendj.config.PropertyIsMandatoryException;
-import org.forgerock.opendj.config.PropertyIsReadOnlyException;
 import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.RelationDefinition;
 import org.forgerock.opendj.config.RelationDefinitionVisitor;
@@ -267,12 +264,12 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     public final void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
         ConcurrentModificationException, OperationRejectedException, ErrorResultException {
         // First make sure all mandatory properties are defined.
-        List<PropertyIsMandatoryException> exceptions = new LinkedList<PropertyIsMandatoryException>();
+        List<PropertyException> exceptions = new LinkedList<PropertyException>();
 
         for (PropertyDefinition<?> pd : definition.getAllPropertyDefinitions()) {
             Property<?> p = getProperty(pd);
             if (pd.hasOption(PropertyOption.MANDATORY) && p.getEffectiveValues().isEmpty()) {
-                exceptions.add(new PropertyIsMandatoryException(pd));
+                exceptions.add(PropertyException.propertyIsMandatoryException(pd));
             }
         }
 
@@ -339,7 +336,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     @Override
     public final <C extends ConfigurationClient, S extends Configuration, C1 extends C> ManagedObject<C1> createChild(
         InstantiableRelationDefinition<C, S> r, ManagedObjectDefinition<C1, ? extends S> d, String name,
-        Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException {
+        Collection<PropertyException> exceptions) throws IllegalManagedObjectNameException {
         validateRelationDefinition(r);
 
         // Empty names are not allowed.
@@ -353,7 +350,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         if (pd != null) {
             try {
                 pd.decodeValue(name, propertyDefOptions);
-            } catch (IllegalPropertyValueStringException e) {
+            } catch (PropertyException e) {
                 throw new IllegalManagedObjectNameException(name, pd, propertyDefOptions);
             }
         }
@@ -368,7 +365,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     @Override
     public final <C extends ConfigurationClient, S extends Configuration, C1 extends C> ManagedObject<C1> createChild(
         OptionalRelationDefinition<C, S> r, ManagedObjectDefinition<C1, ? extends S> d,
-        Collection<DefaultBehaviorException> exceptions) {
+        Collection<PropertyException> exceptions) {
         validateRelationDefinition(r);
         ManagedObjectPath<C1, ? extends S> childPath = path.child(r, d);
         return createNewManagedObject(d, childPath, null, null, exceptions);
@@ -380,7 +377,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     @Override
     public final <C extends ConfigurationClient, S extends Configuration, C1 extends C> ManagedObject<C1> createChild(
         SetRelationDefinition<C, S> r, ManagedObjectDefinition<C1, ? extends S> d,
-        Collection<DefaultBehaviorException> exceptions) {
+        Collection<PropertyException> exceptions) {
         validateRelationDefinition(r);
 
         ManagedObjectPath<C1, ? extends S> childPath = path.child(r, d);
@@ -663,11 +660,11 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     @Override
     public final <P> void setPropertyValues(PropertyDefinition<P> pd, Collection<P> values) {
         if (pd.hasOption(PropertyOption.MONITORING)) {
-            throw new PropertyIsReadOnlyException(pd);
+            throw PropertyException.propertyIsReadOnlyException(pd);
         }
 
         if (existsOnServer && pd.hasOption(PropertyOption.READ_ONLY)) {
-            throw new PropertyIsReadOnlyException(pd);
+            throw PropertyException.propertyIsReadOnlyException(pd);
         }
 
         properties.setPropertyValues(pd, values, propertyDefOptions);
@@ -800,12 +797,12 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     // values.
     private <M extends ConfigurationClient, P> ManagedObject<M> createNewManagedObject(
         ManagedObjectDefinition<M, ?> d, ManagedObjectPath<M, ?> p, PropertyDefinition<P> namingPropertyDefinition,
-        String name, Collection<DefaultBehaviorException> exceptions) {
+        String name, Collection<PropertyException> exceptions) {
         PropertySet childProperties = new PropertySet();
         for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
             try {
                 createProperty(childProperties, p, pd);
-            } catch (DefaultBehaviorException e) {
+            } catch (PropertyException e) {
                 // Add the exception if requested.
                 if (exceptions != null) {
                     exceptions.add(e);
@@ -829,7 +826,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
             Driver context = getDriver();
             Collection<P> defaultValues = context.findDefaultValues(p, pd, true);
             properties.addProperty(pd, defaultValues, Collections.<P> emptySet());
-        } catch (DefaultBehaviorException e) {
+        } catch (PropertyException e) {
             // Make sure that we have still created the property.
             properties.addProperty(pd, Collections.<P> emptySet(), Collections.<P> emptySet());
             throw e;

@@ -299,7 +299,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
         /**
          * {@inheritDoc}
          */
-        public void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyIsReadOnlyException {
+        public void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyException {
             impl.setPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition(), value);
         }
 
@@ -337,7 +337,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
          * {@inheritDoc}
          */
         public <M extends TestChildCfgClient> M createTestChild(ManagedObjectDefinition<M, ? extends TestChildCfg> d,
-                String name, Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException {
+                String name, Collection<PropertyException> exceptions) throws IllegalManagedObjectNameException {
             return impl.createChild(INSTANCE.getTestChildrenRelationDefinition(), d, name, exceptions)
                     .getConfiguration();
         }
@@ -370,7 +370,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
          * {@inheritDoc}
          */
         public <M extends TestChildCfgClient> M createOptionalTestChild(
-                ManagedObjectDefinition<M, ? extends TestChildCfg> d, Collection<DefaultBehaviorException> exceptions) {
+                ManagedObjectDefinition<M, ? extends TestChildCfg> d, Collection<PropertyException> exceptions) {
             return impl.createChild(INSTANCE.getOptionalTestChildRelationDefinition(), d, exceptions)
                     .getConfiguration();
         }
