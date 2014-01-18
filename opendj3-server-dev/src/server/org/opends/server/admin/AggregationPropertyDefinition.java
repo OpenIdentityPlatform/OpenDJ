@@ -945,14 +945,14 @@ public final class AggregationPropertyDefinition
    */
   @Override
   public String decodeValue(String value)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     ifNull(value);
 
     try {
       validateValue(value);
       return value;
-    } catch (IllegalPropertyValueException e) {
-      throw new IllegalPropertyValueStringException(this, value);
+    } catch (PropertyException e) {
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
 
@@ -1108,13 +1108,13 @@ public final class AggregationPropertyDefinition
    */
   @Override
   public String normalizeValue(String value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     try {
       Reference<C, S> reference = Reference.parseName(parentPath,
           relationDefinition, value);
       return reference.getNormalizedName();
     } catch (IllegalArgumentException e) {
-      throw new IllegalPropertyValueException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
 
@@ -1146,11 +1146,11 @@ public final class AggregationPropertyDefinition
    * {@inheritDoc}
    */
   @Override
-  public void validateValue(String value) throws IllegalPropertyValueException {
+  public void validateValue(String value) throws PropertyException {
     try {
       Reference.parseName(parentPath, relationDefinition, value);
     } catch (IllegalArgumentException e) {
-      throw new IllegalPropertyValueException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
 

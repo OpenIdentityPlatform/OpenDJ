@@ -36,9 +36,8 @@ import java.util.TreeSet;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.IllegalPropertyValueStringException;
-import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.PropertyException;
+import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestChildCfgClient;
 import org.opends.server.admin.TestChildCfgDefn;
@@ -289,12 +288,10 @@ public class AggregationClientTest extends AdminTestCase {
       Assert.assertEquals(causes.size(), 1);
 
       Throwable cause = causes.iterator().next();
-      if (cause instanceof IllegalPropertyValueStringException) {
-        IllegalPropertyValueStringException pe = (IllegalPropertyValueStringException) cause;
+      if (cause instanceof PropertyException) {
+        PropertyException pe = (PropertyException) cause;
         Assert.assertEquals(pe.getPropertyDefinition(), TestChildCfgDefn
             .getInstance().getAggregationPropertyPropertyDefinition());
-        Assert.assertEquals(pe.getIllegalValueString(),
-            "cn=LDAP Connection Handler, cn=bad rdn, cn=config");
       } else {
         // Got an unexpected cause.
         throw e;

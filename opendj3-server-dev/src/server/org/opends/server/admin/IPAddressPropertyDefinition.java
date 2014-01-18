@@ -109,7 +109,7 @@ public final class IPAddressPropertyDefinition extends
    */
   @Override
   public void validateValue(InetAddress value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     ifNull(value);
 
     // No additional validation required.
@@ -122,14 +122,14 @@ public final class IPAddressPropertyDefinition extends
    */
   @Override
   public InetAddress decodeValue(String value)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     ifNull(value);
 
     try {
       return InetAddress.getByName(value);
     } catch (UnknownHostException e) {
       // TODO: it would be nice to throw the cause.
-      throw new IllegalPropertyValueStringException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
 
@@ -140,7 +140,7 @@ public final class IPAddressPropertyDefinition extends
    */
   @Override
   public String encodeValue(InetAddress value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     // We should return the host name if it is available, or the IP
     // address if not.
 

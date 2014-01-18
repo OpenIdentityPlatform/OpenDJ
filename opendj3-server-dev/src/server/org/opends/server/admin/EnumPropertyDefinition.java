@@ -179,13 +179,13 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
    */
   @Override
   public E decodeValue(String value)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     ifNull(value);
 
     String nvalue = value.trim().toLowerCase();
     E eValue = decodeMap.get(nvalue);
     if (eValue == null) {
-      throw new IllegalPropertyValueStringException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     } else {
       return eValue;
     }
@@ -254,7 +254,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
    */
   @Override
   public String normalizeValue(E value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     ifNull(value);
 
     return value.toString().trim().toLowerCase();
@@ -267,7 +267,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
    */
   @Override
   public void validateValue(E value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     ifNull(value);
 
     // No additional validation required.

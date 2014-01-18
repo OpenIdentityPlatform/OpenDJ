@@ -40,11 +40,9 @@ import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.Constraint;
-import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.DefaultManagedObject;
 import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.IllegalPropertyValueException;
-import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectDefinition;
@@ -52,9 +50,6 @@ import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.PropertyIsMandatoryException;
-import org.opends.server.admin.PropertyIsReadOnlyException;
-import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelationDefinitionVisitor;
@@ -306,14 +301,13 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
       OperationRejectedException, AuthorizationException,
       CommunicationException {
     // First make sure all mandatory properties are defined.
-    List<PropertyIsMandatoryException> exceptions =
-      new LinkedList<PropertyIsMandatoryException>();
+    List<PropertyException> exceptions = new LinkedList<PropertyException>();
 
     for (PropertyDefinition<?> pd : definition.getAllPropertyDefinitions()) {
       Property<?> p = getProperty(pd);
       if (pd.hasOption(PropertyOption.MANDATORY)
           && p.getEffectiveValues().isEmpty()) {
-        exceptions.add(new PropertyIsMandatoryException(pd));
+        exceptions.add(PropertyException.propertyIsMandatoryException(pd));
       }
     }
 
@@ -388,7 +382,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
   ManagedObject<CC> createChild(
       InstantiableRelationDefinition<C, S> r,
       ManagedObjectDefinition<CC, ? extends S> d, String name,
-      Collection<DefaultBehaviorException> exceptions)
+      Collection<PropertyException> exceptions)
       throws IllegalManagedObjectNameException, IllegalArgumentException {
     validateRelationDefinition(r);
 
@@ -403,7 +397,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
     if (pd != null) {
       try {
         pd.decodeValue(name);
-      } catch (IllegalPropertyValueStringException e) {
+      } catch (PropertyException e) {
         throw new IllegalManagedObjectNameException(name, pd);
       }
     }
@@ -422,7 +416,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
   ManagedObject<CC> createChild(
       OptionalRelationDefinition<C, S> r,
       ManagedObjectDefinition<CC, ? extends S> d,
-      Collection<DefaultBehaviorException> exceptions)
+      Collection<PropertyException> exceptions)
       throws IllegalArgumentException {
     validateRelationDefinition(r);
     ManagedObjectPath<CC, ? extends S> childPath = path.child(r, d);
@@ -439,7 +433,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
   ManagedObject<CC> createChild(
       SetRelationDefinition<C, S> r,
       ManagedObjectDefinition<CC, ? extends S> d,
-      Collection<DefaultBehaviorException> exceptions)
+      Collection<PropertyException> exceptions)
       throws IllegalArgumentException {
     validateRelationDefinition(r);
 
@@ -776,8 +770,8 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
    * {@inheritDoc}
    */
   public final <PD> void setPropertyValue(PropertyDefinition<PD> pd, PD value)
-      throws IllegalPropertyValueException, PropertyIsReadOnlyException,
-      PropertyIsMandatoryException, IllegalArgumentException {
+      throws PropertyException, PropertyException,
+      PropertyException, IllegalArgumentException {
     if (value == null) {
       setPropertyValues(pd, Collections.<PD> emptySet());
     } else {
@@ -791,15 +785,15 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
    * {@inheritDoc}
    */
   public final <PD> void setPropertyValues(PropertyDefinition<PD> pd,
-      Collection<PD> values) throws IllegalPropertyValueException,
-      PropertyIsSingleValuedException, PropertyIsReadOnlyException,
-      PropertyIsMandatoryException, IllegalArgumentException {
+      Collection<PD> values) throws PropertyException,
+      PropertyException, PropertyException,
+      PropertyException, IllegalArgumentException {
     if (pd.hasOption(PropertyOption.MONITORING)) {
-      throw new PropertyIsReadOnlyException(pd);
+      throw PropertyException.propertyIsReadOnlyException(pd);
     }
 
     if (existsOnServer && pd.hasOption(PropertyOption.READ_ONLY)) {
-      throw new PropertyIsReadOnlyException(pd);
+      throw PropertyException.propertyIsReadOnlyException(pd);
     }
 
     properties.setPropertyValues(pd, values);
@@ -970,12 +964,12 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
   createNewManagedObject(
       ManagedObjectDefinition<M, ?> d, ManagedObjectPath<M, ?> p,
       PropertyDefinition<PD> namingPropertyDefinition, String name,
-      Collection<DefaultBehaviorException> exceptions) {
+      Collection<PropertyException> exceptions) {
     PropertySet childProperties = new PropertySet();
     for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
       try {
         createProperty(childProperties, p, pd);
-      } catch (DefaultBehaviorException e) {
+      } catch (PropertyException e) {
         // Add the exception if requested.
         if (exceptions != null) {
           exceptions.add(e);
@@ -998,12 +992,12 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
   // Create an empty property.
   private <PD> void createProperty(PropertySet properties,
       ManagedObjectPath<?, ?> p, PropertyDefinition<PD> pd)
-      throws DefaultBehaviorException {
+      throws PropertyException {
     try {
       Driver context = getDriver();
       Collection<PD> defaultValues = context.findDefaultValues(p, pd, true);
       properties.addProperty(pd, defaultValues, Collections.<PD> emptySet());
-    } catch (DefaultBehaviorException e) {
+    } catch (PropertyException e) {
       // Make sure that we have still created the property.
       properties.addProperty(pd, Collections.<PD> emptySet(), Collections
           .<PD> emptySet());

@@ -185,7 +185,7 @@ public class ClassPropertyDefinitionTest extends DirectoryServerTestCase {
   }
 
   @Test(dataProvider = "testLoadClassData2",
-          expectedExceptions = {IllegalPropertyValueException.class})
+          expectedExceptions = {PropertyException.class})
   public <T> void testLoadClass2(String interfaceName, String loadClassName,
                             Class<T> instanceOfClass, Class expectedClass) {
     ClassPropertyDefinition.Builder localBuilder =

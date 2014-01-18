@@ -1226,7 +1226,7 @@
                          '     * {@inheritDoc}&#xa;',
                          '     */&#xa;',
                          '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
-                         '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;DefaultBehaviorException&gt; exceptions) {&#xa;',
+                         '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;PropertyException&gt; exceptions) {&#xa;',
                          '      return impl.createChild(INSTANCE.get', $java-relation-name,'RelationDefinition(), d, exceptions).getConfiguration();&#xa;',
                          '    }&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
@@ -1281,7 +1281,7 @@
                              '     * {@inheritDoc}&#xa;',
                              '     */&#xa;',
                              '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
-                             '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) throws IllegalManagedObjectNameException {&#xa;',
+                             '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, String name, Collection&lt;PropertyException&gt; exceptions) throws IllegalManagedObjectNameException {&#xa;',
                              '      return impl.createChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), d, name, exceptions).getConfiguration();&#xa;',
                              '    }&#xa;')" />
           </xsl:when>
@@ -1292,7 +1292,7 @@
                              '     * {@inheritDoc}&#xa;',
                              '     */&#xa;',
                              '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
-                             '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;DefaultBehaviorException&gt; exceptions) {&#xa;',
+                             '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;PropertyException&gt; exceptions) {&#xa;',
                              '      return impl.createChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), d, exceptions).getConfiguration();&#xa;',
                              '    }&#xa;')" />
           </xsl:when>
@@ -1968,7 +1968,7 @@
                 </import>
               </xsl:if>
               <import>
-                org.opends.server.admin.DefaultBehaviorException
+                org.opends.server.admin.PropertyException
               </import>
               <import>
                 org.opends.server.admin.server.ConfigurationAddListener
@@ -1981,7 +1981,7 @@
             <xsl:if test="$this-all-relations/adm:one-to-zero-or-one">
               <import>java.util.Collection</import>
               <import>
-                org.opends.server.admin.DefaultBehaviorException
+                org.opends.server.admin.PropertyException
               </import>
               <import>
                 org.opends.server.admin.server.ConfigurationAddListener
@@ -2000,7 +2000,7 @@
             </xsl:if>
             <xsl:if test="$this-all-properties[@read-only='true']">
               <import>
-                org.opends.server.admin.PropertyIsReadOnlyException
+                org.opends.server.admin.PropertyException
               </import>
             </xsl:if>
           </xsl:otherwise>

@@ -110,7 +110,7 @@ public final class IPAddressMaskPropertyDefinition extends
    */
   @Override
   public void validateValue(AddressMask value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     ifNull(value);
 
     // No additional validation required.
@@ -123,14 +123,14 @@ public final class IPAddressMaskPropertyDefinition extends
    */
   @Override
   public AddressMask decodeValue(String value)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     ifNull(value);
 
     try {
       return AddressMask.decode(value);
     } catch (ConfigException e) {
       // TODO: it would be nice to throw the cause.
-      throw new IllegalPropertyValueStringException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
 

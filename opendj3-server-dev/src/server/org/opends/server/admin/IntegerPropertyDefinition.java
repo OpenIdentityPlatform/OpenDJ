@@ -276,19 +276,19 @@ public final class IntegerPropertyDefinition extends
    */
   @Override
   public void validateValue(Integer value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     ifNull(value);
 
     if (!allowUnlimited && value < lowerLimit) {
-      throw new IllegalPropertyValueException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
 
     // unlimited allowed
     } else if (value >= 0 && value < lowerLimit) {
-      throw new IllegalPropertyValueException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
 
     if ((upperLimit != null) && (value > upperLimit)) {
-      throw new IllegalPropertyValueException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
 
@@ -297,7 +297,7 @@ public final class IntegerPropertyDefinition extends
    */
   @Override
   public String encodeValue(Integer value)
-          throws IllegalPropertyValueException {
+          throws PropertyException {
     ifNull(value);
 
     // Make sure that we correctly encode negative values as "unlimited".
@@ -315,7 +315,7 @@ public final class IntegerPropertyDefinition extends
    */
   @Override
   public Integer decodeValue(String value)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     ifNull(value);
 
     if (allowUnlimited) {
@@ -328,13 +328,13 @@ public final class IntegerPropertyDefinition extends
     try {
       i = Integer.valueOf(value);
     } catch (NumberFormatException e) {
-      throw new IllegalPropertyValueStringException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
 
     try {
       validateValue(i);
-    } catch (IllegalPropertyValueException e) {
-      throw new IllegalPropertyValueStringException(this, value);
+    } catch (PropertyException e) {
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
 
     return i;

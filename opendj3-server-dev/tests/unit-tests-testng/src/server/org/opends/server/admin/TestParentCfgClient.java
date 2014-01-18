@@ -36,12 +36,10 @@ import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.IllegalPropertyValueException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
-import org.opends.server.admin.PropertyIsReadOnlyException;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 
@@ -82,10 +80,10 @@ public interface TestParentCfgClient extends ConfigurationClient {
    * A mandatory boolean property.
    *
    * @param value The value of the "mandatory-boolean-property" property.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If the new value is invalid.
    */
-  void setMandatoryBooleanProperty(boolean value) throws IllegalPropertyValueException;
+  void setMandatoryBooleanProperty(boolean value) throws PropertyException;
 
 
 
@@ -106,10 +104,10 @@ public interface TestParentCfgClient extends ConfigurationClient {
    * A mandatory Java-class property requiring a component restart.
    *
    * @param value The value of the "mandatory-class-property" property.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If the new value is invalid.
    */
-  void setMandatoryClassProperty(String value) throws IllegalPropertyValueException;
+  void setMandatoryClassProperty(String value) throws PropertyException;
 
 
 
@@ -133,12 +131,12 @@ public interface TestParentCfgClient extends ConfigurationClient {
    * creation of a Test Parent.
    *
    * @param value The value of the "mandatory-read-only-attribute-type-property" property.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If the new value is invalid.
-   * @throws PropertyIsReadOnlyException
+   * @throws PropertyException
    *           If this Test Parent is not being initialized.
    */
-  void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws IllegalPropertyValueException, PropertyIsReadOnlyException;
+  void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyException, PropertyException;
 
 
 
@@ -161,10 +159,10 @@ public interface TestParentCfgClient extends ConfigurationClient {
    * behavior.
    *
    * @param values The values of the "optional-multi-valued-dn-property" property.
-   * @throws IllegalPropertyValueException
+   * @throws PropertyException
    *           If one or more of the new values are invalid.
    */
-  void setOptionalMultiValuedDNProperty(Collection<DN> values) throws IllegalPropertyValueException;
+  void setOptionalMultiValuedDNProperty(Collection<DN> values) throws PropertyException;
 
 
 
@@ -235,7 +233,7 @@ public interface TestParentCfgClient extends ConfigurationClient {
    *          The name of the new Test Child.
    * @param exceptions
    *          An optional collection in which to place any {@link
-   *          DefaultBehaviorException}s that occurred whilst
+   *          PropertyException}s that occurred whilst
    *          attempting to determine the default values of the
    *          Test Child. This argument can be <code>null<code>.
    * @return Returns a new Test Child configuration instance.
@@ -243,7 +241,7 @@ public interface TestParentCfgClient extends ConfigurationClient {
    *          If the name is invalid.
    */
   <C extends TestChildCfgClient> C createTestChild(
-      ManagedObjectDefinition<C, ? extends TestChildCfg> d, String name, Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException;
+      ManagedObjectDefinition<C, ? extends TestChildCfg> d, String name, Collection<PropertyException> exceptions) throws IllegalManagedObjectNameException;
 
 
 
@@ -336,13 +334,13 @@ public interface TestParentCfgClient extends ConfigurationClient {
    *          The definition of the Optional Test Child to be created.
    * @param exceptions
    *          An optional collection in which to place any {@link
-   *          DefaultBehaviorException}s that occurred whilst
+   *          PropertyException}s that occurred whilst
    *          attempting to determine the default values of the
    *          Optional Test Child. This argument can be <code>null<code>.
    * @return Returns a new Optional Test Child configuration instance.
    */
   <C extends TestChildCfgClient> C createOptionalTestChild(
-      ManagedObjectDefinition<C, ? extends TestChildCfg> d, Collection<DefaultBehaviorException> exceptions);
+      ManagedObjectDefinition<C, ? extends TestChildCfg> d, Collection<PropertyException> exceptions);
 
 
 

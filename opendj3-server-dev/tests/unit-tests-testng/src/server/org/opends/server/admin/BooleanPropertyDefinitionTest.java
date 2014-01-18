@@ -114,7 +114,7 @@ public class BooleanPropertyDefinitionTest extends DirectoryServerTestCase {
    * @param value to decode
    */
   @Test(dataProvider = "testDecodeValueData2",
-          expectedExceptions = {NullPointerException.class,IllegalPropertyValueStringException.class})
+          expectedExceptions = {NullPointerException.class,PropertyException.class})
   public void testDecodeValue2(String value) {
     BooleanPropertyDefinition d = createPropertyDefinition();
     d.decodeValue(value);

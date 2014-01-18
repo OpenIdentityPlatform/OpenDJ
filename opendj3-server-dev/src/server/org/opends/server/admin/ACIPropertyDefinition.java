@@ -101,7 +101,7 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
    */
   @Override
   public void validateValue(Aci value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     ifNull(value);
 
     // No additional validation required.
@@ -112,14 +112,14 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
    */
   @Override
   public Aci decodeValue(String value)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     ifNull(value);
 
     try {
       return Aci.decode(ByteString.valueOf(value), DN.NULL_DN);
     } catch (AciException e) {
       // TODO: it would be nice to throw the cause.
-      throw new IllegalPropertyValueStringException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
 

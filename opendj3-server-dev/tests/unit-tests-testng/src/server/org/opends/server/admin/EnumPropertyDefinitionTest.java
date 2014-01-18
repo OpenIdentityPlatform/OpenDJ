@@ -118,7 +118,7 @@ public class EnumPropertyDefinitionTest extends DirectoryServerTestCase {
    */
   @Test(dataProvider = "decodeValueData2",
           expectedExceptions = {NullPointerException.class,
-                  IllegalPropertyValueStringException.class} )
+                  PropertyException.class} )
   public void testDecodeValue2(String value) {
     EnumPropertyDefinition epd = builder.getInstance();
     epd.decodeValue(value);

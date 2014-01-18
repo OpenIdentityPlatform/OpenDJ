@@ -154,7 +154,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   /**
    * Tests the allowUnlimited property
    */
-  @Test(expectedExceptions = IllegalPropertyValueStringException.class)
+  @Test(expectedExceptions = PropertyException.class)
   public void testIsAllowUnlimited2() {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setAllowUnlimited(false);
@@ -165,7 +165,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
   /**
    * Tests the allowUnlimited property
    */
-  @Test(expectedExceptions = IllegalPropertyValueException.class)
+  @Test(expectedExceptions = PropertyException.class)
   public void testIsAllowUnlimited3() {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setAllowUnlimited(false);
@@ -227,7 +227,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
    * @param allowUnlimited when true allows unlimited
    */
   @Test(dataProvider = "illegalValidateValueData",
-          expectedExceptions = {AssertionError.class,NullPointerException.class,IllegalPropertyValueException.class})
+          expectedExceptions = {AssertionError.class,NullPointerException.class,PropertyException.class})
   public void testValidateValue2(Integer low, Integer high, boolean allowUnlimited, Integer value) {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(low);
@@ -278,7 +278,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
       }
 
       public Boolean visitUnknown(PropertyDefinition d, Void o)
-          throws UnknownPropertyDefinitionException {
+          throws PropertyException {
         return false;
       }
 

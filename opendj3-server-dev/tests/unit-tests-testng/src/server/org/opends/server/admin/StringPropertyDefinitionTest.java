@@ -66,7 +66,7 @@ public class StringPropertyDefinitionTest extends DirectoryServerTestCase {
   /**
    * Tests validateValue() with invalid data and a pattern.
    */
-  @Test(expectedExceptions = IllegalPropertyValueException.class)
+  @Test(expectedExceptions = PropertyException.class)
   public void testValidateValue3() {
     StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
     d.validateValue("abc123");
@@ -88,7 +88,7 @@ public class StringPropertyDefinitionTest extends DirectoryServerTestCase {
   /**
    * Tests decodeValue() with invalid data and a pattern.
    */
-  @Test(expectedExceptions = IllegalPropertyValueStringException.class)
+  @Test(expectedExceptions = PropertyException.class)
   public void testDecodeValue2() {
     StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
     d.decodeValue("abc123");

@@ -233,7 +233,7 @@ public final class Reference<C extends ConfigurationClient,
       try {
         T tvalue = pd.decodeValue(name);
         return pd.normalizeValue(tvalue);
-      } catch (IllegalPropertyValueStringException e) {
+      } catch (PropertyException e) {
         // Fall through to default normalization.
       }
     }

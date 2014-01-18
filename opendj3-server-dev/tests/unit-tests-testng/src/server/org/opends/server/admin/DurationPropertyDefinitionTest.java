@@ -206,7 +206,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   /**
    * Tests the allowUnlimited property
    */
-  @Test(expectedExceptions = IllegalPropertyValueStringException.class)
+  @Test(expectedExceptions = PropertyException.class)
   public void testIsAllowUnlimited2() {
     DurationPropertyDefinition.Builder builder = createTestBuilder();
     builder.setAllowUnlimited(false);
@@ -217,7 +217,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   /**
    * Tests the allowUnlimited property
    */
-  @Test(expectedExceptions = IllegalPropertyValueException.class)
+  @Test(expectedExceptions = PropertyException.class)
   public void testIsAllowUnlimited3() {
     DurationPropertyDefinition.Builder builder = createTestBuilder();
     builder.setAllowUnlimited(false);
@@ -279,7 +279,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
    * @param value to validate
    */
   @Test(dataProvider = "illegalValidateValueData",
-          expectedExceptions = {AssertionError.class,NullPointerException.class,IllegalPropertyValueException.class})
+          expectedExceptions = {AssertionError.class,NullPointerException.class,PropertyException.class})
   public void testValidateValue2(Long low, Long high, boolean allowUnlimited, Long value) {
     DurationPropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(low);
@@ -340,7 +340,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
       }
 
       public Boolean visitUnknown(PropertyDefinition d, Void o)
-          throws UnknownPropertyDefinitionException {
+          throws PropertyException {
         return false;
       }
 
@@ -484,7 +484,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
    * @param value to decode
    */
   @Test(dataProvider = "decodeValueData2",
-          expectedExceptions = {IllegalPropertyValueStringException.class})
+          expectedExceptions = {PropertyException.class})
   public void testDecodeValue(String value) {
     DurationPropertyDefinition.Builder builder = createTestBuilder();
     builder.setAllowUnlimited(false);

@@ -174,7 +174,7 @@ public final class AttributeTypePropertyDefinition extends
    */
   @Override
   public AttributeType decodeValue(String value)
-      throws IllegalPropertyValueStringException {
+      throws PropertyException {
     ifNull(value);
 
     String name = value.trim().toLowerCase();
@@ -182,13 +182,13 @@ public final class AttributeTypePropertyDefinition extends
         !isCheckSchema);
 
     if (type == null) {
-      throw new IllegalPropertyValueStringException(this, value);
+      throw PropertyException.illegalPropertyValueException(this, value);
     } else {
       try {
         validateValue(type);
         return type;
-      } catch (IllegalPropertyValueException e) {
-        throw new IllegalPropertyValueStringException(this, value);
+      } catch (PropertyException e) {
+        throw PropertyException.illegalPropertyValueException(this, value);
       }
     }
   }
@@ -200,7 +200,7 @@ public final class AttributeTypePropertyDefinition extends
    */
   @Override
   public String encodeValue(AttributeType value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     return value.getNameOrOID();
   }
 
@@ -211,7 +211,7 @@ public final class AttributeTypePropertyDefinition extends
    */
   @Override
   public void validateValue(AttributeType value)
-      throws IllegalPropertyValueException {
+      throws PropertyException {
     ifNull(value);
 
     // No implementation required.

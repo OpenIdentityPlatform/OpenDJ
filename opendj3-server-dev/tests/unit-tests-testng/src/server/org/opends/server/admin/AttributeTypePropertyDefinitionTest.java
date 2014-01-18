@@ -130,7 +130,7 @@ public class AttributeTypePropertyDefinitionTest extends DirectoryServerTestCase
    * @param value
    *          to decode
    */
-  @Test(dataProvider = "testDecodeValueIllegalData", expectedExceptions = { IllegalPropertyValueStringException.class })
+  @Test(dataProvider = "testDecodeValueIllegalData", expectedExceptions = { PropertyException.class })
   public void testDecodeValue2(String value) {
     AttributeTypePropertyDefinition.setCheckSchema(true);
     AttributeTypePropertyDefinition d = createPropertyDefinition();

@@ -38,7 +38,7 @@ import org.opends.server.admin.DefaultBehaviorProvider;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.PropertyIsReadOnlyException;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
@@ -400,7 +400,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
     /**
      * {@inheritDoc}
      */
-    public void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyIsReadOnlyException {
+    public void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyException {
       impl.setPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition(), value);
     }
 
