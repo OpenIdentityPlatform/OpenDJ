@@ -50,7 +50,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
-import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.PluginMessages.*;
@@ -4560,84 +4559,6 @@ public class PluginConfigManager
    * @return  The result of processing the search result entry plugins.
    */
   public PluginResult.IntermediateResponse invokeSearchResultEntryPlugins(
-                                 LocalBackendSearchOperation searchOperation,
-                                 SearchResultEntry searchEntry)
-  {
-    PluginResult.IntermediateResponse result = null;
-
-    for (DirectoryServerPlugin p : searchResultEntryPlugins)
-    {
-      if (searchOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
-      {
-        continue;
-      }
-
-      try
-      {
-        result = p.processSearchEntry(searchOperation, searchEntry);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_SEARCH_ENTRY_PLUGIN_EXCEPTION.
-            get(String.valueOf(p.getPluginEntryDN()),
-                searchOperation.getConnectionID(),
-                searchOperation.getOperationID(),
-                String.valueOf(searchEntry.getName()),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        return PluginResult.IntermediateResponse.stopProcessing(false,
-            DirectoryServer.getServerErrorResultCode(), message);
-      }
-
-      if (result == null)
-      {
-        Message message = ERR_PLUGIN_SEARCH_ENTRY_PLUGIN_RETURNED_NULL.
-            get(String.valueOf(p.getPluginEntryDN()),
-                searchOperation.getConnectionID(),
-                searchOperation.getOperationID(),
-                String.valueOf(searchEntry.getName()));
-        logError(message);
-
-        return PluginResult.IntermediateResponse.stopProcessing(false,
-            DirectoryServer.getServerErrorResultCode(), message);
-      }
-      else if (! result.continuePluginProcessing())
-      {
-        return result;
-      }
-    }
-
-    if (result == null)
-    {
-      // This should only happen if there were no search result entry plugins
-      // registered, which is fine.
-      result = PluginResult.IntermediateResponse.
-          continueOperationProcessing(true);
-    }
-
-    return result;
-  }
-
-
-
-  /**
-   * Invokes the set of search result entry plugins that have been configured
-   * in the Directory Server.
-   *
-   * @param  searchOperation  The search operation for which to invoke the
-   *                          search result entry plugins.
-   * @param  searchEntry      The search result entry to be processed.
-   *
-   * @return  The result of processing the search result entry plugins.
-   */
-  public PluginResult.IntermediateResponse invokeSearchResultEntryPlugins(
       SearchEntrySearchOperation searchOperation,
       SearchResultEntry searchEntry)
   {
@@ -4651,12 +4572,6 @@ public class PluginConfigManager
         continue;
       }
 
-      if (searchOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
-      {
-        continue;
-      }
-
       try
       {
         result = p.processSearchEntry(searchOperation, searchEntry);
@@ -4702,84 +4617,6 @@ public class PluginConfigManager
     {
       // This should only happen if there were no search result entry plugins
       // registered, which is fine.
-      result =
-          PluginResult.IntermediateResponse.continueOperationProcessing(true);
-    }
-
-    return result;
-  }
-
-
-
-  /**
-   * Invokes the set of search result reference plugins that have been
-   * configured in the Directory Server.
-   *
-   * @param  searchOperation  The search operation for which to invoke the
-   *                          search result reference plugins.
-   * @param  searchReference  The search result reference to be processed.
-   *
-   * @return  The result of processing the search result reference plugins.
-   */
-  public PluginResult.IntermediateResponse invokeSearchResultReferencePlugins(
-                                   LocalBackendSearchOperation searchOperation,
-                                   SearchResultReference searchReference)
-  {
-    PluginResult.IntermediateResponse result = null;
-
-    for (DirectoryServerPlugin p : searchResultReferencePlugins)
-    {
-      if (searchOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
-      {
-        continue;
-      }
-
-      try
-      {
-        result = p.processSearchReference(searchOperation, searchReference);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_SEARCH_REFERENCE_PLUGIN_EXCEPTION.
-            get(String.valueOf(p.getPluginEntryDN()),
-                searchOperation.getConnectionID(),
-                searchOperation.getOperationID(),
-                searchReference.getReferralURLString(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        return PluginResult.IntermediateResponse.stopProcessing(false,
-            DirectoryServer.getServerErrorResultCode(), message);
-      }
-
-      if (result == null)
-      {
-        Message message = ERR_PLUGIN_SEARCH_REFERENCE_PLUGIN_RETURNED_NULL.
-            get(String.valueOf(p.getPluginEntryDN()),
-                searchOperation.getConnectionID(),
-                searchOperation.getOperationID(),
-                searchReference.getReferralURLString());
-        logError(message);
-
-        return PluginResult.IntermediateResponse.stopProcessing(false,
-            DirectoryServer.getServerErrorResultCode(), message);
-      }
-      else if (! result.continuePluginProcessing())
-      {
-        return result;
-      }
-    }
-
-    if (result == null)
-    {
-      // This should only happen if there were no search result reference
-      // plugins registered, which is fine.
       result =
           PluginResult.IntermediateResponse.continueOperationProcessing(true);
     }
