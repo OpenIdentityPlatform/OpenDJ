@@ -129,7 +129,7 @@ public final class TestCaseUtils {
      *
      * @return The socket address of the server.
      */
-    public static InetSocketAddress getServerSocketAddress() {
+    public static SocketAddress getServerSocketAddress() {
         return LDAPServer.getInstance().getSocketAddress();
     }
 

@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.requests.UnbindRequest;
 
 import com.forgerock.opendj.ldap.InternalConnection;
 import com.forgerock.opendj.util.Validator;
@@ -43,6 +44,9 @@ import com.forgerock.opendj.util.Validator;
  * factories and connections.
  */
 public final class Connections {
+
+    private static final int DEFAULT_TIMEOUT_IN_SECONDS = 3;
+
     /**
      * Creates a new authenticated connection factory which will obtain
      * connections using the provided connection factory and immediately perform
@@ -241,6 +245,8 @@ public final class Connections {
         return new CachedConnectionPool(factory, poolSize, poolSize, 0L, null, null);
     }
 
+    // FIXME We should remove the newHeartBeatConnectionFactory() methods and use a builder instead.
+
     /**
      * Creates a new heart-beat connection factory which will create connections
      * using the provided connection factory and periodically ping any created
@@ -255,7 +261,30 @@ public final class Connections {
      *             If {@code factory} was {@code null}.
      */
     public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory) {
-        return new HeartBeatConnectionFactory(factory, 10, 3, TimeUnit.SECONDS, null, null);
+        return new HeartBeatConnectionFactory(factory, 10, DEFAULT_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS, null, null);
+    }
+
+    /**
+     * Creates a new heart-beat connection factory which will create connections
+     * using the provided connection factory and periodically ping any created
+     * connections in order to detect that they are still alive using the
+     * specified frequency and the default scheduler.
+     *
+     * @param factory
+     *            The connection factory to use for creating connections.
+     * @param interval
+     *            The interval between keepalive pings.
+     * @param unit
+     *            The time unit for the interval between keepalive pings.
+     * @return The new heart-beat connection factory.
+     * @throws IllegalArgumentException
+     *             If {@code interval} was negative.
+     * @throws NullPointerException
+     *             If {@code factory} or {@code unit} was {@code null}.
+     */
+    public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
+            final long interval, final TimeUnit unit) {
+        return new HeartBeatConnectionFactory(factory, interval, DEFAULT_TIMEOUT_IN_SECONDS, unit, null, null);
     }
 
     /**
@@ -294,6 +323,32 @@ public final class Connections {
      *            The connection factory to use for creating connections.
      * @param interval
      *            The interval between keepalive pings.
+     * @param unit
+     *            The time unit for the interval between keepalive pings.
+     * @param heartBeat
+     *            The search request to use for keepalive pings.
+     * @return The new heart-beat connection factory.
+     * @throws IllegalArgumentException
+     *             If {@code interval} was negative.
+     * @throws NullPointerException
+     *             If {@code factory}, {@code unit}, or {@code heartBeat} was
+     *             {@code null}.
+     */
+    public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
+            final long interval, final TimeUnit unit, final SearchRequest heartBeat) {
+        return new HeartBeatConnectionFactory(factory, interval, DEFAULT_TIMEOUT_IN_SECONDS, unit, heartBeat, null);
+    }
+
+    /**
+     * Creates a new heart-beat connection factory which will create connections
+     * using the provided connection factory and periodically ping any created
+     * connections using the specified search request in order to detect that
+     * they are still alive.
+     *
+     * @param factory
+     *            The connection factory to use for creating connections.
+     * @param interval
+     *            The interval between keepalive pings.
      * @param timeout
      *            The heart-beat timeout after which a connection will be marked
      *            as failed.
@@ -312,6 +367,37 @@ public final class Connections {
             final long interval, final long timeout, final TimeUnit unit,
             final SearchRequest heartBeat) {
         return new HeartBeatConnectionFactory(factory, interval, timeout, unit, heartBeat, null);
+    }
+
+    /**
+     * Creates a new heart-beat connection factory which will create connections
+     * using the provided connection factory and periodically ping any created
+     * connections using the specified search request in order to detect that
+     * they are still alive.
+     *
+     * @param factory
+     *            The connection factory to use for creating connections.
+     * @param interval
+     *            The interval between keepalive pings.
+     * @param unit
+     *            The time unit for the interval between keepalive pings.
+     * @param heartBeat
+     *            The search request to use for keepalive pings.
+     * @param scheduler
+     *            The scheduler which should for periodically sending keepalive
+     *            pings.
+     * @return The new heart-beat connection factory.
+     * @throws IllegalArgumentException
+     *             If {@code interval} was negative.
+     * @throws NullPointerException
+     *             If {@code factory}, {@code unit}, or {@code heartBeat} was
+     *             {@code null}.
+     */
+    public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
+            final long interval, final TimeUnit unit,
+              final SearchRequest heartBeat, final ScheduledExecutorService scheduler) {
+        return new HeartBeatConnectionFactory(factory, interval, DEFAULT_TIMEOUT_IN_SECONDS, unit, heartBeat,
+                scheduler);
     }
 
     /**
@@ -628,8 +714,7 @@ public final class Connections {
     /**
      * Returns an uncloseable view of the provided connection. Attempts to call
      * {@link Connection#close()} or
-     * {@link Connection#close(org.forgerock.opendj.ldap.requests.UnbindRequest, String)}
-     * will be ignored.
+     * {@link Connection#close(UnbindRequest, String)} will be ignored.
      *
      * @param connection
      *            The connection whose {@code close} methods are to be disabled.
@@ -642,10 +727,10 @@ public final class Connections {
                 // Do nothing.
             }
 
-            public void close(org.forgerock.opendj.ldap.requests.UnbindRequest request,
-                    String reason) {
+            @Override
+            public void close(UnbindRequest request, String reason) {
                 // Do nothing.
-            };
+            }
         };
     }
 
