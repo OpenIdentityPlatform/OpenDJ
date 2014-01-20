@@ -30,7 +30,7 @@ package org.forgerock.opendj.ldap;
 import static com.forgerock.opendj.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -563,7 +563,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
      *
      * @return The socket address of the server.
      */
-    public synchronized InetSocketAddress getSocketAddress() {
+    public synchronized SocketAddress getSocketAddress() {
         if (!isRunning) {
             throw new IllegalStateException("Server is not running");
         }

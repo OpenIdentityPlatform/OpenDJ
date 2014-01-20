@@ -70,6 +70,28 @@ public class ErrorResultException extends ExecutionException {
      *             If the provided result code does not represent a failure.
      * @throws NullPointerException
      *             If {@code resultCode} was {@code null}.
+     * @deprecated use {@link #newErrorResult(ResultCode, CharSequence)} instead
+     */
+    @Deprecated
+    public static ErrorResultException newErrorResult(ResultCode resultCode,
+            String diagnosticMessage) {
+        return newErrorResult(resultCode, (CharSequence) diagnosticMessage);
+    }
+
+    /**
+     * Creates a new error result exception with the provided result code and
+     * diagnostic message.
+     *
+     * @param resultCode
+     *            The result code.
+     * @param diagnosticMessage
+     *            The diagnostic message, which may be empty or {@code null}
+     *            indicating that none was provided.
+     * @return The new error result exception.
+     * @throws IllegalArgumentException
+     *             If the provided result code does not represent a failure.
+     * @throws NullPointerException
+     *             If {@code resultCode} was {@code null}.
      */
     public static ErrorResultException newErrorResult(ResultCode resultCode,
             CharSequence diagnosticMessage) {
@@ -93,6 +115,31 @@ public class ErrorResultException extends ExecutionException {
      */
     public static ErrorResultException newErrorResult(ResultCode resultCode, Throwable cause) {
         return newErrorResult(resultCode, null, cause);
+    }
+
+    /**
+     * Creates a new error result exception with the provided result code,
+     * diagnostic message, and cause.
+     *
+     * @param resultCode
+     *            The result code.
+     * @param diagnosticMessage
+     *            The diagnostic message, which may be empty or {@code null}
+     *            indicating that none was provided.
+     * @param cause
+     *            The throwable cause, which may be {@code null} indicating that
+     *            none was provided.
+     * @return The new error result exception.
+     * @throws IllegalArgumentException
+     *             If the provided result code does not represent a failure.
+     * @throws NullPointerException
+     *             If {@code resultCode} was {@code null}.
+     * @deprecated use {@link #newErrorResult(ResultCode, CharSequence, Throwable)} instead
+     */
+    @Deprecated
+    public static ErrorResultException newErrorResult(ResultCode resultCode,
+            String diagnosticMessage, Throwable cause) {
+        return newErrorResult(resultCode, (CharSequence) diagnosticMessage, cause);
     }
 
     /**

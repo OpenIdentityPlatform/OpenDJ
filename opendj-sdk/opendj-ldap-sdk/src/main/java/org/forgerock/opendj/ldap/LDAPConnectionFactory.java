@@ -29,6 +29,7 @@ package org.forgerock.opendj.ldap;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 import com.forgerock.opendj.ldap.LDAPConnectionFactoryImpl;
 import com.forgerock.opendj.util.StaticUtils;
@@ -44,6 +45,38 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      * too many implementation classes public.
      */
     private final LDAPConnectionFactoryImpl impl;
+
+    /**
+     * Creates a new LDAP connection factory which can be used to create LDAP
+     * connections to the Directory Server at the provided address.
+     *
+     * @param address
+     *            The address of the Directory Server.
+     * @throws NullPointerException
+     *             If {@code address} was {@code null}.
+     * @deprecated use {@link #LDAPConnectionFactory(InetSocketAddress)} instead
+     */
+    @Deprecated
+    public LDAPConnectionFactory(final SocketAddress address) {
+        this((InetSocketAddress) address, new LDAPOptions());
+    }
+
+    /**
+     * Creates a new LDAP connection factory which can be used to create LDAP
+     * connections to the Directory Server at the provided address.
+     *
+     * @param address
+     *            The address of the Directory Server.
+     * @param options
+     *            The LDAP options to use when creating connections.
+     * @throws NullPointerException
+     *             If {@code address} or {@code options} was {@code null}.
+     * @deprecated use {@link #LDAPConnectionFactory(InetSocketAddress, LDAPOptions)} instead
+     */
+    @Deprecated
+    public LDAPConnectionFactory(final SocketAddress address, final LDAPOptions options) {
+        this((InetSocketAddress) address, options);
+    }
 
     /**
      * Creates a new LDAP connection factory which can be used to create LDAP
@@ -117,7 +150,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *         or {@code null} if it is unknown.
      */
     public InetAddress getAddress() {
-        return getSocketAddress().getAddress();
+        return getInetSocketAddress().getAddress();
     }
 
     @Override
@@ -143,9 +176,23 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      * will not perform a reverse DNS lookup.
      *
      * @return The host name that this LDAP listener is listening on.
+     * @deprecated use {@link #getHostName()} instead
+     */
+    @Deprecated
+    public String getHostname() {
+        return getHostName();
+    }
+
+    /**
+     * Returns the host name that this LDAP listener is listening on. The
+     * returned host name is the same host name that was provided during
+     * construction and may be an IP address. More specifically, this method
+     * will not perform a reverse DNS lookup.
+     *
+     * @return The host name that this LDAP listener is listening on.
      */
     public String getHostName() {
-        return StaticUtils.getHostName(getSocketAddress());
+        return StaticUtils.getHostName(getInetSocketAddress());
     }
 
     /**
@@ -154,7 +201,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      * @return The port that this LDAP listener is listening on.
      */
     public int getPort() {
-        return getSocketAddress().getPort();
+        return getInetSocketAddress().getPort();
     }
 
     /**
@@ -162,7 +209,11 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *
      * @return The address that this LDAP listener is listening on.
      */
-    public InetSocketAddress getSocketAddress() {
+    public SocketAddress getSocketAddress() {
+        return getInetSocketAddress();
+    }
+
+    private InetSocketAddress getInetSocketAddress() {
         return impl.getSocketAddress();
     }
 

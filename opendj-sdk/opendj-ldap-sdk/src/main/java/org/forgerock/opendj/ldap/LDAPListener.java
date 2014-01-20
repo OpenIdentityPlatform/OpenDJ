@@ -31,6 +31,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 import com.forgerock.opendj.ldap.LDAPListenerImpl;
 import com.forgerock.opendj.util.StaticUtils;
@@ -155,10 +156,58 @@ public final class LDAPListener implements Closeable {
      *             address.
      * @throws NullPointerException
      *             If {@code address} or {code factory} was {@code null}.
+     * @deprecated use {@link #LDAPListener(InetSocketAddress, ServerConnectionFactory)} instead
+     */
+    @Deprecated
+    public LDAPListener(final SocketAddress address,
+            final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
+        this((InetSocketAddress) address, factory, new LDAPListenerOptions());
+    }
+
+    /**
+     * Creates a new LDAP listener implementation which will listen for LDAP
+     * client connections at the provided address.
+     *
+     * @param address
+     *            The address to listen on.
+     * @param factory
+     *            The server connection factory which will be used to create
+     *            server connections.
+     * @throws IOException
+     *             If an error occurred while trying to listen on the provided
+     *             address.
+     * @throws NullPointerException
+     *             If {@code address} or {code factory} was {@code null}.
      */
     public LDAPListener(final InetSocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
         this(address, factory, new LDAPListenerOptions());
+    }
+
+    /**
+     * Creates a new LDAP listener implementation which will listen for LDAP
+     * client connections at the provided address.
+     *
+     * @param address
+     *            The address to listen on.
+     * @param factory
+     *            The server connection factory which will be used to create
+     *            server connections.
+     * @param options
+     *            The LDAP listener options.
+     * @throws IOException
+     *             If an error occurred while trying to listen on the provided
+     *             address.
+     * @throws NullPointerException
+     *             If {@code address}, {code factory}, or {@code options} was
+     *             {@code null}.
+     * @deprecated use {@link #LDAPListener(InetSocketAddress, ServerConnectionFactory, LDAPListenerOptions)} instead
+     */
+    @Deprecated
+    public LDAPListener(final SocketAddress address,
+            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
+            final LDAPListenerOptions options) throws IOException {
+        this((InetSocketAddress) address, factory, options);
     }
 
     /**
@@ -250,7 +299,21 @@ public final class LDAPListener implements Closeable {
      * @return The {@code InetAddress} that this LDAP listener is listening on.
      */
     public InetAddress getAddress() {
-        return getSocketAddress().getAddress();
+        return getInetSocketAddress().getAddress();
+    }
+
+    /**
+     * Returns the host name that this LDAP listener is listening on. The
+     * returned host name is the same host name that was provided during
+     * construction and may be an IP address. More specifically, this method
+     * will not perform a reverse DNS lookup.
+     *
+     * @return The host name that this LDAP listener is listening on.
+     * @deprecated use {@link #getHostName()} instead
+     */
+    @Deprecated
+    public String getHostname() {
+        return getHostName();
     }
 
     /**
@@ -262,7 +325,7 @@ public final class LDAPListener implements Closeable {
      * @return The host name that this LDAP listener is listening on.
      */
     public String getHostName() {
-        return StaticUtils.getHostName(getSocketAddress());
+        return StaticUtils.getHostName(getInetSocketAddress());
     }
 
     /**
@@ -271,7 +334,7 @@ public final class LDAPListener implements Closeable {
      * @return The port that this LDAP listener is listening on.
      */
     public int getPort() {
-        return getSocketAddress().getPort();
+        return getInetSocketAddress().getPort();
     }
 
     /**
@@ -279,7 +342,11 @@ public final class LDAPListener implements Closeable {
      *
      * @return The address that this LDAP listener is listening on.
      */
-    public InetSocketAddress getSocketAddress() {
+    public SocketAddress getSocketAddress() {
+        return getInetSocketAddress();
+    }
+
+    private InetSocketAddress getInetSocketAddress() {
         return impl.getSocketAddress();
     }
 
