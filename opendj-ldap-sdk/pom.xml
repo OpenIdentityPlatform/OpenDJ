@@ -21,9 +21,10 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>opendj-project</artifactId>
@@ -60,6 +61,8 @@
       com.sun.security.auth*;resolution:=optional,
       *
     </opendj.osgi.import>
+    <clirrComparisonVersion>2.6.0</clirrComparisonVersion>
+    <clirrVersion>2.6.1</clirrVersion>
   </properties>
   <build>
     <plugins>
@@ -93,6 +96,29 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+        <version>${clirrVersion}</version>
+        <configuration>
+          <comparisonVersion>${clirrComparisonVersion}</comparisonVersion>
+          <excludes>
+            <exclude>com/forgerock/**</exclude>
+          </excludes>
+          <ignoredDifferencesFile>clirr-ignored-api-changes.xml</ignoredDifferencesFile>
+        </configuration>
+        <executions>
+          <execution>
+            <id>mvn clirr:check</id>
+          </execution>
+          <execution>
+            <id>mvn verify</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   <reporting>
@@ -119,6 +145,18 @@
           <links>
            <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
           </links>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+        <version>${clirrVersion}</version>
+        <configuration>
+          <comparisonVersion>${clirrComparisonVersion}</comparisonVersion>
+          <excludes>
+            <exclude>com/forgerock/**</exclude>
+          </excludes>
+          <ignoredDifferencesFile>clirr-ignored-api-changes.xml</ignoredDifferencesFile>
         </configuration>
       </plugin>
     </plugins>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
+  ! or http://forgerock.org/license/CDDLv1.0.html.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at legal-notices/CDDLv1_0.txt.
+  ! If applicable, add the following below this CDDL HEADER, with the
+  ! fields enclosed by brackets "[]" replaced with your own identifying
+  ! information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !      Copyright 2014 ForgeRock AS
+  !    
+-->
+<differences>
+<!--
+For specifying ignored differences, see:
+  http://mojo.codehaus.org/clirr-maven-plugin/examples/ignored-differences.html
+
+path/methods/to/from matching can either use:
+- regex when surrounded with '%regex[]'
+- ant style path matching when surrounded with '%ant[]'
+- ant style path matching when not surrounded by anything
+
+For path/methods matching in maven-clirr-plugin see (change version numbers accordingly):
+  http://svn.codehaus.org/mojo/tags/clirr-maven-plugin-2.6.1/src/main/java/org/codehaus/mojo/clirr/Difference.java
+  http://grepcode.com/file/repo1.maven.org/maven2/org.codehaus.plexus/plexus-utils/3.0.7/org/codehaus/plexus/util/SelectorUtils.java
+For a description of ant style path expressions see:
+  http://ant.apache.org/manual/dirtasks.html#patterns
+
+Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to avoid the need to use \s* in the '<to>' tags.
+-->
+<!--
+  <difference>
+    <className>org/forgerock/opendj/ldap/Connections</className>
+    <differenceType>7005</differenceType>
+    <method>%regex[org\.forgerock\.opendj\.ldap\.ConnectionFactory newHeartBeatConnectionFactory\(org\.forgerock\.opendj\.ldap\.ConnectionFactory, long, java\.util\.concurrent\.TimeUnit, org\.forgerock\.opendj\.ldap\.requests\.SearchRequest(, java\.util\.concurrent\.ScheduledExecutorService)?\)]</method>
+    <to>%regex[org\.forgerock\.opendj\.ldap\.ConnectionFactory newHeartBeatConnectionFactory\(org\.forgerock\.opendj\.ldap\.ConnectionFactory,\s*long,\s*long,\s*java\.util\.concurrent\.TimeUnit(,\s*org\.forgerock\.opendj\.ldap\.requests\.SearchRequest(,\s*java\.util\.concurrent\.ScheduledExecutorService)?)?\)]</to>
+    <justification>OPENDJ-1058: Added a timeout parameter to actively shutdown dead connections</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/Connections</className>
+    <differenceType>7004</differenceType>
+    <method>org.forgerock.opendj.ldap.ConnectionFactory newHeartBeatConnectionFactory(org.forgerock.opendj.ldap.ConnectionFactory, long, java.util.concurrent.TimeUnit)</method>
+    <justification>OPENDJ-1058: Added a timeout parameter to actively shutdown dead connections</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ErrorResultException</className>
+    <differenceType>7005</differenceType>
+    <method>%regex[org\.forgerock\.opendj\.ldap\.ErrorResultException newErrorResult\(org\.forgerock\.opendj\.ldap\.ResultCode, java\.lang\.String(, java\.lang\.Throwable)?\)]</method>
+    <to>%regex[org\.forgerock\.opendj\.ldap\.ErrorResultException newErrorResult\(org\.forgerock\.opendj\.ldap\.ResultCode, java\.lang\.CharSequence(, java\.lang\.Throwable)?\)]</to>
+    <justification>OPENDJ-1058: Broadened the API by accepting java.lang.CharSequence while retaining source compatibility</justification>
+  </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/(LDAPConnectionFactory|LDAPListener)]</className>
+    <differenceType>7002</differenceType>
+    <method>java.lang.String getHostname()</method>
+    <justification>OPENDJ-1270: Renamed LDAP{ConnectionFactory|Listener}.getHostname() to getHostName()</justification>
+  </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/(LDAPConnectionFactory|LDAPListener)]</className>
+    <differenceType>7006</differenceType>
+    <method>java.net.SocketAddress getSocketAddress()</method>
+    <to>java.net.InetSocketAddress</to>
+    <justification>OPENDJ-1270: Changed LDAP{ConnectionFactory|Listener}.getAddress() to return InetSocketAddresses</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
+    <differenceType>7005</differenceType>
+    <method>%regex[LDAPConnectionFactory\(java\.net\.SocketAddress(, org\.forgerock\.opendj\.ldap\.LDAPOptions)?\)]</method>
+    <to>%regex[LDAPConnectionFactory\(java\.net\.InetSocketAddress(, org\.forgerock\.opendj\.ldap\.LDAPOptions)?\)]</to>
+    <justification>OPENDJ-1270: Changed constructors to only accept InetSocketAddresses instead of more generic SocketAddress</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPListener</className>
+    <differenceType>7005</differenceType>
+    <method>%regex[LDAPListener\(java\.net\.SocketAddress, org\.forgerock\.opendj\.ldap\.ServerConnectionFactory(,\s*org\.forgerock\.opendj\.ldap\.LDAPListenerOptions)?\)]</method>
+    <to>%regex[LDAPListener\(java\.net\.InetSocketAddress,\s*org\.forgerock\.opendj\.ldap\.ServerConnectionFactory(,\s*org\.forgerock\.opendj\.ldap\.LDAPListenerOptions)?\)]</to>
+    <justification>OPENDJ-1270: Changed constructors to only accept InetSocketAddresses instead of more generic SocketAddress</justification>
+  </difference>
+-->
+</differences>
