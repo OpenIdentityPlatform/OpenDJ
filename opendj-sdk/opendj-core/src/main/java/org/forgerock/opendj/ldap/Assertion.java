@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -35,7 +36,7 @@ public interface Assertion {
      * match for this assertion value according to the matching rule.
      *
      * @param attributeValue
-     *            The attribute value.
+     *            The normalized attribute value.
      * @return {@code TRUE} if the attribute value should be considered a match
      *         for the provided assertion value, {@code FALSE} if it does not
      *         match, or {@code UNDEFINED} if the result is undefined.
