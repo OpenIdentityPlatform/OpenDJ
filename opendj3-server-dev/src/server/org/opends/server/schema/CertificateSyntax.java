@@ -23,6 +23,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2013-2014 Manuel Gaupp
  */
 package org.opends.server.schema;
 
@@ -99,11 +100,11 @@ public class CertificateSyntax
          throws ConfigException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_OCTET_STRING_OID);
+         DirectoryServer.getEqualityMatchingRule(EMR_CERTIFICATE_EXACT_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_OCTET_STRING_OID, SYNTAX_CERTIFICATE_NAME));
+          EMR_CERTIFICATE_EXACT_OID, SYNTAX_CERTIFICATE_NAME));
     }
 
     defaultOrderingMatchingRule =

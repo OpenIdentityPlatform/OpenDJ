@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013-2014 Manuel Gaupp
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
@@ -1323,14 +1324,14 @@ public class MatchedValuesFilter
     {
       case EQUALITY_MATCH_TYPE:
         if ((attributeType != null) && (type != null) &&
-            attributeType.equals(type) && (assertionValue != null) &&
+            attributeType.equals(type) && (rawAssertionValue != null) &&
             (value != null) && (equalityMatchingRule != null))
         {
           try
           {
             return equalityMatchingRule.areEqual(
-                        assertionValue.getNormalizedValue(),
-                        value.getNormalizedValue());
+              equalityMatchingRule.normalizeAssertionValue(rawAssertionValue),
+              value.getNormalizedValue());
           }
           catch (Exception e)
           {
@@ -1511,8 +1512,8 @@ public class MatchedValuesFilter
           try
           {
             return equalityMatchingRule.areEqual(
-                        assertionValue.getNormalizedValue(),
-                        value.getNormalizedValue());
+              equalityMatchingRule.normalizeAssertionValue(rawAssertionValue),
+              value.getNormalizedValue());
           }
           catch (Exception e)
           {

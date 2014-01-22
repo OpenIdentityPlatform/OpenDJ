@@ -23,6 +23,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2013-2014 Manuel Gaupp
  */
 package org.opends.server.schema;
 
@@ -314,6 +315,29 @@ public class SchemaConstants
    * The OID for the caseIgnoreListMatch equality matching rule.
    */
   public static final String EMR_CASE_IGNORE_LIST_OID = "2.5.13.11";
+
+
+
+  /**
+   * The description for the certificateExactMatch equality matching rule.
+   */
+  public static final String EMR_CERTIFICATE_EXACT_DESCRIPTION =
+       "X.509 Certificate Exact Match";
+
+
+
+  /**
+   * The name for the certificateExactMatch equality matching rule.
+   */
+  public static final String EMR_CERTIFICATE_EXACT_NAME =
+       "certificateExactMatch";
+
+
+
+  /**
+   * The OID for the certificateExactMatch equality matching rule.
+   */
+  public static final String EMR_CERTIFICATE_EXACT_OID = "2.5.13.34";
 
 
 
@@ -962,6 +986,31 @@ public class SchemaConstants
    */
   public static final String SYNTAX_BOOLEAN_OID =
        "1.3.6.1.4.1.1466.115.121.1.7";
+
+
+
+  /**
+   * The description for the certificate exact assertion attribute syntax.
+   */
+  public static final String SYNTAX_CERTIFICATE_EXACT_ASSERTION_DESCRIPTION =
+       "X.509 Certificate Exact Assertion";
+
+
+
+  /**
+   * The name for the certificate exact assertion attribute syntax.
+   */
+  public static final String SYNTAX_CERTIFICATE_EXACT_ASSERTION_NAME =
+       "CertificateExactAssertion";
+
+
+
+  /**
+   * The OID for the Certificate Exact Assertion syntax used for assertion
+   * values in extensible match filters.
+   */
+  public static final String SYNTAX_CERTIFICATE_EXACT_ASSERTION_OID =
+       "1.3.6.1.1.15.1";
 
 
 
