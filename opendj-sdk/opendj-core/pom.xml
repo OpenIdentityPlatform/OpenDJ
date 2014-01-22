@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -110,6 +110,76 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <!-- This profile provides API/ABI compatiblity checks and reports via Clirr -->
+      <id>clirr</id>
+      <activation>
+        <file>
+          <exists>clirr-ignored-api-changes.xml</exists><!-- this file name is duplicated due to MNG-4471 -->
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>clirr-maven-plugin</artifactId>
+            <version>${clirrPluginVersion}</version>
+            <inherited>true</inherited>
+            <configuration>
+              <comparisonArtifacts>
+                <comparisonArtifact>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>opendj-ldap-sdk</artifactId><!-- former name of this jar -->
+                  <version>2.6.0</version>
+                </comparisonArtifact>
+              </comparisonArtifacts>
+              <excludes>
+                <exclude>com/**</exclude>
+              </excludes>
+              <ignoredDifferencesFile>clirr-ignored-api-changes.xml</ignoredDifferencesFile>
+            </configuration>
+            <executions>
+              <execution>
+                <id>mvn clirr:check</id>
+              </execution>
+              <execution>
+                <id>mvn verify</id>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <reporting>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>clirr-maven-plugin</artifactId>
+            <version>${clirrPluginVersion}</version>
+            <inherited>true</inherited>
+            <configuration>
+              <comparisonArtifacts>
+                <comparisonArtifact>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>opendj-ldap-sdk</artifactId><!-- former name of this jar -->
+                  <version>2.6.0</version>
+                </comparisonArtifact>
+              </comparisonArtifacts>
+              <excludes>
+                <exclude>com/**</exclude>
+              </excludes>
+              <ignoredDifferencesFile>clirr-ignored-api-changes.xml</ignoredDifferencesFile>
+            </configuration>
+          </plugin>
+        </plugins>
+      </reporting>
+    </profile>
+  </profiles>
+
   <reporting>
     <plugins>
       <plugin>
