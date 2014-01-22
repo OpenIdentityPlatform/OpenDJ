@@ -23,6 +23,7 @@
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2013-2014 Manuel Gaupp
  */
 package org.opends.server.types;
 
@@ -2740,18 +2741,54 @@ public final class SearchFilter
       return ConditionResult.FALSE;
     }
 
-    // Iterate through all the attributes and see if we can find a
-    // match.
+    // Get the equality matching rule for the given attribute type
+    MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
+    if (matchingRule == null)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugInfo(
+         "Attribute type %s does not have an equality matching " +
+         "rule -- returning undefined.",
+         attributeType.getNameOrOID());
+      }
+      return ConditionResult.UNDEFINED;
+    }
+
+    // Normalize the assertion value
+    ByteString value = assertionValue.getValue();
+    ByteString normalizedValue;
+    try
+    {
+        normalizedValue = matchingRule.normalizeAssertionValue(value);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      // We can't normalize the assertion value, so the result must be
+      // undefined.
+      return ConditionResult.UNDEFINED;
+    }
+
+    ConditionResult result = ConditionResult.FALSE;
+
+    // Iterate through all the attributes and see if we can find a match.
+    AttributeValue dummyAttributeValue = AttributeValues.create(value,
+                                           normalizedValue);
+
     for (Attribute a : attrs)
     {
-      if (a.contains(assertionValue))
+      if (a.contains(dummyAttributeValue))
       {
         if (debugEnabled())
         {
           TRACER.debugVerbose(
-              "Returning TRUE for equality component %s in " +
-              "filter %s for entry %s",
-                       this, completeFilter, entry.getName());
+            "Returning TRUE for equality component %s in " +
+            "filter %s for entry %s", this, completeFilter, entry.getName());
         }
         return ConditionResult.TRUE;
       }

@@ -22,10 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013-2014 Manuel Gaupp
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +42,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.util.Base64;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -966,5 +969,50 @@ public class MatchedValuesControlTest
       assertTrue(false, "Unexpected LDAPException ; msg=" + e.getMessage());
     }
 
+  }
+
+  /**
+   *
+   */
+  @DataProvider(name = "differentNormalization")
+  public Object[][] differentNormalizationData() throws ParseException
+  {
+    final String BASE64_CERT_VALUE =
+      "MIICpTCCAg6gAwIBAgIJALeoA6I3ZC/cMA0GCSqGSIb3DQEBBQUAMFYxCzAJBgNV" +
+      "BAYTAlVTMRMwEQYDVQQHEwpDdXBlcnRpb25lMRwwGgYDVQQLExNQcm9kdWN0IERl" +
+      "dmVsb3BtZW50MRQwEgYDVQQDEwtCYWJzIEplbnNlbjAeFw0xMjA1MDIxNjM0MzVa" +
+      "Fw0xMjEyMjExNjM0MzVaMFYxCzAJBgNVBAYTAlVTMRMwEQYDVQQHEwpDdXBlcnRp" +
+      "b25lMRwwGgYDVQQLExNQcm9kdWN0IERldmVsb3BtZW50MRQwEgYDVQQDEwtCYWJz" +
+      "IEplbnNlbjCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEApysa0c9qc8FB8gIJ" +
+      "8zAb1pbJ4HzC7iRlVGhRJjFORkGhyvU4P5o2wL0iz/uko6rL9/pFhIlIMbwbV8sm" +
+      "mKeNUPitwiKOjoFDmtimcZ4bx5UTAYLbbHMpEdwSpMC5iF2UioM7qdiwpAfZBd6Z" +
+      "69vqNxuUJ6tP+hxtr/aSgMH2i8ECAwEAAaN7MHkwCQYDVR0TBAIwADAsBglghkgB" +
+      "hvhCAQ0EHxYdT3BlblNTTCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwHQYDVR0OBBYE" +
+      "FLlZD3aKDa8jdhzoByOFMAJDs2osMB8GA1UdIwQYMBaAFLlZD3aKDa8jdhzoByOF" +
+      "MAJDs2osMA0GCSqGSIb3DQEBBQUAA4GBAE5vccY8Ydd7by2bbwiDKgQqVyoKrkUg" +
+      "6CD0WRmc2pBeYX2z94/PWO5L3Fx+eIZh2wTxScF+FdRWJzLbUaBuClrxuy0Y5ifj" +
+      "axuJ8LFNbZtsp1ldW3i84+F5+SYT+xI67ZcoAtwx/VFVI9s5I/Gkmu9f9nxjPpK7" +
+      "1AIUXiE3Qcck";
+    final String CERT_EXACT_ASSERTION =
+      "{ serialNumber 13233831500277100508, issuer rdnSequence:\""+
+      "CN=Babs Jensen,OU=Product Development,L=Cupertione,C=US\" }";
+    return new Object[][]{
+      {"userCertificate", ByteString.wrap(Base64.decode(BASE64_CERT_VALUE)),
+        CERT_EXACT_ASSERTION}};
+  }
+
+  /**
+   *
+   */
+  @Test(dataProvider = "differentNormalization")
+  public void testDifferentNormalization(String type, ByteString value,
+                                         String assertion)
+  {
+    MatchedValuesFilter mvf;
+    AttributeType attrType = DirectoryServer.getAttributeType("usercertificate");
+    AttributeValue attrValue = AttributeValues.create(attrType, value);
+
+    mvf = MatchedValuesFilter.createEqualityFilter(type, ByteString.valueOf(assertion));
+    assertTrue(mvf.valueMatches(attrType, attrValue));
   }
 }

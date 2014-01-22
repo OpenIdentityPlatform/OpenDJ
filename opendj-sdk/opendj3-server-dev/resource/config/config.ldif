@@ -21,7 +21,7 @@
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
 #      Portions Copyright 2010-2013 ForgeRock AS.
-#      Portions Copyright 2012-2013 Manuel Gaupp
+#      Portions Copyright 2012-2014 Manuel Gaupp
 #
 #
 # This file contains the primary Directory Server configuration.  It must not
@@ -1004,6 +1004,14 @@ objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-substring-matching-rule
 cn: Case Ignore List Substring Matching Rule
 ds-cfg-java-class: org.opends.server.schema.CaseIgnoreListSubstringMatchingRuleFactory
+ds-cfg-enabled: true
+
+dn: cn=Certificate Exact Matching Rule,cn=Matching Rules,cn=config
+objectClass: top
+objectClass: ds-cfg-matching-rule
+objectClass: ds-cfg-equality-matching-rule
+cn: Certificate Exact Matching Rule
+ds-cfg-java-class: org.opends.server.schema.CertificateExactMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Collation Matching Rule,cn=Matching Rules,cn=config
