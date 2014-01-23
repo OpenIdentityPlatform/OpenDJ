@@ -22,16 +22,16 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
 
-import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.util.Reject;
 
 import java.util.EnumSet;
-
-import org.opends.server.types.AddressMask;
 
 /**
  * IP address mask property definition.
@@ -100,8 +100,8 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
         Reject.ifNull(value);
 
         try {
-            return AddressMask.decode(value);
-        } catch (ConfigException e) {
+            return AddressMask.valueOf(value);
+        } catch (LocalizedIllegalArgumentException e) {
             // TODO: it would be nice to throw the cause.
             throw PropertyException.illegalPropertyValueException(this, value);
         }

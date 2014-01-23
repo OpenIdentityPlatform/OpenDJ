@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
-package org.opends.server.types;
+package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.ldap.ProtocolMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -34,13 +34,11 @@ import java.net.UnknownHostException;
 import java.util.BitSet;
 import java.util.Collection;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
 /**
- * This class defines an address mask, which can be used to perform efficient
- * comparisons against IP addresses to determine whether a particular IP address
- * is in a given range.
+ * An address mask can be used to perform efficient comparisons against IP
+ * addresses to determine whether a particular IP address is in a given range.
  */
 public final class AddressMask {
     /**
@@ -62,39 +60,38 @@ public final class AddressMask {
     private static final int IPV6MAXPREFIX = 128;
 
     /**
-     * Decodes the provided string as an address mask.
-     *
-     * @param maskString
-     *            The string to decode as an address mask.
-     * @return AddressMask The address mask decoded from the provided string.
-     * @throws ConfigException
-     *             If the provided string cannot be decoded as an address mask.
-     */
-
-    public static AddressMask decode(final String maskString) throws ConfigException {
-        return new AddressMask(maskString);
-    }
-
-    /**
-     * Indicates whether provided address matches one of the address masks in
-     * the provided collection.
+     * Returns {@code true} if an address matches any of the provided address
+     * masks.
      *
      * @param address
-     *            The address to check.
+     *            The address.
      * @param masks
      *            A collection of address masks to check.
-     * @return <CODE>true</CODE> if the provided address matches one of the
-     *         given address masks, or <CODE>false</CODE> if it does not.
+     * @return {@code true} if an address matches any of the provided address
+     *         masks.
      */
-    public static boolean maskListContains(final InetAddress address, final Collection<AddressMask> masks) {
+    public static boolean matchesAny(final Collection<AddressMask> masks, final InetAddress address) {
         if (address != null) {
             for (final AddressMask mask : masks) {
-                if (mask.match(address)) {
+                if (mask.matches(address)) {
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    /**
+     * Parses the provided string as an address mask.
+     *
+     * @param mask
+     *            The address mask string to be parsed.
+     * @return The parsed address mask.
+     * @throws LocalizedIllegalArgumentException
+     *             If the provided string cannot be decoded as an address mask.
+     */
+    public static AddressMask valueOf(final String mask) {
+        return new AddressMask(mask);
     }
 
     // Array that holds each component of a hostname.
@@ -115,15 +112,7 @@ public final class AddressMask {
     // Bit array that holds wildcard info for above binary arrays.
     private final BitSet wildCard = new BitSet();
 
-    /**
-     * Address mask constructor.
-     *
-     * @param rule
-     *            The rule string to process.
-     * @throws ConfigException
-     *             If the rule string is not valid.
-     */
-    private AddressMask(final String rule) throws ConfigException {
+    private AddressMask(final String rule) {
         determineRuleType(rule);
         switch (ruleType) {
         case IPv6:
@@ -149,71 +138,13 @@ public final class AddressMask {
     }
 
     /**
-     * Retrieves a string representation of this address mask.
-     *
-     * @return A string representation of this address mask.
-     */
-    @Override
-    public String toString() {
-        return ruleString;
-    }
-
-    /**
-     * Try to determine what type of rule string this is. See RuleType above for
-     * valid types.
-     *
-     * @param ruleString
-     *            The rule string to be examined.
-     * @throws ConfigException
-     *             If the rule type cannot be determined from the rule string.
-     */
-    private void determineRuleType(final String ruleString) throws ConfigException {
-
-        // Rule ending with '.' is invalid'
-        if (ruleString.endsWith(".")) {
-            final LocalizableMessage message = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
-            throw new ConfigException(message);
-        } else if (ruleString.startsWith(".")) {
-            ruleType = RuleType.HOSTPATTERN;
-        } else if (ruleString.startsWith("[") || (ruleString.indexOf(':') != -1)) {
-            ruleType = RuleType.IPv6;
-        } else {
-            int wildCount = 0;
-            final String[] s = ruleString.split("\\.", -1);
-            /*
-             * Try to figure out how many wildcards and if the rule is hostname
-             * (can't begin with digit) or ipv4 address. Default to IPv4
-             * ruletype.
-             */
-            ruleType = RuleType.HOST;
-            for (final String value : s) {
-                if (value.equals("*")) {
-                    wildCount++;
-                    continue;
-                }
-                // Looks like an ipv4 address
-                if (Character.isDigit(value.charAt(0))) {
-                    ruleType = RuleType.IPv4;
-                    break;
-                }
-            }
-            // All wildcards (*.*.*.*)
-            if (wildCount == s.length) {
-                ruleType = RuleType.ALLWILDCARD;
-            }
-        }
-    }
-
-    /**
-     * Main match function that determines which rule-type match function to
-     * use.
+     * Returns {@code true} if this address mask matches the provided address.
      *
      * @param address
-     *            The address to check.
-     * @return <CODE>true</CODE>if one of the match functions found a match or
-     *         <CODE>false</CODE>if not.
+     *            The address.
+     * @return {@code true} if this address mask matches the provided address.
      */
-    private boolean match(final InetAddress address) {
+    public boolean matches(final InetAddress address) {
         boolean ret = false;
 
         switch (ruleType) {
@@ -242,6 +173,61 @@ public final class AddressMask {
             break;
         }
         return ret;
+    }
+
+    /**
+     * Returns the string representation of this address mask.
+     *
+     * @return The string representation of this address mask.
+     */
+    @Override
+    public String toString() {
+        return ruleString;
+    }
+
+    /**
+     * Try to determine what type of rule string this is. See RuleType above for
+     * valid types.
+     *
+     * @param ruleString
+     *            The rule string to be examined.
+     * @throws LocalizedIllegalArgumentException
+     *             If the rule type cannot be determined from the rule string.
+     */
+    private void determineRuleType(final String ruleString) {
+
+        // Rule ending with '.' is invalid'
+        if (ruleString.endsWith(".")) {
+            throw genericDecodeError();
+        } else if (ruleString.startsWith(".")) {
+            ruleType = RuleType.HOSTPATTERN;
+        } else if (ruleString.startsWith("[") || ruleString.indexOf(':') != -1) {
+            ruleType = RuleType.IPv6;
+        } else {
+            int wildCount = 0;
+            final String[] s = ruleString.split("\\.", -1);
+            /*
+             * Try to figure out how many wildcards and if the rule is hostname
+             * (can't begin with digit) or ipv4 address. Default to IPv4
+             * ruletype.
+             */
+            ruleType = RuleType.HOST;
+            for (final String value : s) {
+                if (value.equals("*")) {
+                    wildCount++;
+                    continue;
+                }
+                // Looks like an ipv4 address
+                if (Character.isDigit(value.charAt(0))) {
+                    ruleType = RuleType.IPv4;
+                    break;
+                }
+            }
+            // All wildcards (*.*.*.*)
+            if (wildCount == s.length) {
+                ruleType = RuleType.ALLWILDCARD;
+            }
+        }
     }
 
     /**
@@ -309,7 +295,8 @@ public final class AddressMask {
      */
     private boolean matchPattern(final String remoteHostName) {
         final int len = remoteHostName.length() - hostPattern.length();
-        return len > 0 && remoteHostName.regionMatches(true, len, hostPattern, 0, hostPattern.length());
+        return len > 0
+                && remoteHostName.regionMatches(true, len, hostPattern, 0, hostPattern.length());
     }
 
     /**
@@ -324,7 +311,7 @@ public final class AddressMask {
             this.prefixMask[i] = (byte) 0xff;
             prefix -= 8;
         }
-        this.prefixMask[i] = (byte) ((0xff) << (8 - prefix));
+        this.prefixMask[i] = (byte) (0xff << 8 - prefix);
     }
 
     /**
@@ -335,7 +322,7 @@ public final class AddressMask {
      *            The rule string containing all wildcards.
      */
     private void processAllWilds(final String rule) {
-        final String []s = rule.split("\\.", -1);
+        final String[] s = rule.split("\\.", -1);
         if (s.length == IN4ADDRSZ) {
             for (int i = 0; i < IN4ADDRSZ; i++) {
                 wildCard.set(i);
@@ -349,15 +336,14 @@ public final class AddressMask {
      *
      * @param rule
      *            The rule string.
-     * @throws ConfigException
+     * @throws LocalizedIllegalArgumentException
      *             If the rule string is not a valid host name.
      */
-    private void processHost(final String rule) throws ConfigException {
+    private void processHost(final String rule) {
         // Note that '*' is valid in host rule
-        final String []s = rule.split("^[0-9a-zA-z-.*]+");
+        final String[] s = rule.split("^[0-9a-zA-z-.*]+");
         if (s.length > 0) {
-            final LocalizableMessage message = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
-            throw new ConfigException(message);
+            throw genericDecodeError();
         }
         hostName = rule.split("\\.", -1);
     }
@@ -368,15 +354,14 @@ public final class AddressMask {
      *
      * @param rule
      *            The rule string to examine.
-     * @throws ConfigException
+     * @throws LocalizedIllegalArgumentException
      *             If the rule string is not a valid host pattern rule.
      */
-    private void processHostPattern(final String rule) throws ConfigException {
+    private void processHostPattern(final String rule) {
         // quick check for invalid chars like " "
-        final String []s = rule.split("^[0-9a-zA-z-.]+");
+        final String[] s = rule.split("^[0-9a-zA-z-.]+");
         if (s.length > 0) {
-            final LocalizableMessage message = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
-            throw new ConfigException(message);
+            throw genericDecodeError();
         }
         hostPattern = rule;
     }
@@ -387,15 +372,15 @@ public final class AddressMask {
      *
      * @param rule
      *            The rule string containing the IPv4 rule.
-     * @throws ConfigException
+     * @throws LocalizedIllegalArgumentException
      *             If the rule string is not a valid IPv4 rule.
      */
-    private void processIpv4(final String rule) throws ConfigException {
+    private void processIpv4(final String rule) {
         final String[] s = rule.split("/", -1);
         this.ruleMask = new byte[IN4ADDRSZ];
         this.prefixMask = new byte[IN4ADDRSZ];
         prefixMask(processPrefix(s, IPV4MAXPREFIX));
-        processIPv4Subnet((s.length == 0) ? rule : s[0]);
+        processIPv4Subnet(s.length == 0 ? rule : s[0]);
     }
 
     /**
@@ -404,16 +389,15 @@ public final class AddressMask {
      *
      * @param subnet
      *            The subnet string part of the rule.
-     * @throws ConfigException
+     * @throws LocalizedIllegalArgumentException
      *             If the subnet string is not a valid IPv4 subnet string.
      */
-    private void processIPv4Subnet(final String subnet) throws ConfigException {
+    private void processIPv4Subnet(final String subnet) {
         final String[] s = subnet.split("\\.", -1);
         try {
             // Make sure we have four parts
             if (s.length != IN4ADDRSZ) {
-                final LocalizableMessage message = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
-                throw new ConfigException(message);
+                throw genericDecodeError();
             }
             for (int i = 0; i < IN4ADDRSZ; i++) {
                 final String quad = s[i].trim();
@@ -422,16 +406,14 @@ public final class AddressMask {
                 } else {
                     final long val = Integer.parseInt(quad);
                     // must be between 0-255
-                    if ((val < 0) || (val > 0xff)) {
-                        final LocalizableMessage message = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
-                        throw new ConfigException(message);
+                    if (val < 0 || val > 0xff) {
+                        throw genericDecodeError();
                     }
                     ruleMask[i] = (byte) (val & 0xff);
                 }
             }
         } catch (final NumberFormatException nfex) {
-            final LocalizableMessage message = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
-            throw new ConfigException(message);
+            throw genericDecodeError();
         }
     }
 
@@ -441,17 +423,16 @@ public final class AddressMask {
      *
      * @param rule
      *            The rule string containing the IPv6 rule.
-     * @throws ConfigException
+     * @throws LocalizedIllegalArgumentException
      *             If the rule string is not a valid IPv6 rule.
      */
-    private void processIPv6(final String rule) throws ConfigException {
+    private void processIPv6(final String rule) {
         final String[] s = rule.split("/", -1);
         InetAddress addr;
         try {
             addr = InetAddress.getByName(s[0]);
         } catch (final UnknownHostException ex) {
-            final LocalizableMessage message = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
-            throw new ConfigException(message);
+            throw genericDecodeError();
         }
         if (addr instanceof Inet6Address) {
             this.ruleType = RuleType.IPv6;
@@ -465,8 +446,7 @@ public final class AddressMask {
              * the rule has a prefix.
              */
             if (s.length == 2) {
-                final LocalizableMessage message = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
-                throw new ConfigException(message);
+                throw genericDecodeError();
             }
             this.ruleMask = addr.getAddress();
             this.ruleType = RuleType.IPv4;
@@ -483,33 +463,35 @@ public final class AddressMask {
      * @param maxPrefix
      *            The max value the prefix can be.
      * @return The prefix integer value.
-     * @throws ConfigException
+     * @throws LocalizedIllegalArgumentException
      *             If the string array and prefix are not valid.
      */
-    private int processPrefix(final String[] s, final int maxPrefix) throws ConfigException {
+    private int processPrefix(final String[] s, final int maxPrefix) {
         int prefix = maxPrefix;
         try {
             // can only have one prefix value and a subnet string
-            if ((s.length < 1) || (s.length > 2)) {
-                final LocalizableMessage message = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
-                throw new ConfigException(message);
+            if (s.length < 1 || s.length > 2) {
+                throw genericDecodeError();
             } else if (s.length == 2) {
                 // can't have wildcard with a prefix
                 if (s[0].indexOf('*') > -1) {
-                    final LocalizableMessage message = ERR_ADDRESSMASK_WILDCARD_DECODE_ERROR.get();
-                    throw new ConfigException(message);
+                    throw new LocalizedIllegalArgumentException(
+                            ERR_ADDRESSMASK_WILDCARD_DECODE_ERROR.get());
                 }
                 prefix = Integer.parseInt(s[1]);
             }
             // must be between 0-maxprefix
-            if ((prefix < 0) || (prefix > maxPrefix)) {
-                final LocalizableMessage message = ERR_ADDRESSMASK_PREFIX_DECODE_ERROR.get();
-                throw new ConfigException(message);
+            if (prefix < 0 || prefix > maxPrefix) {
+                throw new LocalizedIllegalArgumentException(ERR_ADDRESSMASK_PREFIX_DECODE_ERROR
+                        .get());
             }
         } catch (final NumberFormatException nfex) {
-            final LocalizableMessage msg = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
-            throw new ConfigException(msg);
+            throw genericDecodeError();
         }
         return prefix;
+    }
+
+    private LocalizedIllegalArgumentException genericDecodeError() {
+        return new LocalizedIllegalArgumentException(ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get());
     }
 }
