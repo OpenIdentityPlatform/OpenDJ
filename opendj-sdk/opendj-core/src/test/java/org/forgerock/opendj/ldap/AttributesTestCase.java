@@ -32,13 +32,10 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * An abstract class that all types unit tests should extend. A type represents
- * the classes found directly under the package org.forgerock.opendj.ldap.
+ * Tests the Attributes class.
  */
-
-@Test(groups = { "precommit", "types", "sdk" })
 @SuppressWarnings("javadoc")
-public class TypesTestCase extends SdkTestCase {
+public class AttributesTestCase extends SdkTestCase {
     /**
      * Data provider for attribute descriptions.
      *

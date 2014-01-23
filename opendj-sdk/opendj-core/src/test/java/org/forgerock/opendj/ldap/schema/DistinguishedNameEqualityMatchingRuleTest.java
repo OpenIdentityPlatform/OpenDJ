@@ -27,7 +27,6 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_DN_OID;
 import static org.testng.Assert.assertEquals;
 
 import org.forgerock.opendj.ldap.ByteString;
@@ -183,7 +182,7 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
     }
 
     protected MatchingRule getRule() {
-        return Schema.getCoreSchema().getMatchingRule(EMR_DN_OID);
+        return CoreSchema.getDistinguishedNameMatchingRule();
     }
 
     /**
