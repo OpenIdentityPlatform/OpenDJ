@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 
 package org.opends.server.tools.upgrade;
@@ -47,7 +47,6 @@ import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 
 import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.opends.messages.Message;
 import org.opends.server.tools.ClientException;
 import org.opends.server.tools.RebuildIndex;
@@ -257,22 +256,23 @@ public final class UpgradeTasks
    * <pre>
    * register(&quot;2.5.0.7192&quot;,
    *   newAttributeTypes(Message.raw(&quot;New attribute etag&quot;),
-   *   false, &quot;00-core.ldif&quot;, &quot;etag&quot;));
+   *   false, &quot;00-core.ldif&quot;,
+   *   &quot;1.3.6.1.4.1.36733.2.1.1.59&quot;));
    * </pre>
    *
    * @param summary
    *          The summary of the task.
    * @param fileName
    *          The file where to add the new attribute types. This file must be
-   *          contained in the config/schema folder.
-   * @param names
-   *          The names of the new attributes to add to.
+   *          contained in the configuration/schema folder.
+   * @param attributeOids
+   *          The OIDs of the new attributes to add to.
    * @return An upgrade task which adds new attribute types, defined previously
-   *         in the config template files, reads the definition and adds it onto
-   *         the specified file in parameter.
+   *         in the configuration template files, reads the definition
+   *         and adds it onto the specified file in parameter.
    */
   public static UpgradeTask newAttributeTypes(final Message summary,
-      final String fileName, final String... names)
+      final String fileName, final String... attributeOids)
   {
     return new AbstractUpgradeTask()
     {
@@ -293,7 +293,7 @@ public final class UpgradeTasks
         {
           final int changeCount =
               updateSchemaFile(schemaFileTemplate, pathDestination,
-                  names, null);
+                  attributeOids, null);
 
           displayChangeCount(pathDestination.getPath(), changeCount);
 
@@ -304,7 +304,7 @@ public final class UpgradeTasks
           manageTaskException(context, ERR_UPGRADE_ADDATTRIBUTE_FAILS.get(
               schemaFileTemplate.getName(), e.getMessage()), pnc);
         }
-        catch (final UnknownSchemaElementException e)
+        catch (final IllegalStateException e)
         {
           manageTaskException(context, ERR_UPGRADE_ADDATTRIBUTE_FAILS.get(
               schemaFileTemplate.getName(), e.getMessage()), pnc);
@@ -322,15 +322,16 @@ public final class UpgradeTasks
    *          The summary of the task.
    * @param fileName
    *          The file where to add the new object classes. This file must be
-   *          contained in the config/schema folder.
-   * @param names
-   *          The names of the new object classes to add to.
+   *          contained in the configuration/schema folder.
+   * @param objectClassesOids
+   *          The OIDs of the new object classes to add to.
    * @return An upgrade task which adds new object classes, defined previously
-   *         in the config template files, reads the definition and adds it onto
-   *         the specified file in parameter.
+   *         in the configuration template files,
+   *         reads the definition and adds it onto the specified file in
+   *         parameter.
    */
   public static UpgradeTask newObjectClasses(final Message summary,
-      final String fileName, final String... names)
+      final String fileName, final String... objectClassesOids)
   {
     return new AbstractUpgradeTask()
     {
@@ -354,7 +355,7 @@ public final class UpgradeTasks
         {
           final int changeCount =
               updateSchemaFile(schemaFileTemplate, pathDestination,
-                  null, names);
+                  null, objectClassesOids);
 
           displayChangeCount(pathDestination.getPath(), changeCount);
 
@@ -365,9 +366,9 @@ public final class UpgradeTasks
           manageTaskException(context, ERR_UPGRADE_ADDOBJECTCLASS_FAILS.get(
               schemaFileTemplate.getName(), e.getMessage()), pnc);
         }
-        catch (final UnknownSchemaElementException e)
+        catch (final IllegalStateException e)
         {
-          manageTaskException(context, ERR_UPGRADE_ADDOBJECTCLASS_FAILS.get(
+          manageTaskException(context, ERR_UPGRADE_ADDATTRIBUTE_FAILS.get(
               schemaFileTemplate.getName(), e.getMessage()), pnc);
         }
       }
