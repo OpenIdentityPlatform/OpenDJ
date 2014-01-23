@@ -29,6 +29,7 @@ package org.opends.server.admin;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.AdminMessages.*;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -37,7 +38,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
 import javax.naming.ldap.Rdn;
+
+import org.forgerock.opendj.ldap.AddressMask;
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -53,7 +57,6 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.SynchronousStrategy;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
-import org.opends.server.types.AddressMask;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;

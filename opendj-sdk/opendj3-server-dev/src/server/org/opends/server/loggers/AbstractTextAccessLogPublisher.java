@@ -53,6 +53,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.ldap.ByteString;
 
 /**
@@ -364,12 +365,12 @@ public abstract class AbstractTextAccessLogPublisher
       // Check client address.
       final InetAddress ipAddr = connection.getRemoteAddress();
       if (!clientAddressNotEqualTo.isEmpty()
-          && AddressMask.maskListContains(ipAddr, clientAddressNotEqualTo))
+          && AddressMask.matchesAny(clientAddressNotEqualTo, ipAddr))
       {
         return false;
       }
       if (!clientAddressEqualTo.isEmpty()
-          && !AddressMask.maskListContains(ipAddr, clientAddressEqualTo))
+          && !AddressMask.matchesAny(clientAddressEqualTo, ipAddr))
       {
         return false;
       }

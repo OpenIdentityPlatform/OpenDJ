@@ -33,8 +33,8 @@ import static org.forgerock.util.Reject.ifNull;
 
 import java.util.EnumSet;
 
-import org.opends.server.config.ConfigException;
-import org.opends.server.types.AddressMask;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.AddressMask;
 
 
 
@@ -127,8 +127,8 @@ public final class IPAddressMaskPropertyDefinition extends
     ifNull(value);
 
     try {
-      return AddressMask.decode(value);
-    } catch (ConfigException e) {
+      return AddressMask.valueOf(value);
+    } catch (LocalizedIllegalArgumentException e) {
       // TODO: it would be nice to throw the cause.
       throw PropertyException.illegalPropertyValueException(this, value);
     }

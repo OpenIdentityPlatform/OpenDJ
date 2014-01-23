@@ -46,6 +46,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+import org.forgerock.opendj.ldap.AddressMask;
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
@@ -1235,7 +1236,7 @@ public final class LDAPConnectionHandler extends
     // Check to see if the client is on the denied list.
     // If so, then reject it immediately.
     if ((!deniedClients.isEmpty())
-        && AddressMask.maskListContains(clientAddr, deniedClients))
+        && AddressMask.matchesAny(deniedClients, clientAddr))
     {
       clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED,
           currentConfig.isSendRejectionNotice(), ERR_CONNHANDLER_DENIED_CLIENT
@@ -1247,7 +1248,7 @@ public final class LDAPConnectionHandler extends
     // there is whether the client is on that list. If
     // not, then reject the connection.
     if ((!allowedClients.isEmpty())
-        && (!AddressMask.maskListContains(clientAddr, allowedClients)))
+        && (!AddressMask.matchesAny(allowedClients, clientAddr)))
     {
       clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED,
           currentConfig.isSendRejectionNotice(),
