@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools.upgrade;
 
@@ -37,9 +37,9 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
-import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.opendj.ldif.EntryReader;
 import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
@@ -51,12 +51,11 @@ import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ConfigMessages.INFO_CONFIG_FILE_HEADER;
-import static org.opends.messages.ToolMessages.ERR_UPGRADE_UNKNOWN_OC_ATT;
 import static org.opends.messages.ToolMessages.ERR_UPGRADE_CORRUPTED_TEMPLATE;
+import static org.opends.messages.ToolMessages.ERR_UPGRADE_UNKNOWN_OC_ATT;
 import static org.opends.server.tools.upgrade.FileManager.deleteRecursively;
 import static org.opends.server.tools.upgrade.FileManager.rename;
 import static org.opends.server.tools.upgrade.Installation.*;
-import static org.opends.server.util.ServerConstants.EOL;
 
 /**
  * Common utility methods needed by the upgrade.
@@ -571,54 +570,52 @@ final class UpgradeUtils
    *         is inserted successfully to the destination file.
    * @throws IOException
    *           If an unexpected IO error occurred while reading the entry.
-   * @throws UnknownSchemaElementException
+   * @throws IllegalStateException
    *           Failure to find an attribute in the template schema indicates
    *           either a programming error (e.g. typo in the attribute name) or
    *           template corruption. Upgrade should stop.
    */
   static int updateSchemaFile(final File templateFile, final File destination,
       final String[] attributes, final String[] objectClasses)
-      throws IOException, UnknownSchemaElementException
+      throws IOException, IllegalStateException
   {
     int changeCount = 0;
-    LDIFEntryReader reader = null;
-    BufferedReader br = null;
-    FileWriter fw = null;
+    LDIFEntryReader templateReader = null;
+    LDIFEntryReader destinationReader = null;
+    LDIFEntryWriter destinationWriter = null;
     File copy = null;
     try
     {
-      reader = new LDIFEntryReader(new FileInputStream(templateFile));
-
-      if (!reader.hasNext())
+      templateReader = new LDIFEntryReader(new FileInputStream(templateFile));
+      if (!templateReader.hasNext())
       {
         // Unless template are corrupted, this should not happen.
         throw new IOException(ERR_UPGRADE_CORRUPTED_TEMPLATE.get(
             templateFile.getPath()).toString());
       }
-      final LinkedList<String> definitionsList = new LinkedList<String>();
+      final Entry templateSchemaEntry = templateReader.readEntry();
 
-      final Entry schemaEntry = reader.readEntry();
+      destinationReader = new LDIFEntryReader(
+          new FileInputStream(destination));
+      if (!destinationReader.hasNext())
+      {
+        // Unless template are corrupted, this should not happen.
+        throw new IOException(ERR_UPGRADE_CORRUPTED_TEMPLATE.get(
+            destination.getPath()).toString());
+      }
+      final Entry destinationSchemaEntry = destinationReader.readEntry();
 
-      Schema schema =
-          new SchemaBuilder(Schema.getCoreSchema())
-              .addSchema(schemaEntry, true).toSchema();
       if (attributes != null)
       {
         for (final String att : attributes)
         {
-          try
-          {
-            final String definition =
-                "attributeTypes: " + schema.getAttributeType(att);
-            definitionsList.add(definition);
-            LOG.log(Level.INFO, String.format("Added %s", definition));
-          }
-          catch (UnknownSchemaElementException e)
-          {
-            LOG.log(Level.SEVERE, ERR_UPGRADE_UNKNOWN_OC_ATT.get("attribute",
-                att).toString());
-            throw e;
-          }
+          final ByteString attributeType =
+              getSchemaElement(templateSchemaEntry, "attributeTypes", att);
+          destinationSchemaEntry.getAttribute("attributeTypes").add(
+              attributeType);
+          changeCount++;
+          LOG.log(Level.INFO, String.format("Added %s", attributeType
+              .toString()));
         }
       }
 
@@ -626,50 +623,35 @@ final class UpgradeUtils
       {
         for (final String oc : objectClasses)
         {
-          try
-          {
-            final String definition =
-                "objectClasses: " + schema.getObjectClass(oc);
-            definitionsList.add(definition);
-            LOG.log(Level.INFO, String.format("Added %s", definition));
-          }
-          catch (UnknownSchemaElementException e)
-          {
-            LOG.log(Level.SEVERE, ERR_UPGRADE_UNKNOWN_OC_ATT.get(
-                "object class", oc).toString());
-            throw e;
-          }
+          final ByteString objectClass =
+              getSchemaElement(templateSchemaEntry, "objectClasses", oc);
+          destinationSchemaEntry.getAttribute("objectClasses").add(objectClass);
+          changeCount++;
+          LOG.log(Level.INFO,
+              String.format("Added %s", objectClass.toString()));
         }
       }
-      // Then, open the destination file and write the new attribute
-      // or objectClass definitions
+
+      // Then writes the new schema entry.
       copy =
           File.createTempFile("copySchema", ".tmp",
               destination.getParentFile());
-      br = new BufferedReader(new FileReader(destination));
-      fw = new FileWriter(copy);
-      String line = br.readLine();
-      while (line != null && !"".equals(line))
-      {
-        fw.write(line + EOL);
-        line = br.readLine();
-      }
-      for (final String definition : definitionsList)
-      {
-        writeLine(fw, definition, 80);
-        changeCount++;
-      }
-      // Must be ended with a blank line
-      fw.write(EOL);
+      final FileOutputStream fos = new FileOutputStream(copy);
+      destinationWriter = new LDIFEntryWriter(fos);
+      destinationWriter.setWrapColumn(79);
+      // Copy comments to fos (get License and first comments only).
+      writeFileHeaderComments(templateFile, destinationWriter);
+      // Writes the entry after.
+      destinationWriter.writeEntry(destinationSchemaEntry);
     }
     finally
     {
-      // The reader and writer must be close before writing files.
+      // Readers and writer must be close before writing files.
       // This causes exceptions under windows OS.
-      StaticUtils.close(br, fw, reader);
+      StaticUtils.close(templateReader, destinationReader, destinationWriter);
     }
 
-    // Writes the schema file.
+    // Renames the copy to make it the new schema file.
     try
     {
       rename(copy, destination);
@@ -682,6 +664,78 @@ final class UpgradeUtils
     }
 
     return changeCount;
+  }
+
+  /**
+   * Gets and writes the first comments of a file.
+   *
+   * @param file
+   *          The selected file to get the comments.
+   * @param writer
+   *          The writer which is going to write the comments.
+   * @throws IOException
+   *           If an error occurred with the file.
+   */
+  private static void writeFileHeaderComments(final File file,
+      final LDIFEntryWriter writer) throws IOException
+  {
+    BufferedReader br = null;
+    try
+    {
+      br = new BufferedReader(new FileReader(file));
+      String comment = br.readLine();
+
+      while (comment != null && comment.startsWith("#"))
+      {
+        writer.writeComment(comment.replaceAll("# ", "").replaceAll("#", ""));
+        comment = br.readLine();
+      }
+    }
+    catch (IOException ex)
+    {
+      throw ex;
+    }
+    finally
+    {
+      StaticUtils.close(br);
+    }
+  }
+  /**
+   * Returns the definition of the selected attribute / object class OID.
+   *
+   * @param schemaEntry
+   *          The selected schema entry to search on.
+   * @param type
+   *          The type of the research. ("objectClasses" or "attributeTypes")
+   * @param oid
+   *          The OID of the element to search for.
+   * @return The byte string definition of the element.
+   */
+  private static ByteString getSchemaElement(final Entry schemaEntry,
+      final String type, final String oid)
+  {
+    final Attribute attribute = schemaEntry.getAttribute(type);
+    final MatchingRule mrule =
+        CoreSchema.getObjectIdentifierFirstComponentMatchingRule();
+    Assertion assertion;
+    try
+    {
+      assertion = mrule.getAssertion(ByteString.valueOf(oid));
+      for (final ByteString value : attribute)
+      {
+        final ByteString nvalue = mrule.normalizeAttributeValue(value);
+        if (assertion.matches(nvalue).toBoolean())
+        {
+          return value;
+        }
+      }
+    }
+    catch (DecodeException e)
+    {
+      throw new IllegalStateException(e);
+    }
+    throw new IllegalStateException(ERR_UPGRADE_UNKNOWN_OC_ATT.get(type, oid)
+        .toString());
   }
 
   /**
@@ -831,31 +885,6 @@ final class UpgradeUtils
       index++;
     }
     return modifiedLines;
-  }
-
-  private static void writeLine(final FileWriter fw, final String line,
-      final int wrapColumn) throws IOException
-  {
-    final int length = line.length();
-    if (length > wrapColumn)
-    {
-      fw.write(line.subSequence(0, wrapColumn).toString());
-      fw.write(EOL);
-      int pos = wrapColumn;
-      while (pos < length)
-      {
-        final int writeLength = Math.min(wrapColumn - 1, length - pos);
-        fw.write(" ");
-        fw.write(line.subSequence(pos, pos + writeLength).toString());
-        fw.write(EOL);
-        pos += wrapColumn - 1;
-      }
-    }
-    else
-    {
-      fw.write(line);
-      fw.write(EOL);
-    }
   }
 
   // Prevent instantiation.
