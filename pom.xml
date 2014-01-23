@@ -148,7 +148,7 @@
     <coreDocBase>http://opendj.forgerock.org/doc/</coreDocBase>
     <configRefBase>http://opendj.forgerock.org/opendj-server/configref/</configRefBase>
     <serverJavadocBase>http://opendj.forgerock.org/opendj-server/javadoc/</serverJavadocBase>
-    <sdkJavadocBase>http://opendj.forgerock.org/opendj-ldap-sdk/apidocs/</sdkJavadocBase>
+    <sdkJavadocBase>http://opendj.forgerock.org/opendj-core/apidocs/</sdkJavadocBase>
   </properties>
   <build>
     <plugins>
