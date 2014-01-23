@@ -28,10 +28,10 @@ package org.forgerock.opendj.config;
 
 import java.net.InetAddress;
 
+import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.authorization.dseecompat.Aci;
-import org.opends.server.types.AddressMask;
 
 /**
  * A visitor of property values, in the style of the visitor design pattern.
