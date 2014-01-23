@@ -45,7 +45,7 @@ import org.testng.annotations.Test;
  * {@link org.forgerock.opendj.ldap.RDN} class.
  */
 @SuppressWarnings("javadoc")
-public final class RDNTestCase extends TypesTestCase {
+public final class RDNTestCase extends SdkTestCase {
 
     // Domain component attribute type.
     private static final AttributeType ATTR_TYPE_DC;
