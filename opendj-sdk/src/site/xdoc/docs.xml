@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <document
@@ -74,7 +74,7 @@
     <dd><a href="./opendj-server/javadoc/index.html">HTML</a></dd>
     
     <dt>LDAP Client API Specification</dt>
-    <dd><a href="./opendj-ldap-sdk/apidocs/index.html">HTML</a></dd>
+    <dd><a href="./opendj-core/apidocs/index.html">HTML</a></dd>
    </dl>
   </section>
  </body>
