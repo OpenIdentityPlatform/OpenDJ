@@ -29,7 +29,7 @@
     Templates for processing IP address mask properties.
   -->
   <xsl:template match="adm:ip-address-mask" mode="java-value-imports">
-    <import>org.opends.server.types.AddressMask</import>
+    <import>org.forgerock.opendj.ldap.AddressMask</import>
   </xsl:template>
   <xsl:template match="adm:ip-address-mask" mode="java-value-type">
     <xsl:value-of select="'AddressMask'" />

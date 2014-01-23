@@ -30,7 +30,7 @@ package org.opends.server.admin;
 
 import java.net.InetAddress;
 
-import org.opends.server.types.AddressMask;
+import org.forgerock.opendj.ldap.AddressMask;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.authorization.dseecompat.Aci;

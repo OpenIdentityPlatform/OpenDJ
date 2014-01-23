@@ -31,11 +31,11 @@ package org.opends.server.core.networkgroups;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.forgerock.opendj.ldap.AddressMask;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.types.AddressMask;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.DN;
 import org.testng.Assert;
@@ -75,8 +75,8 @@ public class IPConnectionCriteriaTest extends DirectoryServerTestCase
   @DataProvider(name = "testData")
   public Object[][] createTestData() throws Exception
   {
-    AddressMask matchAnything = AddressMask.decode("*.*.*.*");
-    AddressMask matchNothing = AddressMask.decode("0.0.0.0");
+    AddressMask matchAnything = AddressMask.valueOf("*.*.*.*");
+    AddressMask matchNothing = AddressMask.valueOf("0.0.0.0");
     ClientConnection client =
         new MockClientConnection(12345, false, DN.rootDN(),
             AllowedAuthMethod.ANONYMOUS);

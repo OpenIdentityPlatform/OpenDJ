@@ -52,7 +52,6 @@ import org.opends.messages.Message;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.AddressMask;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.util.Base64;
@@ -401,7 +400,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     Collection<AddressMask> allowedClients = config.getAllowedClient();
     Collection<AddressMask> deniedClients = config.getDeniedClient();
     if (!deniedClients.isEmpty()
-        && AddressMask.maskListContains(clientAddr, deniedClients))
+        && AddressMask.matchesAny(deniedClients, clientAddr))
     {
       clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
           ERR_CONNHANDLER_DENIED_CLIENT.get(clientConnection
@@ -412,7 +411,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     // there is whether the client is on that list. If
     // not, then reject the connection.
     if (!allowedClients.isEmpty()
-        && !AddressMask.maskListContains(clientAddr, allowedClients))
+        && !AddressMask.matchesAny(allowedClients, clientAddr))
     {
       clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
           ERR_CONNHANDLER_DISALLOWED_CLIENT.get(clientConnection

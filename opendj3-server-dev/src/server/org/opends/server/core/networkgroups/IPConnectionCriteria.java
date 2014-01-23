@@ -31,8 +31,8 @@ package org.opends.server.core.networkgroups;
 import java.net.InetAddress;
 import java.util.Collection;
 
+import org.forgerock.opendj.ldap.AddressMask;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.types.AddressMask;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.DN;
 
@@ -79,13 +79,13 @@ final class IPConnectionCriteria implements ConnectionCriteria
     InetAddress ipAddr = connection.getRemoteAddress();
 
     if (!deniedClients.isEmpty()
-        && AddressMask.maskListContains(ipAddr, deniedClients))
+        && AddressMask.matchesAny(deniedClients, ipAddr))
     {
       return false;
     }
 
     if (!allowedClients.isEmpty()
-        && !AddressMask.maskListContains(ipAddr, allowedClients))
+        && !AddressMask.matchesAny(allowedClients, ipAddr))
     {
       return false;
     }
