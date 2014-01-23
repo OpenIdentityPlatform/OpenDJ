@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 
 package org.opends.server.tools.upgrade;
@@ -134,7 +134,7 @@ public final class Upgrade
 
     register("2.5.0.7748",
         newAttributeTypes(INFO_UPGRADE_TASK_7748_1_SUMMARY.get(),
-        "00-core.ldif", "etag"),
+        "00-core.ldif", "1.3.6.1.4.1.36733.2.1.1.59"), //etag
         addConfigEntry(INFO_UPGRADE_TASK_7748_2_SUMMARY.get(),
         "dn: cn=etag,cn=Virtual Attributes,cn=config",
         "changetype: add",
@@ -279,7 +279,7 @@ public final class Upgrade
 
     register("2.5.0.8985",
         newAttributeTypes(INFO_UPGRADE_TASK_8985_1_SUMMARY.get(),
-        "00-core.ldif", "emailAddress"),
+        "00-core.ldif", "1.2.840.113549.1.9.1"), // emailAddress
         modifyConfigEntry(INFO_UPGRADE_TASK_8985_2_SUMMARY.get(),
         "&(ds-cfg-java-class=org.opends.server.extensions." +
         "SubjectAttributeToUserAttributeCertificateMapper)" +
@@ -290,13 +290,26 @@ public final class Upgrade
         "add:ds-cfg-subject-attribute-mapping",
         "ds-cfg-subject-attribute-mapping: emailAddress:mail"));
 
-    /* See OPENDJ-992 */
+    /** See OPENDJ-992 */
     register("2.5.0.9013",
         regressionInVersion("2.5.0.7640",
             rebuildSingleIndex(INFO_UPGRADE_TASK_9013_DESCRIPTION.get(),
                 "ds-sync-hist")));
 
-
+    /** See OPENDJ-1284*/
+    register("2.7.0.10133", // userCertificate OID / cACertificate OID
+        newAttributeTypes(INFO_UPGRADE_TASK_10133_1_SUMMARY.get(),
+        "00-core.ldif", "2.5.4.36", "2.5.4.37"),
+        addConfigEntry(INFO_UPGRADE_TASK_10133_2_SUMMARY.get(),
+        "dn: cn=Certificate Exact Matching Rule,cn=Matching Rules,cn=config",
+        "changetype: add",
+        "objectClass: top",
+        "objectClass: ds-cfg-matching-rule",
+        "objectClass: ds-cfg-equality-matching-rule",
+        "cn: Certificate Exact Matching Rule",
+        "ds-cfg-java-class: "
+            + "org.opends.server.schema.CertificateExactMatchingRuleFactory",
+        "ds-cfg-enabled: true"));
 
     /*
      * All upgrades will refresh the server configuration schema and generate
