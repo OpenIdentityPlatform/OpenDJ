@@ -68,7 +68,7 @@ import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
@@ -234,7 +234,7 @@ public class IndexPanel extends AbstractIndexPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_INDEX_PANEL_TITLE.get();
   }
@@ -337,7 +337,7 @@ public class IndexPanel extends AbstractIndexPanel
 
   private void deleteIndex()
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
@@ -391,7 +391,7 @@ public class IndexPanel extends AbstractIndexPanel
       return;
     }
 
-    List<Message> errors = getErrors();
+    List<LocalizableMessage> errors = getErrors();
 
     if (errors.isEmpty())
     {
@@ -440,7 +440,7 @@ public class IndexPanel extends AbstractIndexPanel
     setPrimaryValid(lType);
     name.setText(index.getName());
     backendName.setText(index.getBackend().getBackendID());
-    titlePanel.setDetails(Message.raw(index.getName()));
+    titlePanel.setDetails(LocalizableMessage.raw(index.getName()));
     entryLimit.setText(String.valueOf(index.getEntryLimit()));
     approximate.setSelected(false);
     equality.setSelected(false);
@@ -574,7 +574,7 @@ public class IndexPanel extends AbstractIndexPanel
     /**
      * {@inheritDoc}
      */
-    public Message getTaskDescription()
+    public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_MODIFY_INDEX_TASK_DESCRIPTION.get(attributeName,
           backendName);
@@ -584,7 +584,7 @@ public class IndexPanel extends AbstractIndexPanel
      * {@inheritDoc}
      */
     public boolean canLaunch(Task taskToBeLaunched,
-        Collection<Message> incompatibilityReasons)
+        Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))

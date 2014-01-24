@@ -42,7 +42,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.controls.PasswordPolicyRequestControl;
 import org.opends.server.core.AddOperation;
@@ -136,7 +136,7 @@ public class LDAPAuthenticationHandlerTestCase
   @Test(dataProvider = "saslMechanisms")
   public void testGetSASLProperties(String saslMechanismName)
   {
-    LinkedHashMap<String, Message> properties =
+    LinkedHashMap<String, LocalizableMessage> properties =
          LDAPAuthenticationHandler.getSASLProperties(saslMechanismName);
 
     assertNotNull(properties);
@@ -151,7 +151,7 @@ public class LDAPAuthenticationHandlerTestCase
   @Test()
   public void testGetSASLPropertiesInvlaid()
   {
-    LinkedHashMap<String,Message> properties =
+    LinkedHashMap<String,LocalizableMessage> properties =
          LDAPAuthenticationHandler.getSASLProperties("unsupportedMechanism");
 
     assertNull(properties);

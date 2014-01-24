@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api.plugin;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.DN;
 import org.opends.server.types.DisconnectReason;
@@ -56,7 +57,7 @@ public final class PluginResult
     private final boolean continuePluginProcessing;
 
     // An message explaining why startup should stop.
-    private final Message errorMessage;
+    private final LocalizableMessage errorMessage;
 
     private static Startup DEFAULT_RESULT =
         new Startup(true, true, null);
@@ -72,7 +73,7 @@ public final class PluginResult
      */
     private Startup(boolean continueProcessing,
                     boolean continuePluginProcessing,
-                    Message errorMessage)
+                    LocalizableMessage errorMessage)
     {
       this.continueProcessing = continueProcessing;
       this.errorMessage = errorMessage;
@@ -108,7 +109,7 @@ public final class PluginResult
      *
      * @return a new stop processing startup plugin result.
      */
-    public static Startup stopStartup(Message errorMessage)
+    public static Startup stopStartup(LocalizableMessage errorMessage)
     {
       return new Startup(false, false, errorMessage);
     }
@@ -143,7 +144,7 @@ public final class PluginResult
      * @return An error message explaining why processing should
      * stop or <code>null</code> if none is provided.
      */
-    public Message getErrorMessage()
+    public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
@@ -164,7 +165,7 @@ public final class PluginResult
     private final boolean continuePluginProcessing;
 
     // An message explaining why processing should stop.
-    private final Message errorMessage;
+    private final LocalizableMessage errorMessage;
 
     // The matched DN for this result.
     private final DN matchedDN;
@@ -193,7 +194,7 @@ public final class PluginResult
      */
     private PreParse (boolean continueProcessing,
                       boolean continuePluginProcessing,
-                      Message errorMessage,
+                      LocalizableMessage errorMessage,
                       ResultCode resultCode, DN matchedDN,
                       List<String> referralURLs)
     {
@@ -239,7 +240,7 @@ public final class PluginResult
      * @return a new stop processing pre parse plugin result.
      */
     public static PreParse stopProcessing(ResultCode resultCode,
-                                          Message errorMessage,
+                                          LocalizableMessage errorMessage,
                                           DN matchedDN,
                                           List<String> referralURLs)
     {
@@ -257,7 +258,7 @@ public final class PluginResult
      * @return a new stop processing pre parse plugin result.
      */
     public static PreParse stopProcessing(ResultCode resultCode,
-                                          Message errorMessage)
+                                          LocalizableMessage errorMessage)
     {
       return new PreParse(false, false, errorMessage, resultCode,
           null, null);
@@ -293,7 +294,7 @@ public final class PluginResult
      * @return An error message explaining why processing should
      * stop or <code>null</code> if none is provided.
      */
-    public Message getErrorMessage()
+    public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
@@ -350,7 +351,7 @@ public final class PluginResult
     private final boolean continuePluginProcessing;
 
     // An message explaining why processing should stop.
-    private final Message errorMessage;
+    private final LocalizableMessage errorMessage;
 
     // The matched DN for this result.
     private final DN matchedDN;
@@ -379,7 +380,7 @@ public final class PluginResult
      */
     private PreOperation (boolean continueProcessing,
                           boolean continuePluginProcessing,
-                          Message errorMessage,
+                          LocalizableMessage errorMessage,
                           ResultCode resultCode, DN matchedDN,
                           List<String> referralURLs)
     {
@@ -425,7 +426,7 @@ public final class PluginResult
      * @return a new stop processing pre operation plugin result.
      */
     public static PreOperation stopProcessing(
-        ResultCode resultCode, Message errorMessage, DN matchedDN,
+        ResultCode resultCode, LocalizableMessage errorMessage, DN matchedDN,
         List<String> referralURLs)
     {
       return new PreOperation(false, false, errorMessage, resultCode,
@@ -442,7 +443,7 @@ public final class PluginResult
      * @return a new stop processing pre operation plugin result.
      */
     public static PreOperation stopProcessing(ResultCode resultCode,
-                                              Message errorMessage)
+                                              LocalizableMessage errorMessage)
     {
       return new PreOperation(false, false, errorMessage, resultCode,
           null, null);
@@ -478,7 +479,7 @@ public final class PluginResult
      * @return An error message explaining why processing should
      * stop or <code>null</code> if none is provided.
      */
-    public Message getErrorMessage()
+    public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
@@ -532,7 +533,7 @@ public final class PluginResult
     private final boolean continueProcessing;
 
     // An message explaining why processing should stop.
-    private final Message errorMessage;
+    private final LocalizableMessage errorMessage;
 
     // The matched DN for this result.
     private final DN matchedDN;
@@ -557,7 +558,7 @@ public final class PluginResult
      * @param referralURLs The set of referral URLs for this result.
      */
     private PostOperation(boolean continueProcessing,
-                          Message errorMessage,
+                          LocalizableMessage errorMessage,
                           ResultCode resultCode, DN matchedDN,
                           List<String> referralURLs)
     {
@@ -590,7 +591,7 @@ public final class PluginResult
      * @return a new stop processing post operation plugin result.
      */
     public static PostOperation stopProcessing(
-        ResultCode resultCode, Message errorMessage, DN matchedDN,
+        ResultCode resultCode, LocalizableMessage errorMessage, DN matchedDN,
         List<String> referralURLs)
     {
       return new PostOperation(false, errorMessage, resultCode,
@@ -607,7 +608,7 @@ public final class PluginResult
      * @return a new stop processing post operation plugin result.
      */
     public static PostOperation stopProcessing(ResultCode resultCode,
-                                               Message errorMessage)
+                                               LocalizableMessage errorMessage)
     {
       return new PostOperation(false, errorMessage, resultCode, null,
           null);
@@ -631,7 +632,7 @@ public final class PluginResult
      * @return An error message explaining why processing should
      * stop or <code>null</code> if none is provided.
      */
-    public Message getErrorMessage()
+    public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
@@ -747,7 +748,7 @@ public final class PluginResult
     private final boolean continuePluginProcessing;
 
     // An message explaining why processing should stop.
-    private final Message errorMessage;
+    private final LocalizableMessage errorMessage;
 
     private static ImportLDIF DEFAULT_RESULT =
         new ImportLDIF(true, true, null);
@@ -763,7 +764,7 @@ public final class PluginResult
      */
     private ImportLDIF(boolean continueProcessing,
                        boolean continuePluginProcessing,
-                       Message errorMessage)
+                       LocalizableMessage errorMessage)
     {
       this.continueProcessing = continueProcessing;
       this.errorMessage = errorMessage;
@@ -800,7 +801,7 @@ public final class PluginResult
      *
      * @return a new stop processing LDIF import plugin result.
      */
-    public static ImportLDIF stopEntryProcessing(Message errorMessage)
+    public static ImportLDIF stopEntryProcessing(LocalizableMessage errorMessage)
     {
       return new ImportLDIF(false, false, errorMessage);
     }
@@ -835,7 +836,7 @@ public final class PluginResult
      * @return An error message explaining why processing should
      * stop or <code>null</code> if none is provided.
      */
-    public Message getErrorMessage()
+    public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
@@ -856,7 +857,7 @@ public final class PluginResult
     private final boolean continuePluginProcessing;
 
     // An message explaining why processing should stop.
-    private final Message errorMessage;
+    private final LocalizableMessage errorMessage;
 
     // The matched DN for this result.
     private final DN matchedDN;
@@ -885,7 +886,7 @@ public final class PluginResult
      */
     private SubordinateModifyDN(boolean continueProcessing,
                                 boolean continuePluginProcessing,
-                                Message errorMessage,
+                                LocalizableMessage errorMessage,
                                 ResultCode resultCode, DN matchedDN,
                                 List<String> referralURLs)
     {
@@ -936,7 +937,7 @@ public final class PluginResult
      * result.
      */
     public static SubordinateModifyDN stopProcessing(
-        ResultCode resultCode, Message errorMessage, DN matchedDN,
+        ResultCode resultCode, LocalizableMessage errorMessage, DN matchedDN,
         List<String> referralURLs)
     {
       return new SubordinateModifyDN(false, false, errorMessage,
@@ -955,7 +956,7 @@ public final class PluginResult
      * result.
      */
     public static SubordinateModifyDN stopProcessing(
-        ResultCode resultCode, Message errorMessage)
+        ResultCode resultCode, LocalizableMessage errorMessage)
     {
       return new SubordinateModifyDN(false, false, errorMessage,
           resultCode, null, null);
@@ -991,7 +992,7 @@ public final class PluginResult
      * @return An error message explaining why processing should
      * stop or <code>null</code> if none is provided.
      */
-    public Message getErrorMessage()
+    public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
@@ -1048,7 +1049,7 @@ public final class PluginResult
     private final boolean continuePluginProcessing;
 
     // An message explaining why processing should stop.
-    private final Message errorMessage;
+    private final LocalizableMessage errorMessage;
 
     // The matched DN for this result.
     private final DN matchedDN;
@@ -1077,7 +1078,7 @@ public final class PluginResult
      */
     private SubordinateDelete(boolean continueProcessing,
                               boolean continuePluginProcessing,
-                              Message errorMessage,
+                              LocalizableMessage errorMessage,
                               ResultCode resultCode, DN matchedDN,
                               List<String> referralURLs)
     {
@@ -1128,7 +1129,7 @@ public final class PluginResult
      * result.
      */
     public static SubordinateDelete stopProcessing(
-        ResultCode resultCode, Message errorMessage, DN matchedDN,
+        ResultCode resultCode, LocalizableMessage errorMessage, DN matchedDN,
         List<String> referralURLs)
     {
       return new SubordinateDelete(false, false, errorMessage,
@@ -1147,7 +1148,7 @@ public final class PluginResult
      * result.
      */
     public static SubordinateDelete stopProcessing(
-        ResultCode resultCode, Message errorMessage)
+        ResultCode resultCode, LocalizableMessage errorMessage)
     {
       return new SubordinateDelete(false, false, errorMessage,
           resultCode, null, null);
@@ -1183,7 +1184,7 @@ public final class PluginResult
      * @return An error message explaining why processing should
      * stop or <code>null</code> if none is provided.
      */
-    public Message getErrorMessage()
+    public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
@@ -1243,7 +1244,7 @@ public final class PluginResult
     private final boolean sendResponse;
 
     // An message explaining why processing should stop.
-    private final Message errorMessage;
+    private final LocalizableMessage errorMessage;
 
     // The matched DN for this result.
     private final DN matchedDN;
@@ -1276,7 +1277,7 @@ public final class PluginResult
     private IntermediateResponse(boolean continueProcessing,
                                  boolean continuePluginProcessing,
                                  boolean sendResponse,
-                                 Message errorMessage,
+                                 LocalizableMessage errorMessage,
                                  ResultCode resultCode, DN matchedDN,
                                  List<String> referralURLs)
     {
@@ -1346,7 +1347,7 @@ public final class PluginResult
      */
     public static IntermediateResponse stopProcessing(
         boolean sendResponse, ResultCode resultCode,
-        Message errorMessage, DN matchedDN, List<String> referralURLs)
+        LocalizableMessage errorMessage, DN matchedDN, List<String> referralURLs)
     {
       return new IntermediateResponse(false, false, sendResponse,
           errorMessage, resultCode, matchedDN, referralURLs);
@@ -1367,7 +1368,7 @@ public final class PluginResult
      */
     public static IntermediateResponse stopProcessing(
         boolean sendResponse, ResultCode resultCode,
-        Message errorMessage)
+        LocalizableMessage errorMessage)
     {
       return new IntermediateResponse(false, false, sendResponse,
           errorMessage, resultCode, null, null);
@@ -1414,7 +1415,7 @@ public final class PluginResult
      * @return An error message explaining why processing should
      * stop or <code>null</code> if none is provided.
      */
-    public Message getErrorMessage()
+    public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
@@ -1470,7 +1471,7 @@ public final class PluginResult
     private final boolean continuePluginProcessing;
 
     // An message explaining why processing should stop.
-    private final Message errorMessage;
+    private final LocalizableMessage errorMessage;
 
     // The disconnect reason that provides the generic cause for the
     // disconnect.
@@ -1496,7 +1497,7 @@ public final class PluginResult
      */
     private PostConnect(boolean continueProcessing,
                         boolean continuePluginProcessing,
-                        Message errorMessage,
+                        LocalizableMessage errorMessage,
                         DisconnectReason disconnectReason,
                         boolean sendDisconnectNotification)
     {
@@ -1542,7 +1543,7 @@ public final class PluginResult
      */
     public static PostConnect disconnectClient(
         DisconnectReason disconnectReason,
-        boolean sendDisconnectNotification, Message errorMessage)
+        boolean sendDisconnectNotification, LocalizableMessage errorMessage)
     {
       return new PostConnect(false, false, errorMessage,
           disconnectReason, sendDisconnectNotification);
@@ -1578,7 +1579,7 @@ public final class PluginResult
      * @return An error message explaining why processing should
      * stop or <code>null</code> if none is provided.
      */
-    public Message getErrorMessage()
+    public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }

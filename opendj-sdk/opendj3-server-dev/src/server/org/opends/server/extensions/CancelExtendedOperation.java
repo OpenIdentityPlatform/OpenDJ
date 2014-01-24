@@ -26,7 +26,7 @@
  */
 package org.opends.server.extensions;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.CancelExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
@@ -112,7 +112,7 @@ public class CancelExtendedOperation
 
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-      Message message = ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE.get(
+      LocalizableMessage message = ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE.get(
               getExceptionMessage(e));
       operation.appendErrorMessage(message);
       return;
@@ -120,7 +120,7 @@ public class CancelExtendedOperation
 
 
     // Create the cancel request for the target operation.
-    Message cancelReason =
+    LocalizableMessage cancelReason =
         INFO_EXTOP_CANCEL_REASON.get(operation.getMessageID());
     CancelRequest cancelRequest = new CancelRequest(true, cancelReason);
 

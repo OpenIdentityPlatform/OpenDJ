@@ -55,7 +55,7 @@ import org.opends.guitools.controlpanel.util.ApplicationPrintStream;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.ProcessReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
 import org.forgerock.opendj.ldap.ByteString;
@@ -423,7 +423,7 @@ public abstract class Task
    * quit and there are tasks running.
    * @return the description of the task.
    */
-  public abstract Message getTaskDescription();
+  public abstract LocalizableMessage getTaskDescription();
 
   /**
    * Adds a configuration element created listener.
@@ -608,7 +608,7 @@ public abstract class Task
    * launched in paralel with this task and <CODE>false</CODE> otherwise.
    */
   public abstract boolean canLaunch(Task taskToBeLaunched,
-      Collection<Message> incompatibilityReasons);
+      Collection<LocalizableMessage> incompatibilityReasons);
 
   /**
    * Execute the task.  This method is synchronous.
@@ -1046,7 +1046,7 @@ public abstract class Task
    * @param msg the message associated with the command line.
    */
   protected void printEquivalentCommandLine(String cmdName, List<String> args,
-      Message msg)
+      LocalizableMessage msg)
   {
     getProgressDialog().appendProgressHtml(Utilities.applyFont(msg+"<br><b>"+
         getEquivalentCommandLine(cmdName, args)+"</b><br><br>",
@@ -1106,7 +1106,7 @@ public abstract class Task
    * @param taskToBeLaunched the task that we are trying to launch.
    * @return the incompatible message between two tasks.
    */
-  protected Message getIncompatibilityMessage(Task taskRunning,
+  protected LocalizableMessage getIncompatibilityMessage(Task taskRunning,
       Task taskToBeLaunched)
   {
     return INFO_CTRL_PANEL_INCOMPATIBLE_TASKS.get(

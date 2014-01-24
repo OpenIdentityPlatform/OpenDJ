@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
@@ -106,7 +106,7 @@ public abstract class VirtualAttributeProvider
    */
   public boolean isConfigurationAcceptable(
                       VirtualAttributeCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by virtual attribute

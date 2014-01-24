@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -32,8 +33,8 @@ import java.util.Collection;
 
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 /**
  * Class used to display an collection of error messages.
@@ -42,13 +43,13 @@ import org.opends.messages.MessageBuilder;
 public class ErrorPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -4494826284037288552L;
-  private Message title;
+  private LocalizableMessage title;
   /**
    * Constructor.
    * @param title the title to be displayed in the dialog.
    * @param errors the collection of errors to be displayed.
    */
-  public ErrorPanel(Message title, Collection<Message> errors)
+  public ErrorPanel(LocalizableMessage title, Collection<LocalizableMessage> errors)
   {
     super();
     this.title = title;
@@ -58,20 +59,20 @@ public class ErrorPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return title;
   }
 
-  private void createLayout(Collection<Message> errors)
+  private void createLayout(Collection<LocalizableMessage> errors)
   {
     GridBagConstraints gbc = new GridBagConstraints();
     addErrorPane(gbc);
 
     errorPane.setVisible(true);
 
-    MessageBuilder mb = new MessageBuilder();
-    for (Message error : errors)
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
+    for (LocalizableMessage error : errors)
     {
       if (mb.length() > 0)
       {

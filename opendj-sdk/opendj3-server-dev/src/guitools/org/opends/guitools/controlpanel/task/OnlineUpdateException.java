@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -43,7 +44,7 @@ public class OnlineUpdateException extends OpenDsException
    * Creates an exception with a message.
    * @param msg the message.
    */
-  public OnlineUpdateException(Message msg)
+  public OnlineUpdateException(LocalizableMessage msg)
   {
     super(msg);
   }
@@ -53,7 +54,7 @@ public class OnlineUpdateException extends OpenDsException
    * @param msg the message.
    * @param rootCause the root cause.
    */
-  public OnlineUpdateException(Message msg, Throwable rootCause)
+  public OnlineUpdateException(LocalizableMessage msg, Throwable rootCause)
   {
     super(msg, rootCause);
   }

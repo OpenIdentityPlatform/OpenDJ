@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -40,7 +41,7 @@ import javax.swing.JTextField;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.Schema;
 
 /**
@@ -176,7 +177,7 @@ public class BinaryValuePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_VIEW_BINARY_ATTRIBUTE_TITLE.get();
   }

@@ -34,7 +34,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigException;
@@ -126,7 +126,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private static String ENTRY_DN2 = "uid=1," + TEST2_ORG_DN_STRING;
 
   private void debugInfo(String s) {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE, s));
+    logError(LocalizableMessage.raw(s));
     if (debugEnabled())
     {
       TRACER.debugInfo("** TEST **" + s);

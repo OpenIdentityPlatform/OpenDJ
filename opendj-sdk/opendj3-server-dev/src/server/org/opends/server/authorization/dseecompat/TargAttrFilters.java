@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.*;
 
 /**
@@ -149,7 +149,7 @@ public class TargAttrFilters {
         Matcher matcher = fullPattern.matcher(expression);
         //First match for overall correctness and to get the first operation.
         if(!matcher.find()) {
-            Message message =
+            LocalizableMessage message =
               WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION.
                   get(expression);
             throw new AciException(message);
@@ -173,7 +173,7 @@ public class TargAttrFilters {
          * This is invalid.
          */
         if(temp.length > 1) {
-            Message message = WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_OPS_MATCH.
+            LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_OPS_MATCH.
                 get(expression);
             throw new AciException(message);
         }
@@ -184,7 +184,7 @@ public class TargAttrFilters {
         String[] filterLists=
                 subExpression.split(secondOp, -1);
         if(filterLists.length > 2) {
-          Message message =
+          LocalizableMessage message =
               WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_MAX_FILTER_LISTS.
                 get(expression);
           throw new AciException(message);
@@ -193,7 +193,7 @@ public class TargAttrFilters {
           //that the regular expression didn't pick up.
           String [] filterList2=subExpression.split(secondOpSeparator);
           if(filterList2.length == 2) {
-              Message message =
+              LocalizableMessage message =
                   WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION.
                     get(expression);
               throw new AciException(message);
@@ -202,7 +202,7 @@ public class TargAttrFilters {
           //This check catches the case where there might not be a
           //',' character between the first filter list and the second.
           if(subExpression.indexOf(rg) != -1) {
-            Message message =
+            LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION.
                   get(expression);
             throw new AciException(message);
@@ -211,7 +211,7 @@ public class TargAttrFilters {
         filterLists[0]=filterLists[0].trim();
         //First filter list must end in an ')' character.
         if(!filterLists[0].endsWith(")")) {
-            Message message =
+            LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION.
                   get(expression);
             throw new AciException(message);
@@ -224,7 +224,7 @@ public class TargAttrFilters {
             String filterList=filterLists[1].trim();
             //Second filter list must start with a '='.
             if(!filterList.startsWith("=")) {
-              Message message =
+              LocalizableMessage message =
                   WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION.
                     get(expression);
               throw new AciException(message);

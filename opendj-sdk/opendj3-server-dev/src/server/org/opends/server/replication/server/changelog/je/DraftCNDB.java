@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -30,7 +30,7 @@ import java.io.Closeable;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.DebugLogLevel;
@@ -620,7 +620,7 @@ public class DraftCNDB
     }
     catch(Exception e)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(ERR_ERROR_CLEARING_DB.get(toString(),
           e.getMessage() + " " + stackTraceToSingleLineString(e)));
       logError(mb.toMessage());

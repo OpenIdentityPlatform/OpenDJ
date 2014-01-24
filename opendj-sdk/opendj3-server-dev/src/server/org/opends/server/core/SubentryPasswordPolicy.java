@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 
 package org.opends.server.core;
@@ -36,7 +36,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn.*;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.PasswordGenerator;
@@ -155,13 +155,13 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
           break;
         }
       }
-      Message message = ERR_PWPOLICY_NO_PWDPOLICY_OC.get(subentry.getDN()
+      LocalizableMessage message = ERR_PWPOLICY_NO_PWDPOLICY_OC.get(subentry.getDN()
           .toString());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     else if (!objectClasses.containsKey(pwdPolicyOC))
     {
-      Message message = ERR_PWPOLICY_NO_PWDPOLICY_OC.get(subentry.getDN()
+      LocalizableMessage message = ERR_PWPOLICY_NO_PWDPOLICY_OC.get(subentry.getDN()
           .toString());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -203,7 +203,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
           syntax = syntaxOID;
         }
 
-        Message message = ERR_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX.get(
+        LocalizableMessage message = ERR_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX.get(
             String.valueOf(passwordPolicySubentryDN),
             pPasswordAttribute.getNameOrOID(), String.valueOf(syntax));
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);

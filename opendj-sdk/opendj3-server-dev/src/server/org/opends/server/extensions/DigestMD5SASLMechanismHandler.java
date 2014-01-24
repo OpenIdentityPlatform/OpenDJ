@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import javax.security.sasl.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.DigestMD5SASLMechanismHandlerCfgDefn.*;
 import org.opends.server.admin.std.server.DigestMD5SASLMechanismHandlerCfg;
@@ -111,7 +111,7 @@ public class DigestMD5SASLMechanismHandler
          DN identityMapperDN = configuration.getIdentityMapperDN();
          identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
          serverFQDN = getFQDN(configuration);
-         Message msg= NOTE_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
+         LocalizableMessage msg= NOTE_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
          logError(msg);
          String QOP = getQOP(configuration);
          saslProps = new HashMap<String,String>();
@@ -129,7 +129,7 @@ public class DigestMD5SASLMechanismHandler
           if (debugEnabled()) {
               TRACER.debugCaught(DebugLogLevel.ERROR, unhe);
           }
-          Message message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(
+          LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(
                   String.valueOf(configEntryDN), getExceptionMessage(unhe));
           throw new InitializationException(message, unhe);
       }
@@ -153,7 +153,7 @@ public class DigestMD5SASLMechanismHandler
   public void processSASLBind(BindOperation bindOp) {
       ClientConnection clientConnection = bindOp.getClientConnection();
       if (clientConnection == null) {
-          Message message = ERR_SASLGSSAPI_NO_CLIENT_CONNECTION.get();
+          LocalizableMessage message = ERR_SASLGSSAPI_NO_CLIENT_CONNECTION.get();
           bindOp.setAuthFailureReason(message);
           bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
           return;
@@ -169,7 +169,7 @@ public class DigestMD5SASLMechanismHandler
               if (debugEnabled()) {
                   TRACER.debugCaught(DebugLogLevel.ERROR, ex);
               }
-              Message msg =
+              LocalizableMessage msg =
                   ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_DIGEST_MD5,
                                                     getExceptionMessage(ex));
               clientConn.setSASLAuthStateInfo(null);
@@ -213,7 +213,7 @@ public class DigestMD5SASLMechanismHandler
   @Override()
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     DigestMD5SASLMechanismHandlerCfg config =
          (DigestMD5SASLMechanismHandlerCfg) configuration;
@@ -226,7 +226,7 @@ public class DigestMD5SASLMechanismHandler
    */
   public boolean isConfigurationChangeAcceptable(
                       DigestMD5SASLMechanismHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -241,12 +241,12 @@ public class DigestMD5SASLMechanismHandler
       ResultCode        resultCode          = ResultCode.SUCCESS;
       boolean           adminActionRequired = false;
 
-      ArrayList<Message> messages            = new ArrayList<Message>();
+      ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
       try {
           DN identityMapperDN = configuration.getIdentityMapperDN();
           identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
           serverFQDN = getFQDN(configuration);
-          Message msg = NOTE_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
+          LocalizableMessage msg = NOTE_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
           logError(msg);
           String QOP = getQOP(configuration);
           saslProps = new HashMap<String,String>();

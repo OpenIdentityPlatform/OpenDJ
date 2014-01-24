@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.util.TimeThread;
 import org.opends.server.admin.std.server.TimeLimitLogRotationPolicyCfg;
@@ -60,7 +61,7 @@ public class TimeLimitRotationPolicy implements
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      TimeLimitLogRotationPolicyCfg config, List<Message> unacceptableReasons)
+      TimeLimitLogRotationPolicyCfg config, List<LocalizableMessage> unacceptableReasons)
   {
     // Changes should always be OK
     return true;
@@ -75,7 +76,7 @@ public class TimeLimitRotationPolicy implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     timeInterval = config.getRotationInterval();
 

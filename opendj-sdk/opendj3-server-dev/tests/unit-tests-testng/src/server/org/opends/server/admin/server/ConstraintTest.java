@@ -33,7 +33,7 @@ import java.util.List;
 import javax.naming.OperationNotSupportedException;
 import javax.naming.ldap.LdapName;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.TestCfg;
@@ -84,7 +84,7 @@ public final class ConstraintTest extends AdminTestCase {
      * {@inheritDoc}
      */
     public boolean isConfigurationAddAcceptable(TestChildCfg configuration,
-        List<Message> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
       return true;
     }
 
@@ -112,7 +112,7 @@ public final class ConstraintTest extends AdminTestCase {
      * {@inheritDoc}
      */
     public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration,
-        List<Message> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
       return true;
     }
 
@@ -140,7 +140,7 @@ public final class ConstraintTest extends AdminTestCase {
      * {@inheritDoc}
      */
     public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
-        List<Message> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
       return true;
     }
 

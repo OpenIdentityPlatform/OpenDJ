@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -42,7 +42,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TraditionalWorkQueueCfg;
 import org.opends.server.api.WorkQueue;
@@ -223,7 +223,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR.get(
+        LocalizableMessage message = ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR.get(
             String.valueOf(TraditionalWorkQueueMonitor.class),
             String.valueOf(e));
         logError(message);
@@ -241,7 +241,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
    * {@inheritDoc}
    */
   @Override()
-  public void finalizeWorkQueue(Message reason)
+  public void finalizeWorkQueue(LocalizableMessage reason)
   {
     queueWriteLock.lock();
     try
@@ -371,7 +371,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     {
       if (shutdownRequested)
       {
-        Message message = WARN_OP_REJECTED_BY_SHUTDOWN.get();
+        LocalizableMessage message = WARN_OP_REJECTED_BY_SHUTDOWN.get();
         throw new DirectoryException(ResultCode.UNAVAILABLE, message);
       }
 
@@ -394,7 +394,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
             if (shutdownRequested)
             {
-              Message message = WARN_OP_REJECTED_BY_SHUTDOWN.get();
+              LocalizableMessage message = WARN_OP_REJECTED_BY_SHUTDOWN.get();
               throw new DirectoryException(ResultCode.UNAVAILABLE, message);
             }
           }
@@ -407,7 +407,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
           queueFullRejects.incrementAndGet();
 
-          Message message = WARN_OP_REJECTED_BY_QUEUE_INTERRUPT.get();
+          LocalizableMessage message = WARN_OP_REJECTED_BY_QUEUE_INTERRUPT.get();
           throw new DirectoryException(ResultCode.BUSY, message);
         }
       }
@@ -417,7 +417,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
         {
           queueFullRejects.incrementAndGet();
 
-          Message message = WARN_OP_REJECTED_BY_QUEUE_FULL.get(maxCapacity);
+          LocalizableMessage message = WARN_OP_REJECTED_BY_QUEUE_FULL.get(maxCapacity);
           throw new DirectoryException(ResultCode.BUSY, message);
         }
       }
@@ -487,7 +487,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
       if (numFailures > MAX_RETRY_COUNT)
       {
-        Message message = ERR_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES.get(Thread
+        LocalizableMessage message = ERR_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES.get(Thread
             .currentThread().getName(), numFailures, MAX_RETRY_COUNT);
         logError(message);
 
@@ -676,7 +676,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
    */
   @Override
   public boolean isConfigurationChangeAcceptable(
-      TraditionalWorkQueueCfg configuration, List<Message> unacceptableReasons)
+      TraditionalWorkQueueCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -690,7 +690,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   public ConfigChangeResult applyConfigurationChange(
       TraditionalWorkQueueCfg configuration)
   {
-    ArrayList<Message> resultMessages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> resultMessages = new ArrayList<LocalizableMessage>();
     int newNumThreads =
         computeNumWorkerThreads(configuration.getNumWorkerThreads());
     int newMaxCapacity = configuration.getMaxWorkQueueCapacity();
@@ -789,7 +789,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
         // re-interrupt this thread.
         Thread.currentThread().interrupt();
 
-        Message message = WARN_OP_REJECTED_BY_QUEUE_INTERRUPT.get();
+        LocalizableMessage message = WARN_OP_REJECTED_BY_QUEUE_INTERRUPT.get();
         CancelRequest cancelRequest = new CancelRequest(true, message);
         if (pendingOperation != null)
         {

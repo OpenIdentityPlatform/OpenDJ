@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.server.util;
@@ -44,7 +44,7 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.UtilityMessages.*;
 
 
@@ -132,17 +132,17 @@ public final class Platform
       }
       catch (ClassNotFoundException e)
       {
-        Message msg = ERR_CERTMGR_CLASS_NOT_FOUND.get(e.getMessage());
+        LocalizableMessage msg = ERR_CERTMGR_CLASS_NOT_FOUND.get(e.getMessage());
         throw new ExceptionInInitializerError(msg.toString());
       }
       catch (SecurityException e)
       {
-        Message msg = ERR_CERTMGR_SECURITY.get(e.getMessage());
+        LocalizableMessage msg = ERR_CERTMGR_SECURITY.get(e.getMessage());
         throw new ExceptionInInitializerError(msg.toString());
       }
       catch (NoSuchMethodException e)
       {
-        Message msg = ERR_CERTMGR_NO_METHOD.get(e.getMessage());
+        LocalizableMessage msg = ERR_CERTMGR_NO_METHOD.get(e.getMessage());
         throw new ExceptionInInitializerError(msg.toString());
       }
     }
@@ -176,7 +176,7 @@ public final class Platform
       {
         if (ks == null)
         {
-          Message msg = ERR_CERTMGR_KEYSTORE_NONEXISTANT.get();
+          LocalizableMessage msg = ERR_CERTMGR_KEYSTORE_NONEXISTANT.get();
           throw new KeyStoreException(msg.toString());
         }
         ks.deleteEntry(alias);
@@ -186,7 +186,7 @@ public final class Platform
       }
       catch (Exception e)
       {
-        Message msg = ERR_CERTMGR_DELETE_ALIAS.get(alias, e.getMessage());
+        LocalizableMessage msg = ERR_CERTMGR_DELETE_ALIAS.get(alias, e.getMessage());
         throw new KeyStoreException(msg.toString());
       }
     }
@@ -229,7 +229,7 @@ public final class Platform
         // Do not support certificate replies.
         if (ks.entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class))
         {
-          Message msg = ERR_CERTMGR_CERT_REPLIES_INVALID.get(alias);
+          LocalizableMessage msg = ERR_CERTMGR_CERT_REPLIES_INVALID.get(alias);
           throw new KeyStoreException(msg.toString());
         }
         else if (!ks.containsAlias(alias)
@@ -238,7 +238,7 @@ public final class Platform
           trustedCert(alias, cf, ks, inStream);
         else
         {
-          Message msg = ERR_CERTMGR_ALIAS_INVALID.get(alias);
+          LocalizableMessage msg = ERR_CERTMGR_ALIAS_INVALID.get(alias);
           throw new KeyStoreException(msg.toString());
         }
         FileOutputStream fileOutStream = new FileOutputStream(ksPath);
@@ -248,7 +248,7 @@ public final class Platform
       }
       catch (Exception e)
       {
-        Message msg = ERR_CERTMGR_ADD_CERT.get(alias, e.getMessage());
+        LocalizableMessage msg = ERR_CERTMGR_ADD_CERT.get(alias, e.getMessage());
         throw new KeyStoreException(msg.toString());
       }
     }
@@ -292,7 +292,7 @@ public final class Platform
         }
         else if (ks.containsAlias(alias))
         {
-          Message msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
+          LocalizableMessage msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
           throw new KeyStoreException(msg.toString());
         }
         Object keypair = certKeyGenCons.newInstance(KEY_ALGORITHM,
@@ -318,7 +318,7 @@ public final class Platform
       }
       catch (Exception e)
       {
-        Message msg = ERR_CERTMGR_GEN_SELF_SIGNED_CERT.get(alias, e
+        LocalizableMessage msg = ERR_CERTMGR_GEN_SELF_SIGNED_CERT.get(alias, e
             .getMessage());
         throw new KeyStoreException(msg.toString());
       }
@@ -351,7 +351,7 @@ public final class Platform
       {
         if (ks.containsAlias(alias))
         {
-          Message msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
+          LocalizableMessage msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
           throw new KeyStoreException(msg.toString());
         }
         X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
@@ -360,7 +360,7 @@ public final class Platform
       }
       catch (Exception e)
       {
-        Message msg = ERR_CERTMGR_TRUSTED_CERT.get(alias, e.getMessage());
+        LocalizableMessage msg = ERR_CERTMGR_TRUSTED_CERT.get(alias, e.getMessage());
         throw new KeyStoreException(msg.toString());
       }
     }

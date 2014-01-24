@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -77,7 +78,7 @@ public abstract class Tag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<Message> warnings)
+                                  List<LocalizableMessage> warnings)
          throws InitializationException
   {
     // No implementation required by default.
@@ -103,7 +104,7 @@ public abstract class Tag
   public abstract void initializeForTemplate(TemplateFile templateFile,
                                              Template template,
                                              String[] arguments, int lineNumber,
-                                             List<Message> warnings)
+                                             List<LocalizableMessage> warnings)
          throws InitializationException;
 
 

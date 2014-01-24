@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.backends.jeb;
 
 
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.Collection;
 import java.util.List;
@@ -55,7 +56,7 @@ public abstract class IndexQuery
    *                      EntryIDSet is not defined.
    * @return The EntryIDSet as a result of evaulation of this query.
    */
-  public abstract EntryIDSet evaluate(List<Message> debugMessages);
+  public abstract EntryIDSet evaluate(List<LocalizableMessage> debugMessages);
 
 
 
@@ -116,7 +117,7 @@ public abstract class IndexQuery
      * @param debugMessages
      */
     @Override
-    public EntryIDSet evaluate(List<Message> debugMessages)
+    public EntryIDSet evaluate(List<LocalizableMessage> debugMessages)
     {
       return new EntryIDSet();
     }
@@ -153,7 +154,7 @@ public abstract class IndexQuery
      * @param debugMessages
      */
     @Override
-    public EntryIDSet evaluate(List<Message> debugMessages)
+    public EntryIDSet evaluate(List<LocalizableMessage> debugMessages)
     {
       EntryIDSet entryIDs = null;
       for (IndexQuery query : subIndexQueries)
@@ -206,7 +207,7 @@ public abstract class IndexQuery
      * @param debugMessages
      */
     @Override
-    public EntryIDSet evaluate(List<Message> debugMessages)
+    public EntryIDSet evaluate(List<LocalizableMessage> debugMessages)
     {
       EntryIDSet entryIDs = null;
       for (IndexQuery query : subIndexQueries)

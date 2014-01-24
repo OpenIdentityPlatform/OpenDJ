@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * An interface defining the different methods required by the UI components
@@ -39,7 +40,7 @@ public interface MonitoringAttributes
    * localized name of the operation associated with the attribute).
    * @return the message associated with the attribute.
    */
-  public Message getMessage();
+  public LocalizableMessage getMessage();
 
   /**
    * Returns the name of the attribute.

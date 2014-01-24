@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -29,7 +30,7 @@ package org.opends.server.tools.dsconfig;
 
 import static org.opends.messages.DSConfigMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.ManagedObjectDefinition;
@@ -72,11 +73,11 @@ public final class ArgumentExceptionFactory {
     PropertyDefinition<?> pd = e.getNamingPropertyDefinition();
 
     if (illegalName.length() == 0) {
-      Message message =
+      LocalizableMessage message =
           ERR_DSCFG_ERROR_ILLEGAL_NAME_EMPTY.get(d.getUserFriendlyPluralName());
       return new CLIException(message);
     } else if (illegalName.trim().length() == 0) {
-      Message message =
+      LocalizableMessage message =
           ERR_DSCFG_ERROR_ILLEGAL_NAME_BLANK.get(d.getUserFriendlyPluralName());
       return new CLIException(message);
     } else if (pd != null) {
@@ -85,15 +86,15 @@ public final class ArgumentExceptionFactory {
       } catch (PropertyException e1) {
         PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
             true);
-        Message syntax = b.getUsage(pd);
+        LocalizableMessage syntax = b.getUsage(pd);
 
-        Message message = ERR_DSCFG_ERROR_ILLEGAL_NAME_SYNTAX.get(
+        LocalizableMessage message = ERR_DSCFG_ERROR_ILLEGAL_NAME_SYNTAX.get(
             illegalName, d.getUserFriendlyName(), syntax);
         return new CLIException(message);
       }
     }
 
-    Message message = ERR_DSCFG_ERROR_ILLEGAL_NAME_UNKNOWN.get(
+    LocalizableMessage message = ERR_DSCFG_ERROR_ILLEGAL_NAME_UNKNOWN.get(
         illegalName, d.getUserFriendlyName());
     return new CLIException(message);
   }
@@ -129,8 +130,8 @@ public final class ArgumentExceptionFactory {
       ConsoleApplication app, ManagedObjectDecodingException e) {
     AbstractManagedObjectDefinition<?, ?> d = e.getPartialManagedObject()
         .getManagedObjectDefinition();
-    Message ufn = d.getUserFriendlyName();
-    Message msg;
+    LocalizableMessage ufn = d.getUserFriendlyName();
+    LocalizableMessage msg;
     if (e.getCauses().size() == 1) {
       msg = ERR_GET_HEADING_MODE_SINGLE.get(ufn);
     } else {
@@ -166,8 +167,8 @@ public final class ArgumentExceptionFactory {
    */
   public static void displayMissingMandatoryPropertyException(
       ConsoleApplication app, MissingMandatoryPropertiesException e) {
-    Message ufn = e.getUserFriendlyName();
-    Message msg;
+    LocalizableMessage ufn = e.getUserFriendlyName();
+    LocalizableMessage msg;
     if (e.isCreate()) {
       if (e.getCauses().size() == 1) {
         msg = ERR_CREATE_HEADING_MMPE_SINGLE.get(ufn);
@@ -217,8 +218,8 @@ public final class ArgumentExceptionFactory {
    */
   public static void displayOperationRejectedException(ConsoleApplication app,
       OperationRejectedException e) {
-    Message ufn = e.getUserFriendlyName();
-    Message msg;
+    LocalizableMessage ufn = e.getUserFriendlyName();
+    LocalizableMessage msg;
     switch (e.getOperationType()) {
     case CREATE:
       if (e.getMessages().size() == 1) {
@@ -246,7 +247,7 @@ public final class ArgumentExceptionFactory {
     app.println(msg);
     app.println();
     TableBuilder builder = new TableBuilder();
-    for (Message reason : e.getMessages()) {
+    for (LocalizableMessage reason : e.getMessages()) {
       builder.startRow();
       builder.appendCell("*");
       builder.appendCell(reason);
@@ -270,7 +271,7 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException incompatiblePropertyModification(String arg) {
-    Message msg = ERR_DSCFG_ERROR_INCOMPATIBLE_PROPERTY_MOD.get(arg);
+    LocalizableMessage msg = ERR_DSCFG_ERROR_INCOMPATIBLE_PROPERTY_MOD.get(arg);
     return new ArgumentException(msg);
   }
 
@@ -285,7 +286,7 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException missingBindPassword(String bindDN) {
-    Message msg = ERR_DSCFG_ERROR_NO_PASSWORD.get(bindDN);
+    LocalizableMessage msg = ERR_DSCFG_ERROR_NO_PASSWORD.get(bindDN);
     return new ArgumentException(msg);
   }
 
@@ -302,7 +303,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException missingMandatoryNonInteractiveArgument(
       Argument arg) {
-    Message msg = ERR_DSCFG_ERROR_MISSING_NON_INTERACTIVE_ARG.get(
+    LocalizableMessage msg = ERR_DSCFG_ERROR_MISSING_NON_INTERACTIVE_ARG.get(
         arg.getLongIdentifier());
     return new ArgumentException(msg);
   }
@@ -319,7 +320,7 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException missingNameInPropertyArgument(String arg) {
-    Message msg = ERR_DSCFG_ERROR_NO_NAME_IN_PROPERTY_VALUE.get(arg);
+    LocalizableMessage msg = ERR_DSCFG_ERROR_NO_NAME_IN_PROPERTY_VALUE.get(arg);
     return new ArgumentException(msg);
   }
 
@@ -336,7 +337,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException missingNameInPropertyModification(
       String arg) {
-    Message msg = ERR_DSCFG_ERROR_NO_NAME_IN_PROPERTY_MOD.get(arg);
+    LocalizableMessage msg = ERR_DSCFG_ERROR_NO_NAME_IN_PROPERTY_MOD.get(arg);
     return new ArgumentException(msg);
   }
 
@@ -353,7 +354,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException missingSeparatorInPropertyArgument(
       String arg) {
-    Message msg = ERR_DSCFG_ERROR_NO_SEPARATOR_IN_PROPERTY_VALUE.get(arg);
+    LocalizableMessage msg = ERR_DSCFG_ERROR_NO_SEPARATOR_IN_PROPERTY_VALUE.get(arg);
     return new ArgumentException(msg);
   }
 
@@ -370,7 +371,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException missingSeparatorInPropertyModification(
       String arg) {
-    Message msg = ERR_DSCFG_ERROR_NO_SEPARATOR_IN_PROPERTY_MOD.get(arg);
+    LocalizableMessage msg = ERR_DSCFG_ERROR_NO_SEPARATOR_IN_PROPERTY_MOD.get(arg);
     return new ArgumentException(msg);
   }
 
@@ -386,7 +387,7 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException missingValueInPropertyArgument(String arg) {
-    Message msg = ERR_DSCFG_ERROR_NO_VALUE_IN_PROPERTY_VALUE.get(arg);
+    LocalizableMessage msg = ERR_DSCFG_ERROR_NO_VALUE_IN_PROPERTY_VALUE.get(arg);
     return new ArgumentException(msg);
   }
 
@@ -403,7 +404,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException missingValueInPropertyModification(
       String arg) {
-    Message msg = ERR_DSCFG_ERROR_NO_NAME_IN_PROPERTY_MOD.get(arg);
+    LocalizableMessage msg = ERR_DSCFG_ERROR_NO_NAME_IN_PROPERTY_MOD.get(arg);
     return new ArgumentException(msg);
   }
 
@@ -420,7 +421,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unableToReadConnectionParameters(
       Exception cause) {
-    Message message = ERR_DSCFG_ERROR_CANNOT_READ_CONNECTION_PARAMETERS
+    LocalizableMessage message = ERR_DSCFG_ERROR_CANNOT_READ_CONNECTION_PARAMETERS
         .get(cause.getMessage());
     return new ArgumentException(message, cause);
   }
@@ -435,7 +436,7 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException unableToReadBindPasswordInteractively() {
-    Message message = ERR_DSCFG_ERROR_BIND_PASSWORD_NONINTERACTIVE.get();
+    LocalizableMessage message = ERR_DSCFG_ERROR_BIND_PASSWORD_NONINTERACTIVE.get();
     return new ArgumentException(message);
   }
 
@@ -457,7 +458,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unableToResetMandatoryProperty(
       AbstractManagedObjectDefinition<?, ?> d, String name, String setOption) {
-    Message message = ERR_DSCFG_ERROR_UNABLE_TO_RESET_MANDATORY_PROPERTY.get(
+    LocalizableMessage message = ERR_DSCFG_ERROR_UNABLE_TO_RESET_MANDATORY_PROPERTY.get(
         d.getUserFriendlyPluralName(), name, setOption);
     return new ArgumentException(message);
   }
@@ -477,7 +478,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unableToResetPropertyWithValue(String name,
      String resetOption) {
-    Message message = ERR_DSCFG_ERROR_UNABLE_TO_RESET_PROPERTY_WITH_VALUE.get(
+    LocalizableMessage message = ERR_DSCFG_ERROR_UNABLE_TO_RESET_PROPERTY_WITH_VALUE.get(
             resetOption, name, resetOption);
     return new ArgumentException(message);
   }
@@ -497,7 +498,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unableToSetNamingProperty(
       AbstractManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd) {
-    Message message = ERR_DSCFG_ERROR_UNABLE_TO_SET_NAMING_PROPERTY.get(
+    LocalizableMessage message = ERR_DSCFG_ERROR_UNABLE_TO_SET_NAMING_PROPERTY.get(
         pd.getName(), d.getUserFriendlyName());
     return new ArgumentException(message);
   }
@@ -513,7 +514,7 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException unknownCategory(String categoryName) {
-    Message msg = ERR_DSCFG_ERROR_CATEGORY_UNRECOGNIZED.get(categoryName);
+    LocalizableMessage msg = ERR_DSCFG_ERROR_CATEGORY_UNRECOGNIZED.get(categoryName);
     return new ArgumentException(msg);
   }
 
@@ -531,7 +532,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unknownProperty(
       AbstractManagedObjectDefinition<?, ?> d, String name) {
-    Message message = ERR_DSCFG_ERROR_PROPERTY_UNRECOGNIZED.get(
+    LocalizableMessage message = ERR_DSCFG_ERROR_PROPERTY_UNRECOGNIZED.get(
         name, d.getUserFriendlyPluralName());
     return new ArgumentException(message);
   }
@@ -547,7 +548,7 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException unknownProperty(String name) {
-    Message message = ERR_DSCFG_ERROR_PROPERTY_UNRECOGNIZED_NO_DEFN.get(name);
+    LocalizableMessage message = ERR_DSCFG_ERROR_PROPERTY_UNRECOGNIZED_NO_DEFN.get(name);
     return new ArgumentException(message);
   }
 
@@ -567,7 +568,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unknownSubType(RelationDefinition<?, ?> r,
       String typeName, String typeUsage) {
-    Message msg = ERR_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED.get(
+    LocalizableMessage msg = ERR_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED.get(
         typeName, r.getUserFriendlyName(), typeUsage);
     return new ArgumentException(msg);
   }
@@ -585,7 +586,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unknownTypeForCategory(String typeName,
       String categoryName) {
-    Message msg =
+    LocalizableMessage msg =
         ERR_DSCFG_ERROR_CATEGORY_TYPE_UNRECOGNIZED.get(typeName, categoryName);
     return new ArgumentException(msg);
   }
@@ -604,7 +605,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unknownValueForMultiValuedProperty(
     String value, String propertyName) {
-          Message msg = ERR_DSCFG_ERROR_VALUE_DOES_NOT_EXIST.get(
+          LocalizableMessage msg = ERR_DSCFG_ERROR_VALUE_DOES_NOT_EXIST.get(
             value, propertyName);
     return new ArgumentException(msg);
   }
@@ -621,7 +622,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unknownValueForChildComponent(
     String componentName) {
-          Message msg = ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(
+          LocalizableMessage msg = ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(
             componentName);
     return new ArgumentException(msg);
   }
@@ -643,7 +644,7 @@ public final class ArgumentExceptionFactory {
    */
   public static CLIException wrongManagedObjectType(RelationDefinition<?, ?> r,
       ManagedObjectDefinition<?, ?> d, String subcommandName) {
-    Message msg = ERR_DSCFG_ERROR_TYPE_UNRECOGNIZED_FOR_SUBCOMMAND.get(
+    LocalizableMessage msg = ERR_DSCFG_ERROR_TYPE_UNRECOGNIZED_FOR_SUBCOMMAND.get(
         d.getUserFriendlyName(), subcommandName);
     return new CLIException(msg);
   }

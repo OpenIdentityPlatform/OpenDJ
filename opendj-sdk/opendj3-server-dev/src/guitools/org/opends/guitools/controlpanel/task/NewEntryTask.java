@@ -52,7 +52,7 @@ import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
@@ -124,7 +124,7 @@ public class NewEntryTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getTaskDescription()
+  public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_NEW_ENTRY_TASK_DESCRIPTION.get(dn.toString());
   }
@@ -149,7 +149,7 @@ public class NewEntryTask extends Task
    * {@inheritDoc}
    */
   public boolean canLaunch(Task taskToBeLaunched,
-      Collection<Message> incompatibilityReasons)
+      Collection<LocalizableMessage> incompatibilityReasons)
   {
     boolean canLaunch = true;
     if (!isServerRunning())

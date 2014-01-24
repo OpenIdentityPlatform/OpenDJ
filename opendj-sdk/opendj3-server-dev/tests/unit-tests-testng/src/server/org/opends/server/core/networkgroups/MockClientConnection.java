@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -30,7 +30,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
@@ -123,7 +123,7 @@ public final class MockClientConnection extends ClientConnection
 
   @Override
   public void disconnect(DisconnectReason disconnectReason,
-      boolean sendNotification, Message message)
+      boolean sendNotification, LocalizableMessage message)
   {
     // Stub.
   }

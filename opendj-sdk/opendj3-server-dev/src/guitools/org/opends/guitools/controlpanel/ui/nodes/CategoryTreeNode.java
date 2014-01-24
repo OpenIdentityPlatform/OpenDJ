@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The tree node that is used to represent a category.  It is used for instance
@@ -44,7 +45,7 @@ public class CategoryTreeNode extends DefaultMutableTreeNode
    * Constructor.
    * @param name the name of the node (the one that be used to display).
    */
-  public CategoryTreeNode(Message name)
+  public CategoryTreeNode(LocalizableMessage name)
   {
     super(name);
   }

@@ -31,7 +31,7 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
@@ -75,7 +75,7 @@ public class LDAPReader
     }
     catch(Exception e)
     {
-      Message message = ERR_LDAP_MESSAGE_DECODE_NULL.get();
+      LocalizableMessage message = ERR_LDAP_MESSAGE_DECODE_NULL.get();
       throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
@@ -91,7 +91,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_MESSAGE_DECODE_MESSAGE_ID.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -108,7 +108,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_MESSAGE_DECODE_PROTOCOL_OP.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -128,7 +128,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_MESSAGE_DECODE_CONTROLS.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -139,7 +139,7 @@ public class LDAPReader
     }
     catch(Exception e)
     {
-      Message message = ERR_LDAP_MESSAGE_DECODE_NULL.get();
+      LocalizableMessage message = ERR_LDAP_MESSAGE_DECODE_NULL.get();
       throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
@@ -167,7 +167,7 @@ public class LDAPReader
     }
     catch(Exception e)
     {
-      Message message = ERR_LDAP_PROTOCOL_OP_DECODE_NULL.get();
+      LocalizableMessage message = ERR_LDAP_PROTOCOL_OP_DECODE_NULL.get();
       throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
@@ -182,7 +182,7 @@ public class LDAPReader
       case 0x47:                                                         // 0x47
       case 0x48:                                                         // 0x48
       case 0x49:                                                         // 0x49
-        Message message =
+        LocalizableMessage message =
             ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(type);
         throw new LDAPException(PROTOCOL_ERROR, message);
       case OP_TYPE_DELETE_REQUEST:                                       // 0x4A
@@ -306,7 +306,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_ABANDON_REQUEST_DECODE_ID.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -339,7 +339,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_ADD_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -357,7 +357,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_ADD_REQUEST_DECODE_DN.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_ADD_REQUEST_DECODE_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -381,7 +381,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_ADD_REQUEST_DECODE_ATTRS.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -397,7 +397,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_ADD_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -431,7 +431,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -447,7 +447,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_RESULT_CODE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -473,16 +473,16 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_MATCHED_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
-    Message errorMessage;
+    LocalizableMessage errorMessage;
     try
     {
-      errorMessage = Message.raw(reader.readOctetStringAsString());
+      errorMessage = LocalizableMessage.raw(reader.readOctetStringAsString());
       if (errorMessage.length() == 0)
       {
         errorMessage = null;
@@ -495,7 +495,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_ERROR_MESSAGE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -523,7 +523,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -539,7 +539,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -572,7 +572,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_BIND_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -589,7 +589,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_BIND_REQUEST_DECODE_VERSION.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -607,7 +607,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_BIND_REQUEST_DECODE_DN.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_BIND_REQUEST_DECODE_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -624,7 +624,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_BIND_REQUEST_DECODE_CREDENTIALS.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -642,7 +642,7 @@ public class LDAPReader
         }
         catch (Exception e)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_BIND_REQUEST_DECODE_PASSWORD.get(String.valueOf(e));
           throw new LDAPException(PROTOCOL_ERROR, message, e);
         }
@@ -661,13 +661,13 @@ public class LDAPReader
         }
         catch (Exception e)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_BIND_REQUEST_DECODE_SASL_INFO.get(String.valueOf(e));
           throw new LDAPException(PROTOCOL_ERROR, message, e);
         }
         break;
       default:
-        Message message = ERR_LDAP_BIND_REQUEST_DECODE_INVALID_CRED_TYPE.get(
+        LocalizableMessage message = ERR_LDAP_BIND_REQUEST_DECODE_INVALID_CRED_TYPE.get(
             type);
         throw new LDAPException(AUTH_METHOD_NOT_SUPPORTED, message);
     }
@@ -683,7 +683,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_BIND_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -723,7 +723,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -739,7 +739,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_RESULT_CODE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -765,16 +765,16 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_MATCHED_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
-    Message errorMessage;
+    LocalizableMessage errorMessage;
     try
     {
-      errorMessage = Message.raw(reader.readOctetStringAsString());
+      errorMessage = LocalizableMessage.raw(reader.readOctetStringAsString());
       if (errorMessage.length() == 0)
       {
         errorMessage = null;
@@ -787,7 +787,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_ERROR_MESSAGE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -820,7 +820,7 @@ public class LDAPReader
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
           throw new LDAPException(PROTOCOL_ERROR, message, e);
         }
@@ -840,7 +840,7 @@ public class LDAPReader
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS.
                   get(String.valueOf(e));
           throw new LDAPException(PROTOCOL_ERROR, message, e);
@@ -866,7 +866,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -899,7 +899,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_COMPARE_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -917,7 +917,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_COMPARE_REQUEST_DECODE_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -933,7 +933,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_COMPARE_REQUEST_DECODE_AVA.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -950,7 +950,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_COMPARE_REQUEST_DECODE_TYPE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -968,7 +968,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_COMPARE_REQUEST_DECODE_VALUE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -984,7 +984,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_COMPARE_REQUEST_DECODE_AVA.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1000,7 +1000,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_COMPARE_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1034,7 +1034,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -1050,7 +1050,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_RESULT_CODE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1076,16 +1076,16 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_MATCHED_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
-    Message errorMessage;
+    LocalizableMessage errorMessage;
     try
     {
-      errorMessage = Message.raw(reader.readOctetStringAsString());
+      errorMessage = LocalizableMessage.raw(reader.readOctetStringAsString());
       if (errorMessage.length() == 0)
       {
         errorMessage = null;
@@ -1098,7 +1098,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_ERROR_MESSAGE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1126,7 +1126,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1142,7 +1142,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -1175,7 +1175,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_DELETE_REQUEST_DECODE_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1205,7 +1205,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -1221,7 +1221,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_RESULT_CODE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1247,16 +1247,16 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_MATCHED_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
-    Message errorMessage;
+    LocalizableMessage errorMessage;
     try
     {
-      errorMessage = Message.raw(reader.readOctetStringAsString());
+      errorMessage = LocalizableMessage.raw(reader.readOctetStringAsString());
       if (errorMessage.length() == 0)
       {
         errorMessage = null;
@@ -1269,7 +1269,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_ERROR_MESSAGE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1297,7 +1297,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1313,7 +1313,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -1349,7 +1349,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_EXTENDED_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1367,7 +1367,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_EXTENDED_REQUEST_DECODE_OID.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1388,7 +1388,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_EXTENDED_REQUEST_DECODE_VALUE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1404,7 +1404,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_EXTENDED_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1438,7 +1438,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -1454,7 +1454,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_RESULT_CODE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1480,16 +1480,16 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_MATCHED_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
-    Message errorMessage;
+    LocalizableMessage errorMessage;
     try
     {
-      errorMessage = Message.raw(reader.readOctetStringAsString());
+      errorMessage = LocalizableMessage.raw(reader.readOctetStringAsString());
       if (errorMessage.length() == 0)
       {
         errorMessage = null;
@@ -1502,7 +1502,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_ERROR_MESSAGE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1534,7 +1534,7 @@ public class LDAPReader
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
           throw new LDAPException(PROTOCOL_ERROR, message, e);
         }
@@ -1553,7 +1553,7 @@ public class LDAPReader
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_EXTENDED_RESULT_DECODE_OID.get(String.valueOf(e));
           throw new LDAPException(PROTOCOL_ERROR, message, e);
         }
@@ -1572,7 +1572,7 @@ public class LDAPReader
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_EXTENDED_RESULT_DECODE_VALUE.get(String.valueOf(e));
           throw new LDAPException(PROTOCOL_ERROR, message, e);
         }
@@ -1597,7 +1597,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -1632,7 +1632,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_INTERMEDIATE_RESPONSE_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1659,7 +1659,7 @@ public class LDAPReader
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID.get(
                   e.getMessage());
           throw new LDAPException(PROTOCOL_ERROR, message);
@@ -1679,7 +1679,7 @@ public class LDAPReader
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_VALUE.
                   get(e.getMessage());
           throw new LDAPException(PROTOCOL_ERROR, message);
@@ -1705,7 +1705,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_INTERMEDIATE_RESPONSE_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1740,7 +1740,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_MODIFY_DN_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1758,7 +1758,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_MODIFY_DN_REQUEST_DECODE_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1776,7 +1776,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_RDN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1794,7 +1794,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_MODIFY_DN_REQUEST_DECODE_DELETE_OLD_RDN.get(
+      LocalizableMessage message = ERR_LDAP_MODIFY_DN_REQUEST_DECODE_DELETE_OLD_RDN.get(
           String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1815,7 +1815,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_SUPERIOR.get(
+      LocalizableMessage message = ERR_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_SUPERIOR.get(
           String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1831,7 +1831,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_MODIFY_DN_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1866,7 +1866,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -1882,7 +1882,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_RESULT_CODE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1908,16 +1908,16 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_MATCHED_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
-    Message errorMessage;
+    LocalizableMessage errorMessage;
     try
     {
-      errorMessage = Message.raw(reader.readOctetStringAsString());
+      errorMessage = LocalizableMessage.raw(reader.readOctetStringAsString());
       if (errorMessage.length() == 0)
       {
         errorMessage = null;
@@ -1930,7 +1930,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_ERROR_MESSAGE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1958,7 +1958,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1974,7 +1974,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -2008,7 +2008,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_MODIFY_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2025,7 +2025,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_MODIFY_REQUEST_DECODE_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2050,7 +2050,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_MODIFY_REQUEST_DECODE_MODS.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2066,7 +2066,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_MODIFY_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2101,7 +2101,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -2117,7 +2117,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_RESULT_CODE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2143,16 +2143,16 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_MATCHED_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
-    Message errorMessage;
+    LocalizableMessage errorMessage;
     try
     {
-      errorMessage = Message.raw(reader.readOctetStringAsString());
+      errorMessage = LocalizableMessage.raw(reader.readOctetStringAsString());
       if (errorMessage.length() == 0)
       {
         errorMessage = null;
@@ -2165,7 +2165,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_ERROR_MESSAGE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2193,7 +2193,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2209,7 +2209,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -2243,7 +2243,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2260,7 +2260,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REQUEST_DECODE_BASE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2285,7 +2285,7 @@ public class LDAPReader
           scope = SearchScope.SUBORDINATE_SUBTREE;
           break;
         default:
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE.get(scopeValue);
           throw new LDAPException(PROTOCOL_ERROR, message);
       }
@@ -2301,7 +2301,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REQUEST_DECODE_SCOPE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2326,7 +2326,7 @@ public class LDAPReader
           dereferencePolicy = DereferencePolicy.DEREF_ALWAYS;
           break;
         default:
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF.get(derefValue);
           throw new LDAPException(PROTOCOL_ERROR, message);
       }
@@ -2342,7 +2342,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REQUEST_DECODE_DEREF.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2360,7 +2360,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REQUEST_DECODE_SIZE_LIMIT.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2378,7 +2378,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REQUEST_DECODE_TIME_LIMIT.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2396,7 +2396,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REQUEST_DECODE_TYPES_ONLY.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2413,7 +2413,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REQUEST_DECODE_FILTER.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2437,7 +2437,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REQUEST_DECODE_ATTRIBUTES.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2453,7 +2453,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2489,7 +2489,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -2505,7 +2505,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_RESULT_CODE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2531,16 +2531,16 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_MATCHED_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
-    Message errorMessage;
+    LocalizableMessage errorMessage;
     try
     {
-      errorMessage = Message.raw(reader.readOctetStringAsString());
+      errorMessage = LocalizableMessage.raw(reader.readOctetStringAsString());
       if (errorMessage.length() == 0)
       {
         errorMessage = null;
@@ -2553,7 +2553,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_ERROR_MESSAGE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2581,7 +2581,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2597,7 +2597,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -2632,7 +2632,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_ENTRY_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2650,7 +2650,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_SEARCH_ENTRY_DECODE_DN.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_SEARCH_ENTRY_DECODE_DN.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -2674,7 +2674,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_ENTRY_DECODE_ATTRS.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2690,7 +2690,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_ENTRY_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2726,7 +2726,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REFERENCE_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2749,7 +2749,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REFERENCE_DECODE_URLS.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2765,7 +2765,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_SEARCH_REFERENCE_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2799,7 +2799,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_UNBIND_DECODE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_UNBIND_DECODE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
   }
@@ -2832,7 +2832,7 @@ public class LDAPReader
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_CONTROL_DECODE_CONTROLS_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -2862,7 +2862,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_CONTROL_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_CONTROL_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -2879,7 +2879,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_CONTROL_DECODE_OID.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_CONTROL_DECODE_OID.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -2901,7 +2901,7 @@ public class LDAPReader
             TRACER.debugCaught(DebugLogLevel.ERROR, e2);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_CONTROL_DECODE_CRITICALITY.get(String.valueOf(e2));
           throw new LDAPException(PROTOCOL_ERROR, message, e2);
         }
@@ -2920,7 +2920,7 @@ public class LDAPReader
             TRACER.debugCaught(DebugLogLevel.ERROR, e2);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_CONTROL_DECODE_VALUE.get(String.valueOf(e2));
           throw new LDAPException(PROTOCOL_ERROR, message, e2);
         }
@@ -2945,7 +2945,7 @@ public class LDAPReader
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_CONTROL_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_CONTROL_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 

@@ -56,8 +56,8 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.Attribute;
 import org.opends.server.util.ServerConstants;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
@@ -168,22 +168,22 @@ public class FIFOEntryCache
 
     // Read configuration and apply changes.
     boolean applyChanges = true;
-    ArrayList<Message> errorMessages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_INIT, null, errorMessages
           );
     if (!processEntryCacheConfig(configuration, applyChanges, errorHandler)) {
-      MessageBuilder buffer = new MessageBuilder();
+      LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
       if (!errorMessages.isEmpty()) {
-        Iterator<Message> iterator = errorMessages.iterator();
+        Iterator<LocalizableMessage> iterator = errorMessages.iterator();
         buffer.append(iterator.next());
         while (iterator.hasNext()) {
           buffer.append(".  ");
           buffer.append(iterator.next());
         }
       }
-      Message message = ERR_FIFOCACHE_CANNOT_INITIALIZE.get(buffer.toString());
+      LocalizableMessage message = ERR_FIFOCACHE_CANNOT_INITIALIZE.get(buffer.toString());
       throw new ConfigException(message);
     }
   }
@@ -907,7 +907,7 @@ public class FIFOEntryCache
    */
   @Override()
   public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     FIFOEntryCacheCfg config = (FIFOEntryCacheCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -921,7 +921,7 @@ public class FIFOEntryCache
   @Override
   public boolean isConfigurationChangeAcceptable(
       FIFOEntryCacheCfg configuration,
-      List<Message> unacceptableReasons
+      List<LocalizableMessage> unacceptableReasons
       )
   {
     boolean applyChanges = false;
@@ -947,7 +947,7 @@ public class FIFOEntryCache
       )
   {
     boolean applyChanges = true;
-    ArrayList<Message> errorMessages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_APPLY, null, errorMessages

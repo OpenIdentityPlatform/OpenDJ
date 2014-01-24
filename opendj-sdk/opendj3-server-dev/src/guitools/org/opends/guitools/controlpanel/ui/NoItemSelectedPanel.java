@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -35,7 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A simple panel containing a message.
@@ -44,7 +45,7 @@ import org.opends.messages.Message;
 public class NoItemSelectedPanel extends JPanel
 {
   private JLabel l;
-  private Message msg;
+  private LocalizableMessage msg;
   private static final long serialVersionUID = -8288525745479095426L;
 
   /**
@@ -65,7 +66,7 @@ public class NoItemSelectedPanel extends JPanel
    * Sets the message to be displayed.
    * @param text the message to be displayed.
    */
-  public void setMessage(Message text)
+  public void setMessage(LocalizableMessage text)
   {
     msg = text;
     l.setText(text.toString());
@@ -75,7 +76,7 @@ public class NoItemSelectedPanel extends JPanel
    * Returns the displayed message.
    * @return the displayed message.
    */
-  public Message getMessage()
+  public LocalizableMessage getMessage()
   {
     return msg;
   }

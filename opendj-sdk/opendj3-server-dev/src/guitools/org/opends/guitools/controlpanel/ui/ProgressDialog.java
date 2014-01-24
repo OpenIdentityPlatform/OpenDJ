@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -56,7 +57,7 @@ import org.opends.guitools.controlpanel.event.PrintStreamListener;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.util.ApplicationPrintStream;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The dialog that is used to display progress in a task.
@@ -76,7 +77,7 @@ public class ProgressDialog extends GenericDialog
    * @param info the control panel information.
    */
   public ProgressDialog(JFrame parentFrame, Component relativeTo,
-      Message title, ControlPanelInfo info)
+      LocalizableMessage title, ControlPanelInfo info)
   {
     super(parentFrame, getPanel(info));
     Utilities.centerGoldenMean(this, relativeTo);
@@ -171,7 +172,7 @@ public class ProgressDialog extends GenericDialog
    * dialog.
    * @param text the text to be displayed.
    */
-  public void setSummary(Message text)
+  public void setSummary(LocalizableMessage text)
   {
     progressPanel.setSummary(text);
   }
@@ -239,7 +240,7 @@ public class ProgressDialog extends GenericDialog
     /**
      * {@inheritDoc}
      */
-    public Message getTitle()
+    public LocalizableMessage getTitle()
     {
       return null;
     }
@@ -285,13 +286,13 @@ public class ProgressDialog extends GenericDialog
      * dialog.
      * @param msg the text to be displayed.
      */
-    public void setSummary(Message msg)
+    public void setSummary(LocalizableMessage msg)
     {
       errorPane.setText(msg.toString());
 
       if (!details.isSelected() && isVisible())
       {
-        Message wrappedText = Utilities.wrapHTML(msg, 70);
+        LocalizableMessage wrappedText = Utilities.wrapHTML(msg, 70);
         JEditorPane pane = new JEditorPane();
         pane.setContentType("text/html");
         pane.setText(wrappedText.toString());

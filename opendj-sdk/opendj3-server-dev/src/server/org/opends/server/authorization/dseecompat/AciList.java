@@ -33,7 +33,7 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DITCacheMap;
 import org.opends.server.types.*;
@@ -140,7 +140,7 @@ public class AciList {
    * @return The number of valid ACI attribute values added to the ACI list.
    */
   public int addAci(List<? extends Entry> entries,
-                                 LinkedList<Message> failedACIMsgs)
+                                 LinkedList<LocalizableMessage> failedACIMsgs)
   {
     int validAcis=0;
 
@@ -197,7 +197,7 @@ public class AciList {
    */
   public int addAci(Entry entry,  boolean hasAci,
                                  boolean hasGlobalAci,
-                                 LinkedList<Message> failedACIMsgs) {
+                                 LinkedList<LocalizableMessage> failedACIMsgs) {
     int validAcis=0;
 
     lock.writeLock().lock();
@@ -244,7 +244,7 @@ public class AciList {
   private static int addAciAttributeList(DITCacheMap<List<Aci>> aciList,
                                          DN dn, DN configDN,
                                          List<Attribute> attributeList,
-                                         LinkedList<Message> failedACIMsgs) {
+                                         LinkedList<LocalizableMessage> failedACIMsgs) {
 
     if (attributeList == null) {
       return 0;
@@ -263,7 +263,7 @@ public class AciList {
           if(dn == DN.rootDN()) {
             msgDN=configDN;
           }
-          Message message = WARN_ACI_ADD_LIST_FAILED_DECODE.get(
+          LocalizableMessage message = WARN_ACI_ADD_LIST_FAILED_DECODE.get(
                   value.getValue().toString(),
                   String.valueOf(msgDN),
                   ex.getMessage());
@@ -296,7 +296,7 @@ public class AciList {
     lock.writeLock().lock();
     try
     {
-      LinkedList<Message>failedACIMsgs=new LinkedList<Message>();
+      LinkedList<LocalizableMessage>failedACIMsgs=new LinkedList<LocalizableMessage>();
       //Process "aci" attribute types.
       if(hasAci) {
           aciList.remove(oldEntry.getName());
@@ -449,7 +449,7 @@ public class AciList {
               //This should never happen since only a copy of the
               //ACI with a new DN is being made. Log a message if it does and
               //keep going.
-              Message message = WARN_ACI_ADD_LIST_FAILED_DECODE.get(
+              LocalizableMessage message = WARN_ACI_ADD_LIST_FAILED_DECODE.get(
                   aci.toString(), String.valueOf(relocateDN), ex.getMessage());
               logError(message);
             }

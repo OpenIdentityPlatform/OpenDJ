@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.backends.jeb.importLDIF;
@@ -35,7 +36,7 @@ import org.opends.server.types.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.backends.jeb.importLDIF.Importer.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import static org.opends.messages.JebMessages.*;
@@ -244,7 +245,7 @@ public class Suffix
     try {
       assureNotPending(dn);
     } catch (InterruptedException e) {
-      Message message = ERR_JEB_IMPORT_LDIF_PENDING_ERR.get(e.getMessage());
+      LocalizableMessage message = ERR_JEB_IMPORT_LDIF_PENDING_ERR.get(e.getMessage());
       logError(message);
       throw e;
     }

@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -87,7 +87,7 @@ public class IdleTimeLimitThread
    */
   public void run()
   {
-    Message disconnectMessage = INFO_IDLETIME_LIMIT_EXCEEDED.get();
+    LocalizableMessage disconnectMessage = INFO_IDLETIME_LIMIT_EXCEEDED.get();
 
     long sleepTime = 5000L;
 
@@ -148,7 +148,7 @@ public class IdleTimeLimitThread
                       TRACER.debugCaught(DebugLogLevel.ERROR, e);
                     }
 
-                    Message message = ERR_IDLETIME_DISCONNECT_ERROR.get(
+                    LocalizableMessage message = ERR_IDLETIME_DISCONNECT_ERROR.get(
                             c.getConnectionID(),
                             stackTraceToSingleLineString(e)
                     );
@@ -175,7 +175,7 @@ public class IdleTimeLimitThread
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_IDLETIME_UNEXPECTED_ERROR.get(stackTraceToSingleLineString(e));
         ErrorLogger.logError(message);
       }
@@ -197,7 +197,7 @@ public class IdleTimeLimitThread
   /**
    * {@inheritDoc}
    */
-  public void processServerShutdown(Message reason)
+  public void processServerShutdown(LocalizableMessage reason)
   {
     synchronized (shutdownLock)
     {

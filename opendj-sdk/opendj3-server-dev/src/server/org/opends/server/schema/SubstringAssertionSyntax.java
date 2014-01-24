@@ -41,7 +41,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -221,7 +221,7 @@ public class SubstringAssertionSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // Get the string representation of the value and check its length.  A
     // zero-length value is acceptable.  A one-length value is acceptable as

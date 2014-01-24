@@ -26,7 +26,7 @@
  */
 
 package org.opends.server.admin;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -215,7 +215,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
    *         of this enumeration property definition in the default
    *         locale.
    */
-  public final Message getValueSynopsis(E value) {
+  public final LocalizableMessage getValueSynopsis(E value) {
     return getValueSynopsis(Locale.getDefault(), value);
   }
 
@@ -233,7 +233,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
    *         of this enumeration property definition in the specified
    *         locale.
    */
-  public final Message getValueSynopsis(Locale locale, E value) {
+  public final LocalizableMessage getValueSynopsis(Locale locale, E value) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + getName()

@@ -28,7 +28,7 @@ package org.opends.server.types;
 
 import org.testng.annotations.Test;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.testng.Assert.*;
 
@@ -46,7 +46,7 @@ public class InitializationExceptionTestCase
   @Test()
   public void testConstructor1()
   {
-    Message message = Message.raw("Test Constructor 1");
+    LocalizableMessage message = LocalizableMessage.raw("Test Constructor 1");
 
     validateException(new InitializationException(message), message);
     validateException(new InitializationException(null), null);
@@ -61,7 +61,7 @@ public class InitializationExceptionTestCase
   @Test()
   public void testConstructor2()
   {
-    Message   message = Message.raw("Test Constructor 2");
+    LocalizableMessage   message = LocalizableMessage.raw("Test Constructor 2");
     Exception e       = new Exception("Test Constructor 2 Exception");
 
     validateException(new InitializationException(message, e), message);
@@ -81,7 +81,7 @@ public class InitializationExceptionTestCase
    * @param  message    The expected message for the exception.
    */
   private void validateException(InitializationException ie,
-                                 Message message)
+                                 LocalizableMessage message)
   {
     if (message == null)
     {

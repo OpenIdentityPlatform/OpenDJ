@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.quicksetup.util.Utils;
 
@@ -145,8 +146,8 @@ public class Utilities {
   * @return <CODE>true</CODE> if the user confirms the message, or
   * <CODE>false</CODE> if not.
   */
- public static boolean displayConfirmation(Component parent, Message msg,
-     Message title)
+ public static boolean displayConfirmation(Component parent, LocalizableMessage msg,
+     LocalizableMessage title)
  {
    return JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(
            parent, wrapMsg(String.valueOf(msg), 100), String.valueOf(title),
@@ -167,7 +168,7 @@ public class Utilities {
    * @param title
    *          the title for the dialog.
    */
-  public static void displayError(Component parent, Message msg, Message title)
+  public static void displayError(Component parent, LocalizableMessage msg, LocalizableMessage title)
   {
     JOptionPane.showMessageDialog(parent,
             wrapMsg(String.valueOf(msg), 100),
@@ -184,8 +185,8 @@ public class Utilities {
    * @param title
    *          the title for the dialog.
    */
-  public static void displayInformationMessage(JFrame parent, Message msg,
-      Message title)
+  public static void displayInformationMessage(JFrame parent, LocalizableMessage msg,
+      LocalizableMessage title)
   {
     JOptionPane.showMessageDialog(parent,
             wrapMsg(String.valueOf(msg), 100), String.valueOf(title),

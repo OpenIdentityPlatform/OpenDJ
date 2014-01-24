@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -33,8 +34,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 /**
  * This is a panel containing two labels with different fonts.  It is used
@@ -48,20 +49,20 @@ public class TitlePanel extends JPanel
   private JLabel lTitle;
   private JLabel lDetails;
 
-  private Message title;
-  private Message details;
+  private LocalizableMessage title;
+  private LocalizableMessage details;
 
   /**
    * Constructor of the panel.
    * @param title the title of the panel.
    * @param details the details of the panel.
    */
-  public TitlePanel(Message title, Message details)
+  public TitlePanel(LocalizableMessage title, LocalizableMessage details)
   {
     super(new GridBagLayout());
     setOpaque(false);
     GridBagConstraints gbc = new GridBagConstraints();
-    MessageBuilder mb = new MessageBuilder();
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     mb.append(title);
     mb.append(" - ");
     lTitle = Utilities.createTitleLabel(mb.toMessage());
@@ -81,7 +82,7 @@ public class TitlePanel extends JPanel
    * Sets the title of this panel.
    * @param title the title of this panel.
    */
-  public void setTitle(Message title)
+  public void setTitle(LocalizableMessage title)
   {
     lTitle.setText(title+" - ");
     this.title = title;
@@ -91,7 +92,7 @@ public class TitlePanel extends JPanel
    * Sets the details of this panel.
    * @param details the details of this panel.
    */
-  public void setDetails(Message details)
+  public void setDetails(LocalizableMessage details)
   {
     lDetails.setText(details.toString());
     this.details = details;
@@ -101,7 +102,7 @@ public class TitlePanel extends JPanel
    * Returns the title of this panel.
    * @return the title of this panel.
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return title;
   }
@@ -110,7 +111,7 @@ public class TitlePanel extends JPanel
    * Returns the details of this panel.
    * @return the details of this panel.
    */
-  public Message getDetails()
+  public LocalizableMessage getDetails()
   {
     return details;
   }

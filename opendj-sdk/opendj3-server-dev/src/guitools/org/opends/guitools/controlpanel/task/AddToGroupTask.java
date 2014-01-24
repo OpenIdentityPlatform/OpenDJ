@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -55,7 +55,7 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.DN;
 import org.opends.server.util.ServerConstants;
 
@@ -118,7 +118,7 @@ public class AddToGroupTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getTaskDescription()
+  public LocalizableMessage getTaskDescription()
   {
     return
     AdminToolMessages.INFO_CTRL_PANEL_ADD_TO_GROUP_TASK_DESCRIPTION.get();
@@ -145,7 +145,7 @@ public class AddToGroupTask extends Task
    * {@inheritDoc}
    */
   public boolean canLaunch(Task taskToBeLaunched,
-      Collection<Message> incompatibilityReasons)
+      Collection<LocalizableMessage> incompatibilityReasons)
   {
     boolean canLaunch = true;
     if (!isServerRunning())

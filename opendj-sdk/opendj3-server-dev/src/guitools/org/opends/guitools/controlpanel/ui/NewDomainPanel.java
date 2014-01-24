@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -33,7 +34,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The panel to create a domain.
@@ -46,7 +47,7 @@ public class NewDomainPanel extends NewOrganizationPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_NEW_DOMAIN_PANEL_TITLE.get();
   }
@@ -54,7 +55,7 @@ public class NewDomainPanel extends NewOrganizationPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getProgressDialogTitle()
+  protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_NEW_DOMAIN_PANEL_TITLE.get();
   }
@@ -62,7 +63,7 @@ public class NewDomainPanel extends NewOrganizationPanel
   /**
    * {@inheritDoc}
    */
-  protected void checkSyntax(ArrayList<Message> errors)
+  protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     for (JLabel label : labels)
     {
@@ -70,7 +71,7 @@ public class NewDomainPanel extends NewOrganizationPanel
     }
 
     JTextField[] requiredFields = {name};
-    Message[] msgs = {ERR_CTRL_PANEL_NAME_OF_DOMAIN_REQUIRED.get()};
+    LocalizableMessage[] msgs = {ERR_CTRL_PANEL_NAME_OF_DOMAIN_REQUIRED.get()};
     for (int i=0; i<requiredFields.length; i++)
     {
       String v = requiredFields[i].getText().trim();

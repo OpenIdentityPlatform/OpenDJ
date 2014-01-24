@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 import org.opends.server.protocols.asn1.*;
@@ -65,7 +65,7 @@ public class LDAPAssertionRequestControl
     {
       if (value == null)
       {
-        Message message = ERR_LDAPASSERT_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_LDAPASSERT_NO_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 

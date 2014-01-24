@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -61,7 +61,7 @@ public final class LDAPException
   private final int resultCode;
 
   // The server-provided error message for this LDAP exception.
-  private final Message errorMessage;
+  private final LocalizableMessage errorMessage;
 
 
 
@@ -73,7 +73,7 @@ public final class LDAPException
    * @param  message     The message that explains the problem that
    *                     occurred.
    */
-  public LDAPException(int resultCode, Message message)
+  public LDAPException(int resultCode, LocalizableMessage message)
   {
     super(message);
 
@@ -94,8 +94,8 @@ public final class LDAPException
    * @param  message       The message that explains the problem that
    *                       occurred.
    */
-  public LDAPException(int resultCode, Message errorMessage,
-                       Message message)
+  public LDAPException(int resultCode, LocalizableMessage errorMessage,
+                       LocalizableMessage message)
   {
     super(message);
 
@@ -118,7 +118,7 @@ public final class LDAPException
    * @param  cause       The exception that was caught to trigger this
    *                     exception.
    */
-  public LDAPException(int resultCode, Message message,
+  public LDAPException(int resultCode, LocalizableMessage message,
                        Throwable cause)
   {
     super(message, cause);
@@ -143,8 +143,8 @@ public final class LDAPException
    * @param  cause         The exception that was caught to trigger
    *                       this exception.
    */
-  public LDAPException(int resultCode, Message errorMessage,
-                       Message message, Throwable cause)
+  public LDAPException(int resultCode, LocalizableMessage errorMessage,
+                       LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
 
@@ -169,8 +169,8 @@ public final class LDAPException
    * @param  cause         The exception that was caught to trigger
    *                       this exception.
    */
-  public LDAPException(int resultCode, Message errorMessage,
-                       Message message, DN matchedDN,
+  public LDAPException(int resultCode, LocalizableMessage errorMessage,
+                       LocalizableMessage message, DN matchedDN,
                        Throwable cause)
   {
     super(message, cause);
@@ -200,7 +200,7 @@ public final class LDAPException
    * @return  The server-provided error message for this exception, or
    *          {@code null} if none was given.
    */
-  public Message getErrorMessage()
+  public LocalizableMessage getErrorMessage()
   {
     return errorMessage;
   }

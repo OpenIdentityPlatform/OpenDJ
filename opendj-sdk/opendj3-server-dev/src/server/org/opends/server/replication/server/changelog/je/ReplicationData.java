@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2011 ForgeRock AS.
+ *      Portions Copyright 2010-2014 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -69,7 +69,7 @@ public class ReplicationData extends DatabaseEntry
    *
    * @return     The generated change.
    *
-   * @throws Exception When the data was not a valid Update Message.
+   * @throws Exception When the data was not a valid Update LocalizableMessage.
    */
   public static UpdateMsg generateChange(byte[] data)
                                              throws Exception

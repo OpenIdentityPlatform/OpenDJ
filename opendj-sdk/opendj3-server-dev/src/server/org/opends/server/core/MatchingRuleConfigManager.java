@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -145,7 +146,7 @@ public class MatchingRuleConfigManager
           }
           catch (DirectoryException de)
           {
-            Message message = WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(
                 String.valueOf(mrConfiguration.dn()), de.getMessageObject());
             ErrorLogger.logError(message);
             continue;
@@ -166,7 +167,7 @@ public class MatchingRuleConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(MatchingRuleCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -197,7 +198,7 @@ public class MatchingRuleConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     configuration.addChangeListener(this);
 
@@ -225,7 +226,7 @@ public class MatchingRuleConfigManager
       }
       catch (DirectoryException de)
       {
-        Message message = WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(
+        LocalizableMessage message = WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(
                 String.valueOf(configuration.dn()),
                 de.getMessageObject());
         messages.add(message);
@@ -255,7 +256,7 @@ public class MatchingRuleConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(MatchingRuleCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // If the matching rule is enabled, then check to see if there are any
     // defined attribute types or matching rule uses that use the matching rule.
@@ -273,7 +274,7 @@ public class MatchingRuleConfigManager
           ApproximateMatchingRule amr = at.getApproximateMatchingRule();
           if ((amr != null) && oid.equals(amr.getOID()))
           {
-            Message message =
+            LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(
                             matchingRule.getName(),
                             at.getNameOrOID());
@@ -286,7 +287,7 @@ public class MatchingRuleConfigManager
           EqualityMatchingRule emr = at.getEqualityMatchingRule();
           if ((emr != null) && oid.equals(emr.getOID()))
           {
-            Message message =
+            LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(
                             matchingRule.getName(),
                             at.getNameOrOID());
@@ -299,7 +300,7 @@ public class MatchingRuleConfigManager
           OrderingMatchingRule omr = at.getOrderingMatchingRule();
           if ((omr != null) && oid.equals(omr.getOID()))
           {
-            Message message =
+            LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(
                             matchingRule.getName(),
                             at.getNameOrOID());
@@ -312,7 +313,7 @@ public class MatchingRuleConfigManager
           SubstringMatchingRule smr = at.getSubstringMatchingRule();
           if ((smr != null) && oid.equals(smr.getOID()))
           {
-            Message message =
+            LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(
                             matchingRule.getName(),
                             at.getNameOrOID());
@@ -328,7 +329,7 @@ public class MatchingRuleConfigManager
         {
           if (oid.equals(mru.getMatchingRule().getOID()))
           {
-            Message message =
+            LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_MRU.get(
                             matchingRule.getName(),
                             mru.getName());
@@ -354,7 +355,7 @@ public class MatchingRuleConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     MatchingRuleFactory<?> factory =
             matchingRuleFactories.remove(configuration.dn());
@@ -376,7 +377,7 @@ public class MatchingRuleConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(MatchingRuleCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
     if (configuration.isEnabled())
@@ -415,7 +416,7 @@ public class MatchingRuleConfigManager
             ApproximateMatchingRule amr = at.getApproximateMatchingRule();
             if ((amr != null) && oid.equals(amr.getOID()))
             {
-              Message message =
+              LocalizableMessage message =
                       WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT.get(
                               matchingRule.getName(),
                               at.getNameOrOID());
@@ -428,7 +429,7 @@ public class MatchingRuleConfigManager
             EqualityMatchingRule emr = at.getEqualityMatchingRule();
             if ((emr != null) && oid.equals(emr.getOID()))
             {
-              Message message =
+              LocalizableMessage message =
                       WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT.get(
                               matchingRule.getName(),
                               at.getNameOrOID());
@@ -441,7 +442,7 @@ public class MatchingRuleConfigManager
             OrderingMatchingRule omr = at.getOrderingMatchingRule();
             if ((omr != null) && oid.equals(omr.getOID()))
             {
-              Message message =
+              LocalizableMessage message =
                       WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT.get(
                               matchingRule.getName(),
                               at.getNameOrOID());
@@ -454,7 +455,7 @@ public class MatchingRuleConfigManager
             SubstringMatchingRule smr = at.getSubstringMatchingRule();
             if ((smr != null) && oid.equals(smr.getOID()))
             {
-              Message message =
+              LocalizableMessage message =
                       WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT
                       .get(matchingRule.getName(), at.getNameOrOID());
               unacceptableReasons.add(message);
@@ -469,7 +470,7 @@ public class MatchingRuleConfigManager
           {
             if (oid.equals(mru.getMatchingRule().getOID()))
             {
-              Message message =
+              LocalizableMessage message =
                       WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_MRU.get(
                               matchingRule.getName(), mru.getName());
               unacceptableReasons.add(message);
@@ -494,7 +495,7 @@ public class MatchingRuleConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
    // Get the existing matching rule factory if it's already enabled.
@@ -550,7 +551,7 @@ public class MatchingRuleConfigManager
       }
       catch (DirectoryException de)
       {
-        Message message = WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(
+        LocalizableMessage message = WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(
                 String.valueOf(configuration.dn()), de.getMessageObject());
         messages.add(message);
 
@@ -621,7 +622,7 @@ public class MatchingRuleConfigManager
                                                MatchingRuleCfg.class,
                                                List.class);
 
-        List<Message> unacceptableReasons = new ArrayList<Message>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         Boolean acceptable = (Boolean) method.invoke(factory,
                                              configuration,
                                              unacceptableReasons);
@@ -630,7 +631,7 @@ public class MatchingRuleConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<Message> iterator = unacceptableReasons.iterator();
+            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -639,7 +640,7 @@ public class MatchingRuleConfigManager
             }
           }
 
-          Message message = ERR_CONFIG_SCHEMA_MR_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_SCHEMA_MR_CONFIG_NOT_ACCEPTABLE.get(
               String.valueOf(configuration.dn()), buffer.toString());
           throw new InitializationException(message);
         }
@@ -649,7 +650,7 @@ public class MatchingRuleConfigManager
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_SCHEMA_MR_CANNOT_INITIALIZE.
+      LocalizableMessage message = ERR_CONFIG_SCHEMA_MR_CANNOT_INITIALIZE.
           get(className, String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);

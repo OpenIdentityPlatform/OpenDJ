@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -42,7 +43,7 @@ import java.util.MissingResourceException;
 import java.util.Set;
 
 import java.util.Vector;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 
 
@@ -432,7 +433,7 @@ public abstract class AbstractManagedObjectDefinition
    *           If this managed object definition is the
    *           {@link TopCfgDefn}.
    */
-  public final Message getDescription() throws UnsupportedOperationException {
+  public final LocalizableMessage getDescription() throws UnsupportedOperationException {
     return getDescription(Locale.getDefault());
   }
 
@@ -451,7 +452,7 @@ public abstract class AbstractManagedObjectDefinition
    *           If this managed object definition is the
    *           {@link TopCfgDefn}.
    */
-  public final Message getDescription(Locale locale)
+  public final LocalizableMessage getDescription(Locale locale)
       throws UnsupportedOperationException {
     try {
       return ManagedObjectDefinitionI18NResource.getInstance()
@@ -668,7 +669,7 @@ public abstract class AbstractManagedObjectDefinition
    *           If this managed object definition is the
    *           {@link TopCfgDefn}.
    */
-  public final Message getSynopsis() throws UnsupportedOperationException {
+  public final LocalizableMessage getSynopsis() throws UnsupportedOperationException {
     return getSynopsis(Locale.getDefault());
   }
 
@@ -686,7 +687,7 @@ public abstract class AbstractManagedObjectDefinition
    *           If this managed object definition is the
    *           {@link TopCfgDefn}.
    */
-  public final Message getSynopsis(Locale locale)
+  public final LocalizableMessage getSynopsis(Locale locale)
       throws UnsupportedOperationException {
     return ManagedObjectDefinitionI18NResource.getInstance()
         .getMessage(this, "synopsis", locale);
@@ -704,7 +705,7 @@ public abstract class AbstractManagedObjectDefinition
    *           If this managed object definition is the
    *           {@link TopCfgDefn}.
    */
-  public final Message getUserFriendlyName()
+  public final LocalizableMessage getUserFriendlyName()
       throws UnsupportedOperationException {
     return getUserFriendlyName(Locale.getDefault());
   }
@@ -723,10 +724,10 @@ public abstract class AbstractManagedObjectDefinition
    *           If this managed object definition is the
    *           {@link TopCfgDefn}.
    */
-  public final Message getUserFriendlyName(Locale locale)
+  public final LocalizableMessage getUserFriendlyName(Locale locale)
       throws UnsupportedOperationException {
-    // TODO: have admin framework getMessage return a Message
-    return Message.raw(ManagedObjectDefinitionI18NResource.getInstance()
+    // TODO: have admin framework getMessage return a LocalizableMessage
+    return LocalizableMessage.raw(ManagedObjectDefinitionI18NResource.getInstance()
         .getMessage(this, "user-friendly-name", locale));
   }
 
@@ -742,7 +743,7 @@ public abstract class AbstractManagedObjectDefinition
    *           If this managed object definition is the
    *           {@link TopCfgDefn}.
    */
-  public final Message getUserFriendlyPluralName()
+  public final LocalizableMessage getUserFriendlyPluralName()
       throws UnsupportedOperationException {
     return getUserFriendlyPluralName(Locale.getDefault());
   }
@@ -761,7 +762,7 @@ public abstract class AbstractManagedObjectDefinition
    *           If this managed object definition is the
    *           {@link TopCfgDefn}.
    */
-  public final Message getUserFriendlyPluralName(Locale locale)
+  public final LocalizableMessage getUserFriendlyPluralName(Locale locale)
       throws UnsupportedOperationException {
     return ManagedObjectDefinitionI18NResource.getInstance()
         .getMessage(this, "user-friendly-plural-name", locale);

@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigEntry;
@@ -149,14 +149,14 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
       }
       catch (Throwable t)
       {
-        Message message = ERR_CONFIG_FILE_CANNOT_OPEN_FOR_READ.get(
+        LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_OPEN_FOR_READ.get(
             f.getAbsolutePath(), String.valueOf(t));
         throw new InitializationException(message, t);
       }
 
       if (! f.exists())
       {
-        Message message =
+        LocalizableMessage message =
           ERR_CONFIG_FILE_DOES_NOT_EXIST.get(f.getAbsolutePath());
         throw new InitializationException(message);
       }
@@ -170,7 +170,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
         entry = reader.readEntry(checkSchema);
         if (entry == null)
         {
-          Message message = ERR_CONFIG_FILE_EMPTY.get(f.getAbsolutePath());
+          LocalizableMessage message = ERR_CONFIG_FILE_EMPTY.get(f.getAbsolutePath());
           throw new InitializationException(message);
         }
         configRootEntry = new ConfigEntry(entry, null);
@@ -197,7 +197,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
             {
               if (parentDN == null)
               {
-                Message message = ERR_CONFIG_FILE_UNKNOWN_PARENT.get(
+                LocalizableMessage message = ERR_CONFIG_FILE_UNKNOWN_PARENT.get(
                     entryDN.toString(),
                     reader.getLastEntryLineNumber(),
                     f.getAbsolutePath());
@@ -205,7 +205,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
               }
               else
               {
-                Message message =
+                LocalizableMessage message =
                   ERR_CONFIG_FILE_NO_PARENT.get(entryDN.toString(),
                     reader.getLastEntryLineNumber(),
                     f.getAbsolutePath(), parentDN.toString());
@@ -227,14 +227,14 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
       }
       catch (LDIFException le)
       {
-        Message message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
+        LocalizableMessage message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
             le.getLineNumber(), f.getAbsolutePath(),
             String.valueOf(le));
         throw new InitializationException(message, le);
       }
       catch (Throwable t)
       {
-        Message message = ERR_CONFIG_FILE_READ_ERROR.get(f.getAbsolutePath(),
+        LocalizableMessage message = ERR_CONFIG_FILE_READ_ERROR.get(f.getAbsolutePath(),
             String.valueOf(t));
         throw new InitializationException(message, t);
       }

@@ -87,8 +87,8 @@ import org.opends.guitools.controlpanel.ui.components.ObjectClassCellPanel;
 import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
@@ -139,8 +139,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   // Map containing as key the attribute name and as value a localizable
   // message.
-  static Map<String, Message> hmFriendlyAttrNames =
-    new HashMap<String, Message>();
+  static Map<String, LocalizableMessage> hmFriendlyAttrNames =
+    new HashMap<String, LocalizableMessage>();
   // Map containing as key an object class and as value the preferred naming
   // attribute for the objectclass.
   static Map<String, String> hmNameAttrNames = new HashMap<String, String>();
@@ -248,7 +248,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     hmOrdereredAttrNames.put("domain", new String[]{"dc", "description"});
   };
 
-  private Message NAME = INFO_CTRL_PANEL_NAME_LABEL.get();
+  private LocalizableMessage NAME = INFO_CTRL_PANEL_NAME_LABEL.get();
 
   /**
    * Default constructor.
@@ -652,7 +652,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private JLabel getLabelForAttribute(String attrName, CustomSearchResult sr)
   {
-    MessageBuilder l = new MessageBuilder();
+    LocalizableMessageBuilder l = new LocalizableMessageBuilder();
     int index = attrName.indexOf(";");
     String basicAttrName;
     String subType;
@@ -685,7 +685,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
     else
     {
-      Message friendly = hmFriendlyAttrNames.get(basicAttrName.toLowerCase());
+      LocalizableMessage friendly = hmFriendlyAttrNames.get(basicAttrName.toLowerCase());
       if (friendly == null)
       {
         l.append(attrName);
@@ -934,7 +934,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       {
         panel.add(
             Utilities.createDefaultLabel(
-                Message.raw(Utilities.OBFUSCATED_VALUE)), gbc);
+                LocalizableMessage.raw(Utilities.OBFUSCATED_VALUE)), gbc);
       }
       else if (!isBinary)
       {
@@ -948,14 +948,14 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         if (values.size() > 15)
         {
           ta = Utilities.createNonEditableTextArea(
-              Message.raw(Utilities.getStringFromCollection(sValues, "\n")),
+              LocalizableMessage.raw(Utilities.getStringFromCollection(sValues, "\n")),
               15, 20);
           toAdd = Utilities.createScrollPane(ta);
         }
         else
         {
           ta = Utilities.createNonEditableTextArea(
-              Message.raw(Utilities.getStringFromCollection(sValues, "\n")),
+              LocalizableMessage.raw(Utilities.getStringFromCollection(sValues, "\n")),
               values.size(), 20);
           toAdd = ta;
         }
@@ -1133,14 +1133,14 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           if (values.size() > 15)
           {
             ta = Utilities.createTextArea(
-                Message.raw(Utilities.getStringFromCollection(sValues, "\n")),
+                LocalizableMessage.raw(Utilities.getStringFromCollection(sValues, "\n")),
                 15, 20);
             toAdd = Utilities.createScrollPane(ta);
           }
           else
           {
             ta = Utilities.createTextAreaWithBorder(
-                Message.raw(Utilities.getStringFromCollection(sValues, "\n")),
+                LocalizableMessage.raw(Utilities.getStringFromCollection(sValues, "\n")),
                 values.size(), 20);
             toAdd = ta;
           }
@@ -1325,7 +1325,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   {
     Entry entry = null;
 
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
 
     try
     {
@@ -1351,7 +1351,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       {
         setPrimaryInvalid(hmLabels.get(attrName));
         setPrimaryInvalid(hmLabels.get(getConfirmPasswordKey(attrName)));
-        Message msg = ERR_CTRL_PANEL_PASSWORD_DO_NOT_MATCH.get();
+        LocalizableMessage msg = ERR_CTRL_PANEL_PASSWORD_DO_NOT_MATCH.get();
         if (!errors.contains(msg))
         {
           errors.add(msg);
@@ -1728,9 +1728,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private void addBrowseClicked(String attrName, JTextComponent textComponent)
   {
-    Message previousTitle = null;
+    LocalizableMessage previousTitle = null;
     LDAPEntrySelectionPanel.Filter previousFilter = null;
-    Message title;
+    LocalizableMessage title;
     LDAPEntrySelectionPanel.Filter filter;
     if (browseEntriesDlg == null)
     {

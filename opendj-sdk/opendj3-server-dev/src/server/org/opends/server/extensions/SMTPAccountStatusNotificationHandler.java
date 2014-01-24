@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -36,8 +37,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AccountStatusNotificationHandlerCfg;
 import org.opends.server.admin.std.server.
@@ -512,7 +513,7 @@ public class SMTPAccountStatusNotificationHandler
   public boolean isConfigurationAcceptable(
                       AccountStatusNotificationHandlerCfg
                            configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     SMTPAccountStatusNotificationHandlerCfg config =
          (SMTPAccountStatusNotificationHandlerCfg) configuration;
@@ -650,7 +651,7 @@ public class SMTPAccountStatusNotificationHandler
 
 
     // Generate the message body.
-    MessageBuilder messageBody = new MessageBuilder();
+    LocalizableMessageBuilder messageBody = new LocalizableMessageBuilder();
     for (NotificationMessageTemplateElement e : templateElements)
     {
       e.generateValue(messageBody, notification);
@@ -696,7 +697,7 @@ public class SMTPAccountStatusNotificationHandler
    */
   public boolean isConfigurationChangeAcceptable(
                       SMTPAccountStatusNotificationHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -785,7 +786,7 @@ public class SMTPAccountStatusNotificationHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
 
-      LinkedList<Message> messageList = new LinkedList<Message>();
+      LinkedList<LocalizableMessage> messageList = new LinkedList<LocalizableMessage>();
       messageList.add(ce.getMessageObject());
 
       return new ConfigChangeResult(ResultCode.UNWILLING_TO_PERFORM, false,

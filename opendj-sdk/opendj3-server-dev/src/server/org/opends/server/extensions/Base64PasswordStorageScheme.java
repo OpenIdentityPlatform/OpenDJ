@@ -28,7 +28,7 @@ package org.opends.server.extensions;
 
 
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.Base64PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
@@ -169,7 +169,7 @@ public class Base64PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
           storedPassword.toString(), String.valueOf(e));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
                                    e);
@@ -197,7 +197,7 @@ public class Base64PasswordStorageScheme
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
@@ -225,7 +225,7 @@ public class Base64PasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }

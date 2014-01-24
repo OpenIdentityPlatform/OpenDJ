@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.plugins.profiler;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -148,7 +149,7 @@ public final class ProfilerPlugin
     // Make sure that this plugin is only registered as a startup plugin.
     if (pluginTypes.isEmpty())
     {
-      Message message = ERR_PLUGIN_PROFILER_NO_PLUGIN_TYPES.get(
+      LocalizableMessage message = ERR_PLUGIN_PROFILER_NO_PLUGIN_TYPES.get(
           String.valueOf(configEntryDN));
       throw new ConfigException(message);
     }
@@ -158,7 +159,7 @@ public final class ProfilerPlugin
       {
         if (t != PluginType.STARTUP)
         {
-          Message message = ERR_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE.get(
+          LocalizableMessage message = ERR_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE.get(
               String.valueOf(configEntryDN), String.valueOf(t));
           throw new ConfigException(message);
         }
@@ -170,7 +171,7 @@ public final class ProfilerPlugin
     File profileDirectory = getFileForPath(configuration.getProfileDirectory());
     if (! (profileDirectory.exists() && profileDirectory.isDirectory()))
     {
-      Message message = WARN_PLUGIN_PROFILER_INVALID_PROFILE_DIR.get(
+      LocalizableMessage message = WARN_PLUGIN_PROFILER_INVALID_PROFILE_DIR.get(
           profileDirectory.getAbsolutePath(), String.valueOf(configEntryDN));
       throw new ConfigException(message);
     }
@@ -207,7 +208,7 @@ public final class ProfilerPlugin
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA.
+          LocalizableMessage message = ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA.
               get(String.valueOf(configEntryDN), filename,
                   stackTraceToSingleLineString(e));
           ErrorLogger.logError(message);
@@ -243,7 +244,7 @@ public final class ProfilerPlugin
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     ProfilerPluginCfg config = (ProfilerPluginCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -256,7 +257,7 @@ public final class ProfilerPlugin
    */
   public boolean isConfigurationChangeAcceptable(
                       ProfilerPluginCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
@@ -264,7 +265,7 @@ public final class ProfilerPlugin
     // Make sure that the plugin is only registered as a startup plugin.
     if (configuration.getPluginType().isEmpty())
     {
-      Message message = ERR_PLUGIN_PROFILER_NO_PLUGIN_TYPES.get(
+      LocalizableMessage message = ERR_PLUGIN_PROFILER_NO_PLUGIN_TYPES.get(
               String.valueOf(cfgEntryDN));
       unacceptableReasons.add(message);
       configAcceptable = false;
@@ -275,7 +276,7 @@ public final class ProfilerPlugin
       {
         if (t != PluginCfgDefn.PluginType.STARTUP)
         {
-          Message message = ERR_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE.get(
+          LocalizableMessage message = ERR_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE.get(
                   String.valueOf(cfgEntryDN),
                                       String.valueOf(t));
           unacceptableReasons.add(message);
@@ -314,7 +315,7 @@ public final class ProfilerPlugin
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     currentConfig = configuration;
 

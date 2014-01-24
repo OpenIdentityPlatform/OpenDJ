@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import javax.net.ssl.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.
   LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
@@ -2136,7 +2136,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     @Override
     public boolean isConfigurationChangeAcceptable(
         final LDAPPassThroughAuthenticationPolicyCfg cfg,
-        final List<Message> unacceptableReasons)
+        final List<LocalizableMessage> unacceptableReasons)
     {
       return LDAPPassThroughAuthenticationPolicyFactory.this
           .isConfigurationAcceptable(cfg, unacceptableReasons);
@@ -2184,7 +2184,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           && !cfg.getMappedSearchBindDN().isRootDN())
       {
         mappedSearchPassword = getMappedSearchBindPassword(cfg,
-            new LinkedList<Message>());
+            new LinkedList<LocalizableMessage>());
       }
       else
       {
@@ -2391,7 +2391,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   // In any case, the password must be in the clear.
   private static String getMappedSearchBindPassword(
       final LDAPPassThroughAuthenticationPolicyCfg cfg,
-      final List<Message> unacceptableReasons)
+      final List<LocalizableMessage> unacceptableReasons)
   {
     String password = null;
 
@@ -2474,7 +2474,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
   private static boolean isServerAddressValid(
       final LDAPPassThroughAuthenticationPolicyCfg configuration,
-      final List<Message> unacceptableReasons, final String hostPort)
+      final List<LocalizableMessage> unacceptableReasons, final String hostPort)
   {
     try
     {
@@ -2486,7 +2486,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     {
       if (unacceptableReasons != null)
       {
-        final Message msg = ERR_LDAP_PTA_INVALID_PORT_NUMBER.get(
+        final LocalizableMessage msg = ERR_LDAP_PTA_INVALID_PORT_NUMBER.get(
             String.valueOf(configuration.dn()), hostPort);
         unacceptableReasons.add(msg);
       }
@@ -2567,7 +2567,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   @Override
   public boolean isConfigurationAcceptable(
       final LDAPPassThroughAuthenticationPolicyCfg cfg,
-      final List<Message> unacceptableReasons)
+      final List<LocalizableMessage> unacceptableReasons)
   {
     // Check that the port numbers are valid. We won't actually try and connect
     // to the server since they may not be available (hence we have fail-over

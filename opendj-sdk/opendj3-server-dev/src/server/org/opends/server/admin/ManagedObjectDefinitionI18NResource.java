@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -133,7 +134,7 @@ public final class ManagedObjectDefinitionI18NResource {
    *           If the provided managed object definition was the
    *           {@link TopCfgDefn}.
    */
-  public Message getMessage(AbstractManagedObjectDefinition<?, ?> d, String key)
+  public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d, String key)
       throws MissingResourceException, UnsupportedOperationException {
     return getMessage(d, key, Locale.getDefault(), (String[]) null);
   }
@@ -158,7 +159,7 @@ public final class ManagedObjectDefinitionI18NResource {
    *           If the provided managed object definition was the
    *           {@link TopCfgDefn}.
    */
-  public Message getMessage(AbstractManagedObjectDefinition<?, ?> d,
+  public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, Locale locale) throws MissingResourceException,
       UnsupportedOperationException {
     return getMessage(d, key, locale, (String[]) null);
@@ -187,17 +188,17 @@ public final class ManagedObjectDefinitionI18NResource {
    *           If the provided managed object definition was the
    *           {@link TopCfgDefn}.
    */
-  public Message getMessage(AbstractManagedObjectDefinition<?, ?> d,
+  public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, Locale locale, String... args)
       throws MissingResourceException, UnsupportedOperationException {
     ResourceBundle resource = getResourceBundle(d, locale);
 
     // TODO: use message framework directly
     if (args == null) {
-      return Message.raw(resource.getString(key));
+      return LocalizableMessage.raw(resource.getString(key));
     } else {
       MessageFormat mf = new MessageFormat(resource.getString(key));
-      return Message.raw(mf.format(args));
+      return LocalizableMessage.raw(mf.format(args));
     }
   }
 
@@ -222,7 +223,7 @@ public final class ManagedObjectDefinitionI18NResource {
    *           If the provided managed object definition was the
    *           {@link TopCfgDefn}.
    */
-  public Message getMessage(AbstractManagedObjectDefinition<?, ?> d,
+  public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, String... args) throws MissingResourceException,
       UnsupportedOperationException {
     return getMessage(d, key, Locale.getDefault(), args);

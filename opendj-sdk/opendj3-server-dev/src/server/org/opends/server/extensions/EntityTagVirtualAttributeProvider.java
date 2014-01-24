@@ -34,7 +34,7 @@ import java.util.zip.Adler32;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntityTagVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
@@ -195,7 +195,7 @@ public final class EntityTagVirtualAttributeProvider extends
    */
   public boolean isConfigurationChangeAcceptable(
       final EntityTagVirtualAttributeCfg configuration,
-      final List<Message> unacceptableReasons)
+      final List<LocalizableMessage> unacceptableReasons)
   {
     // The new configuration should always be acceptable.
     return true;
@@ -264,7 +264,7 @@ public final class EntityTagVirtualAttributeProvider extends
   public void processSearch(final VirtualAttributeRule rule,
       final SearchOperation searchOperation)
   {
-    final Message message = ERR_ETAG_VATTR_NOT_SEARCHABLE.get(rule
+    final LocalizableMessage message = ERR_ETAG_VATTR_NOT_SEARCHABLE.get(rule
         .getAttributeType().getNameOrOID());
     searchOperation.appendErrorMessage(message);
     searchOperation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);

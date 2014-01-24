@@ -43,8 +43,8 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -207,7 +207,7 @@ public final class Base64
     int length = encodedData.length();
     if ((length % 4) != 0)
     {
-      Message message = ERR_BASE64_DECODE_INVALID_LENGTH.get(encodedData);
+      LocalizableMessage message = ERR_BASE64_DECODE_INVALID_LENGTH.get(encodedData);
       throw new ParseException(message.toString(), 0);
     }
 
@@ -428,7 +428,7 @@ public final class Base64
             }
             break;
           default:
-            Message message = ERR_BASE64_DECODE_INVALID_CHARACTER.get(
+            LocalizableMessage message = ERR_BASE64_DECODE_INVALID_CHARACTER.get(
                 encodedData, encodedData.charAt(i+j));
             throw new ParseException(message.toString(), i+j);
         }
@@ -470,7 +470,7 @@ public final class Base64
    */
   public static void main(String[] args)
   {
-    Message description = INFO_BASE64_TOOL_DESCRIPTION.get();
+    LocalizableMessage description = INFO_BASE64_TOOL_DESCRIPTION.get();
     SubCommandArgumentParser argParser =
          new SubCommandArgumentParser(Base64.class.getName(), description,
                                       false);
@@ -573,7 +573,7 @@ public final class Base64
       }
       else
       {
-        MessageBuilder messageBuilder = new MessageBuilder();
+        LocalizableMessageBuilder messageBuilder = new LocalizableMessageBuilder();
         argParser.getSubCommandUsage(messageBuilder, subCommand);
         System.out.println(messageBuilder.toString());
       }

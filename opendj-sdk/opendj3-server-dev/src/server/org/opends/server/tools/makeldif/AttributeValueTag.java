@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -109,12 +110,12 @@ public class AttributeValueTag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<Message> warnings)
+                                  List<LocalizableMessage> warnings)
          throws InitializationException
   {
     if ((arguments.length < 1) || (arguments.length > 2))
     {
-      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+      LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
           getName(), lineNumber, 1, 2, arguments.length);
       throw new InitializationException(message);
     }
@@ -123,7 +124,7 @@ public class AttributeValueTag
     attributeType = DirectoryServer.getAttributeType(lowerName, true);
     if (! branch.hasAttribute(attributeType))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
       throw new InitializationException(message);
     }
@@ -135,14 +136,14 @@ public class AttributeValueTag
         numCharacters = Integer.parseInt(arguments[1]);
         if (numCharacters < 0)
         {
-          Message message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+          LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
               numCharacters, 0, getName(), lineNumber);
           throw new InitializationException(message);
         }
       }
       catch (NumberFormatException nfe)
       {
-        Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+        LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
             arguments[1], getName(), lineNumber);
         throw new InitializationException(message);
       }
@@ -172,12 +173,12 @@ public class AttributeValueTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<Message> warnings)
+                                    int lineNumber, List<LocalizableMessage> warnings)
          throws InitializationException
   {
     if ((arguments.length < 1) || (arguments.length > 2))
     {
-      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+      LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
           getName(), lineNumber, 1, 2, arguments.length);
       throw new InitializationException(message);
     }
@@ -186,7 +187,7 @@ public class AttributeValueTag
     attributeType = DirectoryServer.getAttributeType(lowerName, true);
     if (! template.hasAttribute(attributeType))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
       throw new InitializationException(message);
     }
@@ -198,14 +199,14 @@ public class AttributeValueTag
         numCharacters = Integer.parseInt(arguments[1]);
         if (numCharacters < 0)
         {
-          Message message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+          LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
               numCharacters, 0, getName(), lineNumber);
           throw new InitializationException(message);
         }
       }
       catch (NumberFormatException nfe)
       {
-        Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+        LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
             arguments[1], getName(), lineNumber);
         throw new InitializationException(message);
       }

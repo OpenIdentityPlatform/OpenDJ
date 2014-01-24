@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -147,7 +148,7 @@ public class CertificateMapperConfigManager
    */
   public boolean isConfigurationAddAcceptable(
                       CertificateMapperCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -179,7 +180,7 @@ public class CertificateMapperConfigManager
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;
     boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     configuration.addChangeListener(this);
 
@@ -224,7 +225,7 @@ public class CertificateMapperConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
                       CertificateMapperCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // FIXME -- We should try to perform some check to determine whether the
     // certificate mapper is in use.
@@ -241,7 +242,7 @@ public class CertificateMapperConfigManager
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;
     boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     DirectoryServer.deregisterCertificateMapper(configuration.dn());
 
@@ -262,7 +263,7 @@ public class CertificateMapperConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       CertificateMapperCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -294,7 +295,7 @@ public class CertificateMapperConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the existing mapper if it's already enabled.
@@ -409,7 +410,7 @@ public class CertificateMapperConfigManager
                                                     CertificateMapperCfg.class,
                                                     List.class);
 
-        List<Message> unacceptableReasons = new ArrayList<Message>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         Boolean acceptable = (Boolean) method.invoke(mapper, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -417,7 +418,7 @@ public class CertificateMapperConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<Message> iterator = unacceptableReasons.iterator();
+            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -426,7 +427,7 @@ public class CertificateMapperConfigManager
             }
           }
 
-          Message message = ERR_CONFIG_CERTMAPPER_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_CERTMAPPER_CONFIG_NOT_ACCEPTABLE.get(
               String.valueOf(configuration.dn()), buffer.toString());
           throw new InitializationException(message);
         }
@@ -440,7 +441,7 @@ public class CertificateMapperConfigManager
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_CERTMAPPER_INITIALIZATION_FAILED.
+      LocalizableMessage message = ERR_CONFIG_CERTMAPPER_INITIALIZATION_FAILED.
           get(className, String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);

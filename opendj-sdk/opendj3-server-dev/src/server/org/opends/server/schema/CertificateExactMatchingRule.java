@@ -44,7 +44,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
@@ -202,7 +202,7 @@ class CertificateExactMatchingRule
     catch (CertificateException ce)
     {
       // There seems to be a problem while parsing the certificate.
-      Message message = WARN_CERTIFICATE_MATCH_PARSE_ERROR.get(ce.getMessage());
+      LocalizableMessage message = WARN_CERTIFICATE_MATCH_PARSE_ERROR.get(ce.getMessage());
       if (debugEnabled())
       {
          TRACER.debugWarning(message.toString());
@@ -228,7 +228,7 @@ class CertificateExactMatchingRule
       // We couldn't normalize the DN for some reason.  If we're supposed to use
       // strict syntax enforcement, then throw an exception.  Otherwise, log a
       // message and just try our best.
-      Message message = ERR_CERTIFICATE_MATCH_INVALID_DN.get(
+      LocalizableMessage message = ERR_CERTIFICATE_MATCH_INVALID_DN.get(
               dnstring, getExceptionMessage(e));
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -294,7 +294,7 @@ class CertificateExactMatchingRule
       identifier = parser.nextNamedValueIdentifier();
       if (!identifier.equals(GSER_ID_SERIALNUMBER))
       {
-        Message message = ERR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND
+        LocalizableMessage message = ERR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND
                             .get(GSER_ID_SERIALNUMBER);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -310,7 +310,7 @@ class CertificateExactMatchingRule
       identifier = parser.nextNamedValueIdentifier();
       if (!identifier.equals(GSER_ID_ISSUER))
       {
-        Message message = ERR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND
+        LocalizableMessage message = ERR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND
                             .get(GSER_ID_ISSUER);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -320,7 +320,7 @@ class CertificateExactMatchingRule
       identifier = parser.nextChoiceValueIdentifier();
       if (!identifier.equals(GSER_ID_RDNSEQUENCE))
       {
-        Message message = ERR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND
+        LocalizableMessage message = ERR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND
                             .get(GSER_ID_RDNSEQUENCE);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -335,7 +335,7 @@ class CertificateExactMatchingRule
       // There should not be additional characters
       if (parser.hasNext())
       {
-        Message message = ERR_CERTIFICATE_MATCH_EXPECTED_END.get();
+        LocalizableMessage message = ERR_CERTIFICATE_MATCH_EXPECTED_END.get();
         switch (DirectoryServer.getSyntaxEnforcementPolicy())
         {
           case REJECT:
@@ -349,7 +349,7 @@ class CertificateExactMatchingRule
     }
     catch (GSERException e)
     {
-      Message message = ERR_CERTIFICATE_MATCH_GSER_INVALID.get(
+      LocalizableMessage message = ERR_CERTIFICATE_MATCH_GSER_INVALID.get(
                           getExceptionMessage(e));
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -371,7 +371,7 @@ class CertificateExactMatchingRule
       // We couldn't normalize the DN for some reason.  If we're supposed to use
       // strict syntax enforcement, then throw an exception.  Otherwise, log a
       // message and just try our best.
-      Message message = ERR_CERTIFICATE_MATCH_INVALID_DN.get(
+      LocalizableMessage message = ERR_CERTIFICATE_MATCH_INVALID_DN.get(
               dnstring, getExceptionMessage(e));
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())

@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -46,7 +47,7 @@ public class UserDataException extends OpenDsException {
    * @param step the step in the wizard where the exception occurred.
    * @param message the localized message describing the error.
    */
-  public UserDataException(WizardStep step, Message message)
+  public UserDataException(WizardStep step, LocalizableMessage message)
   {
     super(message);
     this.step = step;
@@ -58,7 +59,7 @@ public class UserDataException extends OpenDsException {
    * @param message the localized message describing the error.
    * @param t the Exception that generated this exception.
    */
-  public UserDataException(WizardStep step, Message message, Throwable t)
+  public UserDataException(WizardStep step, LocalizableMessage message, Throwable t)
   {
     super(message, t);
     this.step = step;

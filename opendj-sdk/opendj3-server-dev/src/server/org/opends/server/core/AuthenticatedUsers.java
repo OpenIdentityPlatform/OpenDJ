@@ -27,7 +27,7 @@
 package org.opends.server.core;
 import java.util.HashSet;
 import java.util.Set;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -231,7 +231,7 @@ public class AuthenticatedUsers
     {
       for (ClientConnection conn : connectionSet)
       {
-        Message message = WARN_CLIENTCONNECTION_DISCONNECT_DUE_TO_DELETE.get(
+        LocalizableMessage message = WARN_CLIENTCONNECTION_DISCONNECT_DUE_TO_DELETE.get(
                 String.valueOf(entry.getName()));
 
         conn.disconnect(DisconnectReason.INVALID_CREDENTIALS, true, message);

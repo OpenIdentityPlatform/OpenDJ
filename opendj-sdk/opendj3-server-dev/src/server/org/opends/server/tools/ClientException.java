@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -63,7 +64,7 @@ public class ClientException
    *                    this to be a fatal problem.
    * @param  message    The message that explains the problem that occurred.
    */
-  public ClientException(int exitCode, Message message)
+  public ClientException(int exitCode, LocalizableMessage message)
   {
     super(message);
 
@@ -80,7 +81,7 @@ public class ClientException
    * @param  message    The message that explains the problem that occurred.
    * @param  cause      The exception that was caught to trigger this exception.
    */
-  public ClientException(int exitCode, Message message, Throwable cause)
+  public ClientException(int exitCode, LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
 

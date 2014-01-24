@@ -25,7 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.api;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -36,7 +36,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
 import org.forgerock.opendj.ldap.ByteSequence;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -97,7 +97,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    */
   public boolean isConfigurationAcceptable(
                       AttributeSyntaxCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by attribute syntax
@@ -210,7 +210,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *          with this syntax, or {@code false} if not.
    */
   public abstract boolean valueIsAcceptable(ByteSequence value,
-                               MessageBuilder invalidReason);
+                               LocalizableMessageBuilder invalidReason);
 
 
 

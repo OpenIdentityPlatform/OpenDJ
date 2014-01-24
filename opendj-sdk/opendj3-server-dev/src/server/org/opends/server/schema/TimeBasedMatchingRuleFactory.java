@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.api.IndexQueryFactory;
 import org.opends.server.api.MatchingRule;
@@ -331,7 +331,7 @@ public final class TimeBasedMatchingRuleFactory
         }
         else
         {
-          Message message = null;
+          LocalizableMessage message = null;
           if(containsTimeUnit)
           {
             //We already have time unit found by now.
@@ -849,7 +849,7 @@ public final class TimeBasedMatchingRuleFactory
         }
         else
         {
-          Message message = null;
+          LocalizableMessage message = null;
           switch(value.byteAt(index))
           {
             case 's':
@@ -963,7 +963,7 @@ public final class TimeBasedMatchingRuleFactory
       if(year < 0)
       {
         //A future date is allowed.
-        Message message =
+        LocalizableMessage message =
                 WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.
                 get(value.toString(),year);
         logError(message);
@@ -1013,7 +1013,7 @@ public final class TimeBasedMatchingRuleFactory
           month = Calendar.DECEMBER;
           break;
         default:
-          Message message =
+          LocalizableMessage message =
                 WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.
                 get(value.toString(),month);
           logError(message);
@@ -1047,7 +1047,7 @@ public final class TimeBasedMatchingRuleFactory
       }
       if(invalidDate)
       {
-        Message message =
+        LocalizableMessage message =
                 WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.
                 get(value.toString(),date);
         logError(message);
@@ -1057,7 +1057,7 @@ public final class TimeBasedMatchingRuleFactory
 
       if(!(hour >=-1 && hour <=23))
       {
-         Message message =
+         LocalizableMessage message =
                 WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.
                 get(value.toString(),date);
         logError(message);
@@ -1067,7 +1067,7 @@ public final class TimeBasedMatchingRuleFactory
 
       if(!(minute >=-1 && minute <=59))
       {
-           Message message =
+           LocalizableMessage message =
                 WARN_ATTR_INVALID_MINUTE_ASSERTION_FORMAT.
                 get(value.toString(),date);
         logError(message);
@@ -1077,7 +1077,7 @@ public final class TimeBasedMatchingRuleFactory
 
       if(!(second >=-1 && second <=60)) //Consider leap seconds.
       {
-         Message message =
+         LocalizableMessage message =
                 WARN_ATTR_INVALID_SECOND_ASSERTION_FORMAT.
                 get(value.toString(),date);
         logError(message);

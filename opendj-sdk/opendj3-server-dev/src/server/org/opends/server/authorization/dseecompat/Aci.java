@@ -33,7 +33,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.types.DN;
 
@@ -369,7 +369,7 @@ public class Aci implements Comparable<Aci>
         //Perform a quick pattern check against the string to catch any
         //obvious syntax errors.
         if (!Pattern.matches(aciRegex, input)) {
-            Message message = WARN_ACI_SYNTAX_GENERAL_PARSE_FAILED.get(input);
+            LocalizableMessage message = WARN_ACI_SYNTAX_GENERAL_PARSE_FAILED.get(input);
             throw new AciException(message);
         }
         //Decode the body first.
@@ -546,7 +546,7 @@ public class Aci implements Comparable<Aci>
    *
    * @throws AciException If the specified expression string is invalid.
    */
-    public static Set<String> decodeOID(String expr, Message msg)
+    public static Set<String> decodeOID(String expr, LocalizableMessage msg)
     throws AciException {
       Set<String> OIDs = new HashSet<String>();
       //Quick check to see if the expression is valid.
@@ -586,13 +586,13 @@ public class Aci implements Comparable<Aci>
       while ((pos < length) && ((c = oidStr.charAt(pos++)) != ' ')) {
         if (c == '.') {
           if (lastWasPeriod) {
-            Message message = WARN_ACI_SYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID.get(
+            LocalizableMessage message = WARN_ACI_SYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID.get(
                 oidStr, pos-1);
             throw new AciException(message);
           }
           lastWasPeriod = true;
         }  else if (! isDigit(c)) {
-          Message message =
+          LocalizableMessage message =
               WARN_ACI_SYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID.get(oidStr, c, pos-1);
           throw new AciException(message);
         }  else

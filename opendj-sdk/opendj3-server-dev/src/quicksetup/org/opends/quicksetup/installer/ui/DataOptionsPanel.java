@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.ui;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.awt.Component;
@@ -326,7 +327,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getInstructions()
+  protected LocalizableMessage getInstructions()
   {
     return INFO_DATA_OPTIONS_PANEL_INSTRUCTIONS.get();
   }
@@ -334,7 +335,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getTitle()
+  protected LocalizableMessage getTitle()
   {
     return INFO_DATA_OPTIONS_PANEL_TITLE.get();
   }
@@ -549,7 +550,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     {
       public void changedUpdate(DocumentEvent ev)
       {
-        Message newLabel = INFO_CREATE_BASE_ENTRY_LABEL.get(
+        LocalizableMessage newLabel = INFO_CREATE_BASE_ENTRY_LABEL.get(
                 (String) getFieldValue(FieldName.DIRECTORY_BASE_DN));
         JRadioButton rb =
           getRadioButton(NewSuffixOptions.Type.CREATE_BASE_ENTRY);

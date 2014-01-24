@@ -36,7 +36,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
@@ -194,7 +194,7 @@ class UniqueMemberEqualityMatchingRule
       // We couldn't normalize the DN for some reason.  If we're supposed to use
       // strict syntax enforcement, then throw an exception.  Otherwise, log a
       // message and just try our best.
-      Message message = ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN.get(
               valueString, getExceptionMessage(e));
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -235,7 +235,7 @@ class UniqueMemberEqualityMatchingRule
         {
           // There was an invalid binary digit.  We'll either throw an exception
           // or log a message and continue, based on the server's configuration.
-          Message message = ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT.get(
                   valueString, String.valueOf(c), i);
 
           switch (DirectoryServer.getSyntaxEnforcementPolicy())

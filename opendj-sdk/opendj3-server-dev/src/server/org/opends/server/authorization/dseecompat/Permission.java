@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 import static org.opends.messages.AccessControlMessages.*;
@@ -32,7 +32,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A class representing the permissions of an bind rule. The permissions
@@ -76,12 +76,12 @@ public class Permission {
     throws AciException {
         if ((this.accessType =
             EnumAccessType.decode(accessType)) == null){
-            Message message =
+            LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_ACCESS_TYPE_VERSION.get(accessType);
             throw new AciException(message);
         }
         if (!Pattern.matches(rightsRegex, rights)){
-            Message message = WARN_ACI_SYNTAX_INVALID_RIGHTS_SYNTAX.get(rights);
+            LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_RIGHTS_SYNTAX.get(rights);
             throw new AciException(message);
         }
         else {
@@ -93,7 +93,7 @@ public class Permission {
                 if (right != null)
                     this.rights|= EnumRight.getMask(right);
                 else {
-                    Message message =
+                    LocalizableMessage message =
                         WARN_ACI_SYNTAX_INVALID_RIGHTS_KEYWORD.get(rights);
                     throw new AciException(message);
                 }

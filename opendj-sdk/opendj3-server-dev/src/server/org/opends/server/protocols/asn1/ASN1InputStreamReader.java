@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -107,7 +107,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_READ_ERROR.get(ioe.toString());
       throw new ASN1Exception(message, ioe);
     }
@@ -140,7 +140,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_READ_ERROR.get(ioe.toString());
       throw new ASN1Exception(message, ioe);
     }
@@ -175,7 +175,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     {
       if(throwEofException)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_ASN1_TRUCATED_TYPE_BYTE.get();
         throw new ASN1Exception(message);
       }
@@ -216,7 +216,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     {
       if(throwEofException)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_ASN1_TRUNCATED_LENGTH_BYTE.get();
         throw new ASN1Exception(message);
       }
@@ -228,7 +228,7 @@ final class ASN1InputStreamReader implements ASN1Reader
       lengthBytesNeeded = peekLength;
       if (lengthBytesNeeded > 4)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_ASN1_INVALID_NUM_LENGTH_BYTES.get(lengthBytesNeeded);
         throw new ASN1Exception(message);
       }
@@ -248,7 +248,7 @@ final class ASN1InputStreamReader implements ASN1Reader
           state = ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
           if(throwEofException)
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_ASN1_TRUNCATED_LENGTH_BYTES.get(lengthBytesNeeded);
             throw new ASN1Exception(message);
           }
@@ -263,7 +263,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     // message size.
     if ((maxElementSize > 0) && (peekLength > maxElementSize))
     {
-      Message m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
+      LocalizableMessage m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
           peekLength, maxElementSize);
       throw new ASN1Exception(m);
     }
@@ -304,7 +304,7 @@ final class ASN1InputStreamReader implements ASN1Reader
         state = ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
         if(throwEofException)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ASN1_TRUNCATED_LENGTH_BYTES.get(lengthBytesNeeded);
           throw new ASN1Exception(message);
         }
@@ -318,7 +318,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     // message size.
     if ((maxElementSize > 0) && (peekLength > maxElementSize))
     {
-      Message m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
+      LocalizableMessage m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
           peekLength, maxElementSize);
       throw new ASN1Exception(m);
     }
@@ -342,7 +342,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_READ_ERROR.get(ioe.toString());
       throw new ASN1Exception(message, ioe);
     }
@@ -371,7 +371,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_READ_ERROR.get(ioe.toString());
       throw new ASN1Exception(message, ioe);
     }
@@ -387,7 +387,7 @@ final class ASN1InputStreamReader implements ASN1Reader
 
     if (peekLength != 1)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_BOOLEAN_INVALID_LENGTH.get(peekLength);
       throw new ASN1Exception(message);
     }
@@ -397,7 +397,7 @@ final class ASN1InputStreamReader implements ASN1Reader
       int readByte = in.read();
       if(readByte == -1)
       {
-        Message message = ERR_ASN1_BOOLEAN_TRUNCATED_VALUE.get(peekLength);
+        LocalizableMessage message = ERR_ASN1_BOOLEAN_TRUNCATED_VALUE.get(peekLength);
         throw new ASN1Exception(message);
       }
 
@@ -413,7 +413,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_READ_ERROR.get(ioe.toString());
       throw new ASN1Exception(message, ioe);
     }
@@ -429,7 +429,7 @@ final class ASN1InputStreamReader implements ASN1Reader
 
     if ((peekLength < 1) || (peekLength > 4))
     {
-      Message message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
+      LocalizableMessage message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
       throw new ASN1Exception(message);
     }
 
@@ -448,7 +448,7 @@ final class ASN1InputStreamReader implements ASN1Reader
 
     if ((peekLength < 1) || (peekLength > 8))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
       throw new ASN1Exception(message);
     }
@@ -463,7 +463,7 @@ final class ASN1InputStreamReader implements ASN1Reader
           int readByte = in.read();
           if(readByte == -1)
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_ASN1_INTEGER_TRUNCATED_VALUE.get(peekLength);
             throw new ASN1Exception(message);
           }
@@ -485,7 +485,7 @@ final class ASN1InputStreamReader implements ASN1Reader
           int readByte = in.read();
           if(readByte == -1)
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_ASN1_INTEGER_TRUNCATED_VALUE.get(peekLength);
             throw new ASN1Exception(message);
           }
@@ -509,7 +509,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_READ_ERROR.get(ioe.toString());
       throw new ASN1Exception(message, ioe);
     }
@@ -526,7 +526,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     // Make sure that the decoded length is exactly zero byte.
     if (peekLength != 0)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_NULL_INVALID_LENGTH.get(peekLength);
       throw new ASN1Exception(message);
     }
@@ -565,7 +565,7 @@ final class ASN1InputStreamReader implements ASN1Reader
         bytesRead = in.read(value, peekLength - bytesNeeded, bytesNeeded);
         if(bytesRead < 0)
         {
-          Message message =
+          LocalizableMessage message =
             ERR_ASN1_OCTET_STRING_TRUNCATED_VALUE.get(peekLength);
           throw new ASN1Exception(message);
         }
@@ -585,7 +585,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_READ_ERROR.get(ioe.toString());
       throw new ASN1Exception(message, ioe);
     }
@@ -630,7 +630,7 @@ final class ASN1InputStreamReader implements ASN1Reader
         bytesRead = in.read(buffer, peekLength - bytesNeeded, bytesNeeded);
         if(bytesRead < 0)
         {
-          Message message =
+          LocalizableMessage message =
             ERR_ASN1_OCTET_STRING_TRUNCATED_VALUE.get(peekLength);
           throw new ASN1Exception(message);
         }
@@ -641,7 +641,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_READ_ERROR.get(ioe.toString());
       throw new ASN1Exception(message, ioe);
     }
@@ -695,7 +695,7 @@ final class ASN1InputStreamReader implements ASN1Reader
         bytesRead = buffer.append(in, bytesNeeded);
         if(bytesRead < 0)
         {
-          Message message =
+          LocalizableMessage message =
             ERR_ASN1_OCTET_STRING_TRUNCATED_VALUE.get(peekLength);
           throw new ASN1Exception(message);
         }
@@ -713,7 +713,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_READ_ERROR.get(ioe.toString());
       throw new ASN1Exception(message, ioe);
     }
@@ -771,7 +771,7 @@ final class ASN1InputStreamReader implements ASN1Reader
   {
     if(streamStack.isEmpty())
     {
-      Message message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
+      LocalizableMessage message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
       throw new ASN1Exception(message);
     }
 
@@ -791,7 +791,7 @@ final class ASN1InputStreamReader implements ASN1Reader
       }
       catch(IOException ioe)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_ASN1_READ_ERROR.get(ioe.toString());
         throw new ASN1Exception(message, ioe);
       }
@@ -836,7 +836,7 @@ final class ASN1InputStreamReader implements ASN1Reader
       long bytesSkipped = in.skip(peekLength);
       if(bytesSkipped != peekLength)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_ASN1_SKIP_TRUNCATED_VALUE.get(peekLength);
         throw new ASN1Exception(message);
       }
@@ -844,7 +844,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ASN1_READ_ERROR.get(ioe.toString());
       throw new ASN1Exception(message, ioe);
     }

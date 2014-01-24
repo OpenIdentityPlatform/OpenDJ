@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.quicksetup.installer;
 
@@ -46,8 +46,8 @@ import org.opends.admin.ads.*;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
@@ -470,7 +470,7 @@ public abstract class Installer extends GuiApplication {
     }
     catch (IncompatibleVersionException ijv)
     {
-      MessageBuilder sb = new MessageBuilder();
+      LocalizableMessageBuilder sb = new LocalizableMessageBuilder();
       sb.append(Utils.breakHtmlString(
           Utils.getHtml(ijv.getMessageObject().toString()),
           Constants.MAX_CHARS_PER_LINE_IN_DIALOG));
@@ -564,7 +564,7 @@ public abstract class Installer extends GuiApplication {
    * {@inheritDoc}
    */
   @Override
-  public Message getCloseButtonToolTip() {
+  public LocalizableMessage getCloseButtonToolTip() {
     return INFO_CLOSE_BUTTON_INSTALL_TOOLTIP.get();
   }
 
@@ -572,7 +572,7 @@ public abstract class Installer extends GuiApplication {
    * {@inheritDoc}
    */
   @Override
-  public Message getQuitButtonToolTip() {
+  public LocalizableMessage getQuitButtonToolTip() {
     return INFO_QUIT_BUTTON_INSTALL_TOOLTIP.get();
   }
 
@@ -580,7 +580,7 @@ public abstract class Installer extends GuiApplication {
    * {@inheritDoc}
    */
   @Override
-  public Message getFinishButtonToolTip() {
+  public LocalizableMessage getFinishButtonToolTip() {
     return INFO_FINISH_BUTTON_INSTALL_TOOLTIP.get();
   }
 
@@ -613,10 +613,10 @@ public abstract class Installer extends GuiApplication {
    * {@inheritDoc}
    */
   @Override
-  public Message getFrameTitle() {
+  public LocalizableMessage getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_INSTALL_TITLE",
         INFO_FRAME_INSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME),
-        Message.class);
+        LocalizableMessage.class);
   }
 
   /** Indicates the current progress step. */
@@ -816,7 +816,7 @@ public abstract class Installer extends GuiApplication {
     }
     catch (IOException ioe)
     {
-      Message failedMsg = getThrowableMsg(
+      LocalizableMessage failedMsg = getThrowableMsg(
           INFO_ERROR_CREATING_TEMP_FILE.get(), ioe);
       throw new ApplicationException(
           ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
@@ -1298,7 +1298,7 @@ public abstract class Installer extends GuiApplication {
   private void importLDIF() throws ApplicationException {
     LinkedList<String> ldifPaths =
       getUserData().getNewSuffixOptions().getLDIFPaths();
-    MessageBuilder mb = new MessageBuilder();
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     if (ldifPaths.size() > 1)
     {
       if (isVerbose())
@@ -1414,7 +1414,7 @@ public abstract class Installer extends GuiApplication {
         if (lastImportProgress != null)
         {
           notifyListeners(
-              getFormattedProgress(Message.raw(lastImportProgress)));
+              getFormattedProgress(LocalizableMessage.raw(lastImportProgress)));
           notifyListeners(getLineBreak());
         }
       }
@@ -1429,7 +1429,7 @@ public abstract class Installer extends GuiApplication {
       else
       {
         notifyListeners(
-            getFormattedProgress(Message.raw(lastImportProgress)));
+            getFormattedProgress(LocalizableMessage.raw(lastImportProgress)));
         notifyListeners(getLineBreak());
       }
     }
@@ -1443,7 +1443,7 @@ public abstract class Installer extends GuiApplication {
   private void importAutomaticallyGenerated() throws ApplicationException {
     File templatePath = createTemplateFile();
     int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
-    MessageBuilder mb = new MessageBuilder();
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     if (isVerbose() || (nEntries > THRESHOLD_AUTOMATIC_DATA_VERBOSE))
     {
       mb.append(getFormattedProgress(
@@ -1765,7 +1765,7 @@ public abstract class Installer extends GuiApplication {
     }
     catch (NamingException ne)
     {
-      Message failedMsg = getThrowableMsg(
+      LocalizableMessage failedMsg = getThrowableMsg(
               INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, failedMsg, ne);
@@ -1901,7 +1901,7 @@ public abstract class Installer extends GuiApplication {
     }
     catch (NamingException ne)
     {
-      Message failedMsg = getThrowableMsg(
+      LocalizableMessage failedMsg = getThrowableMsg(
               INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, failedMsg, ne);
@@ -2051,7 +2051,7 @@ public abstract class Installer extends GuiApplication {
    * @param isCli a boolean to indicate if the install is using CLI or GUI
    */
   protected void initSummaryMap(
-      Map<ProgressStep, Message> hmSummary,
+      Map<ProgressStep, LocalizableMessage> hmSummary,
       boolean isCli)
   {
     hmSummary.put(InstallProgressStep.NOT_STARTED,
@@ -2097,9 +2097,9 @@ public abstract class Installer extends GuiApplication {
     }
     String formattedPath = Utils.addWordBreaks(
         formatter.getFormattedText(
-            Message.raw(getPath(new File(getInstancePath())))).toString(),
+            LocalizableMessage.raw(getPath(new File(getInstancePath())))).toString(),
             60, 5);
-    Message successMessage = Utils.getCustomizedObject(
+    LocalizableMessage successMessage = Utils.getCustomizedObject(
         "INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY",
         INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
             DynamicConstants.PRODUCT_NAME,
@@ -2108,7 +2108,7 @@ public abstract class Installer extends GuiApplication {
             INFO_GENERAL_SERVER_STOPPED.get(),
             DynamicConstants.DOC_QUICK_REFERENCE_GUIDE,
             DynamicConstants.PRODUCT_NAME,
-            cmd), Message.class);
+            cmd), LocalizableMessage.class);
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
             getFormattedSuccess(successMessage));
     hmSummary.put(InstallProgressStep.FINISHED_CANCELED,
@@ -2125,7 +2125,7 @@ public abstract class Installer extends GuiApplication {
    * @param isCli a boolean to indicate if the install is using CLI or GUI
    */
   protected void updateSummaryWithServerState(
-      Map<ProgressStep, Message> hmSummary, Boolean isCli)
+      Map<ProgressStep, LocalizableMessage> hmSummary, Boolean isCli)
   {
    Installation installation = getInstallation();
    String cmd = getPath(installation.getControlPanelCommandFile());
@@ -2135,7 +2135,7 @@ public abstract class Installer extends GuiApplication {
        UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT),
        60, 5);
    }
-   Message status;
+   LocalizableMessage status;
    if (installation.getStatus().isServerRunning())
    {
      status = INFO_GENERAL_SERVER_STARTED.get();
@@ -2146,9 +2146,9 @@ public abstract class Installer extends GuiApplication {
    }
    String formattedPath = Utils.addWordBreaks(
    formatter.getFormattedText(
-       Message.raw(getPath(new File(getInstancePath())))).toString(),
+       LocalizableMessage.raw(getPath(new File(getInstancePath())))).toString(),
        60, 5);
-   Message successMessage = Utils.getCustomizedObject(
+   LocalizableMessage successMessage = Utils.getCustomizedObject(
        "INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY",
       INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
             DynamicConstants.PRODUCT_NAME,
@@ -2157,7 +2157,7 @@ public abstract class Installer extends GuiApplication {
             status,
             DynamicConstants.DOC_QUICK_REFERENCE_GUIDE,
             DynamicConstants.PRODUCT_NAME,
-            cmd), Message.class);
+            cmd), LocalizableMessage.class);
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
             getFormattedSuccess(successMessage));
     hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR,
@@ -2361,7 +2361,7 @@ public abstract class Installer extends GuiApplication {
     }
     catch (Throwable t)
     {
-      Message failedMsg =
+      LocalizableMessage failedMsg =
               getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), t);
       StaticUtils.close(ctx);
       throw new ApplicationException(
@@ -2400,7 +2400,7 @@ public abstract class Installer extends GuiApplication {
       }
       catch (NamingException ne)
       {
-        Message msg;
+        LocalizableMessage msg;
         if (Utils.isCertificateException(ne))
         {
           msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
@@ -2480,7 +2480,7 @@ public abstract class Installer extends GuiApplication {
           }
           catch (NamingException ne)
           {
-            Message msg;
+            LocalizableMessage msg;
             if (Utils.isCertificateException(ne))
             {
               msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
@@ -2702,7 +2702,7 @@ public abstract class Installer extends GuiApplication {
     }
     catch (NamingException ne)
     {
-      Message msg;
+      LocalizableMessage msg;
       if (isRemoteServer)
       {
         msg = Utils.getMessageForException(ne, getHostDisplay(auth));
@@ -2992,8 +2992,8 @@ public abstract class Installer extends GuiApplication {
   private void updateUserDataForServerSettingsPanel(QuickSetup qs)
       throws UserDataException
   {
-    List<Message> errorMsgs = new ArrayList<Message>();
-    Message confirmationMsg = null;
+    List<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
+    LocalizableMessage confirmationMsg = null;
 
     if (isWebStart())
     {
@@ -3283,7 +3283,7 @@ public abstract class Installer extends GuiApplication {
     }
   }
 
-  private Message getCannotBindErrorMessage(int port)
+  private LocalizableMessage getCannotBindErrorMessage(int port)
   {
     if (isPriviledgedPort(port))
     {
@@ -3306,7 +3306,7 @@ public abstract class Installer extends GuiApplication {
     Integer replicationPort = -1;
     boolean secureReplication = false;
     Integer port = null;
-    List<Message> errorMsgs = new ArrayList<Message>();
+    List<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
 
     DataReplicationOptions.Type type = (DataReplicationOptions.Type)
       qs.getFieldValue(FieldName.REPLICATION_OPTIONS);
@@ -3425,7 +3425,7 @@ public abstract class Installer extends GuiApplication {
     }
   }
 
-  private int checkReplicationPort(QuickSetup qs, List<Message> errorMsgs)
+  private int checkReplicationPort(QuickSetup qs, List<LocalizableMessage> errorMsgs)
   {
     int replicationPort = -1;
     String sPort = qs.getFieldStringValue(FieldName.REPLICATION_PORT);
@@ -3471,7 +3471,7 @@ public abstract class Installer extends GuiApplication {
   }
 
   private void checkRemoteHostPortDnAndPwd(String host, String sPort, String dn,
-      String pwd, QuickSetup qs, List<Message> errorMsgs)
+      String pwd, QuickSetup qs, List<LocalizableMessage> errorMsgs)
   {
     // Check host
     if ((host == null) || (host.length() == 0))
@@ -3520,7 +3520,7 @@ public abstract class Installer extends GuiApplication {
   }
 
   private void updateUserDataWithADS(String host, int port, String dn,
-      String pwd, QuickSetup qs, List<Message> errorMsgs,
+      String pwd, QuickSetup qs, List<LocalizableMessage> errorMsgs,
       boolean[] hasGlobalAdministrators,
       String[] effectiveDn) throws UserDataException
   {
@@ -3563,14 +3563,14 @@ public abstract class Installer extends GuiApplication {
         hasGlobalAdministrators[0] = administrators.size() > 0;
         Set<TopologyCacheException> exceptions =
         updateUserDataWithSuffixesInADS(adsContext, trustManager);
-        Set<Message> exceptionMsgs = new LinkedHashSet<Message>();
+        Set<LocalizableMessage> exceptionMsgs = new LinkedHashSet<LocalizableMessage>();
         /* Check the exceptions and see if we throw them or not. */
         for (TopologyCacheException e : exceptions)
         {
           switch (e.getType())
           {
           case NOT_GLOBAL_ADMINISTRATOR:
-            Message errorMsg = INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get();
+            LocalizableMessage errorMsg = INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get();
             throw new UserDataException(Step.REPLICATION_OPTIONS, errorMsg);
           case GENERIC_CREATING_CONNECTION:
             if ((e.getCause() != null) &&
@@ -3627,7 +3627,7 @@ public abstract class Installer extends GuiApplication {
         }
         if (exceptionMsgs.size() > 0)
         {
-          Message confirmationMsg =
+          LocalizableMessage confirmationMsg =
             INFO_ERROR_READING_REGISTERED_SERVERS_CONFIRM.get(
                     getMessageFromCollection(exceptionMsgs, "\n"));
           throw new UserDataConfirmationException(Step.REPLICATION_OPTIONS,
@@ -3723,7 +3723,7 @@ public abstract class Installer extends GuiApplication {
   private void updateUserDataForCreateAdministratorPanel(QuickSetup qs)
   throws UserDataException
   {
-    List<Message> errorMsgs = new ArrayList<Message>();
+    List<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
 
     // Check the Global Administrator UID
     String uid = qs.getFieldStringValue(FieldName.GLOBAL_ADMINISTRATOR_UID);
@@ -3794,7 +3794,7 @@ public abstract class Installer extends GuiApplication {
   private void updateUserDataForSuffixesOptionsPanel(QuickSetup qs)
   throws UserDataException
   {
-    List<Message> errorMsgs = new ArrayList<Message>();
+    List<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
     if (qs.getFieldValue(FieldName.SUFFIXES_TO_REPLICATE_OPTIONS) ==
       SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES)
     {
@@ -3856,7 +3856,7 @@ public abstract class Installer extends GuiApplication {
   private void updateUserDataForRemoteReplicationPorts(QuickSetup qs)
       throws UserDataException
   {
-    List<Message> errorMsgs = new ArrayList<Message>();
+    List<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
     Map<ServerDescriptor, AuthenticationData> servers =
       getUserData().getRemoteWithNoReplicationPort();
     Map<?, ?> hm =
@@ -3932,7 +3932,7 @@ public abstract class Installer extends GuiApplication {
   private void updateUserDataForNewSuffixOptionsPanel(QuickSetup qs)
       throws UserDataException
   {
-    List<Message> errorMsgs = new ArrayList<Message>();
+    List<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
 
     NewSuffixOptions dataOptions = null;
 
@@ -4448,7 +4448,7 @@ public abstract class Installer extends GuiApplication {
             "ds-task-log-message",
             "ds-task-state"
         });
-    Message lastDisplayedMsg = null;
+    LocalizableMessage lastDisplayedMsg = null;
     String lastLogMsg = null;
     long lastTimeMsgDisplayed = -1;
     long lastTimeMsgLogged = -1;
@@ -4488,7 +4488,7 @@ public abstract class Installer extends GuiApplication {
         }
         // Get the number of entries that have been handled and
         // a percentage...
-        Message msg;
+        LocalizableMessage msg;
         String sProcessed = getFirstValue(sr,
         "ds-task-processed-entry-count");
         String sUnprocessed = getFirstValue(sr,
@@ -4586,7 +4586,7 @@ public abstract class Installer extends GuiApplication {
         if (helper.isDone(state) || helper.isStoppedByError(state))
         {
           isOver = true;
-          Message errorMsg;
+          LocalizableMessage errorMsg;
           LOG.log(Level.INFO, "Last task entry: "+sr);
           if (displayProgress && (msg != null) && !msg.equals(lastDisplayedMsg))
           {
@@ -4789,7 +4789,7 @@ public abstract class Installer extends GuiApplication {
         if (helper.isDone(state) || helper.isStoppedByError(state))
         {
           isOver = true;
-          Message errorMsg;
+          LocalizableMessage errorMsg;
           if (lastLogMsg == null)
           {
             errorMsg = INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(

@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.EntryUUIDPluginCfg;
@@ -136,7 +136,7 @@ public final class EntryUUIDPlugin
 
 
         default:
-          Message message =
+          LocalizableMessage message =
               ERR_PLUGIN_ENTRYUUID_INVALID_PLUGIN_TYPE.get(t.toString());
           throw new ConfigException(message);
       }
@@ -231,7 +231,7 @@ public final class EntryUUIDPlugin
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     EntryUUIDPluginCfg cfg = (EntryUUIDPluginCfg) configuration;
     return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
@@ -244,7 +244,7 @@ public final class EntryUUIDPlugin
    */
   public boolean isConfigurationChangeAcceptable(
                       EntryUUIDPluginCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -261,7 +261,7 @@ public final class EntryUUIDPlugin
 
 
         default:
-          Message message = ERR_PLUGIN_ENTRYUUID_INVALID_PLUGIN_TYPE.get(
+          LocalizableMessage message = ERR_PLUGIN_ENTRYUUID_INVALID_PLUGIN_TYPE.get(
                   pluginType.toString());
           unacceptableReasons.add(message);
           configAcceptable = false;

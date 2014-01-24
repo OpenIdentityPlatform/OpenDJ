@@ -34,7 +34,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MonitorProvider;
@@ -72,7 +72,7 @@ public class DatabaseEnvironmentMonitor
    */
   private static class FilterStats implements Comparable<FilterStats>
   {
-    private volatile Message failureReason = Message.EMPTY;
+    private volatile LocalizableMessage failureReason = LocalizableMessage.EMPTY;
     private long maxMatchingEntries = -1;
     private final AtomicInteger hits = new AtomicInteger();
 
@@ -80,7 +80,7 @@ public class DatabaseEnvironmentMonitor
       return this.hits.get() - that.hits.get();
     }
 
-    private void update(int hitCount, Message failureReason)
+    private void update(int hitCount, LocalizableMessage failureReason)
     {
       this.hits.getAndAdd(hitCount);
       this.failureReason = failureReason;
@@ -89,7 +89,7 @@ public class DatabaseEnvironmentMonitor
     private void update(int hitCount, long matchingEntries)
     {
       this.hits.getAndAdd(hitCount);
-      this.failureReason = Message.EMPTY;
+      this.failureReason = LocalizableMessage.EMPTY;
       synchronized(this)
       {
         if(matchingEntries > maxMatchingEntries)
@@ -312,7 +312,7 @@ public class DatabaseEnvironmentMonitor
    * @param searchFilter The search filter that was evaluated.
    * @param failureMessage The reason why an index was not used.
    */
-  public void updateStats(SearchFilter searchFilter, Message failureMessage)
+  public void updateStats(SearchFilter searchFilter, LocalizableMessage failureMessage)
   {
     if(!filterUseEnabled)
     {

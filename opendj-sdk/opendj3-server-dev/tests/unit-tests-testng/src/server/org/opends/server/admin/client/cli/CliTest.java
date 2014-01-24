@@ -36,7 +36,7 @@ import org.opends.server.util.args.ArgumentException;
 import org.opends.server.DirectoryServerTestCase;
 
 import static org.opends.messages.AdminMessages.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -61,7 +61,7 @@ public class CliTest extends DirectoryServerTestCase {
   {
     String invalidMsg;
     String msg;
-    Message message;
+    LocalizableMessage message;
     for (DsFrameworkCliReturnCode returnCode : DsFrameworkCliReturnCode
         .values())
     {

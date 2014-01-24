@@ -25,7 +25,7 @@
  *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 import org.opends.server.types.*;
@@ -72,7 +72,7 @@ public abstract class BindOperationWrapper extends
    * {@inheritDoc}
    */
   @Override
-  public Message getAuthFailureReason()
+  public LocalizableMessage getAuthFailureReason()
   {
     return getOperation().getAuthFailureReason();
   }
@@ -162,7 +162,7 @@ public abstract class BindOperationWrapper extends
    * {@inheritDoc}
    */
   @Override
-  public void setAuthFailureReason(Message reason)
+  public void setAuthFailureReason(LocalizableMessage reason)
   {
     if (DirectoryServer.returnBindErrorMessages())
     {

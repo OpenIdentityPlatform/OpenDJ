@@ -29,7 +29,7 @@ package org.opends.server.replication.server;
 import java.io.IOException;
 import java.util.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
@@ -101,7 +101,7 @@ public class DataServerHandler extends ServerHandler
     {
       // Prevent useless error message (full update status cannot lead to bad
       // gen status)
-      Message message = NOTE_BAD_GEN_ID_IN_FULL_UPDATE.get(
+      LocalizableMessage message = NOTE_BAD_GEN_ID_IN_FULL_UPDATE.get(
               Integer.toString(replicationServer.getServerId()),
               getBaseDNString(),
               Integer.toString(serverId),
@@ -201,7 +201,7 @@ public class DataServerHandler extends ServerHandler
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
+      LocalizableMessage msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
           Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       // Only change allowed is from NORMAL_STATUS to DEGRADED_STATUS and vice
@@ -320,7 +320,7 @@ public class DataServerHandler extends ServerHandler
     StatusMachineEvent event = StatusMachineEvent.statusToEvent(reqStatus);
     if (event == StatusMachineEvent.INVALID_EVENT)
     {
-      Message msg = ERR_RS_INVALID_NEW_STATUS.get(reqStatus.toString(),
+      LocalizableMessage msg = ERR_RS_INVALID_NEW_STATUS.get(reqStatus.toString(),
           getBaseDNString(), Integer.toString(serverId));
       logError(msg);
       return ServerStatus.INVALID_STATUS;
@@ -330,7 +330,7 @@ public class DataServerHandler extends ServerHandler
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
+      LocalizableMessage msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
           Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       return ServerStatus.INVALID_STATUS;
@@ -457,7 +457,7 @@ public class DataServerHandler extends ServerHandler
       }
       catch(IOException e)
       {
-        Message errMessage = ERR_DS_DISCONNECTED_DURING_HANDSHAKE.get(
+        LocalizableMessage errMessage = ERR_DS_DISCONNECTED_DURING_HANDSHAKE.get(
           Integer.toString(inServerStartMsg.getServerId()),
           Integer.toString(replicationServer.getServerId()));
         throw new DirectoryException(ResultCode.OTHER, errMessage);
@@ -473,7 +473,7 @@ public class DataServerHandler extends ServerHandler
 
       replicationServerDomain.register(this);
 
-      Message message = INFO_REPLICATION_SERVER_CONNECTION_FROM_DS
+      LocalizableMessage message = INFO_REPLICATION_SERVER_CONNECTION_FROM_DS
           .get(getReplicationServerId(), getServerId(),
               replicationServerDomain.getBaseDN().toNormalizedString(),
               session.getReadableRemoteAddress());
@@ -572,7 +572,7 @@ public class DataServerHandler extends ServerHandler
       return null;
     } else if (!(msg instanceof StartSessionMsg))
     {
-      Message message = Message.raw(
+      LocalizableMessage message = LocalizableMessage.raw(
           "Protocol error: StartSessionMsg required." + msg + " received.");
       abortStart(message);
       return null;
@@ -585,7 +585,7 @@ public class DataServerHandler extends ServerHandler
     // Sanity check: is it a valid initial status?
     if (!isValidInitialStatus(this.status))
     {
-      Message message = ERR_RS_INVALID_INIT_STATUS.get(
+      LocalizableMessage message = ERR_RS_INVALID_INIT_STATUS.get(
           this.status.toString(),
           getBaseDNString(),
           Integer.toString(serverId));
@@ -614,7 +614,7 @@ public class DataServerHandler extends ServerHandler
     {
       if (generationId != localGenerationId)
       {
-        Message message = WARN_BAD_GENERATION_ID_FROM_DS.get(
+        LocalizableMessage message = WARN_BAD_GENERATION_ID_FROM_DS.get(
             serverId, session.getReadableRemoteAddress(),
             generationId, getBaseDNString(),
             getReplicationServerId(), localGenerationId);
@@ -628,7 +628,7 @@ public class DataServerHandler extends ServerHandler
       {
         // If the LDAP server has already sent changes
         // it is not expected to connect to an empty RS
-        Message message = WARN_BAD_GENERATION_ID_FROM_DS.get(
+        LocalizableMessage message = WARN_BAD_GENERATION_ID_FROM_DS.get(
             serverId, session.getReadableRemoteAddress(),
             generationId, getBaseDNString(),
             getReplicationServerId(), localGenerationId);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -63,7 +63,7 @@ public class ResetGenerationIdMsg extends ReplicationMsg
     {
       if (in[0] != MSG_TYPE_RESET_GENERATION_ID)
         throw new
-        DataFormatException("input is not a valid GenerationId Message");
+        DataFormatException("input is not a valid GenerationId LocalizableMessage");
 
       int pos = 1;
 

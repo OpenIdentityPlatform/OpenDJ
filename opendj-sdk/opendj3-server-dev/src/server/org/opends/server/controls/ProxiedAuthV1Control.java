@@ -29,7 +29,7 @@ package org.opends.server.controls;
 import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
@@ -72,13 +72,13 @@ public class ProxiedAuthV1Control
     {
       if (!isCritical)
       {
-        Message message = ERR_PROXYAUTH1_CONTROL_NOT_CRITICAL.get();
+        LocalizableMessage message = ERR_PROXYAUTH1_CONTROL_NOT_CRITICAL.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
       if (value == null)
       {
-        Message message = ERR_PROXYAUTH1_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_PROXYAUTH1_NO_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -97,7 +97,7 @@ public class ProxiedAuthV1Control
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_PROXYAUTH1_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
       }
@@ -306,7 +306,7 @@ public class ProxiedAuthV1Control
       if (userEntry == null)
       {
         // The requested user does not exist.
-        Message message =
+        LocalizableMessage message =
             ERR_PROXYAUTH1_NO_SUCH_USER.get(String.valueOf(authzDN));
         throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
       }
@@ -319,7 +319,7 @@ public class ProxiedAuthV1Control
 
       if (state.isDisabled())
       {
-        Message message = ERR_PROXYAUTH1_UNUSABLE_ACCOUNT.get(String
+        LocalizableMessage message = ERR_PROXYAUTH1_UNUSABLE_ACCOUNT.get(String
             .valueOf(userEntry.getName()));
         throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
       }
@@ -333,7 +333,7 @@ public class ProxiedAuthV1Control
             pwpState.lockedDueToMaximumResetAge() ||
             pwpState.isPasswordExpired())
         {
-          Message message = ERR_PROXYAUTH1_UNUSABLE_ACCOUNT.get(String
+          LocalizableMessage message = ERR_PROXYAUTH1_UNUSABLE_ACCOUNT.get(String
               .valueOf(authzDN));
           throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
               message);

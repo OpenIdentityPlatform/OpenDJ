@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -136,7 +136,7 @@ public class PKCS11KeyManagerProvider
       String pinStr = System.getProperty(propertyName);
 
       if (pinStr == null) {
-        Message message = ERR_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(
+        LocalizableMessage message = ERR_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(
             String.valueOf(propertyName), String.valueOf(configEntryDN));
         throw new InitializationException(message);
       }
@@ -148,7 +148,7 @@ public class PKCS11KeyManagerProvider
       String pinStr = System.getenv(enVarName);
 
       if (pinStr == null) {
-        Message message = ERR_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET.get(
+        LocalizableMessage message = ERR_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET.get(
             String.valueOf(enVarName), String.valueOf(configEntryDN));
         throw new InitializationException(message);
       }
@@ -159,7 +159,7 @@ public class PKCS11KeyManagerProvider
       File pinFile = getFileForPath(fileName);
 
       if (!pinFile.exists()) {
-        Message message = ERR_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE.get(
+        LocalizableMessage message = ERR_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE.get(
             String.valueOf(fileName), String.valueOf(configEntryDN));
         throw new InitializationException(message);
       }
@@ -176,14 +176,14 @@ public class PKCS11KeyManagerProvider
           TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
         }
 
-        Message message = ERR_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ.
+        LocalizableMessage message = ERR_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ.
             get(String.valueOf(fileName), String.valueOf(configEntryDN),
                 getExceptionMessage(ioe));
         throw new InitializationException(message, ioe);
       }
 
       if (pinStr == null) {
-        Message message = ERR_PKCS11_KEYMANAGER_PIN_FILE_EMPTY.get(
+        LocalizableMessage message = ERR_PKCS11_KEYMANAGER_PIN_FILE_EMPTY.get(
             String.valueOf(fileName), String.valueOf(configEntryDN));
         throw new InitializationException(message);
       }
@@ -233,7 +233,7 @@ public class PKCS11KeyManagerProvider
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_PKCS11_KEYMANAGER_CANNOT_LOAD.get(getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -255,7 +255,7 @@ public class PKCS11KeyManagerProvider
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_PKCS11_KEYMANAGER_CANNOT_CREATE_FACTORY.get(
+      LocalizableMessage message = ERR_PKCS11_KEYMANAGER_CANNOT_CREATE_FACTORY.get(
           getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -270,7 +270,7 @@ public class PKCS11KeyManagerProvider
   @Override()
   public boolean isConfigurationAcceptable(
                         PKCS11KeyManagerProviderCfg configuration,
-                          List<Message> unacceptableReasons)
+                          List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
@@ -282,7 +282,7 @@ public class PKCS11KeyManagerProvider
    */
   public boolean isConfigurationChangeAcceptable(
                       PKCS11KeyManagerProviderCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
@@ -401,7 +401,7 @@ public class PKCS11KeyManagerProvider
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the PIN needed to access the contents of the keystore file.

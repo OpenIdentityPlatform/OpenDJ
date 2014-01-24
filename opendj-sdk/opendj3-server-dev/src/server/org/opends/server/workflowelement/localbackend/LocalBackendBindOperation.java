@@ -29,9 +29,9 @@ package org.opends.server.workflowelement.localbackend;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageDescriptor.Arg1;
-import org.opends.messages.MessageDescriptor.Arg2;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.Backend;
@@ -559,7 +559,7 @@ public class LocalBackendBindOperation
             pwPolicyState.setWarnedTime();
 
             int numSeconds = pwPolicyState.getSecondsUntilExpiration();
-            Message m = WARN_BIND_PASSWORD_EXPIRING
+            LocalizableMessage m = WARN_BIND_PASSWORD_EXPIRING
                 .get(secondsToTimeString(numSeconds));
 
             pwPolicyState.generateAccountStatusNotification(
@@ -772,7 +772,7 @@ public class LocalBackendBindOperation
           pwPolicyState.setWarnedTime();
 
           int numSeconds = pwPolicyState.getSecondsUntilExpiration();
-          Message m = WARN_BIND_PASSWORD_EXPIRING.get(
+          LocalizableMessage m = WARN_BIND_PASSWORD_EXPIRING.get(
                                  secondsToTimeString(numSeconds));
 
           pwPolicyState.generateAccountStatusNotification(
@@ -834,7 +834,7 @@ public class LocalBackendBindOperation
     {
       AccountStatusNotificationType notificationType;
       boolean tempLocked;
-      Message m;
+      LocalizableMessage m;
 
       int lockoutDuration = pwPolicyState.getSecondsUntilUnlock();
       if (lockoutDuration > -1)
@@ -955,7 +955,7 @@ public class LocalBackendBindOperation
     }
     else if (pwPolicyState.isAccountExpired())
     {
-      Message m = ERR_BIND_OPERATION_ACCOUNT_EXPIRED.get();
+      LocalizableMessage m = ERR_BIND_OPERATION_ACCOUNT_EXPIRED.get();
       pwPolicyState.generateAccountStatusNotification(
            AccountStatusNotificationType.ACCOUNT_EXPIRED, userEntry, m,
            AccountStatusNotification.createProperties(pwPolicyState,
@@ -980,7 +980,7 @@ public class LocalBackendBindOperation
         pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
       }
 
-      Message m = ERR_BIND_OPERATION_ACCOUNT_IDLE_LOCKED.get();
+      LocalizableMessage m = ERR_BIND_OPERATION_ACCOUNT_IDLE_LOCKED.get();
       pwPolicyState.generateAccountStatusNotification(
            AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED, userEntry, m,
            AccountStatusNotification.createProperties(pwPolicyState, false, -1,
@@ -1002,7 +1002,7 @@ public class LocalBackendBindOperation
           pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
         }
 
-        Message m = ERR_BIND_OPERATION_ACCOUNT_RESET_LOCKED.get();
+        LocalizableMessage m = ERR_BIND_OPERATION_ACCOUNT_RESET_LOCKED.get();
         pwPolicyState.generateAccountStatusNotification(
              AccountStatusNotificationType.ACCOUNT_RESET_LOCKED, userEntry, m,
              AccountStatusNotification.createProperties(pwPolicyState, false,
@@ -1041,7 +1041,7 @@ public class LocalBackendBindOperation
           }
           else
           {
-            Message m = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get();
+            LocalizableMessage m = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get();
 
             pwPolicyState.generateAccountStatusNotification(
                  AccountStatusNotificationType.PASSWORD_EXPIRED, userEntry, m,
@@ -1054,7 +1054,7 @@ public class LocalBackendBindOperation
         }
         else
         {
-          Message m = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get();
+          LocalizableMessage m = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get();
 
           pwPolicyState.generateAccountStatusNotification(
                AccountStatusNotificationType.PASSWORD_EXPIRED, userEntry, m,

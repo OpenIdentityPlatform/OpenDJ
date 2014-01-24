@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -40,7 +41,7 @@ import org.opends.guitools.controlpanel.event.
  ConfigurationElementCreatedListener;
 import org.opends.guitools.controlpanel.event.SchemaElementSelectionListener;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.types.AttributeType;
@@ -101,7 +102,7 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
    * @param msg the message.
    *
    */
-  public void displayMessage(Message msg)
+  public void displayMessage(LocalizableMessage msg)
   {
     schemaElementPanel = null;
     noEntryPanel.setMessage(msg);
@@ -343,7 +344,7 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_SCHEMA_BROWSER_RIGHT_PANEL_TITLE.get();
   }

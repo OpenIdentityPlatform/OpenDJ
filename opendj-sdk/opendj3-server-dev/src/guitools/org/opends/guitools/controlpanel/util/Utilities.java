@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -111,7 +111,7 @@ import org.opends.guitools.controlpanel.ui.components.
  SelectableLabelWithHelpIcon;
 import org.opends.guitools.controlpanel.ui.renderer.
  AccessibleTableHeaderRenderer;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
@@ -148,9 +148,9 @@ public class Utilities
   private static ImageIcon requiredIcon;
 
 
-  private static Message NO_VALUE_SET =
+  private static LocalizableMessage NO_VALUE_SET =
     INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
-  private static Message NOT_IMPLEMENTED =
+  private static LocalizableMessage NOT_IMPLEMENTED =
     INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
 
   /**
@@ -267,7 +267,7 @@ public class Utilities
    * @param errors the set of error messages that the dialog must display.
    */
   public static void displayErrorDialog(Component parentComponent,
-      Collection<Message> errors)
+      Collection<LocalizableMessage> errors)
   {
     /*
     ErrorPanel panel = new ErrorPanel("Error", errors);
@@ -277,7 +277,7 @@ public class Utilities
     dlg.setVisible(true);
     */
     ArrayList<String> stringErrors = new ArrayList<String>();
-    for (Message err : errors)
+    for (LocalizableMessage err : errors)
     {
       stringErrors.add(err.toString());
     }
@@ -303,7 +303,7 @@ public class Utilities
    *
    */
   public static boolean displayConfirmationDialog(Component parentComponent,
-      Message title, Message msg)
+      LocalizableMessage title, LocalizableMessage msg)
   {
     String plainText = msg.toString().replaceAll("<br>", ServerConstants.EOL);
     String wrappedText = StaticUtils.wrapText(plainText, 70);
@@ -326,7 +326,7 @@ public class Utilities
    * @param msg the message to be displayed.
    */
   public static void displayWarningDialog(Component parentComponent,
-      Message title, Message msg)
+      LocalizableMessage title, LocalizableMessage msg)
   {
     String plainText = msg.toString().replaceAll("<br>", ServerConstants.EOL);
     String wrappedText = StaticUtils.wrapText(plainText, 70);
@@ -412,7 +412,7 @@ public class Utilities
    * @param msg the message to be displayed in the titled border.
    * @return the created titled border.
    */
-  public static Border makeTitledBorder(Message msg)
+  public static Border makeTitledBorder(LocalizableMessage msg)
   {
     TitledBorder border = new TitledBorder(new EtchedBorder(),
         " "+msg+" ");
@@ -462,7 +462,7 @@ public class Utilities
    * @param text the message to be displayed by the button.
    * @return the created button.
    */
-  public static JButton createButton(Message text)
+  public static JButton createButton(LocalizableMessage text)
   {
     JButton button = new JButton(text.toString());
     button.setOpaque(false);
@@ -476,7 +476,7 @@ public class Utilities
    * @param text the message to be displayed by the radio button.
    * @return the created radio button.
    */
-  public static JRadioButton createRadioButton(Message text)
+  public static JRadioButton createRadioButton(LocalizableMessage text)
   {
     JRadioButton button = new JRadioButton(text.toString());
     button.setOpaque(false);
@@ -490,7 +490,7 @@ public class Utilities
    * @param text the message to be displayed by the check box.
    * @return the created check box.
    */
-  public static JCheckBox createCheckBox(Message text)
+  public static JCheckBox createCheckBox(LocalizableMessage text)
   {
     JCheckBox cb = new JCheckBox(text.toString());
     cb.setOpaque(false);
@@ -504,7 +504,7 @@ public class Utilities
    * @param msg the text.
    * @return a menu item with the provided text.
    */
-  public static JMenuItem createMenuItem(Message msg)
+  public static JMenuItem createMenuItem(LocalizableMessage msg)
   {
     return new JMenuItem(msg.toString());
   }
@@ -515,7 +515,7 @@ public class Utilities
    * @param description the accessible description.
    * @return a menu with the provided text.
    */
-  public static JMenu createMenu(Message msg, Message description)
+  public static JMenu createMenu(LocalizableMessage msg, LocalizableMessage description)
   {
     JMenu menu = new JMenu(msg.toString());
     menu.getAccessibleContext().setAccessibleDescription(
@@ -531,7 +531,7 @@ public class Utilities
    */
   public static JLabel createPrimaryLabel()
   {
-    return createPrimaryLabel(Message.EMPTY);
+    return createPrimaryLabel(LocalizableMessage.EMPTY);
   }
 
   /**
@@ -539,7 +539,7 @@ public class Utilities
    * @param text the message to be displayed by the label.
    * @return the label of type 'primary' (with bigger font than usual).
    */
-  public static JLabel createPrimaryLabel(Message text)
+  public static JLabel createPrimaryLabel(LocalizableMessage text)
   {
     JLabel label = new JLabel(text.toString());
     label.setFont(ColorAndFontConstants.primaryFont);
@@ -552,7 +552,7 @@ public class Utilities
    * @param text the message to be displayed by the label.
    * @return the label of type 'inline help' (with smaller font).
    */
-  public static JLabel createInlineHelpLabel(Message text)
+  public static JLabel createInlineHelpLabel(LocalizableMessage text)
   {
     JLabel label = new JLabel(text.toString());
     label.setFont(ColorAndFontConstants.inlineHelpFont);
@@ -565,7 +565,7 @@ public class Utilities
    * @param text the message to be displayed by the label.
    * @return the label of type 'title' (with bigger font).
    */
-  public static JLabel createTitleLabel(Message text)
+  public static JLabel createTitleLabel(LocalizableMessage text)
   {
     JLabel label = new JLabel(text.toString());
     label.setFont(ColorAndFontConstants.titleFont);
@@ -579,7 +579,7 @@ public class Utilities
    */
   public static JLabel createDefaultLabel()
   {
-    return createDefaultLabel(Message.EMPTY);
+    return createDefaultLabel(LocalizableMessage.EMPTY);
   }
 
   /**
@@ -587,7 +587,7 @@ public class Utilities
    * @param text the message to be displayed by the label.
    * @return the label (with default font).
    */
-  public static JLabel createDefaultLabel(Message text)
+  public static JLabel createDefaultLabel(LocalizableMessage text)
   {
     JLabel label = new JLabel(text.toString());
     label.setFont(ColorAndFontConstants.defaultFont);
@@ -655,7 +655,7 @@ public class Utilities
    * @param cols the columns of the text area.
    * @return a text area with borders similar to the ones of a text field.
    */
-  public static JTextArea createTextAreaWithBorder(Message text, int rows,
+  public static JTextArea createTextAreaWithBorder(LocalizableMessage text, int rows,
       int cols)
   {
     JTextArea ta = createTextArea(text, rows, cols);
@@ -673,7 +673,7 @@ public class Utilities
    * @param cols the columns of the text area.
    * @return a non-editable text area.
    */
-  public static JTextArea createNonEditableTextArea(Message text, int rows,
+  public static JTextArea createNonEditableTextArea(LocalizableMessage text, int rows,
       int cols)
   {
     JTextArea ta = createTextArea(text, rows, cols);
@@ -690,7 +690,7 @@ public class Utilities
    * @param cols the columns of the text area.
    * @return a text area.
    */
-  public static JTextArea createTextArea(Message text, int rows,
+  public static JTextArea createTextArea(LocalizableMessage text, int rows,
       int cols)
   {
     JTextArea ta = new JTextArea(text.toString(), rows, cols);
@@ -1011,7 +1011,7 @@ public class Utilities
    * specifying the maximum height of the image.
    */
   public static ImageIcon createImageIcon(byte[] bytes, int maxHeight,
-      Message description, boolean useFast)
+      LocalizableMessage description, boolean useFast)
   {
     ImageIcon icon = new ImageIcon(bytes, description.toString());
     if ((maxHeight > icon.getIconHeight()) || (icon.getIconHeight() <= 0))
@@ -1088,7 +1088,7 @@ public class Utilities
    * @param nCols the number of columns.
    * @return the wrapped message.
    */
-  public static Message wrapHTML(Message msg, int nCols)
+  public static LocalizableMessage wrapHTML(LocalizableMessage msg, int nCols)
   {
     String s = msg.toString();
     StringBuilder sb = new StringBuilder();
@@ -1234,7 +1234,7 @@ public class Utilities
     {
       sb.append(lastLine);
     }
-    return Message.raw(sb.toString());
+    return LocalizableMessage.raw(sb.toString());
   }
 
   private static boolean isLineBreakTag(String tag)
@@ -1670,7 +1670,7 @@ public class Utilities
    * @return the HTML representation of a message to which some points have
    * been appended.
    */
-  public static String getProgressWithPoints(Message plainText,
+  public static String getProgressWithPoints(LocalizableMessage plainText,
       Font progressFont)
   {
     return applyFont(plainText.toString(), progressFont)+
@@ -1686,8 +1686,8 @@ public class Utilities
    * @param detailsFont the font to be used for the details.
    * @return the HTML representation of an error for the given text.
    */
-  public static String getFormattedError(Message title, Font titleFont,
-      Message details, Font detailsFont)
+  public static String getFormattedError(LocalizableMessage title, Font titleFont,
+      LocalizableMessage details, Font detailsFont)
   {
     StringBuilder buf = new StringBuilder();
     buf.append(UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE))
@@ -1710,8 +1710,8 @@ public class Utilities
    * @param detailsFont the font to be used for the details.
    * @return the HTML representation of a success for the given text.
    */
-  public static String getFormattedSuccess(Message title, Font titleFont,
-      Message details, Font detailsFont)
+  public static String getFormattedSuccess(LocalizableMessage title, Font titleFont,
+      LocalizableMessage details, Font detailsFont)
   {
     StringBuilder buf = new StringBuilder();
     buf.append(UIFactory.getIconHtml(UIFactory.IconType.INFORMATION_LARGE))
@@ -1734,8 +1734,8 @@ public class Utilities
    * @param detailsFont the font to be used for the details.
    * @return the HTML representation of a confirmation for the given text.
    */
-  public static String getFormattedConfirmation(Message title, Font titleFont,
-      Message details, Font detailsFont)
+  public static String getFormattedConfirmation(LocalizableMessage title, Font titleFont,
+      LocalizableMessage details, Font detailsFont)
   {
     StringBuilder buf = new StringBuilder();
     buf.append(UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE))
@@ -1758,8 +1758,8 @@ public class Utilities
    * @param detailsFont the font to be used for the details.
    * @return the HTML representation of a success for the given text.
    */
-  public static String getFormattedWarning(Message title, Font titleFont,
-      Message details, Font detailsFont)
+  public static String getFormattedWarning(LocalizableMessage title, Font titleFont,
+      LocalizableMessage details, Font detailsFont)
   {
     StringBuilder buf = new StringBuilder();
     buf.append(UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE))
@@ -1838,7 +1838,7 @@ public class Utilities
    * @param l the label to be updated.
    * @param text the text to be set on the label.
    */
-  public static void setWarningLabel(JLabel l, Message text)
+  public static void setWarningLabel(JLabel l, LocalizableMessage text)
   {
     l.setText(text.toString());
     if (warningIcon == null)

@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.types.DN;
 
@@ -67,7 +68,7 @@ public class LogPublisherErrorHandler
   {
     if(!writeErroroccurred)
     {
-      Message msg = ERR_LOGGER_ERROR_WRITING_RECORD.get(
+      LocalizableMessage msg = ERR_LOGGER_ERROR_WRITING_RECORD.get(
               publisherConfigDN.toString(),
               stackTraceToSingleLineString(ex));
       System.err.println(msg);
@@ -83,7 +84,7 @@ public class LogPublisherErrorHandler
    */
   public void handleOpenError(File file, Throwable ex)
   {
-    Message msg = ERR_LOGGER_ERROR_OPENING_FILE.get(file.toString(),
+    LocalizableMessage msg = ERR_LOGGER_ERROR_OPENING_FILE.get(file.toString(),
                             publisherConfigDN.toString(),
                             stackTraceToSingleLineString(ex));
     System.err.println(msg);
@@ -96,7 +97,7 @@ public class LogPublisherErrorHandler
    */
   public void handleCloseError(Throwable ex)
   {
-    Message msg = ERR_LOGGER_ERROR_CLOSING_FILE.get(
+    LocalizableMessage msg = ERR_LOGGER_ERROR_CLOSING_FILE.get(
             publisherConfigDN.toString(),
             stackTraceToSingleLineString(ex));
     System.err.println(msg);
@@ -109,7 +110,7 @@ public class LogPublisherErrorHandler
    */
   public void handleFlushError(Throwable ex)
   {
-    Message msg = ERR_LOGGER_ERROR_FLUSHING_BUFFER.get(
+    LocalizableMessage msg = ERR_LOGGER_ERROR_FLUSHING_BUFFER.get(
             publisherConfigDN.toString(),
             stackTraceToSingleLineString(ex));
     System.err.println(msg);
@@ -124,7 +125,7 @@ public class LogPublisherErrorHandler
    */
   public void handleDeleteError(RetentionPolicy retentionPolicy, Throwable ex)
   {
-    Message msg = ERR_LOGGER_ERROR_ENFORCING_RETENTION_POLICY.get(
+    LocalizableMessage msg = ERR_LOGGER_ERROR_ENFORCING_RETENTION_POLICY.get(
             retentionPolicy.toString(), publisherConfigDN.toString(),
             stackTraceToSingleLineString(ex));
     System.err.println(msg);

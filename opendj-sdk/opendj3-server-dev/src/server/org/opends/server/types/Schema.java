@@ -27,6 +27,7 @@
 package org.opends.server.types;
 
 import org.forgerock.opendj.ldap.ByteString;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,7 +40,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -51,6 +52,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.CaseIgnoreEqualityMatchingRule;
+import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.CoreMessages.*;
@@ -399,7 +401,7 @@ public final class Schema
         {
           AttributeType conflictingType = attributeTypes.get(oid);
 
-          Message message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_OID.
+          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_OID.
               get(attributeType.getNameOrOID(), oid,
                   conflictingType.getNameOrOID());
           throw new DirectoryException(
@@ -412,7 +414,7 @@ public final class Schema
           {
             AttributeType conflictingType = attributeTypes.get(name);
 
-            Message message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_NAME.
+            LocalizableMessage message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_NAME.
                 get(attributeType.getNameOrOID(), name,
                     conflictingType.getNameOrOID());
             throw new DirectoryException(
@@ -697,7 +699,7 @@ public final class Schema
         {
           ObjectClass conflictingClass = objectClasses.get(oid);
 
-          Message message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID.
+          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID.
               get(objectClass.getNameOrOID(), oid,
                   conflictingClass.getNameOrOID());
           throw new DirectoryException(
@@ -710,7 +712,7 @@ public final class Schema
           {
             ObjectClass conflictingClass = objectClasses.get(name);
 
-            Message message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_NAME.
+            LocalizableMessage message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_NAME.
                 get(objectClass.getNameOrOID(), name,
                     conflictingClass.getNameOrOID());
             throw new DirectoryException(
@@ -887,7 +889,7 @@ public final class Schema
         {
           AttributeSyntax<?> conflictingSyntax = syntaxes.get(oid);
 
-          Message message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.
+          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.
               get(syntax.getSyntaxName(), oid,
                   conflictingSyntax.getSyntaxName());
           throw new DirectoryException(
@@ -1037,7 +1039,7 @@ public final class Schema
       {
         if (ldapSyntaxDescriptions.containsKey(oid))
         {
-           Message message =
+           LocalizableMessage message =
             ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_LDAP_SYNTAX.
               get(oid);
           throw new DirectoryException(
@@ -1210,7 +1212,7 @@ public final class Schema
           {
             MatchingRule conflictingRule = matchingRules.get(oid);
 
-            Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+            LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.
                 get(matchingRule.getNameOrOID(), oid,
                     conflictingRule.getNameOrOID());
             throw new DirectoryException(
@@ -1227,7 +1229,7 @@ public final class Schema
                 MatchingRule conflictingRule =
                         matchingRules.get(name);
 
-                Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+                LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_NAME.
                     get(matchingRule.getOID(), name,
                         conflictingRule.getOID());
                 throw new DirectoryException(
@@ -1403,7 +1405,7 @@ public final class Schema
         {
           MatchingRule conflictingRule = matchingRules.get(oid);
 
-          Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.
               get(matchingRule.getNameOrOID(), oid,
                   conflictingRule.getNameOrOID());
           throw new DirectoryException(
@@ -1419,7 +1421,7 @@ public final class Schema
           {
             MatchingRule conflictingRule = matchingRules.get(name);
 
-            Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+            LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_NAME.
                 get(matchingRule.getOID(), name,
                     conflictingRule.getOID());
             throw new DirectoryException(
@@ -1575,7 +1577,7 @@ public final class Schema
         {
           MatchingRule conflictingRule = matchingRules.get(oid);
 
-          Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.
               get(matchingRule.getNameOrOID(), oid,
                   conflictingRule.getNameOrOID());
           throw new DirectoryException(
@@ -1592,7 +1594,7 @@ public final class Schema
                 MatchingRule conflictingRule =
                         matchingRules.get(name);
 
-                Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+                LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_NAME.
                     get(matchingRule.getOID(), name,
                         conflictingRule.getOID());
                 throw new DirectoryException(
@@ -1750,7 +1752,7 @@ public final class Schema
         {
           MatchingRule conflictingRule = matchingRules.get(oid);
 
-          Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.
               get(matchingRule.getNameOrOID(), oid,
                   conflictingRule.getNameOrOID());
           throw new DirectoryException(
@@ -1766,7 +1768,7 @@ public final class Schema
             {
               MatchingRule conflictingRule = matchingRules.get(name);
 
-              Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+              LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_NAME.
                   get(matchingRule.getOID(), name,
                       conflictingRule.getOID());
               throw new DirectoryException(
@@ -1923,7 +1925,7 @@ public final class Schema
         {
           MatchingRule conflictingRule = matchingRules.get(oid);
 
-          Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.
               get(matchingRule.getNameOrOID(), oid,
                   conflictingRule.getNameOrOID());
           throw new DirectoryException(
@@ -1939,7 +1941,7 @@ public final class Schema
             {
               MatchingRule conflictingRule = matchingRules.get(name);
 
-              Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+              LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_NAME.
                   get(matchingRule.getOID(), name,
                       conflictingRule.getOID());
               throw new DirectoryException(
@@ -2103,7 +2105,7 @@ public final class Schema
         {
           MatchingRule conflictingRule = matchingRules.get(oid);
 
-          Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.
               get(matchingRule.getNameOrOID(), oid,
                   conflictingRule.getNameOrOID());
           throw new DirectoryException(
@@ -2119,7 +2121,7 @@ public final class Schema
           {
             MatchingRule conflictingRule = matchingRules.get(name);
 
-            Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+            LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_NAME.
                 get(matchingRule.getOID(), name,
                     conflictingRule.getOID());
             throw new DirectoryException(
@@ -2303,7 +2305,7 @@ public final class Schema
           MatchingRuleUse conflictingUse =
                                matchingRuleUses.get(matchingRule);
 
-          Message message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE.
+          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE.
               get(matchingRuleUse.getName(),
                   matchingRule.getNameOrOID(),
                   conflictingUse.getName());
@@ -2464,7 +2466,7 @@ public final class Schema
           DITContentRule conflictingRule =
                               ditContentRules.get(objectClass);
 
-          Message message = ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE.
+          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE.
               get(ditContentRule.getName(),
                   objectClass.getNameOrOID(),
                   conflictingRule.getName());
@@ -2678,7 +2680,7 @@ public final class Schema
           DITStructureRule conflictingRule =
                ditStructureRulesByNameForm.get(nameForm);
 
-          Message message =
+          LocalizableMessage message =
               ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_NAME_FORM.
                 get(ditStructureRule.getNameOrRuleID(),
                     nameForm.getNameOrOID(),
@@ -2692,7 +2694,7 @@ public final class Schema
           DITStructureRule conflictingRule =
                ditStructureRulesByID.get(ruleID);
 
-          Message message =
+          LocalizableMessage message =
               ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID.
                 get(ditStructureRule.getNameOrRuleID(), ruleID,
                     conflictingRule.getNameOrRuleID());
@@ -2906,7 +2908,7 @@ public final class Schema
           {
             if(nf.equals(nameForm))
             {
-              Message message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OC.
+              LocalizableMessage message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OC.
                 get(nameForm.getNameOrOID(),
                     objectClass.getNameOrOID(),
                     nf.getNameOrOID());
@@ -2921,7 +2923,7 @@ public final class Schema
         {
           NameForm conflictingNameForm = nameFormsByName.get(oid);
 
-          Message message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OID.
+          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OID.
               get(nameForm.getNameOrOID(), oid,
                   conflictingNameForm.getNameOrOID());
           throw new DirectoryException(
@@ -2934,7 +2936,7 @@ public final class Schema
           {
             NameForm conflictingNameForm = nameFormsByName.get(name);
 
-            Message message = ERR_SCHEMA_CONFLICTING_NAME_FORM_NAME.
+            LocalizableMessage message = ERR_SCHEMA_CONFLICTING_NAME_FORM_NAME.
                 get(nameForm.getNameOrOID(), oid,
                     conflictingNameForm.getNameOrOID());
             throw new DirectoryException(
@@ -3140,10 +3142,10 @@ public final class Schema
       // If we got an error as a result of a circular reference, then
       // we want to make sure that the schema element we call out is
       // the one that is at the root of the problem.
-      if (de.getMessageObject().getDescriptor().equals(
+      if (StaticUtils.hasDescriptor(de.getMessageObject(),
           ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE))
       {
-        Message message = ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.
+        LocalizableMessage message = ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.
             get(element.getDefinition());
         throw new DirectoryException(de.getResultCode(), message,
                                      de);
@@ -3178,7 +3180,7 @@ public final class Schema
     {
       // FIXME -- Is this an appropriate maximum depth for detecting
       // circular references?
-      Message message = ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.get(
+      LocalizableMessage message = ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.get(
           element.getDefinition());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                    message);

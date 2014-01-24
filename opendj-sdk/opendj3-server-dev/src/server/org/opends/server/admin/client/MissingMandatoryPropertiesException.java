@@ -35,8 +35,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.PropertyException;
 import org.forgerock.util.Reject;
@@ -58,7 +58,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
 
 
   // Create the message.
-  private static Message createMessage(Collection<PropertyException> causes)
+  private static LocalizableMessage createMessage(Collection<PropertyException> causes)
   {
     Reject.ifNull(causes);
     Reject.ifFalse(!causes.isEmpty());
@@ -67,7 +67,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
       return ERR_MISSING_MANDATORY_PROPERTIES_EXCEPTION_SINGLE.get(causes
           .iterator().next().getPropertyDefinition().getName());
     } else {
-      MessageBuilder builder = new MessageBuilder();
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
       boolean isFirst = true;
       for (PropertyException cause : causes) {
@@ -92,7 +92,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
 
   // The user friendly name of the component that caused this
   // exception.
-  private final Message ufn;
+  private final LocalizableMessage ufn;
 
 
 
@@ -110,7 +110,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
    *          Indicates whether the exception occurred during managed
    *          object creation.
    */
-  public MissingMandatoryPropertiesException(Message ufn,
+  public MissingMandatoryPropertiesException(LocalizableMessage ufn,
       Collection<PropertyException> causes, boolean isCreate) {
     super(createMessage(causes));
 
@@ -153,7 +153,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
    * @return Returns the user friendly name of the component that
    *         caused this exception.
    */
-  public Message getUserFriendlyName() {
+  public LocalizableMessage getUserFriendlyName() {
     return ufn;
   }
 

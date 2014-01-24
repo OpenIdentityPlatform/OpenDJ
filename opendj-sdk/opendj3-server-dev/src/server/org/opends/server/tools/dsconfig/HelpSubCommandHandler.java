@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -44,8 +44,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AdministratorAction;
@@ -100,12 +100,12 @@ final class HelpSubCommandHandler extends SubCommandHandler {
      *          The property type.
      */
     private static class DefaultVisitor<T> implements
-        DefaultBehaviorProviderVisitor<T, Message, PropertyDefinition<T>> {
+        DefaultBehaviorProviderVisitor<T, LocalizableMessage, PropertyDefinition<T>> {
 
       /**
        * {@inheritDoc}
        */
-      public Message visitAbsoluteInherited(
+      public LocalizableMessage visitAbsoluteInherited(
           AbsoluteInheritedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
         return INFO_DSCFG_HELP_FIELD_INHERITED_ABS.get(d.getPropertyName(), d
@@ -118,7 +118,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       /**
        * {@inheritDoc}
        */
-      public Message visitAlias(AliasDefaultBehaviorProvider<T> d,
+      public LocalizableMessage visitAlias(AliasDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
         return d.getSynopsis();
       }
@@ -128,9 +128,9 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       /**
        * {@inheritDoc}
        */
-      public Message visitDefined(DefinedDefaultBehaviorProvider<T> d,
+      public LocalizableMessage visitDefined(DefinedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
-        MessageBuilder builder = new MessageBuilder();
+        LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
         PropertyValuePrinter printer = new PropertyValuePrinter(null, null,
             false);
         boolean isFirst = true;
@@ -151,7 +151,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       /**
        * {@inheritDoc}
        */
-      public Message visitRelativeInherited(
+      public LocalizableMessage visitRelativeInherited(
           RelativeInheritedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
         if (d.getRelativeOffset() == 0) {
@@ -169,7 +169,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       /**
        * {@inheritDoc}
        */
-      public Message visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
+      public LocalizableMessage visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
         return INFO_DSCFG_HELP_FIELD_UNDEFINED.get();
       }
@@ -198,7 +198,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
      * @return Returns the user-friendly description of a property's
      *         default behavior.
      */
-    public <T> Message print(PropertyDefinition<T> pd) {
+    public <T> LocalizableMessage print(PropertyDefinition<T> pd) {
       DefaultVisitor<T> v = new DefaultVisitor<T>();
       return pd.getDefaultBehaviorProvider().accept(v, pd);
     }
@@ -316,7 +316,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
       // Common usage.
-      private void displayUsage(PrintStream p, Message usage) {
+      private void displayUsage(PrintStream p, LocalizableMessage usage) {
         TableBuilder builder = new TableBuilder();
         builder.startRow();
         builder.appendCell(INFO_DSCFG_HELP_HEADING_SYNTAX.get());
@@ -590,7 +590,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     // Administrator action.
     AdministratorAction action = pd.getAdministratorAction();
-    Message synopsis = action.getSynopsis();
+    LocalizableMessage synopsis = action.getSynopsis();
     if (synopsis == null) {
       switch (action.getType()) {
       case COMPONENT_RESTART:
@@ -616,32 +616,32 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
   // Displays the property option summary key.
   private static void displayPropertyOptionKey(ConsoleApplication app) {
-    MessageBuilder builder;
+    LocalizableMessageBuilder builder;
 
     app.println(INFO_DSCFG_HELP_DESCRIPTION_OPTION.get());
     app.println();
 
-    builder = new MessageBuilder();
+    builder = new LocalizableMessageBuilder();
     builder.append(" r -- ");
     builder.append(INFO_DSCFG_HELP_DESCRIPTION_READ.get());
     app.println(builder.toMessage());
 
-    builder = new MessageBuilder();
+    builder = new LocalizableMessageBuilder();
     builder.append(" w -- ");
     builder.append(INFO_DSCFG_HELP_DESCRIPTION_WRITE.get());
     app.println(builder.toMessage());
 
-    builder = new MessageBuilder();
+    builder = new LocalizableMessageBuilder();
     builder.append(" m -- ");
     builder.append(INFO_DSCFG_HELP_DESCRIPTION_MANDATORY.get());
     app.println(builder.toMessage());
 
-    builder = new MessageBuilder();
+    builder = new LocalizableMessageBuilder();
     builder.append(" s -- ");
     builder.append(INFO_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED.get());
     app.println(builder.toMessage());
 
-    builder = new MessageBuilder();
+    builder = new LocalizableMessageBuilder();
     builder.append(" a -- ");
     builder.append(INFO_DSCFG_HELP_DESCRIPTION_ADMIN_ACTION.get());
     app.println(builder.toMessage());
@@ -713,7 +713,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       throws ArgumentException {
     // Create the sub-command.
     String name = "list-properties";
-    Message desc = INFO_DSCFG_DESCRIPTION_SUBCMD_HELPPROP.get();
+    LocalizableMessage desc = INFO_DSCFG_DESCRIPTION_SUBCMD_HELPPROP.get();
     this.subCommand = new SubCommand(parser, name, false, 0, 0, null, desc);
 
     this.categoryArgument = new StringArgument(OPTION_DSCFG_LONG_CATEGORY,
@@ -1055,19 +1055,19 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   private void displayVerbose(ConsoleApplication app, String categoryName,
       String typeName, Tag tag, Set<String> propertyNames) {
     // Construct line used to separate consecutive sections.
-    MessageBuilder mb;
+    LocalizableMessageBuilder mb;
 
-    mb = new MessageBuilder();
+    mb = new LocalizableMessageBuilder();
     for (int i = 0; i < MAX_LINE_WIDTH; i++) {
       mb.append('=');
     }
-    Message c1 = mb.toMessage();
+    LocalizableMessage c1 = mb.toMessage();
 
-    mb = new MessageBuilder();
+    mb = new LocalizableMessageBuilder();
     for (int i = 0; i < MAX_LINE_WIDTH; i++) {
       mb.append('-');
     }
-    Message c2 = mb.toMessage();
+    LocalizableMessage c2 = mb.toMessage();
 
     // Display help for each managed object.
     boolean isFirstManagedObject = true;

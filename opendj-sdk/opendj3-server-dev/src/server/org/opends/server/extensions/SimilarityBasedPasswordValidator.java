@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.List;
 import java.util.Set;
@@ -39,7 +39,7 @@ import org.opends.server.admin.std.server.SimilarityBasedPasswordValidatorCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 
 import static org.opends.messages.ExtensionMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -98,7 +98,7 @@ public class SimilarityBasedPasswordValidator extends
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      MessageBuilder invalidReason)  {
+                                      LocalizableMessageBuilder invalidReason)  {
 
     int minDifference = currentConfig.getMinPasswordDifference();
     ByteString passwd = newPassword == null
@@ -136,7 +136,7 @@ public class SimilarityBasedPasswordValidator extends
    */
   public boolean isConfigurationChangeAcceptable(
                       SimilarityBasedPasswordValidatorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }

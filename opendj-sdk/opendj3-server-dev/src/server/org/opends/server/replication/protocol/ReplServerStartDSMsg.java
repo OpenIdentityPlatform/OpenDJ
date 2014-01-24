@@ -34,7 +34,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
 /**
- * Message sent by a replication server to a directory server in reply to the
+ * LocalizableMessage sent by a replication server to a directory server in reply to the
  * ServerStartMsg.
  */
 public class ReplServerStartDSMsg extends StartMsg

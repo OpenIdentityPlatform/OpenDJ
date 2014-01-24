@@ -29,7 +29,7 @@ package org.opends.server.plugins;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PluginCfg;
@@ -127,7 +127,7 @@ public class UniqueAttributePlugin
           break;
 
         default:
-          Message message =
+          LocalizableMessage message =
                   ERR_PLUGIN_UNIQUEATTR_INVALID_PLUGIN_TYPE.get(t.toString());
           throw new ConfigException(message);
 
@@ -325,7 +325,7 @@ public class UniqueAttributePlugin
         {
           uniqueAttrValue2Dn.remove(v2);
         }
-        Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
+        LocalizableMessage msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
             t.getNameOrOID(), v.getValue().toString(),
             conflictDN.toString());
         return PluginResult.PreOperation.stopProcessing(
@@ -339,7 +339,7 @@ public class UniqueAttributePlugin
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR.get(
                              de.getResultCode().toString(),
                              de.getMessageObject());
@@ -558,7 +558,7 @@ public class UniqueAttributePlugin
       }
       if (conflictDN != null)
       {
-        Message message = ERR_PLUGIN_UNIQUEATTR_SYNC_NOT_UNIQUE.get(
+        LocalizableMessage message = ERR_PLUGIN_UNIQUEATTR_SYNC_NOT_UNIQUE.get(
                                t.getNameOrOID(),
                                operation.getConnectionID(),
                                operation.getOperationID(),
@@ -577,7 +577,7 @@ public class UniqueAttributePlugin
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
-      Message message = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR_SYNC.get(
+      LocalizableMessage message = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR_SYNC.get(
                             operation.getConnectionID(),
                             operation.getOperationID(),
                             updatedEntryDN.toString(),
@@ -706,7 +706,7 @@ public class UniqueAttributePlugin
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     UniqueAttributePluginCfg cfg = (UniqueAttributePluginCfg) configuration;
     return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
@@ -720,7 +720,7 @@ public class UniqueAttributePlugin
   @Override
   public boolean isConfigurationChangeAcceptable(
                       UniqueAttributePluginCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -741,7 +741,7 @@ public class UniqueAttributePlugin
           break;
 
         default:
-          Message message = ERR_PLUGIN_UNIQUEATTR_INVALID_PLUGIN_TYPE.get(
+          LocalizableMessage message = ERR_PLUGIN_UNIQUEATTR_INVALID_PLUGIN_TYPE.get(
                                  pluginType.toString());
           unacceptableReasons.add(message);
           configAcceptable = false;

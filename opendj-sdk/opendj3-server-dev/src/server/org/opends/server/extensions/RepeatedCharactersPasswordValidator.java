@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -40,7 +40,7 @@ import org.opends.server.api.PasswordValidator;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -102,7 +102,7 @@ public class RepeatedCharactersPasswordValidator
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      MessageBuilder invalidReason)
+                                      LocalizableMessageBuilder invalidReason)
   {
     // Get a handle to the current configuration and see if we need to count
     // the number of repeated characters in the password.
@@ -140,7 +140,7 @@ public class RepeatedCharactersPasswordValidator
         consecutiveCount++;
         if (consecutiveCount > maxRepeats)
         {
-          Message message =
+          LocalizableMessage message =
                   ERR_REPEATEDCHARS_VALIDATOR_TOO_MANY_CONSECUTIVE.get(
                           maxRepeats);
           invalidReason.append(message);
@@ -164,7 +164,7 @@ public class RepeatedCharactersPasswordValidator
    */
   public boolean isConfigurationChangeAcceptable(
                       RepeatedCharactersPasswordValidatorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // All of the necessary validation should have been performed automatically,
     // so if we get to this point then the new configuration will be acceptable.
@@ -181,7 +181,7 @@ public class RepeatedCharactersPasswordValidator
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     // For this password validator, we will always be able to successfully apply
     // the new configuration.

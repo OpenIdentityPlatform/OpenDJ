@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -126,12 +126,12 @@ public class VirtualAttributeConfigManager
           VirtualAttributeProvider<? extends VirtualAttributeCfg> provider =
                loadProvider(className, cfg, true);
 
-          Map<Message, DirectoryException> reasons =
-              new LinkedHashMap<Message, DirectoryException>();
+          Map<LocalizableMessage, DirectoryException> reasons =
+              new LinkedHashMap<LocalizableMessage, DirectoryException>();
           Set<SearchFilter> filters = buildFilters(cfg, reasons);
           if (!reasons.isEmpty())
           {
-            Entry<Message, DirectoryException> entry =
+            Entry<LocalizableMessage, DirectoryException> entry =
                 reasons.entrySet().iterator().next();
             throw new ConfigException(entry.getKey(), entry.getValue());
           }
@@ -140,7 +140,7 @@ public class VirtualAttributeConfigManager
           {
             if (provider.isMultiValued())
             {
-              Message message = ERR_CONFIG_VATTR_SV_TYPE_WITH_MV_PROVIDER.
+              LocalizableMessage message = ERR_CONFIG_VATTR_SV_TYPE_WITH_MV_PROVIDER.
                   get(String.valueOf(cfg.dn()),
                       cfg.getAttributeType().getNameOrOID(), className);
               throw new ConfigException(message);
@@ -149,7 +149,7 @@ public class VirtualAttributeConfigManager
                      VirtualAttributeCfgDefn.ConflictBehavior.
                           MERGE_REAL_AND_VIRTUAL)
             {
-              Message message = ERR_CONFIG_VATTR_SV_TYPE_WITH_MERGE_VALUES.
+              LocalizableMessage message = ERR_CONFIG_VATTR_SV_TYPE_WITH_MERGE_VALUES.
                   get(String.valueOf(cfg.dn()),
                       cfg.getAttributeType().getNameOrOID());
               throw new ConfigException(message);
@@ -184,7 +184,7 @@ public class VirtualAttributeConfigManager
   @Override
   public boolean isConfigurationAddAcceptable(
                       VirtualAttributeCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -208,7 +208,7 @@ public class VirtualAttributeConfigManager
   }
 
   private Set<SearchFilter> buildFilters(VirtualAttributeCfg cfg,
-      Map<Message, DirectoryException> unacceptableReasons)
+      Map<LocalizableMessage, DirectoryException> unacceptableReasons)
   {
     Set<SearchFilter> filters = new LinkedHashSet<SearchFilter>();
     for (String filterString : cfg.getFilter())
@@ -224,7 +224,7 @@ public class VirtualAttributeConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        Message message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
+        LocalizableMessage message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
                 filterString,
                 String.valueOf(cfg.dn()),
                 de.getMessageObject());
@@ -241,7 +241,7 @@ public class VirtualAttributeConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    List<Message>     messages            = new ArrayList<Message>();
+    List<LocalizableMessage>     messages            = new ArrayList<LocalizableMessage>();
 
     configuration.addChangeListener(this);
 
@@ -251,8 +251,8 @@ public class VirtualAttributeConfigManager
     }
 
     // Make sure that we can parse all of the search filters.
-    Map<Message, DirectoryException> reasons =
-        new LinkedHashMap<Message, DirectoryException>();
+    Map<LocalizableMessage, DirectoryException> reasons =
+        new LinkedHashMap<LocalizableMessage, DirectoryException>();
     Set<SearchFilter> filters = buildFilters(configuration, reasons);
     if (!reasons.isEmpty())
     {
@@ -293,7 +293,7 @@ public class VirtualAttributeConfigManager
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       VirtualAttributeCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // We will always allow getting rid of a virtual attribute rule.
     return true;
@@ -306,7 +306,7 @@ public class VirtualAttributeConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    List<Message>     messages            = new ArrayList<Message>();
+    List<LocalizableMessage>     messages            = new ArrayList<LocalizableMessage>();
 
     VirtualAttributeRule rule = rules.remove(configuration.dn());
     if (rule != null)
@@ -321,7 +321,7 @@ public class VirtualAttributeConfigManager
   @Override
   public boolean isConfigurationChangeAcceptable(
                       VirtualAttributeCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -345,10 +345,10 @@ public class VirtualAttributeConfigManager
   }
 
   private boolean areFiltersAcceptable(VirtualAttributeCfg cfg,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
-    Map<Message, DirectoryException> reasons =
-        new LinkedHashMap<Message, DirectoryException>();
+    Map<LocalizableMessage, DirectoryException> reasons =
+        new LinkedHashMap<LocalizableMessage, DirectoryException>();
     buildFilters(cfg, reasons);
     if (!reasons.isEmpty())
     {
@@ -365,7 +365,7 @@ public class VirtualAttributeConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    List<Message>     messages            = new ArrayList<Message>();
+    List<LocalizableMessage>     messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the existing rule if it's already enabled.
@@ -387,8 +387,8 @@ public class VirtualAttributeConfigManager
 
 
     // Make sure that we can parse all of the search filters.
-    Map<Message, DirectoryException> reasons =
-        new LinkedHashMap<Message, DirectoryException>();
+    Map<LocalizableMessage, DirectoryException> reasons =
+        new LinkedHashMap<LocalizableMessage, DirectoryException>();
     Set<SearchFilter> filters = buildFilters(configuration, reasons);
     if (!reasons.isEmpty())
     {
@@ -471,11 +471,11 @@ public class VirtualAttributeConfigManager
       }
       else
       {
-        List<Message> unacceptableReasons = new ArrayList<Message>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         if (!provider.isConfigurationAcceptable(cfg, unacceptableReasons))
         {
           String reasons = collectionToString(unacceptableReasons, ".  ");
-          Message message = ERR_CONFIG_VATTR_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_VATTR_CONFIG_NOT_ACCEPTABLE.get(
               String.valueOf(cfg.dn()), reasons);
           throw new InitializationException(message);
         }
@@ -485,7 +485,7 @@ public class VirtualAttributeConfigManager
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_VATTR_INITIALIZATION_FAILED.
+      LocalizableMessage message = ERR_CONFIG_VATTR_INITIALIZATION_FAILED.
           get(className, String.valueOf(cfg.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);

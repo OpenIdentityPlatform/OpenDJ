@@ -31,7 +31,7 @@ import static org.testng.Assert.*;
 
 import java.util.LinkedList;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.LDAPModify;
@@ -57,7 +57,7 @@ public class EntrySchemaCheckingTestCase
   {
     try
     {
-      MessageBuilder invalidReason = new MessageBuilder();
+      LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       DirectoryServer.setSingleStructuralObjectClassPolicy(REJECT);
       assertFalse(e.conformsToSchema(null, false, true, true, invalidReason),
                   "Entry validation succeeded with REJECT policy");
@@ -96,7 +96,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: domain",
          "dc: example");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, true, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -122,7 +122,7 @@ public class EntrySchemaCheckingTestCase
          "dc: example",
          "o: Example Org");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, true, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -198,7 +198,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test");
 
     assertFalse(e.conformsToSchema(null, false, true, true,
-                                   new MessageBuilder()));
+                                   new LocalizableMessageBuilder()));
   }
 
 
@@ -223,7 +223,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test");
 
     assertFalse(e.conformsToSchema(null, false, true, true,
-                                   new MessageBuilder()));
+                                   new LocalizableMessageBuilder()));
   }
 
 
@@ -267,7 +267,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test");
 
     assertFalse(e.conformsToSchema(null, false, true, true,
-                                   new MessageBuilder()));
+                                   new LocalizableMessageBuilder()));
   }
 
 
@@ -312,7 +312,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test");
 
     assertFalse(e.conformsToSchema(null, false, true, true,
-                                   new MessageBuilder()));
+                                   new LocalizableMessageBuilder()));
   }
 
 
@@ -356,7 +356,7 @@ public class EntrySchemaCheckingTestCase
          "description: foo");
 
     assertFalse(e.conformsToSchema(null, false, true, true,
-                                   new MessageBuilder()));
+                                   new LocalizableMessageBuilder()));
   }
 
 
@@ -378,7 +378,7 @@ public class EntrySchemaCheckingTestCase
          "o: test",
          "o: foo");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, true, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -406,7 +406,7 @@ public class EntrySchemaCheckingTestCase
     e.addAttribute(Attributes.create("dc", "foo"),
                    new LinkedList<AttributeValue>());
 
-    assertFalse(e.conformsToSchema(null, false, true, true, new MessageBuilder()));
+    assertFalse(e.conformsToSchema(null, false, true, true, new LocalizableMessageBuilder()));
   }
 
 
@@ -439,7 +439,7 @@ public class EntrySchemaCheckingTestCase
     builder.add("cn=Another User");
     e.addAttribute(builder.toAttribute(), new LinkedList<AttributeValue>());
 
-    assertFalse(e.conformsToSchema(null, false, true, true, new MessageBuilder()));
+    assertFalse(e.conformsToSchema(null, false, true, true, new LocalizableMessageBuilder()));
   }
 
 
@@ -491,7 +491,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: testAuxiliaryClassAllowedByDCROCAux",
          "cn: test");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -595,7 +595,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test",
          "description: foo");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -694,7 +694,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: testDontRequireATRequiredByObsoleteDCROC",
          "cn: test");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -745,7 +745,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test",
          "description: foo");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -796,7 +796,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: testDontRequireATAllowedByDCROC",
          "cn: test");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -896,7 +896,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: testSatisfiesSingleValuedNameFormOC",
          "cn: test");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -1048,7 +1048,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test",
          "description: foo");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -1102,7 +1102,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test",
          "description: foo");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -1207,7 +1207,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test",
          "description: foo");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -1260,7 +1260,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test",
          "description: foo");
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -1400,7 +1400,7 @@ public class EntrySchemaCheckingTestCase
 
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
 
@@ -1418,7 +1418,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: top",
          "objectClass: device",
          "cn: invalid entry below parent covered by DSR");
-    invalidReason = new MessageBuilder();
+    invalidReason = new LocalizableMessageBuilder();
     failOnlyForStrictEvaluation(e);
   }
 
@@ -1449,7 +1449,7 @@ public class EntrySchemaCheckingTestCase
     e.addAttribute(Attributes.create("name", "foo"),
                    new LinkedList<AttributeValue>());
 
-    assertFalse(e.conformsToSchema(null, false, true, true, new MessageBuilder()));
+    assertFalse(e.conformsToSchema(null, false, true, true, new LocalizableMessageBuilder()));
   }
 }
 

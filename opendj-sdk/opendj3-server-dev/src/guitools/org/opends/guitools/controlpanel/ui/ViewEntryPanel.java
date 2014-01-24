@@ -51,7 +51,7 @@ import org.opends.guitools.controlpanel.event.LDAPEntryChangedEvent;
 import org.opends.guitools.controlpanel.event.LDAPEntryChangedListener;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.schema.SchemaConstants;
@@ -385,7 +385,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EDIT_LDAP_ENTRY_TITLE.get();
   }

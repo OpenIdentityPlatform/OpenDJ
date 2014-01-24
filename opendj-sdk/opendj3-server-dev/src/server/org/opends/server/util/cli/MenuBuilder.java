@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.cli;
 
@@ -38,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TablePrinter;
 import org.opends.server.util.table.TextTablePrinter;
@@ -130,7 +131,7 @@ public final class MenuBuilder<T> {
     private final MenuCallback<T> defaultCallback;
 
     // The description of the optional default action.
-    private final Message defaultDescription;
+    private final LocalizableMessage defaultDescription;
 
     // The numeric options table builder.
     private final TableBuilder nbuilder;
@@ -139,20 +140,20 @@ public final class MenuBuilder<T> {
     private final TablePrinter printer;
 
     // The menu prompt.
-    private final Message prompt;
+    private final LocalizableMessage prompt;
 
     // The menu title.
-    private final Message title;
+    private final LocalizableMessage title;
 
     // The maximum number of times we display the menu if the user provides
     // bad input (-1 for unlimited).
     private int nMaxTries;
 
     // Private constructor.
-    private MenuImpl(ConsoleApplication app, Message title, Message prompt,
+    private MenuImpl(ConsoleApplication app, LocalizableMessage title, LocalizableMessage prompt,
         TableBuilder ntable, TableBuilder ctable, TablePrinter printer,
         Map<String, MenuCallback<T>> callbacks, boolean allowMultiSelect,
-        MenuCallback<T> defaultCallback, Message defaultDescription,
+        MenuCallback<T> defaultCallback, LocalizableMessage defaultDescription,
         int nMaxTries) {
       this.app = app;
       this.title = title;
@@ -232,7 +233,7 @@ public final class MenuBuilder<T> {
       };
 
       // Determine the correct choice prompt.
-      Message promptMsg;
+      LocalizableMessage promptMsg;
       if (allowMultiSelect) {
         if (defaultDescription != null) {
           promptMsg = INFO_MENU_PROMPT_MULTI_DEFAULT.get(defaultDescription);
@@ -352,13 +353,13 @@ public final class MenuBuilder<T> {
     new ArrayList<MenuCallback<T>>();
 
   // The char option keys (must be single-character messages).
-  private final List<Message> charKeys = new ArrayList<Message>();
+  private final List<LocalizableMessage> charKeys = new ArrayList<LocalizableMessage>();
 
   // The synopsis of char options.
-  private final List<Message> charSynopsis = new ArrayList<Message>();
+  private final List<LocalizableMessage> charSynopsis = new ArrayList<LocalizableMessage>();
 
   // Optional column headings.
-  private final List<Message> columnHeadings = new ArrayList<Message>();
+  private final List<LocalizableMessage> columnHeadings = new ArrayList<LocalizableMessage>();
 
   // Optional column widths.
   private final List<Integer> columnWidths = new ArrayList<Integer>();
@@ -367,21 +368,21 @@ public final class MenuBuilder<T> {
   private MenuCallback<T> defaultCallback = null;
 
   // The description of the optional default action.
-  private Message defaultDescription = null;
+  private LocalizableMessage defaultDescription = null;
 
   // The numeric option call-backs.
   private final List<MenuCallback<T>> numericCallbacks =
     new ArrayList<MenuCallback<T>>();
 
   // The numeric option fields.
-  private final List<List<Message>> numericFields =
-    new ArrayList<List<Message>>();
+  private final List<List<LocalizableMessage>> numericFields =
+    new ArrayList<List<LocalizableMessage>>();
 
   // The menu title.
-  private Message title = null;
+  private LocalizableMessage title = null;
 
   // The menu prompt.
-  private Message prompt = null;
+  private LocalizableMessage prompt = null;
 
   // The maximum number of times that we allow the user to provide an invalid
   // answer (-1 if unlimited).
@@ -449,7 +450,7 @@ public final class MenuBuilder<T> {
    * @param callback
    *          The call-back associated with this option.
    */
-  public void addCharOption(Message c, Message description,
+  public void addCharOption(LocalizableMessage c, LocalizableMessage description,
       MenuCallback<T> callback) {
     charKeys.add(c);
     charSynopsis.add(description);
@@ -471,7 +472,7 @@ public final class MenuBuilder<T> {
    *          The menu result which should be returned by this menu
    *          choice.
    */
-  public void addCharOption(Message c, Message description,
+  public void addCharOption(LocalizableMessage c, LocalizableMessage description,
       MenuResult<T> result) {
     addCharOption(c, description, new ResultCallback<T>(result));
   }
@@ -516,9 +517,9 @@ public final class MenuBuilder<T> {
    *          Any additional fields associated with this menu option.
    * @return Returns the number associated with menu choice.
    */
-  public int addNumberedOption(Message description, MenuCallback<T> callback,
-      Message... extraFields) {
-    List<Message> fields = new ArrayList<Message>();
+  public int addNumberedOption(LocalizableMessage description, MenuCallback<T> callback,
+      LocalizableMessage... extraFields) {
+    List<LocalizableMessage> fields = new ArrayList<LocalizableMessage>();
     fields.add(description);
     if (extraFields != null) {
       fields.addAll(Arrays.asList(extraFields));
@@ -545,8 +546,8 @@ public final class MenuBuilder<T> {
    *          Any additional fields associated with this menu option.
    * @return Returns the number associated with menu choice.
    */
-  public int addNumberedOption(Message description, MenuResult<T> result,
-      Message... extraFields) {
+  public int addNumberedOption(LocalizableMessage description, MenuResult<T> result,
+      LocalizableMessage... extraFields) {
     return addNumberedOption(description, new ResultCallback<T>(result),
         extraFields);
   }
@@ -587,7 +588,7 @@ public final class MenuBuilder<T> {
    * @param headings
    *          The optional column headings.
    */
-  public void setColumnHeadings(Message... headings) {
+  public void setColumnHeadings(LocalizableMessage... headings) {
     this.columnHeadings.clear();
     if (headings != null) {
       this.columnHeadings.addAll(Arrays.asList(headings));
@@ -623,7 +624,7 @@ public final class MenuBuilder<T> {
    * @param callback
    *          The call-back associated with the default action.
    */
-  public void setDefault(Message description, MenuCallback<T> callback) {
+  public void setDefault(LocalizableMessage description, MenuCallback<T> callback) {
     defaultCallback = callback;
     defaultDescription = description;
   }
@@ -640,7 +641,7 @@ public final class MenuBuilder<T> {
    * @param result
    *          The menu result which should be returned by default.
    */
-  public void setDefault(Message description, MenuResult<T> result) {
+  public void setDefault(LocalizableMessage description, MenuResult<T> result) {
     setDefault(description, new ResultCallback<T>(result));
   }
 
@@ -671,7 +672,7 @@ public final class MenuBuilder<T> {
    *          The menu prompt, or <code>null</code> if there is not
    *          prompt.
    */
-  public void setPrompt(Message prompt) {
+  public void setPrompt(LocalizableMessage prompt) {
     this.prompt = prompt;
   }
 
@@ -685,7 +686,7 @@ public final class MenuBuilder<T> {
    *          The menu title, or <code>null</code> if there is not
    *          title.
    */
-  public void setTitle(Message title) {
+  public void setTitle(LocalizableMessage title) {
     this.title = title;
   }
 
@@ -711,7 +712,7 @@ public final class MenuBuilder<T> {
     // Create optional column headers.
     if (!columnHeadings.isEmpty()) {
       nbuilder.appendHeading();
-      for (Message heading : columnHeadings) {
+      for (LocalizableMessage heading : columnHeadings) {
         if (heading != null) {
           nbuilder.appendHeading(heading);
         } else {
@@ -721,7 +722,7 @@ public final class MenuBuilder<T> {
 
       if (useMultipleColumns) {
         nbuilder.appendHeading();
-        for (Message heading : columnHeadings) {
+        for (LocalizableMessage heading : columnHeadings) {
           if (heading != null) {
             nbuilder.appendHeading(heading);
           } else {
@@ -749,7 +750,7 @@ public final class MenuBuilder<T> {
       nbuilder.startRow();
       nbuilder.appendCell(INFO_MENU_NUMERIC_OPTION.get(i + 1));
 
-      for (Message field : numericFields.get(i)) {
+      for (LocalizableMessage field : numericFields.get(i)) {
         if (field != null) {
           nbuilder.appendCell(field);
         } else {
@@ -763,7 +764,7 @@ public final class MenuBuilder<T> {
       if (useMultipleColumns && (j < sz)) {
         nbuilder.appendCell(INFO_MENU_NUMERIC_OPTION.get(j + 1));
 
-        for (Message field : numericFields.get(j)) {
+        for (LocalizableMessage field : numericFields.get(j)) {
           if (field != null) {
             nbuilder.appendCell(field);
           } else {
@@ -779,7 +780,7 @@ public final class MenuBuilder<T> {
     TableBuilder cbuilder = new TableBuilder();
     for (int i = 0; i < charCallbacks.size(); i++) {
       char c = charKeys.get(i).charAt(0);
-      Message option = INFO_MENU_CHAR_OPTION.get(c);
+      LocalizableMessage option = INFO_MENU_CHAR_OPTION.get(c);
 
       cbuilder.startRow();
       cbuilder.appendCell(option);

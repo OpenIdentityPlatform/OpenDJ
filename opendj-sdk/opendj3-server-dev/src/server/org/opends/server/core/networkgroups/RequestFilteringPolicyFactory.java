@@ -22,6 +22,7 @@
  *
  *
  *    Copyright 2009 Sun Microsystems, Inc.
+ *    Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -34,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.
   RequestFilteringQOSPolicyCfgDefn.AllowedOperations;
@@ -118,7 +119,7 @@ public final class RequestFilteringPolicyFactory implements
     {
       ResultCode resultCode = ResultCode.SUCCESS;
       boolean adminActionRequired = false;
-      ArrayList<Message> messages = new ArrayList<Message>();
+      ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
       // Save the configuration.
       updateConfiguration(configuration);
@@ -134,7 +135,7 @@ public final class RequestFilteringPolicyFactory implements
      */
     public boolean isConfigurationChangeAcceptable(
         RequestFilteringQOSPolicyCfg configuration,
-        List<Message> unacceptableReasons)
+        List<LocalizableMessage> unacceptableReasons)
     {
       return RequestFilteringPolicyFactory.validateConfiguration(
           configuration, unacceptableReasons);
@@ -158,7 +159,7 @@ public final class RequestFilteringPolicyFactory implements
      */
     @Override
     boolean isAllowed(PreParseOperation operation,
-        List<Message> messages)
+        List<LocalizableMessage> messages)
     {
       boolean allowRequest = true;
 
@@ -594,7 +595,7 @@ public final class RequestFilteringPolicyFactory implements
   // Validates a configuration.
   private static boolean validateConfiguration(
       RequestFilteringQOSPolicyCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // Check that allowed-attributes does not contain any attribute
     // also configured in prohibited-attributes
@@ -664,7 +665,7 @@ public final class RequestFilteringPolicyFactory implements
    */
   public boolean isConfigurationAcceptable(
       RequestFilteringQOSPolicyCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return validateConfiguration(configuration, unacceptableReasons);
   }

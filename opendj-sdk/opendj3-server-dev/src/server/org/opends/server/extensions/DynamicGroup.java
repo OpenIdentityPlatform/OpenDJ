@@ -34,7 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.DynamicGroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.config.ConfigException;
@@ -167,7 +167,7 @@ public class DynamicGroup
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL.
+            LocalizableMessage message = ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL.
                 get(v.getValue().toString(),
                     String.valueOf(groupEntry.getName()),
                     de.getMessageObject());
@@ -281,7 +281,7 @@ public class DynamicGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Dynamic groups don't support nesting.
-    Message message = ERR_DYNAMICGROUP_NESTING_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_DYNAMICGROUP_NESTING_NOT_SUPPORTED.get();
     throw new UnsupportedOperationException(message.toString());
   }
 
@@ -295,7 +295,7 @@ public class DynamicGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Dynamic groups don't support nesting.
-    Message message = ERR_DYNAMICGROUP_NESTING_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_DYNAMICGROUP_NESTING_NOT_SUPPORTED.get();
     throw new UnsupportedOperationException(message.toString());
   }
 
@@ -403,7 +403,7 @@ public class DynamicGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Dynamic groups don't support altering the member list.
-    Message message = ERR_DYNAMICGROUP_ALTERING_MEMBERS_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_DYNAMICGROUP_ALTERING_MEMBERS_NOT_SUPPORTED.get();
     throw new UnsupportedOperationException(message.toString());
   }
 
@@ -417,7 +417,7 @@ public class DynamicGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Dynamic groups don't support altering the member list.
-    Message message = ERR_DYNAMICGROUP_ALTERING_MEMBERS_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_DYNAMICGROUP_ALTERING_MEMBERS_NOT_SUPPORTED.get();
     throw new UnsupportedOperationException(message.toString());
   }
 

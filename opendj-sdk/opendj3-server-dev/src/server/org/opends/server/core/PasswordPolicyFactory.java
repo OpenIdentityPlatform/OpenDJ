@@ -41,7 +41,7 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn.*;
 import org.opends.server.admin.std.server.PasswordPolicyCfg;
@@ -129,7 +129,7 @@ public final class PasswordPolicyFactory implements
     public ConfigChangeResult applyConfigurationChange(
         PasswordPolicyCfg configuration)
     {
-      ArrayList<Message> messages = new ArrayList<Message>();
+      ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
       try
       {
         updateConfiguration(configuration, this);
@@ -169,7 +169,7 @@ public final class PasswordPolicyFactory implements
      * {@inheritDoc}
      */
     public boolean isConfigurationChangeAcceptable(
-        PasswordPolicyCfg configuration, List<Message> unacceptableReasons)
+        PasswordPolicyCfg configuration, List<LocalizableMessage> unacceptableReasons)
     {
       try
       {
@@ -177,21 +177,21 @@ public final class PasswordPolicyFactory implements
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+        LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
             String.valueOf(configuration.dn()), ce.getMessage());
         unacceptableReasons.add(message);
         return false;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+        LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
             String.valueOf(configuration.dn()), ie.getMessage());
         unacceptableReasons.add(message);
         return false;
       }
       catch (Exception e)
       {
-        Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG
+        LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG
             .get(String.valueOf(configuration.dn()),
                 stackTraceToSingleLineString(e));
         unacceptableReasons.add(message);
@@ -255,7 +255,7 @@ public final class PasswordPolicyFactory implements
           syntax = syntaxOID;
         }
 
-        Message message = ERR_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX.get(
+        LocalizableMessage message = ERR_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX.get(
             String.valueOf(configEntryDN), passwordAttribute.getNameOrOID(),
             String.valueOf(syntax));
         throw new ConfigException(message);
@@ -272,7 +272,7 @@ public final class PasswordPolicyFactory implements
 
         if (authPasswordSyntax && (!scheme.supportsAuthPasswordSyntax()))
         {
-          Message message = ERR_PWPOLICY_SCHEME_DOESNT_SUPPORT_AUTH.get(
+          LocalizableMessage message = ERR_PWPOLICY_SCHEME_DOESNT_SUPPORT_AUTH.get(
               String.valueOf(schemeDN), passwordAttribute.getNameOrOID());
           throw new ConfigException(message);
         }
@@ -295,7 +295,7 @@ public final class PasswordPolicyFactory implements
           }
           else
           {
-            Message message = ERR_PWPOLICY_DEPRECATED_SCHEME_NOT_AUTH.get(
+            LocalizableMessage message = ERR_PWPOLICY_DEPRECATED_SCHEME_NOT_AUTH.get(
                 String.valueOf(configEntryDN), String.valueOf(schemeDN));
             throw new ConfigException(message);
           }
@@ -340,7 +340,7 @@ public final class PasswordPolicyFactory implements
       if ((!configuration.isExpirePasswordsWithoutWarning())
           && (configuration.getPasswordExpirationWarningInterval() <= 0))
       {
-        Message message =
+        LocalizableMessage message =
           ERR_PWPOLICY_MUST_HAVE_WARNING_IF_NOT_EXPIRE_WITHOUT_WARNING
             .get(String.valueOf(configEntryDN));
         throw new ConfigException(message);
@@ -379,7 +379,7 @@ public final class PasswordPolicyFactory implements
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CHANGE_BY_TIME
+        LocalizableMessage message = ERR_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CHANGE_BY_TIME
             .get(String.valueOf(configEntryDN), getExceptionMessage(e));
         throw new InitializationException(message, e);
       }
@@ -400,7 +400,7 @@ public final class PasswordPolicyFactory implements
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT.get(
+          LocalizableMessage message = ERR_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT.get(
               String.valueOf(configEntryDN), String.valueOf(formatString));
           throw new ConfigException(message);
         }
@@ -425,7 +425,7 @@ public final class PasswordPolicyFactory implements
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            Message message =
+            LocalizableMessage message =
               ERR_PWPOLICY_INVALID_PREVIOUS_LAST_LOGIN_TIME_FORMAT
                 .get(String.valueOf(configEntryDN), String.valueOf(s));
             throw new ConfigException(message);
@@ -447,7 +447,7 @@ public final class PasswordPolicyFactory implements
           if ((warnInterval + configuration.getMinPasswordAge()) >=configuration
               .getMaxPasswordAge())
           {
-            Message message =
+            LocalizableMessage message =
               ERR_PWPOLICY_MIN_AGE_PLUS_WARNING_GREATER_THAN_MAX_AGE
                 .get(String.valueOf(configEntryDN));
             throw new ConfigException(message);
@@ -455,7 +455,7 @@ public final class PasswordPolicyFactory implements
         }
         else if (warnInterval >= configuration.getMaxPasswordAge())
         {
-          Message message = ERR_PWPOLICY_WARNING_INTERVAL_LARGER_THAN_MAX_AGE
+          LocalizableMessage message = ERR_PWPOLICY_WARNING_INTERVAL_LARGER_THAN_MAX_AGE
               .get(String.valueOf(configEntryDN));
           throw new ConfigException(message);
         }
@@ -1216,7 +1216,7 @@ public final class PasswordPolicyFactory implements
   @Override
   public boolean isConfigurationAcceptable(
       final PasswordPolicyCfg configuration,
-      final List<Message> unacceptableReasons)
+      final List<LocalizableMessage> unacceptableReasons)
   {
     try
     {

@@ -39,7 +39,7 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.MonitorBackendCfg;
@@ -117,7 +117,7 @@ public class MonitorBackend extends Backend implements
   public void addEntry(final Entry entry, final AddOperation addOperation)
       throws DirectoryException
   {
-    final Message message = ERR_MONITOR_ADD_NOT_SUPPORTED.get(String
+    final LocalizableMessage message = ERR_MONITOR_ADD_NOT_SUPPORTED.get(String
         .valueOf(entry.getName()));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
@@ -132,7 +132,7 @@ public class MonitorBackend extends Backend implements
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     final boolean adminActionRequired = false;
-    final ArrayList<Message> messages = new ArrayList<Message>();
+    final ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // Check to see if there is a new set of user-defined attributes.
     final ArrayList<Attribute> userAttrs = new ArrayList<Attribute>();
@@ -177,7 +177,7 @@ public class MonitorBackend extends Backend implements
 
     userDefinedAttributes = userAttrs;
 
-    final Message message = INFO_MONITOR_USING_NEW_USER_ATTRS.get();
+    final LocalizableMessage message = INFO_MONITOR_USING_NEW_USER_ATTRS.get();
     messages.add(message);
 
     currentConfig = backendCfg;
@@ -203,7 +203,7 @@ public class MonitorBackend extends Backend implements
     // not be able to complete initialization.
     if (configEntry == null)
     {
-      final Message message = ERR_MONITOR_CONFIG_ENTRY_NULL.get();
+      final LocalizableMessage message = ERR_MONITOR_CONFIG_ENTRY_NULL.get();
       throw new ConfigException(message);
     }
 
@@ -262,7 +262,7 @@ public class MonitorBackend extends Backend implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      final Message message = ERR_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN
+      final LocalizableMessage message = ERR_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN
           .get(getExceptionMessage(e));
       throw new ConfigException(message, e);
     }
@@ -283,7 +283,7 @@ public class MonitorBackend extends Backend implements
       throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    final Message message = ERR_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    final LocalizableMessage message = ERR_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -296,7 +296,7 @@ public class MonitorBackend extends Backend implements
   public void deleteEntry(final DN entryDN,
       final DeleteOperation deleteOperation) throws DirectoryException
   {
-    final Message message = ERR_MONITOR_DELETE_NOT_SUPPORTED.get(String
+    final LocalizableMessage message = ERR_MONITOR_DELETE_NOT_SUPPORTED.get(String
         .valueOf(entryDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
@@ -336,7 +336,7 @@ public class MonitorBackend extends Backend implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      final Message message = ERR_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER
+      final LocalizableMessage message = ERR_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER
           .get(stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           message);
@@ -366,7 +366,7 @@ public class MonitorBackend extends Backend implements
         }
       }
 
-      final Message message = ERR_MONITOR_UNABLE_TO_EXPORT_BASE
+      final LocalizableMessage message = ERR_MONITOR_UNABLE_TO_EXPORT_BASE
           .get(stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           message);
@@ -400,7 +400,7 @@ public class MonitorBackend extends Backend implements
           }
         }
 
-        final Message message = ERR_MONITOR_UNABLE_TO_EXPORT_PROVIDER_ENTRY
+        final LocalizableMessage message = ERR_MONITOR_UNABLE_TO_EXPORT_PROVIDER_ENTRY
             .get(monitorProvider.getMonitorInstanceName(),
                 stackTraceToSingleLineString(e));
         throw new DirectoryException(
@@ -466,7 +466,7 @@ public class MonitorBackend extends Backend implements
     // If the requested entry was null, then throw an exception.
     if (entryDN == null)
     {
-      final Message message = ERR_MONITOR_GET_ENTRY_NULL.get();
+      final LocalizableMessage message = ERR_MONITOR_GET_ENTRY_NULL.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           message);
     }
@@ -482,7 +482,7 @@ public class MonitorBackend extends Backend implements
     final Map<DN, MonitorProvider<?>> dit = getDIT();
     if (!dit.containsKey(entryDN))
     {
-      final Message message = ERR_MONITOR_INVALID_BASE.get(
+      final LocalizableMessage message = ERR_MONITOR_INVALID_BASE.get(
           String.valueOf(entryDN), String.valueOf(baseMonitorDN));
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
@@ -562,7 +562,7 @@ public class MonitorBackend extends Backend implements
       throws DirectoryException
   {
     // This backend does not support LDIF imports.
-    final Message message = ERR_MONITOR_IMPORT_NOT_SUPPORTED.get();
+    final LocalizableMessage message = ERR_MONITOR_IMPORT_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -590,7 +590,7 @@ public class MonitorBackend extends Backend implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      final Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+      final LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
           baseMonitorDN.toString(), getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
@@ -603,7 +603,7 @@ public class MonitorBackend extends Backend implements
    */
   public boolean isConfigurationChangeAcceptable(
       final MonitorBackendCfg backendCfg,
-      final List<Message> unacceptableReasons)
+      final List<LocalizableMessage> unacceptableReasons)
   {
     // We'll pretty much accept anything here as long as it isn't one of our
     // private attributes.
@@ -689,7 +689,7 @@ public class MonitorBackend extends Backend implements
       final String backupID) throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    final Message message = ERR_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    final LocalizableMessage message = ERR_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -702,7 +702,7 @@ public class MonitorBackend extends Backend implements
   public void renameEntry(final DN currentDN, final Entry entry,
       final ModifyDNOperation modifyDNOperation) throws DirectoryException
   {
-    final Message message = ERR_MONITOR_MODIFY_DN_NOT_SUPPORTED.get(String
+    final LocalizableMessage message = ERR_MONITOR_MODIFY_DN_NOT_SUPPORTED.get(String
         .valueOf(currentDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
@@ -716,7 +716,7 @@ public class MonitorBackend extends Backend implements
   public void replaceEntry(final Entry oldEntry, final Entry newEntry,
       final ModifyOperation modifyOperation) throws DirectoryException
   {
-    final Message message = ERR_MONITOR_MODIFY_NOT_SUPPORTED.get(
+    final LocalizableMessage message = ERR_MONITOR_MODIFY_NOT_SUPPORTED.get(
         String.valueOf(newEntry.getName()), String.valueOf(configEntryDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
@@ -731,7 +731,7 @@ public class MonitorBackend extends Backend implements
       throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    final Message message = ERR_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    final LocalizableMessage message = ERR_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -765,7 +765,7 @@ public class MonitorBackend extends Backend implements
         }
         matchedDN = matchedDN.parent();
       }
-      final Message message = ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String
+      final LocalizableMessage message = ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String
           .valueOf(baseDN));
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
           matchedDN, null);
@@ -947,7 +947,7 @@ public class MonitorBackend extends Backend implements
     upSeconds %= 3600;
     final long upMinutes = (upSeconds / 60);
     upSeconds %= 60;
-    final Message upTimeStr = INFO_MONITOR_UPTIME.get(upDays, upHours,
+    final LocalizableMessage upTimeStr = INFO_MONITOR_UPTIME.get(upDays, upHours,
         upMinutes, upSeconds);
     final Attribute upTimeAttr = createAttribute(ATTR_UP_TIME, ATTR_UP_TIME_LC,
         upTimeStr.toString());

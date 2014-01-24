@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.monitors;
 
@@ -30,7 +31,7 @@ import static org.opends.server.loggers.ErrorLogger.*;
 
 import java.util.ArrayList;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.EntryCacheMonitorProviderCfg;
 import org.opends.server.api.EntryCache;
@@ -97,7 +98,7 @@ public class EntryCacheMonitorProvider
       monitorConfiguration = configuration;
     }
     if (monitorConfiguration == null) {
-      Message message =
+      LocalizableMessage message =
         INFO_WARN_CONFIG_ENTRYCACHE_NO_MONITOR_CONFIG_ENTRY.get(
         ConfigConstants.DN_ENTRY_CACHE_MONITOR_CONFIG,
         monitorName);
@@ -105,7 +106,7 @@ public class EntryCacheMonitorProvider
       throw new ConfigException(message);
     }
     if (!monitorConfiguration.isEnabled()) {
-      Message message =
+      LocalizableMessage message =
         INFO_WARN_CONFIG_ENTRYCACHE_MONITOR_CONFIG_DISABLED.get(
         ConfigConstants.DN_ENTRY_CACHE_MONITOR_CONFIG,
         monitorName);

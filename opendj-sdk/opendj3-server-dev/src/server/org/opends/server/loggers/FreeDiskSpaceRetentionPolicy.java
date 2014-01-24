@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FreeDiskSpaceLogRetentionPolicyCfg;
 import org.opends.server.core.DirectoryServer;
@@ -80,7 +80,7 @@ public class FreeDiskSpaceRetentionPolicy implements
   @Override
   public boolean isConfigurationChangeAcceptable(
       FreeDiskSpaceLogRetentionPolicyCfg config,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // Changes should always be OK
     return true;
@@ -96,7 +96,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     this.freeDiskSpace = config.getFreeDiskSpace();
     this.config = config;
@@ -114,7 +114,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     File[] files = fileNamingPolicy.listFiles();
     if(files == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LOGGER_ERROR_LISTING_FILES.get(
               fileNamingPolicy.getInitialName().toString());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -139,7 +139,7 @@ public class FreeDiskSpaceRetentionPolicy implements
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message =
+      LocalizableMessage message =
           ERR_LOGGER_ERROR_OBTAINING_FREE_SPACE.get(files[0].toString(),
               stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),

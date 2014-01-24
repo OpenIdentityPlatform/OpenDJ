@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.tools;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -199,7 +199,7 @@ public class ConfigureWindowsService
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
 //  Define all the arguments that may be used with this program.
-    Message toolDescription =
+    LocalizableMessage toolDescription =
         INFO_CONFIGURE_WINDOWS_SERVICE_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME,
         toolDescription, false);
@@ -239,7 +239,7 @@ public class ConfigureWindowsService
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       returnValue = ERROR;
@@ -254,7 +254,7 @@ public class ConfigureWindowsService
       }
       catch (ArgumentException ae)
       {
-        Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+        LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
@@ -286,14 +286,14 @@ public class ConfigureWindowsService
       }
       if (nArgs > 1)
       {
-        Message message = ERR_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS.get();
+        LocalizableMessage message = ERR_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
         returnValue = ERROR;
       }
       if (nArgs == 0)
       {
-        Message message = ERR_CONFIGURE_WINDOWS_SERVICE_TOO_FEW_ARGS.get();
+        LocalizableMessage message = ERR_CONFIGURE_WINDOWS_SERVICE_TOO_FEW_ARGS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
         returnValue = ERROR;
@@ -385,13 +385,13 @@ public class ConfigureWindowsService
    */
   public static int enableService(PrintStream out, PrintStream err)
   {
-    Message serviceName = Utils.getCustomizedObject(
+    LocalizableMessage serviceName = Utils.getCustomizedObject(
         "INFO_WINDOWS_SERVICE_NAME",
         INFO_WINDOWS_SERVICE_NAME.get(DynamicConstants.PRODUCT_NAME),
-        Message.class);
-    Message serviceDescription = Utils.getCustomizedObject(
+        LocalizableMessage.class);
+    LocalizableMessage serviceDescription = Utils.getCustomizedObject(
         "INFO_WINDOWS_SERVICE_DESCRIPTION",
-        INFO_WINDOWS_SERVICE_DESCRIPTION.get(getServerRoot()), Message.class);
+        INFO_WINDOWS_SERVICE_DESCRIPTION.get(getServerRoot()), LocalizableMessage.class);
     return enableService(out, err, serviceName.toString(),
         serviceDescription.toString());
   }
@@ -414,7 +414,7 @@ public class ConfigureWindowsService
       String serviceName, String serviceDescription)
   {
     int returnValue;
-    Message msg;
+    LocalizableMessage msg;
     String serverRoot = getServerRoot();
 
     String[] cmd;
@@ -527,7 +527,7 @@ public class ConfigureWindowsService
   public static int disableService(PrintStream out, PrintStream err)
   {
     int returnValue;
-    Message msg;
+    LocalizableMessage msg;
     String serverRoot = getServerRoot();
     String[] cmd;
     if (SetupUtils.hasUAC())
@@ -608,7 +608,7 @@ public class ConfigureWindowsService
       PrintStream err)
   {
     int returnValue;
-    Message msg;
+    LocalizableMessage msg;
     String[] cmd;
     if (SetupUtils.hasUAC())
     {
@@ -685,7 +685,7 @@ public class ConfigureWindowsService
   public static int serviceState(PrintStream out, PrintStream err)
   {
     int returnValue;
-    Message msg;
+    LocalizableMessage msg;
     String serviceName = null;
 
     String serverRoot = getServerRoot();

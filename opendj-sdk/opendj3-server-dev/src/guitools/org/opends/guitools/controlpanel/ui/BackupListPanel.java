@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -67,7 +67,7 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.renderer.BackupTableCellRenderer;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
 import org.opends.server.types.OpenDsException;
@@ -91,13 +91,13 @@ public abstract class BackupListPanel extends StatusGenericPanel
    * The refreshing list message, displayed when the list of backups is
    * refreshed.
    */
-  protected final Message REFRESHING_LIST =
+  protected final LocalizableMessage REFRESHING_LIST =
     INFO_CTRL_PANEL_REFRESHING_LIST_SUMMARY.get();
 
   /**
    * The message informing that no backups where found.
    */
-  protected final Message NO_BACKUPS_FOUND =
+  protected final LocalizableMessage NO_BACKUPS_FOUND =
     INFO_CTRL_PANEL_NO_BACKUPS_FOUND.get();
 
   /**
@@ -457,7 +457,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
           if (t instanceof OpenDsException)
           {
             OpenDsException e = (OpenDsException)t;
-            if (e.getMessageObject().getDescriptor().equals(
+            if (StaticUtils.hasDescriptor(e.getMessageObject(),
                 ERR_BACKUPDIRECTORY_NO_DESCRIPTOR_FILE))
             {
               displayError = false;
@@ -465,7 +465,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
           }
           if (displayError)
           {
-            Message details = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
+            LocalizableMessage details = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
               parentDirectory.getText(), StaticUtils.getExceptionMessage(t));
 
             updateErrorPane(errorPane,

@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 import org.opends.server.types.ResultCode;
@@ -41,7 +42,7 @@ public class WorkflowResultCode
   private ResultCode resultCode = ResultCode.UNDEFINED;
 
   // The global error message.
-  private MessageBuilder errorMessage = new MessageBuilder(Message.EMPTY);
+  private LocalizableMessageBuilder errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
 
 
   /**
@@ -63,7 +64,7 @@ public class WorkflowResultCode
    */
   public WorkflowResultCode(
       ResultCode     resultCode,
-      MessageBuilder errorMessage
+      LocalizableMessageBuilder errorMessage
       )
   {
     this.resultCode   = resultCode;
@@ -116,7 +117,7 @@ public class WorkflowResultCode
    */
   public boolean elaborateGlobalResultCode(
       ResultCode     newResultCode,
-      MessageBuilder newErrorMessage
+      LocalizableMessageBuilder newErrorMessage
       )
   {
     // Returned value
@@ -127,7 +128,7 @@ public class WorkflowResultCode
     if (resultCode == ResultCode.UNDEFINED)
     {
       resultCode   = newResultCode;
-      errorMessage = new MessageBuilder (newErrorMessage);
+      errorMessage = new LocalizableMessageBuilder (newErrorMessage);
     }
     else
     {
@@ -144,11 +145,11 @@ public class WorkflowResultCode
         {
           case NO_SUCH_OBJECT:
             resultCode = ResultCode.SUCCESS;
-            errorMessage = new MessageBuilder(Message.EMPTY);
+            errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
             break;
           case REFERRAL:
             resultCode = ResultCode.SUCCESS;
-            errorMessage = new MessageBuilder(Message.EMPTY);
+            errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
             sendReferenceEntry = true;
             break;
           default:
@@ -172,12 +173,12 @@ public class WorkflowResultCode
         {
           case REFERRAL:
             resultCode = ResultCode.SUCCESS;
-            errorMessage = new MessageBuilder(Message.EMPTY);
+            errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
             sendReferenceEntry = true;
             break;
           case NO_SUCH_OBJECT:
             resultCode = ResultCode.REFERRAL;
-            errorMessage = new MessageBuilder (Message.EMPTY);
+            errorMessage = new LocalizableMessageBuilder (LocalizableMessage.EMPTY);
             break;
           default:
             // global resultCode remains the same
@@ -194,16 +195,16 @@ public class WorkflowResultCode
         {
           case REFERRAL:
             resultCode = newResultCode;
-            errorMessage = new MessageBuilder (newErrorMessage);
+            errorMessage = new LocalizableMessageBuilder (newErrorMessage);
             sendReferenceEntry = true;
             break;
           case SUCCESS:
             resultCode = newResultCode;
-            errorMessage = new MessageBuilder (newErrorMessage);
+            errorMessage = new LocalizableMessageBuilder (newErrorMessage);
             break;
           case NO_SUCH_OBJECT:
             resultCode = newResultCode;
-            errorMessage = new MessageBuilder (newErrorMessage);
+            errorMessage = new LocalizableMessageBuilder (newErrorMessage);
             break;
           default:
             // Do nothing (we don't want to override the first error)
@@ -233,7 +234,7 @@ public class WorkflowResultCode
    *
    * @return the global error message.
    */
-  public MessageBuilder errorMessage()
+  public LocalizableMessageBuilder errorMessage()
   {
     return errorMessage;
   }

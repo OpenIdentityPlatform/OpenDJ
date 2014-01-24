@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -35,7 +35,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryConfig;
@@ -260,7 +260,7 @@ public final class ReplSessionSecurity
     {
       // This is probably a connection attempt from an unexpected client
       // log that to warn the administrator.
-      final Message message = INFO_SSL_SERVER_CON_ATTEMPT_ERROR.get(
+      final LocalizableMessage message = INFO_SSL_SERVER_CON_ATTEMPT_ERROR.get(
           socket.getRemoteSocketAddress().toString(),
           socket.getLocalSocketAddress().toString(),
           e.getLocalizedMessage());

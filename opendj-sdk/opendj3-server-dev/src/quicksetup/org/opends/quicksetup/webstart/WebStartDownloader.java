@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.webstart;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -79,7 +79,7 @@ public class WebStartDownloader implements DownloadServiceListener {
 
   private Status status = Status.DOWNLOADING;
 
-  private Message summary = null;
+  private LocalizableMessage summary = null;
 
   /**
    * This enumeration contains the different Status on which
@@ -170,7 +170,7 @@ public class WebStartDownloader implements DownloadServiceListener {
    * Gets a summary message of the downloader's current progress.
    * @return String for showing the user progress
    */
-  public Message getSummary() {
+  public LocalizableMessage getSummary() {
     return this.summary;
   }
 
@@ -178,7 +178,7 @@ public class WebStartDownloader implements DownloadServiceListener {
    * Sets a summary message of the downloader's current progress.
    * @param summary String for showing the user progress
    */
-  public void setSummary(Message summary) {
+  public void setSummary(LocalizableMessage summary) {
     this.summary = summary;
   }
 

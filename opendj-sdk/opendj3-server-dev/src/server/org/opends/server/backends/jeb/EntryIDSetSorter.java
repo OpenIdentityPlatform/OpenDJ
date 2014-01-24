@@ -25,7 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -102,7 +102,7 @@ public class EntryIDSetSorter
       }
       catch (Exception e)
       {
-        Message message = ERR_ENTRYIDSORTER_CANNOT_EXAMINE_ENTRY.get(
+        LocalizableMessage message = ERR_ENTRYIDSORTER_CANNOT_EXAMINE_ENTRY.get(
             String.valueOf(id), getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -130,7 +130,7 @@ public class EntryIDSetSorter
                new VLVResponseControl(targetOffset, sortMap.size(),
                                       LDAPResultCode.OFFSET_RANGE_ERROR));
 
-          Message message = ERR_ENTRYIDSORTER_NEGATIVE_START_POS.get();
+          LocalizableMessage message = ERR_ENTRYIDSORTER_NEGATIVE_START_POS.get();
           throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR,
                                        message);
         }

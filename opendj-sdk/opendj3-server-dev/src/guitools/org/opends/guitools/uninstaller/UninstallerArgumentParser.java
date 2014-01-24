@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.uninstaller;
@@ -35,8 +36,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.UserData;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
@@ -84,7 +85,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    *          should be treated in a case-sensitive manner.
    */
   public UninstallerArgumentParser(String mainClassName,
-      Message toolDescription, boolean longArgumentsCaseSensitive)
+      LocalizableMessage toolDescription, boolean longArgumentsCaseSensitive)
   {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
   }
@@ -369,15 +370,15 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   /**
    * Indication if provided global options are validate.
    *
-   * @param buf the MessageBuilder to write the error messages.
+   * @param buf the LocalizableMessageBuilder to write the error messages.
    * @return return code.
    */
-  public int validateGlobalOptions(MessageBuilder buf)
+  public int validateGlobalOptions(LocalizableMessageBuilder buf)
   {
     int returnValue;
     if (!noPromptArg.isPresent() && forceOnErrorArg.isPresent())
     {
-      Message message = ERR_UNINSTALL_FORCE_REQUIRES_NO_PROMPT.get(
+      LocalizableMessage message = ERR_UNINSTALL_FORCE_REQUIRES_NO_PROMPT.get(
           "--"+forceOnErrorArg.getLongIdentifier(),
           "--"+noPromptArg.getLongIdentifier());
       if (buf.length() > 0)
@@ -400,7 +401,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
       {
         if (removeArgs[i].isPresent())
         {
-          Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+          LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
               removeAllArg.getLongIdentifier(),
               removeArgs[i].getLongIdentifier());
           if (buf.length() > 0)

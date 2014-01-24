@@ -32,7 +32,7 @@ import java.util.NoSuchElementException;
 
 import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
@@ -88,9 +88,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow")
   public void saturateQueueAndRestart() throws Exception
   {
-    logError(Message.raw(
-        Category.SYNC, Severity.INFORMATION,
-        "Starting Replication ProtocolWindowTest : saturateAndRestart"));
+    logError(LocalizableMessage.raw("Starting Replication ProtocolWindowTest : saturateAndRestart"));
 
     // suffix synchronized
     String testName = "protocolWindowTest";
@@ -183,13 +181,11 @@ public class ProtocolWindowTest extends ReplicationTestCase
         if (op.getResultCode() != ResultCode.SUCCESS
             && op.getResultCode() != ResultCode.NO_SUCH_OBJECT)
         {
-          logError(Message.raw(Category.SYNC, Severity.NOTICE,
-          "saturateQueueAndRestart: error cleaning config entry: " + dn));
+          logError(LocalizableMessage.raw("saturateQueueAndRestart: error cleaning config entry: " + dn));
         }
       } catch (NoSuchElementException e)
       {
-        logError(Message.raw(Category.SYNC, Severity.NOTICE,
-          "saturateQueueAndRestart: error cleaning config entry: " + dn));
+        logError(LocalizableMessage.raw("saturateQueueAndRestart: error cleaning config entry: " + dn));
       }
       clearChangelogDB(replicationServer);
     }

@@ -32,7 +32,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 
@@ -100,7 +100,7 @@ public class UserDN implements KeywordBindRule {
             try {
                url=LDAPURL.decode(value.toString(), true);
             } catch (DirectoryException de) {
-                Message message = WARN_ACI_SYNTAX_INVALID_USERDN_URL.get(
+                LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_USERDN_URL.get(
                     de.getMessageObject());
                 throw new AciException(message);
             }

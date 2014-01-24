@@ -34,7 +34,7 @@ import java.security.spec.KeySpec;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PBKDF2PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
@@ -140,7 +140,7 @@ public class PBKDF2PasswordStorageScheme
    */
   public boolean isConfigurationChangeAcceptable(
                       PBKDF2PasswordStorageSchemeCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // The configuration will always be acceptable.
     return true;
@@ -201,7 +201,7 @@ public class PBKDF2PasswordStorageScheme
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -279,7 +279,7 @@ public class PBKDF2PasswordStorageScheme
       saltLength = decodedBytes.length - SHA1_LENGTH;
       if (saltLength <= 0)
       {
-        Message message =
+        LocalizableMessage message =
           ERR_PWSCHEME_INVALID_BASE64_DECODED_STORED_PASSWORD.get(
           storedPassword.toString());
         ErrorLogger.logError(message);
@@ -297,7 +297,7 @@ public class PBKDF2PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
           storedPassword.toString(), String.valueOf(e));
       ErrorLogger.logError(message);
       return false;
@@ -399,7 +399,7 @@ public class PBKDF2PasswordStorageScheme
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -519,7 +519,7 @@ public class PBKDF2PasswordStorageScheme
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_NOT_REVERSIBLE.get(STORAGE_SCHEME_NAME_PBKDF2);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
@@ -534,7 +534,7 @@ public class PBKDF2PasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_NOT_REVERSIBLE.get(AUTH_PASSWORD_SCHEME_NAME_PBKDF2);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
@@ -593,7 +593,7 @@ public class PBKDF2PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
           CLASS_NAME, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           message, e);

@@ -31,7 +31,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
@@ -248,7 +248,7 @@ public final class SubtreeSpecificationSyntax
    *         use with this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason) {
+                                   LocalizableMessageBuilder invalidReason) {
 
     // Use the subtree specification code to make this determination.
     try {

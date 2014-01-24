@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
@@ -515,8 +515,8 @@ public class ChangeNumberIndexer extends DirectoryThread
       // Nothing can be done about it.
       // Rely on the DirectoryThread uncaught exceptions handler
       // for logging error + alert.
-      // Message logged here gives corrective information to the administrator.
-      Message msg = ERR_CHANGE_NUMBER_INDEXER_UNEXPECTED_EXCEPTION.get(
+      // LocalizableMessage logged here gives corrective information to the administrator.
+      LocalizableMessage msg = ERR_CHANGE_NUMBER_INDEXER_UNEXPECTED_EXCEPTION.get(
           getClass().getSimpleName(), stackTraceToSingleLineString(e));
       TRACER.debugError(msg.toString());
       throw e;
@@ -526,8 +526,8 @@ public class ChangeNumberIndexer extends DirectoryThread
       // Nothing can be done about it.
       // Rely on the DirectoryThread uncaught exceptions handler
       // for logging error + alert.
-      // Message logged here gives corrective information to the administrator.
-      Message msg = ERR_CHANGE_NUMBER_INDEXER_UNEXPECTED_EXCEPTION.get(
+      // LocalizableMessage logged here gives corrective information to the administrator.
+      LocalizableMessage msg = ERR_CHANGE_NUMBER_INDEXER_UNEXPECTED_EXCEPTION.get(
           getClass().getSimpleName(), stackTraceToSingleLineString(e));
       TRACER.debugError(msg.toString());
       throw new RuntimeException(e);

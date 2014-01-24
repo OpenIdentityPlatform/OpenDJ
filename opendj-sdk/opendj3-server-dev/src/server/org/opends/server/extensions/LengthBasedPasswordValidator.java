@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -40,7 +40,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -87,7 +87,7 @@ public class LengthBasedPasswordValidator extends
     int minLength = configuration.getMinPasswordLength();
     if ((maxLength > 0) && (minLength > 0) && (minLength > maxLength))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_PWLENGTHVALIDATOR_MIN_GREATER_THAN_MAX.get(minLength, maxLength);
       throw new ConfigException(message);
     }
@@ -113,7 +113,7 @@ public class LengthBasedPasswordValidator extends
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      MessageBuilder invalidReason)
+                                      LocalizableMessageBuilder invalidReason)
   {
     LengthBasedPasswordValidatorCfg config = currentConfig;
 
@@ -143,7 +143,7 @@ public class LengthBasedPasswordValidator extends
    */
   @Override()
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     LengthBasedPasswordValidatorCfg config =
          (LengthBasedPasswordValidatorCfg) configuration;
@@ -157,7 +157,7 @@ public class LengthBasedPasswordValidator extends
    */
   public boolean isConfigurationChangeAcceptable(
                       LengthBasedPasswordValidatorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // Make sure that if both the maximum and minimum lengths are set, the
     // maximum length is greater than or equal to the minimum length.
@@ -165,7 +165,7 @@ public class LengthBasedPasswordValidator extends
     int minLength = configuration.getMinPasswordLength();
     if ((maxLength > 0) && (minLength > 0) && (minLength > maxLength))
     {
-      Message message = ERR_PWLENGTHVALIDATOR_MIN_GREATER_THAN_MAX.get(
+      LocalizableMessage message = ERR_PWLENGTHVALIDATOR_MIN_GREATER_THAN_MAX.get(
               minLength, maxLength);
       unacceptableReasons.add(message);
       return false;

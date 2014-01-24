@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
@@ -38,7 +39,7 @@ import javax.swing.JPanel;
 
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.WizardStep;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This class displays the different steps of the wizard.  It appears on the
@@ -132,7 +133,7 @@ public class StepsPanel extends QuickSetupPanel
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.anchor = GridBagConstraints.WEST;
 
-    HashMap<WizardStep, Message> hmText = new HashMap<WizardStep, Message>();
+    HashMap<WizardStep, LocalizableMessage> hmText = new HashMap<WizardStep, LocalizableMessage>();
     LinkedHashSet<WizardStep> orderedSteps = app.getOrderedSteps();
     boolean first = true;
     for (WizardStep s : orderedSteps)

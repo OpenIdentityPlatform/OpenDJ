@@ -35,8 +35,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntryCacheCfg;
@@ -140,22 +140,22 @@ public class SoftReferenceEntryCache
 
     // Read configuration and apply changes.
     boolean applyChanges = true;
-    ArrayList<Message> errorMessages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_INIT, null, errorMessages
           );
     if (!processEntryCacheConfig(configuration, applyChanges, errorHandler)) {
-      MessageBuilder buffer = new MessageBuilder();
+      LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
       if (!errorMessages.isEmpty()) {
-        Iterator<Message> iterator = errorMessages.iterator();
+        Iterator<LocalizableMessage> iterator = errorMessages.iterator();
         buffer.append(iterator.next());
         while (iterator.hasNext()) {
           buffer.append(".  ");
           buffer.append(iterator.next());
         }
       }
-      Message message = ERR_SOFTREFCACHE_CANNOT_INITIALIZE.get(
+      LocalizableMessage message = ERR_SOFTREFCACHE_CANNOT_INITIALIZE.get(
         buffer.toString());
       throw new ConfigException(message);
     }
@@ -479,7 +479,7 @@ public class SoftReferenceEntryCache
    */
   @Override()
   public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     SoftReferenceEntryCacheCfg config =
          (SoftReferenceEntryCacheCfg) configuration;
@@ -494,7 +494,7 @@ public class SoftReferenceEntryCache
   @Override
   public boolean isConfigurationChangeAcceptable(
       SoftReferenceEntryCacheCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     boolean applyChanges = false;
     EntryCacheCommon.ConfigErrorHandler errorHandler =
@@ -519,7 +519,7 @@ public class SoftReferenceEntryCache
       )
   {
     boolean applyChanges = true;
-    ArrayList<Message> errorMessages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_APPLY, null, errorMessages

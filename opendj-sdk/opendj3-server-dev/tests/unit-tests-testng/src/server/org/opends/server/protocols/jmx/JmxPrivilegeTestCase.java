@@ -43,7 +43,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
@@ -408,7 +408,7 @@ public class JmxPrivilegeTestCase
     }
     catch (SecurityException e)
     {
-      Message message = ERR_JMX_INSUFFICIENT_PRIVILEGES.get();
+      LocalizableMessage message = ERR_JMX_INSUFFICIENT_PRIVILEGES.get();
       assertEquals(message.toString(), e.getMessage());
     }
 
@@ -458,7 +458,7 @@ public class JmxPrivilegeTestCase
     }
     catch (SecurityException e)
     {
-      Message message = ERR_JMX_INSUFFICIENT_PRIVILEGES.get();
+      LocalizableMessage message = ERR_JMX_INSUFFICIENT_PRIVILEGES.get();
       assertEquals(message.toString(), e.getMessage());
     }
   }

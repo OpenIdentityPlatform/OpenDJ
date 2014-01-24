@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.client.cli;
 
@@ -50,8 +51,8 @@ import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
@@ -67,19 +68,19 @@ import org.opends.server.util.table.TextTablePrinter;
 public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
 {
   // Strings used in property help.
-  private final static Message DESCRIPTION_OPTIONS_TITLE =
+  private final static LocalizableMessage DESCRIPTION_OPTIONS_TITLE =
     INFO_DSCFG_HELP_DESCRIPTION_OPTION.get();
 
-  private final static Message DESCRIPTION_OPTIONS_READ =
+  private final static LocalizableMessage DESCRIPTION_OPTIONS_READ =
     INFO_DSCFG_HELP_DESCRIPTION_READ.get();
 
-  private final static Message DESCRIPTION_OPTIONS_WRITE =
+  private final static LocalizableMessage DESCRIPTION_OPTIONS_WRITE =
     INFO_DSCFG_HELP_DESCRIPTION_WRITE.get();
 
-  private final static Message DESCRIPTION_OPTIONS_MANDATORY =
+  private final static LocalizableMessage DESCRIPTION_OPTIONS_MANDATORY =
     INFO_DSCFG_HELP_DESCRIPTION_MANDATORY.get();
 
-  private final static Message DESCRIPTION_OPTIONS_SINGLE =
+  private final static LocalizableMessage DESCRIPTION_OPTIONS_SINGLE =
     INFO_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED.get();
 
   /**
@@ -362,7 +363,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.ID;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          prop.getAttributeName(), false, false, true, Message.raw(""), null,
+          prop.getAttributeName(), false, false, true, LocalizableMessage.raw(""), null,
           null, null);
       serverProperties.put(prop, arg);
     }
@@ -375,7 +376,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       String attName = prop.getAttributeName();
       readonlyServerProperties.add(prop);
       StringArgument arg = new StringArgument(attName, null, attName, true,
-          false, true, Message.raw(""), "localhost", null, null);
+          false, true, LocalizableMessage.raw(""), "localhost", null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -386,7 +387,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.LDAP_PORT;
       String attName = prop.getAttributeName();
       IntegerArgument arg = new IntegerArgument(attName, null, attName, true,
-          true, true, Message.raw(attName), 389, null, null);
+          true, true, LocalizableMessage.raw(attName), 389, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -397,7 +398,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.JMX_PORT;
       String attName = prop.getAttributeName();
       IntegerArgument arg = new IntegerArgument(attName, null, attName,
-          false, true, Message.raw(attName), null);
+          false, true, LocalizableMessage.raw(attName), null);
       arg.setMultiValued(true);
       serverProperties.put(prop, arg);
     }
@@ -409,7 +410,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.JMXS_PORT;
       String attName = prop.getAttributeName();
       IntegerArgument arg = new IntegerArgument(attName, null, attName,
-          false, true, Message.raw(attName), null);
+          false, true, LocalizableMessage.raw(attName), null);
       arg.setMultiValued(true);
       serverProperties.put(prop, arg);
     }
@@ -421,7 +422,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.LDAPS_PORT;
       String attName = prop.getAttributeName();
       IntegerArgument arg = new IntegerArgument(attName, null, attName,
-          false, true, Message.raw(attName), null);
+          false, true, LocalizableMessage.raw(attName), null);
       arg.setMultiValued(true);
       serverProperties.put(prop, arg);
     }
@@ -433,7 +434,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.CERTIFICATE;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, Message.raw(attName), null, null, null);
+          false, true, LocalizableMessage.raw(attName), null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -444,7 +445,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.INSTANCE_PATH;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, Message.raw(attName), null, null, null);
+          false, true, LocalizableMessage.raw(attName), null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -455,7 +456,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.DESCRIPTION;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, Message.raw(attName), null, null, null);
+          false, true, LocalizableMessage.raw(attName), null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -466,7 +467,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.HOST_OS;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, Message.raw(attName), null, null, null);
+          false, true, LocalizableMessage.raw(attName), null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -532,7 +533,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.LOCATION;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, Message.raw(attName), null, null, null);
+          false, true, LocalizableMessage.raw(attName), null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -543,7 +544,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.GROUPS;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          true, true, Message.raw(attName), null, null, null);
+          true, true, LocalizableMessage.raw(attName), null, null, null);
       arg.setHidden(true);
       serverProperties.put(prop, arg);
     }
@@ -555,7 +556,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.INSTANCE_KEY_ID;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, prop
-          .getAttributeName(), false, false, true, Message.raw(""), null, null,
+          .getAttributeName(), false, false, true, LocalizableMessage.raw(""), null, null,
           null);
       serverProperties.put(prop, arg);
     }
@@ -567,7 +568,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, prop
-          .getAttributeName(), false, false, true, Message.raw(""), null, null,
+          .getAttributeName(), false, false, true, LocalizableMessage.raw(""), null, null,
           null);
       serverProperties.put(prop, arg);
     }
@@ -922,23 +923,23 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
           .getServerPropFromName(propertyName);
       if (serverProperty == null)
       {
-        Message message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);
+        LocalizableMessage message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);
         throw new ArgumentException(message);
       }
 
       // Check that propName is not hidden.
       if (serverProperties.get(serverProperty).isHidden())
       {
-        Message message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);
+        LocalizableMessage message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);
         throw new ArgumentException(message);
       }
 
       // Check the property Syntax.
-      MessageBuilder invalidReason = new MessageBuilder();
+      LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       Argument arg = serverProperties.get(serverProperty) ;
       if ( ! arg.valueIsAcceptable(value, invalidReason))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CLI_ERROR_INVALID_PROPERTY_VALUE.get(propertyName, value);
         throw new ArgumentException(message);
       }
@@ -969,7 +970,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       // but not yet is the map. Check if we have a default value.
       if (arg.getDefaultValue() == null)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CLI_ERROR_MISSING_PROPERTY.get(s.getAttributeName());
         throw new ArgumentException(message);
       }

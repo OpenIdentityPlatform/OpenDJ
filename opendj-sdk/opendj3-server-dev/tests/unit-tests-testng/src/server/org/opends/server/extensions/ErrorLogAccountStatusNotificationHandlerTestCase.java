@@ -38,7 +38,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -311,7 +311,7 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
 
     AccountStatusNotification notification =
          new AccountStatusNotification(notificationType, userEntry,
-                                       Message.raw("Test Modification"),
+                                       LocalizableMessage.raw("Test Modification"),
                                        notificationProperties);
     handler.handleStatusNotification(notification);
   }

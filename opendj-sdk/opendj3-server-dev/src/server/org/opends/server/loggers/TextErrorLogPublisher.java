@@ -22,16 +22,25 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.LoggerMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.StringTokenizer;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
@@ -39,13 +48,15 @@ import org.opends.server.admin.std.server.FileBasedErrorLogPublisherCfg;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.core.ServerContext;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.FilePermission;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.ResultCode;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.LoggerMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides an implementation of an error log publisher.
@@ -109,7 +120,7 @@ public class TextErrorLogPublisher
    * {@inheritDoc}
    */
   @Override
-  public void initializeLogPublisher(FileBasedErrorLogPublisherCfg config)
+  public void initializeLogPublisher(FileBasedErrorLogPublisherCfg config, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
     File logFile = getFileForPath(config.getLogFile());
@@ -163,14 +174,14 @@ public class TextErrorLogPublisher
     }
     catch(DirectoryException e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+      LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
           config.dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
     }
     catch(IOException e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
+      LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
           logFile.toString(), config.dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
@@ -220,17 +231,15 @@ public class TextErrorLogPublisher
         int equalPos = overrideSeverity.indexOf('=');
         if (equalPos < 0)
         {
-          Message msg =
+          LocalizableMessage msg =
               WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(overrideSeverity);
           throw new ConfigException(msg);
         } else
         {
-          String categoryName = overrideSeverity.substring(0, equalPos);
-          categoryName = categoryName.replace("-", "_").toUpperCase();
+          String category = overrideSeverity.substring(0, equalPos);
+          category = category.replace("-", "_").toUpperCase();
           try
           {
-            Category category = Category.valueOf(categoryName);
-
             Set<Severity> severities = new HashSet<Severity>();
             StringTokenizer sevTokenizer =
               new StringTokenizer(overrideSeverity.substring(equalPos+1), ",");
@@ -257,7 +266,7 @@ public class TextErrorLogPublisher
                 }
                 catch(Exception e)
                 {
-                  Message msg =
+                  LocalizableMessage msg =
                       WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName);
                   throw new ConfigException(msg);
                 }
@@ -267,7 +276,7 @@ public class TextErrorLogPublisher
           }
           catch(Exception e)
           {
-            Message msg = WARN_ERROR_LOGGER_INVALID_CATEGORY.get(categoryName);
+            LocalizableMessage msg = WARN_ERROR_LOGGER_INVALID_CATEGORY.get(category);
             throw new ConfigException(msg);
           }
         }
@@ -286,7 +295,7 @@ public class TextErrorLogPublisher
    */
   @Override()
   public boolean isConfigurationAcceptable(
-      FileBasedErrorLogPublisherCfg config, List<Message> unacceptableReasons)
+      FileBasedErrorLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
@@ -296,7 +305,7 @@ public class TextErrorLogPublisher
    */
   @Override
   public boolean isConfigurationChangeAcceptable(
-      FileBasedErrorLogPublisherCfg config, List<Message> unacceptableReasons)
+      FileBasedErrorLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
   {
     // Make sure the permission is valid.
     try
@@ -305,7 +314,7 @@ public class TextErrorLogPublisher
           FilePermission.decodeUNIXMode(config.getLogFilePermissions());
       if(!filePerm.isOwnerWritable())
       {
-        Message message = ERR_CONFIG_LOGGING_INSANE_MODE.get(
+        LocalizableMessage message = ERR_CONFIG_LOGGING_INSANE_MODE.get(
             config.getLogFilePermissions());
         unacceptableReasons.add(message);
         return false;
@@ -313,7 +322,7 @@ public class TextErrorLogPublisher
     }
     catch(DirectoryException e)
     {
-      Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
+      LocalizableMessage message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
           config.getLogFilePermissions(), String.valueOf(e));
       unacceptableReasons.add(message);
       return false;
@@ -326,24 +335,14 @@ public class TextErrorLogPublisher
         int equalPos = overrideSeverity.indexOf('=');
         if (equalPos < 0)
         {
-          Message msg = WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(
+          LocalizableMessage msg = WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(
                   overrideSeverity);
           unacceptableReasons.add(msg);
           return false;
 
         } else
         {
-          String categoryName = overrideSeverity.substring(0, equalPos);
-          categoryName = categoryName.replace("-", "_").toUpperCase();
-          try
-          {
-            Category.valueOf(categoryName);
-          }
-          catch(Exception e)
-          {
-            Message msg = WARN_ERROR_LOGGER_INVALID_CATEGORY.get(categoryName);
-            unacceptableReasons.add(msg);
-          }
+          // No check on category because it can be any value
 
           StringTokenizer sevTokenizer =
               new StringTokenizer(overrideSeverity.substring(equalPos+1), ",");
@@ -359,7 +358,7 @@ public class TextErrorLogPublisher
               }
               catch(Exception e)
               {
-                Message msg =
+                LocalizableMessage msg =
                     WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName);
                 unacceptableReasons.add(msg);
                 return false;
@@ -382,7 +381,7 @@ public class TextErrorLogPublisher
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     Set<ErrorLogPublisherCfgDefn.DefaultSeverity> defSevs =
         config.getDefaultSeverity();
@@ -429,18 +428,16 @@ public class TextErrorLogPublisher
         int equalPos = overrideSeverity.indexOf('=');
         if (equalPos < 0)
         {
-          Message msg = WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(
+          LocalizableMessage msg = WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(
                   overrideSeverity);
           resultCode = DirectoryServer.getServerErrorResultCode();
           messages.add(msg);
         } else
         {
-          String categoryName = overrideSeverity.substring(0, equalPos);
-          categoryName = categoryName.replace("-", "_").toUpperCase();
+          String category = overrideSeverity.substring(0, equalPos);
+          category = category.replace("-", "_").toUpperCase();
           try
           {
-            Category category = Category.valueOf(categoryName);
-
             Set<Severity> severities = new HashSet<Severity>();
             StringTokenizer sevTokenizer =
               new StringTokenizer(overrideSeverity.substring(equalPos+1), ",");
@@ -467,7 +464,7 @@ public class TextErrorLogPublisher
                 }
                 catch(Exception e)
                 {
-                  Message msg =
+                  LocalizableMessage msg =
                       WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName);
                   throw new ConfigException(msg);
                 }
@@ -477,7 +474,7 @@ public class TextErrorLogPublisher
           }
           catch(Exception e)
           {
-            Message msg = WARN_ERROR_LOGGER_INVALID_CATEGORY.get(categoryName);
+            LocalizableMessage msg = WARN_ERROR_LOGGER_INVALID_CATEGORY.get(category);
             resultCode = DirectoryServer.getServerErrorResultCode();
             messages.add(msg);
           }
@@ -562,7 +559,7 @@ public class TextErrorLogPublisher
     }
     catch(Exception e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+      LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
               config.dn().toString(),
               stackTraceToSingleLineString(e));
       resultCode = DirectoryServer.getServerErrorResultCode();
@@ -588,16 +585,10 @@ public class TextErrorLogPublisher
     }
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public void logError(Message message)
+  public void log(String category, Severity severity, LocalizableMessage message, Throwable exception)
   {
-    Severity severity = message.getDescriptor().getSeverity();
-    Category category = message.getDescriptor().getCategory();
-    int msgId = message.getDescriptor().getId();
     Set<Severity> severities = definedSeverities.get(category);
     if(severities == null)
     {
@@ -610,12 +601,30 @@ public class TextErrorLogPublisher
       sb.append("[");
       sb.append(TimeThread.getLocalTime());
       sb.append("] category=").append(category).
-          append(" severity=").append(severity).
-          append(" msgID=").append(msgId).
-          append(" msg=").append(message);
+      append(" severity=").append(severity).
+      append(" msgID=").append(message.resourceName()).
+      append("-").append(message.ordinal()).
+      append(" msg=").append(message);
+      if (exception != null)
+      {
+        sb.append(" exception=").append(
+            StaticUtils.stackTraceToSingleLineString(exception));
+      }
 
       writer.writeRecord(sb.toString());
     }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean isEnabledFor(String category, Severity severity)
+  {
+    Set<Severity> severities = definedSeverities.get(category);
+    if (severities == null)
+    {
+      severities = defaultSeverities;
+    }
+    return severities.contains(severity);
   }
 
   /**

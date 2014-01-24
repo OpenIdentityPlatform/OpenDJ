@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -48,7 +49,7 @@ import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A simple panel used in the LDAP entry viewers to display a binary value.
@@ -88,7 +89,7 @@ public class BinaryCellPanel extends JPanel
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.gridx = 0;
     gbc.gridy = 0;
-    iconButton = Utilities.createButton(Message.EMPTY);
+    iconButton = Utilities.createButton(LocalizableMessage.EMPTY);
     label = Utilities.createDefaultLabel(
         INFO_CTRL_PANEL_NO_VALUE_SPECIFIED.get());
     add(iconButton);
@@ -125,7 +126,7 @@ public class BinaryCellPanel extends JPanel
    * @param isImage whether the array of bytes represents an image or not.
    * @return the message describing the provided array of bytes.
    */
-  public Message getString(byte[] value, boolean isImage)
+  public LocalizableMessage getString(byte[] value, boolean isImage)
   {
     if (value == null)
     {
@@ -133,7 +134,7 @@ public class BinaryCellPanel extends JPanel
     }
     else if (isImage)
     {
-      return Message.EMPTY;
+      return LocalizableMessage.EMPTY;
     }
     else
     {
@@ -165,7 +166,7 @@ public class BinaryCellPanel extends JPanel
    * a viewer).
    * @param text the text of the button.
    */
-  public void setEditButtonText(Message text)
+  public void setEditButtonText(LocalizableMessage text)
   {
     editButton.setText(text.toString());
   }
@@ -176,16 +177,16 @@ public class BinaryCellPanel extends JPanel
    * @param isImage whether the binary value represents an image or not.
    * @return the message describing the provided binary value.
    */
-  public Message getMessage(BinaryValue value, boolean isImage)
+  public LocalizableMessage getMessage(BinaryValue value, boolean isImage)
   {
-    Message returnValue;
+    LocalizableMessage returnValue;
     if (value == null)
     {
       returnValue = INFO_CTRL_PANEL_NO_VALUE_SPECIFIED.get();
     }
     else if (isImage)
     {
-      returnValue = Message.EMPTY;
+      returnValue = LocalizableMessage.EMPTY;
     }
     else if (value.getType() == BinaryValue.Type.BASE64_STRING)
     {

@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.AccessControlMessages.*;
 import org.opends.server.types.DirectoryException;
@@ -71,7 +72,7 @@ public class TargetFilter {
         try {
             filter = SearchFilter.createFilterFromString(expr);
         } catch (DirectoryException ex) {
-            Message message =
+            LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_TARGETFILTERKEYWORD_EXPRESSION.
                   get(expr);
             throw new AciException(message);

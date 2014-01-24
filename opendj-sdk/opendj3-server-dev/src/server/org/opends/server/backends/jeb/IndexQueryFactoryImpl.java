@@ -35,7 +35,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.IndexQueryFactory;
 import org.forgerock.opendj.ldap.ByteSequence;
 
@@ -85,7 +85,7 @@ public final class IndexQueryFactoryImpl implements
       {
 
         @Override
-        public EntryIDSet evaluate(List<Message> debugMessages)
+        public EntryIDSet evaluate(List<LocalizableMessage> debugMessages)
         {
           // Read the database and get Record for the key.
           DatabaseEntry key = new DatabaseEntry(value.toByteArray());
@@ -133,7 +133,7 @@ public final class IndexQueryFactoryImpl implements
       {
 
         @Override
-        public EntryIDSet evaluate(List<Message> debugMessages)
+        public EntryIDSet evaluate(List<LocalizableMessage> debugMessages)
         {
           // Find the right index.
           Index index = indexMap.get(indexID);
@@ -201,7 +201,7 @@ public final class IndexQueryFactoryImpl implements
       {
 
         @Override
-        public EntryIDSet evaluate(List<Message> debugMessages)
+        public EntryIDSet evaluate(List<LocalizableMessage> debugMessages)
         {
           return new EntryIDSet();
         }

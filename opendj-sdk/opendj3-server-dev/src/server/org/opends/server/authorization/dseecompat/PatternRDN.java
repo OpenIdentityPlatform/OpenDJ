@@ -26,7 +26,7 @@
  */
 
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -95,7 +95,7 @@ public class PatternRDN
     {
       if (!type.equals("*"))
       {
-        Message message =
+        LocalizableMessage message =
             WARN_PATTERN_DN_TYPE_CONTAINS_SUBSTRINGS.get(dnString);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                      message);
@@ -127,7 +127,7 @@ public class PatternRDN
     // No type wildcards permitted in multi-valued patterns.
     if (hasTypeWildcard || type.contains("*"))
     {
-      Message message =
+      LocalizableMessage message =
           WARN_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN.get(dnString);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                    message);

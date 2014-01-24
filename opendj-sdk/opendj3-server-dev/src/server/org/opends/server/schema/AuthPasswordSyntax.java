@@ -25,7 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -45,7 +45,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -213,7 +213,7 @@ public class AuthPasswordSyntax
    */
   @Override
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     try
     {
@@ -317,7 +317,7 @@ readScheme:
         case '$':
           break readScheme;
         default:
-          Message message = ERR_ATTR_SYNTAX_AUTHPW_INVALID_SCHEME_CHAR.get(pos);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_INVALID_SCHEME_CHAR.get(pos);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
       }
@@ -327,7 +327,7 @@ readScheme:
     // The scheme must consist of at least one character.
     if (scheme.length() == 0)
     {
-      Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME.get();
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
     }
@@ -346,7 +346,7 @@ readScheme:
     }
     else
     {
-      Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME_SEPARATOR.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME_SEPARATOR.get();
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
     }
@@ -374,7 +374,7 @@ readAuthInfo:
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_INFO_CHAR.get(pos);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                      message);
@@ -385,7 +385,7 @@ readAuthInfo:
     // The authInfo element must consist of at least one character.
     if (scheme.length() == 0)
     {
-      Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO.get();
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -404,7 +404,7 @@ readAuthInfo:
     }
     else
     {
-      Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO_SEPARATOR.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO_SEPARATOR.get();
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -431,7 +431,7 @@ readAuthInfo:
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR.get(pos);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                      message);
@@ -442,7 +442,7 @@ readAuthInfo:
     // The authValue element must consist of at least one character.
     if (scheme.length() == 0)
     {
-      Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE.get();
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -458,7 +458,7 @@ readAuthInfo:
       }
       else
       {
-        Message message = ERR_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR.get(pos);
+        LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR.get(pos);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                      message);
       }

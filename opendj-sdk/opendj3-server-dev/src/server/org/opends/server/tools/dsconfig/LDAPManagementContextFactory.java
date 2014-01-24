@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -30,8 +31,8 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.OpendsCertificateException;
 
 import static org.opends.messages.DSConfigMessages.*;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.client.AuthenticationException;
 import org.opends.server.admin.client.AuthenticationNotSupportedException;
 import org.opends.server.admin.client.CommunicationException;
@@ -212,7 +213,7 @@ public final class LDAPManagementContextFactory implements
                 if (((e.getRootCause().getCause()
                   instanceof OpendsCertificateException)) ||
                   (e.getRootCause() instanceof SSLHandshakeException)) {
-                  Message message =
+                  LocalizableMessage message =
                     ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
                     hostName, String.valueOf(portNumber));
                   throw new ClientException(
@@ -220,14 +221,14 @@ public final class LDAPManagementContextFactory implements
                 }
               }
               if (e.getRootCause() instanceof SSLException) {
-                Message message =
+                LocalizableMessage message =
                   ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
                   hostName, String.valueOf(portNumber));
                 throw new ClientException(
                   LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
               }
             }
-            Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+            LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
               hostName, String.valueOf(portNumber));
             throw new ClientException(
               LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
@@ -278,13 +279,13 @@ public final class LDAPManagementContextFactory implements
               }
               else
               {
-                Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+                LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
                     hostName, String.valueOf(portNumber));
                 throw new ClientException(
                     LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
               }
             }
-            Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+            LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
                 hostName, String.valueOf(portNumber));
             throw new ClientException(
                 LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
@@ -301,21 +302,21 @@ public final class LDAPManagementContextFactory implements
         }
         catch (AuthenticationNotSupportedException e)
         {
-          Message message = ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED
+          LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED
               .get();
           throw new ClientException(LDAPResultCode.AUTH_METHOD_NOT_SUPPORTED,
               message);
         }
         catch (AuthenticationException e)
         {
-          Message message = ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED
+          LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED
               .get(bindDN);
           throw new ClientException(LDAPResultCode.INVALID_CREDENTIALS,
               message);
         }
         catch (CommunicationException e)
         {
-          Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+          LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
               hostName, String.valueOf(portNumber));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
               message);
@@ -381,7 +382,7 @@ public final class LDAPManagementContextFactory implements
   public void validateGlobalArguments() throws ArgumentException {
     // Make sure that the user didn't specify any conflicting
     // arguments.
-    MessageBuilder buf = new MessageBuilder();
+    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
     int v = secureArgsList.validateGlobalOptions(buf);
     if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode())
     {

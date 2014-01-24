@@ -21,11 +21,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.api;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -45,7 +45,7 @@ public class ChangelogException extends OpenDsException
    * @param message
    *          The message that explains the problem that occurred.
    */
-  public ChangelogException(Message message)
+  public ChangelogException(LocalizableMessage message)
   {
     super(message);
   }
@@ -69,7 +69,7 @@ public class ChangelogException extends OpenDsException
    * @param cause
    *          The underlying cause that triggered this exception.
    */
-  public ChangelogException(Message message, Throwable cause)
+  public ChangelogException(LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
   }

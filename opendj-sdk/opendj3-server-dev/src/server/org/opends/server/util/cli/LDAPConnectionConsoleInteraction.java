@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.util.cli;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -119,7 +119,7 @@ public class LDAPConnectionConsoleInteraction {
   // The timeout to be used to connect
   private int connectTimeout;
 
-  private Message heading = INFO_LDAP_CONN_HEADING_CONNECTION_PARAMETERS.get();
+  private LocalizableMessage heading = INFO_LDAP_CONN_HEADING_CONNECTION_PARAMETERS.get();
 
   // A copy of the secureArgList for convenience.
   private SecureConnectionCliArgs copySecureArgsList = null;
@@ -139,7 +139,7 @@ public class LDAPConnectionConsoleInteraction {
 
     private Integer choice;
 
-    private Message msg;
+    private LocalizableMessage msg;
 
     /**
      * Private constructor.
@@ -149,7 +149,7 @@ public class LDAPConnectionConsoleInteraction {
      * @param msg
      *          the message message.
      */
-    private Protocols(int i, Message msg)
+    private Protocols(int i, LocalizableMessage msg)
     {
       choice = i;
       this.msg = msg;
@@ -170,7 +170,7 @@ public class LDAPConnectionConsoleInteraction {
      *
      * @return the menu message.
      */
-    public Message getMenuMessage()
+    public LocalizableMessage getMenuMessage()
     {
       return msg;
     }
@@ -189,7 +189,7 @@ public class LDAPConnectionConsoleInteraction {
 
     private Integer choice;
 
-    private Message msg;
+    private LocalizableMessage msg;
 
     /**
      * Private constructor.
@@ -199,7 +199,7 @@ public class LDAPConnectionConsoleInteraction {
      * @param msg
      *          the message message.
      */
-    private TrustMethod(int i, Message msg)
+    private TrustMethod(int i, LocalizableMessage msg)
     {
       choice = new Integer(i);
       this.msg = msg;
@@ -220,7 +220,7 @@ public class LDAPConnectionConsoleInteraction {
      *
      * @return the menu message.
      */
-    public Message getMenuMessage()
+    public LocalizableMessage getMenuMessage()
     {
       return msg;
     }
@@ -239,7 +239,7 @@ public class LDAPConnectionConsoleInteraction {
 
     private Integer choice;
 
-    private Message msg;
+    private LocalizableMessage msg;
 
     /**
      * Private constructor.
@@ -249,7 +249,7 @@ public class LDAPConnectionConsoleInteraction {
      * @param msg
      *          the message message.
      */
-    private TrustOption(int i, Message msg)
+    private TrustOption(int i, LocalizableMessage msg)
     {
       choice = new Integer(i);
       this.msg = msg;
@@ -270,7 +270,7 @@ public class LDAPConnectionConsoleInteraction {
      *
      * @return the menu message.
      */
-    public Message getMenuMessage()
+    public LocalizableMessage getMenuMessage()
     {
       return msg;
     }
@@ -560,7 +560,7 @@ public class LDAPConnectionConsoleInteraction {
       try
       {
         app.println();
-        Message askPortNumber = null;
+        LocalizableMessage askPortNumber = null;
         if (secureArgsList.alwaysSSL()) {
           askPortNumber = INFO_ADMIN_CONN_PROMPT_PORT_NUMBER.get(portNumber);
         } else {
@@ -766,7 +766,7 @@ public class LDAPConnectionConsoleInteraction {
         try
         {
           app.println();
-          Message prompt;
+          LocalizableMessage prompt;
           if (providedAdminUID != null)
           {
             prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(providedAdminUID);
@@ -1004,7 +1004,7 @@ public class LDAPConnectionConsoleInteraction {
         try
         {
           app.println();
-          Message prompt = INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PASSWORD
+          LocalizableMessage prompt = INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PASSWORD
               .get(truststorePath);
           truststorePassword = app.readPassword(prompt);
         }
@@ -1186,7 +1186,7 @@ public class LDAPConnectionConsoleInteraction {
       try
       {
         app.println();
-        Message prompt = INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD
+        LocalizableMessage prompt = INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD
             .get(keystorePath);
         keystorePassword = app.readPassword(prompt);
       }
@@ -1661,7 +1661,7 @@ public class LDAPConnectionConsoleInteraction {
             try
             {
               app.println();
-              Message prompt = INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD
+              LocalizableMessage prompt = INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD
                   .get(truststorePath);
               truststorePassword = app.readPassword(prompt);
             }
@@ -1793,7 +1793,7 @@ public class LDAPConnectionConsoleInteraction {
    }
    else
    {
-     Message msg = Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(),
+     LocalizableMessage msg = Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(),
          t);
      app.println(msg);
    }
@@ -1826,7 +1826,7 @@ public class LDAPConnectionConsoleInteraction {
                usedTrustManager.getLastRefusedChain(),
                usedTrustManager.getLastRefusedAuthType(), excType);
 
-     Message msg;
+     LocalizableMessage msg;
      if (udce.getType() == UserDataCertificateException.Type.NOT_TRUSTED)
      {
        msg = INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(
@@ -1876,7 +1876,7 @@ public class LDAPConnectionConsoleInteraction {
   * Sets the heading that is displayed in interactive mode.
   * @param heading the heading that is displayed in interactive mode.
   */
- public void setHeadingMessage(Message heading)
+ public void setHeadingMessage(LocalizableMessage heading)
  {
    this.heading = heading;
  }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -48,7 +49,7 @@ import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
 *
@@ -101,15 +102,15 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
  }
 
  /**
-  * Creates an instance of this panel that uses Message as
+  * Creates an instance of this panel that uses LocalizableMessage as
   * attributes.
   * @param attributes the list of possible attributes.
-  * @return an instance of this panel that uses Message as attributes.
+  * @return an instance of this panel that uses LocalizableMessage as attributes.
   */
- public static MonitoringAttributesViewPanel<Message>
- createMessageInstance(LinkedHashSet<Message> attributes)
+ public static MonitoringAttributesViewPanel<LocalizableMessage>
+ createMessageInstance(LinkedHashSet<LocalizableMessage> attributes)
  {
-   return new MonitoringAttributesViewPanel<Message>(attributes);
+   return new MonitoringAttributesViewPanel<LocalizableMessage>(attributes);
  }
 
  /**
@@ -177,7 +178,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    int i = 0;
    for (T attribute : monitoringAttributes)
    {
-     Message m = getMessage(attribute);
+     LocalizableMessage m = getMessage(attribute);
      checkboxes[i] = Utilities.createCheckBox(m);
      i++;
    }
@@ -265,7 +266,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
  /**
   * {@inheritDoc}
   */
- public Message getTitle()
+ public LocalizableMessage getTitle()
  {
    return INFO_CTRL_PANEL_ATTRIBUTE_VIEW_OPTIONS_TITLE.get();
  }
@@ -314,7 +315,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    }
    if (selectedAttributes.isEmpty())
    {
-     ArrayList<Message> errors = new ArrayList<Message>();
+     ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
      errors.add(INFO_CTRL_PANEL_NO_OPERATION_SELECTED.get());
      super.displayErrorDialog(errors);
    }
@@ -358,20 +359,20 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   * @param operation the operation.
   * @return the message for the provided operation.
   */
- protected Message getMessage(T operation)
+ protected LocalizableMessage getMessage(T operation)
  {
-   Message m;
+   LocalizableMessage m;
    if (operation instanceof MonitoringAttributes)
    {
      m = ((MonitoringAttributes)operation).getMessage();
    }
-   else if (operation instanceof Message)
+   else if (operation instanceof LocalizableMessage)
    {
-     m = (Message)operation;
+     m = (LocalizableMessage)operation;
    }
    else
    {
-     m = Message.raw(operation.toString());
+     m = LocalizableMessage.raw(operation.toString());
    }
    return m;
  }

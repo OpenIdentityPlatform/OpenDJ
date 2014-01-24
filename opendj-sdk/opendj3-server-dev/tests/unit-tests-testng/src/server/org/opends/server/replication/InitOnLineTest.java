@@ -30,7 +30,7 @@ import java.util.*;
 
 import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
@@ -117,8 +117,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
   private void log(String s)
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE,
-        "InitOnLineTests/" + s));
+    logError(LocalizableMessage.raw("InitOnLineTests/" + s));
     if (debugEnabled())
     {
       TRACER.debugInfo(s);
@@ -1287,7 +1286,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
       // Now tests error in the middle of an import
       // S2 sends init request
-      ErrorMsg msg = new ErrorMsg(server1ID, 1, Message.EMPTY);
+      ErrorMsg msg = new ErrorMsg(server1ID, 1, LocalizableMessage.EMPTY);
       server2.publish(msg);
 
       waitTaskState(taskInit, STOPPED_BY_ERROR, 20000, null);

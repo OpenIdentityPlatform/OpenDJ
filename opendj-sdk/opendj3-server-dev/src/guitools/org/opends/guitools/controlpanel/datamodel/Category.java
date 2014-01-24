@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
 
 import java.util.ArrayList;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Class containing the different actions for a given category.  For instance
@@ -38,14 +39,14 @@ import org.opends.messages.Message;
  */
 public class Category
 {
-  private Message name;
+  private LocalizableMessage name;
   private ArrayList<Action> actions = new ArrayList<Action>();
 
   /**
    * Returns the name of the category.
    * @return the name of the category.
    */
-  public Message getName()
+  public LocalizableMessage getName()
   {
     return name;
   }
@@ -54,7 +55,7 @@ public class Category
    * Sets the name of the category.
    * @param name the name of the category.
    */
-  public void setName(Message name)
+  public void setName(LocalizableMessage name)
   {
     this.name = name;
   }

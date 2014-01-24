@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -56,7 +56,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AttributeTypePropertyDefinition;
 import org.opends.server.admin.ClassLoaderProvider;
@@ -184,9 +184,9 @@ public final class DSConfig extends ConsoleApplication {
     public SubMenuCallback(ConsoleApplication app, RelationDefinition<?, ?> rd,
         CreateSubCommandHandler<?, ?> ch, DeleteSubCommandHandler dh,
         ListSubCommandHandler lh, SetPropSubCommandHandler sh) {
-      Message ufn = rd.getUserFriendlyName();
+      LocalizableMessage ufn = rd.getUserFriendlyName();
 
-      Message ufpn = null;
+      LocalizableMessage ufpn = null;
       if (rd instanceof InstantiableRelationDefinition<?,?>) {
         InstantiableRelationDefinition<?, ?> ir =
           (InstantiableRelationDefinition<?, ?>) rd;
@@ -533,7 +533,7 @@ public final class DSConfig extends ConsoleApplication {
 
 
   // Displays the provided message followed by a help usage reference.
-  private void displayMessageAndUsageReference(Message message) {
+  private void displayMessageAndUsageReference(LocalizableMessage message) {
     println(message);
     println();
     println(parser.getHelpUsageReference());
@@ -723,7 +723,7 @@ public final class DSConfig extends ConsoleApplication {
       initializeGlobalArguments(args);
       initializeSubCommands();
     } catch (ArgumentException e) {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
       println(message);
       return 1;
     }
@@ -732,7 +732,7 @@ public final class DSConfig extends ConsoleApplication {
     try {
       parser.parseArguments(args);
     } catch (ArgumentException ae) {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       displayMessageAndUsageReference(message);
       return 1;
     }
@@ -745,14 +745,14 @@ public final class DSConfig extends ConsoleApplication {
 
     // Check for conflicting arguments.
     if (quietArgument.isPresent() && verboseArgument.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(quietArgument
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(quietArgument
           .getLongIdentifier(), verboseArgument.getLongIdentifier());
       displayMessageAndUsageReference(message);
       return 1;
     }
 
     if (batchFileArgument.isPresent() && !noPromptArgument.isPresent()) {
-      Message message =
+      LocalizableMessage message =
         ERR_DSCFG_ERROR_BATCH_FILE_AND_INTERACTIVE_INCOMPATIBLE.get(
             batchFileArgument.getLongIdentifier(), noPromptArgument
             .getLongIdentifier());
@@ -761,7 +761,7 @@ public final class DSConfig extends ConsoleApplication {
     }
 
     if (quietArgument.isPresent() && !noPromptArgument.isPresent()) {
-      Message message = ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
+      LocalizableMessage message = ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
           quietArgument.getLongIdentifier(), noPromptArgument
           .getLongIdentifier());
       displayMessageAndUsageReference(message);
@@ -769,7 +769,7 @@ public final class DSConfig extends ConsoleApplication {
     }
 
     if (scriptFriendlyArgument.isPresent() && verboseArgument.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(scriptFriendlyArgument
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(scriptFriendlyArgument
           .getLongIdentifier(), verboseArgument.getLongIdentifier());
       displayMessageAndUsageReference(message);
       return 1;
@@ -778,7 +778,7 @@ public final class DSConfig extends ConsoleApplication {
     if (noPropertiesFileArgument.isPresent()
         && propertiesFileArgument.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           noPropertiesFileArgument.getLongIdentifier(),
           propertiesFileArgument.getLongIdentifier());
       displayMessageAndUsageReference(message);
@@ -841,7 +841,7 @@ public final class DSConfig extends ConsoleApplication {
         // Top-level interactive mode.
         retCode = runInteractiveMode();
       } else {
-        Message message = ERR_ERROR_PARSING_ARGS
+        LocalizableMessage message = ERR_ERROR_PARSING_ARGS
         .get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get());
         displayMessageAndUsageReference(message);
         retCode = 1;
@@ -1034,7 +1034,7 @@ public final class DSConfig extends ConsoleApplication {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      println(Message.raw(StaticUtils.stackTraceToString(e)));
+      println(LocalizableMessage.raw(StaticUtils.stackTraceToString(e)));
       return 1;
     }
   }

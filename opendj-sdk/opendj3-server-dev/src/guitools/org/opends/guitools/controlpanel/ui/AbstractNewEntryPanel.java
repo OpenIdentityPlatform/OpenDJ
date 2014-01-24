@@ -42,7 +42,7 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.util.LDIFException;
@@ -84,7 +84,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
    * Returns the title for the progress dialog.
    * @return the title for the progress dialog.
    */
-  protected abstract Message getProgressDialogTitle();
+  protected abstract LocalizableMessage getProgressDialogTitle();
   /**
    * Returns the LDIF representation of the new entry.
    * @return the LDIF representation of the new entry.
@@ -95,7 +95,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
    * Updates the list of errors by checking the syntax of the entry.
    * @param errors the list of errors that must be updated.
    */
-  protected abstract void checkSyntax(ArrayList<Message> errors);
+  protected abstract void checkSyntax(ArrayList<LocalizableMessage> errors);
 
   /**
    * Returns <CODE>true</CODE> if the syntax of the entry must be checked in
@@ -113,7 +113,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
    */
   public void okClicked()
   {
-    final ArrayList<Message> errors = new ArrayList<Message>();
+    final ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
 
     if (checkSyntaxBackground())
     {
@@ -160,7 +160,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
    * task.
    * @param errors the list of errors.
    */
-  private void handleErrorsAndLaunchTask(ArrayList<Message> errors)
+  private void handleErrorsAndLaunchTask(ArrayList<LocalizableMessage> errors)
   {
     Entry entry = null;
     if (errors.size() == 0)

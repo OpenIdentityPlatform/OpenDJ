@@ -25,7 +25,7 @@
  *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -55,7 +55,7 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.EntryCacheMonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigConstants;
@@ -137,7 +137,7 @@ public class EntryCacheConfigManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_ENTRYCACHE_CANNOT_INSTALL_DEFAULT_CACHE.get(
+      LocalizableMessage message = ERR_CONFIG_ENTRYCACHE_CANNOT_INSTALL_DEFAULT_CACHE.get(
           stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
@@ -246,7 +246,7 @@ public class EntryCacheConfigManager
           } catch (UnsupportedOperationException ex) {
             // Some backend implementations might not support entry
             // cache preload. Log a warning and continue.
-            Message message = WARN_CACHE_PRELOAD_BACKEND_FAILED.get(
+            LocalizableMessage message = WARN_CACHE_PRELOAD_BACKEND_FAILED.get(
               backend.getBackendID());
             logError(message);
             continue;
@@ -262,7 +262,7 @@ public class EntryCacheConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
       EntryCacheCfg configuration,
-      List<Message> unacceptableReasons
+      List<LocalizableMessage> unacceptableReasons
       )
   {
     // returned status -- all is fine by default
@@ -330,7 +330,7 @@ public class EntryCacheConfigManager
 
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<Message>()
+        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
         );
 
     // If an entry cache was installed then remove it.
@@ -394,7 +394,7 @@ public class EntryCacheConfigManager
    */
   public boolean isConfigurationAddAcceptable(
       EntryCacheCfg configuration,
-      List<Message> unacceptableReasons
+      List<LocalizableMessage> unacceptableReasons
       )
   {
     // returned status -- all is fine by default
@@ -442,7 +442,7 @@ public class EntryCacheConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<Message>()
+        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
         );
 
     // Register a change listener with it so we can be notified of changes
@@ -474,7 +474,7 @@ public class EntryCacheConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
       EntryCacheCfg configuration,
-      List<Message> unacceptableReasons
+      List<LocalizableMessage> unacceptableReasons
       )
   {
     // If we've gotten to this point, then it is acceptable as far as we are
@@ -501,7 +501,7 @@ public class EntryCacheConfigManager
 
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<Message>()
+        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
         );
 
     // If the entry cache was installed then remove it.
@@ -652,15 +652,15 @@ public class EntryCacheConfigManager
                                                    EntryCacheCfg.class,
                                                    List.class);
 
-        List<Message> unacceptableReasons = new ArrayList<Message>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         Boolean acceptable = (Boolean) method.invoke(cache, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          MessageBuilder buffer = new MessageBuilder();
+          LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<Message> iterator = unacceptableReasons.iterator();
+            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -669,7 +669,7 @@ public class EntryCacheConfigManager
             }
           }
 
-          Message message = ERR_CONFIG_ENTRYCACHE_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_ENTRYCACHE_CONFIG_NOT_ACCEPTABLE.get(
               String.valueOf(configuration.dn()), buffer.toString());
           throw new InitializationException(message);
         }
@@ -687,13 +687,13 @@ public class EntryCacheConfigManager
         if (e instanceof InitializationException) {
           throw (InitializationException) e;
         } else {
-          Message message = ERR_CONFIG_ENTRYCACHE_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_ENTRYCACHE_CONFIG_NOT_ACCEPTABLE.get(
             String.valueOf(configuration.dn()), e.getCause() != null ?
               e.getCause().getMessage() : stackTraceToSingleLineString(e));
           throw new InitializationException(message);
         }
       }
-      Message message = ERR_CONFIG_ENTRYCACHE_CANNOT_INITIALIZE_CACHE.get(
+      LocalizableMessage message = ERR_CONFIG_ENTRYCACHE_CANNOT_INITIALIZE_CACHE.get(
         className, (e.getCause() != null ? e.getCause().getMessage() :
           stackTraceToSingleLineString(e)));
       throw new InitializationException(message, e);

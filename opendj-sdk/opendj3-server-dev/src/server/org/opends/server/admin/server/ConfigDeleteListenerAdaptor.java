@@ -34,8 +34,8 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DecodingException;
@@ -214,7 +214,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
    * {@inheritDoc}
    */
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-      MessageBuilder unacceptableReason) {
+      LocalizableMessageBuilder unacceptableReason) {
     DN dn = configEntry.getDN();
     AttributeValue av = dn.rdn().getAttributeValue(0);
     String name = av.getValue().toString().trim();
@@ -249,7 +249,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
       return false;
     }
 
-    List<Message> reasons = new LinkedList<Message>();
+    List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
 
     // Enforce any constraints.
     boolean isDeleteAllowed = true;
@@ -263,7 +263,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
             isDeleteAllowed = false;
           }
         } catch (ConfigException e) {
-          Message message = ERR_SERVER_CONSTRAINT_EXCEPTION.get(e
+          LocalizableMessage message = ERR_SERVER_CONSTRAINT_EXCEPTION.get(e
               .getMessageObject());
           reasons.add(message);
           isDeleteAllowed = false;

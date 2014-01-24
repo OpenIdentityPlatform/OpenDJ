@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.meta.AdministrationConnectorCfgDefn;
 
 /**
@@ -125,18 +125,18 @@ public class ConnectionHandlerDescriptor
      */
     OTHER(INFO_CTRL_PANEL_CONN_HANDLER_OTHER.get());
 
-    private Message displayMessage;
+    private LocalizableMessage displayMessage;
 
-    private Protocol(Message displayMessage)
+    private Protocol(LocalizableMessage displayMessage)
     {
       this.displayMessage = displayMessage;
     }
 
     /**
-     * Returns the display Message to be used for the protocol.
-     * @return the display Message to be used for the protocol.
+     * Returns the display LocalizableMessage to be used for the protocol.
+     * @return the display LocalizableMessage to be used for the protocol.
      */
-    public Message getDisplayMessage()
+    public LocalizableMessage getDisplayMessage()
     {
       return displayMessage;
     }

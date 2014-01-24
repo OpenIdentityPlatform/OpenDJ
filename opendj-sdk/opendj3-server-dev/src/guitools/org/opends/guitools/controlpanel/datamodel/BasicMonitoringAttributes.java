@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
 import static org.opends.messages.AdminToolMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.monitors.TraditionalWorkQueueMonitor;
 import org.opends.server.util.ServerConstants;
 
@@ -40,23 +41,23 @@ public enum BasicMonitoringAttributes implements MonitoringAttributes
   /**
    * Start Date.
    */
-  START_DATE(Message.EMPTY, ServerConstants.ATTR_START_TIME),
+  START_DATE(LocalizableMessage.EMPTY, ServerConstants.ATTR_START_TIME),
   /**
    * Current Date.
    */
-  CURRENT_DATE(Message.EMPTY, ServerConstants.ATTR_CURRENT_TIME),
+  CURRENT_DATE(LocalizableMessage.EMPTY, ServerConstants.ATTR_CURRENT_TIME),
   /**
    * Current Connections.
    */
-  CURRENT_CONNECTIONS(Message.EMPTY, ServerConstants.ATTR_CURRENT_CONNS),
+  CURRENT_CONNECTIONS(LocalizableMessage.EMPTY, ServerConstants.ATTR_CURRENT_CONNS),
   /**
    * Maximum Connections.
    */
-  MAX_CONNECTIONS(Message.EMPTY, ServerConstants.ATTR_MAX_CONNS),
+  MAX_CONNECTIONS(LocalizableMessage.EMPTY, ServerConstants.ATTR_MAX_CONNS),
   /**
    * Total Connections.
    */
-  TOTAL_CONNECTIONS(Message.EMPTY, ServerConstants.ATTR_TOTAL_CONNS),
+  TOTAL_CONNECTIONS(LocalizableMessage.EMPTY, ServerConstants.ATTR_TOTAL_CONNS),
   /**
    * Average Request Backlog.
    */
@@ -278,7 +279,7 @@ public enum BasicMonitoringAttributes implements MonitoringAttributes
     }
   }
 
-  private Message msg;
+  private LocalizableMessage msg;
   private String attributeName;
   private boolean isAborted;
   private boolean isNumeric;
@@ -287,7 +288,7 @@ public enum BasicMonitoringAttributes implements MonitoringAttributes
   private boolean canHaveAverage;
   private boolean isTime;
 
-  private BasicMonitoringAttributes(Message msg, String attributeName)
+  private BasicMonitoringAttributes(LocalizableMessage msg, String attributeName)
   {
     this.msg = msg;
     this.attributeName = attributeName;
@@ -296,7 +297,7 @@ public enum BasicMonitoringAttributes implements MonitoringAttributes
   /**
    * {@inheritDoc}
    */
-  public Message getMessage()
+  public LocalizableMessage getMessage()
   {
     return msg;
   }

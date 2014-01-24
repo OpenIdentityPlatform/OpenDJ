@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 import java.text.NumberFormat;
@@ -45,7 +46,7 @@ public final class PropertyDefinitionUsageBuilder {
    * Underlying implementation.
    */
   private class MyPropertyDefinitionVisitor extends
-      PropertyDefinitionVisitor<Message, Void> {
+      PropertyDefinitionVisitor<LocalizableMessage, Void> {
 
     // Flag indicating whether detailed syntax information will be
     // generated.
@@ -72,8 +73,8 @@ public final class PropertyDefinitionUsageBuilder {
      */
     @Override
     public <C extends ConfigurationClient, S extends Configuration>
-    Message visitAggregation(AggregationPropertyDefinition<C, S> d, Void p) {
-      return Message.raw("NAME");
+    LocalizableMessage visitAggregation(AggregationPropertyDefinition<C, S> d, Void p) {
+      return LocalizableMessage.raw("NAME");
     }
 
 
@@ -82,29 +83,29 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public Message visitAttributeType(AttributeTypePropertyDefinition d,
+    public LocalizableMessage visitAttributeType(AttributeTypePropertyDefinition d,
         Void p) {
-      return Message.raw("OID");
+      return LocalizableMessage.raw("OID");
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Message visitACI(ACIPropertyDefinition d,
+    public LocalizableMessage visitACI(ACIPropertyDefinition d,
         Void p) {
-      return Message.raw("ACI");
+      return LocalizableMessage.raw("ACI");
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Message visitBoolean(BooleanPropertyDefinition d, Void p) {
+    public LocalizableMessage visitBoolean(BooleanPropertyDefinition d, Void p) {
       if (isDetailed) {
-        return Message.raw("false | true");
+        return LocalizableMessage.raw("false | true");
       } else {
-        return Message.raw("BOOLEAN");
+        return LocalizableMessage.raw("BOOLEAN");
       }
     }
 
@@ -114,11 +115,11 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public Message visitClass(ClassPropertyDefinition d, Void p) {
+    public LocalizableMessage visitClass(ClassPropertyDefinition d, Void p) {
       if (isDetailed && !d.getInstanceOfInterface().isEmpty()) {
-        return Message.raw("CLASS <= " + d.getInstanceOfInterface().get(0));
+        return LocalizableMessage.raw("CLASS <= " + d.getInstanceOfInterface().get(0));
       } else {
-        return Message.raw("CLASS");
+        return LocalizableMessage.raw("CLASS");
       }
     }
 
@@ -128,11 +129,11 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public Message visitDN(DNPropertyDefinition d, Void p) {
+    public LocalizableMessage visitDN(DNPropertyDefinition d, Void p) {
       if (isDetailed && d.getBaseDN() != null) {
-        return Message.raw("DN <= " + d.getBaseDN());
+        return LocalizableMessage.raw("DN <= " + d.getBaseDN());
       } else {
-        return Message.raw("DN");
+        return LocalizableMessage.raw("DN");
       }
     }
 
@@ -142,8 +143,8 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public Message visitDuration(DurationPropertyDefinition d, Void p) {
-      MessageBuilder builder = new MessageBuilder();
+    public LocalizableMessage visitDuration(DurationPropertyDefinition d, Void p) {
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
       DurationUnit unit = d.getBaseUnit();
 
       if (isDetailed && d.getLowerLimit() > 0) {
@@ -175,16 +176,16 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public <E extends Enum<E>> Message visitEnum(EnumPropertyDefinition<E> d,
+    public <E extends Enum<E>> LocalizableMessage visitEnum(EnumPropertyDefinition<E> d,
         Void p) {
       if (!isDetailed) {
         // Use the last word in the property name.
         String name = d.getName();
         int i = name.lastIndexOf('-');
         if (i == -1 || i == (name.length() - 1)) {
-          return Message.raw(name.toUpperCase());
+          return LocalizableMessage.raw(name.toUpperCase());
         } else {
-          return Message.raw(name.substring(i + 1).toUpperCase());
+          return LocalizableMessage.raw(name.substring(i + 1).toUpperCase());
         }
       } else {
         Set<String> values = new TreeSet<String>();
@@ -194,7 +195,7 @@ public final class PropertyDefinitionUsageBuilder {
         }
 
         boolean isFirst = true;
-        MessageBuilder builder = new MessageBuilder();
+        LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
         for (String s : values) {
           if (!isFirst) {
             builder.append(" | ");
@@ -213,8 +214,8 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public Message visitInteger(IntegerPropertyDefinition d, Void p) {
-      MessageBuilder builder = new MessageBuilder();
+    public LocalizableMessage visitInteger(IntegerPropertyDefinition d, Void p) {
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
       if (isDetailed) {
         builder.append(String.valueOf(d.getLowerLimit()));
@@ -241,8 +242,8 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public Message visitIPAddress(IPAddressPropertyDefinition d, Void p) {
-      return Message.raw("HOST_NAME");
+    public LocalizableMessage visitIPAddress(IPAddressPropertyDefinition d, Void p) {
+      return LocalizableMessage.raw("HOST_NAME");
     }
 
 
@@ -251,9 +252,9 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public Message visitIPAddressMask(IPAddressMaskPropertyDefinition d,
+    public LocalizableMessage visitIPAddressMask(IPAddressMaskPropertyDefinition d,
         Void p) {
-      return Message.raw("IP_ADDRESS_MASK");
+      return LocalizableMessage.raw("IP_ADDRESS_MASK");
     }
 
 
@@ -262,8 +263,8 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public Message visitSize(SizePropertyDefinition d, Void p) {
-      MessageBuilder builder = new MessageBuilder();
+    public LocalizableMessage visitSize(SizePropertyDefinition d, Void p) {
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
       if (isDetailed && d.getLowerLimit() > 0) {
         SizeUnit unit = SizeUnit.getBestFitUnitExact(d.getLowerLimit());
@@ -315,19 +316,23 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public Message visitString(StringPropertyDefinition d, Void p) {
+    public LocalizableMessage visitString(StringPropertyDefinition d, Void p) {
       if (d.getPattern() != null) {
         if (isDetailed) {
-          MessageBuilder builder = new MessageBuilder();
+          LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
           builder.append(d.getPatternUsage());
           builder.append(" - ");
-          builder.append(d.getPatternSynopsis());
+          final LocalizableMessage synopsis = d.getPatternSynopsis();
+          if (synopsis != null)
+          {
+            builder.append(synopsis);
+          }
           return builder.toMessage();
         } else {
-          return Message.raw(d.getPatternUsage());
+          return LocalizableMessage.raw(d.getPatternUsage());
         }
       } else {
-        return Message.raw("STRING");
+        return LocalizableMessage.raw("STRING");
       }
     }
 
@@ -337,9 +342,9 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public <T> Message visitUnknown(PropertyDefinition<T> d, Void p)
+    public <T> LocalizableMessage visitUnknown(PropertyDefinition<T> d, Void p)
         throws PropertyException {
-      return Message.raw("?");
+      return LocalizableMessage.raw("?");
     }
   }
 
@@ -370,7 +375,7 @@ public final class PropertyDefinitionUsageBuilder {
    * @return Returns the usage information for the provided property
    *         definition.
    */
-  public Message getUsage(PropertyDefinition<?> pd) {
+  public LocalizableMessage getUsage(PropertyDefinition<?> pd) {
     return pd.accept(pimpl, null);
   };
 

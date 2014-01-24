@@ -27,7 +27,7 @@
 package org.opends.server.types;
 
 import java.util.List;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -773,7 +773,7 @@ public final class DirectoryConfig
   public static void
        sendAlertNotification(AlertGenerator generator,
                              String alertType,
-                             Message alertMessage)
+                             LocalizableMessage alertMessage)
   {
     DirectoryServer.sendAlertNotification(generator, alertType,
             alertMessage);

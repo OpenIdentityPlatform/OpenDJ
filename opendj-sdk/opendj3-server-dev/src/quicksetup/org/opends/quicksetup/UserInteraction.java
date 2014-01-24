@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.List;
 
@@ -71,9 +71,9 @@ public interface UserInteraction {
    * @return Object that is the same value as the user selection from the
    *         <code>options</code> parameter.
    */
-  Object confirm(Message summary, Message detail,
-                 Message title, MessageType type,
-                 Message[] options, Message def);
+  Object confirm(LocalizableMessage summary, LocalizableMessage detail,
+                 LocalizableMessage title, MessageType type,
+                 LocalizableMessage[] options, LocalizableMessage def);
 
   /**
    * Present a list of choices to the user and wait for them to select one
@@ -94,9 +94,9 @@ public interface UserInteraction {
    * @return Object that is the same value as the user selection from the
    *         <code>options</code> parameter.
    */
-  Object confirm(Message summary, Message detail, Message fineDetails,
-                 Message title, MessageType type, Message[] options,
-                 Message def, Message viewDetailsOption);
+  Object confirm(LocalizableMessage summary, LocalizableMessage detail, LocalizableMessage fineDetails,
+                 LocalizableMessage title, MessageType type, LocalizableMessage[] options,
+                 LocalizableMessage def, LocalizableMessage viewDetailsOption);
 
   /**
    * Creates a list appropriate for the presentation implementation.

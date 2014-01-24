@@ -37,7 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DebugLogPublisher;
@@ -266,7 +266,7 @@ public class BackUpDB extends TaskTool
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -290,7 +290,7 @@ public class BackUpDB extends TaskTool
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -318,7 +318,7 @@ public class BackUpDB extends TaskTool
     {
       if (backendID.isPresent())
       {
-        Message message = ERR_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID.get(
+        LocalizableMessage message = ERR_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID.get(
                 backUpAll.getLongIdentifier(),
                 backendID.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -328,7 +328,7 @@ public class BackUpDB extends TaskTool
     }
     else if (! backendID.isPresent())
     {
-      Message message = ERR_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID.get(
+      LocalizableMessage message = ERR_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID.get(
               backUpAll.getLongIdentifier(),
               backendID.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -363,7 +363,7 @@ public class BackUpDB extends TaskTool
       }
       if (repeatedBackends.length() > 0)
       {
-        Message message = ERR_BACKUPDB_REPEATED_BACKEND_ID.get(
+        LocalizableMessage message = ERR_BACKUPDB_REPEATED_BACKEND_ID.get(
             repeatedBackends.toString());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
@@ -377,7 +377,7 @@ public class BackUpDB extends TaskTool
     {
       if (! incremental.isPresent())
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL.get(
                         incrementalBaseID.getLongIdentifier(),
                         incremental.getLongIdentifier());
@@ -392,7 +392,7 @@ public class BackUpDB extends TaskTool
     //  are present, infer an offline backup.
     if ((encrypt.isPresent() || signHash.isPresent())
             && ! argParser.connectionArgumentsPresent()) {
-      Message message =
+      LocalizableMessage message =
               ERR_BACKUPDB_ENCRYPT_OR_SIGN_REQUIRES_ONLINE.get(
                       encrypt.getLongIdentifier(),
                       signHash.getLongIdentifier());
@@ -405,7 +405,7 @@ public class BackUpDB extends TaskTool
     // was given.
     if (signHash.isPresent() && (! hash.isPresent()))
     {
-      Message message = ERR_BACKUPDB_SIGN_REQUIRES_HASH.get(
+      LocalizableMessage message = ERR_BACKUPDB_SIGN_REQUIRES_HASH.get(
               signHash.getLongIdentifier(),
               hash.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -563,7 +563,7 @@ public class BackUpDB extends TaskTool
       }
       catch (Exception e)
       {
-        Message message = ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR.get(
+        LocalizableMessage message = ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR.get(
                 backupDirectory.getValue(),
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -608,7 +608,7 @@ public class BackUpDB extends TaskTool
       }
       catch (Exception e)
       {
-        Message message = ERR_SERVER_BOOTSTRAP_ERROR.get(
+        LocalizableMessage message = ERR_SERVER_BOOTSTRAP_ERROR.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -621,13 +621,13 @@ public class BackUpDB extends TaskTool
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -641,19 +641,19 @@ public class BackUpDB extends TaskTool
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -667,21 +667,21 @@ public class BackUpDB extends TaskTool
       }
       catch (ConfigException ce)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -695,21 +695,21 @@ public class BackUpDB extends TaskTool
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                 ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                 ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -777,7 +777,7 @@ public class BackUpDB extends TaskTool
         {
           if (! b.supportsBackup())
           {
-            Message message =
+            LocalizableMessage message =
                 WARN_BACKUPDB_BACKUP_NOT_SUPPORTED.get(b.getBackendID());
             logError(message);
           }
@@ -794,7 +794,7 @@ public class BackUpDB extends TaskTool
       {
         for (String id : requestedBackends)
         {
-          Message message = ERR_BACKUPDB_NO_BACKENDS_FOR_ID.get(id);
+          LocalizableMessage message = ERR_BACKUPDB_NO_BACKENDS_FOR_ID.get(id);
           logError(message);
         }
 
@@ -810,7 +810,7 @@ public class BackUpDB extends TaskTool
     // If there are no backends to archive, then print an error and exit.
     if (backendsToArchive.isEmpty())
     {
-      Message message = WARN_BACKUPDB_NO_BACKENDS_TO_ARCHIVE.get();
+      LocalizableMessage message = WARN_BACKUPDB_NO_BACKENDS_TO_ARCHIVE.get();
       logError(message);
       return 1;
     }
@@ -827,7 +827,7 @@ public class BackUpDB extends TaskTool
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
         {
-          Message message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
+          LocalizableMessage message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
               b.getBackendID(), String.valueOf(failureReason));
           logError(message);
           errorsEncountered = true;
@@ -836,7 +836,7 @@ public class BackUpDB extends TaskTool
       }
       catch (Exception e)
       {
-        Message message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
+        LocalizableMessage message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
             b.getBackendID(), getExceptionMessage(e));
         logError(message);
         errorsEncountered = true;
@@ -844,7 +844,7 @@ public class BackUpDB extends TaskTool
       }
 
 
-      Message message = NOTE_BACKUPDB_STARTING_BACKUP.get(b.getBackendID());
+      LocalizableMessage message = NOTE_BACKUPDB_STARTING_BACKUP.get(b.getBackendID());
       logError(message);
 
 
@@ -1111,13 +1111,13 @@ public class BackUpDB extends TaskTool
     int ret = 0;
     if (errorsEncountered)
     {
-      Message message = NOTE_BACKUPDB_COMPLETED_WITH_ERRORS.get();
+      LocalizableMessage message = NOTE_BACKUPDB_COMPLETED_WITH_ERRORS.get();
       logError(message);
       ret = 1;
     }
     else
     {
-      Message message = NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY.get();
+      LocalizableMessage message = NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY.get();
       logError(message);
     }
     return ret;

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -31,7 +32,7 @@ import static org.opends.server.tools.ToolConstants.*;
 import java.io.File;
 import java.util.LinkedHashSet;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
@@ -111,7 +112,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
   @Override()
   public void parseArguments(String[] args) throws ArgumentException
   {
-    LinkedHashSet<Message> errorMessages = new LinkedHashSet<Message>();
+    LinkedHashSet<LocalizableMessage> errorMessages = new LinkedHashSet<LocalizableMessage>();
     try
     {
       super.parseArguments(args);
@@ -144,7 +145,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
       }
       if (errorMessages.size() > 0)
       {
-        Message message = ERR_CANNOT_INITIALIZE_ARGS.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(
             Utils.getMessageFromCollection(errorMessages,
                 Constants.LINE_SEPARATOR));
         throw new ArgumentException(message);

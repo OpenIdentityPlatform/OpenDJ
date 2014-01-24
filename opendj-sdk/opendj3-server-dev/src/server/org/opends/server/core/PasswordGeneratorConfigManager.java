@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -144,7 +145,7 @@ public class PasswordGeneratorConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       PasswordGeneratorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -175,7 +176,7 @@ public class PasswordGeneratorConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the existing generator if it's already enabled.
@@ -249,7 +250,7 @@ public class PasswordGeneratorConfigManager
    */
   public boolean isConfigurationAddAcceptable(
                       PasswordGeneratorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -280,7 +281,7 @@ public class PasswordGeneratorConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     configuration.addChangeListener(this);
 
@@ -323,7 +324,7 @@ public class PasswordGeneratorConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(
-      PasswordGeneratorCfg configuration, List<Message> unacceptableReasons)
+      PasswordGeneratorCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     // A delete should always be acceptable, so just return true.
     return true;
@@ -402,7 +403,7 @@ public class PasswordGeneratorConfigManager
                                             PasswordGeneratorCfg.class,
                                             List.class);
 
-        List<Message> unacceptableReasons = new ArrayList<Message>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         Boolean acceptable = (Boolean) method.invoke(generator, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -410,7 +411,7 @@ public class PasswordGeneratorConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<Message> iterator = unacceptableReasons.iterator();
+            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -419,7 +420,7 @@ public class PasswordGeneratorConfigManager
             }
           }
 
-          Message message = ERR_CONFIG_PWGENERATOR_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_PWGENERATOR_CONFIG_NOT_ACCEPTABLE.get(
               String.valueOf(configuration.dn()), buffer.toString());
           throw new InitializationException(message);
         }
@@ -429,7 +430,7 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_PWGENERATOR_INITIALIZATION_FAILED.
+      LocalizableMessage message = ERR_CONFIG_PWGENERATOR_INITIALIZATION_FAILED.
           get(className, String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);

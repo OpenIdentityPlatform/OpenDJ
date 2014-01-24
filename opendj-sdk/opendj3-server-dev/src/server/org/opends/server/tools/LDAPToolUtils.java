@@ -25,7 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -259,8 +259,8 @@ public class LDAPToolUtils
    * @param  matchedDN     The matched DN returned from the server, or
    *                       {@code null} if there was none.
    */
-  public static void printErrorMessage(PrintStream err, Message explanation,
-                                       int resultCode, Message errorMessage,
+  public static void printErrorMessage(PrintStream err, LocalizableMessage explanation,
+                                       int resultCode, LocalizableMessage errorMessage,
                                        DN matchedDN)
   {
     if ((explanation != null) && (explanation.length() > 0))

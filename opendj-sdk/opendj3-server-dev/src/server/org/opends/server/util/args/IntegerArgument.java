@@ -22,14 +22,15 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.args;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
 import static org.opends.messages.UtilityMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -69,7 +70,7 @@ public class IntegerArgument
    *                           be displayed in usage information, or
    *                           <CODE>null</CODE> if this argument does not
    *                           require a value.
-   * @param  description       Message for the description of this
+   * @param  description       LocalizableMessage for the description of this
    *                           argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
@@ -77,8 +78,8 @@ public class IntegerArgument
    */
   public IntegerArgument(String name, Character shortIdentifier,
                          String longIdentifier, boolean isRequired,
-                         boolean needsValue, Message valuePlaceholder,
-                         Message description)
+                         boolean needsValue, LocalizableMessage valuePlaceholder,
+                         LocalizableMessage description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false, needsValue,
@@ -116,7 +117,7 @@ public class IntegerArgument
    *                           enforced for values of this argument.
    * @param  upperBound        The upper bound that should be enforced for
    *                           values of this argument.
-   * @param  description       Message for the description of this
+   * @param  description       LocalizableMessage for the description of this
    *                           argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
@@ -124,10 +125,10 @@ public class IntegerArgument
    */
   public IntegerArgument(String name, Character shortIdentifier,
                          String longIdentifier, boolean isRequired,
-                         boolean needsValue, Message valuePlaceholder,
+                         boolean needsValue, LocalizableMessage valuePlaceholder,
                          boolean hasLowerBound, int lowerBound,
                          boolean hasUpperBound, int upperBound,
-                         Message description)
+                         LocalizableMessage description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false, needsValue,
@@ -140,7 +141,7 @@ public class IntegerArgument
 
     if (hasLowerBound && hasUpperBound && (lowerBound > upperBound))
     {
-      Message message = ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(
+      LocalizableMessage message = ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(
           name, lowerBound, upperBound);
       throw new ArgumentException(message);
     }
@@ -173,7 +174,7 @@ public class IntegerArgument
    * @param  propertyName      The name of the property in a property file that
    *                           may be used to override the default value but
    *                           will be overridden by a command-line argument.
-   * @param  description       Message for the description of this
+   * @param  description       LocalizableMessage for the description of this
    *                           argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
@@ -182,9 +183,9 @@ public class IntegerArgument
   public IntegerArgument(String name, Character shortIdentifier,
                          String longIdentifier, boolean isRequired,
                          boolean isMultiValued, boolean needsValue,
-                         Message valuePlaceholder, int defaultValue,
+                         LocalizableMessage valuePlaceholder, int defaultValue,
                          String propertyName,
-                         Message description)
+                         LocalizableMessage description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
@@ -232,7 +233,7 @@ public class IntegerArgument
    *                           enforced for values of this argument.
    * @param  upperBound        The upper bound that should be enforced for
    *                           values of this argument.
-   * @param  description       Message for the description of this
+   * @param  description       LocalizableMessage for the description of this
    *                           argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
@@ -241,10 +242,10 @@ public class IntegerArgument
   public IntegerArgument(String name, Character shortIdentifier,
                          String longIdentifier, boolean isRequired,
                          boolean isMultiValued, boolean needsValue,
-                         Message valuePlaceholder, int defaultValue,
+                         LocalizableMessage valuePlaceholder, int defaultValue,
                          String propertyName, boolean hasLowerBound,
                          int lowerBound, boolean hasUpperBound, int upperBound,
-                         Message description)
+                         LocalizableMessage description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
@@ -258,7 +259,7 @@ public class IntegerArgument
 
     if (hasLowerBound && hasUpperBound && (lowerBound > upperBound))
     {
-      Message message = ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(
+      LocalizableMessage message = ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(
           name, lowerBound, upperBound);
       throw new ArgumentException(message);
     }
@@ -330,7 +331,7 @@ public class IntegerArgument
    *          <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // First, the value must be decodable as an integer.
     int intValue;

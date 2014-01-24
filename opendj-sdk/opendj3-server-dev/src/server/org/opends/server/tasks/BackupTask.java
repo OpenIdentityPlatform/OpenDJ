@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.TaskMessages;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -77,8 +77,8 @@ public class BackupTask extends Task
   /**
    * Stores mapping between configuration attribute name and its label.
    */
-  static private Map<String,Message> argDisplayMap =
-          new HashMap<String,Message>();
+  static private Map<String,LocalizableMessage> argDisplayMap =
+          new HashMap<String,LocalizableMessage>();
   static {
     argDisplayMap.put(
             ATTR_TASK_BACKUP_ALL,
@@ -148,7 +148,7 @@ public class BackupTask extends Task
    * {@inheritDoc}
    */
   @Override
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return INFO_TASK_BACKUP_NAME.get();
   }
 
@@ -156,7 +156,7 @@ public class BackupTask extends Task
    * {@inheritDoc}
    */
   @Override
-  public Message getAttributeDisplayName(String attrName) {
+  public LocalizableMessage getAttributeDisplayName(String attrName) {
     return argDisplayMap.get(attrName);
   }
 
@@ -173,7 +173,7 @@ public class BackupTask extends Task
       ClientConnection clientConnection = operation.getClientConnection();
       if (! clientConnection.hasPrivilege(Privilege.BACKEND_BACKUP, operation))
       {
-        Message message = ERR_TASK_BACKUP_INSUFFICIENT_PRIVILEGES.get();
+        LocalizableMessage message = ERR_TASK_BACKUP_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                      message);
       }
@@ -271,7 +271,7 @@ public class BackupTask extends Task
     {
       if (!backendIDList.isEmpty())
       {
-        Message message = ERR_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID.get(
+        LocalizableMessage message = ERR_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID.get(
             ATTR_TASK_BACKUP_ALL, ATTR_TASK_BACKUP_BACKEND_ID);
         logError(message);
         return false;
@@ -279,7 +279,7 @@ public class BackupTask extends Task
     }
     else if (backendIDList.isEmpty())
     {
-      Message message = ERR_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID.get(
+      LocalizableMessage message = ERR_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID.get(
           ATTR_TASK_BACKUP_ALL, ATTR_TASK_BACKUP_BACKEND_ID);
       logError(message);
       return false;
@@ -307,7 +307,7 @@ public class BackupTask extends Task
     {
       if (! incremental)
       {
-        Message message = ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL.
+        LocalizableMessage message = ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL.
             get(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID,
                 ATTR_TASK_BACKUP_INCREMENTAL);
         logError(message);
@@ -320,7 +320,7 @@ public class BackupTask extends Task
     // was given.
     if (signHash && (! hash))
     {
-      Message message = ERR_BACKUPDB_SIGN_REQUIRES_HASH.get(
+      LocalizableMessage message = ERR_BACKUPDB_SIGN_REQUIRES_HASH.get(
           ATTR_TASK_BACKUP_SIGN_HASH, ATTR_TASK_BACKUP_HASH);
       logError(message);
       return false;
@@ -336,7 +336,7 @@ public class BackupTask extends Task
       }
       catch (Exception e)
       {
-        Message message = ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR.get(
+        LocalizableMessage message = ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR.get(
                 backupDirectory.getPath(), getExceptionMessage(e));
         System.err.println(message);
         return false;
@@ -368,12 +368,12 @@ public class BackupTask extends Task
         Backend b = DirectoryServer.getBackend(id);
         if (b == null || configEntries.get(id) == null)
         {
-          Message message = ERR_BACKUPDB_NO_BACKENDS_FOR_ID.get(id);
+          LocalizableMessage message = ERR_BACKUPDB_NO_BACKENDS_FOR_ID.get(id);
           logError(message);
         }
         else if (! b.supportsBackup())
         {
-          Message message =
+          LocalizableMessage message =
               WARN_BACKUPDB_BACKUP_NOT_SUPPORTED.get(b.getBackendID());
           logError(message);
         }
@@ -394,7 +394,7 @@ public class BackupTask extends Task
     // If there are no backends to archive, then print an error and exit.
     if (backendsToArchive.isEmpty())
     {
-      Message message = WARN_BACKUPDB_NO_BACKENDS_TO_ARCHIVE.get();
+      LocalizableMessage message = WARN_BACKUPDB_NO_BACKENDS_TO_ARCHIVE.get();
       logError(message);
       return false;
     }
@@ -435,7 +435,7 @@ public class BackupTask extends Task
           // backend
           if (! backupDir.getConfigEntryDN().equals(cfg.dn()))
           {
-            Message message = ERR_BACKUPDB_CANNOT_BACKUP_IN_DIRECTORY.get(
+            LocalizableMessage message = ERR_BACKUPDB_CANNOT_BACKUP_IN_DIRECTORY.get(
                 b.getBackendID(),backupLocation.getPath(),
                 backupDir.getConfigEntryDN().rdn().
                 getAttributeValue(0).toString());
@@ -445,14 +445,14 @@ public class BackupTask extends Task
         }
         catch (ConfigException ce)
         {
-          Message message = ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR.get(
+          LocalizableMessage message = ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR.get(
               descriptorPath, ce.getMessage());
           logError(message);
           return false;
         }
         catch (Exception e)
         {
-          Message message = ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR.get(
+          LocalizableMessage message = ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR.get(
               descriptorPath, getExceptionMessage(e));
           logError(message);
           return false;
@@ -471,7 +471,7 @@ public class BackupTask extends Task
       }
       catch (Exception e)
       {
-        Message message = ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR.get(
+        LocalizableMessage message = ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR.get(
             backupLocation.getPath(), getExceptionMessage(e));
         logError(message);
         return false;
@@ -502,7 +502,7 @@ public class BackupTask extends Task
     catch (DirectoryException de)
     {
       DirectoryServer.notifyBackupEnded(b, backupConfig, false);
-      Message message = ERR_BACKUPDB_ERROR_DURING_BACKUP.get(
+      LocalizableMessage message = ERR_BACKUPDB_ERROR_DURING_BACKUP.get(
           b.getBackendID(), de.getMessageObject());
       logError(message);
       return false;
@@ -510,7 +510,7 @@ public class BackupTask extends Task
     catch (Exception e)
     {
       DirectoryServer.notifyBackupEnded(b, backupConfig, false);
-      Message message = ERR_BACKUPDB_ERROR_DURING_BACKUP.get(
+      LocalizableMessage message = ERR_BACKUPDB_ERROR_DURING_BACKUP.get(
           b.getBackendID(), getExceptionMessage(e));
       logError(message);
       return false;
@@ -532,7 +532,7 @@ public class BackupTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        Message message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
+        LocalizableMessage message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
             b.getBackendID(), String.valueOf(failureReason));
         logError(message);
         return false;
@@ -540,7 +540,7 @@ public class BackupTask extends Task
     }
     catch (Exception e)
     {
-      Message message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
+      LocalizableMessage message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
           b.getBackendID(), getExceptionMessage(e));
       logError(message);
       return false;
@@ -562,7 +562,7 @@ public class BackupTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        Message message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+        LocalizableMessage message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
             b.getBackendID(), String.valueOf(failureReason));
         logError(message);
         return false;
@@ -570,7 +570,7 @@ public class BackupTask extends Task
     }
     catch (Exception e)
     {
-      Message message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+      LocalizableMessage message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
           b.getBackendID(), getExceptionMessage(e));
       logError(message);
       return false;
@@ -584,7 +584,7 @@ public class BackupTask extends Task
    * {@inheritDoc}
    */
   @Override
-  public void interruptTask(TaskState interruptState, Message interruptReason)
+  public void interruptTask(TaskState interruptState, LocalizableMessage interruptReason)
   {
     if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
             backupConfig != null)
@@ -650,7 +650,7 @@ public class BackupTask extends Task
 
       try
       {
-        Message message = NOTE_BACKUPDB_STARTING_BACKUP.get(b.getBackendID());
+        LocalizableMessage message = NOTE_BACKUPDB_STARTING_BACKUP.get(b.getBackendID());
         logError(message);
 
 
@@ -691,19 +691,19 @@ public class BackupTask extends Task
     // completed at least for one of the backends.
     if (errorsEncountered)
     {
-      Message message = NOTE_BACKUPDB_COMPLETED_WITH_ERRORS.get();
+      LocalizableMessage message = NOTE_BACKUPDB_COMPLETED_WITH_ERRORS.get();
       logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
     else if (isCancelled())
     {
-      Message message = NOTE_BACKUPDB_CANCELLED.get();
+      LocalizableMessage message = NOTE_BACKUPDB_CANCELLED.get();
       logError(message);
       return getTaskInterruptState();
     }
     else
     {
-      Message message = NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY.get();
+      LocalizableMessage message = NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY.get();
       logError(message);
       return TaskState.COMPLETED_SUCCESSFULLY;
     }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -81,7 +82,7 @@ import org.opends.guitools.controlpanel.ui.nodes.VLVIndexTreeNode;
 import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The pane that is displayed when the user clicks on 'Browse Indexes'.
@@ -271,7 +272,7 @@ implements IndexModifiedListener
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_MANAGE_INDEXES_TITLE.get();
   }
@@ -886,7 +887,7 @@ implements IndexModifiedListener
 
   private void deleteClicked()
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     ArrayList<AbstractIndexDescriptor> indexesToDelete =
       new ArrayList<AbstractIndexDescriptor>();

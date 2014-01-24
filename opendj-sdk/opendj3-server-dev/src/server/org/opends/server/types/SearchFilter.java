@@ -29,7 +29,7 @@ package org.opends.server.types;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 import java.util.ArrayList;
@@ -541,7 +541,7 @@ public final class SearchFilter
   {
     if ((attributeType == null) && (matchingRuleID == null))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_CREATE_EXTENSIBLE_MATCH_NO_AT_OR_MR.get();
       throw new DirectoryException(
               ResultCode.PROTOCOL_ERROR, message);
@@ -586,7 +586,7 @@ public final class SearchFilter
   {
     if ((attributeType == null) && (matchingRuleID == null))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_CREATE_EXTENSIBLE_MATCH_NO_AT_OR_MR.get();
       throw new DirectoryException(
               ResultCode.PROTOCOL_ERROR, message);
@@ -618,7 +618,7 @@ public final class SearchFilter
   {
     if (filterString == null)
     {
-      Message message = ERR_SEARCH_FILTER_NULL.get();
+      LocalizableMessage message = ERR_SEARCH_FILTER_NULL.get();
       throw new DirectoryException(
               ResultCode.PROTOCOL_ERROR, message);
     }
@@ -645,7 +645,7 @@ public final class SearchFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_SEARCH_FILTER_UNCAUGHT_EXCEPTION.get(
+      LocalizableMessage message = ERR_SEARCH_FILTER_UNCAUGHT_EXCEPTION.get(
           filterString, String.valueOf(e));
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
                                    e);
@@ -682,7 +682,7 @@ public final class SearchFilter
     int length = endPos - startPos;
     if (length <= 0)
     {
-      Message message = ERR_SEARCH_FILTER_NULL.get();
+      LocalizableMessage message = ERR_SEARCH_FILTER_NULL.get();
       throw new DirectoryException(
               ResultCode.PROTOCOL_ERROR, message);
     }
@@ -699,7 +699,7 @@ public final class SearchFilter
       }
       else
       {
-        Message message = ERR_SEARCH_FILTER_MISMATCHED_PARENTHESES.
+        LocalizableMessage message = ERR_SEARCH_FILTER_MISMATCHED_PARENTHESES.
             get(filterString, startPos, endPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                      message);
@@ -742,7 +742,7 @@ public final class SearchFilter
 
     if (equalPos <= startPos)
     {
-      Message message = ERR_SEARCH_FILTER_NO_EQUAL_SIGN.get(
+      LocalizableMessage message = ERR_SEARCH_FILTER_NO_EQUAL_SIGN.get(
           filterString, startPos, endPos);
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                    message);
@@ -870,7 +870,7 @@ public final class SearchFilter
             // comprise the binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                     get(filterString, equalPos+i+1);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -934,7 +934,7 @@ public final class SearchFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                Message message =
+                LocalizableMessage message =
                     ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                       get(filterString, equalPos+i+1);
                 throw new DirectoryException(
@@ -997,7 +997,7 @@ public final class SearchFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                Message message =
+                LocalizableMessage message =
                     ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                       get(filterString, equalPos+i+1);
                 throw new DirectoryException(
@@ -1064,7 +1064,7 @@ public final class SearchFilter
     {
       if (filterType == FilterType.NOT)
       {
-        Message message = ERR_SEARCH_FILTER_NOT_EXACTLY_ONE.get(
+        LocalizableMessage message = ERR_SEARCH_FILTER_NOT_EXACTLY_ONE.get(
             filterString, startPos, endPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                      message);
@@ -1084,7 +1084,7 @@ public final class SearchFilter
     if ((filterString.charAt(startPos) != '(') ||
         (filterString.charAt(endPos-1) != ')'))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_COMPOUND_MISSING_PARENTHESES.
             get(filterString, startPos, endPos);
       throw new DirectoryException(
@@ -1121,7 +1121,7 @@ public final class SearchFilter
         }
         else if (pendingOpens < 0)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_SEARCH_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS.
                 get(filterString, i);
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -1130,7 +1130,7 @@ public final class SearchFilter
       }
       else if (pendingOpens <= 0)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_SEARCH_FILTER_COMPOUND_MISSING_PARENTHESES.
               get(filterString, startPos, endPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -1144,7 +1144,7 @@ public final class SearchFilter
     // empty.
     if (pendingOpens != 0)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS.
             get(filterString, openPos);
       throw new DirectoryException(
@@ -1157,7 +1157,7 @@ public final class SearchFilter
     {
       if (filterComponents.size() != 1)
       {
-        Message message = ERR_SEARCH_FILTER_NOT_EXACTLY_ONE.get(
+        LocalizableMessage message = ERR_SEARCH_FILTER_NOT_EXACTLY_ONE.get(
             filterString, startPos, endPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                      message);
@@ -1229,7 +1229,7 @@ public final class SearchFilter
     // If there were no asterisks, then this isn't a substring filter.
     if (asteriskPositions.isEmpty())
     {
-      Message message = ERR_SEARCH_FILTER_SUBSTRING_NO_ASTERISKS.get(
+      LocalizableMessage message = ERR_SEARCH_FILTER_SUBSTRING_NO_ASTERISKS.get(
           filterString, equalPos+1, endPos);
       throw new DirectoryException(
               ResultCode.PROTOCOL_ERROR, message);
@@ -1263,7 +1263,7 @@ public final class SearchFilter
             // comprise the binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                     get(filterString, equalPos+i+1);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -1327,7 +1327,7 @@ public final class SearchFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                Message message =
+                LocalizableMessage message =
                     ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                       get(filterString, equalPos+i+1);
                 throw new DirectoryException(
@@ -1390,7 +1390,7 @@ public final class SearchFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                Message message =
+                LocalizableMessage message =
                     ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                       get(filterString, equalPos+i+1);
                 throw new DirectoryException(
@@ -1432,7 +1432,7 @@ public final class SearchFilter
             // comprise the binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                     get(filterString, equalPos+i+1);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -1496,7 +1496,7 @@ public final class SearchFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                Message message =
+                LocalizableMessage message =
                     ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                       get(filterString, equalPos+i+1);
                 throw new DirectoryException(
@@ -1559,7 +1559,7 @@ public final class SearchFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                Message message =
+                LocalizableMessage message =
                     ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                       get(filterString, equalPos+i+1);
                 throw new DirectoryException(
@@ -1609,7 +1609,7 @@ public final class SearchFilter
             // comprise the binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                     get(filterString, equalPos+i+1);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -1673,7 +1673,7 @@ public final class SearchFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                Message message =
+                LocalizableMessage message =
                     ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                       get(filterString, equalPos+i+1);
                 throw new DirectoryException(
@@ -1736,7 +1736,7 @@ public final class SearchFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                Message message =
+                LocalizableMessage message =
                     ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                       get(filterString, equalPos+i+1);
                 throw new DirectoryException(
@@ -1826,7 +1826,7 @@ public final class SearchFilter
       int colonPos = filterString.indexOf(':',startPos);
       if (colonPos < 0)
       {
-        Message message = ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_COLON.
+        LocalizableMessage message = ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_COLON.
             get(filterString, startPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                      message);
@@ -1924,7 +1924,7 @@ public final class SearchFilter
           // comprise the binary value.
           if ((i + 2) >= valueBytes.length)
           {
-            Message message = ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+            LocalizableMessage message = ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                 get(filterString, equalPos+i+1);
             throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                          message);
@@ -1987,7 +1987,7 @@ public final class SearchFilter
               byteValue = (byte) 0xF0;
               break;
             default:
-              Message message =
+              LocalizableMessage message =
                   ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                     get(filterString, equalPos+i+1);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -2050,7 +2050,7 @@ public final class SearchFilter
               byteValue |= (byte) 0x0F;
               break;
             default:
-              Message message =
+              LocalizableMessage message =
                   ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                     get(filterString, equalPos+i+1);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -2080,7 +2080,7 @@ public final class SearchFilter
     {
       if (matchingRuleID == null)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR.
               get(filterString, startPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -2092,7 +2092,7 @@ public final class SearchFilter
                                toLowerCase(matchingRuleID));
         if (mr == null)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_SUCH_MR.
                 get(filterString, startPos, matchingRuleID);
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -2272,7 +2272,7 @@ public final class SearchFilter
       case UNDEFINED:
         return false;
       default:
-        Message message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+        LocalizableMessage message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
             get(String.valueOf(entry.getName()), toString(),
                 String.valueOf(result));
         logError(message);
@@ -2342,7 +2342,7 @@ public final class SearchFilter
 
       default:
         // This is an invalid filter type.
-        Message message = ERR_SEARCH_FILTER_INVALID_FILTER_TYPE.
+        LocalizableMessage message = ERR_SEARCH_FILTER_INVALID_FILTER_TYPE.
             get(String.valueOf(entry.getName()), toString(),
                 filterType.toString());
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -2379,7 +2379,7 @@ public final class SearchFilter
     if (filterComponents == null)
     {
       // The set of subcomponents was null.  This is not allowed.
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL.
             get(String.valueOf(entry.getName()),
                 String.valueOf(completeFilter),
@@ -2408,7 +2408,7 @@ public final class SearchFilter
       // nesting too deep.
       if (depth >= MAX_NESTED_FILTER_DEPTH)
       {
-        Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
+        LocalizableMessage message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
             get(String.valueOf(entry.getName()),
                 String.valueOf(completeFilter));
         throw new DirectoryException(
@@ -2443,7 +2443,7 @@ public final class SearchFilter
             }
             return result;
           default:
-            Message message =
+            LocalizableMessage message =
                 ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
                   get(String.valueOf(entry.getName()),
                       String.valueOf(completeFilter),
@@ -2496,7 +2496,7 @@ public final class SearchFilter
     if (filterComponents == null)
     {
       // The set of subcomponents was null.  This is not allowed.
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL.
             get(String.valueOf(entry.getName()),
                 String.valueOf(completeFilter),
@@ -2525,7 +2525,7 @@ public final class SearchFilter
       // nesting too deep.
       if (depth >= MAX_NESTED_FILTER_DEPTH)
       {
-        Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
+        LocalizableMessage message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
             get(String.valueOf(entry.getName()),
                 String.valueOf(completeFilter));
         throw new DirectoryException(
@@ -2561,7 +2561,7 @@ public final class SearchFilter
             result = ConditionResult.UNDEFINED;
             break;
           default:
-            Message message =
+            LocalizableMessage message =
                 ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
                   get(String.valueOf(entry.getName()),
                       String.valueOf(completeFilter),
@@ -2614,7 +2614,7 @@ public final class SearchFilter
     if (notComponent == null)
     {
       // The NOT subcomponent was null.  This is not allowed.
-      Message message = ERR_SEARCH_FILTER_NOT_COMPONENT_NULL.
+      LocalizableMessage message = ERR_SEARCH_FILTER_NOT_COMPONENT_NULL.
           get(String.valueOf(entry.getName()),
               String.valueOf(completeFilter));
       throw new DirectoryException(
@@ -2628,7 +2628,7 @@ public final class SearchFilter
       // that we don't go too deep.
       if (depth >= MAX_NESTED_FILTER_DEPTH)
       {
-        Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
+        LocalizableMessage message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
             get(String.valueOf(entry.getName()),
                 String.valueOf(completeFilter));
         throw new DirectoryException(
@@ -2669,7 +2669,7 @@ public final class SearchFilter
           }
           return ConditionResult.UNDEFINED;
         default:
-          Message message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+          LocalizableMessage message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
               get(String.valueOf(entry.getName()),
                   String.valueOf(completeFilter),
                   String.valueOf(result));
@@ -2706,7 +2706,7 @@ public final class SearchFilter
     // Make sure that an attribute type has been defined.
     if (attributeType == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_EQUALITY_NO_ATTRIBUTE_TYPE.
             get(String.valueOf(entry.getName()), toString());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -2716,7 +2716,7 @@ public final class SearchFilter
     // Make sure that an assertion value has been defined.
     if (assertionValue == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_EQUALITY_NO_ASSERTION_VALUE.
             get(String.valueOf(entry.getName()), toString(),
                 attributeType.getNameOrOID());
@@ -2833,7 +2833,7 @@ public final class SearchFilter
     // Make sure that an attribute type has been defined.
     if (attributeType == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_SUBSTRING_NO_ATTRIBUTE_TYPE.
             get(String.valueOf(entry.getName()), toString());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -2846,7 +2846,7 @@ public final class SearchFilter
         (subFinalElement == null) &&
         ((subAnyElements == null) || subAnyElements.isEmpty()))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_SUBSTRING_NO_SUBSTRING_COMPONENTS.
             get(String.valueOf(entry.getName()), toString(),
                 attributeType.getNameOrOID());
@@ -2941,7 +2941,7 @@ public final class SearchFilter
     // Make sure that an attribute type has been defined.
     if (attributeType == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_GREATER_OR_EQUAL_NO_ATTRIBUTE_TYPE.
             get(String.valueOf(entry.getName()), toString());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -2951,7 +2951,7 @@ public final class SearchFilter
     // Make sure that an assertion value has been defined.
     if (assertionValue == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_GREATER_OR_EQUAL_NO_VALUE.
             get(String.valueOf(entry.getName()), toString(),
                 attributeType.getNameOrOID());
@@ -3044,7 +3044,7 @@ public final class SearchFilter
     // Make sure that an attribute type has been defined.
     if (attributeType == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_LESS_OR_EQUAL_NO_ATTRIBUTE_TYPE.
             get(String.valueOf(entry.getName()), toString());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -3054,7 +3054,7 @@ public final class SearchFilter
     // Make sure that an assertion value has been defined.
     if (assertionValue == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_LESS_OR_EQUAL_NO_ASSERTION_VALUE.
             get(String.valueOf(entry.getName()), toString(),
                 attributeType.getNameOrOID());
@@ -3146,7 +3146,7 @@ public final class SearchFilter
     // Make sure that an attribute type has been defined.
     if (attributeType == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_PRESENCE_NO_ATTRIBUTE_TYPE.
             get(String.valueOf(entry.getName()), toString());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -3206,7 +3206,7 @@ public final class SearchFilter
     // Make sure that an attribute type has been defined.
     if (attributeType == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_APPROXIMATE_NO_ATTRIBUTE_TYPE.
             get(String.valueOf(entry.getName()), toString());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -3216,7 +3216,7 @@ public final class SearchFilter
     // Make sure that an assertion value has been defined.
     if (assertionValue == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_APPROXIMATE_NO_ASSERTION_VALUE.
             get(String.valueOf(entry.getName()), toString(),
                 attributeType.getNameOrOID());
@@ -3312,7 +3312,7 @@ public final class SearchFilter
     // determination.
     if (assertionValue == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_ASSERTION_VALUE.
             get(String.valueOf(entry.getName()),
                 String.valueOf(completeFilter));
@@ -3344,7 +3344,7 @@ public final class SearchFilter
     {
       if (attributeType == null)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_RULE_OR_TYPE.
               get(String.valueOf(entry.getName()),
                   String.valueOf(completeFilter));
@@ -3444,7 +3444,7 @@ public final class SearchFilter
                   result = ConditionResult.UNDEFINED;
                   break;
                 default:
-                  Message message =
+                  LocalizableMessage message =
                       ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
                         get(String.valueOf(entry.getName()),
                             String.valueOf(completeFilter),
@@ -3492,7 +3492,7 @@ public final class SearchFilter
                   result = ConditionResult.UNDEFINED;
                   break;
                 default:
-                  Message message =
+                  LocalizableMessage message =
                       ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
                         get(String.valueOf(entry.getName()),
                             String.valueOf(completeFilter),
@@ -3535,7 +3535,7 @@ public final class SearchFilter
               result = ConditionResult.UNDEFINED;
               break;
             default:
-              Message message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+              LocalizableMessage message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
                   get(String.valueOf(entry.getName()),
                       String.valueOf(completeFilter),
                       String.valueOf(r));
@@ -3582,7 +3582,7 @@ public final class SearchFilter
                   result = ConditionResult.UNDEFINED;
                   break;
                 default:
-                  Message message =
+                  LocalizableMessage message =
                       ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
                         get(String.valueOf(entry.getName()),
                             String.valueOf(completeFilter),
@@ -3643,7 +3643,7 @@ public final class SearchFilter
                   result = ConditionResult.UNDEFINED;
                   break;
                 default:
-                  Message message =
+                  LocalizableMessage message =
                       ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
                         get(String.valueOf(entry.getName()),
                             String.valueOf(completeFilter),

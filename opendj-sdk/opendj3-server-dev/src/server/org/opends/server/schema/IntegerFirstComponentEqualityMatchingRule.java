@@ -36,7 +36,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -284,7 +284,7 @@ class IntegerFirstComponentEqualityMatchingRule
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_EMR_INTFIRSTCOMP_NO_INITIAL_PARENTHESIS.get(
+        LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_NO_INITIAL_PARENTHESIS.get(
             String.valueOf(valueString));
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                      message, e);
@@ -299,7 +299,7 @@ class IntegerFirstComponentEqualityMatchingRule
 
     if (pos >= valueLength)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_EMR_INTFIRSTCOMP_NO_NONSPACE.get(String.valueOf(valueString));
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                    message);
@@ -316,7 +316,7 @@ class IntegerFirstComponentEqualityMatchingRule
 
     if (pos >= valueLength)
     {
-      Message message = ERR_EMR_INTFIRSTCOMP_NO_SPACE_AFTER_INT.get(
+      LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_NO_SPACE_AFTER_INT.get(
           String.valueOf(valueString));
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                    message);
@@ -336,7 +336,7 @@ class IntegerFirstComponentEqualityMatchingRule
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(
+      LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(
           String.valueOf(valueString));
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                    message);

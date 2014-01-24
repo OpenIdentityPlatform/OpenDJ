@@ -34,7 +34,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -64,13 +64,13 @@ public class ShutdownTask
   private boolean restart;
 
   // The shutdown message that will be used.
-  private Message shutdownMessage;
+  private LocalizableMessage shutdownMessage;
 
 
   /**
    * {@inheritDoc}
    */
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return INFO_TASK_SHUTDOWN_NAME.get();
   }
 
@@ -140,7 +140,7 @@ public class ShutdownTask
         if (! clientConnection.hasPrivilege(Privilege.SERVER_RESTART,
                                             operation))
         {
-          Message message =
+          LocalizableMessage message =
               ERR_TASK_SHUTDOWN_INSUFFICIENT_RESTART_PRIVILEGES.get();
           throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                        message);
@@ -151,7 +151,7 @@ public class ShutdownTask
         if (! clientConnection.hasPrivilege(Privilege.SERVER_SHUTDOWN,
                                             operation))
         {
-          Message message =
+          LocalizableMessage message =
               ERR_TASK_SHUTDOWN_INSUFFICIENT_SHUTDOWN_PRIVILEGES.get();
           throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                        message);

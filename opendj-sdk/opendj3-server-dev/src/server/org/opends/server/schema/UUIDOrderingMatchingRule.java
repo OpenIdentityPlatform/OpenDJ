@@ -34,7 +34,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -159,7 +159,7 @@ public class UUIDOrderingMatchingRule
   {
     if (value.length() != 36)
     {
-      Message message = WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(
+      LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(
               value.toString(), value.length());
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
@@ -189,7 +189,7 @@ public class UUIDOrderingMatchingRule
         case 23:
           if (c != '-')
           {
-            Message message = WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(
+            LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(
                     value.toString(), i, String.valueOf(c));
             switch (DirectoryServer.getSyntaxEnforcementPolicy())
             {
@@ -246,7 +246,7 @@ public class UUIDOrderingMatchingRule
               builder.append('f');
               break;
             default:
-              Message message = WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(
+              LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(
                       value.toString(), i, String.valueOf(c));
               switch (DirectoryServer.getSyntaxEnforcementPolicy())
               {

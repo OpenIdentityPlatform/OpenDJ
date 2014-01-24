@@ -34,7 +34,7 @@ import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -112,7 +112,7 @@ public class TestPasswordValidator
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      MessageBuilder invalidReason)
+                                      LocalizableMessageBuilder invalidReason)
   {
     lastNewPassword      = newPassword;
     lastCurrentPasswords = currentPasswords;

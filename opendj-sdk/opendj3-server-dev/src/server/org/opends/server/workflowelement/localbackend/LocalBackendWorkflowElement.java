@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageDescriptor;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.BackendCfg;
@@ -180,7 +180,7 @@ public class LocalBackendWorkflowElement extends
   @Override
   public boolean isConfigurationChangeAcceptable(
       LocalBackendWorkflowElementCfg configuration,
-      List<Message>                  unacceptableReasons
+      List<LocalizableMessage>                  unacceptableReasons
       )
   {
     return processWorkflowElementConfig(configuration, false);
@@ -198,7 +198,7 @@ public class LocalBackendWorkflowElement extends
     processWorkflowElementConfig(configuration, true);
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false,
-        new ArrayList<Message>());
+        new ArrayList<LocalizableMessage>());
   }
 
 
@@ -407,8 +407,8 @@ public class LocalBackendWorkflowElement extends
    *           If an error occurred while performing the access control check.
    */
   static DirectoryException newDirectoryException(Operation operation,
-      Entry entry, DN entryDN, ResultCode resultCode, Message message,
-      ResultCode altResultCode, Message altMessage) throws DirectoryException
+      Entry entry, DN entryDN, ResultCode resultCode, LocalizableMessage message,
+      ResultCode altResultCode, LocalizableMessage altMessage) throws DirectoryException
   {
     if (AccessControlConfigManager.getInstance().getAccessControlHandler()
         .canDiscloseInformation(entry, entryDN, operation))
@@ -458,8 +458,8 @@ public class LocalBackendWorkflowElement extends
    *           If an error occurred while performing the access control check.
    */
   static void setResultCodeAndMessageNoInfoDisclosure(Operation operation,
-      Entry entry, DN entryDN, ResultCode resultCode, Message message,
-      ResultCode altResultCode, Message altMessage) throws DirectoryException
+      Entry entry, DN entryDN, ResultCode resultCode, LocalizableMessage message,
+      ResultCode altResultCode, LocalizableMessage altMessage) throws DirectoryException
   {
     if (AccessControlConfigManager.getInstance().getAccessControlHandler()
         .canDiscloseInformation(entry, entryDN, operation))
@@ -835,8 +835,8 @@ public class LocalBackendWorkflowElement extends
    *           If the update operation has been rejected.
    */
   static void checkIfBackendIsWritable(Backend backend, Operation op,
-      DN entryDN, MessageDescriptor.Arg1<CharSequence> serverMsg,
-      MessageDescriptor.Arg1<CharSequence> backendMsg)
+      DN entryDN, LocalizableMessageDescriptor.Arg1<CharSequence> serverMsg,
+      LocalizableMessageDescriptor.Arg1<CharSequence> backendMsg)
       throws DirectoryException
   {
     if (!backend.isPrivateBackend())

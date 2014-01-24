@@ -35,7 +35,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.plugins.DisconnectClientPlugin;
@@ -115,7 +115,7 @@ public class AbandonOperationTestCase
                   InternalClientConnection.nextMessageID(), new ArrayList<Control>(), 1);
 
     CancelRequest cancelRequest = new CancelRequest(true,
-            Message.raw("Test Cancel"));
+            LocalizableMessage.raw("Test Cancel"));
 
     assertEquals(abandonOperation.cancel(cancelRequest).getResultCode(),
                  ResultCode.CANNOT_CANCEL);

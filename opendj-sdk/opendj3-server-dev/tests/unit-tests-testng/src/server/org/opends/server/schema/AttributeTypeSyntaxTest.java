@@ -33,7 +33,7 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import java.util.ArrayList;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -168,7 +168,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
       "( testxapproxtype-oid NAME 'testXApproxType' " +
            "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 " +
            "X-APPROX 'equalLengthApproximateMatch' )");
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(attrTypeSyntax.valueIsAcceptable(definition, invalidReason),
             invalidReason.toString());
 

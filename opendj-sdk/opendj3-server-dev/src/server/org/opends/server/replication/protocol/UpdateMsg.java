@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -292,9 +292,9 @@ public class UpdateMsg extends ReplicationMsg
   }
 
   /**
-   * Decode the Header part of this Update Message, and check its type.
+   * Decode the Header part of this Update LocalizableMessage, and check its type.
    *
-   * @param type The allowed type of this Update Message.
+   * @param type The allowed type of this Update LocalizableMessage.
    * @param encodedMsg the encoded form of the UpdateMsg.
    * @return the position at which the remaining part of the message starts.
    * @throws DataFormatException if the encodedMsg does not contain a valid

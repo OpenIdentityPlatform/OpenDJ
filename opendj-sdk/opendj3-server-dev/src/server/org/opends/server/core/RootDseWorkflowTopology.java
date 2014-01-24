@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.core.networkgroups.NetworkGroupNamingContexts;
 import org.opends.server.types.*;
 
@@ -157,7 +158,7 @@ public class RootDseWorkflowTopology extends WorkflowTopology
     // If the result code is still uninitialized (ie no naming context),
     // we should return NO_SUCH_OBJECT
     workflowResultCode.elaborateGlobalResultCode(
-      ResultCode.NO_SUCH_OBJECT, new MessageBuilder(Message.EMPTY));
+      ResultCode.NO_SUCH_OBJECT, new LocalizableMessageBuilder(LocalizableMessage.EMPTY));
 
     // Set the operation result code and error message
     searchOp.setResultCode(workflowResultCode.resultCode());

@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.TaskMessages;
 
 import static org.opends.server.core.DirectoryServer.getAttributeType;
@@ -78,8 +79,8 @@ public class RestoreTask extends Task
   /**
    * Stores mapping between configuration attribute name and its label.
    */
-  static private Map<String,Message> argDisplayMap =
-          new HashMap<String,Message>();
+  static private Map<String,LocalizableMessage> argDisplayMap =
+          new HashMap<String,LocalizableMessage>();
   static {
     argDisplayMap.put(
             ATTR_BACKUP_DIRECTORY_PATH,
@@ -105,14 +106,14 @@ public class RestoreTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return INFO_TASK_RESTORE_NAME.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  public Message getAttributeDisplayName(String name) {
+  public LocalizableMessage getAttributeDisplayName(String name) {
     return argDisplayMap.get(name);
   }
 
@@ -129,7 +130,7 @@ public class RestoreTask extends Task
       ClientConnection clientConnection = operation.getClientConnection();
       if (! clientConnection.hasPrivilege(Privilege.BACKEND_RESTORE, operation))
       {
-        Message message = ERR_TASK_RESTORE_INSUFFICIENT_PRIVILEGES.get();
+        LocalizableMessage message = ERR_TASK_RESTORE_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                      message);
       }
@@ -179,7 +180,7 @@ public class RestoreTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        Message message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
+        LocalizableMessage message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
         return false;
@@ -187,7 +188,7 @@ public class RestoreTask extends Task
     }
     catch (Exception e)
     {
-      Message message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
+      LocalizableMessage message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       logError(message);
       return false;
@@ -208,7 +209,7 @@ public class RestoreTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        Message message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
+        LocalizableMessage message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
         return false;
@@ -216,7 +217,7 @@ public class RestoreTask extends Task
     }
     catch (Exception e)
     {
-      Message message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
+      LocalizableMessage message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       logError(message);
       return false;
@@ -228,7 +229,7 @@ public class RestoreTask extends Task
   /**
    * {@inheritDoc}
    */
-  public void interruptTask(TaskState interruptState, Message interruptReason)
+  public void interruptTask(TaskState interruptState, LocalizableMessage interruptReason)
   {
     if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
             restoreConfig != null)
@@ -263,7 +264,7 @@ public class RestoreTask extends Task
     }
     catch (Exception e)
     {
-      Message message = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
+      LocalizableMessage message = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
           String.valueOf(backupDirectory), getExceptionMessage(e));
       logError(message);
       return TaskState.STOPPED_BY_ERROR;
@@ -277,7 +278,7 @@ public class RestoreTask extends Task
       BackupInfo backupInfo = backupDir.getBackupInfo(backupID);
       if (backupInfo == null)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_RESTOREDB_INVALID_BACKUP_ID.get(
                     backupID, String.valueOf(backupDirectory));
         logError(message);
@@ -289,7 +290,7 @@ public class RestoreTask extends Task
       BackupInfo latestBackup = backupDir.getLatestBackup();
       if (latestBackup == null)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_RESTOREDB_NO_BACKUPS_IN_DIRECTORY.get(
                     String.valueOf(backupDirectory));
         logError(message);
@@ -316,7 +317,7 @@ public class RestoreTask extends Task
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message = ERR_RESTOREDB_NO_BACKENDS_FOR_DN.get(
+      LocalizableMessage message = ERR_RESTOREDB_NO_BACKENDS_FOR_DN.get(
           String.valueOf(backupDirectory), configEntryDN.toString());
       logError(message);
       return TaskState.STOPPED_BY_ERROR;
@@ -330,7 +331,7 @@ public class RestoreTask extends Task
 
     if (! backend.supportsRestore())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_RESTOREDB_CANNOT_RESTORE.get(backend.getBackendID());
       logError(message);
       return TaskState.STOPPED_BY_ERROR;
@@ -381,7 +382,7 @@ public class RestoreTask extends Task
           catch (DirectoryException de)
           {
             DirectoryServer.notifyRestoreEnded(backend, restoreConfig, false);
-            Message message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
+            LocalizableMessage message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
                 backupID, backupDir.getPath(), de.getMessageObject());
             logError(message);
             errorsEncountered = true;
@@ -389,7 +390,7 @@ public class RestoreTask extends Task
           catch (Exception e)
           {
             DirectoryServer.notifyRestoreEnded(backend, restoreConfig, false);
-            Message message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
+            LocalizableMessage message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
                 backupID, backupDir.getPath(), getExceptionMessage(e));
             logError(message);
             errorsEncountered = true;

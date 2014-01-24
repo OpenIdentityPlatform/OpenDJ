@@ -46,8 +46,8 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.AddressMask;
-import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
@@ -316,7 +316,7 @@ public final class LDAPConnectionHandler extends
     // Create variables to include in the response.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // Note that the following properties cannot be modified:
     //
@@ -392,7 +392,7 @@ public final class LDAPConnectionHandler extends
    * {@inheritDoc}
    */
   @Override
-  public void finalizeConnectionHandler(Message finalizeReason)
+  public void finalizeConnectionHandler(LocalizableMessage finalizeReason)
   {
     shutdownRequested = true;
     currentConfig.removeLDAPChangeListener(this);
@@ -697,7 +697,7 @@ public final class LDAPConnectionHandler extends
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_CONNHANDLER_OPEN_SELECTOR_FAILED.get(
+      LocalizableMessage message = ERR_LDAP_CONNHANDLER_OPEN_SELECTOR_FAILED.get(
           String.valueOf(config.dn()), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
@@ -748,7 +748,7 @@ public final class LDAPConnectionHandler extends
 
     // Attempt to bind to the listen port on all configured addresses to
     // verify whether the connection handler will be able to start.
-    Message errorMessage =
+    LocalizableMessage errorMessage =
         checkAnyListenAddressInUse(listenAddresses, listenPort,
             allowReuseAddress, config.dn());
     if (errorMessage != null)
@@ -810,7 +810,7 @@ public final class LDAPConnectionHandler extends
    */
   @Override()
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     LDAPConnectionHandlerCfg config = (LDAPConnectionHandlerCfg) configuration;
 
@@ -819,7 +819,7 @@ public final class LDAPConnectionHandler extends
     {
       // Attempt to bind to the listen port on all configured addresses to
       // verify whether the connection handler will be able to start.
-      Message errorMessage =
+      LocalizableMessage errorMessage =
           checkAnyListenAddressInUse(config.getListenAddress(), config
               .getListenPort(), config.isAllowTCPReuseAddress(), config.dn());
       if (errorMessage != null)
@@ -870,7 +870,7 @@ public final class LDAPConnectionHandler extends
    * @return an error message if at least one of the address is already in use,
    *         null otherwise.
    */
-  private Message checkAnyListenAddressInUse(
+  private LocalizableMessage checkAnyListenAddressInUse(
       Collection<InetAddress> listenAddresses, int listenPort,
       boolean allowReuseAddress, DN configEntryDN)
   {
@@ -903,7 +903,7 @@ public final class LDAPConnectionHandler extends
    */
   @Override
   public boolean isConfigurationChangeAcceptable(
-      LDAPConnectionHandlerCfg config, List<Message> unacceptableReasons)
+      LDAPConnectionHandlerCfg config, List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigurationAcceptable(config, unacceptableReasons);
   }
@@ -927,7 +927,7 @@ public final class LDAPConnectionHandler extends
    * {@inheritDoc}
    */
   @Override
-  public void processServerShutdown(Message reason)
+  public void processServerShutdown(LocalizableMessage reason)
   {
     shutdownRequested = true;
 
@@ -1066,7 +1066,7 @@ public final class LDAPConnectionHandler extends
               // encountered a failure. Rather than enter a potential
               // infinite loop of failures, disable this acceptor and
               // log an error.
-              Message message = ERR_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES
+              LocalizableMessage message = ERR_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES
                   .get(friendlyName, String.valueOf(currentConfig.dn()),
                       stackTraceToSingleLineString(e));
               logError(message);
@@ -1105,7 +1105,7 @@ public final class LDAPConnectionHandler extends
         // only thing we can do here is log a message, send an alert,
         // and disable the selector until an administrator can figure
         // out what's going on.
-        Message message = ERR_LDAP_CONNHANDLER_UNCAUGHT_ERROR
+        LocalizableMessage message = ERR_LDAP_CONNHANDLER_UNCAUGHT_ERROR
             .get(String.valueOf(currentConfig.dn()),
                 stackTraceToSingleLineString(e));
         logError(message);
@@ -1290,7 +1290,7 @@ public final class LDAPConnectionHandler extends
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(clientConnection
               .getClientHostPort(), clientConnection.getServerHostPort(),
               getExceptionMessage(e));
@@ -1455,7 +1455,7 @@ public final class LDAPConnectionHandler extends
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       ResultCode resCode = DirectoryServer.getServerErrorResultCode();
-      Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
+      LocalizableMessage message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
           .get(getExceptionMessage(e));
       throw new DirectoryException(resCode, message, e);
     }
@@ -1508,7 +1508,7 @@ public final class LDAPConnectionHandler extends
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       ResultCode resCode = DirectoryServer.getServerErrorResultCode();
-      Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
+      LocalizableMessage message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
           .get(getExceptionMessage(e));
       throw new DirectoryException(resCode, message, e);
     }

@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import static org.opends.messages.AdminToolMessages.*;
 
@@ -69,21 +69,21 @@ public class CliUserInteraction extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
-  public Object confirm(Message summary, Message details,
-                        Message title, MessageType type, Message[] options,
-                        Message def) {
+  public Object confirm(LocalizableMessage summary, LocalizableMessage details,
+                        LocalizableMessage title, MessageType type, LocalizableMessage[] options,
+                        LocalizableMessage def) {
     return confirm(summary, details, null, title, type, options, def, null);
   }
 
   /**
    * {@inheritDoc}
    */
-  public Object confirm(Message summary, Message details, Message fineDetails,
-                        Message title, MessageType type, Message[] options,
-                        Message def, Message viewDetailsOption) {
+  public Object confirm(LocalizableMessage summary, LocalizableMessage details, LocalizableMessage fineDetails,
+                        LocalizableMessage title, MessageType type, LocalizableMessage[] options,
+                        LocalizableMessage def, LocalizableMessage viewDetailsOption) {
     MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
 
-    MessageBuilder b = new MessageBuilder();
+    LocalizableMessageBuilder b = new LocalizableMessageBuilder();
     b.append(summary);
     b.append(Constants.LINE_SEPARATOR);
     b.append(details);
@@ -100,7 +100,7 @@ public class CliUserInteraction extends ConsoleApplication
     }
 
     if (fineDetails != null) {
-      Message detailsPrompt = viewDetailsOption;
+      LocalizableMessage detailsPrompt = viewDetailsOption;
       if (detailsPrompt == null)
       {
         detailsPrompt = INFO_CLI_VIEW_DETAILS.get();
@@ -109,7 +109,7 @@ public class CliUserInteraction extends ConsoleApplication
           MenuResult.success(options.length + 1));
     }
 
-    builder.setDefault(Message.raw(String.valueOf(defInt)),
+    builder.setDefault(LocalizableMessage.raw(String.valueOf(defInt)),
         MenuResult.success(defInt));
 
     Menu<Integer> menu = builder.toMenu();

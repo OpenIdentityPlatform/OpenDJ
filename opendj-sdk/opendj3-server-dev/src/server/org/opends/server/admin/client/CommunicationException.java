@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.client;
@@ -30,7 +31,7 @@ package org.opends.server.admin.client;
 
 import static org.opends.messages.AdminMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -81,7 +82,7 @@ public class CommunicationException extends AdminClientException {
    * @param cause
    *          The cause.
    */
-  public CommunicationException(Message message, Throwable cause) {
+  public CommunicationException(LocalizableMessage message, Throwable cause) {
     super(message, cause);
   }
 
@@ -93,7 +94,7 @@ public class CommunicationException extends AdminClientException {
    * @param message
    *          The message.
    */
-  public CommunicationException(Message message) {
+  public CommunicationException(LocalizableMessage message) {
     super(message);
   }
 }

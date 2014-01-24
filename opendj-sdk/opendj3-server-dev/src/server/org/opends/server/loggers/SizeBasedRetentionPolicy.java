@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.LoggerMessages.ERR_LOGGER_ERROR_LISTING_FILES;
 
 import org.opends.server.admin.std.server.SizeLimitLogRetentionPolicyCfg;
@@ -78,7 +79,7 @@ public class SizeBasedRetentionPolicy implements
    */
   public boolean isConfigurationChangeAcceptable(
       SizeLimitLogRetentionPolicyCfg config,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // Changes should always be OK
     return true;
@@ -93,7 +94,7 @@ public class SizeBasedRetentionPolicy implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     this.size = config.getDiskSpaceUsed();
     this.config = config;
@@ -110,7 +111,7 @@ public class SizeBasedRetentionPolicy implements
     File[] files = fileNamingPolicy.listFiles();
     if(files == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LOGGER_ERROR_LISTING_FILES.get(
               fileNamingPolicy.getInitialName().toString());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),

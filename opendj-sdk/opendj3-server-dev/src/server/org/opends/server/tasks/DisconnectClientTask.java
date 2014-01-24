@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -65,13 +66,13 @@ public class DisconnectClientTask
   private long connectionID;
 
   // The disconnect message to send to the client.
-  private Message disconnectMessage;
+  private LocalizableMessage disconnectMessage;
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return INFO_TASK_DISCONNECT_CLIENT_NAME.get();
   }
 
@@ -90,7 +91,7 @@ public class DisconnectClientTask
       ClientConnection conn = operation.getClientConnection();
       if (! conn.hasPrivilege(Privilege.DISCONNECT_CLIENT, operation))
       {
-        Message message = ERR_TASK_DISCONNECT_NO_PRIVILEGE.get();
+        LocalizableMessage message = ERR_TASK_DISCONNECT_NO_PRIVILEGE.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                      message);
       }
@@ -117,7 +118,7 @@ connIDLoop:
           }
           catch (Exception e)
           {
-            Message message =
+            LocalizableMessage message =
                ERR_TASK_DISCONNECT_INVALID_CONN_ID.get(v.getValue().toString());
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, e);
@@ -128,7 +129,7 @@ connIDLoop:
 
     if (connectionID < 0)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_TASK_DISCONNECT_NO_CONN_ID.get(ATTR_TASK_DISCONNECT_CONN_ID);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                    message);
@@ -160,7 +161,7 @@ notifyClientLoop:
           }
           else
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_TASK_DISCONNECT_INVALID_NOTIFY_CLIENT.get(stringValue);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
@@ -182,7 +183,7 @@ disconnectMessageLoop:
       {
         for (AttributeValue v : a)
         {
-          disconnectMessage = Message.raw(v.getValue().toString());
+          disconnectMessage = LocalizableMessage.raw(v.getValue().toString());
           break disconnectMessageLoop;
         }
       }
@@ -216,7 +217,7 @@ disconnectMessageLoop:
     // terminate it.
     if (clientConnection == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_TASK_DISCONNECT_NO_SUCH_CONNECTION.get(
                   String.valueOf(connectionID));
       logError(message);

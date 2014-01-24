@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2011 profiq s.r.o.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AttributeCleanupPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
@@ -253,14 +253,14 @@ public class AttributeCleanupPlugin extends
       case PRE_PARSE_MODIFY:
         break;
       default:
-        final Message message = ERR_PLUGIN_ATTR_CLEANUP_INITIALIZE_PLUGIN
+        final LocalizableMessage message = ERR_PLUGIN_ATTR_CLEANUP_INITIALIZE_PLUGIN
             .get(String.valueOf(t));
         throw new ConfigException(message);
       }
     }
 
     /* Verify the current configuration. */
-    final List<Message> messages = new LinkedList<Message>();
+    final List<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
     if (!isConfigurationChangeAcceptable(configuration, messages))
     {
       throw new ConfigException(messages.get(0));
@@ -280,7 +280,7 @@ public class AttributeCleanupPlugin extends
    */
   @Override
   public boolean isConfigurationAcceptable(final PluginCfg configuration,
-      final List<Message> unacceptableReasons)
+      final List<LocalizableMessage> unacceptableReasons)
   {
     final AttributeCleanupPluginCfg cfg =
       (AttributeCleanupPluginCfg) configuration;
@@ -294,7 +294,7 @@ public class AttributeCleanupPlugin extends
    */
   @Override
   public boolean isConfigurationChangeAcceptable(
-      final AttributeCleanupPluginCfg config, final List<Message> messages)
+      final AttributeCleanupPluginCfg config, final List<LocalizableMessage> messages)
   {
     /*
      * The admin framework will ensure that there are no duplicate attributes to

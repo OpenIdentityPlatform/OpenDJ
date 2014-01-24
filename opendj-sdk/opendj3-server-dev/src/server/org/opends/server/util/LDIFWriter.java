@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.makeldif.TemplateEntry;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -110,7 +110,7 @@ public final class LDIFWriter implements Closeable
    * @throws  IOException  If a problem occurs while attempting to write the
    *                       comment to the LDIF file.
    */
-  public void writeComment(Message comment, int wrapColumn)
+  public void writeComment(LocalizableMessage comment, int wrapColumn)
          throws IOException
   {
     ifNull(comment);

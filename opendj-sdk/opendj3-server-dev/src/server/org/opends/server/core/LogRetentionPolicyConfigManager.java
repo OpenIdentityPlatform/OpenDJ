@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.admin.std.server.LogRetentionPolicyCfg;
 import org.opends.server.admin.std.server.RootCfg;
@@ -104,7 +105,7 @@ public class LogRetentionPolicyConfigManager implements
    */
   public boolean isConfigurationAddAcceptable(
       LogRetentionPolicyCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
@@ -114,7 +115,7 @@ public class LogRetentionPolicyConfigManager implements
    */
   public boolean isConfigurationDeleteAcceptable(
       LogRetentionPolicyCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // TODO: Make sure nothing is using this policy before deleting it.
     return true;
@@ -128,7 +129,7 @@ public class LogRetentionPolicyConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     try
     {
@@ -167,7 +168,7 @@ public class LogRetentionPolicyConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     RetentionPolicy policy = DirectoryServer.getRetentionPolicy(config.dn());
     if(policy != null)
@@ -188,7 +189,7 @@ public class LogRetentionPolicyConfigManager implements
    */
   public boolean isConfigurationChangeAcceptable(
       LogRetentionPolicyCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
@@ -202,7 +203,7 @@ public class LogRetentionPolicyConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     RetentionPolicy policy =
         DirectoryServer.getRetentionPolicy(configuration.dn());
@@ -216,7 +217,7 @@ public class LogRetentionPolicyConfigManager implements
   }
 
   private boolean isJavaClassAcceptable(LogRetentionPolicyCfg config,
-                                        List<Message> unacceptableReasons)
+                                        List<LocalizableMessage> unacceptableReasons)
   {
     String className = config.getJavaClass();
     LogRetentionPolicyCfgDefn d = LogRetentionPolicyCfgDefn.getInstance();
@@ -228,7 +229,7 @@ public class LogRetentionPolicyConfigManager implements
       theClass = pd.loadClass(className, RetentionPolicy.class);
       theClass.newInstance();
     } catch (Exception e) {
-      Message message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className,
+      LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className,
                                   config.dn().toString(),
                                   String.valueOf(e));
       unacceptableReasons.add(message);
@@ -242,7 +243,7 @@ public class LogRetentionPolicyConfigManager implements
       theClass.getMethod("initializeLogRetentionPolicy", config
           .configurationClass());
     } catch (Exception e) {
-      Message message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className,
+      LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className,
                                   config.dn().toString(),
                                   String.valueOf(e));
       unacceptableReasons.add(message);
@@ -276,11 +277,11 @@ public class LogRetentionPolicyConfigManager implements
     {
       // Rethrow the exceptions thrown be the invoked method.
       Throwable e = ite.getTargetException();
-      Message message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(
+      LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(
           className, config.dn().toString(), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     } catch (Exception e) {
-      Message message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(
+      LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(
           className, config.dn().toString(), String.valueOf(e));
       throw new ConfigException(message, e);
     }

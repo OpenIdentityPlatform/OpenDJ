@@ -42,7 +42,7 @@ import org.opends.server.types.operation.PostOperationModifyOperation;
 import static org.opends.server.replication.protocol.OperationContext.*;
 
 /**
- * Message used to send Modify information.
+ * LocalizableMessage used to send Modify information.
  */
 public class ModifyMsg extends ModifyCommonMsg
 {

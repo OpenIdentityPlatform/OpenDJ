@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
 import java.util.ArrayList;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.CancelRequest;
@@ -101,7 +101,7 @@ public class UnbindOperationTestCase extends OperationTestCase
   {
     final InternalClientConnection conn = getRootConnection();
     CancelRequest cancelRequest =
-         new CancelRequest(false, Message.raw("Test Unbind Cancel"));
+         new CancelRequest(false, LocalizableMessage.raw("Test Unbind Cancel"));
 
     UnbindOperationBasis unbindOperation = new UnbindOperationBasis(
         conn, nextOperationID(), nextMessageID(), new ArrayList<Control>());
@@ -118,7 +118,7 @@ public class UnbindOperationTestCase extends OperationTestCase
   {
     final InternalClientConnection conn = getRootConnection();
     CancelRequest cancelRequest =
-         new CancelRequest(false, Message.raw("Test Unbind Cancel"));
+         new CancelRequest(false, LocalizableMessage.raw("Test Unbind Cancel"));
 
     UnbindOperationBasis unbindOperation = new UnbindOperationBasis(
         conn, nextOperationID(), nextMessageID(), new ArrayList<Control>());

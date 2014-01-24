@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -37,7 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
@@ -432,7 +432,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   @Override()
   public void parseArguments(String[] args) throws ArgumentException
   {
-    LinkedHashSet<Message> errorMessages = new LinkedHashSet<Message>();
+    LinkedHashSet<LocalizableMessage> errorMessages = new LinkedHashSet<LocalizableMessage>();
     try
     {
       super.parseArguments(args);
@@ -452,7 +452,7 @@ public class InstallDSArgumentParser extends ArgumentParser
 
       if (errorMessages.size() > 0)
       {
-        Message message = ERR_CANNOT_INITIALIZE_ARGS.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(
             Utils.getMessageFromCollection(errorMessages,
                 Constants.LINE_SEPARATOR));
         throw new ArgumentException(message);
@@ -505,12 +505,12 @@ public class InstallDSArgumentParser extends ArgumentParser
    * messages describing the problems encountered during the execution of the
    * checking.
    */
-  private void checkServerPassword(Collection<Message> errorMessages)
+  private void checkServerPassword(Collection<LocalizableMessage> errorMessages)
   {
     if (directoryManagerPwdStringArg.isPresent() &&
         directoryManagerPwdFileArg.isPresent())
     {
-      Message message = ERR_INSTALLDS_TWO_CONFLICTING_ARGUMENTS.get(
+      LocalizableMessage message = ERR_INSTALLDS_TWO_CONFLICTING_ARGUMENTS.get(
           directoryManagerPwdStringArg.getLongIdentifier(),
           directoryManagerPwdFileArg.getLongIdentifier());
       errorMessages.add(message);
@@ -519,7 +519,7 @@ public class InstallDSArgumentParser extends ArgumentParser
     if (noPromptArg.isPresent() && !directoryManagerPwdStringArg.isPresent() &&
         !directoryManagerPwdFileArg.isPresent())
     {
-      Message message = ERR_INSTALLDS_NO_ROOT_PASSWORD.get(
+      LocalizableMessage message = ERR_INSTALLDS_NO_ROOT_PASSWORD.get(
           directoryManagerPwdStringArg.getLongIdentifier(),
           directoryManagerPwdFileArg.getLongIdentifier());
       errorMessages.add(message);
@@ -533,7 +533,7 @@ public class InstallDSArgumentParser extends ArgumentParser
    * messages describing the problems encountered during the execution of the
    * checking.
    */
-  private void checkProvidedPorts(Collection<Message> errorMessages)
+  private void checkProvidedPorts(Collection<LocalizableMessage> errorMessages)
   {
     /**
      * Check that the provided ports do not match.
@@ -545,7 +545,7 @@ public class InstallDSArgumentParser extends ArgumentParser
 
       if (ports.contains(adminConnectorPortArg.getIntValue()))
       {
-        Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
+        LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
             String.valueOf(adminConnectorPortArg.getIntValue()));
         errorMessages.add(message);
       }
@@ -558,7 +558,7 @@ public class InstallDSArgumentParser extends ArgumentParser
       {
         if (ports.contains(jmxPortArg.getIntValue()))
         {
-          Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
+          LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
                   String.valueOf(jmxPortArg.getIntValue()));
           errorMessages.add(message);
         }
@@ -571,7 +571,7 @@ public class InstallDSArgumentParser extends ArgumentParser
       {
         if (ports.contains(ldapsPortArg.getIntValue()))
         {
-          Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
+          LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
                   String.valueOf(ldapsPortArg.getIntValue()));
           errorMessages.add(message);
         }
@@ -594,21 +594,21 @@ public class InstallDSArgumentParser extends ArgumentParser
    * messages describing the problems encountered during the execution of the
    * checking.
    */
-  private void checkImportDataArguments(Collection<Message> errorMessages)
+  private void checkImportDataArguments(Collection<LocalizableMessage> errorMessages)
   {
     //  Make sure that the user didn't provide conflicting arguments.
     if (addBaseEntryArg.isPresent())
     {
       if (importLDIFArg.isPresent())
       {
-        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+        LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
                 addBaseEntryArg.getLongIdentifier(),
                 importLDIFArg.getLongIdentifier());
         errorMessages.add(message);
       }
       else if (sampleDataArg.isPresent())
       {
-        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+        LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
                 addBaseEntryArg.getLongIdentifier(),
                 sampleDataArg.getLongIdentifier());
         errorMessages.add(message);
@@ -616,7 +616,7 @@ public class InstallDSArgumentParser extends ArgumentParser
     }
     else if (importLDIFArg.isPresent() && sampleDataArg.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
               importLDIFArg.getLongIdentifier(),
               sampleDataArg.getLongIdentifier());
       errorMessages.add(message);
@@ -624,14 +624,14 @@ public class InstallDSArgumentParser extends ArgumentParser
 
     if (rejectedImportFileArg.isPresent() && addBaseEntryArg.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           addBaseEntryArg.getLongIdentifier(),
           rejectedImportFileArg.getLongIdentifier());
       errorMessages.add(message);
     }
     else if (rejectedImportFileArg.isPresent() && sampleDataArg.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           rejectedImportFileArg.getLongIdentifier(),
           sampleDataArg.getLongIdentifier());
       errorMessages.add(message);
@@ -639,14 +639,14 @@ public class InstallDSArgumentParser extends ArgumentParser
 
     if (skippedImportFileArg.isPresent() && addBaseEntryArg.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           addBaseEntryArg.getLongIdentifier(),
           skippedImportFileArg.getLongIdentifier());
       errorMessages.add(message);
     }
     else if (skippedImportFileArg.isPresent() && sampleDataArg.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           skippedImportFileArg.getLongIdentifier(),
           sampleDataArg.getLongIdentifier());
       errorMessages.add(message);
@@ -676,7 +676,7 @@ public class InstallDSArgumentParser extends ArgumentParser
    * messages describing the problems encountered during the execution of the
    * checking.
    */
-  private void checkSecurityArguments(Collection<Message> errorMessages)
+  private void checkSecurityArguments(Collection<LocalizableMessage> errorMessages)
   {
     boolean certificateRequired = ldapsPortArg.isPresent() ||
     enableStartTLSArg.isPresent();
@@ -723,7 +723,7 @@ public class InstallDSArgumentParser extends ArgumentParser
         if (keyStorePasswordArg.isPresent() &&
             keyStorePasswordFileArg.isPresent())
         {
-          Message message = ERR_INSTALLDS_TWO_CONFLICTING_ARGUMENTS.get(
+          LocalizableMessage message = ERR_INSTALLDS_TWO_CONFLICTING_ARGUMENTS.get(
               keyStorePasswordArg.getLongIdentifier(),
               keyStorePasswordFileArg.getLongIdentifier());
           errorMessages.add(message);
@@ -733,7 +733,7 @@ public class InstallDSArgumentParser extends ArgumentParser
         if (noPromptArg.isPresent() && !keyStorePasswordArg.isPresent() &&
             !keyStorePasswordFileArg.isPresent())
         {
-          Message message = ERR_INSTALLDS_NO_KEYSTORE_PASSWORD.get(
+          LocalizableMessage message = ERR_INSTALLDS_NO_KEYSTORE_PASSWORD.get(
               keyStorePasswordArg.getLongIdentifier(),
               keyStorePasswordFileArg.getLongIdentifier());
           errorMessages.add(message);
@@ -742,7 +742,7 @@ public class InstallDSArgumentParser extends ArgumentParser
       if (noPromptArg.isPresent() && !ldapsPortArg.isPresent() &&
           !enableStartTLSArg.isPresent())
       {
-        Message message = ERR_INSTALLDS_SSL_OR_STARTTLS_REQUIRED.get(
+        LocalizableMessage message = ERR_INSTALLDS_SSL_OR_STARTTLS_REQUIRED.get(
             ldapsPortArg.getLongIdentifier(),
             enableStartTLSArg.getLongIdentifier());
         errorMessages.add(message);

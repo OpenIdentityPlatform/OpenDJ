@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -144,7 +144,7 @@ public class WorkflowElementConfigManager
    */
   public boolean isConfigurationAddAcceptable(
       WorkflowElementCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     boolean isAcceptable = true;
 
@@ -178,7 +178,7 @@ public class WorkflowElementConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<Message>()
+        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
         );
 
     configuration.addChangeListener(this);
@@ -215,7 +215,7 @@ public class WorkflowElementConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
       WorkflowElementCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // FIXME -- We should try to perform some check to determine whether the
     // workflow element is in use.
@@ -232,7 +232,7 @@ public class WorkflowElementConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<Message>()
+        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
         );
 
 
@@ -263,7 +263,7 @@ public class WorkflowElementConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
       WorkflowElementCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     boolean isAcceptable = true;
 
@@ -297,7 +297,7 @@ public class WorkflowElementConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<Message>()
+        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
         );
 
 
@@ -461,7 +461,7 @@ public class WorkflowElementConfigManager
             }
           }
 
-          Message message =
+          LocalizableMessage message =
             ERR_CONFIG_WORKFLOW_ELEMENT_CONFIG_NOT_ACCEPTABLE.get(
               String.valueOf(configuration.dn()), buffer.toString());
           throw new InitializationException(message);
@@ -477,7 +477,7 @@ public class WorkflowElementConfigManager
         t = e.getCause();
       }
 
-      Message message =
+      LocalizableMessage message =
         ERR_CONFIG_WORKFLOW_ELEMENT_CANNOT_INITIALIZE.get(
             className, String.valueOf(configuration.dn()),
             t.getMessage());

@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
 import static org.opends.messages.ConfigMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.messages.Severity;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
@@ -124,11 +125,29 @@ public class ErrorLogger extends AbstractLogger
    *
    * @param  message   The message to be logged.
    */
-  public static void logError(Message message)
+  // TODO : remove
+  public static void logError(LocalizableMessage message)
+  {
+    log("category", Severity.SEVERE_ERROR, message, null);
+  }
+
+  /**
+   * Writes a message to the error log using the provided information.
+   *
+   * @param category
+   *          The category of the message.
+   * @param severity
+   *          The severity of the message.
+   * @param message
+   *          The message to be logged.
+   * @param exception
+   *          The exception to be logged. May be {@code null}.
+   */
+  public static void log(String category, Severity severity, LocalizableMessage message, Throwable exception)
   {
     for (ErrorLogPublisher publisher : loggerStorage.getLogPublishers())
     {
-      publisher.logError(message);
+      publisher.log(category, severity, message, exception);
     }
 
     if (Thread.currentThread() instanceof DirectoryThread)
@@ -137,8 +156,39 @@ public class ErrorLogger extends AbstractLogger
       Task task = thread.getAssociatedTask();
       if (task != null)
       {
-        task.addLogMessage(message);
+        task.addLogMessage(severity, message, exception);
       }
     }
   }
+
+  /**
+   * Check if logging is enabled for the provided category and severity.
+   *
+   * @param category
+   *            The category of logging event.
+   * @param severity
+   *            The severity of logging event.
+   * @return {@code true} if logger is enabled
+   */
+  public static boolean isEnabledFor(String category, Severity severity)
+  {
+    if (Thread.currentThread() instanceof DirectoryThread)
+    {
+      DirectoryThread thread = (DirectoryThread) Thread.currentThread();
+      Task task = thread.getAssociatedTask();
+      if (task != null)
+      {
+        return true;
+      }
+    }
+    for (ErrorLogPublisher publisher : loggerStorage.getLogPublishers())
+    {
+      if (publisher.isEnabledFor(category, severity))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
 }

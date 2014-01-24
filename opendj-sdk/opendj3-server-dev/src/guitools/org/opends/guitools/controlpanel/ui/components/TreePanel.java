@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -37,7 +38,7 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.GenericDialog;
 import org.opends.guitools.controlpanel.ui.StatusGenericPanel;
 import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A basic panel containing a CustomTree.
@@ -107,7 +108,7 @@ public class TreePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return null;
   }

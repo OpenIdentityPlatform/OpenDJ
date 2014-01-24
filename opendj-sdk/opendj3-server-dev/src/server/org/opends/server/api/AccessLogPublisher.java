@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.api;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
@@ -53,7 +53,7 @@ public abstract class AccessLogPublisher<T extends AccessLogPublisherCfg>
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(T configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation. It should be overridden by access log publisher
@@ -96,7 +96,7 @@ public abstract class AccessLogPublisher<T extends AccessLogPublisherCfg>
    *          information about the disconnect.
    */
   public void logDisconnect(ClientConnection clientConnection,
-      DisconnectReason disconnectReason, Message message)
+      DisconnectReason disconnectReason, LocalizableMessage message)
   {
     // Do nothing
   }

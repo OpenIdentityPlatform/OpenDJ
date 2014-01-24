@@ -36,7 +36,7 @@ import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
@@ -258,7 +258,7 @@ public final class TestLDIFWriter extends UtilTestCase {
   }
 
   /**
-   * Test the {@link LDIFWriter#writeComment(Message, int)} method.
+   * Test the {@link LDIFWriter#writeComment(LocalizableMessage, int)} method.
    *
    * @param comment
    *          The input comment string.
@@ -275,7 +275,7 @@ public final class TestLDIFWriter extends UtilTestCase {
     Writer writer = new Writer();
 
     LDIFWriter ldifWriter = writer.getLDIFWriter();
-    ldifWriter.writeComment(Message.raw(comment), wrapColumn);
+    ldifWriter.writeComment(LocalizableMessage.raw(comment), wrapColumn);
 
     checkLDIFOutput(writer, expectedLDIF);
   }

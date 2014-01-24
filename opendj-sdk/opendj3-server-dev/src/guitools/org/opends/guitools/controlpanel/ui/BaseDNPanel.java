@@ -37,7 +37,7 @@ import javax.swing.JTextField;
 
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
 
@@ -65,7 +65,7 @@ public class BaseDNPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_OTHER_BASE_DN_TITLE.get();
   }
@@ -125,7 +125,7 @@ public class BaseDNPanel extends StatusGenericPanel
   public void okClicked()
   {
     setPrimaryValid(dnLabel);
-    LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
 
     if ("".equals(dn.getText().trim()))
     {

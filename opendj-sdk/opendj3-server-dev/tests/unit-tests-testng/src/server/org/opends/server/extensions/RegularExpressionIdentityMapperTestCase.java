@@ -34,7 +34,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.
             RegularExpressionIdentityMapperCfgDefn;
@@ -122,7 +122,7 @@ public class RegularExpressionIdentityMapperTestCase
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertFalse(mapper.isConfigurationAcceptable(configuration,
-                                                 new LinkedList<Message>()));
+                                                 new LinkedList<LocalizableMessage>()));
     mapper.initializeIdentityMapper(configuration);
   }
 
@@ -160,7 +160,7 @@ public class RegularExpressionIdentityMapperTestCase
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertFalse(mapper.isConfigurationAcceptable(configuration,
-                                                 new LinkedList<Message>()));
+                                                 new LinkedList<LocalizableMessage>()));
     mapper.initializeIdentityMapper(configuration);
   }
 
@@ -199,7 +199,7 @@ public class RegularExpressionIdentityMapperTestCase
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<Message>()));
+                                                new LinkedList<LocalizableMessage>()));
     mapper.initializeIdentityMapper(configuration);
 
 
@@ -264,7 +264,7 @@ public class RegularExpressionIdentityMapperTestCase
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<Message>()));
+                                                new LinkedList<LocalizableMessage>()));
     mapper.initializeIdentityMapper(configuration);
 
 
@@ -329,7 +329,7 @@ public class RegularExpressionIdentityMapperTestCase
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<Message>()));
+                                                new LinkedList<LocalizableMessage>()));
     mapper.initializeIdentityMapper(configuration);
 
 
@@ -394,7 +394,7 @@ public class RegularExpressionIdentityMapperTestCase
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<Message>()));
+                                                new LinkedList<LocalizableMessage>()));
     mapper.initializeIdentityMapper(configuration);
 
 
@@ -459,7 +459,7 @@ public class RegularExpressionIdentityMapperTestCase
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<Message>()));
+                                                new LinkedList<LocalizableMessage>()));
     mapper.initializeIdentityMapper(configuration);
 
 
@@ -523,7 +523,7 @@ public class RegularExpressionIdentityMapperTestCase
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<Message>()));
+                                                new LinkedList<LocalizableMessage>()));
     mapper.initializeIdentityMapper(configuration);
 
 
@@ -585,7 +585,7 @@ public class RegularExpressionIdentityMapperTestCase
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<Message>()));
+                                                new LinkedList<LocalizableMessage>()));
     mapper.initializeIdentityMapper(configuration);
 
 
@@ -648,7 +648,7 @@ public class RegularExpressionIdentityMapperTestCase
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<Message>()));
+                                                new LinkedList<LocalizableMessage>()));
     mapper.initializeIdentityMapper(configuration);
 
 
@@ -712,7 +712,7 @@ public class RegularExpressionIdentityMapperTestCase
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<Message>()));
+                                                new LinkedList<LocalizableMessage>()));
     mapper.initializeIdentityMapper(configuration);
 
 
@@ -791,7 +791,7 @@ public class RegularExpressionIdentityMapperTestCase
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<Message>()));
+                                                new LinkedList<LocalizableMessage>()));
     mapper.initializeIdentityMapper(configuration);
 
 

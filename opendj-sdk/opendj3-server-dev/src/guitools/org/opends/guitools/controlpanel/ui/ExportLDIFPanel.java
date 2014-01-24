@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -60,7 +61,7 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.ScheduleSummaryPanel;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.ExportLDIF;
 
 /**
@@ -105,7 +106,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EXPORT_LDIF_TITLE.get();
   }
@@ -371,7 +372,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     setPrimaryValid(lBackend);
     setPrimaryValid(lFile);
     setPrimaryValid(lExportOptions);
-    final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
 
     String backendName = (String)backends.getSelectedItem();
     if (backendName == null)
@@ -401,7 +402,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       String cols = wrapColumn.getText();
       int minValue = 1;
       int maxValue = 1000;
-      Message errMsg = ERR_CTRL_PANEL_INVALID_WRAP_COLUMN.get(minValue,
+      LocalizableMessage errMsg = ERR_CTRL_PANEL_INVALID_WRAP_COLUMN.get(minValue,
       maxValue);
       int size1 = errors.size();
       checkIntValue(errors, cols, minValue, maxValue, errMsg);
@@ -503,7 +504,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     /**
      * {@inheritDoc}
      */
-    public Message getTaskDescription()
+    public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_EXPORT_TASK_DESCRIPTION.get(
           backendSet.iterator().next(), fileName);
@@ -513,7 +514,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
      * {@inheritDoc}
      */
     public boolean canLaunch(Task taskToBeLaunched,
-        Collection<Message> incompatibilityReasons)
+        Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))

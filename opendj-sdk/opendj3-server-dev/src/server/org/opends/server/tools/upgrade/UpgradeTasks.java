@@ -47,7 +47,7 @@ import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 
 import org.forgerock.opendj.ldap.Filter;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.ClientException;
 import org.opends.server.tools.RebuildIndex;
 import org.opends.server.util.BuildVersion;
@@ -95,7 +95,7 @@ public final class UpgradeTasks
    * @return A new upgrade task which applies an LDIF record to all
    *         configuration entries matching the provided filter.
    */
-  public static UpgradeTask addConfigEntry(final Message summary,
+  public static UpgradeTask addConfigEntry(final LocalizableMessage summary,
       final String... ldif)
   {
     return addConfigEntry0(summary, summary, false, ldif);
@@ -114,8 +114,8 @@ public final class UpgradeTasks
    * @return A new upgrade task which applies an LDIF record to all
    *         configuration entries matching the provided filter.
    */
-  public static UpgradeTask addConfigEntryOptional(final Message summary,
-      final Message description, final String... ldif)
+  public static UpgradeTask addConfigEntryOptional(final LocalizableMessage summary,
+      final LocalizableMessage description, final String... ldif)
   {
     return addConfigEntry0(summary, description, true, ldif);
   }
@@ -137,7 +137,7 @@ public final class UpgradeTasks
       @Override
       public void perform(final UpgradeContext context) throws ClientException
       {
-        final Message msg = INFO_UPGRADE_TASK_REPLACE_SCHEMA_FILE.get(fileName);
+        final LocalizableMessage msg = INFO_UPGRADE_TASK_REPLACE_SCHEMA_FILE.get(fileName);
         LOG.log(Level.INFO, msg.toString());
 
         final ProgressNotificationCallback pnc =
@@ -182,7 +182,7 @@ public final class UpgradeTasks
       @Override
       public void perform(final UpgradeContext context) throws ClientException
       {
-        final Message msg = INFO_UPGRADE_TASK_ADD_CONFIG_FILE.get(fileName);
+        final LocalizableMessage msg = INFO_UPGRADE_TASK_ADD_CONFIG_FILE.get(fileName);
         LOG.log(Level.INFO, msg.toString());
 
         final ProgressNotificationCallback pnc =
@@ -219,7 +219,7 @@ public final class UpgradeTasks
    * @return A new upgrade task which applies an LDIF record to all
    *         configuration entries matching the provided filter.
    */
-  public static UpgradeTask modifyConfigEntry(final Message summary,
+  public static UpgradeTask modifyConfigEntry(final LocalizableMessage summary,
       final String filter, final String... ldif)
   {
     return modifyConfigEntry(summary, summary, false, filter, ldif);
@@ -240,8 +240,8 @@ public final class UpgradeTasks
    * @return A new upgrade task which applies an LDIF record to all
    *         configuration entries matching the provided filter.
    */
-  public static UpgradeTask modifyConfigEntryOptional(final Message summary,
-      final Message description, final String filter, final String... ldif)
+  public static UpgradeTask modifyConfigEntryOptional(final LocalizableMessage summary,
+      final LocalizableMessage description, final String filter, final String... ldif)
   {
     return modifyConfigEntry(summary, description, true, filter, ldif);
   }
@@ -255,7 +255,7 @@ public final class UpgradeTasks
    *
    * <pre>
    * register(&quot;2.5.0.7192&quot;,
-   *   newAttributeTypes(Message.raw(&quot;New attribute etag&quot;),
+   *   newAttributeTypes(LocalizableMessage.raw(&quot;New attribute etag&quot;),
    *   false, &quot;00-core.ldif&quot;,
    *   &quot;1.3.6.1.4.1.36733.2.1.1.59&quot;));
    * </pre>
@@ -271,7 +271,7 @@ public final class UpgradeTasks
    *         in the configuration template files, reads the definition
    *         and adds it onto the specified file in parameter.
    */
-  public static UpgradeTask newAttributeTypes(final Message summary,
+  public static UpgradeTask newAttributeTypes(final LocalizableMessage summary,
       final String fileName, final String... attributeOids)
   {
     return new AbstractUpgradeTask()
@@ -330,7 +330,7 @@ public final class UpgradeTasks
    *         reads the definition and adds it onto the specified file in
    *         parameter.
    */
-  public static UpgradeTask newObjectClasses(final Message summary,
+  public static UpgradeTask newObjectClasses(final LocalizableMessage summary,
       final String fileName, final String... objectClassesOids)
   {
     return new AbstractUpgradeTask()
@@ -478,7 +478,7 @@ public final class UpgradeTasks
    *          The summary of this upgrade task.
    * @return An Upgrade task which rebuild all the indexes.
    */
-  public static UpgradeTask rebuildAllIndexes(final Message summary)
+  public static UpgradeTask rebuildAllIndexes(final LocalizableMessage summary)
   {
     return new AbstractUpgradeTask()
     {
@@ -533,7 +533,7 @@ public final class UpgradeTasks
    *          The index to rebuild.
    * @return The rebuild index task.
    */
-  public static UpgradeTask rebuildSingleIndex(final Message summary,
+  public static UpgradeTask rebuildSingleIndex(final LocalizableMessage summary,
       final String index)
   {
     return new AbstractUpgradeTask()
@@ -591,7 +591,7 @@ public final class UpgradeTasks
       public void postUpgrade(final UpgradeContext context)
           throws ClientException
       {
-        Message message = null;
+        LocalizableMessage message = null;
         final List<String> args = new LinkedList<String>();
 
         if (isRebuildAllIndexesIsPresent && isRebuildAllIndexesTaskAccepted)
@@ -666,14 +666,14 @@ public final class UpgradeTasks
           }
           else
           {
-            final Message msg = ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get();
+            final LocalizableMessage msg = ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get();
             context.notifyProgress(pnc.setProgress(-100));
             throw new ClientException(EXIT_CODE_ERROR, msg);
           }
         }
         else
         {
-          final Message msg = INFO_UPGRADE_REBUILD_INDEX_NO_BACKEND_FOUND.get();
+          final LocalizableMessage msg = INFO_UPGRADE_REBUILD_INDEX_NO_BACKEND_FOUND.get();
           LOG.log(Level.INFO, msg.toString());
           LOG.log(Level.INFO, INFO_UPGRADE_REBUILD_INDEX_DECLINED.get(
               Arrays.toString(indexesListToRebuild.toArray())).toString());
@@ -699,7 +699,7 @@ public final class UpgradeTasks
       @Override
       public void perform(final UpgradeContext context) throws ClientException
       {
-        final Message msg = INFO_UPGRADE_TASK_REFRESH_UPGRADE_DIRECTORY.get();
+        final LocalizableMessage msg = INFO_UPGRADE_TASK_REFRESH_UPGRADE_DIRECTORY.get();
         LOG.log(Level.INFO, msg.toString());
 
         final ProgressNotificationCallback pnc =
@@ -731,7 +731,7 @@ public final class UpgradeTasks
    * @return An upgrade task which renames the old SNMP security config file if
    *         it exists.
    */
-  public static UpgradeTask renameSnmpSecurityConfig(final Message summary)
+  public static UpgradeTask renameSnmpSecurityConfig(final LocalizableMessage summary)
   {
     return new AbstractUpgradeTask()
     {
@@ -777,8 +777,8 @@ public final class UpgradeTasks
     };
   }
 
-  private static UpgradeTask addConfigEntry0(final Message summary,
-      final Message description, final boolean needsUserConfirmation,
+  private static UpgradeTask addConfigEntry0(final LocalizableMessage summary,
+      final LocalizableMessage description, final boolean needsUserConfirmation,
       final String... ldif)
   {
     return new AbstractUpgradeTask()
@@ -833,8 +833,8 @@ public final class UpgradeTasks
           }
           catch (final Exception e)
           {
-            manageTaskException(context, Message.fromObject(e.getMessage()),
-                pnc);
+            manageTaskException(context,
+                LocalizableMessage.raw(e.getMessage()), pnc);
           }
         }
       }
@@ -871,7 +871,7 @@ public final class UpgradeTasks
   }
 
   private static void manageTaskException(final UpgradeContext context,
-      final Message message, final ProgressNotificationCallback pnc)
+      final LocalizableMessage message, final ProgressNotificationCallback pnc)
       throws ClientException
   {
     countErrors++;
@@ -883,8 +883,8 @@ public final class UpgradeTasks
     }
   }
 
-  private static UpgradeTask modifyConfigEntry(final Message summary,
-      final Message description, final boolean needsUserConfirmation,
+  private static UpgradeTask modifyConfigEntry(final LocalizableMessage summary,
+      final LocalizableMessage description, final boolean needsUserConfirmation,
       final String filter, final String... ldif)
   {
     return new AbstractUpgradeTask()
@@ -938,8 +938,8 @@ public final class UpgradeTasks
           }
           catch (final Exception e)
           {
-            manageTaskException(context, Message.fromObject(e.getMessage()),
-                pnc);
+            manageTaskException(context,
+                LocalizableMessage.raw(e.getMessage()), pnc);
           }
         }
       }

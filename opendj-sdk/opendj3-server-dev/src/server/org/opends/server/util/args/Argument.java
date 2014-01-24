@@ -22,15 +22,15 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.util.args;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -69,7 +69,7 @@ public abstract class Argument
   private Character shortIdentifier;
 
   /** The unique ID of the description for this argument. */
-  private Message description;
+  private LocalizableMessage description;
 
   /** The set of provided values for this argument. */
   private LinkedList<String> values;
@@ -91,7 +91,7 @@ public abstract class Argument
    * information. It describes the format that must be used to specify the
    * values for this argument.
    */
-  private Message valuePlaceholder;
+  private LocalizableMessage valuePlaceholder;
 
   /**
    * Indicates whether this argument was provided in the set of properties found
@@ -125,7 +125,7 @@ public abstract class Argument
    * @param  propertyName      The name of the property in a property file that
    *                           may be used to override the default value but
    *                           will be overridden by a command-line argument.
-   * @param  description       Message for the description of this
+   * @param  description       LocalizableMessage for the description of this
    *                           argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
@@ -134,9 +134,9 @@ public abstract class Argument
   protected Argument(String name, Character shortIdentifier,
                      String longIdentifier, boolean isRequired,
                      boolean isMultiValued, boolean needsValue,
-                     Message valuePlaceholder, String defaultValue,
+                     LocalizableMessage valuePlaceholder, String defaultValue,
                      String propertyName,
-                     Message description)
+                     LocalizableMessage description)
             throws ArgumentException
   {
     this.name             = name;
@@ -153,13 +153,13 @@ public abstract class Argument
 
     if (shortIdentifier == null && longIdentifier == null)
     {
-      Message message = ERR_ARG_NO_IDENTIFIER.get(name);
+      LocalizableMessage message = ERR_ARG_NO_IDENTIFIER.get(name);
       throw new ArgumentException(message);
     }
 
     if (needsValue && valuePlaceholder == null)
     {
-      Message message = ERR_ARG_NO_VALUE_PLACEHOLDER.get(name);
+      LocalizableMessage message = ERR_ARG_NO_VALUE_PLACEHOLDER.get(name);
       throw new ArgumentException(message);
     }
 
@@ -363,7 +363,7 @@ public abstract class Argument
    *          the generated usage information, or <CODE>null</CODE> if there is
    *          none.
    */
-  public Message getValuePlaceholder()
+  public LocalizableMessage getValuePlaceholder()
   {
     return valuePlaceholder;
   }
@@ -378,7 +378,7 @@ public abstract class Argument
    * @param  valuePlaceholder  The value placeholder that will be displayed for
    *                           this argument in the generated usage information.
    */
-  public void setValuePlaceholder(Message valuePlaceholder)
+  public void setValuePlaceholder(LocalizableMessage valuePlaceholder)
   {
     this.valuePlaceholder = valuePlaceholder;
   }
@@ -474,9 +474,9 @@ public abstract class Argument
    *
    * @return  The human-readable description for this argument.
    */
-  public Message getDescription()
+  public LocalizableMessage getDescription()
   {
-    return description != null ? description : Message.EMPTY;
+    return description != null ? description : LocalizableMessage.EMPTY;
   }
 
   /**
@@ -530,7 +530,7 @@ public abstract class Argument
   {
     if (values.isEmpty())
     {
-      Message message = ERR_ARG_NO_INT_VALUE.get(name);
+      LocalizableMessage message = ERR_ARG_NO_INT_VALUE.get(name);
       throw new ArgumentException(message);
     }
 
@@ -544,13 +544,13 @@ public abstract class Argument
     }
     catch (Exception e)
     {
-      Message message = ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
+      LocalizableMessage message = ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
       throw new ArgumentException(message, e);
     }
 
     if (iterator.hasNext())
     {
-      Message message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
+      LocalizableMessage message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
       throw new ArgumentException(message);
     }
     return intValue;
@@ -578,7 +578,7 @@ public abstract class Argument
       }
       catch (Exception e)
       {
-        Message message = ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
+        LocalizableMessage message = ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
         throw new ArgumentException(message, e);
       }
     }
@@ -601,7 +601,7 @@ public abstract class Argument
   {
     if (values.isEmpty())
     {
-      Message message = ERR_ARG_NO_BOOLEAN_VALUE.get(name);
+      LocalizableMessage message = ERR_ARG_NO_BOOLEAN_VALUE.get(name);
       throw new ArgumentException(message);
     }
 
@@ -621,13 +621,13 @@ public abstract class Argument
     }
     else
     {
-      Message message = ERR_ARG_CANNOT_DECODE_AS_BOOLEAN.get(valueString, name);
+      LocalizableMessage message = ERR_ARG_CANNOT_DECODE_AS_BOOLEAN.get(valueString, name);
       throw new ArgumentException(message);
     }
 
     if (iterator.hasNext())
     {
-      Message message = ERR_ARG_BOOLEAN_MULTIPLE_VALUES.get(name);
+      LocalizableMessage message = ERR_ARG_BOOLEAN_MULTIPLE_VALUES.get(name);
       throw new ArgumentException(message);
     }
     return booleanValue;
@@ -647,7 +647,7 @@ public abstract class Argument
    *          <CODE>false</CODE> if it is not.
    */
   public abstract boolean valueIsAcceptable(String valueString,
-                                            MessageBuilder invalidReason);
+                                            LocalizableMessageBuilder invalidReason);
 
   /**
    * Adds a value to the set of values for this argument.  This should only be

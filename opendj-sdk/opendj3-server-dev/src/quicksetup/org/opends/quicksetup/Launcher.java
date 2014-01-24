@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.util.args.ArgumentParser;
 
 import static org.opends.messages.QuickSetupMessages.*;
@@ -257,7 +257,7 @@ public abstract class Launcher {
    * in some operating systems.
    * @return internationalized String representing the frame title
    */
-  abstract protected Message getFrameTitle();
+  abstract protected LocalizableMessage getFrameTitle();
 
   /**
    * Launches the command line based uninstall.

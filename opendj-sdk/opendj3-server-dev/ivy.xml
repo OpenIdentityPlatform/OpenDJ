@@ -28,6 +28,7 @@
 <!DOCTYPE ivy-module [
     <!ENTITY grizzly.version    "2.3.6">
     <!ENTITY opendj.sdk.version "3.0.0-SNAPSHOT">
+    <!ENTITY i18n.version       "1.4.2-SNAPSHOT">
     <!ENTITY crest.version      "2.1.0-SNAPSHOT">
     <!ENTITY jackson.version    "1.9.2">
     <!ENTITY slf4j.version      "1.7.5">
@@ -50,6 +51,7 @@
     <dependency org="javax.servlet"         name="javax.servlet-api"        rev="[3.1-b02]" />
     <dependency org="com.sleepycat"         name="je"                       rev="5.0.97" />
     <dependency org="org.forgerock.opendj"  name="opendj-rest2ldap-servlet" rev="&opendj.sdk.version;" conf="default->master,compile"/>
+    <dependency org="org.forgerock.commons"  name="i18n-slf4j"  rev="&i18n.version;" />
     <dependency org="org.forgerock.opendj"  name="opendj-server2x-adapter"  rev="&opendj.sdk.version;">
       <!-- This is the OpenDJ server module :) -->
       <exclude  module="opendj-server"/>

@@ -46,8 +46,8 @@ import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.PrintableString.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
@@ -141,7 +141,7 @@ public class CountryStringSyntax
    */
   public boolean isConfigurationChangeAcceptable(
       CountryStringAttributeSyntaxCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // The configuration is always acceptable.
     return true;
@@ -273,7 +273,7 @@ public class CountryStringSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     String stringValue = value.toString();
     if (stringValue.length() != 2)

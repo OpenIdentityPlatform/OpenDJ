@@ -54,8 +54,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.net.ssl.SSLException;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
@@ -769,7 +769,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
-    MessageBuilder errorMessage = operation.getErrorMessage();
+    LocalizableMessageBuilder errorMessage = operation.getErrorMessage();
     DN matchedDN = operation.getMatchedDN();
 
     // Referrals are not allowed for LDAPv2 clients.
@@ -933,7 +933,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     // any more referrals to this client for the rest of the operation.
     if (ldapVersion == 2)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDAPV2_SKIPPING_SEARCH_REFERENCE.get(getConnectionID(),
               searchOperation.getOperationID(), String
                   .valueOf(searchReference));
@@ -1048,7 +1048,7 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   @Override
   public void disconnect(DisconnectReason disconnectReason,
-      boolean sendNotification, Message message)
+      boolean sendNotification, LocalizableMessage message)
   {
     // Set a flag indicating that the connection is being terminated so
     // that no new requests will be accepted. Also cancel all operations
@@ -1080,7 +1080,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
     if (message != null)
     {
-      MessageBuilder msgBuilder = new MessageBuilder();
+      LocalizableMessageBuilder msgBuilder = new LocalizableMessageBuilder();
       msgBuilder.append(disconnectReason.getClosureMessage());
       msgBuilder.append(": ");
       msgBuilder.append(message);
@@ -1136,7 +1136,7 @@ public final class LDAPClientConnection extends ClientConnection implements
           break;
         }
 
-        Message errMsg;
+        LocalizableMessage errMsg;
         if (message == null)
         {
           errMsg =
@@ -1251,7 +1251,7 @@ public final class LDAPClientConnection extends ClientConnection implements
         // then reject the operation.
         if (disconnectRequested)
         {
-          Message message = WARN_CLIENT_DISCONNECT_IN_PROGRESS.get();
+          LocalizableMessage message = WARN_CLIENT_DISCONNECT_IN_PROGRESS.get();
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
               message);
         }
@@ -1264,7 +1264,7 @@ public final class LDAPClientConnection extends ClientConnection implements
         // same message ID. If so, then we can't allow it.
         if (op != null)
         {
-          Message message =
+          LocalizableMessage message =
             WARN_LDAP_CLIENT_DUPLICATE_MESSAGE_ID.get(messageID);
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
               message);
@@ -1296,7 +1296,7 @@ public final class LDAPClientConnection extends ClientConnection implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
         WARN_LDAP_CLIENT_CANNOT_ENQUEUE.get(getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer
           .getServerErrorResultCode(), message, e);
@@ -1631,7 +1631,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       {
         // The connection failed, but there was an unread partial message so
         // interpret this as an IO error.
-        Message m = ERR_LDAP_CLIENT_IO_ERROR_DURING_READ.get(String
+        LocalizableMessage m = ERR_LDAP_CLIENT_IO_ERROR_DURING_READ.get(String
             .valueOf(e));
         disconnect(DisconnectReason.IO_ERROR, true, m);
       }
@@ -1641,7 +1641,7 @@ public final class LDAPClientConnection extends ClientConnection implements
         // as indicating that the client aborted (reset) the connection. This
         // happens when a client configures closes a connection which has been
         // configured with SO_LINGER set to 0.
-        Message m = ERR_LDAP_CLIENT_IO_ERROR_BEFORE_READ.get();
+        LocalizableMessage m = ERR_LDAP_CLIENT_IO_ERROR_BEFORE_READ.get();
         disconnect(DisconnectReason.CLIENT_DISCONNECT, true, m);
       }
 
@@ -1755,7 +1755,7 @@ public final class LDAPClientConnection extends ClientConnection implements
         result = processUnbindRequest(message, opControls);
         return result;
       default:
-        Message msg =
+        LocalizableMessage msg =
             ERR_LDAP_DISCONNECT_DUE_TO_INVALID_REQUEST_TYPE.get(message
                 .getProtocolOpName(), message.getMessageID());
         disconnect(DisconnectReason.PROTOCOL_ERROR, true, msg);
@@ -1769,7 +1769,7 @@ public final class LDAPClientConnection extends ClientConnection implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message msg =
+      LocalizableMessage msg =
           ERR_LDAP_DISCONNECT_DUE_TO_PROCESSING_FAILURE.get(message
               .getProtocolOpName(), message.getMessageID(), String
               .valueOf(e));
@@ -1988,7 +1988,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       // This is an invalid authentication type, and therefore a
       // protocol error. As per RFC 2251, a protocol error in a bind
       // request must result in terminating the connection.
-      Message msg =
+      LocalizableMessage msg =
           ERR_LDAP_INVALID_BIND_AUTH_TYPE.get(message.getMessageID(),
               String.valueOf(protocolOp.getAuthenticationType()));
       disconnect(DisconnectReason.PROTOCOL_ERROR, true, msg);
@@ -2018,7 +2018,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       // If it was a protocol error, then terminate the connection.
       if (de.getResultCode() == ResultCode.PROTOCOL_ERROR)
       {
-        Message msg =
+        LocalizableMessage msg =
             ERR_LDAP_DISCONNECT_DUE_TO_BIND_PROTOCOL_ERROR.get(message
                 .getMessageID(), de.getMessageObject());
         disconnect(DisconnectReason.PROTOCOL_ERROR, true, msg);
@@ -2181,7 +2181,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     // close the connection.
     if (ldapVersion == 2)
     {
-      Message msg =
+      LocalizableMessage msg =
           ERR_LDAPV2_EXTENDED_REQUEST_NOT_ALLOWED.get(
               getConnectionID(), message.getMessageID());
       logError(msg);
@@ -2540,7 +2540,7 @@ public final class LDAPClientConnection extends ClientConnection implements
    * {@inheritDoc}
    */
   @Override
-  public boolean prepareTLS(MessageBuilder unavailableReason)
+  public boolean prepareTLS(LocalizableMessageBuilder unavailableReason)
   {
     if (tlsActiveProvider != null)
     {

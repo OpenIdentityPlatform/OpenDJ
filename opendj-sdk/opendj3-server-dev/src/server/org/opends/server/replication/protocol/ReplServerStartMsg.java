@@ -34,7 +34,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
 /**
- * Message sent by a replication server to another replication server
+ * LocalizableMessage sent by a replication server to another replication server
  * at Startup.
  */
 public class ReplServerStartMsg extends StartMsg
@@ -430,10 +430,10 @@ public class ReplServerStartMsg extends StartMsg
   }
 
   /**
-   * Get the byte array representation of this Message. This uses the version
+   * Get the byte array representation of this LocalizableMessage. This uses the version
    * 1 of the replication protocol (used for compatibility purpose).
    *
-   * @return The byte array representation of this Message.
+   * @return The byte array representation of this LocalizableMessage.
    *
    * @throws UnsupportedEncodingException  When the encoding of the message
    *         failed because the UTF-8 encoding is not supported.

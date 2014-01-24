@@ -35,7 +35,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -149,7 +149,7 @@ class BitStringEqualityMatchingRule
     if (length < 3)
     {
 
-      Message message = WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(
+      LocalizableMessage message = WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(
               value.toString());
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
@@ -170,7 +170,7 @@ class BitStringEqualityMatchingRule
         (valueString.charAt(length-1) != 'B'))
     {
 
-      Message message = WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(
+      LocalizableMessage message = WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(
               value.toString());
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -198,7 +198,7 @@ class BitStringEqualityMatchingRule
           break;
         default:
 
-          Message message = WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(
+          LocalizableMessage message = WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(
                   value.toString(), String.valueOf(valueString.charAt(i)));
 
         switch (DirectoryServer.getSyntaxEnforcementPolicy())

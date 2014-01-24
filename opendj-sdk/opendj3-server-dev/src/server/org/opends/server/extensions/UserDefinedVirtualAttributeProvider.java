@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -177,7 +177,7 @@ public class UserDefinedVirtualAttributeProvider
    */
   public boolean isConfigurationChangeAcceptable(
                       UserDefinedVirtualAttributeCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // The new configuration should always be acceptable.
     return true;

@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.IOException;
 
@@ -62,7 +62,7 @@ public class SubentriesControl
     {
       if (value == null)
       {
-        Message message = ERR_SUBENTRIES_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_SUBENTRIES_NO_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -79,7 +79,7 @@ public class SubentriesControl
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_SUBENTRIES_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
       }

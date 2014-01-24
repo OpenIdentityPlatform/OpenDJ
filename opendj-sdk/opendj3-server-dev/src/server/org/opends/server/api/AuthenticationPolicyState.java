@@ -38,7 +38,7 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.GeneralizedTimeSyntax;
@@ -160,7 +160,7 @@ public abstract class AuthenticationPolicyState
               attributeType.getNameOrOID(), entry.getName().toString());
         }
 
-        final Message message = ERR_PWPSTATE_CANNOT_DECODE_BOOLEAN
+        final LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_BOOLEAN
             .get(valueString, attributeType.getNameOrOID(), entry.getName()
                 .toString());
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -228,7 +228,7 @@ public abstract class AuthenticationPolicyState
                 stackTraceToSingleLineString(e));
           }
 
-          final Message message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME
+          final LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME
               .get(v.getValue().toString(), attributeType.getNameOrOID(), entry
                   .getName().toString(), String.valueOf(e));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,

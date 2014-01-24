@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.quicksetup.util;
 
@@ -67,9 +67,9 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.MessageDescriptor;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
@@ -631,8 +631,8 @@ public class Utils
   }
 
   /**
-   * This is a helper method that gets a Message representation of the elements
-   * in the Collection of Messages. The Message will display the different
+   * This is a helper method that gets a LocalizableMessage representation of the elements
+   * in the Collection of Messages. The LocalizableMessage will display the different
    * elements separated by the separator String.
    *
    * @param col
@@ -642,19 +642,19 @@ public class Utils
    * @return the message representation for the collection;
    *          null if <code>col</code> is null
    */
-  public static Message getMessageFromCollection(Collection<Message> col,
+  public static LocalizableMessage getMessageFromCollection(Collection<LocalizableMessage> col,
                                                  String separator) {
-    Message message = null;
+    LocalizableMessage message = null;
     if (col != null) {
-      MessageBuilder mb = null;
-      for (Message m : col) {
+      LocalizableMessageBuilder mb = null;
+      for (LocalizableMessage m : col) {
         if (mb == null) {
-          mb = new MessageBuilder(m);
+          mb = new LocalizableMessageBuilder(m);
         } else {
           mb.append(separator).append(m);
         }
       }
-      if (mb == null) mb = new MessageBuilder();
+      if (mb == null) mb = new LocalizableMessageBuilder();
       message = mb.toMessage();
     }
     return message;
@@ -742,10 +742,10 @@ public class Utils
    *
    * @return a localized message for a given properties key and throwable.
    */
-  public static Message getThrowableMsg(Message message, Throwable t)
+  public static LocalizableMessage getThrowableMsg(LocalizableMessage message, Throwable t)
   {
-    MessageBuilder mb = new MessageBuilder(message);
-    MessageDescriptor.Arg1<CharSequence> tag;
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder(message);
+    LocalizableMessageDescriptor.Arg1<CharSequence> tag;
     if (isOutOfMemory(t))
     {
       tag = INFO_EXCEPTION_OUT_OF_MEMORY_DETAILS;
@@ -767,9 +767,9 @@ public class Utils
    * @param te the exception.
    * @return a localized representation of the provide TopologyCacheException.
    */
-  public static Message getMessage(TopologyCacheException te)
+  public static LocalizableMessage getMessage(TopologyCacheException te)
   {
-    MessageBuilder buf = new MessageBuilder();
+    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
 
     String ldapUrl = te.getLdapUrl();
     if (ldapUrl != null)
@@ -1007,10 +1007,10 @@ public class Utils
    * contacting when the NamingException occurred.
    * @return a message object for the given NamingException.
    */
-  public static Message getMessageForException(NamingException ne,
+  public static LocalizableMessage getMessageForException(NamingException ne,
       String hostPort)
   {
-    Message msg;
+    LocalizableMessage msg;
     String arg;
     if (ne.getLocalizedMessage() != null)
     {
@@ -1060,9 +1060,9 @@ public class Utils
    * @param ne the NamingException.
    * @return a message object for the given NamingException.
    */
-  public static Message getMessageForException(NamingException ne)
+  public static LocalizableMessage getMessageForException(NamingException ne)
   {
-    Message msg;
+    LocalizableMessage msg;
     if (Utils.isCertificateException(ne))
     {
       msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(ne.toString(true));
@@ -1223,7 +1223,7 @@ public class Utils
    * @param appName
    *          application name to display in the menu bar and the dock.
    */
-  public static void setMacOSXMenuBar(Message appName)
+  public static void setMacOSXMenuBar(LocalizableMessage appName)
   {
     System.setProperty("apple.laf.useScreenMenuBar", "true");
     System.setProperty("com.apple.mrj.application.apple.menu.about.name",
@@ -1756,7 +1756,7 @@ public class Utils
    */
   public static String getDataDisplayString(UserData userInstallData)
   {
-    Message msg;
+    LocalizableMessage msg;
 
     DataReplicationOptions repl =
       userInstallData.getReplicationOptions();
@@ -1771,7 +1771,7 @@ public class Utils
 
     if (createSuffix)
     {
-      Message arg2;
+      LocalizableMessage arg2;
 
       NewSuffixOptions options = userInstallData.getNewSuffixOptions();
 
@@ -1883,7 +1883,7 @@ public class Utils
       {
         buf.append("\n");
       }
-      Message certMsg;
+      LocalizableMessage certMsg;
       switch (ops.getCertificateType())
       {
       case SELF_SIGNED_CERTIFICATE:
@@ -1935,7 +1935,7 @@ public class Utils
       ProgressMessageFormatter formatter)
   {
     StringBuilder builder = new StringBuilder();
-    builder.append(formatter.getFormattedProgress(Message.raw(cmd.get(0))));
+    builder.append(formatter.getFormattedProgress(LocalizableMessage.raw(cmd.get(0))));
     int initialIndex = 1;
     StringBuilder sbSeparator = new StringBuilder();
     sbSeparator.append(formatter.getSpace());
@@ -1956,12 +1956,12 @@ public class Utils
       if (s.startsWith("-"))
       {
         builder.append(lineSeparator);
-        builder.append(formatter.getFormattedProgress(Message.raw(s)));
+        builder.append(formatter.getFormattedProgress(LocalizableMessage.raw(s)));
       }
       else
       {
         builder.append(formatter.getSpace());
-        builder.append(formatter.getFormattedProgress(Message.raw(
+        builder.append(formatter.getFormattedProgress(LocalizableMessage.raw(
             escapeCommandLineValue(s))));
       }
     }

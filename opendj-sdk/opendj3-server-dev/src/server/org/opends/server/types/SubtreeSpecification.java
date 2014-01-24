@@ -31,7 +31,7 @@ import static org.opends.messages.SchemaMessages.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.StaticUtils;
 
@@ -1152,7 +1152,7 @@ public final class SubtreeSpecification
     }
     else
     {
-      final Message message =
+      final LocalizableMessage message =
         ERR_ATTR_SYNTAX_RFC3672_SUBTREE_SPECIFICATION_INVALID.get(s);
       throw new DirectoryException(
           ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);

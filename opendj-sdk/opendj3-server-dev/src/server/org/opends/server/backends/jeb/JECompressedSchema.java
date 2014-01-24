@@ -37,7 +37,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -297,7 +297,7 @@ public final class JECompressedSchema extends CompressedSchema
         TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
 
-      final Message m = ERR_JEB_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(ae
+      final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(ae
           .getMessage());
       throw new InitializationException(m, ae);
     }
@@ -339,7 +339,7 @@ public final class JECompressedSchema extends CompressedSchema
         TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
 
-      final Message m = ERR_JEB_COMPSCHEMA_CANNOT_DECODE_AD_TOKEN.get(ae
+      final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_DECODE_AD_TOKEN.get(ae
           .getMessage());
       throw new InitializationException(m, ae);
     }
@@ -371,7 +371,7 @@ public final class JECompressedSchema extends CompressedSchema
         }
         else
         {
-          final Message m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_STATUS.get(status
+          final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_STATUS.get(status
               .toString());
           throw new DirectoryException(
               DirectoryServer.getServerErrorResultCode(), m);
@@ -383,7 +383,7 @@ public final class JECompressedSchema extends CompressedSchema
       }
       catch (final DatabaseException de)
       {
-        final Message m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_EX.get(de
+        final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_EX.get(de
             .getMessage());
         throw new DirectoryException(
             DirectoryServer.getServerErrorResultCode(), m, de);
@@ -392,7 +392,7 @@ public final class JECompressedSchema extends CompressedSchema
 
     if (!successful)
     {
-      final Message m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_MULTIPLE_FAILURES.get();
+      final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_MULTIPLE_FAILURES.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           m);
     }

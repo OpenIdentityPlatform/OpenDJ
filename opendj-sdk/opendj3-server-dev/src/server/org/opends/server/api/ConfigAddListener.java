@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -29,7 +30,7 @@ package org.opends.server.api;
 
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -60,7 +61,7 @@ public interface ConfigAddListener
    *          not.
    */
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
-                      MessageBuilder unacceptableReason);
+                      LocalizableMessageBuilder unacceptableReason);
 
 
 

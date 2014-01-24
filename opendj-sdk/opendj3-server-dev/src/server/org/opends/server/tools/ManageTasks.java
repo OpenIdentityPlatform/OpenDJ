@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.server.tools;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.ToolMessages.*;
 
 import org.opends.server.api.ErrorLogPublisher;
@@ -269,7 +269,7 @@ public class ManageTasks extends ConsoleApplication {
       argParser.setUsageArgument(displayUsage);
     }
     catch (ArgumentException ae) {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       return 1;
     }
@@ -289,7 +289,7 @@ public class ManageTasks extends ConsoleApplication {
       StaticUtils.checkOnlyOneArgPresent(task, summary, cancel);
     }
     catch (ArgumentException ae) {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       println(message);
       println(argParser.getUsageMessage());
       return 1;
@@ -351,7 +351,7 @@ public class ManageTasks extends ConsoleApplication {
         println(INFO_TASKINFO_LDAP_EXCEPTION.get(lce.getMessageObject()));
         return 1;
       } catch (Exception e) {
-        println(Message.raw(e.getMessage()));
+        println(LocalizableMessage.raw(e.getMessage()));
         return 1;
       }
     }
@@ -444,7 +444,7 @@ public class ManageTasks extends ConsoleApplication {
       tablePrinter.setIndentWidth(INDENT);
       tablePrinter.setTotalWidth(80);
       table.print(tablePrinter);
-      getOutputStream().println(Message.raw(sw.getBuffer()));
+      getOutputStream().println(LocalizableMessage.raw(sw.getBuffer()));
     } else {
       getOutputStream().println(INFO_TASKINFO_NO_TASKS.get());
       getOutputStream().println();
@@ -487,7 +487,7 @@ public class ManageTasks extends ConsoleApplication {
         taskIds.add(taskId);
         final TaskEntry taskEntry = mapIdToEntry.get(taskId);
         menuBuilder.addNumberedOption(
-                Message.raw(taskEntry.getId()),
+                LocalizableMessage.raw(taskEntry.getId()),
                 new TaskDrilldownMenu(taskId),
                 taskEntry.getType(), taskEntry.getState());
         index++;
@@ -639,7 +639,7 @@ public class ManageTasks extends ConsoleApplication {
                     INFO_TASKINFO_CMD_REFRESH_CHAR.get(),
                     INFO_TASKINFO_CMD_REFRESH.get(),
                     new PrintTaskInfo(taskId));
-            List<Message> logs = taskEntry.getLogMessages();
+            List<LocalizableMessage> logs = taskEntry.getLogMessages();
             if (logs != null && logs.size() > 0) {
               menuBuilder.addCharOption(
                       INFO_TASKINFO_CMD_VIEW_LOGS_CHAR.get(),
@@ -661,7 +661,7 @@ public class ManageTasks extends ConsoleApplication {
               System.exit(0);
             }
           } catch (Exception e) {
-            app.println(Message.raw(e.getMessage()));
+            app.println(LocalizableMessage.raw(e.getMessage()));
           }
         }
       } else {
@@ -693,7 +693,7 @@ public class ManageTasks extends ConsoleApplication {
     public MenuResult<TaskEntry> invoke(ManageTasks app)
             throws CLIException
     {
-      Message m;
+      LocalizableMessage m;
       TaskEntry taskEntry;
       try {
         taskEntry = app.getTaskClient().getTaskEntry(taskId);
@@ -722,7 +722,7 @@ public class ManageTasks extends ConsoleApplication {
           table.startRow();
           table.appendCell(INFO_TASKINFO_FIELD_SCHEDULED_START.get());
           m = taskEntry.getScheduledStartTime();
-          if (m == null || m.equals(Message.EMPTY)) {
+          if (m == null || m.equals(LocalizableMessage.EMPTY)) {
             table.appendCell(INFO_TASKINFO_IMMEDIATE_EXECUTION.get());
           } else {
             table.appendCell(m);
@@ -766,14 +766,14 @@ public class ManageTasks extends ConsoleApplication {
         tablePrinter.setColumnWidth(1, 0);
         table.print(tablePrinter);
         app.getOutputStream().println();
-        app.getOutputStream().println(Message.raw(sw.getBuffer().toString()));
+        app.getOutputStream().println(LocalizableMessage.raw(sw.getBuffer().toString()));
 
         // Create a table for the task options
         table = new TableBuilder();
         table.appendHeading(INFO_TASKINFO_OPTIONS.get(taskEntry.getType()));
-        Map<Message,List<String>> taskSpecificAttrs =
+        Map<LocalizableMessage,List<String>> taskSpecificAttrs =
                 taskEntry.getTaskSpecificAttributeValuePairs();
-        for (Message attrName : taskSpecificAttrs.keySet()) {
+        for (LocalizableMessage attrName : taskSpecificAttrs.keySet()) {
           table.startRow();
           table.appendCell(attrName);
           List<String> values = taskSpecificAttrs.get(attrName);
@@ -794,10 +794,10 @@ public class ManageTasks extends ConsoleApplication {
         tablePrinter.setIndentWidth(INDENT);
         tablePrinter.setColumnWidth(1, 0);
         table.print(tablePrinter);
-        app.getOutputStream().println(Message.raw(sw.getBuffer().toString()));
+        app.getOutputStream().println(LocalizableMessage.raw(sw.getBuffer().toString()));
 
         // Print the last log message if any
-        List<Message> logs = taskEntry.getLogMessages();
+        List<LocalizableMessage> logs = taskEntry.getLogMessages();
         if (logs != null && logs.size() > 0) {
 
           // Create a table for the last log entry
@@ -812,7 +812,7 @@ public class ManageTasks extends ConsoleApplication {
           tablePrinter.setIndentWidth(INDENT);
           tablePrinter.setColumnWidth(0, 0);
           table.print(tablePrinter);
-          app.getOutputStream().println(Message.raw(sw.getBuffer().toString()));
+          app.getOutputStream().println(LocalizableMessage.raw(sw.getBuffer().toString()));
         }
 
         app.getOutputStream().println();
@@ -831,7 +831,7 @@ public class ManageTasks extends ConsoleApplication {
      * @param values of the attribute
      */
     private void writeMultiValueCells(TableBuilder table,
-                                      Message fieldLabel,
+                                      LocalizableMessage fieldLabel,
                                       List<?> values) {
       writeMultiValueCells(table, fieldLabel, values, INFO_TASKINFO_NONE.get());
     }
@@ -845,9 +845,9 @@ public class ManageTasks extends ConsoleApplication {
      * @param noneLabel label for the value column when there are no values
      */
     private void writeMultiValueCells(TableBuilder table,
-                                      Message fieldLabel,
+                                      LocalizableMessage fieldLabel,
                                       List<?> values,
-                                      Message noneLabel) {
+                                      LocalizableMessage noneLabel) {
       table.startRow();
       table.appendCell(fieldLabel);
       if (values.isEmpty()) {
@@ -889,14 +889,14 @@ public class ManageTasks extends ConsoleApplication {
       TaskEntry taskEntry = null;
       try {
         taskEntry = app.getTaskClient().getTaskEntry(taskId);
-        List<Message> logs = taskEntry.getLogMessages();
+        List<LocalizableMessage> logs = taskEntry.getLogMessages();
         app.getOutputStream().println();
 
         // Create a table for the last log entry
         TableBuilder table = new TableBuilder();
         table.appendHeading(INFO_TASKINFO_FIELD_LOG.get());
         if (logs != null && logs.size() > 0) {
-          for (Message log : logs) {
+          for (LocalizableMessage log : logs) {
             table.startRow();
             table.appendCell(log);
           }
@@ -910,7 +910,7 @@ public class ManageTasks extends ConsoleApplication {
         tablePrinter.setIndentWidth(INDENT);
         tablePrinter.setColumnWidth(0, 0);
         table.print(tablePrinter);
-        app.getOutputStream().println(Message.raw(sw.getBuffer().toString()));
+        app.getOutputStream().println(LocalizableMessage.raw(sw.getBuffer().toString()));
         app.getOutputStream().println();
       } catch (Exception e) {
         app.println(ERR_TASKINFO_ACCESSING_LOGS.get(taskId, e.getMessage()));

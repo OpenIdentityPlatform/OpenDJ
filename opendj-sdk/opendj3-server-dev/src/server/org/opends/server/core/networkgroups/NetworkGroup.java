@@ -48,7 +48,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -106,7 +106,7 @@ public class NetworkGroup
     {
       ResultCode resultCode = ResultCode.SUCCESS;
       boolean adminActionRequired = false;
-      List<Message> messages = new ArrayList<Message>();
+      List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
       // Update the priority.
       setNetworkGroupPriority(configuration.getPriority());
@@ -167,7 +167,7 @@ public class NetworkGroup
      * {@inheritDoc}
      */
     public boolean isConfigurationChangeAcceptable(
-        NetworkGroupCfg configuration, List<Message> unacceptableReasons)
+        NetworkGroupCfg configuration, List<LocalizableMessage> unacceptableReasons)
     {
       return isConfigurationAcceptable(configuration,
           unacceptableReasons);
@@ -191,7 +191,7 @@ public class NetworkGroup
     {
       ResultCode resultCode = ResultCode.SUCCESS;
       boolean adminActionRequired = false;
-      List<Message> messages = new ArrayList<Message>();
+      List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
       try
       {
@@ -245,7 +245,7 @@ public class NetworkGroup
      * {@inheritDoc}
      */
     public boolean isConfigurationAddAcceptable(
-        QOSPolicyCfg configuration, List<Message> unacceptableReasons)
+        QOSPolicyCfg configuration, List<LocalizableMessage> unacceptableReasons)
     {
       return isNetworkGroupQOSPolicyConfigurationAcceptable(
           configuration, unacceptableReasons);
@@ -257,7 +257,7 @@ public class NetworkGroup
      * {@inheritDoc}
      */
     public boolean isConfigurationDeleteAcceptable(
-        QOSPolicyCfg configuration, List<Message> unacceptableReasons)
+        QOSPolicyCfg configuration, List<LocalizableMessage> unacceptableReasons)
     {
       // Always ok.
       return true;
@@ -521,7 +521,7 @@ public class NetworkGroup
         {
           // The workflow does not exist, log an error message
           // and skip the workflow.
-          Message message =
+          LocalizableMessage message =
               INFO_ERR_WORKFLOW_DOES_NOT_EXIST.get(workflowID,
                   networkGroup.getID());
           logError(message);
@@ -577,7 +577,7 @@ public class NetworkGroup
    *         not.
    */
   static boolean isConfigurationAcceptable(
-      NetworkGroupCfg configuration, List<Message> unacceptableReasons)
+      NetworkGroupCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     // The configuration is always acceptable if disabled.
     if (!configuration.isEnabled())
@@ -598,7 +598,7 @@ public class NetworkGroup
       if (allBaseDNs.contains(baseDN))
       {
         // This baseDN is duplicated
-        Message message =
+        LocalizableMessage message =
             ERR_WORKFLOW_BASE_DN_DUPLICATED_IN_NG.get(baseDN,
                 getNameFromConfiguration(configuration));
         unacceptableReasons.add(message);
@@ -728,7 +728,7 @@ public class NetworkGroup
   // implementation class is acceptable.
   private static boolean isNetworkGroupQOSPolicyConfigurationAcceptable(
       QOSPolicyCfg policyConfiguration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     String className = policyConfiguration.getJavaClass();
     QOSPolicyCfgDefn d = QOSPolicyCfgDefn.getInstance();
@@ -903,7 +903,7 @@ public class NetworkGroup
    *         network group request filtering policy
    */
   boolean checkRequestFilteringPolicy(
-      PreParseOperation operation, List<Message> messages)
+      PreParseOperation operation, List<LocalizableMessage> messages)
   {
     if (requestFilteringPolicy != null)
     {
@@ -932,7 +932,7 @@ public class NetworkGroup
    */
   boolean checkResourceLimitsPolicy(ClientConnection connection,
       PreParseOperation operation, boolean fullCheck,
-      List<Message> messages)
+      List<LocalizableMessage> messages)
   {
     if (resourceLimitsPolicy != null)
     {
@@ -1421,7 +1421,7 @@ public class NetworkGroup
       // The network group must not be already registered
       if (registeredNetworkGroups.containsKey(networkGroupID))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_REGISTER_NETWORK_GROUP_ALREADY_EXISTS
                 .get(networkGroupID);
         throw new InitializationException(message);
@@ -1591,7 +1591,7 @@ public class NetworkGroup
       {
         // The base DN is already registered in the network group,
         // we must reject the registration request
-        Message message =
+        LocalizableMessage message =
             ERR_REGISTER_WORKFLOW_BASE_DN_ALREADY_EXISTS.get(
                 workflowID, networkGroupID, node.getWorkflowImpl()
                     .getWorkflowId(), workflowNode.getWorkflowImpl()
@@ -1630,7 +1630,7 @@ public class NetworkGroup
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(String
               .valueOf(className), String.valueOf(policyConfiguration
               .dn()), stackTraceToSingleLineString(e));
@@ -1673,7 +1673,7 @@ public class NetworkGroup
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(String
               .valueOf(className), String.valueOf(policyConfiguration
               .dn()), stackTraceToSingleLineString(e));
@@ -1974,7 +1974,7 @@ public class NetworkGroup
       // The workflow must not be already registered
       if (registeredWorkflowNodes.containsKey(workflowID))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS.get(workflowID,
                 networkGroupID);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,

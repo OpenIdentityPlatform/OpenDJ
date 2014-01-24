@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
@@ -197,7 +197,7 @@ public class DelayPreOpPlugin
           // This is fine.
           break;
         default:
-          throw new ConfigException(Message.raw("Invalid plugin type " + t +
+          throw new ConfigException(LocalizableMessage.raw("Invalid plugin type " + t +
                                     " for delay pre-op plugin."));
       }
     }
@@ -332,7 +332,7 @@ public class DelayPreOpPlugin
     {
       return PluginResult.PreOperation.stopProcessing(
           ResultCode.PROTOCOL_ERROR,
-          Message.raw("Unable to decode the delay request control:  " +
+          LocalizableMessage.raw("Unable to decode the delay request control:  " +
               e));
     }
 

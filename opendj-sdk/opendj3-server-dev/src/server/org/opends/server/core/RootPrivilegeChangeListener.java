@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -67,7 +68,7 @@ public class RootPrivilegeChangeListener
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(RootDNCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // No special validation is required.
     return true;

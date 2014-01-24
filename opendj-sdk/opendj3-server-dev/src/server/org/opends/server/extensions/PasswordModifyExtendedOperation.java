@@ -30,8 +30,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 import org.opends.server.admin.std.server.
@@ -163,7 +163,7 @@ public class PasswordModifyExtendedOperation
       identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
       if (identityMapper == null)
       {
-        Message message = ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(
+        LocalizableMessage message = ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(
             String.valueOf(identityMapperDN), String.valueOf(config.dn()));
         throw new ConfigException(message);
       }
@@ -174,7 +174,7 @@ public class PasswordModifyExtendedOperation
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message = ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(
+      LocalizableMessage message = ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(
           String.valueOf(config.dn()), getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
@@ -762,7 +762,7 @@ public class PasswordModifyExtendedOperation
               }
             }
 
-            MessageBuilder invalidReason = new MessageBuilder();
+            LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
             if (! pwPolicyState.passwordIsAcceptable(operation, userEntry,
                                                      newPassword,
                                                      clearPasswords,
@@ -1110,7 +1110,7 @@ public class PasswordModifyExtendedOperation
       }
       if (selfChange)
       {
-        Message message = INFO_MODIFY_PASSWORD_CHANGED.get();
+        LocalizableMessage message = INFO_MODIFY_PASSWORD_CHANGED.get();
         pwPolicyState.generateAccountStatusNotification(
           AccountStatusNotificationType.PASSWORD_CHANGED,
           userEntry, message,
@@ -1119,7 +1119,7 @@ public class PasswordModifyExtendedOperation
       }
       else
       {
-        Message message = INFO_MODIFY_PASSWORD_RESET.get();
+        LocalizableMessage message = INFO_MODIFY_PASSWORD_RESET.get();
         pwPolicyState.generateAccountStatusNotification(
           AccountStatusNotificationType.PASSWORD_RESET,
           userEntry, message,
@@ -1229,7 +1229,7 @@ public class PasswordModifyExtendedOperation
   @Override()
   public boolean isConfigurationAcceptable(ExtendedOperationHandlerCfg
                                                 configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     PasswordModifyExtendedOperationHandlerCfg config =
          (PasswordModifyExtendedOperationHandlerCfg) configuration;
@@ -1255,7 +1255,7 @@ public class PasswordModifyExtendedOperation
   @Override
   public boolean isConfigurationChangeAcceptable(
        PasswordModifyExtendedOperationHandlerCfg config,
-       List<Message> unacceptableReasons)
+       List<LocalizableMessage> unacceptableReasons)
   {
     // Make sure that the specified identity mapper is OK.
     try
@@ -1264,7 +1264,7 @@ public class PasswordModifyExtendedOperation
       IdentityMapper<?> mapper = DirectoryServer.getIdentityMapper(mapperDN);
       if (mapper == null)
       {
-        Message message = ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(
+        LocalizableMessage message = ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(
                 String.valueOf(mapperDN),
                 String.valueOf(config.dn()));
         unacceptableReasons.add(message);
@@ -1278,7 +1278,7 @@ public class PasswordModifyExtendedOperation
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(
+      LocalizableMessage message = ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(
               String.valueOf(config.dn()),
               getExceptionMessage(e));
       unacceptableReasons.add(message);
@@ -1312,7 +1312,7 @@ public class PasswordModifyExtendedOperation
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    List<Message>     messages            = new ArrayList<Message>();
+    List<LocalizableMessage>     messages            = new ArrayList<LocalizableMessage>();
 
 
     // Make sure that the specified identity mapper is OK.

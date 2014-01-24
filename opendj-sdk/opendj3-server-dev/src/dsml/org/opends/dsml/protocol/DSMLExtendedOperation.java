@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
@@ -125,7 +125,7 @@ public class DSMLExtendedOperation
     ExtendedResponseProtocolOp extendedOp =
           responseMessage.getExtendedResponseProtocolOp();
     int resultCode = extendedOp.getResultCode();
-    Message errorMessage = extendedOp.getErrorMessage();
+    LocalizableMessage errorMessage = extendedOp.getErrorMessage();
 
     // Set the result code and error message for the DSML response.
     extendedResponse.setResponseName(extendedOp.getOID());

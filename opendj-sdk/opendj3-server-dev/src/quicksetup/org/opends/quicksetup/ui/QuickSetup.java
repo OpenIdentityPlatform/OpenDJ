@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
@@ -38,8 +38,8 @@ import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.server.util.SetupUtils;
 
 import static org.opends.quicksetup.util.Utils.*;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import javax.swing.*;
@@ -86,7 +86,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
   private QuickSetupDialog dialog;
 
-  private MessageBuilder progressDetails = new MessageBuilder();
+  private LocalizableMessageBuilder progressDetails = new LocalizableMessageBuilder();
 
   private ProgressDescriptor lastDescriptor;
 
@@ -463,7 +463,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
         if (throwable != null)
         {
-          displayError(Message.raw(throwable.getMessage()),
+          displayError(LocalizableMessage.raw(throwable.getMessage()),
                   INFO_ERROR_TITLE.get());
         }
       }
@@ -578,7 +578,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * @param title
    *          the title for the dialog.
    */
-  public void displayError(Message msg, Message title)
+  public void displayError(LocalizableMessage msg, LocalizableMessage title)
   {
     if (isCli()) {
       System.err.println(msg);
@@ -597,7 +597,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * @return <CODE>true</CODE> if the user confirms the message, or
    * <CODE>false</CODE> if not.
    */
-  public boolean displayConfirmation(Message msg, Message title)
+  public boolean displayConfirmation(LocalizableMessage msg, LocalizableMessage title)
   {
     return getDialog().displayConfirmation(msg, title);
   }
@@ -676,8 +676,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   private ProgressDescriptor createProgressDescriptor(ProgressUpdateEvent ev)
   {
     ProgressStep status = ev.getProgressStep();
-    Message newProgressLabel = ev.getCurrentPhaseSummary();
-    Message additionalDetails = ev.getNewLogs();
+    LocalizableMessage newProgressLabel = ev.getCurrentPhaseSummary();
+    LocalizableMessage additionalDetails = ev.getNewLogs();
     Integer ratio = ev.getProgressRatio();
 
     if (additionalDetails != null)
@@ -686,12 +686,12 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     }
     /*
     Note: progressDetails might have a certain number of characters that
-    break Message Formatter (for instance percentages).  When fix for
+    break LocalizableMessage Formatter (for instance percentages).  When fix for
     issue 2142 was committed it broke this code.  So here
-    we use Message.raw instead of calling directly progressDetails.toMessage
+    we use LocalizableMessage.raw instead of calling directly progressDetails.toMessage
     */
     return new ProgressDescriptor(status, ratio, newProgressLabel,
-        Message.raw(progressDetails.toString()));
+        LocalizableMessage.raw(progressDetails.toString()));
   }
 
   /**

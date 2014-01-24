@@ -50,7 +50,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
 import static org.opends.messages.ExtensionMessages.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -119,7 +119,7 @@ public class RegularExpressionIdentityMapper
       matchPattern  = Pattern.compile(currentConfig.getMatchPattern());
     }
     catch (PatternSyntaxException pse) {
-      Message message = ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(
+      LocalizableMessage message = ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(
               currentConfig.getMatchPattern(),
               pse.getMessage());
       throw new ConfigException(message, pse);
@@ -251,7 +251,7 @@ public class RegularExpressionIdentityMapper
 
         case SIZE_LIMIT_EXCEEDED:
           // Multiple entries matched the filter.  This is not acceptable.
-          Message message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(
+          LocalizableMessage message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(
                           String.valueOf(processedID));
           throw new DirectoryException(
                   ResultCode.CONSTRAINT_VIOLATION, message);
@@ -283,7 +283,7 @@ public class RegularExpressionIdentityMapper
           matchingEntry = iterator.next();
           if (iterator.hasNext())
           {
-            Message message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(
+            LocalizableMessage message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(
                             String.valueOf(processedID));
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
@@ -291,7 +291,7 @@ public class RegularExpressionIdentityMapper
         }
         else
         {
-          Message message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(
+          LocalizableMessage message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(
                           String.valueOf(processedID));
           throw new DirectoryException(
                   ResultCode.CONSTRAINT_VIOLATION, message);
@@ -317,7 +317,7 @@ public class RegularExpressionIdentityMapper
    */
   @Override()
   public boolean isConfigurationAcceptable(IdentityMapperCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     RegularExpressionIdentityMapperCfg config =
          (RegularExpressionIdentityMapperCfg) configuration;
@@ -331,7 +331,7 @@ public class RegularExpressionIdentityMapper
    */
   public boolean isConfigurationChangeAcceptable(
                       RegularExpressionIdentityMapperCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -366,7 +366,7 @@ public class RegularExpressionIdentityMapper
     }
     catch (PatternSyntaxException pse)
     {
-      Message message = ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(
+      LocalizableMessage message = ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(
                       configuration.getMatchPattern(),
                                   pse.getMessage());
       unacceptableReasons.add(message);
@@ -387,7 +387,7 @@ public class RegularExpressionIdentityMapper
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;
     boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     Pattern newMatchPattern = null;
@@ -397,7 +397,7 @@ public class RegularExpressionIdentityMapper
     }
     catch (PatternSyntaxException pse)
     {
-      Message message = ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(
+      LocalizableMessage message = ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(
                       configuration.getMatchPattern(),
                                   pse.getMessage());
       messages.add(message);

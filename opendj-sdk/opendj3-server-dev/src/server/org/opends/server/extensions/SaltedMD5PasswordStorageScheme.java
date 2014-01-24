@@ -32,7 +32,7 @@ import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.SaltedMD5PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
@@ -129,7 +129,7 @@ public class SaltedMD5PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
           MESSAGE_DIGEST_ALGORITHM_MD5, String.valueOf(e));
       throw new InitializationException(message, e);
     }
@@ -186,7 +186,7 @@ public class SaltedMD5PasswordStorageScheme
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -248,7 +248,7 @@ public class SaltedMD5PasswordStorageScheme
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -299,7 +299,7 @@ public class SaltedMD5PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
           storedPassword.toString(), String.valueOf(e));
       ErrorLogger.logError(message);
       return false;
@@ -398,7 +398,7 @@ public class SaltedMD5PasswordStorageScheme
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -488,7 +488,7 @@ public class SaltedMD5PasswordStorageScheme
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_NOT_REVERSIBLE.get(STORAGE_SCHEME_NAME_SALTED_MD5);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
@@ -503,7 +503,7 @@ public class SaltedMD5PasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_NOT_REVERSIBLE.get(AUTH_PASSWORD_SCHEME_NAME_SALTED_MD5);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }

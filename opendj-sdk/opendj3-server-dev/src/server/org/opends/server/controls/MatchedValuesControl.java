@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -69,7 +69,7 @@ public class MatchedValuesControl
       ArrayList<MatchedValuesFilter> filters;
       if (value == null)
       {
-        Message message = ERR_MATCHEDVALUES_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_MATCHEDVALUES_NO_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -79,7 +79,7 @@ public class MatchedValuesControl
         reader.readStartSequence();
         if (!reader.hasNextElement())
         {
-          Message message = ERR_MATCHEDVALUES_NO_FILTERS.get();
+          LocalizableMessage message = ERR_MATCHEDVALUES_NO_FILTERS.get();
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
         }
 
@@ -101,7 +101,7 @@ public class MatchedValuesControl
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE.get(
+        LocalizableMessage message = ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE.get(
             getExceptionMessage(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }

@@ -59,7 +59,7 @@ import org.opends.guitools.controlpanel.ui.ViewEntryPanel;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
@@ -173,7 +173,7 @@ public class ModifyEntryTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getTaskDescription()
+  public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_MODIFY_ENTRY_TASK_DESCRIPTION.get(oldEntry.getDN());
   }
@@ -199,7 +199,7 @@ public class ModifyEntryTask extends Task
    * {@inheritDoc}
    */
   public boolean canLaunch(Task taskToBeLaunched,
-      Collection<Message> incompatibilityReasons)
+      Collection<LocalizableMessage> incompatibilityReasons)
   {
     boolean canLaunch = true;
     if (!isServerRunning())

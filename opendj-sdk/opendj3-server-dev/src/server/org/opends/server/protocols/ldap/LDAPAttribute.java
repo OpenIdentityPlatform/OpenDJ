@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 
@@ -267,7 +267,7 @@ public class LDAPAttribute
       if (!builder.add(
           AttributeValues.create(attrType, value)))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_LDAP_ATTRIBUTE_DUPLICATE_VALUES.get(attributeType);
         throw new LDAPException(
                 LDAPResultCode.ATTRIBUTE_OR_VALUE_EXISTS, message);

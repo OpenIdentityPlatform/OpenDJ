@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 import java.io.IOException;
@@ -92,7 +92,7 @@ public class ServerSideSortResponseControl
     {
       if (value == null)
       {
-        Message message = INFO_SORTRES_CONTROL_NO_VALUE.get();
+        LocalizableMessage message = INFO_SORTRES_CONTROL_NO_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -114,7 +114,7 @@ public class ServerSideSortResponseControl
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE.get(
                 getExceptionMessage(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);

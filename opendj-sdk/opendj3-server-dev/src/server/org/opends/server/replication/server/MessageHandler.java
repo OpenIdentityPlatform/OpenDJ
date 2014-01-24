@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
@@ -56,7 +56,7 @@ import static org.opends.server.util.StaticUtils.*;
  * MessageHandlers are registered into Replication server domains.
  * When an update message is received by a domain, the domain forwards
  * the message to the registered message handlers.
- * Message are buffered into a queue.
+ * LocalizableMessage are buffered into a queue.
  * Consumers are expected to come and consume the UpdateMsg from the queue.
  */
 public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
@@ -249,7 +249,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   @Override
   public String getMonitorInstanceName()
   {
-    return "Message Handler";
+    return "LocalizableMessage Handler";
   }
 
   /**
@@ -610,7 +610,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     {
       if (!this.baseDN.equals(baseDN))
       {
-        Message message = ERR_RS_DN_DOES_NOT_MATCH.get(
+        LocalizableMessage message = ERR_RS_DN_DOES_NOT_MATCH.get(
             this.baseDN.toNormalizedString(), baseDN.toNormalizedString());
         throw new DirectoryException(ResultCode.OTHER, message, null);
       }

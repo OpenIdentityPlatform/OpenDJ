@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
 import java.net.SocketException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ServerStatus;
@@ -94,7 +94,7 @@ public class ServerWriter extends DirectoryThread
       TRACER.debugInfo(getName() + " starting");
     }
 
-    Message errMessage = null;
+    LocalizableMessage errMessage = null;
     try
     {
       while (true)
@@ -103,7 +103,7 @@ public class ServerWriter extends DirectoryThread
         if (update == null)
         {
           // this connection is closing
-          errMessage = Message.raw(
+          errMessage = LocalizableMessage.raw(
            "Connection closure: null update returned by domain.");
           return;
         }

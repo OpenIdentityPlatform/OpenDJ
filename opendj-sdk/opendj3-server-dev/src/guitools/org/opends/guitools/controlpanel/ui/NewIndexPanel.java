@@ -64,7 +64,7 @@ import org.opends.guitools.controlpanel.task.OnlineUpdateException;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
@@ -110,7 +110,7 @@ public class NewIndexPanel extends AbstractIndexPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_INDEX_TITLE.get();
   }
@@ -282,7 +282,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     setPrimaryValid(lAttribute);
     setPrimaryValid(lEntryLimit);
     setPrimaryValid(lType);
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     String attrName = getAttributeName();
     if (attrName == null)
     {
@@ -437,7 +437,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     /**
      * {@inheritDoc}
      */
-    public Message getTaskDescription()
+    public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_NEW_INDEX_TASK_DESCRIPTION.get(
           attributeName, backendName.getText());
@@ -447,7 +447,7 @@ public class NewIndexPanel extends AbstractIndexPanel
      * {@inheritDoc}
      */
     public boolean canLaunch(Task taskToBeLaunched,
-        Collection<Message> incompatibilityReasons)
+        Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))

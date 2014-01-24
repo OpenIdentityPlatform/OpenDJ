@@ -25,7 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -40,7 +40,7 @@ import org.opends.server.api.PasswordValidator;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -135,7 +135,7 @@ public class AttributeValuePasswordValidator
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      MessageBuilder invalidReason)
+                                      LocalizableMessageBuilder invalidReason)
   {
     // Get a handle to the current configuration.
     AttributeValuePasswordValidatorCfg config = currentConfig;
@@ -203,7 +203,7 @@ public class AttributeValuePasswordValidator
    */
   @Override()
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     AttributeValuePasswordValidatorCfg config =
          (AttributeValuePasswordValidatorCfg) configuration;
@@ -217,7 +217,7 @@ public class AttributeValuePasswordValidator
    */
   public boolean isConfigurationChangeAcceptable(
                       AttributeValuePasswordValidatorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // If we've gotten this far, then we'll accept the change.
     return true;
@@ -233,7 +233,7 @@ public class AttributeValuePasswordValidator
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     currentConfig = configuration;

@@ -22,34 +22,46 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.protocols.ldap;
 
 import org.testng.annotations.Test;
+
 import static org.opends.messages.ProtocolMessages.ERR_ECN_INVALID_ELEMENT_TYPE;
 import static org.opends.messages.ProtocolMessages.ERR_ECN_CANNOT_DECODE_VALUE;
-import org.opends.messages.MessageDescriptor;
-import static org.testng.Assert.*;
-import org.opends.server.types.LDAPException;
 
-public class TestLDAPException extends LdapTestCase {
+import org.forgerock.i18n.LocalizableMessageDescriptor;
+
+import static org.testng.Assert.*;
+
+import org.opends.server.types.LDAPException;
+import org.opends.server.util.StaticUtils;
+
+@SuppressWarnings("javadoc")
+public class TestLDAPException extends LdapTestCase
+{
 
   @Test()
-  public void testLDAPException() {
-    MessageDescriptor.Arg1<CharSequence> msgDesc = ERR_ECN_INVALID_ELEMENT_TYPE;
-    LDAPException ex=new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgDesc.get(""));
+  public void testLDAPException()
+  {
+    LocalizableMessageDescriptor.Arg1 msgDesc = ERR_ECN_INVALID_ELEMENT_TYPE;
+    LDAPException ex =
+        new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgDesc.get(""));
     assertTrue(ex.getResultCode() == LDAPResultCode.PROTOCOL_ERROR);
-    assertTrue(ex.getMessageObject().getDescriptor() == msgDesc);
+    assertTrue(StaticUtils.hasDescriptor(ex.getMessageObject(), msgDesc));
   }
 
   @Test()
-  public void testLDAPExceptionThrowable() {
-    MessageDescriptor.Arg1<CharSequence>    msgID   = ERR_ECN_INVALID_ELEMENT_TYPE;
-    LDAPException ex=new LDAPException(LDAPResultCode.OTHER, msgID.get(""));
-    MessageDescriptor.Arg1<CharSequence>    msgID1  = ERR_ECN_CANNOT_DECODE_VALUE;
+  public void testLDAPExceptionThrowable()
+  {
+    LocalizableMessageDescriptor.Arg1 msgID = ERR_ECN_INVALID_ELEMENT_TYPE;
+    LDAPException ex = new LDAPException(LDAPResultCode.OTHER, msgID.get(""));
+    LocalizableMessageDescriptor.Arg1<CharSequence> msgID1 =
+        ERR_ECN_CANNOT_DECODE_VALUE;
     new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID1.get(""), ex);
     assertTrue(ex.getResultCode() == LDAPResultCode.OTHER);
-    assertTrue(ex.getMessageObject().getDescriptor() == msgID);
+    assertTrue(StaticUtils.hasDescriptor(ex.getMessageObject(), msgID));
   }
 }

@@ -33,7 +33,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Collection;
 import java.util.Collections;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -188,7 +188,7 @@ class TelephoneNumberSubstringMatchingRule
     if (value.length() == 0)
     {
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-          Message.EMPTY);
+          LocalizableMessage.EMPTY);
     }
     return value;
   }

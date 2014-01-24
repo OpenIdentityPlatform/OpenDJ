@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -85,8 +86,8 @@ import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.types.AttributeType;
@@ -129,13 +130,13 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
   private CommonSchemaElements lastCreatedElement;
 
-  private final Message NAME = INFO_CTRL_PANEL_SCHEMA_ELEMENT_NAME.get();
-  private final Message TYPE = INFO_CTRL_PANEL_SCHEMA_ELEMENT_TYPE.get();
-  private final Message PARENT_CLASS = INFO_CTRL_PANEL_PARENT_CLASS.get();
-  private final Message CHILD_CLASS = INFO_CTRL_PANEL_CHILD_CLASS.get();
-  private final Message REQUIRED_ATTRIBUTES =
+  private final LocalizableMessage NAME = INFO_CTRL_PANEL_SCHEMA_ELEMENT_NAME.get();
+  private final LocalizableMessage TYPE = INFO_CTRL_PANEL_SCHEMA_ELEMENT_TYPE.get();
+  private final LocalizableMessage PARENT_CLASS = INFO_CTRL_PANEL_PARENT_CLASS.get();
+  private final LocalizableMessage CHILD_CLASS = INFO_CTRL_PANEL_CHILD_CLASS.get();
+  private final LocalizableMessage REQUIRED_ATTRIBUTES =
     INFO_CTRL_PANEL_REQUIRED_ATTRIBUTES.get();
-  private final Message OPTIONAL_ATTRIBUTES =
+  private final LocalizableMessage OPTIONAL_ATTRIBUTES =
     INFO_CTRL_PANEL_OPTIONAL_ATTRIBUTES.get();
 
   private CategoryTreeNode attributes =
@@ -181,11 +182,11 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
   private boolean ignoreSelectionEvents;
 
-  private Message NO_SCHEMA_ITEM_SELECTED =
+  private LocalizableMessage NO_SCHEMA_ITEM_SELECTED =
     INFO_CTRL_PANEL_NO_SCHEMA_ITEM_SELECTED.get();
-  private Message CATEGORY_ITEM_SELECTED =
+  private LocalizableMessage CATEGORY_ITEM_SELECTED =
     INFO_CTRL_PANEL_CATEGORY_ITEM_SELECTED.get();
-  private Message MULTIPLE_ITEMS_SELECTED =
+  private LocalizableMessage MULTIPLE_ITEMS_SELECTED =
     INFO_CTRL_PANEL_MULTIPLE_SCHEMA_ITEMS_SELECTED.get();
 
   /**
@@ -311,7 +312,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
     filterAttribute = Utilities.createComboBox();
     filterAttribute.setModel(
-        new DefaultComboBoxModel(new Message[]{
+        new DefaultComboBoxModel(new LocalizableMessage[]{
             NAME,
             TYPE,
             PARENT_CLASS,
@@ -436,7 +437,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
    * {@inheritDoc}
    */
   @Override
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_MANAGE_SCHEMA_TITLE.get();
   }
@@ -1253,7 +1254,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
   private void deleteClicked()
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     ArrayList<ObjectClass> ocsToDelete = new ArrayList<ObjectClass>();
     ArrayList<AttributeType> attrsToDelete = new ArrayList<AttributeType>();
@@ -1280,7 +1281,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     }
     if (errors.isEmpty())
     {
-      Message confirmationMessage =
+      LocalizableMessage confirmationMessage =
         getConfirmationMessage(ocsToDelete, attrsToDelete, schema);
 
       LinkedHashSet<AttributeType> orderedAttributes =
@@ -1288,7 +1289,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       LinkedHashSet<ObjectClass> orderedObjectClasses =
         getOrderedObjectClassesToDelete(ocsToDelete);
 
-      Message title;
+      LocalizableMessage title;
       if (orderedAttributes.isEmpty())
       {
         title = INFO_CTRL_PANEL_DELETE_OBJECTCLASSES_TITLE.get();
@@ -1841,7 +1842,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     return new LinkedHashSet<AttributeType>(lOrderedAttributes);
   }
 
-  private Message getConfirmationMessage(
+  private LocalizableMessage getConfirmationMessage(
       Collection<ObjectClass> ocsToDelete,
       Collection<AttributeType> attrsToDelete,
       Schema schema)
@@ -1891,7 +1892,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
     }
 
-    MessageBuilder mb = new MessageBuilder();
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     if (!childClasses.isEmpty())
     {
       TreeSet<String> childNames = new TreeSet<String>();
@@ -1957,7 +1958,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     {
       allNames.add(attrToDelete.getNameOrOID());
     }
-    Message confirmationMessage =
+    LocalizableMessage confirmationMessage =
       INFO_CTRL_PANEL_CONFIRMATION_DELETE_SCHEMA_ELEMENTS_MSG.get(
           Utilities.getStringFromCollection(allNames, ", "));
     mb.append(confirmationMessage);

@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.List;
 
@@ -98,7 +99,7 @@ public class ReplicationServerListener
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(
-      ReplicationServerCfg configuration, List<Message> unacceptableReasons)
+      ReplicationServerCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     return ReplicationServer.isConfigurationAcceptable(
       configuration, unacceptableReasons);
@@ -132,7 +133,7 @@ public class ReplicationServerListener
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(
-      ReplicationServerCfg configuration, List<Message> unacceptableReasons)
+      ReplicationServerCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }

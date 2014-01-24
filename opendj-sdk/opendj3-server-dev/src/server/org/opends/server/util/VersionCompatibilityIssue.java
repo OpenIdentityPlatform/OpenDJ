@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.util;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.BuildInformation;
 
 import static org.opends.messages.VersionMessages.*;
@@ -351,8 +351,8 @@ public final class VersionCompatibilityIssue {
 
     private int id;
     private Set<Effect> effects = new HashSet<Effect>();
-    private Message upgradeMsg;
-    private Message reversionMsg;
+    private LocalizableMessage upgradeMsg;
+    private LocalizableMessage reversionMsg;
 
     /**
      * Creates a parameterized instance.
@@ -410,7 +410,7 @@ public final class VersionCompatibilityIssue {
      * @param effects of this cause which cause the upgrade/reversion tools
      *        to behave in particular ways
      */
-    private Cause(int id, Message upgradeMessage, Message reversionMessage,
+    private Cause(int id, LocalizableMessage upgradeMessage, LocalizableMessage reversionMessage,
           Effect... effects) {
       this.id = id;
       this.upgradeMsg = upgradeMessage;
@@ -452,7 +452,7 @@ public final class VersionCompatibilityIssue {
      *         user useful information (when used with
      *         <code>UPGRADE_SHOW_INFO_MESSAGE</code>)
      */
-    public Message getLocalizedUpgradeMessage() {
+    public LocalizableMessage getLocalizedUpgradeMessage() {
       return upgradeMsg;
     }
 
@@ -468,7 +468,7 @@ public final class VersionCompatibilityIssue {
      *         user useful information (when used with
      *         <code>REVERSION_SHOW_INFO_MESSAGE</code>)
      */
-    public Message getLocalizedReversionMessage() {
+    public LocalizableMessage getLocalizedReversionMessage() {
       return reversionMsg;
     }
 

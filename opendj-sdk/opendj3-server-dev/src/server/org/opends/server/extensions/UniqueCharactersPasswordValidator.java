@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -40,7 +40,7 @@ import org.opends.server.api.PasswordValidator;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -102,7 +102,7 @@ public class UniqueCharactersPasswordValidator
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      MessageBuilder invalidReason)
+                                      LocalizableMessageBuilder invalidReason)
   {
     // Get a handle to the current configuration and see if we need to count
     // the number of unique characters in the password.
@@ -138,7 +138,7 @@ public class UniqueCharactersPasswordValidator
     // number of allowed unique characters, then we will reject the password.
     if (passwordCharacters.size() < minUniqueCharacters)
     {
-      Message message = ERR_UNIQUECHARS_VALIDATOR_NOT_ENOUGH_UNIQUE_CHARS.get(
+      LocalizableMessage message = ERR_UNIQUECHARS_VALIDATOR_NOT_ENOUGH_UNIQUE_CHARS.get(
               minUniqueCharacters);
       invalidReason.append(message);
       return false;
@@ -154,7 +154,7 @@ public class UniqueCharactersPasswordValidator
    */
   public boolean isConfigurationChangeAcceptable(
                       UniqueCharactersPasswordValidatorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // All of the necessary validation should have been performed automatically,
     // so if we get to this point then the new configuration will be acceptable.
@@ -171,7 +171,7 @@ public class UniqueCharactersPasswordValidator
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     // For this password validator, we will always be able to successfully apply
     // the new configuration.

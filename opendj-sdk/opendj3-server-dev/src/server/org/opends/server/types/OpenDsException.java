@@ -27,7 +27,7 @@
 
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -47,8 +47,8 @@ public abstract class OpenDsException
    */
   private static final long serialVersionUID = 7310881401563732702L;
 
-  /** Message that explains the problem. */
-  Message message;
+  /** LocalizableMessage that explains the problem. */
+  LocalizableMessage message;
 
   /**
    * Creates a new identified exception.
@@ -77,7 +77,7 @@ public abstract class OpenDsException
    * @param  message  The message that explains the problem that
    *                  occurred.
    */
-  protected OpenDsException(Message message)
+  protected OpenDsException(LocalizableMessage message)
   {
     this(message, null);
   }
@@ -105,7 +105,7 @@ public abstract class OpenDsException
    * @param  cause    The underlying cause that triggered this
    *                  exception.
    */
-  protected OpenDsException(Message message, Throwable cause)
+  protected OpenDsException(LocalizableMessage message, Throwable cause)
   {
     super(message != null ? message.toString() :
             cause != null ? cause.getMessage() : null, cause);
@@ -121,9 +121,9 @@ public abstract class OpenDsException
   /**
    * Returns the message that explains the problem that occurred.
    *
-   * @return Message of the problem
+   * @return LocalizableMessage of the problem
    */
-  public Message getMessageObject() {
+  public LocalizableMessage getMessageObject() {
     return this.message;
   }
 }

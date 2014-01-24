@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -34,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -95,7 +96,7 @@ public class NetworkGroupConfigManager implements
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // Register to be notified of changes to the new network group.
     configuration.addChangeListener(this);
@@ -146,7 +147,7 @@ public class NetworkGroupConfigManager implements
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // Enable / disable the network group as required.
     NetworkGroup networkGroup = networkGroups.get(configuration.dn());
@@ -202,7 +203,7 @@ public class NetworkGroupConfigManager implements
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     NetworkGroup networkGroup =
         networkGroups.remove(configuration.dn());
@@ -281,11 +282,11 @@ public class NetworkGroupConfigManager implements
           rootConfiguration.getNetworkGroup(networkGroupName);
       configuration.addChangeListener(this);
 
-      List<Message> unacceptableReasons = new ArrayList<Message>();
+      List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
       if (!NetworkGroup.isConfigurationAcceptable(configuration,
           unacceptableReasons))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_NETWORK_GROUP_CONFIG_NOT_ACCEPTABLE.get(String
                 .valueOf(configuration.dn()), StaticUtils.listToString(
                 unacceptableReasons, ". "));
@@ -307,7 +308,7 @@ public class NetworkGroupConfigManager implements
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(
-      NetworkGroupCfg configuration, List<Message> unacceptableReasons)
+      NetworkGroupCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     return NetworkGroup.isConfigurationAcceptable(configuration,
         unacceptableReasons);
@@ -319,7 +320,7 @@ public class NetworkGroupConfigManager implements
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      NetworkGroupCfg configuration, List<Message> unacceptableReasons)
+      NetworkGroupCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     return NetworkGroup.isConfigurationAcceptable(configuration,
         unacceptableReasons);
@@ -331,7 +332,7 @@ public class NetworkGroupConfigManager implements
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(
-      NetworkGroupCfg configuration, List<Message> unacceptableReasons)
+      NetworkGroupCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     // Always ok.
     return true;

@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.awt.Component;
@@ -63,7 +63,7 @@ public class InstallLicensePanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getTitle()
+  protected LocalizableMessage getTitle()
   {
     return INFO_LICENSE_PANEL_TITLE.get();
   }
@@ -71,7 +71,7 @@ public class InstallLicensePanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getInstructions()
+  protected LocalizableMessage getInstructions()
   {
     return null;
   }

@@ -22,19 +22,20 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
 /**
@@ -65,7 +66,7 @@ public class ThreadFilterTextErrorLogPublisher
    * {@inheritDoc}
    */
   @Override
-  public void initializeLogPublisher(ErrorLogPublisherCfg config)
+  public void initializeLogPublisher(ErrorLogPublisherCfg config, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
     // This class should only be used internally in the server and not be
@@ -81,16 +82,12 @@ public class ThreadFilterTextErrorLogPublisher
     writer.shutdown();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public void logError(Message message)
+  public void log(String category, Severity severity,
+      LocalizableMessage message, Throwable exception)
   {
     if (message != null) {
-      Severity severity = message.getDescriptor().getSeverity();
-      Category category = message.getDescriptor().getCategory();
-      int msgId = message.getDescriptor().getId();
       Thread currentThread = Thread.currentThread();
       if(this.thread.equals(currentThread) ||
           this.thread.getThreadGroup().equals(currentThread.getThreadGroup()))
@@ -99,18 +96,31 @@ public class ThreadFilterTextErrorLogPublisher
         sb.append("[");
         sb.append(TimeThread.getLocalTime());
         sb.append("] category=").append(category).
-            append(" severity=").append(severity).
-            append(" msgID=").append(msgId).
-            append(" msg=").append(message);
+        append(" severity=").append(severity).
+        append(" msgID=").append(message.resourceName()).
+        append("-").append(message.ordinal()).
+        append(" msg=").append(message);
+        if (exception != null)
+        {
+          sb.append(" exception=").append(
+              StaticUtils.stackTraceToSingleLineString(exception));
+        }
 
         this.writer.writeRecord(sb.toString());
       }
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
+  public boolean isEnabledFor(String category, Severity severity)
+  {
+    Thread currentThread = Thread.currentThread();
+    return (this.thread.equals(currentThread) || this.thread.getThreadGroup()
+        .equals(currentThread.getThreadGroup()));
+  }
+
+  /** {@inheritDoc} */
   @Override
   public DN getDN()
   {

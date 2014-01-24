@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -86,7 +86,7 @@ public final class CanceledOperationException
    *                       <CODE>null</CODE> if there is no message.
    */
   public CanceledOperationException(CancelRequest cancelRequest,
-                                     Message message)
+                                     LocalizableMessage message)
   {
     super(message);
 

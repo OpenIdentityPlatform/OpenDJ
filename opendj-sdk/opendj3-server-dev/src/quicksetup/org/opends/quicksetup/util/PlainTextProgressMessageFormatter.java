@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 import org.opends.quicksetup.Constants;
@@ -41,8 +42,8 @@ import static org.opends.messages.QuickSetupMessages.*;
 public class PlainTextProgressMessageFormatter
 implements ProgressMessageFormatter
 {
-  private Message doneText;
-  private Message errorText;
+  private LocalizableMessage doneText;
+  private LocalizableMessage errorText;
 
   /**
    * The space in plain text.
@@ -55,7 +56,7 @@ implements ProgressMessageFormatter
    * representation
    * @return the text representation for the given text.
    */
-  public Message getFormattedText(Message text)
+  public LocalizableMessage getFormattedText(LocalizableMessage text)
   {
     return text;
   }
@@ -68,7 +69,7 @@ implements ProgressMessageFormatter
    * representation
    * @return the text representation of the summary for the given text.
    */
-  public Message getFormattedSummary(Message text)
+  public LocalizableMessage getFormattedSummary(LocalizableMessage text)
   {
     return text;
   }
@@ -81,12 +82,12 @@ implements ProgressMessageFormatter
    * resulting formatted text.
    * @return the plain text representation of an error for the given text.
    */
-  public Message getFormattedError(Message text, boolean applyMargin)
+  public LocalizableMessage getFormattedError(LocalizableMessage text, boolean applyMargin)
   {
-    Message result;
+    LocalizableMessage result;
     if (applyMargin)
     {
-      result = new MessageBuilder().append(Constants.LINE_SEPARATOR)
+      result = new LocalizableMessageBuilder().append(Constants.LINE_SEPARATOR)
               .append(text).toMessage();
     } else
     {
@@ -103,12 +104,12 @@ implements ProgressMessageFormatter
    * resulting formatted text.
    * @return the plain text representation of a warning for the given text.
    */
-  public Message getFormattedWarning(Message text, boolean applyMargin)
+  public LocalizableMessage getFormattedWarning(LocalizableMessage text, boolean applyMargin)
   {
-    Message result;
+    LocalizableMessage result;
     if (applyMargin)
     {
-      result = new MessageBuilder(Constants.LINE_SEPARATOR)
+      result = new LocalizableMessageBuilder(Constants.LINE_SEPARATOR)
               .append(text).toMessage();
     } else
     {
@@ -125,7 +126,7 @@ implements ProgressMessageFormatter
    * @return the plain text representation of a success message for the given
    * text.
    */
-  public Message getFormattedSuccess(Message text)
+  public LocalizableMessage getFormattedSuccess(LocalizableMessage text)
   {
     return text;
   }
@@ -138,7 +139,7 @@ implements ProgressMessageFormatter
    * @return the plain text representation of a log error message for the given
    * text.
    */
-  public Message getFormattedLogError(Message text)
+  public LocalizableMessage getFormattedLogError(LocalizableMessage text)
   {
     return text;
   }
@@ -150,7 +151,7 @@ implements ProgressMessageFormatter
    * representation
    * @return the plain text representation of a log message for the given text.
    */
-  public Message getFormattedLog(Message text)
+  public LocalizableMessage getFormattedLog(LocalizableMessage text)
   {
     return text;
   }
@@ -159,7 +160,7 @@ implements ProgressMessageFormatter
    * Returns the plain text representation of the 'Done' text string.
    * @return the plain text representation of the 'Done' text string.
    */
-  public Message getFormattedDone()
+  public LocalizableMessage getFormattedDone()
   {
     if (doneText == null)
     {
@@ -172,7 +173,7 @@ implements ProgressMessageFormatter
    * Returns the plain text representation of the 'Error' text string.
    * @return the plain text representation of the 'Error' text string.
    */
-  public Message getFormattedError()
+  public LocalizableMessage getFormattedError()
   {
     if (errorText == null)
     {
@@ -188,9 +189,9 @@ implements ProgressMessageFormatter
    * @param text the String to which add points.
    * @return the plain text representation of the '.....' text string.
    */
-  public Message getFormattedWithPoints(Message text)
+  public LocalizableMessage getFormattedWithPoints(LocalizableMessage text)
   {
-    return new MessageBuilder(text).append(SPACE)
+    return new LocalizableMessageBuilder(text).append(SPACE)
             .append(INFO_PROGRESS_POINTS.get()).append(SPACE).toMessage();
   }
 
@@ -198,18 +199,18 @@ implements ProgressMessageFormatter
    * Returns the formatted representation of a point.
    * @return the formatted representation of the '.' text string.
    */
-  public Message getFormattedPoint()
+  public LocalizableMessage getFormattedPoint()
   {
-    return Message.raw(".");
+    return LocalizableMessage.raw(".");
   }
 
   /**
    * Returns the formatted representation of a space.
    * @return the formatted representation of the ' ' text string.
    */
-  public Message getSpace()
+  public LocalizableMessage getSpace()
   {
-    return Message.raw(SPACE);
+    return LocalizableMessage.raw(SPACE);
   }
 
   /**
@@ -220,7 +221,7 @@ implements ProgressMessageFormatter
    * @return the formatted representation of a progress message for the given
    * text.
    */
-  public Message getFormattedProgress(Message text)
+  public LocalizableMessage getFormattedProgress(LocalizableMessage text)
   {
     return text;
   }
@@ -236,7 +237,7 @@ implements ProgressMessageFormatter
    * @return the plain text representation of an error message for the given
    * exception.
    */
-  public Message getFormattedError(Throwable t, boolean applyMargin)
+  public LocalizableMessage getFormattedError(Throwable t, boolean applyMargin)
   {
     String msg = t.getMessage();
     if (msg == null)
@@ -251,34 +252,34 @@ implements ProgressMessageFormatter
     {
       result = msg;
     }
-    return Message.raw(result);
+    return LocalizableMessage.raw(result);
   }
 
   /**
    * Returns the line break in plain text.
    * @return the line break in plain text.
    */
-  public Message getLineBreak()
+  public LocalizableMessage getLineBreak()
   {
-    return Message.raw(Constants.LINE_SEPARATOR);
+    return LocalizableMessage.raw(Constants.LINE_SEPARATOR);
   }
 
   /**
    * Returns the tab in plain text.
    * @return the tab in plain text.
    */
-  public Message getTab()
+  public LocalizableMessage getTab()
   {
-    return Message.raw("     ");
+    return LocalizableMessage.raw("     ");
   }
 
   /**
    * Returns the task separator in plain text.
    * @return the task separator in plain text.
    */
-  public Message getTaskSeparator()
+  public LocalizableMessage getTaskSeparator()
   {
-    return Message.raw(
+    return LocalizableMessage.raw(
         Constants.LINE_SEPARATOR+
         "-----------------------------------------------------------------"+
         Constants.LINE_SEPARATOR+Constants.LINE_SEPARATOR);
@@ -287,7 +288,7 @@ implements ProgressMessageFormatter
   /**
    * {@inheritDoc}
    */
-  public Message getFormattedAfterUrlClick(String url, Message lastText)
+  public LocalizableMessage getFormattedAfterUrlClick(String url, LocalizableMessage lastText)
   {
     throw new IllegalStateException(
         "PlainTextProgressMessageFormatter.getFormattedAfterUrlClick must not "+

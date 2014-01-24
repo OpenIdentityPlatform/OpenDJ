@@ -49,7 +49,7 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.types.DN;
@@ -136,7 +136,7 @@ public class ResetUserPasswordTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getTaskDescription()
+  public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_RESET_USER_PASSWORD_TASK_DESCRIPTION.get(
         node.getDN());
@@ -185,7 +185,7 @@ public class ResetUserPasswordTask extends Task
    * {@inheritDoc}
    */
   public boolean canLaunch(Task taskToBeLaunched,
-      Collection<Message> incompatibilityReasons)
+      Collection<LocalizableMessage> incompatibilityReasons)
   {
     boolean canLaunch = true;
     if (!isServerRunning())

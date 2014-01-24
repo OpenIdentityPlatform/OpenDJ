@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -53,7 +53,7 @@ public final class ConfigChangeResult
   // A set of messages describing the changes that were made, any
   // action that may be required, or any problems that were
   // encountered.
-  private List<Message> messages;
+  private List<LocalizableMessage> messages;
 
   // Indicates whether one or more of the changes requires
   // administrative action in order to take effect.
@@ -80,7 +80,7 @@ public final class ConfigChangeResult
   {
     this.resultCode          = resultCode;
     this.adminActionRequired = adminActionRequired;
-    this.messages            = new ArrayList<Message>();
+    this.messages            = new ArrayList<LocalizableMessage>();
   }
 
 
@@ -100,7 +100,7 @@ public final class ConfigChangeResult
    */
   public ConfigChangeResult(ResultCode resultCode,
                             boolean adminActionRequired,
-                            List<Message> messages)
+                            List<LocalizableMessage> messages)
   {
     this.resultCode          = resultCode;
     this.adminActionRequired = adminActionRequired;
@@ -173,7 +173,7 @@ public final class ConfigChangeResult
    * @return  The set of messages that provide explanation for the
    *          processing of the configuration changes.
    */
-  public List<Message> getMessages()
+  public List<LocalizableMessage> getMessages()
   {
     return messages;
   }
@@ -187,7 +187,7 @@ public final class ConfigChangeResult
    * @param  message  The message to add to the set of messages for
    *                  this config change result.
    */
-  public void addMessage(Message message)
+  public void addMessage(LocalizableMessage message)
   {
     messages.add(message);
   }
@@ -225,9 +225,9 @@ public final class ConfigChangeResult
 
     if (! messages.isEmpty())
     {
-      Iterator<Message> iterator = messages.iterator();
+      Iterator<LocalizableMessage> iterator = messages.iterator();
 
-      Message firstMessage = iterator.next();
+      LocalizableMessage firstMessage = iterator.next();
       buffer.append(firstMessage);
 
       while (iterator.hasNext())

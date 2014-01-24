@@ -41,7 +41,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -230,7 +230,7 @@ public class PresentationAddressSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // We will accept any value for this syntax.
     return true;

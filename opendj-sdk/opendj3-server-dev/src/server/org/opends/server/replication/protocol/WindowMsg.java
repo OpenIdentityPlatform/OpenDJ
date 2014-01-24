@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -72,7 +72,7 @@ public class WindowMsg extends ReplicationMsg
     {
       /* first byte is the type */
       if (in[0] != MSG_TYPE_WINDOW)
-        throw new DataFormatException("input is not a valid Window Message");
+        throw new DataFormatException("input is not a valid Window LocalizableMessage");
       int pos = 1;
 
       /*
@@ -122,9 +122,9 @@ public class WindowMsg extends ReplicationMsg
 
 
   /**
-   * Get the number of message acknowledged by the Window Message.
+   * Get the number of message acknowledged by the Window LocalizableMessage.
    *
-   * @return the number of message acknowledged by the Window Message.
+   * @return the number of message acknowledged by the Window LocalizableMessage.
    */
   public int getNumAck()
   {

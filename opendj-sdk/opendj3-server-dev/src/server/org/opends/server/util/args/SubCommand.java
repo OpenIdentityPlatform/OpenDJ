@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.args;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -61,7 +62,7 @@ public class SubCommand
   private LinkedList<Argument> arguments;
 
   // The description for this subcommand.
-  private Message description;
+  private LocalizableMessage description;
 
   // The name of this subcommand.
   private String name;
@@ -102,7 +103,7 @@ public class SubCommand
    *           subcommand with the same name.
    */
   public SubCommand(SubCommandArgumentParser parser, String name,
-      Message description) throws ArgumentException
+      LocalizableMessage description) throws ArgumentException
   {
     this(parser, name, false, 0, 0, null, description);
   }
@@ -143,7 +144,7 @@ public class SubCommand
   public SubCommand(SubCommandArgumentParser parser, String name,
       boolean allowsTrailingArguments, int minTrailingArguments,
       int maxTrailingArguments, String trailingArgsDisplayName,
-      Message description) throws ArgumentException
+      LocalizableMessage description) throws ArgumentException
   {
     this.parser = parser;
     this.name = name;
@@ -162,7 +163,7 @@ public class SubCommand
 
     if (parser.hasSubCommand(nameToCheck))
     {
-      Message message = ERR_ARG_SUBCOMMAND_DUPLICATE_SUBCOMMAND.get(name);
+      LocalizableMessage message = ERR_ARG_SUBCOMMAND_DUPLICATE_SUBCOMMAND.get(name);
       throw new ArgumentException(message);
     }
 
@@ -190,7 +191,7 @@ public class SubCommand
    *
    * @return  The description for this subcommand.
    */
-  public Message getDescription()
+  public LocalizableMessage getDescription()
   {
     return description;
   }
@@ -280,7 +281,7 @@ public class SubCommand
     {
       if (argumentName.equals(a.getName()))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_ARG_SUBCOMMAND_DUPLICATE_ARGUMENT_NAME.get(name, argumentName);
         throw new ArgumentException(message);
       }
@@ -288,7 +289,7 @@ public class SubCommand
 
     if (parser.hasGlobalArgument(argumentName))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ARG_SUBCOMMAND_ARGUMENT_GLOBAL_CONFLICT.get(argumentName, name);
       throw new ArgumentException(message);
     }
@@ -299,7 +300,7 @@ public class SubCommand
     {
       if (shortIDMap.containsKey(shortID))
       {
-        Message message = ERR_ARG_SUBCOMMAND_DUPLICATE_SHORT_ID.
+        LocalizableMessage message = ERR_ARG_SUBCOMMAND_DUPLICATE_SHORT_ID.
             get(argumentName, name, String.valueOf(shortID),
                 shortIDMap.get(shortID).getName());
         throw new ArgumentException(message);
@@ -308,7 +309,7 @@ public class SubCommand
       Argument arg = parser.getGlobalArgumentForShortID(shortID);
       if (arg != null)
       {
-        Message message = ERR_ARG_SUBCOMMAND_ARGUMENT_SHORT_ID_GLOBAL_CONFLICT.
+        LocalizableMessage message = ERR_ARG_SUBCOMMAND_ARGUMENT_SHORT_ID_GLOBAL_CONFLICT.
             get(argumentName, name, String.valueOf(shortID), arg.getName());
         throw new ArgumentException(message);
       }
@@ -325,7 +326,7 @@ public class SubCommand
 
       if (longIDMap.containsKey(longID))
       {
-        Message message = ERR_ARG_SUBCOMMAND_DUPLICATE_LONG_ID.get(
+        LocalizableMessage message = ERR_ARG_SUBCOMMAND_DUPLICATE_LONG_ID.get(
             argumentName, name, argument.getLongIdentifier(),
             longIDMap.get(longID).getName());
         throw new ArgumentException(message);
@@ -334,7 +335,7 @@ public class SubCommand
       Argument arg = parser.getGlobalArgumentForLongID(longID);
       if (arg != null)
       {
-        Message message = ERR_ARG_SUBCOMMAND_ARGUMENT_LONG_ID_GLOBAL_CONFLICT.
+        LocalizableMessage message = ERR_ARG_SUBCOMMAND_ARGUMENT_LONG_ID_GLOBAL_CONFLICT.
             get(argumentName, name, argument.getLongIdentifier(),
                 arg.getName());
         throw new ArgumentException(message);

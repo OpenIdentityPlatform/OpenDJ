@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
 
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.*;
@@ -139,7 +139,7 @@ public class ServerController {
 
     try {
       if (application != null) {
-        MessageBuilder mb = new MessageBuilder();
+        LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(application.getFormattedProgress(
                         INFO_PROGRESS_STOPPING.get()));
         mb.append(application.getLineBreak());
@@ -225,7 +225,7 @@ public class ServerController {
 
                 if (!stopped) {
                   if (application != null) {
-                    MessageBuilder mb = new MessageBuilder();
+                    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
                     mb.append(application.getFormattedLog(
                         INFO_PROGRESS_SERVER_WAITING_TO_STOP.get()));
                     mb.append(application.getLineBreak());
@@ -243,7 +243,7 @@ public class ServerController {
 
           if (returnValue == clientSideError) {
             if (application != null) {
-              MessageBuilder mb = new MessageBuilder();
+              LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
               mb.append(application.getLineBreak());
               mb.append(application.getFormattedLog(
                   INFO_PROGRESS_SERVER_ALREADY_STOPPED.get()));
@@ -335,7 +335,7 @@ public class ServerController {
 
     try {
       if (application != null) {
-        MessageBuilder mb = new MessageBuilder();
+        LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(application.getFormattedProgress(
             INFO_PROGRESS_STARTING.get()));
         mb.append(application.getLineBreak());
@@ -578,7 +578,7 @@ public class ServerController {
      */
     public StopReader(final BufferedReader reader,
                                       final boolean isError) {
-      final Message errorTag =
+      final LocalizableMessage errorTag =
               isError ?
                       INFO_ERROR_READING_ERROROUTPUT.get() :
                       INFO_ERROR_READING_OUTPUT.get();
@@ -590,17 +590,17 @@ public class ServerController {
             String line = reader.readLine();
             while (line != null) {
               if (application != null) {
-                MessageBuilder buf = new MessageBuilder();
+                LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
                 if (!isFirstLine) {
                   buf.append(application.getProgressMessageFormatter().
                           getLineBreak());
                 }
                 if (isError) {
                   buf.append(application.getFormattedLogError(
-                          Message.raw(line)));
+                          LocalizableMessage.raw(line)));
                 } else {
                   buf.append(application.getFormattedLog(
-                          Message.raw(line)));
+                          LocalizableMessage.raw(line)));
                 }
                 application.notifyListeners(buf.toMessage());
                 isFirstLine = false;
@@ -610,7 +610,7 @@ public class ServerController {
             }
           } catch (Throwable t) {
             if (application != null) {
-              Message errorMsg = getThrowableMsg(errorTag, t);
+              LocalizableMessage errorMsg = getThrowableMsg(errorTag, t);
               application.notifyListeners(errorMsg);
             }
             LOG.log(Level.INFO, "error reading server messages",t);
@@ -622,8 +622,8 @@ public class ServerController {
   }
 
   /**
-   * Returns the Message ID indicating that the server has started.
-   * @return the Message ID indicating that the server has started.
+   * Returns the LocalizableMessage ID indicating that the server has started.
+   * @return the LocalizableMessage ID indicating that the server has started.
    */
   private String getStartedId()
   {
@@ -660,7 +660,7 @@ public class ServerController {
     public StartReader(final BufferedReader reader, final String startedId,
         final boolean isError)
     {
-      final Message errorTag =
+      final LocalizableMessage errorTag =
               isError ?
                       INFO_ERROR_READING_ERROROUTPUT.get() :
                       INFO_ERROR_READING_OUTPUT.get();
@@ -677,7 +677,7 @@ public class ServerController {
             while (line != null)
             {
               if (application != null) {
-                MessageBuilder buf = new MessageBuilder();
+                LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
                 if (!isFirstLine)
                 {
                   buf.append(application.getProgressMessageFormatter().
@@ -686,11 +686,11 @@ public class ServerController {
                 if (isError)
                 {
                   buf.append(application.getFormattedLogError(
-                          Message.raw(line)));
+                          LocalizableMessage.raw(line)));
                 } else
                 {
                   buf.append(application.getFormattedLog(
-                          Message.raw(line)));
+                          LocalizableMessage.raw(line)));
                 }
                 application.notifyListeners(buf.toMessage());
                 isFirstLine = false;

@@ -34,7 +34,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.InvocationCounterPlugin;
@@ -2352,7 +2352,7 @@ public class BindOperationTestCase
   public void testCancel(BindOperation bindOperation)
   {
     CancelRequest cancelRequest =
-         new CancelRequest(false, Message.raw("Test Unbind Cancel"));
+         new CancelRequest(false, LocalizableMessage.raw("Test Unbind Cancel"));
 
     assertEquals(bindOperation.cancel(cancelRequest).getResultCode(),
                  ResultCode.CANNOT_CANCEL);
@@ -2367,7 +2367,7 @@ public class BindOperationTestCase
   public void testGetCancelRequest(BindOperation bindOperation)
   {
     CancelRequest cancelRequest =
-         new CancelRequest(false, Message.raw("Test Unbind Cancel"));
+         new CancelRequest(false, LocalizableMessage.raw("Test Unbind Cancel"));
 
     assertNull(bindOperation.getCancelRequest());
 

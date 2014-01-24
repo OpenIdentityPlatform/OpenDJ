@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -47,8 +48,8 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -99,7 +100,7 @@ public final class EMailMessage
   private String subject;
 
   // The body for the mail message.
-  private MessageBuilder body;
+  private LocalizableMessageBuilder body;
 
 
 
@@ -118,7 +119,7 @@ public final class EMailMessage
     recipients = new ArrayList<String>();
     recipients.add(recipient);
 
-    body         = new MessageBuilder();
+    body         = new LocalizableMessageBuilder();
     attachments  = new LinkedList<MimeBodyPart>();
     bodyMIMEType = "text/plain";
   }
@@ -139,7 +140,7 @@ public final class EMailMessage
     this.recipients = recipients;
     this.subject    = subject;
 
-    body         = new MessageBuilder();
+    body         = new LocalizableMessageBuilder();
     attachments  = new LinkedList<MimeBodyPart>();
     bodyMIMEType = "text/plain";
   }
@@ -237,7 +238,7 @@ public final class EMailMessage
    *
    * @return  The body for this message.
    */
-  public MessageBuilder getBody()
+  public LocalizableMessageBuilder getBody()
   {
     return body;
   }
@@ -249,7 +250,7 @@ public final class EMailMessage
    *
    * @param  body  The body for this message.
    */
-  public void setBody(MessageBuilder body)
+  public void setBody(LocalizableMessageBuilder body)
   {
     this.body = body;
   }
@@ -261,9 +262,9 @@ public final class EMailMessage
    *
    * @param  body  The body for this message.
    */
-  public void setBody(Message body)
+  public void setBody(LocalizableMessage body)
   {
-    this.body = new MessageBuilder(body);
+    this.body = new LocalizableMessageBuilder(body);
   }
 
 
@@ -402,7 +403,7 @@ public final class EMailMessage
           TRACER.debugCaught(DebugLogLevel.ERROR, me);
         }
 
-        Message msg = ERR_EMAILMSG_INVALID_SENDER_ADDRESS.get(
+        LocalizableMessage msg = ERR_EMAILMSG_INVALID_SENDER_ADDRESS.get(
             String.valueOf(sender), me.getMessage());
         throw new MessagingException(msg.toString(), me);
       }
@@ -427,7 +428,7 @@ public final class EMailMessage
             TRACER.debugCaught(DebugLogLevel.ERROR, me);
           }
 
-          Message msg = ERR_EMAILMSG_INVALID_RECIPIENT_ADDRESS.get(
+          LocalizableMessage msg = ERR_EMAILMSG_INVALID_RECIPIENT_ADDRESS.get(
               String.valueOf(recipient), me.getMessage());
           throw new MessagingException(msg.toString(), me);
         }
@@ -495,7 +496,7 @@ public final class EMailMessage
     // Otherwise, throw a generic exception.
     if (sendException == null)
     {
-      Message message = ERR_EMAILMSG_CANNOT_SEND.get();
+      LocalizableMessage message = ERR_EMAILMSG_CANNOT_SEND.get();
       throw new MessagingException(message.toString());
     }
     else
@@ -513,7 +514,7 @@ public final class EMailMessage
    */
   public static void main(String[] args)
   {
-    Message description = INFO_EMAIL_TOOL_DESCRIPTION.get();
+    LocalizableMessage description = INFO_EMAIL_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(EMailMessage.class.getName(),
                                                   description, false);
 

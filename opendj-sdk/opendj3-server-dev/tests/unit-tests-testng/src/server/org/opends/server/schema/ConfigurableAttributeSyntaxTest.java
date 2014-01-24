@@ -32,8 +32,8 @@ import static org.opends.server.schema.SchemaConstants.*;
 import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.TelephoneNumberAttributeSyntaxCfgDefn;
 import org.opends.server.admin.std.server.TelephoneNumberAttributeSyntaxCfg;
@@ -118,7 +118,7 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
          (TelephoneNumberSyntax) DirectoryServer.getAttributeSyntax(oid, false);
 
     // apply the configuration.
-    ArrayList<Message> unacceptableReasons = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
     assertTrue(syntax.isConfigurationChangeAcceptable(configuration,
                                                       unacceptableReasons));
     ConfigChangeResult configResult =
@@ -127,7 +127,7 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
 
     // check the syntax of the given value.
     Boolean liveResult = syntax.valueIsAcceptable(
-        ByteString.valueOf(value), new MessageBuilder());
+        ByteString.valueOf(value), new LocalizableMessageBuilder());
     assertEquals(result, liveResult);
 
     // call the getters to increase code coverage...

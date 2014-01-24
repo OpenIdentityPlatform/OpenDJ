@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers.debug;
 
@@ -32,8 +33,6 @@ import org.opends.server.loggers.LogLevel;
 import org.opends.server.loggers.LogCategory;
 
 import java.util.Map;
-import java.nio.ByteBuffer;
-
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.DatabaseEntry;
@@ -70,22 +69,13 @@ public class DebugTracer
    * Construct a new DebugTracer object with cached settings obtained from
    * the provided array of publishers.
    *
+   * @param className The classname to use as category for logging.
    * @param publishers The array of publishers to obtain the settings from.
    */
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  DebugTracer(DebugLogPublisher[] publishers)
+  DebugTracer(String className, DebugLogPublisher[] publishers)
   {
-    // Trim off the debug logging and non OpenDS frames.
-    StackTraceElement callerFrame =
-        getCallerFrame(Thread.currentThread().getStackTrace());
-
-    // TODO: What if this is null or 0 length?
-    if(callerFrame != null)
-    {
-      // The caller should be the first item on the stack.
-      className = callerFrame.getClassName();
-    }
-
+    this.className = className;
     publisherSettings = new PublisherSettings[publishers.length];
 
     // Get the settings from all publishers.
@@ -106,445 +96,6 @@ public class DebugTracer
       settings.methodSettings = publisher.getMethodSettings(className);
 
       publisherSettings[i] = settings;
-    }
-  }
-
-  /**
-   * Log an constructor execution event.
-   *
-   * @param level The level of the message being logged.
-   * @param args The arguments passed to the constructor.
-   */
-  public void debugConstructor(LogLevel level, Object... args)
-  {
-    if(DebugLogger.debugEnabled())
-    {
-      StackTraceElement[] stackTrace = null;
-      StackTraceElement[] filteredStackTrace = null;
-      StackTraceElement callerFrame = null;
-      for (PublisherSettings settings : publisherSettings)
-      {
-        TraceSettings activeSettings = settings.classSettings;
-        Map<String, TraceSettings> methodSettings = settings.methodSettings;
-
-        if (shouldLog(level, DebugLogCategory.CONSTRUCTOR,
-                      activeSettings) || methodSettings != null)
-        {
-          if(stackTrace == null)
-          {
-            stackTrace = Thread.currentThread().getStackTrace();
-          }
-          if (callerFrame == null)
-          {
-            callerFrame = getCallerFrame(stackTrace);
-          }
-
-          String signature = callerFrame.getMethodName();
-
-          // Specific method settings still could exist. Try getting
-          // the settings for this method.
-          if(methodSettings != null)
-          {
-            TraceSettings mSettings = methodSettings.get(signature);
-
-            if (mSettings == null)
-            {
-              // Try looking for an undecorated method name
-              int idx = signature.indexOf('(');
-              if (idx != -1)
-              {
-                mSettings =
-                    methodSettings.get(signature.substring(0, idx));
-              }
-            }
-
-            // If this method does have a specific setting and it is not
-            // suppose to be logged, continue.
-            if (mSettings != null)
-            {
-              if(!shouldLog(level, DebugLogCategory.CONSTRUCTOR,
-                            mSettings))
-              {
-                continue;
-              }
-              else
-              {
-                activeSettings = mSettings;
-              }
-            }
-          }
-
-          String sl = callerFrame.getFileName() + ":" +
-              callerFrame.getLineNumber();
-
-          if (activeSettings.noArgs)
-          {
-            args = null;
-          }
-
-          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
-          {
-            filteredStackTrace =
-                DebugStackTraceFormatter.SMART_FRAME_FILTER.
-                    getFilteredStackTrace(stackTrace);
-          }
-
-          settings.debugPublisher.traceConstructor(level,
-                                                   activeSettings, signature,
-                                                   sl, args,
-                                                   filteredStackTrace);
-        }
-      }
-    }
-  }
-
-  /**
-   * Log an non static method entry event.
-   *
-   * @param level The level of the message being logged.
-   * @param obj The object type instance the method is a member of.
-   * @param args The arguments passed to the method.
-   */
-  public void debugMethodEntry(LogLevel level, Object obj, Object... args)
-  {
-    if(DebugLogger.debugEnabled())
-    {
-      StackTraceElement[] stackTrace = null;
-      StackTraceElement[] filteredStackTrace = null;
-      StackTraceElement callerFrame = null;
-      for (PublisherSettings settings : publisherSettings)
-      {
-        TraceSettings activeSettings = settings.classSettings;
-        Map<String, TraceSettings> methodSettings = settings.methodSettings;
-
-        if (shouldLog(level, DebugLogCategory.ENTER,
-                      activeSettings) || methodSettings != null)
-        {
-          if(stackTrace == null)
-          {
-            stackTrace = Thread.currentThread().getStackTrace();
-          }
-          if (callerFrame == null)
-          {
-            callerFrame = getCallerFrame(stackTrace);
-          }
-
-          String signature = callerFrame.getMethodName();
-
-          // Specific method settings still could exist. Try getting
-          // the settings for this method.
-          if(methodSettings != null)
-          {
-            TraceSettings mSettings = methodSettings.get(signature);
-
-            if (mSettings == null)
-            {
-              // Try looking for an undecorated method name
-              int idx = signature.indexOf('(');
-              if (idx != -1)
-              {
-                mSettings =
-                    methodSettings.get(signature.substring(0, idx));
-              }
-            }
-
-            // If this method does have a specific setting and it is not
-            // suppose to be logged, continue.
-            if (mSettings != null)
-            {
-              if(!shouldLog(level, DebugLogCategory.ENTER,
-                            mSettings))
-              {
-                continue;
-              }
-              else
-              {
-                activeSettings = mSettings;
-              }
-            }
-          }
-
-          String sl = callerFrame.getFileName() + ":" +
-              callerFrame.getLineNumber();
-
-          if (activeSettings.noArgs)
-          {
-            args = null;
-          }
-
-          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
-          {
-            filteredStackTrace =
-                DebugStackTraceFormatter.SMART_FRAME_FILTER.
-                    getFilteredStackTrace(stackTrace);
-          }
-
-          settings.debugPublisher.traceMethodEntry(level,
-                                                   activeSettings, signature,
-                                                   sl, obj, args,
-                                                   filteredStackTrace);
-        }
-      }
-    }
-  }
-
-  /**
-   * Log an static method entry event.
-   *
-   * @param level The level of the message being logged.
-   * @param args The arguments passed to the method.
-   */
-  public void debugStaticMethodEntry(LogLevel level, Object... args)
-  {
-    if(DebugLogger.debugEnabled())
-    {
-      StackTraceElement[] stackTrace = null;
-      StackTraceElement[] filteredStackTrace = null;
-      StackTraceElement callerFrame = null;
-      for (PublisherSettings settings : publisherSettings)
-      {
-        TraceSettings activeSettings = settings.classSettings;
-        Map<String, TraceSettings> methodSettings = settings.methodSettings;
-
-        if (shouldLog(level, DebugLogCategory.ENTER,
-                      activeSettings) || methodSettings != null)
-        {
-          if(stackTrace == null)
-          {
-            stackTrace = Thread.currentThread().getStackTrace();
-          }
-          if (callerFrame == null)
-          {
-            callerFrame = getCallerFrame(stackTrace);
-          }
-
-          String signature = callerFrame.getMethodName();
-
-          // Specific method settings still could exist. Try getting
-          // the settings for this method.
-          if(methodSettings != null)
-          {
-            TraceSettings mSettings = methodSettings.get(signature);
-
-            if (mSettings == null)
-            {
-              // Try looking for an undecorated method name
-              int idx = signature.indexOf('(');
-              if (idx != -1)
-              {
-                mSettings =
-                    methodSettings.get(signature.substring(0, idx));
-              }
-            }
-
-            // If this method does have a specific setting and it is not
-            // suppose to be logged, continue.
-            if (mSettings != null)
-            {
-              if(!shouldLog(level, DebugLogCategory.ENTER,
-                            mSettings))
-              {
-                continue;
-              }
-              else
-              {
-                activeSettings = mSettings;
-              }
-            }
-          }
-
-          String sl = callerFrame.getFileName() + ":" +
-              callerFrame.getLineNumber();
-
-          if (activeSettings.noArgs)
-          {
-            args = null;
-          }
-
-          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
-          {
-            filteredStackTrace =
-                DebugStackTraceFormatter.SMART_FRAME_FILTER.
-                    getFilteredStackTrace(stackTrace);
-          }
-
-          settings.debugPublisher.traceStaticMethodEntry(level,
-                                                         activeSettings,
-                                                         signature, sl, args,
-                                                         filteredStackTrace);
-        }
-      }
-    }
-  }
-
-  /**
-   * Log a return from a method call event.
-   *
-   * @param level The level of the message being logged.
-   * @param ret The value being returned from the method.
-   */
-  public void debugReturn(LogLevel level, Object ret)
-  {
-    if(DebugLogger.debugEnabled())
-    {
-      StackTraceElement[] stackTrace = null;
-      StackTraceElement[] filteredStackTrace = null;
-      StackTraceElement callerFrame = null;
-      for (PublisherSettings settings : publisherSettings)
-      {
-        TraceSettings activeSettings = settings.classSettings;
-        Map<String, TraceSettings> methodSettings = settings.methodSettings;
-
-        if (shouldLog(level, DebugLogCategory.ENTER,
-                      activeSettings) || methodSettings != null)
-        {
-          if(stackTrace == null)
-          {
-            stackTrace = Thread.currentThread().getStackTrace();
-          }
-          if (callerFrame == null)
-          {
-            callerFrame = getCallerFrame(stackTrace);
-          }
-
-          String signature = callerFrame.getMethodName();
-
-          // Specific method settings still could exist. Try getting
-          // the settings for this method.
-          if(methodSettings != null)
-          {
-            TraceSettings mSettings = methodSettings.get(signature);
-
-            if (mSettings == null)
-            {
-              // Try looking for an undecorated method name
-              int idx = signature.indexOf('(');
-              if (idx != -1)
-              {
-                mSettings =
-                    methodSettings.get(signature.substring(0, idx));
-              }
-            }
-
-            // If this method does have a specific setting and it is not
-            // suppose to be logged, continue.
-            if (mSettings != null)
-            {
-              if(!shouldLog(level, DebugLogCategory.ENTER,
-                            mSettings))
-              {
-                continue;
-              }
-              else
-              {
-                activeSettings = mSettings;
-              }
-            }
-          }
-
-          String sl = callerFrame.getFileName() + ":" +
-              callerFrame.getLineNumber();
-
-          if (activeSettings.noRetVal)
-          {
-            ret = null;
-          }
-
-          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
-          {
-            filteredStackTrace =
-                DebugStackTraceFormatter.SMART_FRAME_FILTER.
-                    getFilteredStackTrace(stackTrace);
-          }
-
-          settings.debugPublisher.traceReturn(level,
-                                              activeSettings, signature,
-                                              sl, ret,
-                                              filteredStackTrace);
-        }
-      }
-    }
-  }
-
-  /**
-   * Log an exception thrown from a method.
-   *
-   * @param level The level of the message being logged.
-   * @param ex The exception being thrown.
-   */
-  public void debugThrown(LogLevel level, Throwable ex)
-  {
-    if(DebugLogger.debugEnabled())
-    {
-      StackTraceElement[] stackTrace = null;
-      StackTraceElement[] filteredStackTrace = null;
-      StackTraceElement callerFrame = null;
-      for (PublisherSettings settings : publisherSettings)
-      {
-        TraceSettings activeSettings = settings.classSettings;
-        Map<String, TraceSettings> methodSettings = settings.methodSettings;
-
-        if (shouldLog(level, DebugLogCategory.THROWN,
-                      activeSettings) || methodSettings != null)
-        {
-          if(stackTrace == null)
-          {
-            stackTrace = Thread.currentThread().getStackTrace();
-          }
-          if (callerFrame == null)
-          {
-            callerFrame = getCallerFrame(stackTrace);
-          }
-
-          String signature = callerFrame.getMethodName();
-
-          // Specific method settings still could exist. Try getting
-          // the settings for this method.
-          if(methodSettings != null)
-          {
-            TraceSettings mSettings = methodSettings.get(signature);
-
-            if (mSettings == null)
-            {
-              // Try looking for an undecorated method name
-              int idx = signature.indexOf('(');
-              if (idx != -1)
-              {
-                mSettings =
-                    methodSettings.get(signature.substring(0, idx));
-              }
-            }
-
-            // If this method does have a specific setting and it is not
-            // suppose to be logged, continue.
-            if (mSettings != null)
-            {
-              if(!shouldLog(level, DebugLogCategory.THROWN,
-                            mSettings))
-              {
-                continue;
-              }
-              else
-              {
-                activeSettings = mSettings;
-              }
-            }
-          }
-
-          String sl = callerFrame.getFileName() + ":" +
-              callerFrame.getLineNumber();
-
-          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
-          {
-            filteredStackTrace =
-                DebugStackTraceFormatter.SMART_FRAME_FILTER.
-                    getFilteredStackTrace(ex.getStackTrace());
-          }
-
-          settings.debugPublisher.traceThrown(level, activeSettings, signature,
-                                              sl, ex, filteredStackTrace);
-        }
-      }
     }
   }
 
@@ -672,8 +223,7 @@ public class DebugTracer
         TraceSettings activeSettings = settings.classSettings;
         Map<String, TraceSettings> methodSettings = settings.methodSettings;
 
-        if (shouldLog(level, DebugLogCategory.MESSAGE,
-                      activeSettings) || methodSettings != null)
+        if (shouldLog(DebugLogCategory.MESSAGE, activeSettings) || methodSettings != null)
         {
           if(stackTrace == null)
           {
@@ -707,8 +257,7 @@ public class DebugTracer
             // suppose to be logged, continue.
             if (mSettings != null)
             {
-              if(!shouldLog(level, DebugLogCategory.MESSAGE,
-                            mSettings))
+              if(!shouldLog(DebugLogCategory.MESSAGE, mSettings))
               {
                 continue;
               }
@@ -734,8 +283,8 @@ public class DebugTracer
                     getFilteredStackTrace(stackTrace);
           }
 
-          settings.debugPublisher.traceMessage(level, activeSettings, signature,
-                                               sl, msg, filteredStackTrace);
+          settings.debugPublisher.traceMessage(activeSettings, signature, sl,
+                                               msg, filteredStackTrace);
         }
       }
     }
@@ -749,6 +298,17 @@ public class DebugTracer
    */
   public void debugCaught(LogLevel level, Throwable ex)
   {
+    debugCaught("", ex);
+  }
+
+  /**
+   * Log a caught exception.
+   *
+   * @param msg the message
+   * @param ex the exception caught.
+   */
+  public void debugCaught(String msg, Throwable ex)
+  {
     if(DebugLogger.debugEnabled())
     {
       StackTraceElement[] stackTrace = null;
@@ -759,8 +319,7 @@ public class DebugTracer
         TraceSettings activeSettings = settings.classSettings;
         Map<String, TraceSettings> methodSettings = settings.methodSettings;
 
-        if (shouldLog(level, DebugLogCategory.CAUGHT,
-                      activeSettings) || methodSettings != null)
+        if (shouldLog(DebugLogCategory.CAUGHT, activeSettings) || methodSettings != null)
         {
           if(stackTrace == null)
           {
@@ -794,8 +353,7 @@ public class DebugTracer
             // suppose to be logged, continue.
             if (mSettings != null)
             {
-              if(!shouldLog(level, DebugLogCategory.CAUGHT,
-                            mSettings))
+              if(!shouldLog(DebugLogCategory.CAUGHT, mSettings))
               {
                 continue;
               }
@@ -816,8 +374,8 @@ public class DebugTracer
                     getFilteredStackTrace(ex.getStackTrace());
           }
 
-          settings.debugPublisher.traceCaught(level, activeSettings, signature,
-                                              sl, ex, filteredStackTrace);
+          settings.debugPublisher.traceCaught(activeSettings, signature, sl,
+                                              msg, ex, filteredStackTrace);
         }
       }
     }
@@ -847,8 +405,7 @@ public class DebugTracer
         TraceSettings activeSettings = settings.classSettings;
         Map<String, TraceSettings> methodSettings = settings.methodSettings;
 
-        if (shouldLog(level, DebugLogCategory.DATABASE_ACCESS,
-                      activeSettings) || methodSettings != null)
+        if (shouldLog(DebugLogCategory.MESSAGE, activeSettings) || methodSettings != null)
         {
           if(stackTrace == null)
           {
@@ -882,8 +439,7 @@ public class DebugTracer
             // suppose to be logged, continue.
             if (mSettings != null)
             {
-              if(!shouldLog(level, DebugLogCategory.DATABASE_ACCESS,
-                            mSettings))
+              if(!shouldLog(DebugLogCategory.MESSAGE, mSettings))
               {
                 continue;
               }
@@ -904,92 +460,9 @@ public class DebugTracer
                     getFilteredStackTrace(stackTrace);
           }
 
-          settings.debugPublisher.traceJEAccess(level, activeSettings,
-                                                signature, sl, status, database,
-                                                txn, key, data,
-                                                filteredStackTrace);
-        }
-      }
-    }
-  }
-
-  /**
-   * Log raw data in the form of a byte array.
-   *
-   * @param level the level of the log message.
-   * @param data the data to dump.
-   */
-  public void debugData(LogLevel level, byte[] data)
-  {
-    if(DebugLogger.debugEnabled() && data != null)
-    {
-      StackTraceElement[] stackTrace = null;
-      StackTraceElement[] filteredStackTrace = null;
-      StackTraceElement callerFrame = null;
-      for (PublisherSettings settings : publisherSettings)
-      {
-        TraceSettings activeSettings = settings.classSettings;
-        Map<String, TraceSettings> methodSettings = settings.methodSettings;
-
-        if (shouldLog(level, DebugLogCategory.DATA,
-                      activeSettings) || methodSettings != null)
-        {
-          if(stackTrace == null)
-          {
-            stackTrace = Thread.currentThread().getStackTrace();
-          }
-          if (callerFrame == null)
-          {
-            callerFrame = getCallerFrame(stackTrace);
-          }
-
-          String signature = callerFrame.getMethodName();
-
-          // Specific method settings still could exist. Try getting
-          // the settings for this method.
-          if(methodSettings != null)
-          {
-            TraceSettings mSettings = methodSettings.get(signature);
-
-            if (mSettings == null)
-            {
-              // Try looking for an undecorated method name
-              int idx = signature.indexOf('(');
-              if (idx != -1)
-              {
-                mSettings =
-                    methodSettings.get(signature.substring(0, idx));
-              }
-            }
-
-            // If this method does have a specific setting and it is not
-            // suppose to be logged, continue.
-            if (mSettings != null)
-            {
-              if(!shouldLog(level, DebugLogCategory.DATA,
-                            mSettings))
-              {
-                continue;
-              }
-              else
-              {
-                activeSettings = mSettings;
-              }
-            }
-          }
-
-          String sl = callerFrame.getFileName() + ":" +
-              callerFrame.getLineNumber();
-
-          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
-          {
-            filteredStackTrace =
-                DebugStackTraceFormatter.SMART_FRAME_FILTER.
-                    getFilteredStackTrace(stackTrace);
-          }
-
-          settings.debugPublisher.traceData(level, activeSettings, signature,
-                                            sl, data, filteredStackTrace);
+          settings.debugPublisher.traceJEAccess(activeSettings, signature,
+                                                sl, status, database, txn,
+                                                key, data, filteredStackTrace);
         }
       }
     }
@@ -1013,8 +486,7 @@ public class DebugTracer
         TraceSettings activeSettings = settings.classSettings;
         Map<String, TraceSettings> methodSettings = settings.methodSettings;
 
-        if (shouldLog(level, DebugLogCategory.PROTOCOL,
-                      activeSettings) || methodSettings != null)
+        if (shouldLog(DebugLogCategory.MESSAGE, activeSettings) || methodSettings != null)
         {
           if(stackTrace == null)
           {
@@ -1048,8 +520,7 @@ public class DebugTracer
             // suppose to be logged, continue.
             if (mSettings != null)
             {
-              if(!shouldLog(level, DebugLogCategory.PROTOCOL,
-                            mSettings))
+              if(!shouldLog(DebugLogCategory.MESSAGE, mSettings))
               {
                 continue;
               }
@@ -1070,24 +541,12 @@ public class DebugTracer
                     getFilteredStackTrace(stackTrace);
           }
 
-          settings.debugPublisher.traceProtocolElement(level, activeSettings,
-                                                       signature, sl,
-                                                       elementStr,
+          settings.debugPublisher.traceProtocolElement(activeSettings, signature,
+                                                       sl, elementStr,
                                                        filteredStackTrace);
         }
       }
     }
-  }
-
-  /**
-   * Log raw data in the form of a ByteBuffer.
-   *
-   * @param level the level of the log message.
-   * @param buffer the data to dump.
-   */
-  public void debugData(LogLevel level, ByteBuffer buffer)
-  {
-    debugData(level, buffer.array());
   }
 
   /**
@@ -1098,6 +557,51 @@ public class DebugTracer
   public String getTracedClassName()
   {
     return className;
+  }
+
+  /**
+   * Indicates if logging is enabled for the provided debug log
+   * category.
+   *
+   * @param logCategory
+   *            Log category to check
+   * @return {@code true} if logging is enabled, false otherwise.
+   */
+  public boolean enabledFor(LogCategory logCategory)
+  {
+    for (PublisherSettings settings : publisherSettings)
+    {
+      TraceSettings activeSettings = settings.classSettings;
+      Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+      if (shouldLog(logCategory, activeSettings)
+          || methodSettings != null)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Indicates if logging is enabled for at least one category
+   * in a publisher.
+   *
+   * @return {@code true} if logging is enabled, false otherwise.
+   */
+  public boolean enabled()
+  {
+    for (PublisherSettings settings : publisherSettings)
+    {
+      TraceSettings activeSettings = settings.classSettings;
+      Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+      if (shouldLog(activeSettings) || methodSettings != null)
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -1166,12 +670,15 @@ public class DebugTracer
     return null;
   }
 
-  private boolean shouldLog(LogLevel messageLevel, LogCategory messageCategory,
-                            TraceSettings activeSettings)
+  private boolean shouldLog(LogCategory messageCategory, TraceSettings activeSettings)
   {
-    return !(activeSettings.includeCategories != null &&
-        !activeSettings.includeCategories.contains(messageCategory)) &&
-        messageLevel.intValue() >= activeSettings.level.intValue();
+    return activeSettings.includeCategories != null &&
+        activeSettings.includeCategories.contains(messageCategory);
+  }
 
+  /** Indicates if at least one category is active for logging. */
+  private boolean shouldLog(TraceSettings settings)
+  {
+    return settings.includeCategories != null && !settings.includeCategories.isEmpty();
   }
 }

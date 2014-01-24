@@ -28,7 +28,7 @@ package org.opends.server.extensions;
 
 
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.ClearPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
@@ -169,7 +169,7 @@ public class ClearPasswordStorageScheme
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
@@ -197,7 +197,7 @@ public class ClearPasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }

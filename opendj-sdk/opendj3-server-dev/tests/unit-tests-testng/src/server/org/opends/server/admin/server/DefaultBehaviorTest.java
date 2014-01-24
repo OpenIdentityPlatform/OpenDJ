@@ -33,7 +33,7 @@ import java.util.SortedSet;
 
 import javax.naming.ldap.LdapName;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.TestCfg;
@@ -108,7 +108,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
      * {@inheritDoc}
      */
     public boolean isConfigurationAddAcceptable(TestChildCfg configuration,
-        List<Message> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
       child = configuration;
       return true;
     }
@@ -168,7 +168,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
      * {@inheritDoc}
      */
     public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
-        List<Message> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
       child = configuration;
       return true;
     }

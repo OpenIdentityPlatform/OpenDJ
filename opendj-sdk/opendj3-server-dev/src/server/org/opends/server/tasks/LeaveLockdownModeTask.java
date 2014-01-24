@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -50,7 +50,7 @@ public class LeaveLockdownModeTask
   /**
    * {@inheritDoc}
    */
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return INFO_TASK_LEAVE_LOCKDOWN_MODE_NAME.get();
   }
 
@@ -70,7 +70,7 @@ public class LeaveLockdownModeTask
       if ((authzDN == null) || (! operation.getClientConnection().hasPrivilege(
           Privilege.SERVER_LOCKDOWN, operation)))
       {
-        Message message = ERR_TASK_LEAVELOCKDOWN_NOT_ROOT.get();
+        LocalizableMessage message = ERR_TASK_LEAVELOCKDOWN_NOT_ROOT.get();
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
@@ -78,7 +78,7 @@ public class LeaveLockdownModeTask
            operation.getClientConnection().getRemoteAddress();
       if ((clientAddress != null) && (! clientAddress.isLoopbackAddress()))
       {
-        Message message = ERR_TASK_LEAVELOCKDOWN_NOT_LOOPBACK.get();
+        LocalizableMessage message = ERR_TASK_LEAVELOCKDOWN_NOT_LOOPBACK.get();
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -36,7 +37,7 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The task called when we want to restart the server.
@@ -77,7 +78,7 @@ public class RestartServerTask extends StartStopTask
   /**
    * {@inheritDoc}
    */
-  public Message getTaskDescription()
+  public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_RESTART_SERVER_TASK_DESCRIPTION.get();
   }
@@ -133,7 +134,7 @@ public class RestartServerTask extends StartStopTask
         String cmdLine = getStopCommandLineName();
         printEquivalentCommandLine(cmdLine, getCommandLineArguments(),
             INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_STOP_SERVER.get());
-        dlg.setSummary(Message.raw(
+        dlg.setSummary(LocalizableMessage.raw(
             Utilities.applyFont(
             INFO_CTRL_PANEL_STOPPING_SERVER_SUMMARY.get().toString(),
             ColorAndFontConstants.defaultFont)));
@@ -170,7 +171,7 @@ public class RestartServerTask extends StartStopTask
             printEquivalentCommandLine(cmdLine, getStartCommandLineArguments(),
                 INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_START_SERVER.get());
 
-            dlg.setSummary(Message.raw(
+            dlg.setSummary(LocalizableMessage.raw(
                 Utilities.applyFont(
                 INFO_CTRL_PANEL_STARTING_SERVER_SUMMARY.get().toString(),
                 ColorAndFontConstants.defaultFont)));

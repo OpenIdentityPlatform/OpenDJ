@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.ButtonName;
@@ -286,7 +287,7 @@ public class ButtonsPanel extends QuickSetupPanel
    * @param buttonName the ButtonName.
    * @return a new button with the specified parameters.
    */
-  private JButton createButton(Message label, Message tooltip,
+  private JButton createButton(LocalizableMessage label, LocalizableMessage tooltip,
       ButtonName buttonName)
   {
     JButton b = UIFactory.makeJButton(label, tooltip);

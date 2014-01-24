@@ -30,7 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.NumSubordinatesVirtualAttributeCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.VirtualAttributeProvider;
@@ -185,7 +185,7 @@ public class NumSubordinatesVirtualAttributeProvider
   {
     searchOperation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-    Message message = ERR_NUMSUBORDINATES_VATTR_NOT_SEARCHABLE.get(
+    LocalizableMessage message = ERR_NUMSUBORDINATES_VATTR_NOT_SEARCHABLE.get(
             rule.getAttributeType().getNameOrOID());
     searchOperation.appendErrorMessage(message);
   }

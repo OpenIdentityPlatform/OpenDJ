@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
@@ -31,7 +31,7 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
@@ -110,7 +110,7 @@ public final class JmxConnectionHandler extends
       JMXConnectionHandlerCfg config) {
     // Create variables to include in the response.
     ResultCode resultCode = ResultCode.SUCCESS;
-    final List<Message> messages = new ArrayList<Message>();
+    final List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // Determine whether or not the RMI connection needs restarting.
     boolean rmiConnectorRestart = false;
@@ -160,7 +160,7 @@ public final class JmxConnectionHandler extends
       catch (RuntimeException e)
       {
         resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(Message.raw(e.getMessage()));
+        messages.add(LocalizableMessage.raw(e.getMessage()));
       }
     }
 
@@ -184,7 +184,7 @@ public final class JmxConnectionHandler extends
    * {@inheritDoc}
    */
   @Override
-  public void finalizeConnectionHandler(Message finalizeReason) {
+  public void finalizeConnectionHandler(LocalizableMessage finalizeReason) {
     // Make sure that we don't get notified of any more changes.
     currentConfig.removeJMXChangeListener(this);
 
@@ -301,11 +301,11 @@ public final class JmxConnectionHandler extends
     // Configuration is ok.
     currentConfig = config;
 
-    final List<Message> reasons = new LinkedList<Message>();
+    final List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
     if (!isPortConfigurationAcceptable(String.valueOf(config.dn()),
         config.getListenPort(), reasons))
     {
-      Message message = reasons.get(0);
+      LocalizableMessage message = reasons.get(0);
       logError(message);
       throw new InitializationException(message);
     }
@@ -368,7 +368,7 @@ public final class JmxConnectionHandler extends
    */
   @Override()
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     JMXConnectionHandlerCfg config = (JMXConnectionHandlerCfg) configuration;
 
@@ -400,14 +400,14 @@ public final class JmxConnectionHandler extends
    * @return true is the port is free to use, false otherwise.
    */
   private boolean isPortConfigurationAcceptable(String configDN,
-                      int newPort, List<Message> unacceptableReasons) {
+                      int newPort, List<LocalizableMessage> unacceptableReasons) {
     try {
       if (StaticUtils.isAddressInUse(
           new InetSocketAddress(newPort).getAddress(), newPort, true)) {
         throw new IOException(ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
       }
     } catch (Exception e) {
-      Message message = ERR_CONNHANDLER_CANNOT_BIND.get("JMX", configDN,
+      LocalizableMessage message = ERR_CONNHANDLER_CANNOT_BIND.get("JMX", configDN,
               WILDCARD_ADDRESS, newPort, getExceptionMessage(e));
       unacceptableReasons.add(message);
       return false;
@@ -421,7 +421,7 @@ public final class JmxConnectionHandler extends
   @Override
   public boolean isConfigurationChangeAcceptable(
       JMXConnectionHandlerCfg config,
-      List<Message> unacceptableReasons) {
+      List<LocalizableMessage> unacceptableReasons) {
     // All validation is performed by the admin framework.
     return true;
   }
@@ -445,7 +445,7 @@ public final class JmxConnectionHandler extends
    * {@inheritDoc}
    */
   @Override
-  public void processServerShutdown(Message reason) {
+  public void processServerShutdown(LocalizableMessage reason) {
     // We should also close the RMI registry.
     rmiConnector.finalizeConnectionHandler(true);
   }

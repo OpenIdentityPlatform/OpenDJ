@@ -22,14 +22,15 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.args;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
 import static org.opends.messages.UtilityMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -51,7 +52,7 @@ public class BooleanArgument
    *                           argument, or <CODE>null</CODE> if there is none.
    * @param  longIdentifier    The long identifier for this argument, or
    *                           <CODE>null</CODE> if there is none.
-   * @param  description       Message for the description of this
+   * @param  description       LocalizableMessage for the description of this
    *                           argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
@@ -59,7 +60,7 @@ public class BooleanArgument
    */
   public BooleanArgument(String name, Character shortIdentifier,
                          String longIdentifier,
-                         Message description)
+                         LocalizableMessage description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, false, false, false, null,
@@ -80,7 +81,7 @@ public class BooleanArgument
    *          <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // This argument type should never have a value, so any value provided will
     // be unacceptable.

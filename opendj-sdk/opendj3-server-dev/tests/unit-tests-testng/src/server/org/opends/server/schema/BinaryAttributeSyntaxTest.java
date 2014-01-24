@@ -30,7 +30,7 @@ import static org.testng.Assert.*;
 
 import org.opends.server.api.AttributeSyntax;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -64,7 +64,7 @@ public abstract class BinaryAttributeSyntaxTest extends SchemaTestCase
     // Make sure that the specified class can be instantiated as a task.
     AttributeSyntax syntax = getRule();
 
-    MessageBuilder reason = new MessageBuilder();
+    LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
     // test the valueIsAcceptable method
     Boolean liveResult =
       syntax.valueIsAcceptable(value, reason);

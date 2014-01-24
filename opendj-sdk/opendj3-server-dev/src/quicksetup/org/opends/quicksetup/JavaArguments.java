@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.quicksetup;
 
@@ -31,7 +31,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 import java.awt.Font;
 import java.util.ArrayList;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 
@@ -187,14 +187,14 @@ public class JavaArguments
    * @param font the font to be used.
    * @return the message representing a java arguments object.
    */
-  public static Message getMessageForJLabel(JavaArguments javaArguments,
+  public static LocalizableMessage getMessageForJLabel(JavaArguments javaArguments,
       JavaArguments defaultJavaArguments, Font font)
   {
-    Message msg = getMessage(javaArguments, defaultJavaArguments);
+    LocalizableMessage msg = getMessage(javaArguments, defaultJavaArguments);
     String s = msg.toString();
     if (s.contains("<br>"))
     {
-      msg = Message.raw("<html>"+UIFactory.applyFontToHtml(s, font));
+      msg = LocalizableMessage.raw("<html>"+UIFactory.applyFontToHtml(s, font));
     }
     return msg;
   }
@@ -206,17 +206,17 @@ public class JavaArguments
    * @param defaultJavaArguments the default values for the java arguments.
    * @return the message representing a java arguments object.
    */
-  public static Message getMessage(JavaArguments javaArguments,
+  public static LocalizableMessage getMessage(JavaArguments javaArguments,
       JavaArguments defaultJavaArguments)
   {
-    Message msg;
+    LocalizableMessage msg;
     if (javaArguments.equals(defaultJavaArguments))
     {
       msg = INFO_DEFAULT_JAVA_ARGUMENTS.get();
     }
     else
     {
-      ArrayList<Message> lines = new ArrayList<Message>();
+      ArrayList<LocalizableMessage> lines = new ArrayList<LocalizableMessage>();
       if (javaArguments.getInitialMemory() != -1)
       {
         lines.add(INFO_INITIAL_MEMORY.get(javaArguments.getInitialMemory()));
@@ -249,7 +249,7 @@ public class JavaArguments
       else
       {
         StringBuilder sb = new StringBuilder();
-        for (Message line : lines)
+        for (LocalizableMessage line : lines)
         {
           if (sb.length() > 0)
           {
@@ -257,7 +257,7 @@ public class JavaArguments
           }
           sb.append(line);
         }
-        msg = Message.raw(sb.toString());
+        msg = LocalizableMessage.raw(sb.toString());
       }
     }
     return msg;

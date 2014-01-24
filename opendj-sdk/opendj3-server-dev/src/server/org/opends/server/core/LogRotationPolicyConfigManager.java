@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.loggers.RotationPolicy;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -104,7 +105,7 @@ public class LogRotationPolicyConfigManager implements
    */
   public boolean isConfigurationAddAcceptable(
       LogRotationPolicyCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
@@ -114,7 +115,7 @@ public class LogRotationPolicyConfigManager implements
    */
   public boolean isConfigurationDeleteAcceptable(
       LogRotationPolicyCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // TODO: Make sure nothing is using this policy before deleting it.
     return true;
@@ -128,7 +129,7 @@ public class LogRotationPolicyConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     try
     {
@@ -167,7 +168,7 @@ public class LogRotationPolicyConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     RotationPolicy policy = DirectoryServer.getRotationPolicy(config.dn());
     if(policy != null)
@@ -188,7 +189,7 @@ public class LogRotationPolicyConfigManager implements
    */
   public boolean isConfigurationChangeAcceptable(
       LogRotationPolicyCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
@@ -202,7 +203,7 @@ public class LogRotationPolicyConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     RotationPolicy policy =
         DirectoryServer.getRotationPolicy(configuration.dn());
@@ -216,7 +217,7 @@ public class LogRotationPolicyConfigManager implements
   }
 
   private boolean isJavaClassAcceptable(LogRotationPolicyCfg config,
-                                        List<Message> unacceptableReasons)
+                                        List<LocalizableMessage> unacceptableReasons)
   {
     String className = config.getJavaClass();
     LogRotationPolicyCfgDefn d = LogRotationPolicyCfgDefn.getInstance();
@@ -228,7 +229,7 @@ public class LogRotationPolicyConfigManager implements
       theClass = pd.loadClass(className, RotationPolicy.class);
       theClass.newInstance();
     } catch (Exception e) {
-      Message message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className,
+      LocalizableMessage message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className,
                                   config.dn().toString(),
                                   String.valueOf(e));
       unacceptableReasons.add(message);
@@ -242,7 +243,7 @@ public class LogRotationPolicyConfigManager implements
       theClass.getMethod("initializeLogRotationPolicy", config
           .configurationClass());
     } catch (Exception e) {
-      Message message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className,
+      LocalizableMessage message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className,
                                   config.dn().toString(),
                                   String.valueOf(e));
       unacceptableReasons.add(message);
@@ -276,11 +277,11 @@ public class LogRotationPolicyConfigManager implements
     {
       // Rethrow the exceptions thrown be the invoked method.
       Throwable e = ite.getTargetException();
-      Message message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(
+      LocalizableMessage message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(
           className, config.dn().toString(), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     } catch (Exception e) {
-      Message message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(
+      LocalizableMessage message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(
           className, config.dn().toString(), String.valueOf(e));
       throw new ConfigException(message, e);
     }

@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
 
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.List;
 
@@ -60,7 +61,7 @@ public interface ServerManagedObjectAddListener<T extends Configuration> {
    *         acceptable, or <code>false</code> if it is not.
    */
   public boolean isConfigurationAddAcceptable(
-      ServerManagedObject<? extends T> mo, List<Message> unacceptableReasons);
+      ServerManagedObject<? extends T> mo, List<LocalizableMessage> unacceptableReasons);
 
 
 

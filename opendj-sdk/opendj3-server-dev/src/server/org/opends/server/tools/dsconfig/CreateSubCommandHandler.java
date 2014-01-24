@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -46,7 +46,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.Configuration;
@@ -294,9 +294,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           }
         }
 
-        Message ufn = mod.getUserFriendlyName();
-        Message synopsis = mod.getSynopsis();
-        Message description = mod.getDescription();
+        LocalizableMessage ufn = mod.getUserFriendlyName();
+        LocalizableMessage synopsis = mod.getSynopsis();
+        LocalizableMessage description = mod.getDescription();
         if (CLIProfile.getInstance().isForCustomization(mod)) {
           ufn = INFO_DSCFG_CUSTOM_TYPE_OPTION.get(ufn);
           synopsis = INFO_DSCFG_CUSTOM_TYPE_SYNOPSIS.get(ufn);
@@ -566,7 +566,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       SubCommandHandler handler) throws ClientException,
       CLIException {
     ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
-    Message ufn = d.getUserFriendlyName();
+    LocalizableMessage ufn = d.getUserFriendlyName();
 
     try {
       for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
@@ -583,22 +583,22 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           // The referenced component(s) must be enabled.
           for (String name : mo.getPropertyValues(apd)) {
             ManagedObjectPath<?, ?> path = apd.getChildPath(name);
-            Message rufn = path.getManagedObjectDefinition()
+            LocalizableMessage rufn = path.getManagedObjectDefinition()
                 .getUserFriendlyName();
             ManagedObject<?> ref;
             try {
               ref = context.getManagedObject(path);
             } catch (DefinitionDecodingException e) {
-              Message msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(rufn, rufn, rufn);
+              LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(rufn, rufn, rufn);
               throw new ClientException(LDAPResultCode.OTHER, msg);
             } catch (ManagedObjectDecodingException e) {
               // FIXME: should not abort here. Instead, display the
               // errors (if verbose) and apply the changes to the
               // partial managed object.
-              Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(rufn);
+              LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(rufn);
               throw new ClientException(LDAPResultCode.OTHER, msg, e);
             } catch (ManagedObjectNotFoundException e) {
-              Message msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(rufn);
+              LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(rufn);
               throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
             }
 
@@ -635,7 +635,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
                       }
                     }
                   } catch (ConcurrentModificationException e) {
-                    Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
+                    LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
                     throw new ClientException(
                         LDAPResultCode.CONSTRAINT_VIOLATION, msg);
                   } catch (OperationRejectedException e) {
@@ -696,10 +696,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         }
       }
     } catch (AuthorizationException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+      LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (CommunicationException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
+      LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
       throw new ClientException(LDAPResultCode.OTHER, msg);
     }
 
@@ -714,7 +714,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       throws ClientException,
       CLIException {
     ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
-    Message ufn = d.getUserFriendlyName();
+    LocalizableMessage ufn = d.getUserFriendlyName();
 
     PropertyValueEditor editor = new PropertyValueEditor(app, context);
     while (true) {
@@ -746,7 +746,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         if (result.isQuit()) {
           if (!app.isMenuDrivenMode()) {
             // User chose to cancel any changes.
-            Message msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn);
+            LocalizableMessage msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn);
             app.printVerboseMessage(msg);
           }
           return MenuResult.quit();
@@ -764,7 +764,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         {
           app.println();
         }
-        Message msg = INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(ufn);
+        LocalizableMessage msg = INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(ufn);
         app.printVerboseMessage(msg);
 
         if (handler != null) {
@@ -796,11 +796,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
               .getMessageObject(), e);
         }
       } catch (AuthorizationException e) {
-        Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
         throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
             msg);
       } catch (ConcurrentModificationException e) {
-        Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
         throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
       } catch (OperationRejectedException e) {
         if (app.isInteractive()) {
@@ -817,7 +817,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
               .getMessageObject(), e);
         }
       } catch (CommunicationException e) {
-        Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
+        LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
         if (app.isInteractive()) {
           app.println();
           app.printVerboseMessage(msg);
@@ -826,7 +826,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           throw new ClientException(LDAPResultCode.OTHER, msg);
         }
       } catch (ManagedObjectAlreadyExistsException e) {
-        Message msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
         if (app.isInteractive()) {
           app.println();
           app.printVerboseMessage(msg);
@@ -873,15 +873,15 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           // Attempt to retrieve a child using this name.
           parent.getChild(irelation, input);
         } catch (AuthorizationException e) {
-          Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(irelation
+          LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(irelation
               .getUserFriendlyName());
           throw new CLIException(msg);
         } catch (ConcurrentModificationException e) {
-          Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(irelation
+          LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(irelation
               .getUserFriendlyName());
           throw new CLIException(msg);
         } catch (CommunicationException e) {
-          Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(irelation
+          LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(irelation
               .getUserFriendlyName(), e.getMessage());
           throw new CLIException(msg);
         } catch (DefinitionDecodingException e) {
@@ -894,7 +894,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         }
 
         // A child with the specified name must already exist.
-        Message msg = ERR_DSCFG_ERROR_CREATE_NAME_ALREADY_EXISTS.get(irelation
+        LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_NAME_ALREADY_EXISTS.get(irelation
             .getUserFriendlyName(), input);
         app.println();
         app.println(msg);
@@ -905,7 +905,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     };
 
     // Display additional help if the name is a naming property.
-    Message ufn = d.getUserFriendlyName();
+    LocalizableMessage ufn = d.getUserFriendlyName();
     PropertyDefinition<?> pd = irelation.getNamingPropertyDefinition();
     if (pd != null) {
       app.println(INFO_DSCFG_CREATE_NAME_PROMPT_NAMING.get(ufn, pd.getName()));
@@ -975,7 +975,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
     // If there is only one choice then return immediately.
     if (filteredTypes.size() == 0) {
-      Message msg =
+      LocalizableMessage msg =
         ERR_DSCFG_ERROR_NO_AVAILABLE_TYPES.get(d.getUserFriendlyName());
       app.println(msg);
       return MenuResult.<ManagedObjectDefinition<? extends C,
@@ -986,7 +986,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       if (!isOnlyOneType) {
         // Only one option available so confirm that the user wishes to
         // use it.
-        Message msg = INFO_DSCFG_TYPE_PROMPT_SINGLE.get(
+        LocalizableMessage msg = INFO_DSCFG_TYPE_PROMPT_SINGLE.get(
             d.getUserFriendlyName(), type.getUserFriendlyName());
         if (!app.confirmAction(msg, true)) {
           return MenuResult.cancel();
@@ -997,14 +997,14 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     } else {
       MenuBuilder<ManagedObjectDefinition<? extends C, ? extends S>> builder =
         new MenuBuilder<ManagedObjectDefinition<? extends C, ? extends S>>(app);
-      Message msg = INFO_DSCFG_CREATE_TYPE_PROMPT.get(d.getUserFriendlyName());
+      LocalizableMessage msg = INFO_DSCFG_CREATE_TYPE_PROMPT.get(d.getUserFriendlyName());
       builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
       builder.setPrompt(msg);
 
       for (ManagedObjectDefinition<? extends C, ? extends S> mod :
         filteredTypes) {
 
-        Message option = mod.getUserFriendlyName();
+        LocalizableMessage option = mod.getUserFriendlyName();
         if (CLIProfile.getInstance().isForCustomization(mod)) {
           option = INFO_DSCFG_CUSTOM_TYPE_OPTION.get(option);
         } else if (mod == d) {
@@ -1071,7 +1071,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
     // Create the sub-command.
     String name = "create-" + r.getName();
-    Message description = INFO_DSCFG_DESCRIPTION_SUBCMD_CREATE.get(r
+    LocalizableMessage description = INFO_DSCFG_DESCRIPTION_SUBCMD_CREATE.get(r
         .getChildDefinition().getUserFriendlyPluralName());
     this.subCommand = new SubCommand(parser, name, false, 0, 0, null,
         description);
@@ -1154,7 +1154,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
   public MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
       ClientException, CLIException {
-    Message ufn = relation.getUserFriendlyName();
+    LocalizableMessage ufn = relation.getUserFriendlyName();
 
     // Get the naming argument values.
     List<String> names = getNamingArgValues(app, namingArgs);
@@ -1172,26 +1172,26 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     try {
       result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+      LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
-      Message pufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(pufn, pufn, pufn);
+      LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(pufn, pufn, pufn);
       throw new ClientException(LDAPResultCode.OTHER, msg);
     } catch (ManagedObjectDecodingException e) {
-      Message pufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
+      LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
       throw new ClientException(LDAPResultCode.OTHER, msg, e);
     } catch (CommunicationException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e
+      LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e
           .getMessage());
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
+      LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
-      Message pufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
+      LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
       if (app.isInteractive()) {
         app.println();
         app.printVerboseMessage(msg);
@@ -1204,7 +1204,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     if (result.isQuit()) {
       if (!app.isMenuDrivenMode()) {
         // User chose to cancel creation.
-        Message msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn);
+        LocalizableMessage msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn);
         app.printVerboseMessage(msg);
       }
       return MenuResult.quit();
@@ -1230,18 +1230,18 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       }
       catch (AuthorizationException e)
       {
-        Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
         throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
             msg);
       }
       catch (ConcurrentModificationException e)
       {
-        Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
         throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
       }
       catch (CommunicationException e)
       {
-        Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e
+        LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e
             .getMessage());
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
       }

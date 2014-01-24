@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -257,7 +258,7 @@ public class RandomTag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<Message> warnings)
+                                  List<LocalizableMessage> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments, lineNumber, warnings);
@@ -282,7 +283,7 @@ public class RandomTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<Message> warnings)
+                                    int lineNumber, List<LocalizableMessage> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments, lineNumber, warnings);
@@ -305,7 +306,7 @@ public class RandomTag
    *                                   this tag.
    */
   private void initializeInternal(TemplateFile templateFile, String[] arguments,
-                                  int lineNumber, List<Message> warnings)
+                                  int lineNumber, List<LocalizableMessage> warnings)
           throws InitializationException
   {
     random = templateFile.getRandom();
@@ -314,7 +315,7 @@ public class RandomTag
     // to generate.
     if ((arguments == null) || (arguments.length == 0))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_MAKELDIF_TAG_NO_RANDOM_TYPE_ARGUMENT.get(lineNumber);
       throw new InitializationException(message);
     }
@@ -340,20 +341,20 @@ public class RandomTag
 
           if (minLength < 0)
           {
-            Message message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+            LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
                 minLength, 0, getName(), lineNumber);
             throw new InitializationException(message);
           }
           else if (minLength == 0)
           {
-            Message message = WARN_MAKELDIF_TAG_WARNING_EMPTY_VALUE.get(
+            LocalizableMessage message = WARN_MAKELDIF_TAG_WARNING_EMPTY_VALUE.get(
                     lineNumber);
             warnings.add(message);
           }
         }
         catch (NumberFormatException nfe)
         {
-          Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+          LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
               arguments[1], getName(), lineNumber);
           throw new InitializationException(message, nfe);
         }
@@ -370,7 +371,7 @@ public class RandomTag
           }
           catch (Exception e)
           {
-            Message message = ERR_MAKELDIF_TAG_INVALID_FORMAT_STRING.get(
+            LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_FORMAT_STRING.get(
                 arguments[3], getName(), lineNumber);
             throw new InitializationException(message, e);
           }
@@ -386,7 +387,7 @@ public class RandomTag
         }
         catch (NumberFormatException nfe)
         {
-          Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+          LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
               arguments[1], getName(), lineNumber);
           throw new InitializationException(message, nfe);
         }
@@ -396,7 +397,7 @@ public class RandomTag
           maxValue = Long.parseLong(arguments[2]);
           if (maxValue < minValue)
           {
-            Message message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+            LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
                 maxValue, minValue, getName(), lineNumber);
             throw new InitializationException(message);
           }
@@ -405,14 +406,14 @@ public class RandomTag
         }
         catch (NumberFormatException nfe)
         {
-          Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+          LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
               arguments[2], getName(), lineNumber);
           throw new InitializationException(message, nfe);
         }
       }
       else
       {
-        Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+        LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
             getName(), lineNumber, 2, 4, numArgs);
         throw new InitializationException(message);
       }
@@ -426,7 +427,7 @@ public class RandomTag
     {
       if ((numArgs < 3) || (numArgs > 4))
       {
-        Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+        LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
             getName(), lineNumber, 3, 4, numArgs);
         throw new InitializationException(message);
       }
@@ -459,21 +460,21 @@ public class RandomTag
           maxLength = Integer.parseInt(arguments[1]);
           if (maxLength <= 0)
           {
-            Message message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+            LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
                 maxLength, 1, getName(), lineNumber);
             throw new InitializationException(message);
           }
         }
         catch (NumberFormatException nfe)
         {
-          Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+          LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
               arguments[1], getName(), lineNumber);
           throw new InitializationException(message, nfe);
         }
       }
       else
       {
-        Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+        LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
             getName(), lineNumber, 1, 2, numArgs);
         throw new InitializationException(message);
       }
@@ -484,7 +485,7 @@ public class RandomTag
     }
     else
     {
-      Message message = ERR_MAKELDIF_TAG_UNKNOWN_RANDOM_TYPE.get(
+      LocalizableMessage message = ERR_MAKELDIF_TAG_UNKNOWN_RANDOM_TYPE.get(
           lineNumber, randomTypeString);
       throw new InitializationException(message);
     }
@@ -506,7 +507,7 @@ public class RandomTag
    *                     be placed.
    */
   private void decodeLength(String[] arguments, int startPos, int lineNumber,
-                            List<Message> warnings)
+                            List<LocalizableMessage> warnings)
           throws InitializationException
   {
     int numArgs = arguments.length - startPos + 1;
@@ -522,20 +523,20 @@ public class RandomTag
 
         if (minLength < 0)
         {
-          Message message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+          LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
               minLength, 0, getName(), lineNumber);
           throw new InitializationException(message);
         }
         else if (minLength == 0)
         {
-          Message message = WARN_MAKELDIF_TAG_WARNING_EMPTY_VALUE.get(
+          LocalizableMessage message = WARN_MAKELDIF_TAG_WARNING_EMPTY_VALUE.get(
                   lineNumber);
           warnings.add(message);
         }
       }
       catch (NumberFormatException nfe)
       {
-        Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+        LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
             arguments[startPos], getName(), lineNumber);
         throw new InitializationException(message, nfe);
       }
@@ -551,14 +552,14 @@ public class RandomTag
 
         if (minLength < 0)
         {
-          Message message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+          LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
               minLength, 0, getName(), lineNumber);
           throw new InitializationException(message);
         }
       }
       catch (NumberFormatException nfe)
       {
-        Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+        LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
             arguments[startPos], getName(), lineNumber);
         throw new InitializationException(message, nfe);
       }
@@ -570,27 +571,27 @@ public class RandomTag
 
         if (maxLength < minLength)
         {
-          Message message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+          LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
               maxLength, minLength, getName(), lineNumber);
           throw new InitializationException(message);
         }
         else if (maxLength == 0)
         {
-          Message message =
+          LocalizableMessage message =
                   WARN_MAKELDIF_TAG_WARNING_EMPTY_VALUE.get(lineNumber);
           warnings.add(message);
         }
       }
       catch (NumberFormatException nfe)
       {
-        Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+        LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
             arguments[startPos+1], getName(), lineNumber);
         throw new InitializationException(message, nfe);
       }
     }
     else
     {
-      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+      LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
           getName(), lineNumber, startPos+1, startPos+2, numArgs);
       throw new InitializationException(message);
     }

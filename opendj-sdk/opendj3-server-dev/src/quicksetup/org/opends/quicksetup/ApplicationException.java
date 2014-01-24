@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.types.OpenDsException;
 
@@ -50,7 +51,7 @@ public class ApplicationException extends OpenDsException {
    * @param e Exception cause
    * @return ApplicationException with Type property being FILE_SYSTEM_ERROR
    */
-  public static ApplicationException createFileSystemException(Message msg,
+  public static ApplicationException createFileSystemException(LocalizableMessage msg,
       Exception e)
   {
     return new ApplicationException(ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
@@ -67,7 +68,7 @@ public class ApplicationException extends OpenDsException {
    * @param rootCause
    *          the root cause of this exception.
    */
-  public ApplicationException(ReturnCode type, Message localizedMsg,
+  public ApplicationException(ReturnCode type, LocalizableMessage localizedMsg,
                               Throwable rootCause)
   {
     super(localizedMsg, rootCause);

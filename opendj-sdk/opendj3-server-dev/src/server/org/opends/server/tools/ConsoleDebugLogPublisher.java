@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -33,8 +33,8 @@ import java.text.SimpleDateFormat;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
 import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.ServerContext;
 import org.opends.server.loggers.LogCategory;
-import org.opends.server.loggers.LogLevel;
 import org.opends.server.loggers.debug.DebugMessageFormatter;
 import org.opends.server.loggers.debug.DebugStackTraceFormatter;
 import org.opends.server.loggers.debug.TraceSettings;
@@ -77,7 +77,7 @@ public class ConsoleDebugLogPublisher extends
    * {@inheritDoc}
    */
   @Override
-  public void initializeLogPublisher(DebugLogPublisherCfg config)
+  public void initializeLogPublisher(DebugLogPublisherCfg config, ServerContext serverContext)
       throws ConfigException, InitializationException {
     // This publisher is not configurable.
   }
@@ -86,157 +86,7 @@ public class ConsoleDebugLogPublisher extends
    * {@inheritDoc}
    */
   @Override
-  public void traceConstructor(LogLevel level,
-                               TraceSettings settings,
-                               String signature,
-                               String sourceLocation,
-                               Object[] args,
-                               StackTraceElement[] stackTrace)
-  {
-    LogCategory category = DebugLogCategory.CONSTRUCTOR;
-
-    String msg = "";
-    if(args != null)
-    {
-      msg = buildDefaultEntryMessage(signature, sourceLocation, args);
-    }
-
-    String stack = null;
-    if(stackTrace != null)
-    {
-      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
-                                                      settings.getStackDepth());
-    }
-    publish(category, level, msg, stack);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void traceMethodEntry(LogLevel level,
-                               TraceSettings settings,
-                               String signature,
-                               String sourceLocation,
-                               Object obj,
-                               Object[] args,
-                               StackTraceElement[] stackTrace)
-  {
-    LogCategory category = DebugLogCategory.ENTER;
-    String msg = "";
-    if(args != null)
-    {
-      msg = buildDefaultEntryMessage(signature, sourceLocation, args);
-    }
-
-    String stack = null;
-    if(stackTrace != null)
-    {
-      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
-                                                      settings.getStackDepth());
-    }
-    publish(category, level, msg, stack);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void traceStaticMethodEntry(LogLevel level,
-                                     TraceSettings settings,
-                                     String signature,
-                                     String sourceLocation,
-                                     Object[] args,
-                                     StackTraceElement[] stackTrace)
-  {
-    LogCategory category = DebugLogCategory.ENTER;
-    String msg = "";
-    if(args != null)
-    {
-      msg = buildDefaultEntryMessage(signature, sourceLocation, args);
-    }
-
-    String stack = null;
-    if(stackTrace != null)
-    {
-      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
-                                                      settings.getStackDepth());
-    }
-    publish(category, level, msg, stack);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void traceReturn(LogLevel level,
-                          TraceSettings settings,
-                          String signature,
-                          String sourceLocation,
-                          Object ret,
-                          StackTraceElement[] stackTrace)
-  {
-    LogCategory category = DebugLogCategory.EXIT;
-    String msg = "";
-    if(ret != null)
-    {
-      StringBuilder format = new StringBuilder();
-      format.append("returned={%s} ");
-      format.append(signature);
-      format.append("():");
-      format.append(sourceLocation);
-
-      msg = DebugMessageFormatter.format(format.toString(),
-                                         new Object[] {ret});
-    }
-
-    String stack = null;
-    if(stackTrace != null)
-    {
-      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
-                                                      settings.getStackDepth());
-    }
-    publish(category, level,  msg, stack);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void traceThrown(LogLevel level,
-                          TraceSettings settings,
-                          String signature,
-                          String sourceLocation,
-                          Throwable ex,
-                          StackTraceElement[] stackTrace)
-  {
-    LogCategory category = DebugLogCategory.THROWN;
-
-    StringBuilder format = new StringBuilder();
-    format.append("thrown={%s} ");
-    format.append(signature);
-    format.append("():");
-    format.append(sourceLocation);
-
-    String msg = DebugMessageFormatter.format(format.toString(),
-                                              new Object[] {ex});
-
-    String stack = null;
-    if(stackTrace != null)
-    {
-      stack = DebugStackTraceFormatter.formatStackTrace(ex,
-                                                       settings.getStackDepth(),
-                                                     settings.isIncludeCause());
-    }
-    publish(category, level, msg, stack);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void traceMessage(LogLevel level,
-                           TraceSettings settings,
+  public void traceMessage(TraceSettings settings,
                            String signature,
                            String sourceLocation,
                            String msg,
@@ -250,19 +100,18 @@ public class ConsoleDebugLogPublisher extends
       stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
                                                       settings.getStackDepth());
     }
-    publish(category, level, msg, stack);
+    publish(category, msg, stack);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void traceCaught(LogLevel level,
-                          TraceSettings settings,
+  public void traceCaught(TraceSettings settings,
                           String signature,
                           String sourceLocation,
-                          Throwable ex,
-                          StackTraceElement[] stackTrace)
+                          String msg,
+                          Throwable ex, StackTraceElement[] stackTrace)
   {
     LogCategory category = DebugLogCategory.CAUGHT;
 
@@ -271,34 +120,37 @@ public class ConsoleDebugLogPublisher extends
     format.append(signature);
     format.append("():");
     format.append(sourceLocation);
-
-    String msg = DebugMessageFormatter.format("caught={%s}",
-                                              new Object[] {ex});
+    StringBuilder message = new StringBuilder();
+    if (!msg.isEmpty())
+    {
+      message.append(msg).append(" ");
+    }
+    message.append(DebugMessageFormatter.format("caught={%s}",
+        new Object[] { ex }));
 
     String stack = null;
-    if(stackTrace != null)
+    if (stackTrace != null)
     {
-      stack = DebugStackTraceFormatter.formatStackTrace(ex,
-                                                       settings.getStackDepth(),
-                                                     settings.isIncludeCause());
+      stack =
+          DebugStackTraceFormatter.formatStackTrace(ex, settings
+              .getStackDepth(), settings.isIncludeCause());
     }
-    publish(category, level, msg, stack);
+    publish(category, message.toString(), stack);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void traceJEAccess(LogLevel level,
-                            TraceSettings settings,
+  public void traceJEAccess(TraceSettings settings,
                             String signature,
                             String sourceLocation,
                             OperationStatus status,
-                            Database database, Transaction txn,
-                            DatabaseEntry key, DatabaseEntry data,
-                            StackTraceElement[] stackTrace)
+                            Database database,
+                            Transaction txn, DatabaseEntry key,
+                            DatabaseEntry data, StackTraceElement[] stackTrace)
   {
-    LogCategory category = DebugLogCategory.DATABASE_ACCESS;
+    LogCategory category = DebugLogCategory.MESSAGE;
 
     // Build the string that is common to category DATABASE_ACCESS.
     StringBuilder builder = new StringBuilder();
@@ -358,53 +210,20 @@ public class ConsoleDebugLogPublisher extends
       stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
                                                       settings.getStackDepth());
     }
-    publish(category, level, builder.toString(), stack);
+    publish(category, builder.toString(), stack);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void traceData(LogLevel level,
-                        TraceSettings settings,
-                        String signature,
-                        String sourceLocation,
-                        byte[] data,
-                        StackTraceElement[] stackTrace)
-  {
-    LogCategory category = DebugLogCategory.DATA;
-    if(data != null)
-    {
-      StringBuilder builder = new StringBuilder();
-      builder.append(ServerConstants.EOL);
-      builder.append("data(len=");
-      builder.append(data.length);
-      builder.append("):");
-      builder.append(ServerConstants.EOL);
-      StaticUtils.byteArrayToHexPlusAscii(builder, data, 4);
-
-    String stack = null;
-    if(stackTrace != null)
-    {
-      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
-                                                      settings.getStackDepth());
-    }
-    publish(category, level, builder.toString(), stack);
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void traceProtocolElement(LogLevel level,
-                                   TraceSettings settings,
+  public void traceProtocolElement(TraceSettings settings,
                                    String signature,
                                    String sourceLocation,
                                    String decodedForm,
                                    StackTraceElement[] stackTrace)
   {
-    LogCategory category = DebugLogCategory.PROTOCOL;
+    LogCategory category = DebugLogCategory.MESSAGE;
 
     String stack = null;
     if(stackTrace != null)
@@ -412,7 +231,7 @@ public class ConsoleDebugLogPublisher extends
       stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
                                                       settings.getStackDepth());
     }
-    publish(category, level, decodedForm, stack);
+    publish(category, decodedForm, stack);
   }
 
   /**
@@ -427,8 +246,7 @@ public class ConsoleDebugLogPublisher extends
 
   // Publishes a record, optionally performing some "special" work:
   // - injecting a stack trace into the message
-  private void publish(LogCategory category, LogLevel level, String msg,
-                       String stack)
+  private void publish(LogCategory category, String msg, String stack)
   {
     StringBuilder buf = new StringBuilder();
     // Emit the timestamp.
@@ -440,8 +258,7 @@ public class ConsoleDebugLogPublisher extends
     buf.append(" ");
 
     // Emit the debug level.
-    buf.append(level);
-    buf.append(" ");
+    buf.append("TRACE ");
 
     // Emit message.
     buf.append(msg);

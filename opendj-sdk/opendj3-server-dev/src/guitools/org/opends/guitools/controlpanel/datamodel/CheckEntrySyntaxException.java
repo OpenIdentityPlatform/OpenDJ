@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -31,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -42,12 +43,12 @@ import org.opends.server.types.OpenDsException;
 public class CheckEntrySyntaxException extends OpenDsException
 {
   private static final long serialVersionUID = 8145911071581212822L;
-  private List<Message> errors;
+  private List<LocalizableMessage> errors;
   /**
    * Constructor of the exception.
    * @param errors the list of error description that were found.
    */
-  public CheckEntrySyntaxException(List<Message> errors)
+  public CheckEntrySyntaxException(List<LocalizableMessage> errors)
   {
     super(getMessage(errors));
     this.errors = Collections.unmodifiableList(errors);
@@ -57,7 +58,7 @@ public class CheckEntrySyntaxException extends OpenDsException
    * Returns the list of errors that were encountered.
    * @return the list of errors that were encountered.
    */
-  public List<Message> getErrors()
+  public List<LocalizableMessage> getErrors()
   {
     return errors;
   }
@@ -68,13 +69,13 @@ public class CheckEntrySyntaxException extends OpenDsException
    * @param errors the list of errors.
    * @return a single message using the provided messages.
    */
-  private static Message getMessage(List<Message> errors)
+  private static LocalizableMessage getMessage(List<LocalizableMessage> errors)
   {
     ArrayList<String> s = new ArrayList<String>();
-    for (Message error : errors)
+    for (LocalizableMessage error : errors)
     {
       s.add(error.toString());
     }
-    return Message.raw(Utilities.getStringFromCollection(s, "<br>"));
+    return LocalizableMessage.raw(Utilities.getStringFromCollection(s, "<br>"));
   }
 }

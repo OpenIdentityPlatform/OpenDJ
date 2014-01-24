@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This interface has been created in order to share the same formatting code
@@ -47,7 +48,7 @@ public interface ProgressMessageFormatter
    * representation
    * @return the formatted representation for the given text.
    */
-  public Message getFormattedText(Message text);
+  public LocalizableMessage getFormattedText(LocalizableMessage text);
 
   /**
    * Returns the formatted representation of the text that is the summary of the
@@ -57,7 +58,7 @@ public interface ProgressMessageFormatter
    * representation
    * @return the formatted representation of a summary for the given text.
    */
-  public Message getFormattedSummary(Message text);
+  public LocalizableMessage getFormattedSummary(LocalizableMessage text);
 
   /**
    * Returns the formatted representation of an error for a given text.
@@ -67,7 +68,7 @@ public interface ProgressMessageFormatter
    * resulting formatted text.
    * @return the formatted representation of an error for the given text.
    */
-  public Message getFormattedError(Message text, boolean applyMargin);
+  public LocalizableMessage getFormattedError(LocalizableMessage text, boolean applyMargin);
 
   /**
    * Returns the formatted representation of a warning for a given text.
@@ -77,7 +78,7 @@ public interface ProgressMessageFormatter
    * resulting formatted text.
    * @return the formatted representation of a warning for the given text.
    */
-  public Message getFormattedWarning(Message text, boolean applyMargin);
+  public LocalizableMessage getFormattedWarning(LocalizableMessage text, boolean applyMargin);
 
   /**
    * Returns the formatted representation of a success message for a given text.
@@ -86,7 +87,7 @@ public interface ProgressMessageFormatter
    * @return the formatted representation of a success message for the given
    * text.
    */
-  public Message getFormattedSuccess(Message text);
+  public LocalizableMessage getFormattedSuccess(LocalizableMessage text);
 
   /**
    * Returns the formatted representation of a log error message for a given
@@ -96,7 +97,7 @@ public interface ProgressMessageFormatter
    * @return the formatted representation of a log error message for the given
    * text.
    */
-  public Message getFormattedLogError(Message text);
+  public LocalizableMessage getFormattedLogError(LocalizableMessage text);
 
   /**
    * Returns the formatted representation of a log message for a given text.
@@ -104,19 +105,19 @@ public interface ProgressMessageFormatter
    * representation
    * @return the formatted representation of a log message for the given text.
    */
-  public Message getFormattedLog(Message text);
+  public LocalizableMessage getFormattedLog(LocalizableMessage text);
 
   /**
    * Returns the formatted representation of the 'Done' text string.
    * @return the formatted representation of the 'Done' text string.
    */
-  public Message getFormattedDone();
+  public LocalizableMessage getFormattedDone();
 
   /**
    * Returns the formatted representation of the 'Error' text string.
    * @return the formatted representation of the 'Error' text string.
    */
-  public Message getFormattedError();
+  public LocalizableMessage getFormattedError();
 
   /**
    * Returns the formatted representation of the argument text to which we add
@@ -125,20 +126,20 @@ public interface ProgressMessageFormatter
    * @param text the String to which add points.
    * @return the formatted representation of the '.....' text string.
    */
-  public Message getFormattedWithPoints(Message text);
+  public LocalizableMessage getFormattedWithPoints(LocalizableMessage text);
 
 
   /**
    * Returns the formatted representation of a point.
    * @return the formatted representation of the '.' text string.
    */
-  public Message getFormattedPoint();
+  public LocalizableMessage getFormattedPoint();
 
   /**
    * Returns the formatted representation of a space.
    * @return the formatted representation of the ' ' text string.
    */
-  public Message getSpace();
+  public LocalizableMessage getSpace();
 
   /**
    * Returns the formatted representation of a progress message for a given
@@ -148,7 +149,7 @@ public interface ProgressMessageFormatter
    * @return the formatted representation of a progress message for the given
    * text.
    */
-  public Message getFormattedProgress(Message text);
+  public LocalizableMessage getFormattedProgress(LocalizableMessage text);
 
   /**
    * Returns the formatted representation of an error message for a given
@@ -161,25 +162,25 @@ public interface ProgressMessageFormatter
    * @return the formatted representation of an error message for the given
    * exception.
    */
-  public Message getFormattedError(Throwable t, boolean applyMargin);
+  public LocalizableMessage getFormattedError(Throwable t, boolean applyMargin);
 
   /**
    * Returns the line break formatted.
    * @return the line break formatted.
    */
-  public Message getLineBreak();
+  public LocalizableMessage getLineBreak();
 
   /**
    * Returns the tab formatted.
    * @return the tab formatted.
    */
-  public Message getTab();
+  public LocalizableMessage getTab();
 
   /**
    * Returns the task separator formatted.
    * @return the task separator formatted.
    */
-  public Message getTaskSeparator();
+  public LocalizableMessage getTaskSeparator();
 
   /**
    * Returns the log formatted representation after the user has clicked on a
@@ -191,5 +192,5 @@ public interface ProgressMessageFormatter
    * @return the formatted progress log representation after the user has
    * clicked on a url.
    */
-  public Message getFormattedAfterUrlClick(String url, Message lastText);
+  public LocalizableMessage getFormattedAfterUrlClick(String url, LocalizableMessage lastText);
 }

@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 import static org.opends.messages.ConfigMessages.*;
 
 import java.util.Collection;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.std.meta.AccessLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
@@ -162,7 +162,7 @@ public class AccessLogger extends AbstractLogger
    */
   public static void logDisconnect(ClientConnection clientConnection,
                                    DisconnectReason disconnectReason,
-                                   Message message)
+                                   LocalizableMessage message)
   {
     for (AccessLogPublisher<?> publisher : getAccessLogPublishers())
     {

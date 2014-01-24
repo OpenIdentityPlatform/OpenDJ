@@ -26,7 +26,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -571,7 +571,7 @@ public class MatchedValuesFilter
       case OR:
       case NOT:
         // These filter types cannot be used in a matched values filter.
-        Message message = ERR_MVFILTER_INVALID_LDAP_FILTER_TYPE.get(
+        LocalizableMessage message = ERR_MVFILTER_INVALID_LDAP_FILTER_TYPE.get(
             String.valueOf(filter), String.valueOf(filter.getFilterType()));
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
 
@@ -734,7 +734,7 @@ public class MatchedValuesFilter
     catch(Exception e)
     {
       // TODO: Need a better message.
-      Message message =
+      LocalizableMessage message =
           ERR_MVFILTER_INVALID_ELEMENT_TYPE.get(e.toString());
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
@@ -763,7 +763,7 @@ public class MatchedValuesFilter
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_MVFILTER_CANNOT_DECODE_AVA.get(getExceptionMessage(e));
           throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
                                   e);
@@ -781,7 +781,7 @@ public class MatchedValuesFilter
           reader.readStartSequence();
           if(!reader.hasNextElement())
           {
-            Message message = ERR_MVFILTER_NO_SUBSTRING_ELEMENTS.get();
+            LocalizableMessage message = ERR_MVFILTER_NO_SUBSTRING_ELEMENTS.get();
             throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
 
@@ -827,7 +827,7 @@ public class MatchedValuesFilter
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_MVFILTER_CANNOT_DECODE_SUBSTRINGS.get(getExceptionMessage(e));
           throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
                                   e);
@@ -850,7 +850,7 @@ public class MatchedValuesFilter
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_MVFILTER_CANNOT_DECODE_PRESENT_TYPE.get(
+          LocalizableMessage message = ERR_MVFILTER_CANNOT_DECODE_PRESENT_TYPE.get(
               getExceptionMessage(e));
           throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
                                   e);
@@ -892,7 +892,7 @@ public class MatchedValuesFilter
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_MVFILTER_CANNOT_DECODE_EXTENSIBLE_MATCH.get(
+          LocalizableMessage message = ERR_MVFILTER_CANNOT_DECODE_EXTENSIBLE_MATCH.get(
               getExceptionMessage(e));
           throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
                                   e);
@@ -900,7 +900,7 @@ public class MatchedValuesFilter
 
 
       default:
-        Message message =
+        LocalizableMessage message =
             ERR_MVFILTER_INVALID_ELEMENT_TYPE.get(byteToHex(type));
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }

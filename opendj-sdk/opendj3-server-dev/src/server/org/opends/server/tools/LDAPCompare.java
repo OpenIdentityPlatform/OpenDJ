@@ -38,7 +38,7 @@ import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -266,7 +266,7 @@ public class LDAPCompare
         }
         else
         {
-          Message msg = INFO_OPERATION_FAILED.get("COMPARE");
+          LocalizableMessage msg = INFO_OPERATION_FAILED.get("COMPARE");
           err.println(wrapText(msg, MAX_LINE_WIDTH));
           err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
           return OPERATIONS_ERROR;
@@ -276,12 +276,12 @@ public class LDAPCompare
       CompareResponseProtocolOp op =
         responseMessage.getCompareResponseProtocolOp();
       int resultCode = op.getResultCode();
-      Message errorMessage = op.getErrorMessage();
+      LocalizableMessage errorMessage = op.getErrorMessage();
 
       if(resultCode != COMPARE_TRUE && resultCode != COMPARE_FALSE
          && !compareOptions.continueOnError())
       {
-        Message msg = INFO_OPERATION_FAILED.get("COMPARE");
+        LocalizableMessage msg = INFO_OPERATION_FAILED.get("COMPARE");
         throw new LDAPException(resultCode, errorMessage, msg,
                                 op.getMatchedDN(), null);
       } else
@@ -308,7 +308,7 @@ public class LDAPCompare
           }
         } else
         {
-          Message msg = INFO_OPERATION_FAILED.get("COMPARE");
+          LocalizableMessage msg = INFO_OPERATION_FAILED.get("COMPARE");
           LDAPToolUtils.printErrorMessage(err, msg, resultCode, errorMessage,
                                           op.getMatchedDN());
         }
@@ -413,7 +413,7 @@ public class LDAPCompare
     Reader rdr = null;
 
     // Create the command-line argument parser for use with this program.
-    Message toolDescription = INFO_LDAPCOMPARE_TOOL_DESCRIPTION.get();
+    LocalizableMessage toolDescription = INFO_LDAPCOMPARE_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                         false, true, 1, 0,
                                         " \'attribute:value\' \"DN\" ...");
@@ -666,7 +666,7 @@ public class LDAPCompare
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
@@ -679,7 +679,7 @@ public class LDAPCompare
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -695,7 +695,7 @@ public class LDAPCompare
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
               bindPassword.getLongIdentifier(),
               bindPasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -706,7 +706,7 @@ public class LDAPCompare
 
     if(attrAndDNStrings.isEmpty())
     {
-      Message message = ERR_LDAPCOMPARE_NO_ATTR.get();
+      LocalizableMessage message = ERR_LDAPCOMPARE_NO_ATTR.get();
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -741,7 +741,7 @@ public class LDAPCompare
     int idx = attributeString.indexOf(":");
     if(idx == -1)
     {
-      Message message =
+      LocalizableMessage message =
               ERR_LDAPCOMPARE_INVALID_ATTR_STRING.get(attributeString);
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
@@ -907,7 +907,7 @@ public class LDAPCompare
         Control ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
-          Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
+          LocalizableMessage message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
@@ -930,7 +930,7 @@ public class LDAPCompare
       }
       catch (LDAPException le)
       {
-        Message message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
+        LocalizableMessage message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
                 le.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
@@ -969,13 +969,13 @@ public class LDAPCompare
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
+        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
       if(keyStorePathValue == null)
       {
-        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
+        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }

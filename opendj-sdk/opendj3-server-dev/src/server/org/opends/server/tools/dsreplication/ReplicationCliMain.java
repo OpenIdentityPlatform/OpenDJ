@@ -40,8 +40,8 @@ import org.opends.admin.ads.util.ServerLoader;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.util.*;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
@@ -195,12 +195,12 @@ public class ReplicationCliMain extends ConsoleApplication
      * Cancel operation.
      */
     CANCEL(null);
-    private Message prompt;
-    private SubcommandChoice(Message prompt)
+    private LocalizableMessage prompt;
+    private SubcommandChoice(LocalizableMessage prompt)
     {
       this.prompt = prompt;
     }
-    Message getPrompt()
+    LocalizableMessage getPrompt()
     {
       return prompt;
     }
@@ -310,7 +310,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message =
+      LocalizableMessage message =
         ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       LOG.log(Level.SEVERE, "Complete error stack:", ae);
@@ -335,11 +335,11 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ArgumentException ae)
       {
-        Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+        LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
         println(message);
         println();
-        println(Message.raw(argParser.getUsage()));
+        println(LocalizableMessage.raw(argParser.getUsage()));
         LOG.log(Level.SEVERE, "Complete error stack:", ae);
         returnValue = ERROR_USER_DATA;
       }
@@ -368,12 +368,12 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         /* Check that the provided parameters are compatible.
          */
-        MessageBuilder buf = new MessageBuilder();
+        LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
         argParser.validateOptions(buf);
         if (buf.length() > 0)
         {
           println(buf.toMessage());
-          println(Message.raw(argParser.getUsage()));
+          println(LocalizableMessage.raw(argParser.getUsage()));
           returnValue = ERROR_USER_DATA;
         }
       }
@@ -543,7 +543,7 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             println(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get(
                 "--"+ToolConstants.OPTION_LONG_NO_PROMPT));
-            println(Message.raw(argParser.getUsage()));
+            println(LocalizableMessage.raw(argParser.getUsage()));
             returnValue = ERROR_USER_DATA;
             subcommandLaunched = false;
           }
@@ -877,7 +877,7 @@ public class ReplicationCliMain extends ConsoleApplication
     String separator =  formatter.getLineBreak().toString() +
     formatter.getTab().toString();
     printlnProgress();
-    Message msg = formatter.getFormattedProgress(
+    LocalizableMessage msg = formatter.getFormattedProgress(
         INFO_PROGRESS_PURGE_HISTORICAL.get(separator,
             Utils.getStringFromCollection(uData.getBaseDNs(), separator)));
     printProgress(msg);
@@ -932,7 +932,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (Exception e)
       {
-        Message msg = ERR_LAUNCHING_PURGE_HISTORICAL.get();
+        LocalizableMessage msg = ERR_LAUNCHING_PURGE_HISTORICAL.get();
         ReplicationCliReturnCode code = ERROR_LAUNCHING_PURGE_HISTORICAL;
         throw new ReplicationCliException(
             getThrowableMsg(msg, e), code, e);
@@ -1098,7 +1098,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (NameAlreadyBoundException ex)
       {
         LOG.log(Level.SEVERE, "Error creating task "+attrs, ex);
-        Message msg = ERR_LAUNCHING_PURGE_HISTORICAL.get();
+        LocalizableMessage msg = ERR_LAUNCHING_PURGE_HISTORICAL.get();
         ReplicationCliReturnCode code = ERROR_LAUNCHING_PURGE_HISTORICAL;
         throw new ReplicationCliException(
             getThrowableMsg(msg, ex), code, ex);
@@ -1106,7 +1106,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (NamingException ne)
       {
         LOG.log(Level.SEVERE, "Error creating task "+attrs, ne);
-        Message msg = ERR_LAUNCHING_PURGE_HISTORICAL.get();
+        LocalizableMessage msg = ERR_LAUNCHING_PURGE_HISTORICAL.get();
         ReplicationCliReturnCode code = ERROR_LAUNCHING_PURGE_HISTORICAL;
         throw new ReplicationCliException(
             getThrowableMsg(msg, ne), code, ne);
@@ -1168,7 +1168,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (helper.isDone(state) || helper.isStoppedByError(state))
         {
           isOver = true;
-          Message errorMsg;
+          LocalizableMessage errorMsg;
           String server = ConnectionUtils.getHostPort(ctx);
           if (lastLogMsg == null)
           {
@@ -1201,7 +1201,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (NamingException ne)
       {
-        Message msg = ERR_POOLING_PURGE_HISTORICAL.get();
+        LocalizableMessage msg = ERR_POOLING_PURGE_HISTORICAL.get();
         throw new ReplicationCliException(
           getThrowableMsg(msg, ne), ERROR_CONNECTING, ne);
       }
@@ -1980,7 +1980,7 @@ public class ReplicationCliMain extends ConsoleApplication
           if (port1 == port2)
           {
             port2 = -1;
-            Message message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(
+            LocalizableMessage message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(
                 host1, String.valueOf(port1));
             println();
             println(message);
@@ -3033,7 +3033,7 @@ public class ReplicationCliMain extends ConsoleApplication
           if (portSource == portDestination)
           {
             portDestination = -1;
-            Message message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
+            LocalizableMessage message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
                 hostSource, String.valueOf(portSource));
             println();
             println(message);
@@ -3557,7 +3557,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (adsContext.hasAdminData())
       {
         boolean reloadTopology = true;
-        LinkedList<Message> exceptionMsgs = new LinkedList<Message>();
+        LinkedList<LocalizableMessage> exceptionMsgs = new LinkedList<LocalizableMessage>();
         while (reloadTopology && !cancelled)
         {
           // We must recreate the cache because the trust manager in the
@@ -4002,7 +4002,7 @@ public class ReplicationCliMain extends ConsoleApplication
     int port1 = uData.getPort1();
     int port2 = uData.getPort2();
 
-    LinkedList<Message> errorMessages = new LinkedList<Message>();
+    LinkedList<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
 
     printlnProgress();
     printProgress(
@@ -4180,7 +4180,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    for (Message msg : errorMessages)
+    for (LocalizableMessage msg : errorMessages)
     {
       println();
       println(msg);
@@ -4440,7 +4440,7 @@ public class ReplicationCliMain extends ConsoleApplication
           try
           {
             printlnProgress();
-            Message msg = formatter.getFormattedProgress(
+            LocalizableMessage msg = formatter.getFormattedProgress(
                 INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
                     ConnectionUtils.getHostPort(ctxSource)));
             printProgress(msg);
@@ -4555,7 +4555,7 @@ public class ReplicationCliMain extends ConsoleApplication
           try
           {
             printlnProgress();
-            Message msg = formatter.getFormattedProgress(
+            LocalizableMessage msg = formatter.getFormattedProgress(
                 INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
                     ConnectionUtils.getHostPort(ctx)));
             printProgress(msg);
@@ -4643,7 +4643,7 @@ public class ReplicationCliMain extends ConsoleApplication
           try
           {
             printlnProgress();
-            Message msg = formatter.getFormattedWithPoints(
+            LocalizableMessage msg = formatter.getFormattedWithPoints(
                 INFO_PROGRESS_PRE_EXTERNAL_INITIALIZATION.get(baseDN));
             printProgress(msg);
             preExternalInitialization(baseDN, ctx, false);
@@ -4732,7 +4732,7 @@ public class ReplicationCliMain extends ConsoleApplication
           try
           {
             printlnProgress();
-            Message msg = formatter.getFormattedWithPoints(
+            LocalizableMessage msg = formatter.getFormattedWithPoints(
                 INFO_PROGRESS_POST_EXTERNAL_INITIALIZATION.get(baseDN));
             printProgress(msg);
             postExternalInitialization(baseDN, ctx, false);
@@ -5554,7 +5554,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       // Inform the user of the potential errors that we found in the already
       // registered servers.
-      final Set<Message> messages = new LinkedHashSet<Message>();
+      final Set<LocalizableMessage> messages = new LinkedHashSet<LocalizableMessage>();
       try
       {
         final Set<PreferredConnection> cnx =
@@ -5617,7 +5617,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (!baseDNsWithNoReplicationServer.isEmpty())
     {
-      Message errorMsg =
+      LocalizableMessage errorMsg =
         ERR_REPLICATION_NO_REPLICATION_SERVER.get(
             Utils.getStringFromCollection(baseDNsWithNoReplicationServer,
                 Constants.LINE_SEPARATOR));
@@ -5629,7 +5629,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       if (isInteractive())
       {
-        Message confirmMsg =
+        LocalizableMessage confirmMsg =
           INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_CONFIRM.get(
               Utils.getStringFromCollection(baseDNsWithOneReplicationServer,
                   Constants.LINE_SEPARATOR));
@@ -5651,7 +5651,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       else
       {
-        Message warningMsg =
+        LocalizableMessage warningMsg =
           INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_WARNING.get(
               Utils.getStringFromCollection(baseDNsWithOneReplicationServer,
                   Constants.LINE_SEPARATOR));
@@ -6132,7 +6132,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (OpenDsException ode)
         {
-          Message msg = getMessageForEnableException(ode,
+          LocalizableMessage msg = getMessageForEnableException(ode,
               ConnectionUtils.getHostPort(ctx1), baseDN);
           throw new ReplicationCliException(msg,
               ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
@@ -6149,7 +6149,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         catch (OpenDsException ode)
         {
-          Message msg = getMessageForEnableException(ode,
+          LocalizableMessage msg = getMessageForEnableException(ode,
               ConnectionUtils.getHostPort(ctx2), baseDN);
           throw new ReplicationCliException(msg,
               ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
@@ -6326,7 +6326,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!argParser.isInteractive())
     {
       // Inform the user of the potential errors that we found.
-      Set<Message> messages = new LinkedHashSet<Message>();
+      Set<LocalizableMessage> messages = new LinkedHashSet<LocalizableMessage>();
       if (cache != null)
       {
         messages.addAll(cache.getErrorMessages());
@@ -6650,7 +6650,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (OpenDsException ode)
       {
-        Message msg = getMessageForDisableException(ode,
+        LocalizableMessage msg = getMessageForDisableException(ode,
             ConnectionUtils.getHostPort(ctx), baseDN);
         throw new ReplicationCliException(msg,
             ERROR_DISABLING_REPLICATION_ON_BASEDN, ode);
@@ -6831,11 +6831,11 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!argParser.isInteractive())
     {
       // Inform the user of the potential errors that we found.
-      Set<Message> messages = new LinkedHashSet<Message>();
+      Set<LocalizableMessage> messages = new LinkedHashSet<LocalizableMessage>();
       messages.addAll(cache.getErrorMessages());
       if (!messages.isEmpty())
       {
-        Message msg =
+        LocalizableMessage msg =
             ERR_REPLICATION_STATUS_READING_REGISTERED_SERVERS.get(
                 Utils.getMessageFromCollection(messages,
                     Constants.LINE_SEPARATOR).toString());
@@ -7127,51 +7127,51 @@ public class ReplicationCliMain extends ConsoleApplication
       if (replica.isReplicated())
       {
         // Suffix DN
-        tableBuilder.appendCell(Message.raw(replica.getSuffix().getDN()));
+        tableBuilder.appendCell(LocalizableMessage.raw(replica.getSuffix().getDN()));
 
         // Server port
         tableBuilder.appendCell(
-          Message.raw(getHostPort(replica.getServer(), cnx)));
+          LocalizableMessage.raw(getHostPort(replica.getServer(), cnx)));
 
         // Number of entries
         int nEntries = replica.getEntries();
         if (nEntries >= 0)
         {
-          tableBuilder.appendCell(Message.raw(String.valueOf(nEntries)));
+          tableBuilder.appendCell(LocalizableMessage.raw(String.valueOf(nEntries)));
         }
         else
         {
-          tableBuilder.appendCell(Message.raw(""));
+          tableBuilder.appendCell(LocalizableMessage.raw(""));
         }
 
         // Replication enabled
         tableBuilder.appendCell(
-          Message.raw(Boolean.toString(replica.isReplicationEnabled())));
+          LocalizableMessage.raw(Boolean.toString(replica.isReplicationEnabled())));
 
         // DS instance ID
         tableBuilder.appendCell(
-            Message.raw(Integer.toString(replica.getReplicationId())));
+            LocalizableMessage.raw(Integer.toString(replica.getReplicationId())));
 
         // RS ID and port.
         if (replica.getServer().isReplicationServer())
         {
           tableBuilder.appendCell(Integer.toString(replica.getServer()
               .getReplicationServerId()));
-          tableBuilder.appendCell(Message.raw(String.valueOf(replica
+          tableBuilder.appendCell(LocalizableMessage.raw(String.valueOf(replica
               .getServer().getReplicationServerPort())));
         }
         else
         {
           if (scriptFriendly)
           {
-            tableBuilder.appendCell(Message.raw(""));
+            tableBuilder.appendCell(LocalizableMessage.raw(""));
           }
           else
           {
             tableBuilder.appendCell(
               INFO_REPLICATION_STATUS_NOT_A_REPLICATION_SERVER_SHORT.get());
           }
-          tableBuilder.appendCell(Message.raw(""));
+          tableBuilder.appendCell(LocalizableMessage.raw(""));
           replicasWithNoReplicationServer.add(replica);
         }
 
@@ -7179,11 +7179,11 @@ public class ReplicationCliMain extends ConsoleApplication
         int missingChanges = replica.getMissingChanges();
         if (missingChanges >= 0)
         {
-          tableBuilder.appendCell(Message.raw(String.valueOf(missingChanges)));
+          tableBuilder.appendCell(LocalizableMessage.raw(String.valueOf(missingChanges)));
         }
         else
         {
-          tableBuilder.appendCell(Message.raw(""));
+          tableBuilder.appendCell(LocalizableMessage.raw(""));
         }
 
         // Age of oldest missing change
@@ -7191,40 +7191,40 @@ public class ReplicationCliMain extends ConsoleApplication
         if (ageOfOldestMissingChange > 0)
         {
           Date date = new Date(ageOfOldestMissingChange);
-          tableBuilder.appendCell(Message.raw(date.toString()));
+          tableBuilder.appendCell(LocalizableMessage.raw(date.toString()));
         }
         else
         {
-          tableBuilder.appendCell(Message.raw(""));
+          tableBuilder.appendCell(LocalizableMessage.raw(""));
         }
 
         // Secure
         if (!replica.getServer().isReplicationServer())
         {
-          tableBuilder.appendCell(Message.raw(""));
+          tableBuilder.appendCell(LocalizableMessage.raw(""));
         }
         else
         {
           tableBuilder.appendCell(
-            Message.raw(Boolean.toString(
+            LocalizableMessage.raw(Boolean.toString(
               replica.getServer().isReplicationSecure())));
         }
       }
       else
       {
-        tableBuilder.appendCell(Message.raw(replica.getSuffix().getDN()));
+        tableBuilder.appendCell(LocalizableMessage.raw(replica.getSuffix().getDN()));
         tableBuilder.appendCell(
-          Message.raw(getHostPort(replica.getServer(), cnx)));
+          LocalizableMessage.raw(getHostPort(replica.getServer(), cnx)));
         int nEntries = replica.getEntries();
         if (nEntries >= 0)
         {
-          tableBuilder.appendCell(Message.raw(String.valueOf(nEntries)));
+          tableBuilder.appendCell(LocalizableMessage.raw(String.valueOf(nEntries)));
         }
         else
         {
-          tableBuilder.appendCell(Message.raw(""));
+          tableBuilder.appendCell(LocalizableMessage.raw(""));
         }
-        tableBuilder.appendCell(Message.raw(""));
+        tableBuilder.appendCell(LocalizableMessage.raw(""));
       }
     }
 
@@ -7234,15 +7234,15 @@ public class ReplicationCliMain extends ConsoleApplication
       serversWithNoReplica.add(server);
 
       // Suffix DN
-      tableBuilder.appendCell(Message.raw(""));
+      tableBuilder.appendCell(LocalizableMessage.raw(""));
 
       // Server port
-      tableBuilder.appendCell(Message.raw(getHostPort(server, cnx)));
+      tableBuilder.appendCell(LocalizableMessage.raw(getHostPort(server, cnx)));
 
       // Number of entries
       if (scriptFriendly)
       {
-        tableBuilder.appendCell(Message.raw(""));
+        tableBuilder.appendCell(LocalizableMessage.raw(""));
       }
       else
       {
@@ -7254,33 +7254,33 @@ public class ReplicationCliMain extends ConsoleApplication
       tableBuilder.appendCell(Boolean.toString(true));
 
       // DS ID
-      tableBuilder.appendCell(Message.raw(""));
+      tableBuilder.appendCell(LocalizableMessage.raw(""));
 
       // RS ID
       tableBuilder.appendCell(
-        Message.raw(Integer.toString(server.getReplicationServerId())));
+        LocalizableMessage.raw(Integer.toString(server.getReplicationServerId())));
 
       // Replication port
       int replicationPort = server.getReplicationServerPort();
       if (replicationPort >= 0)
       {
         tableBuilder.appendCell(
-          Message.raw(String.valueOf(replicationPort)));
+          LocalizableMessage.raw(String.valueOf(replicationPort)));
       }
       else
       {
-        tableBuilder.appendCell(Message.raw(""));
+        tableBuilder.appendCell(LocalizableMessage.raw(""));
       }
 
       // Missing changes
-      tableBuilder.appendCell(Message.raw(""));
+      tableBuilder.appendCell(LocalizableMessage.raw(""));
 
       // Age of oldest change
-      tableBuilder.appendCell(Message.raw(""));
+      tableBuilder.appendCell(LocalizableMessage.raw(""));
 
       // Secure
       tableBuilder.appendCell(
-        Message.raw(Boolean.toString(server.isReplicationSecure())));
+        LocalizableMessage.raw(Boolean.toString(server.isReplicationSecure())));
     }
 
     PrintStream out = getOutputStream();
@@ -7320,20 +7320,20 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       tableBuilder.startRow();
       // Server port
-      tableBuilder.appendCell(Message.raw(getHostPort(server, cnx)));
+      tableBuilder.appendCell(LocalizableMessage.raw(getHostPort(server, cnx)));
       // Replication port
       int replicationPort = server.getReplicationServerPort();
       if (replicationPort >= 0)
       {
-        tableBuilder.appendCell(Message.raw(String.valueOf(replicationPort)));
+        tableBuilder.appendCell(LocalizableMessage.raw(String.valueOf(replicationPort)));
       }
       else
       {
-        tableBuilder.appendCell(Message.raw(""));
+        tableBuilder.appendCell(LocalizableMessage.raw(""));
       }
       // Secure
       tableBuilder.appendCell(
-        Message.raw(
+        LocalizableMessage.raw(
           Boolean.toString(server.isReplicationSecure())));
     }
 
@@ -7349,7 +7349,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else
     {
-      Message msg =
+      LocalizableMessage msg =
         INFO_REPLICATION_STATUS_INDEPENDENT_REPLICATION_SERVERS.get();
       printProgressMessageNoWrap(msg);
       printlnProgress();
@@ -7359,7 +7359,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         buf.append("=");
       }
-      printProgressMessageNoWrap(Message.raw(buf.toString()));
+      printProgressMessageNoWrap(LocalizableMessage.raw(buf.toString()));
       printlnProgress();
 
       printer = new TextTablePrinter(getOutputStream());
@@ -7912,13 +7912,13 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (NamingException ne)
       {
         String hostPort = getHostPort(s, cache.getPreferredConnections());
-        Message msg = getMessageForException(ne, hostPort);
+        LocalizableMessage msg = getMessageForException(ne, hostPort);
         throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
       }
       catch (OpenDsException ode)
       {
         String hostPort = getHostPort(s, cache.getPreferredConnections());
-        Message msg = getMessageForEnableException(ode, hostPort, baseDN);
+        LocalizableMessage msg = getMessageForEnableException(ode, hostPort, baseDN);
         throw new ReplicationCliException(msg,
             ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
       }
@@ -7975,7 +7975,7 @@ public class ReplicationCliMain extends ConsoleApplication
     catch (NamingException ne)
     {
       String hostPort = ConnectionUtils.getHostPort(ctxSource);
-      Message msg = getMessageForException(ne, hostPort);
+      LocalizableMessage msg = getMessageForException(ne, hostPort);
       throw new ReplicationCliException(msg, ERROR_READING_CONFIGURATION, ne);
     }
 
@@ -7994,7 +7994,7 @@ public class ReplicationCliMain extends ConsoleApplication
       @Override
       public void progressUpdate(ProgressUpdateEvent ev)
       {
-        Message newLogDetails = ev.getNewLogs();
+        LocalizableMessage newLogDetails = ev.getNewLogs();
         if ((newLogDetails != null) &&
             !newLogDetails.toString().trim().equals(""))
         {
@@ -8180,7 +8180,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (NamingException ne)
       {
         LOG.log(Level.SEVERE, "Error creating task "+attrs, ne);
-        Message msg = isPre ?
+        LocalizableMessage msg = isPre ?
         ERR_LAUNCHING_PRE_EXTERNAL_INITIALIZATION.get():
           ERR_LAUNCHING_POST_EXTERNAL_INITIALIZATION.get();
         ReplicationCliReturnCode code = isPre?
@@ -8242,7 +8242,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (helper.isDone(state) || helper.isStoppedByError(state))
         {
           isOver = true;
-          Message errorMsg;
+          LocalizableMessage errorMsg;
           String server = ConnectionUtils.getHostPort(ctx);
           if (lastLogMsg == null)
           {
@@ -8283,7 +8283,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (NamingException ne)
       {
-        Message msg = isPre ?
+        LocalizableMessage msg = isPre ?
             ERR_POOLING_PRE_EXTERNAL_INITIALIZATION.get():
               ERR_POOLING_POST_EXTERNAL_INITIALIZATION.get();
             throw new ReplicationCliException(
@@ -8360,7 +8360,7 @@ public class ReplicationCliMain extends ConsoleApplication
             "ds-task-log-message",
             "ds-task-state"
         });
-    Message lastDisplayedMsg = null;
+    LocalizableMessage lastDisplayedMsg = null;
     String lastLogMsg = null;
     long lastTimeMsgDisplayed = -1;
     long lastTimeMsgLogged = -1;
@@ -8393,7 +8393,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
         // Get the number of entries that have been handled and
         // a percentage...
-        Message msg;
+        LocalizableMessage msg;
         String sProcessed = getFirstValue(sr,
         "ds-task-processed-entry-count");
         String sUnprocessed = getFirstValue(sr,
@@ -8491,7 +8491,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (helper.isDone(state) || helper.isStoppedByError(state))
         {
           isOver = true;
-          Message errorMsg;
+          LocalizableMessage errorMsg;
           LOG.log(Level.INFO, "Last task entry: "+sr);
           if (displayProgress && (msg != null) && !msg.equals(lastDisplayedMsg))
           {
@@ -8711,20 +8711,20 @@ public class ReplicationCliMain extends ConsoleApplication
     catch (NamingException ne)
     {
       hostPort = getHostPort(server, cnx);
-      Message msg = getMessageForException(ne, hostPort);
+      LocalizableMessage msg = getMessageForException(ne, hostPort);
       throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
     }
     catch (OpenDsException ode)
     {
       if (lastBaseDN != null)
       {
-        Message msg = getMessageForDisableException(ode, hostPort, lastBaseDN);
+        LocalizableMessage msg = getMessageForDisableException(ode, hostPort, lastBaseDN);
         throw new ReplicationCliException(msg,
           ERROR_DISABLING_REPLICATION_REMOVE_REFERENCE_ON_BASEDN, ode);
       }
       else
       {
-        Message msg = ERR_REPLICATION_ERROR_READING_CONFIGURATION.get(hostPort,
+        LocalizableMessage msg = ERR_REPLICATION_ERROR_READING_CONFIGURATION.get(hostPort,
             ode.getMessage());
         throw new ReplicationCliException(msg, ERROR_CONNECTING, ode);
       }
@@ -8791,7 +8791,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (OpenDsException ode)
     {
-      Message msg = getMessageForDisableException(ode, hostPort, baseDN);
+      LocalizableMessage msg = getMessageForDisableException(ode, hostPort, baseDN);
         throw new ReplicationCliException(msg,
           ERROR_DISABLING_REPLICATION_REMOVE_REFERENCE_ON_BASEDN, ode);
     }
@@ -8863,7 +8863,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * exception generated updating the configuration of the server) that
    * occurred when we were configuring the replication server.
    */
-  private Message getMessageForReplicationServerException(OpenDsException ode,
+  private LocalizableMessage getMessageForReplicationServerException(OpenDsException ode,
       String hostPort)
   {
     return ERR_REPLICATION_CONFIGURING_REPLICATIONSERVER.get(hostPort);
@@ -8884,7 +8884,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * the replication domain or updating the list of replication servers of
    * the replication domain).
    */
-  private Message getMessageForEnableException(OpenDsException ode,
+  private LocalizableMessage getMessageForEnableException(OpenDsException ode,
       String hostPort, String baseDN)
   {
     return ERR_REPLICATION_CONFIGURING_BASEDN.get(baseDN, hostPort);
@@ -8905,7 +8905,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * the replication domain or updating the list of replication servers of
    * the replication domain).
    */
-  private Message getMessageForDisableException(OpenDsException ode,
+  private LocalizableMessage getMessageForDisableException(OpenDsException ode,
       String hostPort, String baseDN)
   {
     return ERR_REPLICATION_CONFIGURING_BASEDN.get(baseDN, hostPort);
@@ -8916,9 +8916,9 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param port the port that cannot be used.
    * @return a message informing the user that the provided port cannot be used.
    */
-  private Message getCannotBindToPortError(int port)
+  private LocalizableMessage getCannotBindToPortError(int port)
   {
-    Message message;
+    LocalizableMessage message;
     if (SetupUtils.isPriviledgedPort(port))
     {
       message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(port);
@@ -8981,9 +8981,9 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param rce the ReplicationCliException.
    * @return a message to be displayed to the user.
    */
-  private Message getCriticalExceptionMessage(ReplicationCliException rce)
+  private LocalizableMessage getCriticalExceptionMessage(ReplicationCliException rce)
   {
-    MessageBuilder mb = new MessageBuilder();
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     mb.append(rce.getMessageObject());
     File logFile = ControlPanelLog.getLogFile();
     if ((logFile != null) &&
@@ -9003,7 +9003,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       else if (c instanceof OpenDsException)
       {
-        Message msg = ((OpenDsException)c).getMessageObject();
+        LocalizableMessage msg = ((OpenDsException)c).getMessageObject();
         if (msg != null)
         {
           s = msg.toString();
@@ -9139,7 +9139,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * mode.
    * @param msg the message to be displayed.
    */
-  private void printProgressMessageNoWrap(Message msg)
+  private void printProgressMessageNoWrap(LocalizableMessage msg)
   {
     if (!isQuiet())
     {
@@ -10645,7 +10645,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
       if (isInteractive())
       {
-        Message msg = INFO_REPLICATION_MERGING_REGISTRIES_CONFIRMATION.get(
+        LocalizableMessage msg = INFO_REPLICATION_MERGING_REGISTRIES_CONFIRMATION.get(
             ConnectionUtils.getHostPort(ctxSource),
             ConnectionUtils.getHostPort(ctxDestination),
             ConnectionUtils.getHostPort(ctxSource),
@@ -10669,7 +10669,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       else
       {
-        Message msg = INFO_REPLICATION_MERGING_REGISTRIES_DESCRIPTION.get(
+        LocalizableMessage msg = INFO_REPLICATION_MERGING_REGISTRIES_DESCRIPTION.get(
             ConnectionUtils.getHostPort(ctxSource),
             ConnectionUtils.getHostPort(ctxDestination),
             ConnectionUtils.getHostPort(ctxSource),
@@ -10681,7 +10681,7 @@ public class ReplicationCliMain extends ConsoleApplication
       printProgress(INFO_REPLICATION_MERGING_REGISTRIES_PROGRESS.get());
       pointAdder.start();
 
-      Collection<Message> cache1Errors = cache1.getErrorMessages();
+      Collection<LocalizableMessage> cache1Errors = cache1.getErrorMessages();
       if (!cache1Errors.isEmpty())
       {
         throw new ReplicationCliException(
@@ -10692,7 +10692,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     ERROR_READING_ADS, null);
       }
 
-      Collection<Message> cache2Errors = cache2.getErrorMessages();
+      Collection<LocalizableMessage> cache2Errors = cache2.getErrorMessages();
       if (!cache2Errors.isEmpty())
       {
         throw new ReplicationCliException(
@@ -10703,7 +10703,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     ERROR_READING_ADS, null);
       }
 
-      Set<Message> commonRepServerIDErrors = new HashSet<Message>();
+      Set<LocalizableMessage> commonRepServerIDErrors = new HashSet<LocalizableMessage>();
       for (ServerDescriptor server1 : cache1.getServers())
       {
         if (server1.isReplicationServer())
@@ -10735,7 +10735,7 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      Set<Message> commonDomainIDErrors = new HashSet<Message>();
+      Set<LocalizableMessage> commonDomainIDErrors = new HashSet<LocalizableMessage>();
       for (SuffixDescriptor suffix1 : cache1.getSuffixes())
       {
         for (ReplicaDescriptor replica1 : suffix1.getReplicas())
@@ -10780,7 +10780,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (!commonRepServerIDErrors.isEmpty() || !commonDomainIDErrors.isEmpty())
       {
-        MessageBuilder mb = new MessageBuilder();
+        LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         if (!commonRepServerIDErrors.isEmpty())
         {
           mb.append(ERR_REPLICATION_ENABLE_COMMON_REPLICATION_SERVER_ID.get(

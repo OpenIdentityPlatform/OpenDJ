@@ -46,7 +46,7 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
@@ -104,7 +104,7 @@ public class DeleteIndexTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getTaskDescription()
+  public LocalizableMessage getTaskDescription()
   {
     if (backendSet.size() == 1)
     {
@@ -122,7 +122,7 @@ public class DeleteIndexTask extends Task
    * {@inheritDoc}
    */
   public boolean canLaunch(Task taskToBeLaunched,
-      Collection<Message> incompatibilityReasons)
+      Collection<LocalizableMessage> incompatibilityReasons)
   {
     boolean canLaunch = true;
     if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))

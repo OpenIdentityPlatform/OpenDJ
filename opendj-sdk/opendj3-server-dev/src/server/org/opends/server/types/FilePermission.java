@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -610,7 +610,7 @@ public class FilePermission
   {
     if (! f.exists())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_FILEPERM_SET_NO_SUCH_FILE.get(f.getAbsolutePath());
       throw new FileNotFoundException(message.toString());
     }
@@ -911,7 +911,7 @@ public class FilePermission
     {
       // If an exception was thrown, we can't be sure whether or not
       // any permissions were updated.
-      Message message =
+      LocalizableMessage message =
           ERR_FILEPERM_SET_JAVA_EXCEPTION.get(f.getAbsolutePath());
       throw new DirectoryException(ResultCode.OTHER, message);
     }
@@ -920,14 +920,14 @@ public class FilePermission
       if (anySuccessful)
       {
         // Some of the file permissions may have been altered.
-        Message message = ERR_FILEPERM_SET_JAVA_FAILED_ALTERED.get(
+        LocalizableMessage message = ERR_FILEPERM_SET_JAVA_FAILED_ALTERED.get(
             f.getAbsolutePath());
         throw new DirectoryException(ResultCode.OTHER, message);
       }
       else
       {
         // The file permissions should have been left intact.
-        Message message = ERR_FILEPERM_SET_JAVA_FAILED_UNALTERED.get(
+        LocalizableMessage message = ERR_FILEPERM_SET_JAVA_FAILED_UNALTERED.get(
             f.getAbsolutePath());
         throw new DirectoryException(ResultCode.OTHER, message);
       }
@@ -1037,7 +1037,7 @@ public class FilePermission
   {
     if ((modeString == null) || (modeString.length() != 3))
     {
-      Message message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
+      LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
           String.valueOf(modeString));
       throw new DirectoryException(ResultCode.OTHER, message);
     }
@@ -1070,7 +1070,7 @@ public class FilePermission
                              OWNER_EXECUTABLE;
         break;
       default:
-      Message message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
+      LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
           String.valueOf(modeString));
       throw new DirectoryException(ResultCode.OTHER, message);
     }
@@ -1102,7 +1102,7 @@ public class FilePermission
                              GROUP_EXECUTABLE;
         break;
       default:
-      Message message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
+      LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
           String.valueOf(modeString));
       throw new DirectoryException(ResultCode.OTHER, message);
     }
@@ -1134,7 +1134,7 @@ public class FilePermission
                              OTHER_EXECUTABLE;
         break;
       default:
-      Message message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
+      LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
           String.valueOf(modeString));
       throw new DirectoryException(ResultCode.OTHER, message);
     }

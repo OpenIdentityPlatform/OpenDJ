@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -40,7 +41,7 @@ import org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The panel displaying the root monitor panel.
@@ -92,7 +93,7 @@ public class RootMonitoringPanel extends GeneralMonitoringPanel
 
     gbc.insets.bottom = 0;
     gbc.insets.top = 10;
-    Message[] labels = {
+    LocalizableMessage[] labels = {
         INFO_CTRL_PANEL_OPEN_CONNECTIONS_LABEL.get(),
         INFO_CTRL_PANEL_MAX_CONNECTIONS_LABEL.get(),
         INFO_CTRL_PANEL_TOTAL_CONNECTIONS_LABEL.get(),
@@ -187,7 +188,7 @@ public class RootMonitoringPanel extends GeneralMonitoringPanel
         upSeconds %= 3600;
         long upMinutes = (upSeconds / 60);
         upSeconds %= 60;
-        Message upTimeStr =
+        LocalizableMessage upTimeStr =
           INFO_MONITOR_UPTIME.get(upDays, upHours, upMinutes, upSeconds);
 
         upTime.setText(upTimeStr.toString());

@@ -25,14 +25,14 @@
  *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.types.operation;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
 import java.util.List;
 
 import org.opends.server.types.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -97,7 +97,7 @@ public interface PostOperationOperation
    *
    * @return  The error message for this operation.
    */
-  public MessageBuilder getErrorMessage();
+  public LocalizableMessageBuilder getErrorMessage();
 
 
 
@@ -106,7 +106,7 @@ public interface PostOperationOperation
    *
    * @param  errorMessage  The error message for this operation.
    */
-  public void setErrorMessage(MessageBuilder errorMessage);
+  public void setErrorMessage(LocalizableMessageBuilder errorMessage);
 
 
 
@@ -117,7 +117,7 @@ public interface PostOperationOperation
    *
    * @param  message  The message to append to the error message
    */
-  public void appendErrorMessage(Message message);
+  public void appendErrorMessage(LocalizableMessage message);
 
 
 

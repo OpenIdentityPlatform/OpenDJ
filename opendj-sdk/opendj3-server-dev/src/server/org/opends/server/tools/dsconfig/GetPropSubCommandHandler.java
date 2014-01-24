@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -36,7 +37,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
@@ -186,7 +187,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
     // Create the sub-command.
     String name = "get-" + r.getName() + "-prop";
-    Message message = INFO_DSCFG_DESCRIPTION_SUBCMD_GETPROP.get(r
+    LocalizableMessage message = INFO_DSCFG_DESCRIPTION_SUBCMD_GETPROP.get(r
         .getChildDefinition().getUserFriendlyName());
     this.subCommand = new SubCommand(parser, name, false, 0, 0, null, message);
 
@@ -252,28 +253,28 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
     updateCommandBuilderWithSubCommand();
 
     // Get the targeted managed object.
-    Message ufn = path.getRelationDefinition().getUserFriendlyName();
+    LocalizableMessage ufn = path.getRelationDefinition().getUserFriendlyName();
     ManagementContext context = factory.getManagementContext(app);
     MenuResult<ManagedObject<?>> result;
     try {
       result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
-      Message msg = ERR_DSCFG_ERROR_GET_CHILD_AUTHZ.get(ufn);
+      LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_AUTHZ.get(ufn);
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
-      Message msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(ufn, ufn, ufn);
+      LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(ufn, ufn, ufn);
       throw new ClientException(LDAPResultCode.OTHER, msg);
     } catch (ManagedObjectDecodingException e) {
-      Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
+      LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
       throw new ClientException(LDAPResultCode.OTHER, msg, e);
     } catch (CommunicationException e) {
-      Message msg = ERR_DSCFG_ERROR_GET_CHILD_CE.get(ufn, e.getMessage());
+      LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_CE.get(ufn, e.getMessage());
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
-      Message msg = ERR_DSCFG_ERROR_GET_CHILD_CME.get(ufn);
+      LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_CME.get(ufn);
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
-       Message msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(ufn);
+       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(ufn);
       throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
     }
 
@@ -344,10 +345,10 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
     if (values.isEmpty()) {
       // There are no values or default values. Display the default
       // behavior for alias values.
-      DefaultBehaviorProviderVisitor<T, Message, Void> visitor =
-        new DefaultBehaviorProviderVisitor<T, Message, Void>() {
+      DefaultBehaviorProviderVisitor<T, LocalizableMessage, Void> visitor =
+        new DefaultBehaviorProviderVisitor<T, LocalizableMessage, Void>() {
 
-        public Message visitAbsoluteInherited(
+        public LocalizableMessage visitAbsoluteInherited(
             AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
           // Should not happen - inherited default values are
           // displayed as normal values.
@@ -356,7 +357,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
 
-        public Message visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
+        public LocalizableMessage visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
           if (app.isVerbose()) {
             return d.getSynopsis();
           } else {
@@ -366,7 +367,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
 
-        public Message visitDefined(DefinedDefaultBehaviorProvider<T> d,
+        public LocalizableMessage visitDefined(DefinedDefaultBehaviorProvider<T> d,
             Void p) {
           // Should not happen - real default values are displayed as
           // normal values.
@@ -375,7 +376,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
 
-        public Message visitRelativeInherited(
+        public LocalizableMessage visitRelativeInherited(
             RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
           // Should not happen - inherited default values are
           // displayed as normal values.
@@ -384,7 +385,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
 
-        public Message visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
+        public LocalizableMessage visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
             Void p) {
           return null;
         }
@@ -393,7 +394,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
       builder.startRow();
       builder.appendCell(pd.getName());
 
-      Message content = pd.getDefaultBehaviorProvider().accept(visitor, null);
+      LocalizableMessage content = pd.getDefaultBehaviorProvider().accept(visitor, null);
       if (content == null) {
         if (app.isScriptFriendly()) {
           builder.appendCell();

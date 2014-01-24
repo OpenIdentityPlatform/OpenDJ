@@ -56,7 +56,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.AddOperation;
 import static org.opends.messages.CoreMessages.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.admin.ads.ADSContext;
 
 import java.util.LinkedHashSet;
@@ -214,7 +214,7 @@ public class CryptoManagerSync
     ResultCode resultCode = searchOperation.getResultCode();
     if (resultCode != ResultCode.SUCCESS)
     {
-      Message message =
+      LocalizableMessage message =
            INFO_TRUSTSTORESYNC_ADMIN_SUFFIX_SEARCH_FAILED.get(
                 String.valueOf(adminSuffixDN),
                 searchOperation.getErrorMessage().toString());
@@ -234,7 +234,7 @@ public class CryptoManagerSync
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_TRUSTSTORESYNC_EXCEPTION.get(
+        LocalizableMessage message = ERR_TRUSTSTORESYNC_EXCEPTION.get(
              stackTraceToSingleLineString(e));
         ErrorLogger.logError(message);
       }
@@ -436,7 +436,7 @@ public class CryptoManagerSync
 
     if (delOperation.getResultCode() != ResultCode.SUCCESS)
     {
-      Message message = INFO_TRUSTSTORESYNC_DELETE_FAILED.get(
+      LocalizableMessage message = INFO_TRUSTSTORESYNC_DELETE_FAILED.get(
            String.valueOf(dstDN),
            String.valueOf(delOperation.getErrorMessage()));
       ErrorLogger.logError(message);
@@ -479,7 +479,7 @@ public class CryptoManagerSync
     AddOperation addOperation = conn.processAdd(addEntry);
     if (addOperation.getResultCode() != ResultCode.SUCCESS)
     {
-      Message message = INFO_TRUSTSTORESYNC_ADD_FAILED.get(
+      LocalizableMessage message = INFO_TRUSTSTORESYNC_ADD_FAILED.get(
            String.valueOf(dstDN),
            String.valueOf(addOperation.getErrorMessage()));
       ErrorLogger.logError(message);
@@ -512,7 +512,7 @@ public class CryptoManagerSync
       }
       catch (CryptoManagerException e)
       {
-        Message message = Message.raw("Failed to import key entry: %s",
+        LocalizableMessage message = LocalizableMessage.raw("Failed to import key entry: %s",
                                       e.getMessage());
         ErrorLogger.logError(message);
       }
@@ -588,7 +588,7 @@ public class CryptoManagerSync
       }
       catch (CryptoManagerException e)
       {
-        Message message = Message.raw("Failed to import modified key entry: %s",
+        LocalizableMessage message = LocalizableMessage.raw("Failed to import modified key entry: %s",
                                       e.getMessage());
         ErrorLogger.logError(message);
       }

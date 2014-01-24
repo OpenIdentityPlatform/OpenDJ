@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -29,7 +30,7 @@ package org.opends.server.admin.server;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.types.ConfigChangeResult;
 
@@ -92,7 +93,7 @@ final class ServerManagedObjectDeleteListenerAdaptor<T extends Configuration>
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(
-      ServerManagedObject<? extends T> mo, List<Message> unacceptableReasons) {
+      ServerManagedObject<? extends T> mo, List<LocalizableMessage> unacceptableReasons) {
     return listener.isConfigurationDeleteAcceptable(mo.getConfiguration(),
         unacceptableReasons);
   }

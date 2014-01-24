@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -33,7 +34,7 @@ import org.opends.guitools.controlpanel.datamodel.AbstractIndexTableModel;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexTableModel;
 import org.opends.messages.AdminToolMessages;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Panel displaying a table containing the VLV indexes of a backend.
@@ -55,7 +56,7 @@ public class BackendVLVIndexesPanel extends AbstractBackendIndexesPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return AdminToolMessages.INFO_CTRL_PANEL_BACKEND_VLV_INDEXES_TITLE.get();
   }

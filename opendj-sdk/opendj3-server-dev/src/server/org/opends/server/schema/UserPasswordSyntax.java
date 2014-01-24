@@ -25,7 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -43,7 +43,7 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -211,7 +211,7 @@ public class UserPasswordSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // We have to accept any value here because in many cases the value will not
     // have been encoded by the time this method is called.
@@ -238,7 +238,7 @@ public class UserPasswordSyntax
     // Make sure that there actually is a value to decode.
     if ((userPasswordValue == null) || (userPasswordValue.length() == 0))
     {
-      Message message = ERR_ATTR_SYNTAX_USERPW_NO_VALUE.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_USERPW_NO_VALUE.get();
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -247,7 +247,7 @@ public class UserPasswordSyntax
     // The first character of an encoded value must be an opening curly brace.
     if (userPasswordValue.charAt(0) != '{')
     {
-      Message message = ERR_ATTR_SYNTAX_USERPW_NO_OPENING_BRACE.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_USERPW_NO_OPENING_BRACE.get();
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -257,7 +257,7 @@ public class UserPasswordSyntax
     int closePos = userPasswordValue.indexOf('}');
     if (closePos < 0)
     {
-      Message message = ERR_ATTR_SYNTAX_USERPW_NO_CLOSING_BRACE.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_USERPW_NO_CLOSING_BRACE.get();
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -269,7 +269,7 @@ public class UserPasswordSyntax
 
     if (schemeName.length() == 0)
     {
-      Message message = ERR_ATTR_SYNTAX_USERPW_NO_SCHEME.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_USERPW_NO_SCHEME.get();
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }

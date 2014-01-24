@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -160,7 +161,7 @@ public class JMXAlertHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_JMX_ALERT_HANDLER_CANNOT_REGISTER.get(String.valueOf(e));
         throw new InitializationException(message, e);
       }
@@ -189,7 +190,7 @@ public class JMXAlertHandler
    * {@inheritDoc}
    */
   public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     JMXAlertHandlerCfg cfg = (JMXAlertHandlerCfg) configuration;
     return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
@@ -223,7 +224,7 @@ public class JMXAlertHandler
    * {@inheritDoc}
    */
   public void sendAlertNotification(AlertGenerator generator, String alertType,
-                                    Message alertMessage)
+                                    LocalizableMessage alertMessage)
   {
     sendNotification(new Notification(alertType, generator.getClassName(),
                                       sequenceNumber.getAndIncrement(),
@@ -276,7 +277,7 @@ public class JMXAlertHandler
          throws AttributeNotFoundException
   {
     // There are no attributes for this MBean.
-    Message message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
+    LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
         String.valueOf(configEntryDN), attribute);
     throw new AttributeNotFoundException(message.toString());
   }
@@ -299,7 +300,7 @@ public class JMXAlertHandler
          throws AttributeNotFoundException, InvalidAttributeValueException
   {
     // There are no attributes for this MBean.
-    Message message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
+    LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
         String.valueOf(configEntryDN), String.valueOf(attribute));
     throw new AttributeNotFoundException(message.toString());
   }
@@ -376,7 +377,7 @@ public class JMXAlertHandler
 
     buffer.append(")");
 
-    Message message = ERR_CONFIG_JMX_NO_METHOD.get(
+    LocalizableMessage message = ERR_CONFIG_JMX_NO_METHOD.get(
         buffer.toString(), String.valueOf(configEntryDN));
     throw new MBeanException(new ConfigException(message));
   }
@@ -404,7 +405,7 @@ public class JMXAlertHandler
    */
   public boolean isConfigurationChangeAcceptable(
                       JMXAlertHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }

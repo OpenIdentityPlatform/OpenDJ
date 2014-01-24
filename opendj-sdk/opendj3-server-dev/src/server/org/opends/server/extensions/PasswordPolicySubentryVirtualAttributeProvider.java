@@ -29,7 +29,7 @@ package org.opends.server.extensions;
 import java.util.Collections;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.
         PasswordPolicySubentryVirtualAttributeCfg;
 import org.opends.server.api.AuthenticationPolicy;
@@ -154,7 +154,7 @@ public class PasswordPolicySubentryVirtualAttributeProvider
   {
     searchOperation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-    Message message =
+    LocalizableMessage message =
             ERR_PASSWORDPOLICYSUBENTRY_VATTR_NOT_SEARCHABLE.get(
             rule.getAttributeType().getNameOrOID());
     searchOperation.appendErrorMessage(message);

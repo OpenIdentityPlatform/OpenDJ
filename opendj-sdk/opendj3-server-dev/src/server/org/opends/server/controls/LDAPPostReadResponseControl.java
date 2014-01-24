@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 import org.opends.server.protocols.asn1.*;
@@ -65,7 +65,7 @@ public class LDAPPostReadResponseControl
     {
       if (value == null)
       {
-        Message message = ERR_POSTREADRESP_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_POSTREADRESP_NO_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -85,7 +85,7 @@ public class LDAPPostReadResponseControl
           TRACER.debugCaught(DebugLogLevel.ERROR, le);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_POSTREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
             le);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -34,7 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.api.ClientConnection;
@@ -52,7 +52,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class TestLDAPConnectionHandler extends LdapTestCase {
 
-  private static Message reasonMsg= Message.raw("Don't need a reason.");
+  private static LocalizableMessage reasonMsg= LocalizableMessage.raw("Don't need a reason.");
 
   /**
    * Once-only initialization.
@@ -314,7 +314,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     GoodHandlerEntry.addAttribute(a13, null);
     GoodHandlerEntry.addAttribute(a14, null);
     GoodHandlerEntry.addAttribute(a15, null);
-    List<Message> reasons = new LinkedList<Message>();
+    List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
     LDAPConnectionHandlerCfg config = LdapTestCase.getConfiguration(GoodHandlerEntry);
     //see if we're ok
     boolean ret=LDAPConnHandler.isConfigurationChangeAcceptable(config, reasons);

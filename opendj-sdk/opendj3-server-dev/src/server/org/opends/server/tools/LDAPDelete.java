@@ -26,7 +26,7 @@
  */
 package org.opends.server.tools;
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -208,7 +208,7 @@ public class LDAPDelete
         else
         {
 
-          Message msg = INFO_OPERATION_FAILED.get("DELETE");
+          LocalizableMessage msg = INFO_OPERATION_FAILED.get("DELETE");
           err.println(wrapText(msg, MAX_LINE_WIDTH));
           err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
           return;
@@ -218,11 +218,11 @@ public class LDAPDelete
       DeleteResponseProtocolOp op =
            responseMessage.getDeleteResponseProtocolOp();
       int resultCode = op.getResultCode();
-      Message errorMessage = op.getErrorMessage();
+      LocalizableMessage errorMessage = op.getErrorMessage();
       if(resultCode != SUCCESS && resultCode != REFERRAL &&
          !deleteOptions.continueOnError())
       {
-        Message msg = INFO_OPERATION_FAILED.get("DELETE");
+        LocalizableMessage msg = INFO_OPERATION_FAILED.get("DELETE");
         throw new LDAPException(resultCode, errorMessage, msg,
                                 op.getMatchedDN(), null);
       } else
@@ -230,13 +230,13 @@ public class LDAPDelete
         if(resultCode != SUCCESS && resultCode != REFERRAL)
         {
 
-          Message msg = INFO_OPERATION_FAILED.get("DELETE");
+          LocalizableMessage msg = INFO_OPERATION_FAILED.get("DELETE");
           LDAPToolUtils.printErrorMessage(err, msg, resultCode, errorMessage,
                                           op.getMatchedDN());
         } else
         {
 
-          Message msg = INFO_OPERATION_SUCCESSFUL.get("DELETE", line);
+          LocalizableMessage msg = INFO_OPERATION_SUCCESSFUL.get("DELETE", line);
           out.println(msg);
         }
       }
@@ -335,7 +335,7 @@ public class LDAPDelete
     ArrayList<String> dnStrings = new ArrayList<String> ();
 
     // Create the command-line argument parser for use with this program.
-    Message toolDescription = INFO_LDAPDELETE_TOOL_DESCRIPTION.get();
+    LocalizableMessage toolDescription = INFO_LDAPDELETE_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false, true, 0, 1, "\"DN\"");
     try
@@ -567,7 +567,7 @@ public class LDAPDelete
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -579,7 +579,7 @@ public class LDAPDelete
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
       return CLIENT_SIDE_PARAM_ERROR;
@@ -594,7 +594,7 @@ public class LDAPDelete
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
               bindPassword.getLongIdentifier(),
               bindPasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -713,7 +713,7 @@ public class LDAPDelete
         Control ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
-          Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
+          LocalizableMessage message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
@@ -766,13 +766,13 @@ public class LDAPDelete
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
+        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
       if(keyStorePathValue == null)
       {
-        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
+        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }

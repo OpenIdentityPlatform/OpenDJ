@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.loggers.debug;
 
@@ -36,8 +36,6 @@ import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
 import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.loggers.AbstractLogger;
-import org.opends.server.loggers.LogLevel;
-import org.opends.server.types.DebugLogLevel;
 
 /**
  * A logger for debug and trace logging. DebugLogger provides a debugging
@@ -54,15 +52,6 @@ import org.opends.server.types.DebugLogLevel;
 public class DebugLogger extends AbstractLogger
     <DebugLogPublisher<DebugLogPublisherCfg>, DebugLogPublisherCfg>
 {
-  /** The default level to log constructor executions. */
-  static final LogLevel DEFAULT_CONSTRUCTOR_LEVEL =
-      DebugLogLevel.VERBOSE;
-  /** The default level to log method entry and exit pointcuts. */
-  static final LogLevel DEFAULT_ENTRY_EXIT_LEVEL =
-      DebugLogLevel.VERBOSE;
-  /** The default level to log method entry and exit pointcuts. */
-  static final LogLevel DEFAULT_THROWN_LEVEL =
-      DebugLogLevel.ERROR;
 
   /** The set of all DebugTracer instances. */
   private static Map<String, DebugTracer> classTracers =
@@ -195,12 +184,8 @@ public class DebugLogger extends AbstractLogger
    */
   public static DebugTracer getTracer()
   {
-    DebugTracer tracer =
-        new DebugTracer(loggerStorage.getLogPublishers().toArray(
-            new DebugLogPublisher[0]));
-    classTracers.put(tracer.getTracedClassName(), tracer);
-
-    return tracer;
+    // TODO : remove this method
+    return getTracer("org.opends");
   }
 
   /**
@@ -212,31 +197,15 @@ public class DebugLogger extends AbstractLogger
    */
   public static DebugTracer getTracer(String className)
   {
-    return classTracers.get(className);
+    DebugTracer tracer = classTracers.get(className);
+    if (tracer == null)
+    {
+      tracer =
+          new DebugTracer(className, loggerStorage.getLogPublishers().toArray(
+              new DebugLogPublisher[0]));
+      classTracers.put(tracer.getTracedClassName(), tracer);
+    }
+    return tracer;
   }
-
-  /**
-   * Classes and methods annotated with @NoDebugTracing will not be weaved with
-   * debug logging statements by AspectJ.
-   */
-  public @interface NoDebugTracing {}
-
-  /**
-   * Methods annotated with @NoEntryDebugTracing will not be weaved with
-   * entry debug logging statements by AspectJ.
-   */
-  public @interface NoEntryDebugTracing {}
-
-  /**
-   * Methods annotated with @NoExitDebugTracing will not be weaved with
-   * exit debug logging statements by AspectJ.
-   */
-  public @interface NoExitDebugTracing {}
-
-  /**
-   * Methods annotated with @TraceThrown will be weaved by AspectJ with
-   * debug logging statements when an exception is thrown from the method.
-   */
-  public @interface TraceThrown {}
 
 }

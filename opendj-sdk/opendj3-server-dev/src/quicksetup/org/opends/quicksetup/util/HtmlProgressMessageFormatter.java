@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -37,8 +38,8 @@ import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.Constants;
 
 import static org.opends.messages.QuickSetupMessages.*;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 /**
  * This is an implementation of the ProgressMessageFormatter class that
@@ -50,8 +51,8 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   static private final Logger LOG =
           Logger.getLogger(HtmlProgressMessageFormatter.class.getName());
 
-  private Message doneHtml;
-  private Message errorHtml;
+  private LocalizableMessage doneHtml;
+  private LocalizableMessage errorHtml;
 
   /**
    * The constant used to separate parameters in an URL.
@@ -61,17 +62,17 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   /**
    * The space in HTML.
    */
-  private static final Message SPACE = Message.raw("&nbsp;");
+  private static final LocalizableMessage SPACE = LocalizableMessage.raw("&nbsp;");
 
   /**
    * The line break.
    * The extra char is necessary because of bug:
    * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4988885
    */
-   private static final Message LINE_BREAK=
-     Message.raw("&#10;"+Constants.HTML_LINE_BREAK);
+   private static final LocalizableMessage LINE_BREAK=
+     LocalizableMessage.raw("&#10;"+Constants.HTML_LINE_BREAK);
 
-   private static final Message TAB = new MessageBuilder(SPACE)
+   private static final LocalizableMessage TAB = new LocalizableMessageBuilder(SPACE)
    .append(SPACE)
    .append(SPACE)
    .append(SPACE)
@@ -84,9 +85,9 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * representation
    * @return the HTML representation for the given text.
    */
-  public Message getFormattedText(Message text)
+  public LocalizableMessage getFormattedText(LocalizableMessage text)
   {
-    return Message.raw(Utils.getHtml(String.valueOf(text)));
+    return LocalizableMessage.raw(Utils.getHtml(String.valueOf(text)));
   }
 
   /**
@@ -97,9 +98,9 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * representation
    * @return the HTML representation of the summary for the given text.
    */
-  public Message getFormattedSummary(Message text)
+  public LocalizableMessage getFormattedSummary(LocalizableMessage text)
   {
-    return new MessageBuilder("<html>")
+    return new LocalizableMessageBuilder("<html>")
             .append(UIFactory.applyFontToHtml(
                     String.valueOf(text), UIFactory.PROGRESS_FONT))
             .toMessage();
@@ -113,7 +114,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * resulting HTML.
    * @return the HTML representation of an error for the given text.
    */
-  public Message getFormattedError(Message text, boolean applyMargin)
+  public LocalizableMessage getFormattedError(LocalizableMessage text, boolean applyMargin)
   {
     String html;
     if (!Utils.containsHtml(String.valueOf(text))) {
@@ -136,7 +137,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
           UIFactory.applyMargin(result,
               UIFactory.TOP_INSET_ERROR_MESSAGE, 0, 0, 0);
     }
-    return Message.raw(result);
+    return LocalizableMessage.raw(result);
   }
 
   /**
@@ -147,7 +148,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * resulting HTML.
    * @return the HTML representation of a warning for the given text.
    */
-  public Message getFormattedWarning(Message text, boolean applyMargin)
+  public LocalizableMessage getFormattedWarning(LocalizableMessage text, boolean applyMargin)
   {
     String html;
     if (!Utils.containsHtml(String.valueOf(text))) {
@@ -171,7 +172,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
           UIFactory.applyMargin(result,
               UIFactory.TOP_INSET_ERROR_MESSAGE, 0, 0, 0);
     }
-    return Message.raw(result);
+    return LocalizableMessage.raw(result);
   }
 
   /**
@@ -180,7 +181,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * representation
    * @return the HTML representation of a success message for the given text.
    */
-  public Message getFormattedSuccess(Message text)
+  public LocalizableMessage getFormattedSuccess(LocalizableMessage text)
   {
     // Note: the text we get already is in HTML form
     String html =
@@ -188,7 +189,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
         + SPACE + UIFactory.applyFontToHtml(String.valueOf(text),
                 UIFactory.PROGRESS_FONT);
 
-    return Message.raw(UIFactory.applySuccessfulBackgroundToHtml(html));
+    return LocalizableMessage.raw(UIFactory.applySuccessfulBackgroundToHtml(html));
   }
 
   /**
@@ -199,10 +200,10 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * @return the HTML representation of a log error message for the given
    * text.
    */
-  public Message getFormattedLogError(Message text)
+  public LocalizableMessage getFormattedLogError(LocalizableMessage text)
   {
     String html = Utils.getHtml(String.valueOf(text));
-    return Message.raw(UIFactory.applyFontToHtml(html,
+    return LocalizableMessage.raw(UIFactory.applyFontToHtml(html,
         UIFactory.PROGRESS_LOG_ERROR_FONT));
   }
 
@@ -213,10 +214,10 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * representation
    * @return the HTML representation of a log message for the given text.
    */
-  public Message getFormattedLog(Message text)
+  public LocalizableMessage getFormattedLog(LocalizableMessage text)
   {
     String html = Utils.getHtml(String.valueOf(text));
-    return Message.raw(UIFactory.applyFontToHtml(html,
+    return LocalizableMessage.raw(UIFactory.applyFontToHtml(html,
             UIFactory.PROGRESS_LOG_FONT));
   }
 
@@ -224,29 +225,29 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the HTML representation of the 'Done' text string.
    * @return the HTML representation of the 'Done' text string.
    */
-  public Message getFormattedDone()
+  public LocalizableMessage getFormattedDone()
   {
     if (doneHtml == null)
     {
       String html = Utils.getHtml(INFO_PROGRESS_DONE.get().toString());
-      doneHtml = Message.raw(UIFactory.applyFontToHtml(html,
+      doneHtml = LocalizableMessage.raw(UIFactory.applyFontToHtml(html,
           UIFactory.PROGRESS_DONE_FONT));
     }
-    return Message.raw(doneHtml);
+    return LocalizableMessage.raw(doneHtml);
   }
 
   /**
    * Returns the HTML representation of the 'Error' text string.
    * @return the HTML representation of the 'Error' text string.
    */
-  public Message getFormattedError() {
+  public LocalizableMessage getFormattedError() {
     if (errorHtml == null)
     {
       String html = Utils.getHtml(INFO_PROGRESS_ERROR.get().toString());
-      errorHtml = Message.raw(UIFactory.applyFontToHtml(html,
+      errorHtml = LocalizableMessage.raw(UIFactory.applyFontToHtml(html,
           UIFactory.PROGRESS_ERROR_FONT));
     }
-    return Message.raw(errorHtml);
+    return LocalizableMessage.raw(errorHtml);
   }
 
   /**
@@ -256,13 +257,13 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * @param text the String to which add points.
    * @return the HTML representation of the '.....' text string.
    */
-  public Message getFormattedWithPoints(Message text)
+  public LocalizableMessage getFormattedWithPoints(LocalizableMessage text)
   {
     String html = Utils.getHtml(String.valueOf(text));
     String points = SPACE +
             Utils.getHtml(INFO_PROGRESS_POINTS.get().toString()) + SPACE;
 
-    MessageBuilder buf = new MessageBuilder();
+    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
     buf.append(UIFactory.applyFontToHtml(html, UIFactory.PROGRESS_FONT))
         .append(
             UIFactory.applyFontToHtml(points, UIFactory.PROGRESS_POINTS_FONT));
@@ -274,9 +275,9 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the formatted representation of a point.
    * @return the formatted representation of the '.' text string.
    */
-  public Message getFormattedPoint()
+  public LocalizableMessage getFormattedPoint()
   {
-    return Message.raw(UIFactory.applyFontToHtml(".",
+    return LocalizableMessage.raw(UIFactory.applyFontToHtml(".",
         UIFactory.PROGRESS_POINTS_FONT));
   }
 
@@ -284,9 +285,9 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the formatted representation of a space.
    * @return the formatted representation of the ' ' text string.
    */
-  public Message getSpace()
+  public LocalizableMessage getSpace()
   {
-    return Message.raw(SPACE);
+    return LocalizableMessage.raw(SPACE);
   }
 
   /**
@@ -297,9 +298,9 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * @return the formatted representation of a progress message for the given
    * text.
    */
-  public Message getFormattedProgress(Message text)
+  public LocalizableMessage getFormattedProgress(LocalizableMessage text)
   {
-    return Message.raw(UIFactory.applyFontToHtml(
+    return LocalizableMessage.raw(UIFactory.applyFontToHtml(
         Utils.getHtml(String.valueOf(text)),
         UIFactory.PROGRESS_FONT));
   }
@@ -314,7 +315,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * @return the HTML representation of an error message for the given
    * exception.
    */
-  public Message getFormattedError(Throwable t, boolean applyMargin)
+  public LocalizableMessage getFormattedError(Throwable t, boolean applyMargin)
   {
     String openDiv = "<div style=\"margin-left:5px; margin-top:10px\">";
     String hideText =
@@ -366,14 +367,14 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     {
       result = UIFactory.applyErrorBackgroundToHtml(html);
     }
-    return Message.raw(result);
+    return LocalizableMessage.raw(result);
   }
 
   /**
    * Returns the line break in HTML.
    * @return the line break in HTML.
    */
-  public Message getLineBreak()
+  public LocalizableMessage getLineBreak()
   {
     return LINE_BREAK;
   }
@@ -382,7 +383,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the tab in HTML.
    * @return the tab in HTML.
    */
-  public Message getTab()
+  public LocalizableMessage getTab()
   {
     return TAB;
   }
@@ -391,9 +392,9 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the task separator in HTML.
    * @return the task separator in HTML.
    */
-  public Message getTaskSeparator()
+  public LocalizableMessage getTaskSeparator()
   {
-    return Message.raw(UIFactory.HTML_SEPARATOR);
+    return LocalizableMessage.raw(UIFactory.HTML_SEPARATOR);
   }
 
   /**
@@ -405,7 +406,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * url.
    * @return the log HTML representation after the user has clicked on a url.
    */
-  public Message getFormattedAfterUrlClick(String url, Message lastText)
+  public LocalizableMessage getFormattedAfterUrlClick(String url, LocalizableMessage lastText)
   {
     String urlText = getErrorWithStackHtml(url, false);
     String newUrlText = getErrorWithStackHtml(url, true);
@@ -422,7 +423,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
           lastTextStr.substring(0, index) + newUrlText
               + lastTextStr.substring(index + urlText.length());
     }
-    return Message.raw(lastTextStr);
+    return LocalizableMessage.raw(lastTextStr);
   }
 
   /**

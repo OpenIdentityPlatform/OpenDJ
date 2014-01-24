@@ -32,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.VirtualStaticGroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.core.DirectoryServer;
@@ -151,7 +151,7 @@ public class VirtualStaticGroup
         {
           if (targetDN != null)
           {
-            Message message = ERR_VIRTUAL_STATIC_GROUP_MULTIPLE_TARGETS.get(
+            LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_MULTIPLE_TARGETS.get(
                 String.valueOf(groupEntry.getName()));
             throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
                                          message);
@@ -168,7 +168,7 @@ public class VirtualStaticGroup
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = ERR_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET.
+            LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET.
                 get(v.getValue().toString(),
                     String.valueOf(groupEntry.getName()),
                     de.getMessageObject());
@@ -181,7 +181,7 @@ public class VirtualStaticGroup
 
     if (targetDN == null)
     {
-      Message message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET.get(
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET.get(
           String.valueOf(groupEntry.getName()));
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
@@ -289,7 +289,7 @@ public class VirtualStaticGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Virtual static groups don't support nesting.
-    Message message = ERR_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED.get();
     throw new UnsupportedOperationException(message.toString());
   }
 
@@ -303,7 +303,7 @@ public class VirtualStaticGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Virtual static groups don't support nesting.
-    Message message = ERR_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED.get();
     throw new UnsupportedOperationException(message.toString());
   }
 
@@ -325,14 +325,14 @@ public class VirtualStaticGroup
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
-      Message message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
           String.valueOf(targetGroupDN), String.valueOf(groupEntryDN));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
-      Message message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
           String.valueOf(groupEntryDN), String.valueOf(targetGroupDN));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -360,14 +360,14 @@ public class VirtualStaticGroup
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
-      Message message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
           String.valueOf(targetGroupDN), String.valueOf(groupEntryDN));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
-      Message message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
           String.valueOf(groupEntryDN), String.valueOf(targetGroupDN));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -390,14 +390,14 @@ public class VirtualStaticGroup
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
-      Message message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
           String.valueOf(targetGroupDN), String.valueOf(groupEntryDN));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
-      Message message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
           String.valueOf(groupEntryDN), String.valueOf(targetGroupDN));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -421,14 +421,14 @@ public class VirtualStaticGroup
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
-      Message message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
           String.valueOf(targetGroupDN), String.valueOf(groupEntryDN));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
-      Message message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
           String.valueOf(groupEntryDN), String.valueOf(targetGroupDN));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -459,7 +459,7 @@ public class VirtualStaticGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Virtual static groups don't support altering the member list.
-    Message message = ERR_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED.
+    LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED.
         get(String.valueOf(groupEntryDN));
     throw new UnsupportedOperationException(message.toString());
   }
@@ -474,7 +474,7 @@ public class VirtualStaticGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Virtual static groups don't support altering the member list.
-    Message message = ERR_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED.
+    LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED.
         get(String.valueOf(groupEntryDN));
     throw new UnsupportedOperationException(message.toString());
   }

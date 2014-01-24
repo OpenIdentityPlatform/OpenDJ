@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -70,7 +70,7 @@ public class PagedResultsControl extends Control
     {
       if (value == null)
       {
-        Message message = ERR_LDAP_PAGED_RESULTS_DECODE_NULL.get();
+        LocalizableMessage message = ERR_LDAP_PAGED_RESULTS_DECODE_NULL.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -86,7 +86,7 @@ public class PagedResultsControl extends Control
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
       }
@@ -103,7 +103,7 @@ public class PagedResultsControl extends Control
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(String.valueOf(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
       }
@@ -120,7 +120,7 @@ public class PagedResultsControl extends Control
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE.get(String.valueOf(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
       }
@@ -136,7 +136,7 @@ public class PagedResultsControl extends Control
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
       }

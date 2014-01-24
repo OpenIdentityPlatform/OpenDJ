@@ -44,12 +44,13 @@ import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.forgerock.util.Reject;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.MessageDescriptor;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.opends.messages.ToolMessages;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -1531,7 +1532,7 @@ public final class StaticUtils
    *
    * @return  The human-readable message generated for the provided exception.
    */
-  public static Message getExceptionMessage(Throwable t)
+  public static LocalizableMessage getExceptionMessage(Throwable t)
   {
     if (t instanceof IdentifiedException)
     {
@@ -1540,18 +1541,18 @@ public final class StaticUtils
       StringBuilder message = new StringBuilder();
       message.append(ie.getMessage());
       message.append(" (id=");
-      Message ieMsg = ie.getMessageObject();
+      LocalizableMessage ieMsg = ie.getMessageObject();
       if (ieMsg != null) {
-        message.append(ieMsg.getDescriptor().getId());
+        message.append(ieMsg.resourceName() + "-" + ieMsg.ordinal());
       } else {
-        message.append(MessageDescriptor.NULL_ID);
+        message.append("-1");
       }
       message.append(")");
-      return Message.raw(message.toString());
+      return LocalizableMessage.raw(message.toString());
     }
     else if (t instanceof NullPointerException)
     {
-      MessageBuilder message = new MessageBuilder();
+      LocalizableMessageBuilder message = new LocalizableMessageBuilder();
       message.append("NullPointerException(");
 
       StackTraceElement[] stackElements = t.getStackTrace();
@@ -1616,7 +1617,7 @@ public final class StaticUtils
 
       message.append(")");
 
-      return Message.raw(message.toString());
+      return LocalizableMessage.raw(message.toString());
     }
   }
 
@@ -2123,7 +2124,7 @@ public final class StaticUtils
 
     if ((length % 2) == 1)
     {
-      Message message = ERR_HEX_DECODE_INVALID_LENGTH.get(hexString);
+      LocalizableMessage message = ERR_HEX_DECODE_INVALID_LENGTH.get(hexString);
       throw new ParseException(message.toString(), 0);
     }
 
@@ -2190,7 +2191,7 @@ public final class StaticUtils
           returnArray[i] = (byte) 0xF0;
           break;
         default:
-          Message message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
+          LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
               hexString, hexString.charAt(pos-1));
           throw new ParseException(message.toString(), 0);
       }
@@ -2252,7 +2253,7 @@ public final class StaticUtils
           returnArray[i] |= 0x0F;
           break;
         default:
-          Message message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
+          LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
               hexString, hexString.charAt(pos-1));
           throw new ParseException(message.toString(), 0);
       }
@@ -2437,7 +2438,7 @@ public final class StaticUtils
     // throw an exception.
     if (! mayUseExec())
     {
-      Message message = ERR_EXEC_DISABLED.get(String.valueOf(command));
+      LocalizableMessage message = ERR_EXEC_DISABLED.get(String.valueOf(command));
       throw new SecurityException(message.toString());
     }
 
@@ -2540,7 +2541,7 @@ public final class StaticUtils
    */
   public static boolean isValidSchemaElement(String element, int startPos,
                                              int endPos,
-                                             MessageBuilder invalidReason)
+                                             LocalizableMessageBuilder invalidReason)
   {
     if ((element == null) || (startPos >= endPos))
     {
@@ -3521,26 +3522,26 @@ public final class StaticUtils
   {
     if (! fileToMove.exists())
     {
-      Message message = ERR_MOVEFILE_NO_SUCH_FILE.get(fileToMove.getPath());
+      LocalizableMessage message = ERR_MOVEFILE_NO_SUCH_FILE.get(fileToMove.getPath());
       throw new IOException(message.toString());
     }
 
     if (! fileToMove.isFile())
     {
-      Message message = ERR_MOVEFILE_NOT_FILE.get(fileToMove.getPath());
+      LocalizableMessage message = ERR_MOVEFILE_NOT_FILE.get(fileToMove.getPath());
       throw new IOException(message.toString());
     }
 
     if (! targetDirectory.exists())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_MOVEFILE_NO_SUCH_DIRECTORY.get(targetDirectory.getPath());
       throw new IOException(message.toString());
     }
 
     if (! targetDirectory.isDirectory())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_MOVEFILE_NOT_DIRECTORY.get(targetDirectory.getPath());
       throw new IOException(message.toString());
     }
@@ -3591,7 +3592,7 @@ public final class StaticUtils
         {
           if (!target.delete())
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_RENAMEFILE_CANNOT_DELETE_TARGET.get(target.getPath());
             throw new IOException(message.toString());
           }
@@ -3599,7 +3600,7 @@ public final class StaticUtils
       }
       if (!fileToRename.renameTo(target))
       {
-        Message message = ERR_RENAMEFILE_CANNOT_RENAME.get(
+        LocalizableMessage message = ERR_RENAMEFILE_CANNOT_RENAME.get(
             fileToRename.getPath(), target.getPath());
         throw new IOException(message.toString());
 
@@ -3646,6 +3647,34 @@ public final class StaticUtils
     else
     {
       return new File(DirectoryServer.getInstanceRoot() + File.separator +
+          path);
+    }
+  }
+
+  /**
+   * Retrieves a <CODE>File</CODE> object corresponding to the specified path.
+   * If the given path is an absolute path, then it will be used.  If the path
+   * is relative, then it will be interpreted as if it were relative to the
+   * Directory Server root.
+   *
+   * @param path
+   *           The path string to be retrieved as a <CODE>File</CODE>.
+   * @param serverContext
+   *           The server context.
+   *
+   * @return  A <CODE>File</CODE> object that corresponds to the specified path.
+   */
+  public static File getFileForPath(String path, ServerContext serverContext)
+  {
+    File f = new File (path);
+
+    if (f.isAbsolute())
+    {
+      return f;
+    }
+    else
+    {
+      return new File(serverContext.getInstanceRoot() + File.separator +
           path);
     }
   }
@@ -3822,7 +3851,7 @@ public final class StaticUtils
    * @return  The user-friendly representation of the specified number of
    *          seconds.
    */
-  public static Message secondsToTimeString(long numSeconds)
+  public static LocalizableMessage secondsToTimeString(long numSeconds)
   {
     if (numSeconds < 60)
     {
@@ -3869,9 +3898,9 @@ public final class StaticUtils
    *
    * @return  The wrapped text.
    */
-  public static String wrapText(Message message, int width)
+  public static String wrapText(LocalizableMessage message, int width)
   {
-    return wrapText(Message.toString(message), width, 0);
+    return wrapText(message.toString(), width, 0);
   }
 
 
@@ -3912,9 +3941,9 @@ public final class StaticUtils
    *          The number of columns to indent each line.
    * @return The wrapped text.
    */
-  public static String wrapText(Message message, int width, int indent)
+  public static String wrapText(LocalizableMessage message, int width, int indent)
   {
-    return wrapText(Message.toString(message), width, indent);
+    return wrapText(message.toString(), width, indent);
   }
 
 
@@ -4345,7 +4374,7 @@ public final class StaticUtils
     // comprise the escaped value.
     if ((startPos + 1) >= hexString.length())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.get(hexString,
               startPos + 1);
 
@@ -4408,7 +4437,7 @@ public final class StaticUtils
       byteValue = (byte) 0xF0;
       break;
     default:
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.get(hexString,
               startPos);
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
@@ -4470,7 +4499,7 @@ public final class StaticUtils
       byteValue |= (byte) 0x0F;
       break;
     default:
-      Message message =
+      LocalizableMessage message =
           ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.get(hexString,
               startPos);
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
@@ -4718,6 +4747,86 @@ public final class StaticUtils
     catch (InterruptedException wokenUp)
     {
     }
+  }
+
+  /**
+   * Test if the provided message corresponds to the provided descriptor.
+   *
+   * @param msg
+   *          The i18n message.
+   * @param desc
+   *          The message descriptor.
+   * @return {@code true} if message corresponds to descriptor
+   */
+  public static boolean hasDescriptor(LocalizableMessage msg,
+      LocalizableMessageDescriptor.Arg0 desc)
+  {
+    return msg.ordinal() == desc.ordinal()
+        && msg.resourceName().equals(desc.resourceName());
+  }
+
+  /**
+   * Test if the provided message corresponds to the provided descriptor.
+   *
+   * @param msg
+   *          The i18n message.
+   * @param desc
+   *          The message descriptor.
+   * @return {@code true} if message corresponds to descriptor
+   */
+  public static boolean hasDescriptor(LocalizableMessage msg,
+      LocalizableMessageDescriptor.Arg1 desc)
+  {
+    return msg.ordinal() == desc.ordinal()
+        && msg.resourceName().equals(desc.resourceName());
+  }
+
+  /**
+   * Test if the provided message corresponds to the provided descriptor.
+   *
+   * @param msg
+   *          The i18n message.
+   * @param desc
+   *          The message descriptor.
+   * @return {@code true} if message corresponds to descriptor
+   */
+  public static boolean hasDescriptor(LocalizableMessage msg,
+      LocalizableMessageDescriptor.Arg2 desc)
+  {
+    return msg.ordinal() == desc.ordinal()
+        && msg.resourceName().equals(desc.resourceName());
+  }
+
+  /**
+   * Test if the provided message corresponds to the provided descriptor.
+   *
+   * @param msg
+   *          The i18n message.
+   * @param desc
+   *          The message descriptor.
+   * @return {@code true} if message corresponds to descriptor
+   */
+  public static boolean hasDescriptor(LocalizableMessage msg,
+      LocalizableMessageDescriptor.Arg3 desc)
+  {
+    return msg.ordinal() == desc.ordinal()
+        && msg.resourceName().equals(desc.resourceName());
+  }
+
+  /**
+   * Test if the provided message corresponds to the provided descriptor.
+   *
+   * @param msg
+   *          The i18n message.
+   * @param desc
+   *          The message descriptor.
+   * @return {@code true} if message corresponds to descriptor
+   */
+  public static boolean hasDescriptor(LocalizableMessage msg,
+      LocalizableMessageDescriptor.Arg7 desc)
+  {
+    return msg.ordinal() == desc.ordinal()
+        && msg.resourceName().equals(desc.resourceName());
   }
 
   /**

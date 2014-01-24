@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 import java.util.Iterator;
@@ -64,7 +65,7 @@ public class ModifyDNResponseProtocolOp
   private List<String> referralURLs;
 
   // The error message for this response.
-  private Message errorMessage;
+  private LocalizableMessage errorMessage;
 
 
 
@@ -91,7 +92,7 @@ public class ModifyDNResponseProtocolOp
    * @param  resultCode    The result code for this response.
    * @param  errorMessage  The error message for this response.
    */
-  public ModifyDNResponseProtocolOp(int resultCode, Message errorMessage)
+  public ModifyDNResponseProtocolOp(int resultCode, LocalizableMessage errorMessage)
   {
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
@@ -110,7 +111,7 @@ public class ModifyDNResponseProtocolOp
    * @param  matchedDN     The matched DN for this response.
    * @param  referralURLs  The referral URLs for this response.
    */
-  public ModifyDNResponseProtocolOp(int resultCode, Message errorMessage,
+  public ModifyDNResponseProtocolOp(int resultCode, LocalizableMessage errorMessage,
                                     DN matchedDN, List<String> referralURLs)
   {
     this.resultCode   = resultCode;
@@ -138,7 +139,7 @@ public class ModifyDNResponseProtocolOp
    * @return  The error message for this response, or <CODE>null</CODE> if none
    *          is available.
    */
-  public Message getErrorMessage()
+  public LocalizableMessage getErrorMessage()
   {
     return errorMessage;
   }
@@ -309,7 +310,7 @@ public class ModifyDNResponseProtocolOp
     if (errorMessage != null)
     {
       buffer.append(indentBuf);
-      buffer.append("  Error Message:  ");
+      buffer.append("  Error LocalizableMessage:  ");
       buffer.append(errorMessage);
       buffer.append(EOL);
     }

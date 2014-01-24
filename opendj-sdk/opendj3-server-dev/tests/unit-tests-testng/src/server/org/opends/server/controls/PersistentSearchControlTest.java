@@ -28,7 +28,7 @@ package org.opends.server.controls;
 
 import java.util.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.asn1.ASN1;
@@ -586,6 +586,6 @@ public class PersistentSearchControlTest extends ControlsTestCase
     assertEquals(LDAPSearch.mainSearch(args, false,
                   true, null, System.err),11);
     //cancel the persisting persistent search.
-    search.cancel(new CancelRequest(true,Message.EMPTY));
+    search.cancel(new CancelRequest(true,LocalizableMessage.EMPTY));
   }
 }

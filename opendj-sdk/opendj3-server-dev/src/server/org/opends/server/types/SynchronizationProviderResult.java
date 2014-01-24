@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.List;
 
@@ -58,7 +59,7 @@ public interface SynchronizationProviderResult
    * @return An error message explaining why processing should
    * stop or <code>null</code> if none is provided.
    */
-  public Message getErrorMessage();
+  public LocalizableMessage getErrorMessage();
 
   /**
    * Retrieves the result code for the operation
@@ -128,7 +129,7 @@ public interface SynchronizationProviderResult
     /**
      * {@inheritDoc}
      */
-    public Message getErrorMessage()
+    public LocalizableMessage getErrorMessage()
     {
       return null;
     }
@@ -149,7 +150,7 @@ public interface SynchronizationProviderResult
     // The result code for this result.
     private final ResultCode resultCode;
 
-    private final Message errorMessage;
+    private final LocalizableMessage errorMessage;
 
     /**
      * Contrust a new stop processing synchronization provider
@@ -161,7 +162,7 @@ public interface SynchronizationProviderResult
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
      */
-    public StopProcessing(ResultCode resultCode, Message errorMessage,
+    public StopProcessing(ResultCode resultCode, LocalizableMessage errorMessage,
                           DN matchedDN, List<String> referralURLs)
     {
       this.errorMessage = errorMessage;
@@ -178,7 +179,7 @@ public interface SynchronizationProviderResult
      * @param errorMessage An message explaining why processing
      * should stop.
      */
-    public StopProcessing(ResultCode resultCode, Message errorMessage)
+    public StopProcessing(ResultCode resultCode, LocalizableMessage errorMessage)
     {
       this.errorMessage = errorMessage;
       this.resultCode = resultCode;
@@ -221,7 +222,7 @@ public interface SynchronizationProviderResult
     /**
      * {@inheritDoc}
      */
-    public Message getErrorMessage()
+    public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }

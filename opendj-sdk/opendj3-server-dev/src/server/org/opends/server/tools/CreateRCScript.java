@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2013 ForgeRock AS
+ *      Portions Copyright 2010-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -33,7 +33,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.NullOutputStream;
@@ -116,7 +116,7 @@ public class CreateRCScript
     }
 
 
-    Message description = INFO_CREATERC_TOOL_DESCRIPTION.get();
+    LocalizableMessage description = INFO_CREATERC_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
          new ArgumentParser(CreateRCScript.class.getName(), description, false);
 

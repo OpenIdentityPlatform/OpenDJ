@@ -34,8 +34,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.FileBasedAccessLogPublisherCfgDefn.*;
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
@@ -113,7 +113,7 @@ public final class TextAccessLogPublisher extends
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    final List<Message> messages = new ArrayList<Message>();
+    final List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     final File logFile = getFileForPath(config.getLogFile());
     final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
@@ -220,7 +220,7 @@ public final class TextAccessLogPublisher extends
     }
     catch (final Exception e)
     {
-      final Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+      final LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
           config.dn().toString(), stackTraceToSingleLineString(e));
       resultCode = DirectoryServer.getServerErrorResultCode();
       messages.add(message);
@@ -236,7 +236,7 @@ public final class TextAccessLogPublisher extends
    * {@inheritDoc}
    */
   @Override
-  public void initializeLogPublisher(final FileBasedAccessLogPublisherCfg cfg)
+  public void initializeLogPublisher(final FileBasedAccessLogPublisherCfg cfg, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
     final File logFile = getFileForPath(cfg.getLogFile());
@@ -290,13 +290,13 @@ public final class TextAccessLogPublisher extends
     }
     catch (final DirectoryException e)
     {
-      final Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg
+      final LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg
           .dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
     }
     catch (final IOException e)
     {
-      final Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
+      final LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
           logFile.toString(), cfg.dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
@@ -320,7 +320,7 @@ public final class TextAccessLogPublisher extends
   @Override
   public boolean isConfigurationAcceptable(
       final FileBasedAccessLogPublisherCfg configuration,
-      final List<Message> unacceptableReasons)
+      final List<LocalizableMessage> unacceptableReasons)
   {
     return isFilterConfigurationAcceptable(configuration, unacceptableReasons)
         && isConfigurationChangeAcceptable(configuration, unacceptableReasons);
@@ -334,7 +334,7 @@ public final class TextAccessLogPublisher extends
   @Override
   public boolean isConfigurationChangeAcceptable(
       final FileBasedAccessLogPublisherCfg config,
-      final List<Message> unacceptableReasons)
+      final List<LocalizableMessage> unacceptableReasons)
   {
     // Validate the time-stamp formatter.
     final String formatString = config.getLogRecordTimeFormat();
@@ -344,7 +344,7 @@ public final class TextAccessLogPublisher extends
     }
     catch (final Exception e)
     {
-      final Message message = ERR_CONFIG_LOGGING_INVALID_TIME_FORMAT.get(String
+      final LocalizableMessage message = ERR_CONFIG_LOGGING_INVALID_TIME_FORMAT.get(String
           .valueOf(formatString));
       unacceptableReasons.add(message);
       return false;
@@ -357,7 +357,7 @@ public final class TextAccessLogPublisher extends
           .getLogFilePermissions());
       if (!filePerm.isOwnerWritable())
       {
-        final Message message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config
+        final LocalizableMessage message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config
             .getLogFilePermissions());
         unacceptableReasons.add(message);
         return false;
@@ -365,7 +365,7 @@ public final class TextAccessLogPublisher extends
     }
     catch (final DirectoryException e)
     {
-      final Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
+      final LocalizableMessage message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
           config.getLogFilePermissions(), String.valueOf(e));
       unacceptableReasons.add(message);
       return false;
@@ -541,13 +541,11 @@ public final class TextAccessLogPublisher extends
     }
     appendResultCodeAndMessage(buffer, bindOperation);
 
-    final Message failureMessage = bindOperation.getAuthFailureReason();
+    final LocalizableMessage failureMessage = bindOperation.getAuthFailureReason();
     if (failureMessage != null)
     {
       // this code path is mutually exclusive with the if result code is success
       // down below
-      buffer.append(" authFailureID=");
-      buffer.append(failureMessage.getDescriptor().getId());
       appendLabel(buffer, "authFailureReason", failureMessage);
       if (bindOperation.getSASLMechanism() != null
           && bindOperation.getSASLAuthUserEntry() != null)
@@ -764,7 +762,7 @@ public final class TextAccessLogPublisher extends
    */
   @Override
   public void logDisconnect(final ClientConnection clientConnection,
-      final DisconnectReason disconnectReason, final Message message)
+      final DisconnectReason disconnectReason, final LocalizableMessage message)
   {
     if (!isDisconnectLoggable(clientConnection))
     {
@@ -1220,7 +1218,7 @@ public final class TextAccessLogPublisher extends
     buffer.append(" result=");
     buffer.append(operation.getResultCode().getIntValue());
 
-    final MessageBuilder msg = operation.getErrorMessage();
+    final LocalizableMessageBuilder msg = operation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       appendLabel(buffer, "message", msg);
@@ -1231,7 +1229,7 @@ public final class TextAccessLogPublisher extends
       buffer.append(" maskedResult=");
       buffer.append(operation.getMaskedResultCode().getIntValue());
     }
-    final MessageBuilder maskedMsg = operation.getMaskedErrorMessage();
+    final LocalizableMessageBuilder maskedMsg = operation.getMaskedErrorMessage();
     if (maskedMsg != null && maskedMsg.length() > 0)
     {
       appendLabel(buffer, "maskedMessage", maskedMsg);

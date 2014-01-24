@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.util.args;
 
@@ -31,8 +31,8 @@ import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.util.*;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.SetupUtils;
 
@@ -131,7 +131,7 @@ public class ArgumentParser
    * A human-readable description for the tool, which will be included when
    * displaying usage information.
    */
-  private Message toolDescription;
+  private LocalizableMessage toolDescription;
 
   /**
    * The display name that will be used for the trailing arguments in the usage
@@ -152,7 +152,7 @@ public class ArgumentParser
    * a header.
    */
   protected ArgumentGroup defaultArgGroup = new ArgumentGroup(
-          Message.EMPTY, Integer.MAX_VALUE);
+          LocalizableMessage.EMPTY, Integer.MAX_VALUE);
 
 
   /**
@@ -197,7 +197,7 @@ public class ArgumentParser
    * @param  longArgumentsCaseSensitive  Indicates whether long arguments should
    *                                     be treated in a case-sensitive manner.
    */
-  public ArgumentParser(String mainClassName, Message toolDescription,
+  public ArgumentParser(String mainClassName, LocalizableMessage toolDescription,
                         boolean longArgumentsCaseSensitive)
   {
     this.mainClassName              = mainClassName;
@@ -258,7 +258,7 @@ public class ArgumentParser
    *                                     arguments in the generated usage
    *                                     information.
    */
-  public ArgumentParser(String mainClassName, Message toolDescription,
+  public ArgumentParser(String mainClassName, LocalizableMessage toolDescription,
                         boolean longArgumentsCaseSensitive,
                         boolean allowsTrailingArguments,
                         int minTrailingArguments, int maxTrailingArguments,
@@ -309,7 +309,7 @@ public class ArgumentParser
    * @return  A human-readable description for this tool, or {@code null} if
    *          none is available.
    */
-  public Message getToolDescription()
+  public LocalizableMessage getToolDescription()
   {
     return toolDescription;
   }
@@ -483,7 +483,7 @@ public class ArgumentParser
    *
    * @param description for the default group
    */
-  public void setDefaultArgumentGroupDescription(Message description)
+  public void setDefaultArgumentGroupDescription(LocalizableMessage description)
   {
     this.defaultArgGroup.setDescription(description);
   }
@@ -494,7 +494,7 @@ public class ArgumentParser
    *
    * @param description for the LDAP group
    */
-  public void setLdapArgumentGroupDescription(Message description)
+  public void setLdapArgumentGroupDescription(LocalizableMessage description)
   {
     this.ldapArgGroup.setDescription(description);
   }
@@ -505,7 +505,7 @@ public class ArgumentParser
    *
    * @param description for the input/output group
    */
-  public void setInputOutputArgumentGroupDescription(Message description)
+  public void setInputOutputArgumentGroupDescription(LocalizableMessage description)
   {
     this.ioArgGroup.setDescription(description);
   }
@@ -516,7 +516,7 @@ public class ArgumentParser
    *
    * @param description for the general group
    */
-  public void setGeneralArgumentGroupDescription(Message description)
+  public void setGeneralArgumentGroupDescription(LocalizableMessage description)
   {
     this.generalArgGroup.setDescription(description);
   }
@@ -614,7 +614,7 @@ public class ArgumentParser
     {
       String conflictingName = shortIDMap.get(shortID).getName();
 
-      Message message = ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(
+      LocalizableMessage message = ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(
           argument.getName(), String.valueOf(shortID), conflictingName);
       throw new ArgumentException(message);
     }
@@ -649,7 +649,7 @@ public class ArgumentParser
       {
         String conflictingName = longIDMap.get(longID).getName();
 
-        Message message = ERR_ARGPARSER_DUPLICATE_LONG_ID.get(
+        LocalizableMessage message = ERR_ARGPARSER_DUPLICATE_LONG_ID.get(
             argument.getName(), argument.getLongIdentifier(), conflictingName);
         throw new ArgumentException(message);
       }
@@ -794,7 +794,7 @@ public class ArgumentParser
         if (maxTrailingArguments > 0 &&
             trailingArguments.size() > maxTrailingArguments)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ARGPARSER_TOO_MANY_TRAILING_ARGS.get(maxTrailingArguments);
           throw new ArgumentException(message);
         }
@@ -827,7 +827,7 @@ public class ArgumentParser
         else if (equalPos == 0)
         {
           // The argument starts with "--=", which is not acceptable.
-          Message message = ERR_ARGPARSER_LONG_ARG_WITHOUT_NAME.get(arg);
+          LocalizableMessage message = ERR_ARGPARSER_LONG_ARG_WITHOUT_NAME.get(arg);
           throw new ArgumentException(message);
         }
         else
@@ -868,7 +868,7 @@ public class ArgumentParser
           else
           {
             // There is no such argument registered.
-            Message message =
+            LocalizableMessage message =
                 ERR_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID.get(origArgName);
             throw new ArgumentException(message);
           }
@@ -895,7 +895,7 @@ public class ArgumentParser
           {
             if ((i+1) == numArguments)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID.get(
                       origArgName);
               throw new ArgumentException(message);
@@ -904,10 +904,10 @@ public class ArgumentParser
             argValue = rawArguments[++i];
           }
 
-          MessageBuilder invalidReason = new MessageBuilder();
+          LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
           if (! a.valueIsAcceptable(argValue, invalidReason))
           {
-            Message message = ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID.get(
+            LocalizableMessage message = ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID.get(
                 argValue, origArgName, invalidReason.toString());
             throw new ArgumentException(message);
           }
@@ -916,7 +916,7 @@ public class ArgumentParser
           // acceptable to have more than one.
           if (a.hasValue() && !a.isMultiValued())
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_ARGPARSER_NOT_MULTIVALUED_FOR_LONG_ID.get(origArgName);
             throw new ArgumentException(message);
           }
@@ -927,7 +927,7 @@ public class ArgumentParser
         {
           if (argValue != null)
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_ARGPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE.get(
                     origArgName);
             throw new ArgumentException(message);
@@ -943,7 +943,7 @@ public class ArgumentParser
         // -n value
         if (arg.equals("-"))
         {
-          Message message = ERR_ARGPARSER_INVALID_DASH_AS_ARGUMENT.get();
+          LocalizableMessage message = ERR_ARGPARSER_INVALID_DASH_AS_ARGUMENT.get();
           throw new ArgumentException(message);
         }
 
@@ -984,7 +984,7 @@ public class ArgumentParser
           else
           {
             // There is no such argument registered.
-            Message message = ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(
+            LocalizableMessage message = ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(
                 String.valueOf(argCharacter));
             throw new ArgumentException(message);
           }
@@ -1011,7 +1011,7 @@ public class ArgumentParser
           {
             if ((i+1) == numArguments)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID.
                     get(String.valueOf(argCharacter));
               throw new ArgumentException(message);
@@ -1020,10 +1020,10 @@ public class ArgumentParser
             argValue = rawArguments[++i];
           }
 
-          MessageBuilder invalidReason = new MessageBuilder();
+          LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
           if (! a.valueIsAcceptable(argValue, invalidReason))
           {
-            Message message = ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID.
+            LocalizableMessage message = ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID.
                 get(argValue, String.valueOf(argCharacter),
                     invalidReason.toString());
             throw new ArgumentException(message);
@@ -1033,7 +1033,7 @@ public class ArgumentParser
           // acceptable to have more than one.
           if (a.hasValue() && !a.isMultiValued())
           {
-            Message message = ERR_ARGPARSER_NOT_MULTIVALUED_FOR_SHORT_ID.get(
+            LocalizableMessage message = ERR_ARGPARSER_NOT_MULTIVALUED_FOR_SHORT_ID.get(
                 String.valueOf(argCharacter));
             throw new ArgumentException(message);
           }
@@ -1057,7 +1057,7 @@ public class ArgumentParser
               if (b == null)
               {
                 // There is no such argument registered.
-                Message message = ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(
+                LocalizableMessage message = ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(
                     String.valueOf(argCharacter));
                 throw new ArgumentException(message);
               }
@@ -1065,7 +1065,7 @@ public class ArgumentParser
               {
                 // This means we're in a scenario like "-abc" where b is a
                 // valid argument that takes a value.  We don't support that.
-                Message message = ERR_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES.get(
+                LocalizableMessage message = ERR_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES.get(
                     String.valueOf(argCharacter), argValue, String.valueOf(c));
                 throw new ArgumentException(message);
               }
@@ -1097,7 +1097,7 @@ public class ArgumentParser
       {
         // It doesn't start with a dash and we don't allow trailing arguments,
         // so this is illegal.
-        Message message = ERR_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT.get(arg);
+        LocalizableMessage message = ERR_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT.get(arg);
         throw new ArgumentException(message);
       }
     }
@@ -1107,7 +1107,7 @@ public class ArgumentParser
         && minTrailingArguments > 0
         && trailingArguments.size() < minTrailingArguments)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS.get(minTrailingArguments);
       throw new ArgumentException(message);
     }
@@ -1145,7 +1145,7 @@ public class ArgumentParser
       {
         String value =
             argumentProperties.getProperty(a.getPropertyName().toLowerCase());
-        MessageBuilder invalidReason = new MessageBuilder();
+        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         if (value != null)
         {
           Boolean addValue = true;
@@ -1177,7 +1177,7 @@ public class ArgumentParser
         // a problem.
         if (!a.hasValue() && a.isRequired())
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getName());
           throw new ArgumentException(message);
         }
@@ -1287,7 +1287,7 @@ public class ArgumentParser
     }
     catch (Exception e)
     {
-      Message message = ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(String
+      LocalizableMessage message = ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(String
           .valueOf(propertiesFilePath), getExceptionMessage(e));
       throw new ArgumentException(message, e);
     }
@@ -1368,8 +1368,8 @@ public class ArgumentParser
       if (argGroup.containsArguments() && printHeaders)
       {
         // Print the groups description if any
-        Message groupDesc = argGroup.getDescription();
-        if (groupDesc != null && !Message.EMPTY.equals(groupDesc)) {
+        LocalizableMessage groupDesc = argGroup.getDescription();
+        if (groupDesc != null && !LocalizableMessage.EMPTY.equals(groupDesc)) {
           buffer.append(EOL);
           buffer.append(wrapText(groupDesc.toString(), MAX_LENGTH - 1));
           buffer.append(EOL);
@@ -1416,13 +1416,13 @@ public class ArgumentParser
    * @return  A string containing usage information based on the defined
    *          arguments.
    */
-  public Message getUsageMessage()
+  public LocalizableMessage getUsageMessage()
   {
     StringBuilder buffer = new StringBuilder();
     getUsage(buffer);
 
     // TODO: rework getUsage(OutputStream) to work with messages framework
-    return Message.raw(buffer.toString());
+    return LocalizableMessage.raw(buffer.toString());
   }
 
   /**
@@ -1568,7 +1568,7 @@ public class ArgumentParser
    * indent the description five characters and try our best to wrap at or
    * before column 79 so it will be friendly to 80-column displays.
    */
-  private void indentAndWrap(String indent, Message text, StringBuilder buffer)
+  private void indentAndWrap(String indent, LocalizableMessage text, StringBuilder buffer)
   {
     int actualSize = MAX_LENGTH - indent.length() - 1;
     if (text.length() <= actualSize)

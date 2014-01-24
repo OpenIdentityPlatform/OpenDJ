@@ -21,13 +21,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.api;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.HTTPAccessLogPublisherCfg;
 import org.opends.server.loggers.HTTPRequestInfo;
 
@@ -51,7 +51,7 @@ public abstract class HTTPAccessLogPublisher
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(T configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation. It should be overridden by HTTP access log publisher

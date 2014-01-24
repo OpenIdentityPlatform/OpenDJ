@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
 
 import org.opends.server.types.OpenDsException;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This class is the exception that we get when we try to launch the user web
@@ -46,7 +47,7 @@ public class WebBrowserException extends OpenDsException {
    * @param msg the error message.
    * @param rootCause the root cause.
    */
-  public WebBrowserException(String url, Message msg, Throwable rootCause)
+  public WebBrowserException(String url, LocalizableMessage msg, Throwable rootCause)
   {
     super(msg, rootCause);
     this.url = url;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -33,7 +33,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.*;
@@ -217,13 +217,13 @@ public class SchemaConfigManager
     {
       if (schemaInstanceDir == null || ! schemaInstanceDir.exists())
       {
-        Message message =
+        LocalizableMessage message =
           ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaInstanceDirPath);
         throw new InitializationException(message);
       }
       if (! schemaInstanceDir.isDirectory())
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaInstanceDirPath);
         throw new InitializationException(message);
       }
@@ -276,7 +276,7 @@ public class SchemaConfigManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(
+      LocalizableMessage message = ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(
           schemaInstanceDirPath, getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
@@ -381,7 +381,7 @@ public class SchemaConfigManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = WARN_CONFIG_SCHEMA_CANNOT_OPEN_FILE.get(
+      LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_OPEN_FILE.get(
               schemaFile, schemaDirPath, getExceptionMessage(e));
 
       if (failOnError)
@@ -416,7 +416,7 @@ public class SchemaConfigManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = WARN_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY.get(
+      LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY.get(
               schemaFile, schemaDirPath, getExceptionMessage(e));
 
       if (failOnError)
@@ -437,7 +437,7 @@ public class SchemaConfigManager
       Entry e = reader.readEntry(false);
       if (e != null)
       {
-        Message message = WARN_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE.get(
+        LocalizableMessage message = WARN_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE.get(
             schemaFile, schemaDirPath);
         logError(message);
       }
@@ -449,7 +449,7 @@ public class SchemaConfigManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = WARN_CONFIG_SCHEMA_UNPARSEABLE_EXTRA_DATA_IN_FILE.get(
+      LocalizableMessage message = WARN_CONFIG_SCHEMA_UNPARSEABLE_EXTRA_DATA_IN_FILE.get(
           schemaFile, schemaDirPath, getExceptionMessage(e));
       logError(message);
     }
@@ -803,7 +803,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
                     schemaFile,
                     de.getMessageObject());
 
@@ -824,7 +824,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
                     schemaFile,
                     v.getValue().toString() + ":  " + getExceptionMessage(e));
 
@@ -854,7 +854,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_LDAP_SYNTAX.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_LDAP_SYNTAX.get(
                 schemaFile, de.getMessageObject());
             logError(message);
 
@@ -903,7 +903,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
                     schemaFile, de.getMessageObject());
 
             if (failOnError)
@@ -923,7 +923,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
                     schemaFile, v.getValue().toString() + ":  " +
                     getExceptionMessage(e));
             if (failOnError)
@@ -951,7 +951,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE.get(
                 schemaFile, de.getMessageObject());
             logError(message);
 
@@ -1000,7 +1000,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
                     schemaFile,
                     de.getMessageObject());
 
@@ -1021,7 +1021,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
                     schemaFile,
                     v.getValue().toString() + ":  " + getExceptionMessage(e));
 
@@ -1050,7 +1050,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_OC.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_OC.get(
                 schemaFile, de.getMessageObject());
             logError(message);
 
@@ -1098,7 +1098,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
                     schemaFile, de.getMessageObject());
             if (failOnError)
             {
@@ -1117,7 +1117,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
                     schemaFile,  v.getValue().toString() + ":  " +
                     getExceptionMessage(e));
 
@@ -1146,7 +1146,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_NAME_FORM.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_NAME_FORM.get(
                 schemaFile, de.getMessageObject());
             logError(message);
 
@@ -1195,7 +1195,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
                     schemaFile, de.getMessageObject());
 
             if (failOnError)
@@ -1215,7 +1215,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
                     schemaFile,v.getValue().toString() + ":  " +
                     getExceptionMessage(e));
 
@@ -1244,7 +1244,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_DCR.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_DCR.get(
                 schemaFile, de.getMessageObject());
             logError(message);
 
@@ -1293,7 +1293,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
                     schemaFile, de.getMessageObject());
 
             if (failOnError)
@@ -1313,7 +1313,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
                     schemaFile, v.getValue().toString() + ":  " +
                                         getExceptionMessage(e));
 
@@ -1342,7 +1342,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_DSR.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_DSR.get(
                 schemaFile, de.getMessageObject());
             logError(message);
 
@@ -1391,7 +1391,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
                     schemaFile, de.getMessageObject());
 
             if (failOnError)
@@ -1411,7 +1411,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
                     schemaFile,
                     v.getValue().toString() + ":  " +
                     getExceptionMessage(e));
@@ -1441,7 +1441,7 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_MRU.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_MRU.get(
                 schemaFile, de.getMessageObject());
             logError(message);
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -32,7 +32,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -257,7 +257,7 @@ public class DirectoryThread extends Thread
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_UNCAUGHT_THREAD_EXCEPTION.get(
+      LocalizableMessage message = ERR_UNCAUGHT_THREAD_EXCEPTION.get(
           t.getName(), stackTraceToSingleLineString(e));
       logError(message);
       DirectoryServer.sendAlertNotification(this,

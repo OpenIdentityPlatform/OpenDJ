@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -58,9 +58,9 @@ public class WindowProbeMsg extends ReplicationMsg
    */
   public WindowProbeMsg(byte[] in) throws DataFormatException
   {
-    // WindowProbeMsg Message only contains its type.
+    // WindowProbeMsg LocalizableMessage only contains its type.
     if (in[0] != MSG_TYPE_WINDOW_PROBE)
-      throw new DataFormatException("input is not a valid Window Message");
+      throw new DataFormatException("input is not a valid Window LocalizableMessage");
   }
 
   /**
@@ -69,7 +69,7 @@ public class WindowProbeMsg extends ReplicationMsg
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    // WindowProbeMsg Message only contains its type.
+    // WindowProbeMsg LocalizableMessage only contains its type.
     return new byte[] { MSG_TYPE_WINDOW_PROBE };
   }
 }

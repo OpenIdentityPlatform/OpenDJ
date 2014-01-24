@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -45,7 +46,7 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -62,8 +63,8 @@ import org.opends.server.types.Schema;
 public class MatchingRulePanel extends SchemaElementPanel
 {
   private static final long serialVersionUID = 2440493955626646008L;
-  private TitlePanel titlePanel = new TitlePanel(Message.EMPTY,
-      Message.EMPTY);
+  private TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY,
+      LocalizableMessage.EMPTY);
   private JLabel name = Utilities.createDefaultLabel();
   private JLabel oid = Utilities.createDefaultLabel();
   private JLabel description = Utilities.createDefaultLabel();
@@ -83,7 +84,7 @@ public class MatchingRulePanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_MATCHING_RULE_PANEL_TITLE.get();
   }
@@ -128,7 +129,7 @@ public class MatchingRulePanel extends SchemaElementPanel
 
     gbc.insets.bottom = 0;
     gbc.insets.top = 8;
-    Message[] labels = {
+    LocalizableMessage[] labels = {
         INFO_CTRL_PANEL_MATCHING_RULE_NAME.get(),
         INFO_CTRL_PANEL_MATCHING_RULE_OID.get(),
         INFO_CTRL_PANEL_MATCHING_RULE_DESCRIPTION.get(),
@@ -213,7 +214,7 @@ public class MatchingRulePanel extends SchemaElementPanel
     {
       n = NOT_APPLICABLE.toString();
     }
-    titlePanel.setDetails(Message.raw(n));
+    titlePanel.setDetails(LocalizableMessage.raw(n));
     name.setText(n);
     oid.setText(matchingRule.getOID());
     AttributeSyntax<?> s = null;
@@ -269,9 +270,9 @@ public class MatchingRulePanel extends SchemaElementPanel
    * @param matchingRule the matching rule.
    * @return the message for the type of the provided matching rule.
    */
-  static Message getTypeValue(MatchingRule matchingRule)
+  static LocalizableMessage getTypeValue(MatchingRule matchingRule)
   {
-    Message text;
+    LocalizableMessage text;
     if (matchingRule instanceof EqualityMatchingRule)
     {
       text = INFO_CTRL_PANEL_INDEX_EQUALITY.get();

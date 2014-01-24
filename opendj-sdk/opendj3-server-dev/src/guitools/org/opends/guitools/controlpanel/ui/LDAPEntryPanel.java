@@ -59,7 +59,7 @@ import org.opends.guitools.controlpanel.task.DeleteEntryTask;
 import org.opends.guitools.controlpanel.task.ModifyEntryTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Constants;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.DN;
@@ -411,7 +411,7 @@ implements EntryReadListener
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EDIT_LDAP_ENTRY_TITLE.get();
   }
@@ -573,7 +573,7 @@ implements EntryReadListener
   private void saveChanges(boolean modal)
   {
     newTask = null;
-    final ArrayList<Message> errors = new ArrayList<Message>();
+    final ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     // Check that the entry is correct.
     try
     {
@@ -624,14 +624,14 @@ implements EntryReadListener
 
   private void deleteEntry()
   {
-    final ArrayList<Message> errors = new ArrayList<Message>();
+    final ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     // Check that the entry is correct.
     // Rely in numsubordinates and hassubordinates
     boolean isLeaf = !BrowserController.getHasSubOrdinates(searchResult);
 
     if (treePath != null)
     {
-      Message title = isLeaf ? INFO_CTRL_PANEL_DELETING_ENTRY_TITLE.get() :
+      LocalizableMessage title = isLeaf ? INFO_CTRL_PANEL_DELETING_ENTRY_TITLE.get() :
         INFO_CTRL_PANEL_DELETING_SUBTREE_TITLE.get();
       ProgressDialog dlg = new ProgressDialog(
           Utilities.createFrame(),
@@ -644,7 +644,7 @@ implements EntryReadListener
       }
       if (errors.size() == 0)
       {
-        Message confirmationMessage =
+        LocalizableMessage confirmationMessage =
           isLeaf ? INFO_CTRL_PANEL_DELETE_ENTRY_CONFIRMATION_DETAILS.get(
               searchResult.getDN()) :
                 INFO_CTRL_PANEL_DELETE_SUBTREE_CONFIRMATION_DETAILS.get(

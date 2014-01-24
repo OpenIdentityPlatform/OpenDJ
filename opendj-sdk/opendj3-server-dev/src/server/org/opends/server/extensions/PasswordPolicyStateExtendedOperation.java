@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.
             PasswordPolicyStateExtendedOperationHandlerCfg;
 import org.opends.server.api.AuthenticationPolicy;
@@ -323,7 +323,7 @@ public class PasswordPolicyStateExtendedOperation
     ClientConnection clientConnection = operation.getClientConnection();
     if (! clientConnection.hasPrivilege(Privilege.PASSWORD_RESET, operation))
     {
-      Message message = ERR_PWPSTATE_EXTOP_NO_PRIVILEGE.get();
+      LocalizableMessage message = ERR_PWPSTATE_EXTOP_NO_PRIVILEGE.get();
       operation.appendErrorMessage(message);
       operation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
       return;
@@ -335,7 +335,7 @@ public class PasswordPolicyStateExtendedOperation
     ByteString requestValue = operation.getRequestValue();
     if (requestValue == null)
     {
-      Message message = ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get();
+      LocalizableMessage message = ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get();
       operation.appendErrorMessage(message);
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
       return;
@@ -355,7 +355,7 @@ public class PasswordPolicyStateExtendedOperation
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_PWPSTATE_EXTOP_DECODE_FAILURE.get(getExceptionMessage(e));
       operation.appendErrorMessage(message);
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -538,7 +538,7 @@ public class PasswordPolicyStateExtendedOperation
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_PWPSTATE_EXTOP_INVALID_OP_ENCODING.get(
+      LocalizableMessage message = ERR_PWPSTATE_EXTOP_INVALID_OP_ENCODING.get(
           e.getLocalizedMessage());
       operation.appendErrorMessage(message);
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -557,7 +557,7 @@ public class PasswordPolicyStateExtendedOperation
     catch(Exception e)
     {
       // TODO: Need a better message
-      Message message = ERR_PWPSTATE_EXTOP_INVALID_OP_ENCODING.get(
+      LocalizableMessage message = ERR_PWPSTATE_EXTOP_INVALID_OP_ENCODING.get(
           e.getLocalizedMessage());
       operation.appendErrorMessage(message);
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -619,7 +619,7 @@ public class PasswordPolicyStateExtendedOperation
     }
     else if (matchingEntries.size() > 1)
     {
-      Message message = ERR_PWPSTATE_EXTOP_MULTIPLE_ENTRIES.get(
+      LocalizableMessage message = ERR_PWPSTATE_EXTOP_MULTIPLE_ENTRIES.get(
               String.valueOf(targetDN));
       operation.appendErrorMessage(message);
       operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
@@ -1341,7 +1341,7 @@ public class PasswordPolicyStateExtendedOperation
           }
           catch (DirectoryException de)
           {
-            Message message = ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(
+            LocalizableMessage message = ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(
                 opValues.get(0),
                 de.getMessageObject());
             operation.setResultCode(de.getResultCode());
@@ -1373,7 +1373,7 @@ public class PasswordPolicyStateExtendedOperation
             }
             catch (DirectoryException de)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(
                       s,
                       de.getMessageObject());
@@ -1534,7 +1534,7 @@ public class PasswordPolicyStateExtendedOperation
           }
           catch (DirectoryException de)
           {
-            Message message = ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(
+            LocalizableMessage message = ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(
                 opValues.get(0),
                 de.getMessageObject());
             operation.setResultCode(de.getResultCode());
@@ -1566,7 +1566,7 @@ public class PasswordPolicyStateExtendedOperation
             }
             catch (DirectoryException de)
             {
-              Message message = ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(
+              LocalizableMessage message = ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(
                   s, de.getMessageObject());
               operation.setResultCode(de.getResultCode());
               operation.appendErrorMessage(message);

@@ -25,7 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -129,7 +129,7 @@ public class SimpleStaticGroupMemberList
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
-        Message message = ERR_STATICMEMBERS_CANNOT_DECODE_DN.
+        LocalizableMessage message = ERR_STATICMEMBERS_CANNOT_DECODE_DN.
             get(String.valueOf(dn), String.valueOf(groupDN),
                 String.valueOf(de.getMessageObject()));
         throw new MembershipException(message, true, de);
@@ -157,7 +157,7 @@ public class SimpleStaticGroupMemberList
         Entry memberEntry = DirectoryConfig.getEntry(DN.decode(memberDN));
         if (memberEntry == null)
         {
-          Message message = ERR_STATICMEMBERS_NO_SUCH_ENTRY.get(
+          LocalizableMessage message = ERR_STATICMEMBERS_NO_SUCH_ENTRY.get(
               String.valueOf(memberDN), String.valueOf(groupDN));
           throw new MembershipException(message, true);
         }
@@ -171,7 +171,7 @@ public class SimpleStaticGroupMemberList
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        Message message = ERR_STATICMEMBERS_CANNOT_GET_ENTRY.
+        LocalizableMessage message = ERR_STATICMEMBERS_CANNOT_GET_ENTRY.
             get(String.valueOf(memberDN), String.valueOf(groupDN),
                 String.valueOf(de.getMessageObject()));
         throw new MembershipException(message, true, de);

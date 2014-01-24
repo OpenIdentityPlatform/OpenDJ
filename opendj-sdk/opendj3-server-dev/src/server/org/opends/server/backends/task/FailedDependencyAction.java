@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.TaskMessages.*;
 
 
@@ -104,18 +105,18 @@ public enum FailedDependencyAction
     }
   }
 
-  private Message name;
+  private LocalizableMessage name;
 
   /**
    * Gets the display name of this action.
    *
-   * @return Message representing the name of this action
+   * @return LocalizableMessage representing the name of this action
    */
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return name;
   }
 
-  private FailedDependencyAction(Message name) {
+  private FailedDependencyAction(LocalizableMessage name) {
     this.name = name;
   }
 }

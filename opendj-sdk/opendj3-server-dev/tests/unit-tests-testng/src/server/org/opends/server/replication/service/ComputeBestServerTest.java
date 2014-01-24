@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.service;
 
@@ -32,8 +32,8 @@ import java.util.Map.Entry;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.data.MapEntry;
 import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.MessageDescriptor;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.opends.messages.Severity;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
@@ -44,6 +44,7 @@ import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker.RSEvaluations;
 import org.opends.server.replication.service.ReplicationBroker.ReplicationServerInfo;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -80,7 +81,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
   private void debugInfo(String s)
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE, s));
+    logError(LocalizableMessage.raw(s));
     if (debugEnabled())
     {
       TRACER.debugInfo("** TEST **" + s);
@@ -117,7 +118,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     assertEquals(evals.getBestRS().getServerURL(), WINNER,
         "Wrong best replication server.");
-    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS));
+    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS.ordinal()));
   }
 
   private Map<Integer, ReplicationServerInfo> newRSInfos(
@@ -159,7 +160,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     assertEquals(evals.getBestRS().getServerURL(), WINNER,
         "Wrong best replication server.");
-    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS));
+    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS.ordinal()));
   }
 
   /**
@@ -182,7 +183,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     assertEquals(evals.getBestRS().getServerURL(), WINNER,
         "Wrong best replication server.");
-    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS));
+    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS.ordinal()));
   }
 
   /**
@@ -204,7 +205,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     assertEquals(evals.getBestRS().getServerURL(), WINNER,
         "Wrong best replication server.");
-    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS));
+    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS.ordinal()));
   }
 
   /**
@@ -229,8 +230,8 @@ public class ComputeBestServerTest extends ReplicationTestCase
     assertEquals(evals.getBestRS().getServerURL(), WINNER,
         "Wrong best replication server.");
     containsOnly(evals.getEvaluations(),
-        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
-        entry(12, NOTE_BEST_RS));
+        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS.ordinal()),
+        entry(12, NOTE_BEST_RS.ordinal()));
   }
 
   /**
@@ -257,53 +258,44 @@ public class ComputeBestServerTest extends ReplicationTestCase
     assertEquals(evals.getBestRS().getServerURL(), WINNER,
         "Wrong best replication server.");
     containsOnly(evals.getEvaluations(),
-        entry(11, NOTE_BEST_RS),
-        entry(12, NOTE_RS_HAS_DIFFERENT_GROUP_ID_THAN_DS));
+        entry(11, NOTE_BEST_RS.ordinal()),
+        entry(12, NOTE_RS_HAS_DIFFERENT_GROUP_ID_THAN_DS.ordinal()));
   }
 
-  private void containsOnly(final Map<Integer, Message> evaluations,
+  private void containsOnly(final Map<Integer, LocalizableMessage> evaluations,
       MapEntry... entries)
   {
     final List<MapEntry> notFound = new ArrayList<MapEntry>(Arrays.asList(entries));
     for (Iterator<MapEntry> iter = notFound.iterator(); iter.hasNext();)
     {
       final MapEntry entry = iter.next();
-      final Message reason = evaluations.get(entry.key);
-      if (reason != null && reason.getDescriptor().equals(entry.value))
+      final LocalizableMessage reason = evaluations.get(entry.key);
+      if (reason != null && reason.ordinal()==(Integer)entry.value)
       {
         iter.remove();
       }
     }
     if (!notFound.isEmpty())
     {
-      final StringBuilder sb = new StringBuilder("expecting:\n");
-      sb.append("  <").append(getDescription(evaluations)).append(">\n");
+      final StringBuilder sb = new StringBuilder("expecting ordinals:\n");
+      sb.append("  <").append(getOrdinal(evaluations)).append(">\n");
       sb.append("   to contain:\n");
-      sb.append("  <").append(getDescription(Arrays.asList(entries))).append(">\n");
+      sb.append("  <").append(Arrays.asList(entries)).append(">\n");
       sb.append("   but could not find:\n");
-      sb.append("  <").append(getDescription(notFound)).append(">");
+      sb.append("  <").append(notFound).append(">");
       throw new AssertionError(sb.toString());
     }
 
     Assertions.assertThat(evaluations).hasSize(entries.length);
   }
 
-  private Map<Integer, String> getDescription(Map<Integer, Message> evaluations)
+  /** Contains ordinal for each message */
+  private Map<Integer, Integer> getOrdinal(Map<Integer, LocalizableMessage> evaluations)
   {
-    final Map<Integer, String> result = new LinkedHashMap<Integer, String>();
-    for (Entry<Integer, Message> entry : evaluations.entrySet())
+    final Map<Integer, Integer> result = new LinkedHashMap<Integer, Integer>();
+    for (Entry<Integer, LocalizableMessage> entry : evaluations.entrySet())
     {
-      result.put(entry.getKey(), entry.getValue().getDescriptor().getKey());
-    }
-    return result;
-  }
-
-  private List<MapEntry> getDescription(List<MapEntry> entries)
-  {
-    final List<MapEntry> result = new ArrayList<MapEntry>();
-    for (MapEntry entry : entries)
-    {
-      result.add(entry(entry.key, ((MessageDescriptor) entry.value).getKey()));
+      result.put(entry.getKey(), entry.getValue().ordinal());
     }
     return result;
   }
@@ -330,8 +322,8 @@ public class ComputeBestServerTest extends ReplicationTestCase
     assertEquals(evals.getBestRS().getServerURL(), WINNER,
         "Wrong best replication server.");
     containsOnly(evals.getEvaluations(),
-        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
-        entry(12, NOTE_BEST_RS));
+        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS.ordinal()),
+        entry(12, NOTE_BEST_RS.ordinal()));
   }
 
   /**
@@ -358,9 +350,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     assertEquals(evals.getBestRS().getServerURL(), WINNER,
         "Wrong best replication server.");
     containsOnly(evals.getEvaluations(),
-        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
-        entry(12, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
-        entry(13, NOTE_BEST_RS));
+        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS.ordinal()),
+        entry(12, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS.ordinal()),
+        entry(13, NOTE_BEST_RS.ordinal()));
   }
 
   /**
@@ -388,9 +380,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     assertEquals(evals.getBestRS().getServerURL(), WINNER,
         "Wrong best replication server.");
     containsOnly(evals.getEvaluations(),
-        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
-        entry(12, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
-        entry(13, NOTE_BEST_RS));
+        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS.ordinal()),
+        entry(12, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS.ordinal()),
+        entry(13, NOTE_BEST_RS.ordinal()));
   }
 
   /**
@@ -419,9 +411,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     assertEquals(evals.getBestRS().getServerURL(), WINNER,
         "Wrong best replication server.");
     containsOnly(evals.getEvaluations(),
-        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
-        entry(12, NOTE_RS_HAS_DIFFERENT_GROUP_ID_THAN_DS),
-        entry(13, NOTE_BEST_RS));
+        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS.ordinal()),
+        entry(12, NOTE_RS_HAS_DIFFERENT_GROUP_ID_THAN_DS.ordinal()),
+        entry(13, NOTE_BEST_RS.ordinal()));
   }
 
   /**
@@ -443,7 +435,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     assertEquals(evals.getBestRS().getServerURL(), WINNER,
         "Wrong best replication server.");
-    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS));
+    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS.ordinal()));
   }
 
   @DataProvider(name = "create3ServersData")
@@ -557,21 +549,21 @@ public class ComputeBestServerTest extends ReplicationTestCase
     final boolean winnerIsLatestRS = winnerT1 > 4 && looser1T1 == 4 && looser2T1 == 4;
     containsOnly(evals.getEvaluations(),
         entry(11, getEval1(winnerIsLocal, looser1IsLocal, winnerIsLatestRS)),
-        entry(12, NOTE_BEST_RS),
+        entry(12, NOTE_BEST_RS.ordinal()),
         entry(13, getEval1(winnerIsLocal, looser2IsLocal, winnerIsLatestRS)));
   }
 
-  private MessageDescriptor getEval1(boolean winnerIsLocal, boolean looserIsLocal, boolean winnerIsLatestRS)
+  private Integer getEval1(boolean winnerIsLocal, boolean looserIsLocal, boolean winnerIsLatestRS)
   {
     if (winnerIsLocal && !looserIsLocal)
     {
-      return NOTE_RS_ON_DIFFERENT_VM_THAN_DS;
+      return NOTE_RS_ON_DIFFERENT_VM_THAN_DS.ordinal();
     }
     else if (winnerIsLatestRS)
     {
-      return NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS;
+      return NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS.ordinal();
     }
-    return NOTE_RS_LATER_THAN_LOCAL_DS;
+    return NOTE_RS_LATER_THAN_LOCAL_DS.ordinal();
   }
 
   @DataProvider(name = "test3ServersMoreCriteria")
@@ -646,21 +638,21 @@ public class ComputeBestServerTest extends ReplicationTestCase
         "Wrong best replication server.");
     containsOnly(evals.getEvaluations(),
         entry(11, getEval2(winnerGroupId == looser1GroupId, winnerIsLocal, looser1IsLocal)),
-        entry(12, NOTE_BEST_RS),
+        entry(12, NOTE_BEST_RS.ordinal()),
         entry(13, getEval2(winnerGroupId == looser2GroupId, winnerIsLocal, looser2IsLocal)));
   }
 
-  private MessageDescriptor getEval2(boolean sameGroupId, boolean winnerIsLocal, boolean looserIsLocal)
+  private Integer getEval2(boolean sameGroupId, boolean winnerIsLocal, boolean looserIsLocal)
   {
     if (winnerIsLocal && !looserIsLocal)
     {
-      return NOTE_RS_ON_DIFFERENT_VM_THAN_DS;
+      return NOTE_RS_ON_DIFFERENT_VM_THAN_DS.ordinal();
     }
     else if (!sameGroupId)
     {
-      return NOTE_RS_HAS_DIFFERENT_GROUP_ID_THAN_DS;
+      return NOTE_RS_HAS_DIFFERENT_GROUP_ID_THAN_DS.ordinal();
     }
-    return NOTE_RS_HAS_DIFFERENT_GENERATION_ID_THAN_DS;
+    return NOTE_RS_HAS_DIFFERENT_GENERATION_ID_THAN_DS.ordinal();
   }
 
   @SuppressWarnings("unchecked")

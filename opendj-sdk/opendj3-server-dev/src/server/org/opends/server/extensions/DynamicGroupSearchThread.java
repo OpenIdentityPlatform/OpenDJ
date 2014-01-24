@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -132,7 +132,7 @@ public class DynamicGroupSearchThread
       {
         if (resultCode == ResultCode.NO_SUCH_OBJECT)
         {
-          Message message = WARN_DYNAMICGROUP_NONEXISTENT_BASE_DN.
+          LocalizableMessage message = WARN_DYNAMICGROUP_NONEXISTENT_BASE_DN.
               get(String.valueOf(baseDNs[searchCounter]),
                   String.valueOf(memberList.getDynamicGroupDN()));
           ErrorLogger.logError(message);
@@ -140,7 +140,7 @@ public class DynamicGroupSearchThread
         }
         else
         {
-          Message message =
+          LocalizableMessage message =
                ERR_DYNAMICGROUP_INTERNAL_SEARCH_FAILED.get(
                        String.valueOf(baseDNs[searchCounter]),
                        String.valueOf(searchFilters[searchCounter]),
@@ -175,7 +175,7 @@ public class DynamicGroupSearchThread
       {
         if (! memberList.addResult(searchEntry))
         {
-          Message message = ERR_DYNAMICGROUP_CANNOT_RETURN_ENTRY.
+          LocalizableMessage message = ERR_DYNAMICGROUP_CANNOT_RETURN_ENTRY.
               get(String.valueOf(searchEntry.getName()),
                   String.valueOf(memberList.getDynamicGroupDN()));
           throw new DirectoryException(

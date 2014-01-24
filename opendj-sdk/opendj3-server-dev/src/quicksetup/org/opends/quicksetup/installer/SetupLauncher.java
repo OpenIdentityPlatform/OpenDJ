@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer;
@@ -40,7 +41,7 @@ import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.InstallDS;
 import org.opends.server.tools.InstallDSArgumentParser;
 import org.opends.server.util.DynamicConstants;
@@ -108,7 +109,7 @@ public class SetupLauncher extends Launcher {
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       System.out.println(message);
     }
   }
@@ -160,7 +161,7 @@ public class SetupLauncher extends Launcher {
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       System.err.println(message);
       System.err.println();
       System.err.println(argParser.getUsage());
@@ -208,10 +209,10 @@ public class SetupLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected Message getFrameTitle() {
+  protected LocalizableMessage getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_INSTALL_TITLE",
         INFO_FRAME_INSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME),
-        Message.class);
+        LocalizableMessage.class);
   }
 
   /**

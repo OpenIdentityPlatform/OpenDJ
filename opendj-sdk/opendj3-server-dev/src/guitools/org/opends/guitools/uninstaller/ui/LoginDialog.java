@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.uninstaller.ui;
@@ -69,7 +70,7 @@ import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -226,7 +227,7 @@ public class LoginDialog extends JDialog
     gbc.fill = GridBagConstraints.BOTH;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = 0;
-    Message msg = INFO_UNINSTALL_LOGIN_DIALOG_MSG.get();
+    LocalizableMessage msg = INFO_UNINSTALL_LOGIN_DIALOG_MSG.get();
 
     JTextComponent textPane =
       UIFactory.makeHtmlPane(msg, UIFactory.INSTRUCTIONS_FONT);
@@ -250,7 +251,7 @@ public class LoginDialog extends JDialog
     gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     tfHostName = UIFactory.makeJTextField(
-        Message.raw(UserData.getDefaultHostName()),
+        LocalizableMessage.raw(UserData.getDefaultHostName()),
         INFO_UNINSTALL_LOGIN_HOST_NAME_TOOLTIP.get(),
         UIFactory.HOST_FIELD_SIZE, UIFactory.TextStyle.TEXTFIELD);
     p2.add(tfHostName, gbc);
@@ -268,7 +269,7 @@ public class LoginDialog extends JDialog
     gbc.weightx = 1.0;
     gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
-    tfUid = UIFactory.makeJTextField(Message.raw(Constants.GLOBAL_ADMIN_UID),
+    tfUid = UIFactory.makeJTextField(LocalizableMessage.raw(Constants.GLOBAL_ADMIN_UID),
         INFO_UNINSTALL_LOGIN_UID_TOOLTIP.get(),
         UIFactory.DN_FIELD_SIZE, UIFactory.TextStyle.TEXTFIELD);
     p2.add(tfUid, gbc);
@@ -455,7 +456,7 @@ public class LoginDialog extends JDialog
             }
             else
             {
-              Message msg = Utils.getThrowableMsg(
+              LocalizableMessage msg = Utils.getThrowableMsg(
                   INFO_ERROR_CONNECTING_TO_LOCAL.get(), throwable);
               displayError(msg, INFO_ERROR_TITLE.get());
             }
@@ -493,7 +494,7 @@ public class LoginDialog extends JDialog
             boolean pwdInvalid = false;
 
             String uid = tfUid.getText();
-            ArrayList<Message> possibleCauses = new ArrayList<Message>();
+            ArrayList<LocalizableMessage> possibleCauses = new ArrayList<LocalizableMessage>();
             if ("".equals(uid.trim()))
             {
               uidInvalid = true;
@@ -528,7 +529,7 @@ public class LoginDialog extends JDialog
             }
             if (possibleCauses.size() > 0)
             {
-              // Message with causes
+              // LocalizableMessage with causes
               displayError(
                   ERR_CANNOT_CONNECT_TO_LOGIN_WITH_CAUSE.get(
                           Utils.getMessageFromCollection(possibleCauses, "\n")),
@@ -607,7 +608,7 @@ public class LoginDialog extends JDialog
    * @param title
    *          the title for the dialog.
    */
-  private void displayError(Message msg, Message title)
+  private void displayError(LocalizableMessage msg, LocalizableMessage title)
   {
     Utilities.displayError(parent, msg, title);
     toFront();
@@ -622,7 +623,7 @@ public class LoginDialog extends JDialog
    * @param title
    *          the title for the dialog.
    */
-  private void displayInformationMessage(Message msg, Message title)
+  private void displayInformationMessage(LocalizableMessage msg, LocalizableMessage title)
   {
     Utilities.displayInformationMessage(parent, msg, title);
     toFront();

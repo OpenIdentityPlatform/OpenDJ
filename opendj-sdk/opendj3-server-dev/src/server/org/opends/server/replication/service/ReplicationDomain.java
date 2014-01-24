@@ -37,9 +37,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.api.DirectoryThread;
@@ -704,7 +702,7 @@ public abstract class ReplicationDomain
 
         if (debugEnabled() && !(msg instanceof HeartbeatMsg))
         {
-          TRACER.debugVerbose("Message received <" + msg + ">");
+          TRACER.debugVerbose("LocalizableMessage received <" + msg + ">");
         }
 
         if (msg instanceof AckMsg)
@@ -1333,7 +1331,7 @@ public abstract class ReplicationDomain
     catch (Exception e)
     {
       ResultCode resultCode = ResultCode.OTHER;
-      Message message = ERR_INVALID_EXPORT_TARGET.get();
+      LocalizableMessage message = ERR_INVALID_EXPORT_TARGET.get();
       throw new DirectoryException(resultCode, message, e);
     }
   }
@@ -1764,7 +1762,7 @@ public abstract class ReplicationDomain
     if (!ieContext.compareAndSet(null, ieCtx))
     {
       // Rejects 2 simultaneous exports
-      Message message = ERR_SIMULTANEOUS_IMPORT_EXPORT_REJECTED.get();
+      LocalizableMessage message = ERR_SIMULTANEOUS_IMPORT_EXPORT_REJECTED.get();
       throw new DirectoryException(ResultCode.OTHER, message);
     }
     return ieCtx;
@@ -1921,9 +1919,8 @@ public abstract class ReplicationDomain
           if (msg instanceof TopologyMsg
               && isRemoteDSConnected(ieCtx.importSource) == null)
           {
-            Message errMsg =
-              Message.raw(Category.SYNC, Severity.NOTICE,
-                  ERR_INIT_EXPORTER_DISCONNECTION.get(
+            LocalizableMessage errMsg =
+              LocalizableMessage.raw(                  ERR_INIT_EXPORTER_DISCONNECTION.get(
                       getBaseDNString(),
                       Integer.toString(getServerId()),
                       Integer.toString(ieCtx.importSource)));
@@ -2172,7 +2169,7 @@ public abstract class ReplicationDomain
       TRACER.debugInfo("[IE] Entering initializeFromRemote for " + this);
     }
 
-    Message errMsg = !broker.isConnected()
+    LocalizableMessage errMsg = !broker.isConnected()
         ? ERR_INITIALIZATION_FAILED_NOCONN.get(getBaseDNString())
         : null;
 
@@ -2215,8 +2212,7 @@ public abstract class ReplicationDomain
     catch(Exception e)
     {
       // Should not happen
-      errMsg = Message.raw(Category.SYNC, Severity.NOTICE,
-          e.getLocalizedMessage());
+      errMsg = LocalizableMessage.raw(          e.getLocalizedMessage());
       logError(errMsg);
     }
 
@@ -2394,7 +2390,7 @@ public abstract class ReplicationDomain
       }
       finally
       {
-        Message msg = NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.get(
+        LocalizableMessage msg = NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.get(
             getBaseDNString(), initTargetMsgReceived.getSenderID(),
             getServerId(),
             (ieCtx.getException() == null ? ""
@@ -2513,7 +2509,7 @@ public abstract class ReplicationDomain
     }
     if (!allSet)
     {
-      Message message = ERR_RESET_GENERATION_ID_FAILED.get(getBaseDNString());
+      LocalizableMessage message = ERR_RESET_GENERATION_ID_FAILED.get(getBaseDNString());
       throw new DirectoryException(ResultCode.OTHER, message);
     }
   }
@@ -2580,7 +2576,7 @@ public abstract class ReplicationDomain
 
     if (!isConnected())
     {
-      Message message = ERR_RESET_GENERATION_CONN_ERR_ID.get(getBaseDNString(),
+      LocalizableMessage message = ERR_RESET_GENERATION_CONN_ERR_ID.get(getBaseDNString(),
           Integer.toString(getServerId()),
           Long.toString(genIdMessage.getGenerationId()));
       throw new DirectoryException(ResultCode.OTHER, message);

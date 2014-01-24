@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.security.cert.X509Certificate;
 
@@ -72,7 +73,7 @@ public class UserDataCertificateException extends UserDataException
    * @param authType the authentication type.
    * @param type the type of the exception.
    */
-  public UserDataCertificateException(WizardStep step, Message message,
+  public UserDataCertificateException(WizardStep step, LocalizableMessage message,
       Throwable t, String host, int port, X509Certificate[] chain,
       String authType, Type type)
   {

@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.types.operation;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 import java.util.List;
@@ -67,7 +67,7 @@ public interface PostResponseOperation
    *
    * @return  The error message for this operation.
    */
-  public MessageBuilder getErrorMessage();
+  public LocalizableMessageBuilder getErrorMessage();
 
 
 

@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -49,7 +50,6 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.ExtensionMessages.*;
 
-import org.opends.messages.MessageDescriptor;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -97,7 +97,7 @@ public class SMTPAlertHandler
     if ((DirectoryServer.getMailServerPropertySets() == null) ||
         DirectoryServer.getMailServerPropertySets().isEmpty())
     {
-      Message message = ERR_SMTPALERTHANDLER_NO_SMTP_SERVERS.get();
+      LocalizableMessage message = ERR_SMTPALERTHANDLER_NO_SMTP_SERVERS.get();
       throw new ConfigException(message);
     }
 
@@ -121,7 +121,7 @@ public class SMTPAlertHandler
    * {@inheritDoc}
    */
   public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -142,7 +142,7 @@ public class SMTPAlertHandler
    * {@inheritDoc}
    */
   public void sendAlertNotification(AlertGenerator generator, String alertType,
-                                    Message alertMessage)
+                                    LocalizableMessage alertMessage)
   {
     SMTPAlertHandlerCfg cfg = currentConfig;
 
@@ -152,10 +152,10 @@ public class SMTPAlertHandler
     String alertIDStr;
     String alertMessageStr;
     if (alertMessage != null) {
-      alertIDStr = String.valueOf(alertMessage.getDescriptor().getId());
+      alertIDStr = alertMessage.resourceName() + "-" + alertMessage.ordinal();
       alertMessageStr = alertMessage.toString();
     } else {
-      alertIDStr = String.valueOf(MessageDescriptor.NULL_ID);
+      alertIDStr = "-1";
       alertMessageStr = "none";
     }
     String subject = replaceTokens(cfg.getMessageSubject(), alertType,
@@ -167,7 +167,7 @@ public class SMTPAlertHandler
     EMailMessage message = new EMailMessage(cfg.getSenderAddress(), recipients,
                                             subject);
 
-    message.setBody(Message.raw(wrapText(body, 75)));
+    message.setBody(LocalizableMessage.raw(wrapText(body, 75)));
 
     try
     {
@@ -180,7 +180,7 @@ public class SMTPAlertHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message msg = WARN_SMTPALERTHANDLER_ERROR_SENDING_MESSAGE.get(
+      LocalizableMessage msg = WARN_SMTPALERTHANDLER_ERROR_SENDING_MESSAGE.get(
           alertType, alertMessage, e.getLocalizedMessage());
       ErrorLogger.logError(msg);
     }
@@ -224,7 +224,7 @@ public class SMTPAlertHandler
    */
   public boolean isConfigurationChangeAcceptable(
                       SMTPAlertHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }

@@ -32,7 +32,7 @@ import java.util.*;
 
 import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
@@ -141,7 +141,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
   private void debugInfo(String s)
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE, "** TEST **" + s));
+    logError(LocalizableMessage.raw("** TEST **" + s));
     if (debugEnabled())
     {
       TRACER.debugInfo("** TEST **" + s);

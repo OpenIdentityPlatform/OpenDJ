@@ -33,7 +33,7 @@ import static org.opends.server.util.ServerConstants.*;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
@@ -64,7 +64,7 @@ public class SubtreeDeleteControl extends Control
     {
       if (value != null)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_SUBTREE_DELETE_INVALID_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }

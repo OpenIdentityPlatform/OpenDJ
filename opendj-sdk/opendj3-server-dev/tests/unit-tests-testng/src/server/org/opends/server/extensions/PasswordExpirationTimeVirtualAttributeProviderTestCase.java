@@ -33,7 +33,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -238,7 +238,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
 
     AttributeValue val = it.next();
 
-    conn.disconnect(DisconnectReason.UNBIND, true, Message.EMPTY);
+    conn.disconnect(DisconnectReason.UNBIND, true, LocalizableMessage.EMPTY);
 
     return
       GeneralizedTimeSyntax.decodeGeneralizedTimeValue(val.getValue());

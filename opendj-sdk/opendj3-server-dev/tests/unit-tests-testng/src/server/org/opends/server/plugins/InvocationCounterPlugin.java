@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -43,7 +44,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.operation.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -960,7 +961,7 @@ public class InvocationCounterPlugin
   @Override()
   public PluginResult.PostDisconnect doPostDisconnect(
           ClientConnection clientConnection, DisconnectReason disconnectReason,
-          Message message)
+          LocalizableMessage message)
   {
     postDisconnectCounter.incrementAndGet();
     return PluginResult.PostDisconnect.continueDisconnectProcessing();
@@ -1135,7 +1136,7 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public void doShutdown(Message reason)
+  public void doShutdown(LocalizableMessage reason)
   {
     shutdownCalled = true;
   }

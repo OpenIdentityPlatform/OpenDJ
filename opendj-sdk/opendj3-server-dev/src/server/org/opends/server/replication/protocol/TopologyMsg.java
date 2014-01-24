@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -303,7 +303,7 @@ public class TopologyMsg extends ReplicationMsg
     try
     {
       /**
-       * Message has the following form:
+       * LocalizableMessage has the following form:
        * <pdu type><number of following DSInfo entries>[<DSInfo>]*
        * <number of following RSInfo entries>[<RSInfo>]*
        */

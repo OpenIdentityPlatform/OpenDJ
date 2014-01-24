@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -139,7 +139,7 @@ public class DSMLModifyOperation
     ModifyResponseProtocolOp modOp =
          responseMessage.getModifyResponseProtocolOp();
     int resultCode = modOp.getResultCode();
-    Message errorMessage = modOp.getErrorMessage();
+    LocalizableMessage errorMessage = modOp.getErrorMessage();
 
     // Set the result code and error message for the DSML response.
     modResponse.setErrorMessage(

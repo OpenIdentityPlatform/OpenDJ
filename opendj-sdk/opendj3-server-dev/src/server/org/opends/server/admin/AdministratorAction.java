@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -149,7 +150,7 @@ public final class AdministratorAction {
    *         default locale, or <code>null</code> if there is no
    *         synopsis defined.
    */
-  public final Message getSynopsis() {
+  public final LocalizableMessage getSynopsis() {
     return getSynopsis(Locale.getDefault());
   }
 
@@ -165,7 +166,7 @@ public final class AdministratorAction {
    *         specified locale, or <code>null</code> if there is no
    *         synopsis defined.
    */
-  public final Message getSynopsis(Locale locale) {
+  public final LocalizableMessage getSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + propertyName

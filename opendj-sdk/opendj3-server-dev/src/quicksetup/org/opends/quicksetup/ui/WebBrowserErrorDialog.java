@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
@@ -43,7 +43,7 @@ import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.util.WebBrowserException;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -113,7 +113,7 @@ public class WebBrowserErrorDialog extends JDialog
     Insets pInsets = UIFactory.getCurrentStepPanelInsets();
     gbc.insets.left = 0;
     gbc.fill = GridBagConstraints.BOTH;
-    Message msg = INFO_ERROR_BROWSER_DISPLAY_MSG.get(url);
+    LocalizableMessage msg = INFO_ERROR_BROWSER_DISPLAY_MSG.get(url);
     JTextComponent tf =
         UIFactory.makeHtmlPane(msg,
             UIFactory.ERROR_DIALOG_FONT);
@@ -191,7 +191,7 @@ public class WebBrowserErrorDialog extends JDialog
       WebBrowserErrorDialog dlg =
           new WebBrowserErrorDialog(new JFrame(),
               new WebBrowserException("http://opendj.org",
-                      Message.raw("toto"), null));
+                      LocalizableMessage.raw("toto"), null));
       dlg.packAndShow();
     } catch (Exception ex)
     {

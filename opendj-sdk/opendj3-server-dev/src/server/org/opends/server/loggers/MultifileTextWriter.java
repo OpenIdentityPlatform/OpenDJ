@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -39,7 +40,7 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.LoggerMessages.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -198,7 +199,7 @@ public class MultifileTextWriter
       {
         if(!FilePermission.setPermissions(file, filePermissions))
         {
-          Message message = WARN_LOGGER_UNABLE_SET_PERMISSIONS.get(
+          LocalizableMessage message = WARN_LOGGER_UNABLE_SET_PERMISSIONS.get(
               filePermissions.toString(), file.toString());
           ErrorLogger.logError(message);
         }
@@ -206,7 +207,7 @@ public class MultifileTextWriter
       catch(Exception e)
       {
         // Log an warning that the permissions were not set.
-        Message message = WARN_LOGGER_SET_PERMISSION_FAILED.get(
+        LocalizableMessage message = WARN_LOGGER_SET_PERMISSION_FAILED.get(
             file.toString(), stackTraceToSingleLineString(e));
         ErrorLogger.logError(message);
       }
@@ -355,7 +356,7 @@ public class MultifileTextWriter
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      SizeLimitLogRotationPolicyCfg config, List<Message> unacceptableReasons)
+      SizeLimitLogRotationPolicyCfg config, List<LocalizableMessage> unacceptableReasons)
   {
     // This should always be ok
     return true;
@@ -396,7 +397,7 @@ public class MultifileTextWriter
     sizeLimit = newSizeLimit;
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false,
-                                  new ArrayList<Message>());
+                                  new ArrayList<LocalizableMessage>());
   }
 
   /**
@@ -501,7 +502,7 @@ public class MultifileTextWriter
    *
    * @param  reason  The human-readable reason for the shutdown.
    */
-  public void processServerShutdown(Message reason)
+  public void processServerShutdown(LocalizableMessage reason)
   {
     stopRequested = true;
 

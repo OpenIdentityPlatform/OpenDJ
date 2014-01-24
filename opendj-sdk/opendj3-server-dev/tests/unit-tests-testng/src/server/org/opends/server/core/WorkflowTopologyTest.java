@@ -28,15 +28,20 @@ package org.opends.server.core;
 
 
 import static org.opends.messages.CoreMessages.*;
-import org.opends.messages.MessageBuilder;
+
+import org.forgerock.i18n.LocalizableMessageBuilder;
+
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertNull;
+
 import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.UtilTestCase;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.testng.annotations.BeforeClass;
@@ -911,10 +916,10 @@ public class WorkflowTopologyTest extends UtilTestCase
   {
     // Check the function that elaborates the global result code
     WorkflowResultCode globalResultCode = new WorkflowResultCode (
-        initialResultCode, new MessageBuilder("")
+        initialResultCode, new LocalizableMessageBuilder("")
         );
     globalResultCode.elaborateGlobalResultCode (
-        receivedResultCode, new MessageBuilder("")
+        receivedResultCode, new LocalizableMessageBuilder("")
         );
     assertEquals (globalResultCode.resultCode(), expectedGlobalResultCode);
   }
@@ -951,7 +956,8 @@ public class WorkflowTopologyTest extends UtilTestCase
     catch (DirectoryException e)
     {
       exceptionRaised = true;
-      assertEquals(e.getMessageObject().getDescriptor(), ERR_REGISTER_WORKFLOW_ALREADY_EXISTS);
+      assertTrue(StaticUtils.hasDescriptor(e.getMessageObject(),
+          ERR_REGISTER_WORKFLOW_ALREADY_EXISTS));
     }
     assertEquals(exceptionRaised, true);
   }

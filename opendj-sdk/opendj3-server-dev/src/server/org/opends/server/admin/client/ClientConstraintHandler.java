@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.client;
 
@@ -29,7 +30,7 @@ package org.opends.server.admin.client;
 
 import java.util.Collection;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.ManagedObjectPath;
 
 
@@ -86,7 +87,7 @@ public abstract class ClientConstraintHandler {
    *           from being evaluated.
    */
   public boolean isAddAcceptable(ManagementContext context,
-      ManagedObject<?> managedObject, Collection<Message> unacceptableReasons)
+      ManagedObject<?> managedObject, Collection<LocalizableMessage> unacceptableReasons)
       throws AuthorizationException, CommunicationException {
     return true;
   }
@@ -121,7 +122,7 @@ public abstract class ClientConstraintHandler {
    *           from being evaluated.
    */
   public boolean isModifyAcceptable(ManagementContext context,
-      ManagedObject<?> managedObject, Collection<Message> unacceptableReasons)
+      ManagedObject<?> managedObject, Collection<LocalizableMessage> unacceptableReasons)
       throws AuthorizationException, CommunicationException {
     return true;
   }
@@ -157,7 +158,7 @@ public abstract class ClientConstraintHandler {
    *           from being evaluated.
    */
   public boolean isDeleteAcceptable(ManagementContext context,
-      ManagedObjectPath<?, ?> path, Collection<Message> unacceptableReasons)
+      ManagedObjectPath<?, ?> path, Collection<LocalizableMessage> unacceptableReasons)
       throws AuthorizationException, CommunicationException {
     return true;
   }

@@ -45,8 +45,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import javax.crypto.Mac;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.Configuration;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
@@ -230,7 +230,7 @@ public class ConfigFileHandler
     {
       if (! f.exists())
       {
-        Message message = ERR_CONFIG_FILE_DOES_NOT_EXIST.get(
+        LocalizableMessage message = ERR_CONFIG_FILE_DOES_NOT_EXIST.get(
                                f.getAbsolutePath());
         throw new InitializationException(message);
       }
@@ -251,7 +251,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_FILE_CANNOT_VERIFY_EXISTENCE.get(
+      LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_VERIFY_EXISTENCE.get(
                              f.getAbsolutePath(), String.valueOf(e));
       throw new InitializationException(message);
     }
@@ -318,7 +318,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES.get(
+      LocalizableMessage message = ERR_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES.get(
           changesFile.getAbsolutePath(), String.valueOf(e));
       throw new InitializationException(message, e);
     }
@@ -342,7 +342,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_FILE_CANNOT_OPEN_FOR_READ.get(
+      LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_OPEN_FOR_READ.get(
                              f.getAbsolutePath(), String.valueOf(e));
       throw new InitializationException(message, e);
     }
@@ -363,7 +363,7 @@ public class ConfigFileHandler
 
       close(reader);
 
-      Message message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
+      LocalizableMessage message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
           le.getLineNumber(), f.getAbsolutePath(), String.valueOf(le));
       throw new InitializationException(message, le);
     }
@@ -376,7 +376,7 @@ public class ConfigFileHandler
 
       close(reader);
 
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_FILE_READ_ERROR.get(f.getAbsolutePath(),
                                        String.valueOf(e));
       throw new InitializationException(message, e);
@@ -388,7 +388,7 @@ public class ConfigFileHandler
     {
       close(reader);
 
-      Message message = ERR_CONFIG_FILE_EMPTY.get(f.getAbsolutePath());
+      LocalizableMessage message = ERR_CONFIG_FILE_EMPTY.get(f.getAbsolutePath());
       throw new InitializationException(message);
     }
 
@@ -399,7 +399,7 @@ public class ConfigFileHandler
       DN configRootDN = DN.valueOf(DN_CONFIG_ROOT);
       if (! entry.getName().equals(configRootDN))
       {
-        Message message = ERR_CONFIG_FILE_INVALID_BASE_DN.get(
+        LocalizableMessage message = ERR_CONFIG_FILE_INVALID_BASE_DN.get(
                                f.getAbsolutePath(), entry.getName().toString(),
                                DN_CONFIG_ROOT);
         throw new InitializationException(message);
@@ -425,7 +425,7 @@ public class ConfigFileHandler
       close(reader);
 
       // This should not happen, so we can use a generic error here.
-      Message message = ERR_CONFIG_FILE_GENERIC_ERROR.get(f.getAbsolutePath(),
+      LocalizableMessage message = ERR_CONFIG_FILE_GENERIC_ERROR.get(f.getAbsolutePath(),
                                                           String.valueOf(e));
       throw new InitializationException(message, e);
     }
@@ -456,7 +456,7 @@ public class ConfigFileHandler
 
         close(reader);
 
-        Message message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
+        LocalizableMessage message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
                                le.getLineNumber(), f.getAbsolutePath(),
                                String.valueOf(le));
         throw new InitializationException(message, le);
@@ -470,7 +470,7 @@ public class ConfigFileHandler
 
         close(reader);
 
-        Message message = ERR_CONFIG_FILE_READ_ERROR.get(f.getAbsolutePath(),
+        LocalizableMessage message = ERR_CONFIG_FILE_READ_ERROR.get(f.getAbsolutePath(),
                                                          String.valueOf(e));
         throw new InitializationException(message, e);
       }
@@ -491,7 +491,7 @@ public class ConfigFileHandler
       {
         close(reader);
 
-        Message message = ERR_CONFIG_FILE_DUPLICATE_ENTRY.get(
+        LocalizableMessage message = ERR_CONFIG_FILE_DUPLICATE_ENTRY.get(
                                entryDN.toString(),
                                String.valueOf(reader.getLastEntryLineNumber()),
                                f.getAbsolutePath());
@@ -505,7 +505,7 @@ public class ConfigFileHandler
       {
         close(reader);
 
-        Message message = ERR_CONFIG_FILE_UNKNOWN_PARENT.get(
+        LocalizableMessage message = ERR_CONFIG_FILE_UNKNOWN_PARENT.get(
                                entryDN.toString(),
                                reader.getLastEntryLineNumber(),
                                f.getAbsolutePath());
@@ -517,7 +517,7 @@ public class ConfigFileHandler
       {
         close(reader);
 
-        Message message = ERR_CONFIG_FILE_NO_PARENT.get(entryDN.toString(),
+        LocalizableMessage message = ERR_CONFIG_FILE_NO_PARENT.get(entryDN.toString(),
                                reader.getLastEntryLineNumber(),
                                f.getAbsolutePath(), parentDN.toString());
         throw new InitializationException(message);
@@ -542,7 +542,7 @@ public class ConfigFileHandler
 
         close(reader);
 
-        Message message = ERR_CONFIG_FILE_GENERIC_ERROR.get(f.getAbsolutePath(),
+        LocalizableMessage message = ERR_CONFIG_FILE_GENERIC_ERROR.get(f.getAbsolutePath(),
                                                             String.valueOf(e));
         throw new InitializationException(message, e);
       }
@@ -578,7 +578,7 @@ public class ConfigFileHandler
 
         if (serverRoot == null)
         {
-          Message message = ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(
+          LocalizableMessage message = ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(
               ENV_VAR_INSTALL_ROOT);
           throw new InitializationException(message);
         }
@@ -599,7 +599,7 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(ENV_VAR_INSTALL_ROOT);
         throw new InitializationException(message);
       }
@@ -629,7 +629,7 @@ public class ConfigFileHandler
           serverRoot));
     if (instanceFile == null)
     {
-      Message message =
+      LocalizableMessage message =
         ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(ENV_VAR_INSTALL_ROOT);
         throw new InitializationException(message);
     }
@@ -675,7 +675,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_CANNOT_REGISTER_AS_PRIVATE_SUFFIX.get(
+      LocalizableMessage message = ERR_CONFIG_CANNOT_REGISTER_AS_PRIVATE_SUFFIX.get(
           String.valueOf(configRootEntry.getDN()), getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
@@ -715,7 +715,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_CANNOT_CALCULATE_DIGEST.get(
+      LocalizableMessage message = ERR_CONFIG_CANNOT_CALCULATE_DIGEST.get(
           configFile, stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -835,7 +835,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_CANNOT_CALCULATE_DIGEST.get(
+      LocalizableMessage message = ERR_CONFIG_CANNOT_CALCULATE_DIGEST.get(
           latestFile.getAbsolutePath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -882,7 +882,7 @@ public class ConfigFileHandler
 
 
     // Apply the changes and make sure there were no errors.
-    List<Message> errorList = new LinkedList<Message>();
+    List<LocalizableMessage> errorList = new LinkedList<LocalizableMessage>();
     boolean successful = LDIFModify.modifyLDIF(sourceReader, changesReader,
                                                targetWriter, errorList);
 
@@ -891,13 +891,13 @@ public class ConfigFileHandler
     if (! successful)
     {
       // FIXME -- Log each error message and throw an exception.
-      for (Message s : errorList)
+      for (LocalizableMessage s : errorList)
       {
-        Message message = ERR_CONFIG_ERROR_APPLYING_STARTUP_CHANGE.get(s);
+        LocalizableMessage message = ERR_CONFIG_ERROR_APPLYING_STARTUP_CHANGE.get(s);
         logError(message);
       }
 
-      Message message = ERR_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE.get();
+      LocalizableMessage message = ERR_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE.get();
       throw new LDIFException(message);
     }
 
@@ -1172,7 +1172,7 @@ public class ConfigFileHandler
       if (!clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
                                              addOperation))
       {
-        Message message = ERR_CONFIG_FILE_ADD_INSUFFICIENT_PRIVILEGES.get();
+        LocalizableMessage message = ERR_CONFIG_FILE_ADD_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                      message);
       }
@@ -1188,7 +1188,7 @@ public class ConfigFileHandler
       DN entryDN = e.getName();
       if (configEntries.containsKey(entryDN))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_FILE_ADD_ALREADY_EXISTS.get(String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
       }
@@ -1199,7 +1199,7 @@ public class ConfigFileHandler
       if (parentDN == null)
       {
         // The entry DN doesn't have a parent.  This is not allowed.
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_FILE_ADD_NO_PARENT_DN.get(String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
@@ -1208,7 +1208,7 @@ public class ConfigFileHandler
       if (parentEntry == null)
       {
         // The parent entry does not exist.  This is not allowed.
-        Message message = ERR_CONFIG_FILE_ADD_NO_PARENT.get(
+        LocalizableMessage message = ERR_CONFIG_FILE_ADD_NO_PARENT.get(
                 String.valueOf(entryDN),
                 String.valueOf(parentDN));
 
@@ -1238,12 +1238,12 @@ public class ConfigFileHandler
       // See if the parent entry has any add listeners.  If so, then iterate
       // through them and make sure the new entry is acceptable.
       List<ConfigAddListener> addListeners = parentEntry.getAddListeners();
-      MessageBuilder unacceptableReason = new MessageBuilder();
+      LocalizableMessageBuilder unacceptableReason = new LocalizableMessageBuilder();
       for (ConfigAddListener l : addListeners)
       {
         if (! l.configAddIsAcceptable(newEntry, unacceptableReason))
         {
-          Message message = ERR_CONFIG_FILE_ADD_REJECTED_BY_LISTENER.
+          LocalizableMessage message = ERR_CONFIG_FILE_ADD_REJECTED_BY_LISTENER.
               get(String.valueOf(entryDN), String.valueOf(parentDN),
                   String.valueOf(unacceptableReason));
           throw new DirectoryException(
@@ -1268,7 +1268,7 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, ce);
         }
 
-        Message message = ERR_CONFIG_FILE_ADD_FAILED.
+        LocalizableMessage message = ERR_CONFIG_FILE_ADD_FAILED.
             get(String.valueOf(entryDN), String.valueOf(parentDN),
                 getExceptionMessage(ce));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -1278,7 +1278,7 @@ public class ConfigFileHandler
 
       // Notify all the add listeners that the entry has been added.
       ResultCode    resultCode = ResultCode.SUCCESS;
-      List<Message> messages   = new LinkedList<Message>();
+      List<LocalizableMessage> messages   = new LinkedList<LocalizableMessage>();
       for (ConfigAddListener l : addListeners)
       {
         ConfigChangeResult result = l.applyConfigurationAdd(newEntry);
@@ -1299,10 +1299,10 @@ public class ConfigFileHandler
 
       if (resultCode != ResultCode.SUCCESS)
       {
-        MessageBuilder buffer = new MessageBuilder();
+        LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
         if (! messages.isEmpty())
         {
-          Iterator<Message> iterator = messages.iterator();
+          Iterator<LocalizableMessage> iterator = messages.iterator();
           buffer.append(iterator.next());
           while (iterator.hasNext())
           {
@@ -1311,7 +1311,7 @@ public class ConfigFileHandler
           }
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_FILE_ADD_APPLY_FAILED.get(String.valueOf(buffer));
         throw new DirectoryException(resultCode, message);
       }
@@ -1335,7 +1335,7 @@ public class ConfigFileHandler
       if (!clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
                                              deleteOperation))
       {
-        Message message = ERR_CONFIG_FILE_DELETE_INSUFFICIENT_PRIVILEGES.get();
+        LocalizableMessage message = ERR_CONFIG_FILE_DELETE_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                      message);
       }
@@ -1367,7 +1367,7 @@ public class ConfigFileHandler
           }
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_FILE_DELETE_NO_SUCH_ENTRY.get(String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
                 matchedDN, null);
@@ -1377,7 +1377,7 @@ public class ConfigFileHandler
       // If the entry has children, then fail.
       if (entry.hasChildren())
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_FILE_DELETE_HAS_CHILDREN.get(String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF,
                 message);
@@ -1389,7 +1389,7 @@ public class ConfigFileHandler
       ConfigEntry parentEntry = entry.getParent();
       if (parentEntry == null)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_FILE_DELETE_NO_PARENT.get(String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -1399,12 +1399,12 @@ public class ConfigFileHandler
       // all OK with the delete.
       List<ConfigDeleteListener> deleteListeners =
            parentEntry.getDeleteListeners();
-      MessageBuilder unacceptableReason = new MessageBuilder();
+      LocalizableMessageBuilder unacceptableReason = new LocalizableMessageBuilder();
       for (ConfigDeleteListener l : deleteListeners)
       {
         if (! l.configDeleteIsAcceptable(entry, unacceptableReason))
         {
-          Message message = ERR_CONFIG_FILE_DELETE_REJECTED.
+          LocalizableMessage message = ERR_CONFIG_FILE_DELETE_REJECTED.
               get(String.valueOf(entryDN), String.valueOf(parentEntry.getDN()),
                   String.valueOf(unacceptableReason));
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1428,7 +1428,7 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, ce);
         }
 
-        Message message = ERR_CONFIG_FILE_DELETE_FAILED.
+        LocalizableMessage message = ERR_CONFIG_FILE_DELETE_FAILED.
             get(String.valueOf(entryDN), String.valueOf(parentEntry.getDN()),
                 getExceptionMessage(ce));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -1438,7 +1438,7 @@ public class ConfigFileHandler
 
       // Notify all the delete listeners that the entry has been removed.
       ResultCode    resultCode = ResultCode.SUCCESS;
-      List<Message> messages   = new LinkedList<Message>();
+      List<LocalizableMessage> messages   = new LinkedList<LocalizableMessage>();
       for (ConfigDeleteListener l : deleteListeners)
       {
         ConfigChangeResult result = l.applyConfigurationDelete(entry);
@@ -1462,7 +1462,7 @@ public class ConfigFileHandler
         StringBuilder buffer = new StringBuilder();
         if (! messages.isEmpty())
         {
-          Iterator<Message> iterator = messages.iterator();
+          Iterator<LocalizableMessage> iterator = messages.iterator();
           buffer.append(iterator.next());
           while (iterator.hasNext())
           {
@@ -1471,7 +1471,7 @@ public class ConfigFileHandler
           }
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_FILE_DELETE_APPLY_FAILED.get(String.valueOf(buffer));
         throw new DirectoryException(resultCode, message);
       }
@@ -1499,7 +1499,7 @@ public class ConfigFileHandler
       if (!clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
                                              modifyOperation))
       {
-        Message message = ERR_CONFIG_FILE_MODIFY_INSUFFICIENT_PRIVILEGES.get();
+        LocalizableMessage message = ERR_CONFIG_FILE_MODIFY_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                      message);
       }
@@ -1514,7 +1514,7 @@ public class ConfigFileHandler
           if (! clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE,
                                               modifyOperation))
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_CONFIG_FILE_MODIFY_PRIVS_INSUFFICIENT_PRIVILEGES.get();
             throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                          message);
@@ -1555,7 +1555,7 @@ public class ConfigFileHandler
           }
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_FILE_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
                 matchedDN, null);
@@ -1567,7 +1567,7 @@ public class ConfigFileHandler
       if (! currentEntry.getEntry().getStructuralObjectClass().equals(
                  newEntry.getStructuralObjectClass()))
       {
-        Message message = ERR_CONFIG_FILE_MODIFY_STRUCTURAL_CHANGE_NOT_ALLOWED.
+        LocalizableMessage message = ERR_CONFIG_FILE_MODIFY_STRUCTURAL_CHANGE_NOT_ALLOWED.
             get(String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
@@ -1581,12 +1581,12 @@ public class ConfigFileHandler
       // If there are, then make sure they are all OK with the change.
       List<ConfigChangeListener> changeListeners =
            currentEntry.getChangeListeners();
-      MessageBuilder unacceptableReason = new MessageBuilder();
+      LocalizableMessageBuilder unacceptableReason = new LocalizableMessageBuilder();
       for (ConfigChangeListener l : changeListeners)
       {
         if (! l.configChangeIsAcceptable(newConfigEntry, unacceptableReason))
         {
-          Message message = ERR_CONFIG_FILE_MODIFY_REJECTED_BY_CHANGE_LISTENER.
+          LocalizableMessage message = ERR_CONFIG_FILE_MODIFY_REJECTED_BY_CHANGE_LISTENER.
               get(String.valueOf(entryDN), String.valueOf(unacceptableReason));
           throw new DirectoryException(
                   ResultCode.UNWILLING_TO_PERFORM, message);
@@ -1604,7 +1604,7 @@ public class ConfigFileHandler
 
       // Notify all the change listeners of the update.
       ResultCode   resultCode  = ResultCode.SUCCESS;
-      List<Message> messages   = new LinkedList<Message>();
+      List<LocalizableMessage> messages   = new LinkedList<LocalizableMessage>();
       for (ConfigChangeListener l : changeListeners)
       {
         ConfigChangeResult result = l.applyConfigurationChange(currentEntry);
@@ -1625,10 +1625,10 @@ public class ConfigFileHandler
 
       if (resultCode != ResultCode.SUCCESS)
       {
-        MessageBuilder buffer = new MessageBuilder();
+        LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
         if (! messages.isEmpty())
         {
-          Iterator<Message> iterator = messages.iterator();
+          Iterator<LocalizableMessage> iterator = messages.iterator();
           buffer.append(iterator.next());
           while (iterator.hasNext())
           {
@@ -1637,7 +1637,7 @@ public class ConfigFileHandler
           }
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_FILE_MODIFY_APPLY_FAILED.get(String.valueOf(buffer));
         throw new DirectoryException(resultCode, message);
       }
@@ -1663,7 +1663,7 @@ public class ConfigFileHandler
       if (!clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
                                              modifyDNOperation))
       {
-        Message message = ERR_CONFIG_FILE_MODDN_INSUFFICIENT_PRIVILEGES.get();
+        LocalizableMessage message = ERR_CONFIG_FILE_MODDN_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                      message);
       }
@@ -1672,7 +1672,7 @@ public class ConfigFileHandler
 
     // Modify DN operations will not be allowed in the configuration, so this
     // will always throw an exception.
-    Message message = ERR_CONFIG_FILE_MODDN_NOT_ALLOWED.get();
+    LocalizableMessage message = ERR_CONFIG_FILE_MODDN_NOT_ALLOWED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -1689,7 +1689,7 @@ public class ConfigFileHandler
     ClientConnection clientConnection = searchOperation.getClientConnection();
     if (! clientConnection.hasPrivilege(Privilege.CONFIG_READ, searchOperation))
     {
-      Message message = ERR_CONFIG_FILE_SEARCH_INSUFFICIENT_PRIVILEGES.get();
+      LocalizableMessage message = ERR_CONFIG_FILE_SEARCH_INSUFFICIENT_PRIVILEGES.get();
       throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                    message);
     }
@@ -1700,7 +1700,7 @@ public class ConfigFileHandler
     ConfigEntry baseEntry = configEntries.get(baseDN);
     if (baseEntry == null)
     {
-      Message message = ERR_CONFIG_FILE_SEARCH_NO_SUCH_BASE.get(
+      LocalizableMessage message = ERR_CONFIG_FILE_SEARCH_NO_SUCH_BASE.get(
               String.valueOf(baseDN));
       DN matchedDN = null;
       if (baseDN.isDescendantOf(configRootEntry.getDN()))
@@ -1776,7 +1776,7 @@ public class ConfigFileHandler
 
       default:
         // The user provided an invalid scope.
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_FILE_SEARCH_INVALID_SCOPE.get(String.valueOf(scope));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
@@ -1872,7 +1872,7 @@ public class ConfigFileHandler
 
           StaticUtils.close(inputStream, outputStream);
 
-          Message message = WARN_CONFIG_MANUAL_CHANGES_DETECTED.get(
+          LocalizableMessage message = WARN_CONFIG_MANUAL_CHANGES_DETECTED.get(
               configFile, newConfigFile.getAbsolutePath());
           logError(message);
 
@@ -1887,7 +1887,7 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_CONFIG_MANUAL_CHANGES_LOST.get(
+        LocalizableMessage message = ERR_CONFIG_MANUAL_CHANGES_LOST.get(
             configFile, stackTraceToSingleLineString(e));
         logError(message);
 
@@ -1914,7 +1914,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG.get(
+      LocalizableMessage message = ERR_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG.get(
           String.valueOf(tempConfig), stackTraceToSingleLineString(e));
       logError(message);
 
@@ -1938,7 +1938,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_FILE_WRITE_CANNOT_RENAME_NEW_CONFIG.
+      LocalizableMessage message = ERR_CONFIG_FILE_WRITE_CANNOT_RENAME_NEW_CONFIG.
           get(String.valueOf(tempConfig), String.valueOf(configFile),
               stackTraceToSingleLineString(e));
       logError(message);
@@ -1984,7 +1984,7 @@ public class ConfigFileHandler
       {
         if (! archiveDirectory.mkdirs())
         {
-          Message message = ERR_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR_NO_REASON.
+          LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR_NO_REASON.
               get(archiveDirectory.getAbsolutePath());
           logError(message);
 
@@ -2000,7 +2000,7 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR.
+        LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR.
             get(archiveDirectory.getAbsolutePath(),
                 stackTraceToSingleLineString(e));
         logError(message);
@@ -2039,7 +2039,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE.get(
+      LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE.get(
           stackTraceToSingleLineString(e));
       logError(message);
 
@@ -2072,7 +2072,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE.get(
+      LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE.get(
           stackTraceToSingleLineString(e));
       logError(message);
 
@@ -2355,7 +2355,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_LDIF_WRITE_ERROR.get(String.valueOf(e));
+      LocalizableMessage message = ERR_CONFIG_LDIF_WRITE_ERROR.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }
@@ -2371,7 +2371,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_FILE_CLOSE_ERROR.get(String.valueOf(e));
+      LocalizableMessage message = ERR_CONFIG_FILE_CLOSE_ERROR.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }
@@ -2406,7 +2406,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_FILE_WRITE_ERROR.get(
+      LocalizableMessage message = ERR_CONFIG_FILE_WRITE_ERROR.get(
           configEntry.getDN().toString(), String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -2444,7 +2444,7 @@ public class ConfigFileHandler
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    Message message = ERR_CONFIG_FILE_UNWILLING_TO_IMPORT.get();
+    LocalizableMessage message = ERR_CONFIG_FILE_UNWILLING_TO_IMPORT.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -2525,7 +2525,7 @@ public class ConfigFileHandler
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_CONFIG_BACKUP_CANNOT_GET_MAC.get(
+          LocalizableMessage message = ERR_CONFIG_BACKUP_CANNOT_GET_MAC.get(
               macKeyID, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
@@ -2549,7 +2549,7 @@ public class ConfigFileHandler
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_CONFIG_BACKUP_CANNOT_GET_DIGEST.get(
+          LocalizableMessage message = ERR_CONFIG_BACKUP_CANNOT_GET_DIGEST.get(
               digestAlgorithm, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
@@ -2601,7 +2601,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
+      LocalizableMessage message = ERR_CONFIG_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
           get(String.valueOf(filename), backupDirectory.getPath(),
               stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -2625,7 +2625,7 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_CONFIG_BACKUP_CANNOT_GET_CIPHER.get(
+        LocalizableMessage message = ERR_CONFIG_BACKUP_CANNOT_GET_CIPHER.get(
             stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -2636,7 +2636,7 @@ public class ConfigFileHandler
     // Wrap the file output stream in a zip output stream.
     ZipOutputStream zipStream = new ZipOutputStream(outputStream);
 
-    Message message = ERR_CONFIG_BACKUP_ZIP_COMMENT.get(
+    LocalizableMessage message = ERR_CONFIG_BACKUP_ZIP_COMMENT.get(
             DynamicConstants.PRODUCT_NAME,
             backupID);
     zipStream.setComment(message.toString());
@@ -2898,7 +2898,7 @@ public class ConfigFileHandler
     BackupInfo      backupInfo      = backupDirectory.getBackupInfo(backupID);
     if (backupInfo == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_RESTORE_NO_SUCH_BACKUP.get(backupID, backupPath);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -2911,7 +2911,7 @@ public class ConfigFileHandler
          backupInfo.getBackupProperty(BACKUP_PROPERTY_ARCHIVE_FILENAME);
     if (backupFilename == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_RESTORE_NO_BACKUP_FILE.get(backupID, backupPath);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -2922,7 +2922,7 @@ public class ConfigFileHandler
     {
       if (! backupFile.exists())
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_RESTORE_NO_SUCH_FILE.get(backupID, backupFile.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
@@ -2934,7 +2934,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_RESTORE_CANNOT_CHECK_FOR_ARCHIVE.get(
+      LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_CHECK_FOR_ARCHIVE.get(
           backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -2951,7 +2951,7 @@ public class ConfigFileHandler
            backupInfo.getBackupProperty(BACKUP_PROPERTY_DIGEST_ALGORITHM);
       if (digestAlgorithm == null)
       {
-        Message message = ERR_CONFIG_RESTORE_UNKNOWN_DIGEST.get(backupID);
+        LocalizableMessage message = ERR_CONFIG_RESTORE_UNKNOWN_DIGEST.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
       }
@@ -2963,7 +2963,7 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_RESTORE_CANNOT_GET_DIGEST.get(backupID, digestAlgorithm);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -2980,7 +2980,7 @@ public class ConfigFileHandler
            backupInfo.getBackupProperty(BACKUP_PROPERTY_MAC_KEY_ID);
       if (macKeyID == null)
       {
-        Message message = ERR_CONFIG_RESTORE_UNKNOWN_MAC.get(backupID);
+        LocalizableMessage message = ERR_CONFIG_RESTORE_UNKNOWN_MAC.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
       }
@@ -2991,7 +2991,7 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        Message message = ERR_CONFIG_RESTORE_CANNOT_GET_MAC.get(
+        LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_GET_MAC.get(
             backupID, macKeyID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -3008,7 +3008,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_RESTORE_CANNOT_OPEN_BACKUP_FILE.get(
+      LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_OPEN_BACKUP_FILE.get(
           backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -3025,7 +3025,7 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        Message message = ERR_CONFIG_RESTORE_CANNOT_GET_CIPHER.get(
+        LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_GET_CIPHER.get(
                 backupFile.getPath(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -3092,7 +3092,7 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        Message message = ERR_CONFIG_RESTORE_CANNOT_BACKUP_EXISTING_CONFIG.
+        LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_BACKUP_EXISTING_CONFIG.
             get(backupID, configDirPath, String.valueOf(backupDirPath),
                 getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -3114,20 +3114,20 @@ public class ConfigFileHandler
           try
           {
             configBackupDir.renameTo(configDir);
-            Message message =
+            LocalizableMessage message =
                 NOTE_CONFIG_RESTORE_RESTORED_OLD_CONFIG.get(configDirPath);
             logError(message);
           }
           catch (Exception e2)
           {
-            Message message = ERR_CONFIG_RESTORE_CANNOT_RESTORE_OLD_CONFIG.get(
+            LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_RESTORE_OLD_CONFIG.get(
                 configBackupDir.getPath());
             logError(message);
           }
         }
 
 
-        Message message = ERR_CONFIG_RESTORE_CANNOT_CREATE_CONFIG_DIRECTORY.get(
+        LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_CREATE_CONFIG_DIRECTORY.get(
             backupID, configDirPath, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -3151,12 +3151,12 @@ public class ConfigFileHandler
         // Tell the user where the previous config was archived.
         if (configBackupDir != null)
         {
-          Message message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
+          LocalizableMessage message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
               configBackupDir.getPath());
           logError(message);
         }
 
-        Message message = ERR_CONFIG_RESTORE_CANNOT_GET_ZIP_ENTRY.get(
+        LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_GET_ZIP_ENTRY.get(
             backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -3203,12 +3203,12 @@ public class ConfigFileHandler
           // Tell the user where the previous config was archived.
           if (configBackupDir != null)
           {
-            Message message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
+            LocalizableMessage message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
                 configBackupDir.getPath());
             logError(message);
           }
 
-          Message message = ERR_CONFIG_RESTORE_CANNOT_CREATE_FILE.
+          LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_CREATE_FILE.
               get(backupID, restoreFile.getAbsolutePath(),
                   stackTraceToSingleLineString(e));
           throw new DirectoryException(
@@ -3265,12 +3265,12 @@ public class ConfigFileHandler
         // Tell the user where the previous config was archived.
         if (configBackupDir != null)
         {
-          Message message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
+          LocalizableMessage message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
               configBackupDir.getPath());
           logError(message);
         }
 
-        Message message = ERR_CONFIG_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE.get(
+        LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE.get(
             backupID, fileName, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -3285,7 +3285,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE.get(
+      LocalizableMessage message = ERR_CONFIG_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE.get(
           backupID, backupFile.getPath(), getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -3300,7 +3300,7 @@ public class ConfigFileHandler
       byte[] calculatedHash = digest.digest();
       if (Arrays.equals(calculatedHash, unsignedHash))
       {
-        Message message = NOTE_CONFIG_RESTORE_UNSIGNED_HASH_VALID.get();
+        LocalizableMessage message = NOTE_CONFIG_RESTORE_UNSIGNED_HASH_VALID.get();
         logError(message);
       }
       else
@@ -3308,12 +3308,12 @@ public class ConfigFileHandler
         // Tell the user where the previous config was archived.
         if (configBackupDir != null)
         {
-          Message message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
+          LocalizableMessage message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
               configBackupDir.getPath());
           logError(message);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_RESTORE_UNSIGNED_HASH_INVALID.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
@@ -3325,7 +3325,7 @@ public class ConfigFileHandler
       byte[] calculatedSignature = mac.doFinal();
       if (Arrays.equals(calculatedSignature, signedHash))
       {
-        Message message = NOTE_CONFIG_RESTORE_SIGNED_HASH_VALID.get();
+        LocalizableMessage message = NOTE_CONFIG_RESTORE_SIGNED_HASH_VALID.get();
         logError(message);
       }
       else
@@ -3333,12 +3333,12 @@ public class ConfigFileHandler
         // Tell the user where the previous config was archived.
         if (configBackupDir != null)
         {
-          Message message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
+          LocalizableMessage message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
               configBackupDir.getPath());
           logError(message);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_RESTORE_SIGNED_HASH_INVALID.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
@@ -3349,7 +3349,7 @@ public class ConfigFileHandler
     // If we are just verifying the archive, then we're done.
     if (verifyOnly)
     {
-      Message message =
+      LocalizableMessage message =
           NOTE_CONFIG_RESTORE_VERIFY_SUCCESSFUL.get(backupID, backupPath);
       logError(message);
       return;
@@ -3364,7 +3364,7 @@ public class ConfigFileHandler
       recursiveDelete(configBackupDir);
     }
 
-    Message message = NOTE_CONFIG_RESTORE_SUCCESSFUL.get(backupID, backupPath);
+    LocalizableMessage message = NOTE_CONFIG_RESTORE_SUCCESSFUL.get(backupID, backupPath);
     logError(message);
   }
 
@@ -3432,7 +3432,7 @@ public class ConfigFileHandler
   {
     if (result == null)
     {
-      Message message = ERR_CONFIG_CHANGE_NO_RESULT.
+      LocalizableMessage message = ERR_CONFIG_CHANGE_NO_RESULT.
           get(String.valueOf(className), String.valueOf(methodName),
               String.valueOf(entryDN));
       logError(message);
@@ -3441,12 +3441,12 @@ public class ConfigFileHandler
 
     ResultCode    resultCode          = result.getResultCode();
     boolean       adminActionRequired = result.adminActionRequired();
-    List<Message> messages            = result.getMessages();
+    List<LocalizableMessage> messages            = result.getMessages();
 
-    MessageBuilder messageBuffer = new MessageBuilder();
+    LocalizableMessageBuilder messageBuffer = new LocalizableMessageBuilder();
     if (messages != null)
     {
-      for (Message s : messages)
+      for (LocalizableMessage s : messages)
       {
         if (messageBuffer.length() > 0)
         {
@@ -3459,7 +3459,7 @@ public class ConfigFileHandler
 
     if (resultCode != ResultCode.SUCCESS)
     {
-      Message message = ERR_CONFIG_CHANGE_RESULT_ERROR.
+      LocalizableMessage message = ERR_CONFIG_CHANGE_RESULT_ERROR.
           get(String.valueOf(className), String.valueOf(methodName),
               String.valueOf(entryDN), String.valueOf(resultCode),
               adminActionRequired, messageBuffer.toString());
@@ -3467,14 +3467,14 @@ public class ConfigFileHandler
     }
     else if (adminActionRequired)
     {
-      Message message = WARN_CONFIG_CHANGE_RESULT_ACTION_REQUIRED.
+      LocalizableMessage message = WARN_CONFIG_CHANGE_RESULT_ACTION_REQUIRED.
           get(String.valueOf(className), String.valueOf(methodName),
               String.valueOf(entryDN), messageBuffer.toString());
       logError(message);
     }
     else if (messageBuffer.length() > 0)
     {
-      Message message = INFO_CONFIG_CHANGE_RESULT_MESSAGES.
+      LocalizableMessage message = INFO_CONFIG_CHANGE_RESULT_MESSAGES.
           get(String.valueOf(className), String.valueOf(methodName),
               String.valueOf(entryDN), messageBuffer.toString());
       logError(message);

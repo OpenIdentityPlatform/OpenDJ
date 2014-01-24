@@ -26,7 +26,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -48,7 +48,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ExtensionMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -121,7 +121,7 @@ public class DictionaryPasswordValidator
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      MessageBuilder invalidReason)
+                                      LocalizableMessageBuilder invalidReason)
   {
     // Get a handle to the current configuration.
     DictionaryPasswordValidatorCfg config = currentConfig;
@@ -197,7 +197,7 @@ public class DictionaryPasswordValidator
     File dictionaryFile = getFileForPath(configuration.getDictionaryFile());
     if (! dictionaryFile.exists())
     {
-      Message message = ERR_DICTIONARY_VALIDATOR_NO_SUCH_FILE.get(
+      LocalizableMessage message = ERR_DICTIONARY_VALIDATOR_NO_SUCH_FILE.get(
           configuration.getDictionaryFile());
       throw new ConfigException(message);
     }
@@ -228,7 +228,7 @@ public class DictionaryPasswordValidator
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_DICTIONARY_VALIDATOR_CANNOT_READ_FILE.get(
+      LocalizableMessage message = ERR_DICTIONARY_VALIDATOR_CANNOT_READ_FILE.get(
           configuration.getDictionaryFile(), String.valueOf(e));
       throw new InitializationException(message);
     }
@@ -253,7 +253,7 @@ public class DictionaryPasswordValidator
    */
   @Override()
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     DictionaryPasswordValidatorCfg config =
          (DictionaryPasswordValidatorCfg) configuration;
@@ -267,7 +267,7 @@ public class DictionaryPasswordValidator
    */
   public boolean isConfigurationChangeAcceptable(
                       DictionaryPasswordValidatorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // Make sure that we can load the dictionary.  If so, then we'll accept the
     // new configuration.
@@ -304,7 +304,7 @@ public class DictionaryPasswordValidator
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Make sure we can load the dictionary.  If we can, then activate the new

@@ -26,7 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 import com.sleepycat.je.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -234,7 +234,7 @@ public class VerifyJob
             }
             else
             {
-              Message msg = NOTE_JEB_SUBORDINATE_INDEXES_DISABLED
+              LocalizableMessage msg = NOTE_JEB_SUBORDINATE_INDEXES_DISABLED
                   .get(rootContainer.getConfiguration().getBackendId());
               throw new JebException(msg);
             }
@@ -247,7 +247,7 @@ public class VerifyJob
             }
             else
             {
-              Message msg = NOTE_JEB_SUBORDINATE_INDEXES_DISABLED
+              LocalizableMessage msg = NOTE_JEB_SUBORDINATE_INDEXES_DISABLED
                   .get(rootContainer.getConfiguration().getBackendId());
               throw new JebException(msg);
             }
@@ -256,7 +256,7 @@ public class VerifyJob
           {
             if(lowerName.length() < 5)
             {
-              Message msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName);
+              LocalizableMessage msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName);
               throw new JebException(msg);
             }
 
@@ -264,7 +264,7 @@ public class VerifyJob
                 entryContainer.getVLVIndex(lowerName.substring(4));
             if(vlvIndex == null)
             {
-              Message msg =
+              LocalizableMessage msg =
                   ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName.substring(4));
               throw new JebException(msg);
             }
@@ -277,14 +277,14 @@ public class VerifyJob
                 DirectoryServer.getAttributeType(lowerName);
             if (attrType == null)
             {
-              Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+              LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
               throw new JebException(msg);
             }
             AttributeIndex attrIndex =
                 entryContainer.getAttributeIndex(attrType);
             if (attrIndex == null)
             {
-              Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+              LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
               throw new JebException(msg);
             }
             attrIndexList.add(attrIndex);
@@ -356,7 +356,7 @@ public class VerifyJob
                    String.valueOf(keyCount));
       if (cleanMode)
       {
-        Message message = NOTE_JEB_VERIFY_CLEAN_FINAL_STATUS.get(
+        LocalizableMessage message = NOTE_JEB_VERIFY_CLEAN_FINAL_STATUS.get(
             keyCount, errorCount, totalTime/1000, rate);
         logError(message);
 
@@ -395,7 +395,7 @@ public class VerifyJob
       }
       else
       {
-        Message message = NOTE_JEB_VERIFY_FINAL_STATUS.get(
+        LocalizableMessage message = NOTE_JEB_VERIFY_FINAL_STATUS.get(
             keyCount, errorCount, totalTime/1000, rate);
         logError(message);
         //TODO add entry-limit-stats to the statEntry
@@ -2051,7 +2051,7 @@ public class VerifyJob
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      Message message = NOTE_JEB_VERIFY_PROGRESS_REPORT.get(
+      LocalizableMessage message = NOTE_JEB_VERIFY_PROGRESS_REPORT.get(
         latestCount, totalCount, errorCount, rate);
       logError(message);
 

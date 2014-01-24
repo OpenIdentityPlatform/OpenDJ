@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.loggers.debug;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DebugLogCategory;
@@ -193,7 +194,7 @@ public class TraceSettings
    */
   public boolean isConfigurationChangeAcceptable(
           DebugTargetCfg config,
-          List<Message> unacceptableReasons)
+          List<LocalizableMessage> unacceptableReasons)
   {
     // This should alwas be acceptable. We are assuing that the scope for this
     // trace setting is the same sine its part of the DN.
@@ -208,7 +209,7 @@ public class TraceSettings
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // We can assume that the target scope did not change since its the
     // naming attribute. Changing it would result in a modify DN.

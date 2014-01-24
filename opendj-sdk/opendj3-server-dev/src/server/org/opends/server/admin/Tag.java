@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -165,7 +165,7 @@ public final class Tag implements Comparable<Tag> {
    *
    * @return Returns the synopsis of this tag in the default locale.
    */
-  public final Message getSynopsis() {
+  public final LocalizableMessage getSynopsis() {
     return getSynopsis(Locale.getDefault());
   }
 
@@ -178,7 +178,7 @@ public final class Tag implements Comparable<Tag> {
    *          The locale.
    * @return Returns the synopsis of this tag in the specified locale.
    */
-  public final Message getSynopsis(Locale locale) {
+  public final LocalizableMessage getSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "tag." + name + ".synopsis";

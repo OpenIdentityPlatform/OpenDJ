@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.types.IdentifiedException;
 
@@ -59,7 +60,7 @@ public class AciException extends IdentifiedException {
      *
      * @param  message    The message to use for this ACI exception.
      */
-    public AciException(Message message) {
+    public AciException(LocalizableMessage message) {
       super(message);
     }
 
@@ -71,7 +72,7 @@ public class AciException extends IdentifiedException {
      * @param  cause      The exception that was caught to trigger this
      *                    exception.
      */
-    public AciException(Message message, Throwable cause) {
+    public AciException(LocalizableMessage message, Throwable cause) {
       super(message, cause);
     }
 

@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.admin.ads;
 
 import static org.opends.messages.QuickSetupMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
 
@@ -146,7 +147,7 @@ public class ADSContextException extends OpenDsException {
    * @param msg the message describing the error.
    * @param x the throwable that generated this exception.
    */
-  public ADSContextException(ErrorType error, Message msg, Throwable x)
+  public ADSContextException(ErrorType error, LocalizableMessage msg, Throwable x)
   {
     super(msg);
     this.error = error;
@@ -198,9 +199,9 @@ public class ADSContextException extends OpenDsException {
     return toString;
   }
 
-  private static Message getMessage(ErrorType error, Throwable x)
+  private static LocalizableMessage getMessage(ErrorType error, Throwable x)
   {
-    Message msg;
+    LocalizableMessage msg;
     if (x != null)
     {
       if (x instanceof OpenDsException)

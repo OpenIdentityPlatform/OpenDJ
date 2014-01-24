@@ -47,7 +47,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.operation.*;
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.testng.Assert.*;
 
@@ -200,7 +200,7 @@ import static org.testng.Assert.*;
     sigList = new LinkedList<String>();
     sigList.add("doShutdown");
     sigList.add("void");
-    sigList.add("org.opends.messages.Message");
+    sigList.add("org.forgerock.i18n.LocalizableMessage");
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<String>();
@@ -214,7 +214,7 @@ import static org.testng.Assert.*;
     sigList.add("org.opends.server.api.plugin.PluginResult$PostDisconnect");
     sigList.add("org.opends.server.api.ClientConnection");
     sigList.add("org.opends.server.types.DisconnectReason");
-    sigList.add("org.opends.messages.Message");
+    sigList.add("org.forgerock.i18n.LocalizableMessage");
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<String>();
@@ -955,7 +955,7 @@ import static org.testng.Assert.*;
   @Test(expectedExceptions = { UnsupportedOperationException.class })
   public void testDoShutdown()
   {
-    new NullPlugin().doShutdown(Message.raw("testDoShutdown"));
+    new NullPlugin().doShutdown(LocalizableMessage.raw("testDoShutdown"));
   }
 
 

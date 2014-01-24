@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 import java.util.ArrayList;
@@ -290,7 +290,7 @@ public class LDAPFilter
   {
     if (filterString == null)
     {
-      Message message = ERR_LDAP_FILTER_STRING_NULL.get();
+      LocalizableMessage message = ERR_LDAP_FILTER_STRING_NULL.get();
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
@@ -315,7 +315,7 @@ public class LDAPFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_FILTER_UNCAUGHT_EXCEPTION.get(
+      LocalizableMessage message = ERR_LDAP_FILTER_UNCAUGHT_EXCEPTION.get(
           filterString, String.valueOf(e));
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
     }
@@ -346,7 +346,7 @@ public class LDAPFilter
     int length = endPos - startPos;
     if (length <= 0)
     {
-      Message message = ERR_LDAP_FILTER_STRING_NULL.get();
+      LocalizableMessage message = ERR_LDAP_FILTER_STRING_NULL.get();
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
@@ -355,7 +355,7 @@ public class LDAPFilter
     if (1 < filterString.length()
          && filterString.startsWith("'") && filterString.endsWith("'"))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES.get(filterString);
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
@@ -371,7 +371,7 @@ public class LDAPFilter
       }
       else
       {
-        Message message = ERR_LDAP_FILTER_MISMATCHED_PARENTHESES.get(
+        LocalizableMessage message = ERR_LDAP_FILTER_MISMATCHED_PARENTHESES.get(
             filterString, startPos, endPos);
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
@@ -413,7 +413,7 @@ public class LDAPFilter
 
     if (equalPos <= startPos)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_FILTER_NO_EQUAL_SIGN.get(filterString, startPos, endPos);
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
@@ -545,7 +545,7 @@ public class LDAPFilter
           // switch statement more efficient.  We'll fall through to the default
           // clause to reject them.
         default:
-          Message message = ERR_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE.get(
+          LocalizableMessage message = ERR_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE.get(
               attrType, String.valueOf(attrType.charAt(i)), i);
           throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
@@ -595,7 +595,7 @@ public class LDAPFilter
             // binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+              LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                   filterString, equalPos+i+1);
               throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
@@ -657,7 +657,7 @@ public class LDAPFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                     filterString, equalPos+i+1);
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
@@ -718,7 +718,7 @@ public class LDAPFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                     filterString, equalPos+i+1);
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
@@ -777,7 +777,7 @@ public class LDAPFilter
     {
       if (filterType == FilterType.NOT)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_LDAP_FILTER_NOT_EXACTLY_ONE.get(filterString, startPos, endPos);
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
@@ -795,7 +795,7 @@ public class LDAPFilter
     if ((filterString.charAt(startPos) != '(') ||
         (filterString.charAt(endPos-1) != ')'))
     {
-      Message message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(
+      LocalizableMessage message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(
           filterString, startPos, endPos);
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
@@ -828,14 +828,14 @@ public class LDAPFilter
         }
         else if (pendingOpens < 0)
         {
-          Message message = ERR_LDAP_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS.
+          LocalizableMessage message = ERR_LDAP_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS.
               get(filterString, i);
           throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
         }
       }
       else if (pendingOpens <= 0)
       {
-        Message message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(
+        LocalizableMessage message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(
             filterString, startPos, endPos);
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
@@ -846,7 +846,7 @@ public class LDAPFilter
     // list of open parenthesis positions must be empty.
     if (pendingOpens != 0)
     {
-      Message message = ERR_LDAP_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS.get(
+      LocalizableMessage message = ERR_LDAP_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS.get(
           filterString, openPos);
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
@@ -857,7 +857,7 @@ public class LDAPFilter
     {
       if (filterComponents.size() != 1)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_LDAP_FILTER_NOT_EXACTLY_ONE.get(filterString, startPos, endPos);
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
@@ -922,7 +922,7 @@ public class LDAPFilter
     // If there were no asterisks, then this isn't a substring filter.
     if (asteriskPositions.isEmpty())
     {
-      Message message = ERR_LDAP_FILTER_SUBSTRING_NO_ASTERISKS.get(
+      LocalizableMessage message = ERR_LDAP_FILTER_SUBSTRING_NO_ASTERISKS.get(
           filterString, equalPos+1, endPos);
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
@@ -949,7 +949,7 @@ public class LDAPFilter
             // binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+              LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                   filterString, equalPos+i+1);
               throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
@@ -1011,7 +1011,7 @@ public class LDAPFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                     filterString, equalPos+i+1);
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
@@ -1072,7 +1072,7 @@ public class LDAPFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                     filterString, equalPos+i+1);
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
@@ -1111,7 +1111,7 @@ public class LDAPFilter
             // binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+              LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                   filterString, equalPos+i+1);
               throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
@@ -1173,7 +1173,7 @@ public class LDAPFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                     filterString, equalPos+i+1);
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
@@ -1234,7 +1234,7 @@ public class LDAPFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                     filterString, equalPos+i+1);
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
@@ -1282,7 +1282,7 @@ public class LDAPFilter
             // binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+              LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                   filterString, equalPos+i+1);
               throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
@@ -1344,7 +1344,7 @@ public class LDAPFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                     filterString, equalPos+i+1);
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
@@ -1405,7 +1405,7 @@ public class LDAPFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                     filterString, equalPos+i+1);
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
@@ -1490,7 +1490,7 @@ public class LDAPFilter
       int colonPos = filterString.indexOf(':',startPos);
       if (colonPos < 0)
       {
-        Message message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_COLON.get(
+        LocalizableMessage message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_COLON.get(
             filterString, startPos);
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
@@ -1544,7 +1544,7 @@ public class LDAPFilter
           // binary value.
           if ((i + 2) >= valueBytes.length)
           {
-            Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+            LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                 filterString, equalPos+i+1);
             throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
@@ -1606,7 +1606,7 @@ public class LDAPFilter
               byteValue = (byte) 0xF0;
               break;
             default:
-              Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+              LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                   filterString, equalPos+i+1);
               throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
@@ -1667,7 +1667,7 @@ public class LDAPFilter
               byteValue |= (byte) 0x0F;
               break;
             default:
-              Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+              LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                   filterString, equalPos+i+1);
               throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
@@ -1692,7 +1692,7 @@ public class LDAPFilter
     // and/or a matching rule ID.
     if ((attributeType == null) && (matchingRuleID == null))
     {
-      Message message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR.get(
+      LocalizableMessage message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR.get(
           filterString, startPos);
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
@@ -1949,7 +1949,7 @@ public class LDAPFilter
     {
       if (matchingRuleID == null)
       {
-        Message message = ERR_LDAP_FILTER_VALUE_WITH_NO_ATTR_OR_MR.get();
+        LocalizableMessage message = ERR_LDAP_FILTER_VALUE_WITH_NO_ATTR_OR_MR.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
       else
@@ -1958,7 +1958,7 @@ public class LDAPFilter
              DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
         if (mr == null)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_LDAP_FILTER_UNKNOWN_MATCHING_RULE.get(matchingRuleID);
           throw new DirectoryException(ResultCode.INAPPROPRIATE_MATCHING,
                                        message);

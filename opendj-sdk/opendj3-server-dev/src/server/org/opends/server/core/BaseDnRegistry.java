@@ -32,7 +32,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.api.Backend;
 import static org.forgerock.util.Reject.ifNull;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.CoreMessages.*;
 
 import java.util.TreeMap;
@@ -71,18 +71,18 @@ public class BaseDnRegistry {
    *         committed to the server
    * @throws DirectoryException if the base DN cannot be registered
    */
-  public List<Message> registerBaseDN(DN baseDN, Backend backend,
+  public List<LocalizableMessage> registerBaseDN(DN baseDN, Backend backend,
                                       boolean isPrivate)
           throws DirectoryException
   {
 
-    List<Message> errors = new LinkedList<Message>();
+    List<LocalizableMessage> errors = new LinkedList<LocalizableMessage>();
 
     // Check to see if the base DN is already registered with the server.
     Backend existingBackend = baseDNs.get(baseDN);
     if (existingBackend != null)
     {
-      Message message = ERR_REGISTER_BASEDN_ALREADY_EXISTS.
+      LocalizableMessage message = ERR_REGISTER_BASEDN_ALREADY_EXISTS.
           get(String.valueOf(baseDN), backend.getBackendID(),
               existingBackend.getBackendID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -102,7 +102,7 @@ public class BaseDnRegistry {
 
         if (baseDN.isAncestorOf(dn) || baseDN.isDescendantOf(dn))
         {
-          Message message = ERR_REGISTER_BASEDN_HIERARCHY_CONFLICT.
+          LocalizableMessage message = ERR_REGISTER_BASEDN_HIERARCHY_CONFLICT.
               get(String.valueOf(baseDN), backend.getBackendID(),
                   String.valueOf(dn));
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -129,7 +129,7 @@ public class BaseDnRegistry {
         {
           if (! dn.isDescendantOf(superiorBaseDN))
           {
-            Message message = ERR_REGISTER_BASEDN_DIFFERENT_PARENT_BASES.
+            LocalizableMessage message = ERR_REGISTER_BASEDN_DIFFERENT_PARENT_BASES.
                 get(String.valueOf(baseDN), backend.getBackendID(),
                     String.valueOf(dn));
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -147,7 +147,7 @@ public class BaseDnRegistry {
     {
       if (backend.getParentBackend() != null)
       {
-        Message message = ERR_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE.
+        LocalizableMessage message = ERR_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE.
             get(String.valueOf(baseDN), backend.getBackendID(),
                 backend.getParentBackend().getBackendID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -198,7 +198,7 @@ public class BaseDnRegistry {
     {
       if (superiorBackend.entryExists(baseDN))
       {
-        Message message = WARN_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS.
+        LocalizableMessage message = WARN_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS.
             get(superiorBackend.getBackendID(), String.valueOf(baseDN),
                 backend.getBackendID());
         errors.add(message);
@@ -270,10 +270,10 @@ public class BaseDnRegistry {
    *         committed to the server
    * @throws DirectoryException if the base DN could not be deregistered
    */
-  public List<Message> deregisterBaseDN(DN baseDN)
+  public List<LocalizableMessage> deregisterBaseDN(DN baseDN)
          throws DirectoryException
   {
-    LinkedList<Message> errors = new LinkedList<Message>();
+    LinkedList<LocalizableMessage> errors = new LinkedList<LocalizableMessage>();
 
     ifNull(baseDN);
 
@@ -282,7 +282,7 @@ public class BaseDnRegistry {
     Backend backend = baseDNs.get(baseDN);
     if (backend == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_DEREGISTER_BASEDN_NOT_REGISTERED.get(String.valueOf(baseDN));
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -379,7 +379,7 @@ public class BaseDnRegistry {
       {
         // Suppress this warning message on server shutdown.
         if (!DirectoryServer.getInstance().isShuttingDown()) {
-          Message message = WARN_DEREGISTER_BASEDN_MISSING_HIERARCHY.get(
+          LocalizableMessage message = WARN_DEREGISTER_BASEDN_MISSING_HIERARCHY.get(
             String.valueOf(baseDN), backend.getBackendID());
           errors.add(message);
         }

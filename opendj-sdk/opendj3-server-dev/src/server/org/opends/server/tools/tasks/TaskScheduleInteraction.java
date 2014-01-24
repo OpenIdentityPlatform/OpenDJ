@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.tasks;
 
@@ -35,7 +36,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
@@ -63,7 +64,7 @@ public class TaskScheduleInteraction
   private final TaskScheduleUserData uData;
   private final TaskScheduleArgs args;
   private final ConsoleApplication app;
-  private final Message taskName;
+  private final LocalizableMessage taskName;
   private List<? extends TaskEntry> taskEntries =
     Collections.emptyList();
   private ProgressMessageFormatter formatter =
@@ -79,12 +80,12 @@ public class TaskScheduleInteraction
     RUN_LATER(INFO_RUN_TASK_LATER.get()),
     SCHEDULE_TASK(INFO_SCHEDULE_TASK.get());
 
-    private Message prompt;
-    private ScheduleOption(Message prompt)
+    private LocalizableMessage prompt;
+    private ScheduleOption(LocalizableMessage prompt)
     {
       this.prompt = prompt;
     }
-    Message getPrompt()
+    LocalizableMessage getPrompt()
     {
       return prompt;
     }
@@ -109,7 +110,7 @@ public class TaskScheduleInteraction
    */
   public TaskScheduleInteraction(TaskScheduleUserData uData,
       TaskScheduleArgs args, ConsoleApplication app,
-      Message taskName)
+      LocalizableMessage taskName)
   {
     this.uData = uData;
     this.args = args;
@@ -216,7 +217,7 @@ public class TaskScheduleInteraction
     }
     else
     {
-      throw new CLIException(Message.EMPTY);
+      throw new CLIException(LocalizableMessage.EMPTY);
     }
 
   }
@@ -330,8 +331,8 @@ public class TaskScheduleInteraction
     uData.setNotifyUponErrorEmailAddresses(addresses);
   }
 
-  private List<String> askForEmailNotification(Message hasNotificationPrompt,
-      Message emailAddressPrompt) throws CLIException
+  private List<String> askForEmailNotification(LocalizableMessage hasNotificationPrompt,
+      LocalizableMessage emailAddressPrompt) throws CLIException
   {
     checkHeaderDisplay();
 
@@ -441,7 +442,7 @@ public class TaskScheduleInteraction
     }
     else
     {
-      throw new CLIException(Message.EMPTY);
+      throw new CLIException(LocalizableMessage.EMPTY);
     }
   }
 

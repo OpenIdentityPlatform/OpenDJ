@@ -29,7 +29,7 @@ package org.opends.server.controls;
 import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.core.DirectoryServer;
@@ -72,13 +72,13 @@ public class ProxiedAuthV2Control
     {
       if (!isCritical)
       {
-        Message message = ERR_PROXYAUTH2_CONTROL_NOT_CRITICAL.get();
+        LocalizableMessage message = ERR_PROXYAUTH2_CONTROL_NOT_CRITICAL.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
       if (value == null)
       {
-        Message message = ERR_PROXYAUTH2_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_PROXYAUTH2_NO_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -103,7 +103,7 @@ public class ProxiedAuthV2Control
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_PROXYAUTH2_INVALID_AUTHZID.get(lowerAuthZIDStr);
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
               e);
@@ -258,7 +258,7 @@ public class ProxiedAuthV2Control
           if (userEntry == null)
           {
             // The requested user does not exist.
-            Message message = ERR_PROXYAUTH2_NO_SUCH_USER.get(lowerAuthzID);
+            LocalizableMessage message = ERR_PROXYAUTH2_NO_SUCH_USER.get(lowerAuthzID);
             throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
                                          message);
           }
@@ -291,14 +291,14 @@ public class ProxiedAuthV2Control
            DirectoryServer.getProxiedAuthorizationIdentityMapper();
       if (proxyMapper == null)
       {
-        Message message = ERR_PROXYAUTH2_NO_IDENTITY_MAPPER.get();
+        LocalizableMessage message = ERR_PROXYAUTH2_NO_IDENTITY_MAPPER.get();
         throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
       }
 
       Entry userEntry = proxyMapper.getEntryForID(lowerAuthzID.substring(2));
       if (userEntry == null)
       {
-        Message message = ERR_PROXYAUTH2_NO_SUCH_USER.get(lowerAuthzID);
+        LocalizableMessage message = ERR_PROXYAUTH2_NO_SUCH_USER.get(lowerAuthzID);
         throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
       }
       else
@@ -312,7 +312,7 @@ public class ProxiedAuthV2Control
     }
     else
     {
-      Message message = ERR_PROXYAUTH2_INVALID_AUTHZID.get(lowerAuthzID);
+      LocalizableMessage message = ERR_PROXYAUTH2_INVALID_AUTHZID.get(lowerAuthzID);
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
   }
@@ -327,7 +327,7 @@ public class ProxiedAuthV2Control
 
     if (state.isDisabled())
     {
-      Message message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(String
+      LocalizableMessage message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(String
           .valueOf(userEntry.getName()));
       throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
     }
@@ -341,7 +341,7 @@ public class ProxiedAuthV2Control
           pwpState.lockedDueToMaximumResetAge() ||
           pwpState.isPasswordExpired())
       {
-        Message message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(String
+        LocalizableMessage message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(String
             .valueOf(userEntry.getName()));
         throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
             message);

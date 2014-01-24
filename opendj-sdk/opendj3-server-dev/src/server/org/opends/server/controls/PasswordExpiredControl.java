@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -69,7 +69,7 @@ public class PasswordExpiredControl
         }
         catch (Exception e)
         {
-          Message message = ERR_PWEXPIRED_CONTROL_INVALID_VALUE.get();
+          LocalizableMessage message = ERR_PWEXPIRED_CONTROL_INVALID_VALUE.get();
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
         }
       }

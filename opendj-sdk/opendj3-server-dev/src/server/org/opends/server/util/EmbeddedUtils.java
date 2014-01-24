@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -33,7 +34,7 @@ import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.UtilityMessages.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -95,7 +96,7 @@ public final class EmbeddedUtils
    * @param  className  The name of the class that initiated the shutdown.
    * @param  reason     A message explaining the reason for the shutdown.
    */
-  public static void stopServer(String className, Message reason)
+  public static void stopServer(String className, LocalizableMessage reason)
   {
     DirectoryServer.shutDown(className, reason);
   }
@@ -112,7 +113,7 @@ public final class EmbeddedUtils
    * @param  config     The environment configuration to use for the new server
    *                    instance.
    */
-  public static void restartServer(String className, Message reason,
+  public static void restartServer(String className, LocalizableMessage reason,
                                    DirectoryEnvironmentConfig config)
   {
     DirectoryServer.restart(className, reason, config);

@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -42,7 +43,7 @@ public class PeerNotFoundException extends OpenDsException {
    * The constructor for the exception.
    * @param message the localized message.
    */
-  public PeerNotFoundException(Message message)
+  public PeerNotFoundException(LocalizableMessage message)
   {
     super(message);
   }

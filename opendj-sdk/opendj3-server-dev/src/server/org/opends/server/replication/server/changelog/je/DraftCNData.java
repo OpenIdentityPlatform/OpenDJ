@@ -28,7 +28,7 @@ package org.opends.server.replication.server.changelog.je;
 
 import java.io.UnsupportedEncodingException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.DN;
@@ -112,7 +112,7 @@ public class DraftCNData extends DatabaseEntry
     {
       // should never happens
       // TODO: i18n
-      throw new ChangelogException(Message.raw("need UTF-8 support"));
+      throw new ChangelogException(LocalizableMessage.raw("need UTF-8 support"));
     }
     catch (DirectoryException e)
     {

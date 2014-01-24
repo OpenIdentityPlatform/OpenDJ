@@ -22,28 +22,29 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package ${PACKAGE};
 
-import org.opends.messages.MessageDescriptor;
-import static org.opends.messages.Category.*;
-import static org.opends.messages.Severity.*;
+//import org.opends.messages.MessageDescriptor;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
+
+//import static org.opends.messages.Category.*;
+//import static org.opends.messages.Severity.*;
 
 /**
  * This file contains a number of constants that are used throughout the
  * Directory Server source.  It was dynamically generated as part of the
  * Directory Server build process and should not be edited directly.
  */
-@org.opends.server.types.PublicAPI(
-    stability=org.opends.server.types.StabilityLevel.PRIVATE,
-    mayInstantiate=false,
-    mayExtend=false,
-    mayInvoke=true)
 public final class ${CLASS_NAME} {
 
   /** Base property for resource bundle containing messages */
-  private static final String BASE = "messages/${BASE}";
+  //private static final String BASE = "messages/${BASE}";
+
+  // The name of the resource bundle.
+  private static final String RESOURCE = "messages.${BASE}";
 
   private static ClassLoader webstartClassLoader;
 

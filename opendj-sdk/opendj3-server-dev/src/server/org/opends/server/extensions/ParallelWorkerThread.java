@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 
 import java.util.Map;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -180,7 +180,7 @@ public class ParallelWorkerThread
 
         try
         {
-          Message message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.
+          LocalizableMessage message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.
               get(getName(), String.valueOf(operation),
                   stackTraceToSingleLineString(t));
           logError(message);
@@ -204,7 +204,7 @@ public class ParallelWorkerThread
 
         try
         {
-          Message message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(getName(),
+          LocalizableMessage message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(getName(),
                                       String.valueOf(operation),
                                       stackTraceToSingleLineString(t));
 

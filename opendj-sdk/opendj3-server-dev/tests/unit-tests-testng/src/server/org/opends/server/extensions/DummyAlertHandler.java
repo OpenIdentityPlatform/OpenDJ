@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -38,7 +39,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -94,7 +95,7 @@ public class DummyAlertHandler
    * {@inheritDoc}
    */
   public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -115,7 +116,7 @@ public class DummyAlertHandler
    * {@inheritDoc}
    */
   public void sendAlertNotification(AlertGenerator generator, String alertType,
-                                    Message alertMessage)
+                                    LocalizableMessage alertMessage)
   {
     alertCount.incrementAndGet();
   }
@@ -138,7 +139,7 @@ public class DummyAlertHandler
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(AlertHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }

@@ -29,7 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -169,14 +169,14 @@ public class RecurringTask
     List<Attribute> attrList = recurringTaskEntry.getAttribute(attrType);
     if ((attrList == null) || attrList.isEmpty())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_RECURRINGTASK_NO_ID_ATTRIBUTE.get(ATTR_RECURRING_TASK_ID);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     if (attrList.size() > 1)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_RECURRINGTASK_MULTIPLE_ID_TYPES.get(ATTR_RECURRING_TASK_ID);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -184,7 +184,7 @@ public class RecurringTask
     Attribute attr = attrList.get(0);
     if (attr.isEmpty())
     {
-      Message message = ERR_RECURRINGTASK_NO_ID.get(ATTR_RECURRING_TASK_ID);
+      LocalizableMessage message = ERR_RECURRINGTASK_NO_ID.get(ATTR_RECURRING_TASK_ID);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -192,7 +192,7 @@ public class RecurringTask
     AttributeValue value = iterator.next();
     if (iterator.hasNext())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_RECURRINGTASK_MULTIPLE_ID_VALUES.get(ATTR_RECURRING_TASK_ID);
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
@@ -212,14 +212,14 @@ public class RecurringTask
     attrList = recurringTaskEntry.getAttribute(attrType);
     if ((attrList == null) || attrList.isEmpty())
     {
-      Message message = ERR_RECURRINGTASK_NO_SCHEDULE_ATTRIBUTE.get(
+      LocalizableMessage message = ERR_RECURRINGTASK_NO_SCHEDULE_ATTRIBUTE.get(
           ATTR_RECURRING_TASK_SCHEDULE);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     if (attrList.size() > 1)
     {
-      Message message = ERR_RECURRINGTASK_MULTIPLE_SCHEDULE_TYPES.get(
+      LocalizableMessage message = ERR_RECURRINGTASK_MULTIPLE_SCHEDULE_TYPES.get(
           ATTR_RECURRING_TASK_SCHEDULE);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -227,7 +227,7 @@ public class RecurringTask
     attr = attrList.get(0);
     if (attr.isEmpty())
     {
-      Message message = ERR_RECURRINGTASK_NO_SCHEDULE_VALUES.get(
+      LocalizableMessage message = ERR_RECURRINGTASK_NO_SCHEDULE_VALUES.get(
         ATTR_RECURRING_TASK_SCHEDULE);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -236,7 +236,7 @@ public class RecurringTask
     value = iterator.next();
     if (iterator.hasNext())
     {
-      Message message = ERR_RECURRINGTASK_MULTIPLE_SCHEDULE_VALUES.get(
+      LocalizableMessage message = ERR_RECURRINGTASK_MULTIPLE_SCHEDULE_VALUES.get(
           ATTR_RECURRING_TASK_SCHEDULE);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -264,14 +264,14 @@ public class RecurringTask
     attrList = recurringTaskEntry.getAttribute(attrType);
     if ((attrList == null) || attrList.isEmpty())
     {
-      Message message = ERR_TASKSCHED_NO_CLASS_ATTRIBUTE.get(
+      LocalizableMessage message = ERR_TASKSCHED_NO_CLASS_ATTRIBUTE.get(
           ATTR_TASK_CLASS);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     if (attrList.size() > 1)
     {
-      Message message = ERR_TASKSCHED_MULTIPLE_CLASS_TYPES.get(
+      LocalizableMessage message = ERR_TASKSCHED_MULTIPLE_CLASS_TYPES.get(
           ATTR_TASK_CLASS);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -279,7 +279,7 @@ public class RecurringTask
     attr = attrList.get(0);
     if (attr.isEmpty())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_TASKSCHED_NO_CLASS_VALUES.get(ATTR_TASK_CLASS);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -288,7 +288,7 @@ public class RecurringTask
     value = iterator.next();
     if (iterator.hasNext())
     {
-      Message message = ERR_TASKSCHED_MULTIPLE_CLASS_VALUES.get(
+      LocalizableMessage message = ERR_TASKSCHED_MULTIPLE_CLASS_VALUES.get(
           ATTR_TASK_CLASS);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -309,7 +309,7 @@ public class RecurringTask
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_RECURRINGTASK_CANNOT_LOAD_CLASS.
+      LocalizableMessage message = ERR_RECURRINGTASK_CANNOT_LOAD_CLASS.
           get(String.valueOf(taskClassName), ATTR_TASK_CLASS,
               getExceptionMessage(e));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
@@ -329,7 +329,7 @@ public class RecurringTask
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_RECURRINGTASK_CANNOT_INSTANTIATE_CLASS_AS_TASK.get(
+      LocalizableMessage message = ERR_RECURRINGTASK_CANNOT_INSTANTIATE_CLASS_AS_TASK.get(
           String.valueOf(taskClassName), Task.class.getName());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                    e);
@@ -349,7 +349,7 @@ public class RecurringTask
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
-      Message message = ERR_RECURRINGTASK_CANNOT_INITIALIZE_INTERNAL.get(
+      LocalizableMessage message = ERR_RECURRINGTASK_CANNOT_INITIALIZE_INTERNAL.get(
           String.valueOf(taskClassName), ie.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, ie);

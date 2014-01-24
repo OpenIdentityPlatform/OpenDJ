@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -34,8 +34,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageDescriptor.Arg3;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg3;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -44,6 +44,7 @@ import org.opends.server.admin.std.server.LogPublisherCfg;
 import org.opends.server.api.LogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -131,7 +132,7 @@ public abstract class AbstractLogger
      */
     public synchronized void removeAllLogPublishers()
     {
-      StaticUtils.close((Collection) logPublishers);
+      StaticUtils.close(logPublishers);
       logPublishers.clear();
     }
 
@@ -165,6 +166,8 @@ public abstract class AbstractLogger
   private final Arg3<CharSequence, CharSequence, CharSequence>
       invalidLoggerClassErrorMessage;
 
+  ServerContext serverContext;
+
   /**
    * The constructor for this class.
    *
@@ -186,6 +189,8 @@ public abstract class AbstractLogger
    * Initializes all the log publishers.
    *
    * @param configs The log publisher configurations.
+   * @param serverContext
+   *            The server context.
    * @throws ConfigException
    *           If an unrecoverable problem arises in the process of
    *           performing the initialization as a result of the server
@@ -194,9 +199,10 @@ public abstract class AbstractLogger
    *           If a problem occurs during initialization that is not
    *           related to the server configuration.
    */
-  public void initializeLogger(List<C> configs)
+  public void initializeLogger(List<C> configs, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
+    this.serverContext = serverContext;
     for (C config : configs)
     {
       config.addChangeListener((ConfigurationChangeListener) this);
@@ -213,7 +219,7 @@ public abstract class AbstractLogger
    */
   @Override
   public boolean isConfigurationAddAcceptable(C config,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return !config.isEnabled() ||
         isJavaClassAcceptable(config, unacceptableReasons);
@@ -224,7 +230,7 @@ public abstract class AbstractLogger
    */
   @Override
   public boolean isConfigurationChangeAcceptable(C config,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return !config.isEnabled() ||
         isJavaClassAcceptable(config, unacceptableReasons);
@@ -239,7 +245,7 @@ public abstract class AbstractLogger
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     config.addChangeListener((ConfigurationChangeListener) this);
 
@@ -297,7 +303,7 @@ public abstract class AbstractLogger
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     P logPublisher = findLogPublisher(config.dn());
     if(logPublisher == null)
@@ -338,7 +344,7 @@ public abstract class AbstractLogger
    */
   @Override
   public boolean isConfigurationDeleteAcceptable(C config,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return findLogPublisher(config.dn()) != null;
   }
@@ -367,7 +373,7 @@ public abstract class AbstractLogger
   }
 
   private boolean isJavaClassAcceptable(C config,
-                                        List<Message> unacceptableReasons)
+                                        List<LocalizableMessage> unacceptableReasons)
   {
     String className = config.getJavaClass();
     ClassPropertyDefinition pd = getJavaClassPropertyDefinition();
@@ -377,7 +383,7 @@ public abstract class AbstractLogger
       // The class is valid as far as we can tell.
       return publisher.isConfigurationAcceptable(config, unacceptableReasons);
     } catch (Exception e) {
-      Message message =
+      LocalizableMessage message =
           invalidLoggerClassErrorMessage.get(className, config.dn().toString(),
               String.valueOf(e));
       unacceptableReasons.add(message);
@@ -392,13 +398,13 @@ public abstract class AbstractLogger
     try {
       // Load the class and cast it to a LogPublisher.
       P logPublisher = pd.loadClass(className, logPublisherClass).newInstance();
-      logPublisher.initializeLogPublisher(config);
+      logPublisher.initializeLogPublisher(config, serverContext);
       // The log publisher has been successfully initialized.
       return logPublisher;
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           invalidLoggerClassErrorMessage.get(className, config.dn().toString(),
               String.valueOf(e));
       throw new ConfigException(message, e);

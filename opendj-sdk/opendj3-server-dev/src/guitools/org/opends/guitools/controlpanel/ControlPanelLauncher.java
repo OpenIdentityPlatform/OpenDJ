@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel;
@@ -41,7 +41,7 @@ import javax.swing.SwingUtilities;
 
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.messages.AdminToolMessages;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.InitializationException;
@@ -95,9 +95,9 @@ public class ControlPanelLauncher
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       System.err.println(message);
-      System.out.println(Message.raw(argParser.getUsage()));
+      System.out.println(LocalizableMessage.raw(argParser.getUsage()));
 
       System.exit(ErrorReturnCode.ERROR_PARSING_ARGS.getReturnCode());
     }
@@ -235,9 +235,9 @@ public class ControlPanelLauncher
   private static void initLookAndFeel() throws Throwable
   {
 //  Setup MacOSX native menu bar before AWT is loaded.
-    Message title = Utils.getCustomizedObject("INFO_CONTROL_PANEL_TITLE",
+    LocalizableMessage title = Utils.getCustomizedObject("INFO_CONTROL_PANEL_TITLE",
         AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get(
-        DynamicConstants.PRODUCT_NAME), Message.class);
+        DynamicConstants.PRODUCT_NAME), LocalizableMessage.class);
     Utils.setMacOSXMenuBar(title);
     UIFactory.initializeLookAndFeel();
   }

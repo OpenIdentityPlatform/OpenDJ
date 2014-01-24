@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.cli;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 
@@ -85,7 +86,7 @@ public class PointAdder implements Runnable
    */
   public void start()
   {
-    MessageBuilder mb = new MessageBuilder();
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     mb.append(formatter.getSpace());
     for (int i=0; i< 5; i++)
     {

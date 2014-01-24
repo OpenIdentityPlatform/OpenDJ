@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
@@ -222,7 +222,7 @@ public class TaskScheduler
 
       if (recurringTasks.containsKey(id))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_TASKSCHED_DUPLICATE_RECURRING_ID.get(String.valueOf(id));
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
       }
@@ -346,7 +346,7 @@ public class TaskScheduler
 
       if (tasks.containsKey(id))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_TASKSCHED_DUPLICATE_TASK_ID.get(String.valueOf(id));
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
       }
@@ -356,7 +356,7 @@ public class TaskScheduler
         Task t = tasks.get(dependencyID);
         if (t == null)
         {
-          Message message = ERR_TASKSCHED_DEPENDENCY_MISSING.get(
+          LocalizableMessage message = ERR_TASKSCHED_DEPENDENCY_MISSING.get(
             String.valueOf(id), dependencyID);
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
         }
@@ -477,7 +477,7 @@ public class TaskScheduler
       Task t = tasks.get(taskID);
       if (t == null)
       {
-        Message message = ERR_TASKSCHED_REMOVE_PENDING_NO_SUCH_TASK.get(
+        LocalizableMessage message = ERR_TASKSCHED_REMOVE_PENDING_NO_SUCH_TASK.get(
             String.valueOf(taskID));
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
@@ -491,7 +491,7 @@ public class TaskScheduler
       }
       else
       {
-        Message message = ERR_TASKSCHED_REMOVE_PENDING_NOT_PENDING.get(
+        LocalizableMessage message = ERR_TASKSCHED_REMOVE_PENDING_NOT_PENDING.get(
             String.valueOf(taskID));
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -533,7 +533,7 @@ public class TaskScheduler
         }
       }
 
-      Message message = ERR_TASKSCHED_REMOVE_COMPLETED_NO_SUCH_TASK.get(
+      LocalizableMessage message = ERR_TASKSCHED_REMOVE_COMPLETED_NO_SUCH_TASK.get(
           String.valueOf(taskID));
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
@@ -658,7 +658,7 @@ public class TaskScheduler
                 TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
-              Message message =
+              LocalizableMessage message =
                   ERR_TASKSCHED_ERROR_SCHEDULING_RECURRING_ITERATION.
                     get(recurringTaskID, de.getMessageObject());
               logError(message);
@@ -750,7 +750,7 @@ public class TaskScheduler
 
     for (TaskThread thread : idleThreads)
     {
-      Message message = INFO_TASKBE_INTERRUPTED_BY_SHUTDOWN.get();
+      LocalizableMessage message = INFO_TASKBE_INTERRUPTED_BY_SHUTDOWN.get();
       thread.interruptTask(TaskState.STOPPED_BY_SHUTDOWN, message, true);
     }
   }
@@ -769,7 +769,7 @@ public class TaskScheduler
    *                          all active tasks have stopped before returning.
    */
   public void interruptRunningTasks(TaskState interruptState,
-                                    Message interruptReason,
+                                    LocalizableMessage interruptReason,
                                     boolean waitForStop)
   {
     // Grab a copy of the running threads so that we can operate on them without
@@ -1086,7 +1086,7 @@ public class TaskScheduler
 
           if (le.canContinueReading())
           {
-            Message message = ERR_TASKSCHED_CANNOT_PARSE_ENTRY_RECOVERABLE.get(
+            LocalizableMessage message = ERR_TASKSCHED_CANNOT_PARSE_ENTRY_RECOVERABLE.get(
                 backingFilePath, le.getLineNumber(), le.getMessage());
             logError(message);
 
@@ -1106,7 +1106,7 @@ public class TaskScheduler
               }
             }
 
-            Message message = ERR_TASKSCHED_CANNOT_PARSE_ENTRY_FATAL.get(
+            LocalizableMessage message = ERR_TASKSCHED_CANNOT_PARSE_ENTRY_FATAL.get(
                 backingFilePath, le.getLineNumber(), le.getMessage());
             throw new InitializationException(message);
           }
@@ -1135,7 +1135,7 @@ public class TaskScheduler
           DN parentDN = entryDN.getParentDNInSuffix();
           if (parentDN == null)
           {
-            Message message = ERR_TASKSCHED_ENTRY_HAS_NO_PARENT.
+            LocalizableMessage message = ERR_TASKSCHED_ENTRY_HAS_NO_PARENT.
                 get(String.valueOf(entryDN),
                     String.valueOf(taskBackend.getTaskRootDN()));
             logError(message);
@@ -1150,7 +1150,7 @@ public class TaskScheduler
                 String id = task.getTaskID();
                 if (tasks.containsKey(id))
                 {
-                  Message message =
+                  LocalizableMessage message =
                       WARN_TASKSCHED_DUPLICATE_TASK_ID.get(
                       String.valueOf(id));
                   logError(message);
@@ -1173,7 +1173,7 @@ public class TaskScheduler
                 TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
-              Message message = ERR_TASKSCHED_CANNOT_SCHEDULE_TASK_FROM_ENTRY.
+              LocalizableMessage message = ERR_TASKSCHED_CANNOT_SCHEDULE_TASK_FROM_ENTRY.
                   get(String.valueOf(entryDN), de.getMessageObject());
               logError(message);
             }
@@ -1192,7 +1192,7 @@ public class TaskScheduler
                 TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
-              Message message =
+              LocalizableMessage message =
                   ERR_TASKSCHED_CANNOT_SCHEDULE_RECURRING_TASK_FROM_ENTRY.
                     get(String.valueOf(entryDN), de.getMessageObject());
               logError(message);
@@ -1200,7 +1200,7 @@ public class TaskScheduler
           }
           else
           {
-            Message message = ERR_TASKSCHED_INVALID_TASK_ENTRY_DN.get(
+            LocalizableMessage message = ERR_TASKSCHED_INVALID_TASK_ENTRY_DN.get(
                 String.valueOf(entryDN), backingFilePath);
             logError(message);
           }
@@ -1216,7 +1216,7 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
 
-      Message message = ERR_TASKSCHED_ERROR_READING_TASK_BACKING_FILE.get(
+      LocalizableMessage message = ERR_TASKSCHED_ERROR_READING_TASK_BACKING_FILE.get(
           String.valueOf(backingFilePath), stackTraceToSingleLineString(ioe));
       throw new InitializationException(message, ioe);
     }
@@ -1272,7 +1272,7 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
 
-      Message message = ERR_TASKSCHED_CANNOT_CREATE_BACKING_FILE.get(
+      LocalizableMessage message = ERR_TASKSCHED_CANNOT_CREATE_BACKING_FILE.get(
           backingFile, stackTraceToSingleLineString(ioe));
       throw new InitializationException(message, ioe);
     }
@@ -1284,7 +1284,7 @@ public class TaskScheduler
       }
 
 
-      Message message = ERR_TASKSCHED_CANNOT_CREATE_BACKING_FILE.get(
+      LocalizableMessage message = ERR_TASKSCHED_CANNOT_CREATE_BACKING_FILE.get(
           backingFile, le.getMessage());
       throw new InitializationException(message, le);
     }
@@ -1372,7 +1372,7 @@ public class TaskScheduler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = WARN_TASKSCHED_CANNOT_RENAME_CURRENT_BACKING_FILE.
+        LocalizableMessage message = WARN_TASKSCHED_CANNOT_RENAME_CURRENT_BACKING_FILE.
             get(String.valueOf(backingFilePath),
                 String.valueOf(saveFile.getAbsolutePath()),
                 stackTraceToSingleLineString(e));
@@ -1397,7 +1397,7 @@ public class TaskScheduler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_TASKSCHED_CANNOT_RENAME_NEW_BACKING_FILE.
+        LocalizableMessage message = ERR_TASKSCHED_CANNOT_RENAME_NEW_BACKING_FILE.
             get(String.valueOf(tmpFilePath), String.valueOf(backingFilePath),
                 stackTraceToSingleLineString(e));
         logError(message);
@@ -1414,7 +1414,7 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
 
-      Message message = ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(
+      LocalizableMessage message = ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(
           tmpFilePath, stackTraceToSingleLineString(ioe));
       logError(message);
       DirectoryServer.sendAlertNotification(this,
@@ -1428,7 +1428,7 @@ public class TaskScheduler
       }
 
 
-      Message message = ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(
+      LocalizableMessage message = ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(
           tmpFilePath, le.getMessage());
       logError(message);
       DirectoryServer.sendAlertNotification(this,
@@ -1441,7 +1441,7 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(
+      LocalizableMessage message = ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(
           tmpFilePath, stackTraceToSingleLineString(e));
       logError(message);
       DirectoryServer.sendAlertNotification(this,
@@ -1972,20 +1972,20 @@ public class TaskScheduler
     List<Attribute> attrList = entry.getAttribute(attrType);
     if ((attrList == null) || attrList.isEmpty())
     {
-      Message message = ERR_TASKSCHED_NO_CLASS_ATTRIBUTE.get(ATTR_TASK_ID);
+      LocalizableMessage message = ERR_TASKSCHED_NO_CLASS_ATTRIBUTE.get(ATTR_TASK_ID);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     if (attrList.size() > 1)
     {
-      Message message = ERR_TASKSCHED_MULTIPLE_CLASS_TYPES.get(ATTR_TASK_ID);
+      LocalizableMessage message = ERR_TASKSCHED_MULTIPLE_CLASS_TYPES.get(ATTR_TASK_ID);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     Attribute attr = attrList.get(0);
     if (attr.isEmpty())
     {
-      Message message = ERR_TASKSCHED_NO_CLASS_VALUES.get(ATTR_TASK_ID);
+      LocalizableMessage message = ERR_TASKSCHED_NO_CLASS_VALUES.get(ATTR_TASK_ID);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -1993,7 +1993,7 @@ public class TaskScheduler
     AttributeValue value = iterator.next();
     if (iterator.hasNext())
     {
-      Message message = ERR_TASKSCHED_MULTIPLE_CLASS_VALUES.get(ATTR_TASK_ID);
+      LocalizableMessage message = ERR_TASKSCHED_MULTIPLE_CLASS_VALUES.get(ATTR_TASK_ID);
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
@@ -2011,7 +2011,7 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_TASKSCHED_CANNOT_LOAD_CLASS.
+      LocalizableMessage message = ERR_TASKSCHED_CANNOT_LOAD_CLASS.
           get(String.valueOf(taskClassName), ATTR_TASK_CLASS,
               stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -2031,7 +2031,7 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_TASKSCHED_CANNOT_INSTANTIATE_CLASS_AS_TASK.get(
+      LocalizableMessage message = ERR_TASKSCHED_CANNOT_INSTANTIATE_CLASS_AS_TASK.get(
           String.valueOf(taskClassName), Task.class.getName());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -2049,14 +2049,14 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
-      Message message = ERR_TASKSCHED_CANNOT_INITIALIZE_INTERNAL.get(
+      LocalizableMessage message = ERR_TASKSCHED_CANNOT_INITIALIZE_INTERNAL.get(
           String.valueOf(taskClassName), ie.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
     catch (Exception e)
     {
-      Message message = ERR_TASKSCHED_CANNOT_INITIALIZE_INTERNAL.get(
+      LocalizableMessage message = ERR_TASKSCHED_CANNOT_INITIALIZE_INTERNAL.get(
           String.valueOf(taskClassName), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -2065,7 +2065,7 @@ public class TaskScheduler
     if (!TaskState.isDone(task.getTaskState()) &&
         !DirectoryServer.getAllowedTasks().contains(taskClassName))
     {
-      Message message = ERR_TASKSCHED_NOT_ALLOWED_TASK.get(taskClassName);
+      LocalizableMessage message = ERR_TASKSCHED_NOT_ALLOWED_TASK.get(taskClassName);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 

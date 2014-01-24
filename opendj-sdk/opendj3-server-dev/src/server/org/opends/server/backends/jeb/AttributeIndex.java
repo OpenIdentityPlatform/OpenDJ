@@ -26,7 +26,7 @@
  *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.opends.server.backends.jeb;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.*;
 
@@ -162,7 +162,7 @@ public class AttributeIndex
     {
       if (attrType.getEqualityMatchingRule() == null)
       {
-        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
             String.valueOf(attrType), "equality");
         throw new ConfigException(message);
       }
@@ -197,7 +197,7 @@ public class AttributeIndex
     {
       if (attrType.getSubstringMatchingRule() == null)
       {
-        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
             String.valueOf(attrType), "substring");
         throw new ConfigException(message);
       }
@@ -219,7 +219,7 @@ public class AttributeIndex
     {
       if (attrType.getOrderingMatchingRule() == null)
       {
-        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
             String.valueOf(attrType), "ordering");
         throw new ConfigException(message);
       }
@@ -239,7 +239,7 @@ public class AttributeIndex
     {
       if (attrType.getApproximateMatchingRule() == null)
       {
-        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
             String.valueOf(attrType), "approximate");
         throw new ConfigException(message);
       }
@@ -261,7 +261,7 @@ public class AttributeIndex
               indexConfig.getIndexExtensibleMatchingRule();
       if(extensibleRules == null || extensibleRules.isEmpty())
       {
-        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
             String.valueOf(attrType), "extensible");
         throw new ConfigException(message);
       }
@@ -278,7 +278,7 @@ public class AttributeIndex
                                                     toLowerCase(ruleName));
         if(rule == null)
         {
-          Message message =
+          LocalizableMessage message =
                   ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE.get(
                   String.valueOf(attrType),ruleName);
           logError(message);
@@ -1769,7 +1769,7 @@ public class AttributeIndex
    */
   public synchronized boolean isConfigurationChangeAcceptable(
       LocalDBIndexCfg cfg,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     AttributeType attrType = cfg.getAttribute();
 
@@ -1777,7 +1777,7 @@ public class AttributeIndex
     {
       if (equalityIndex == null && attrType.getEqualityMatchingRule() == null)
       {
-        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
                 String.valueOf(String.valueOf(attrType)), "equality");
         unacceptableReasons.add(message);
         return false;
@@ -1788,7 +1788,7 @@ public class AttributeIndex
     {
       if (substringIndex == null && attrType.getSubstringMatchingRule() == null)
       {
-        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
                 String.valueOf(attrType), "substring");
         unacceptableReasons.add(message);
         return false;
@@ -1800,7 +1800,7 @@ public class AttributeIndex
     {
       if (orderingIndex == null && attrType.getOrderingMatchingRule() == null)
       {
-        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
                 String.valueOf(attrType), "ordering");
         unacceptableReasons.add(message);
         return false;
@@ -1811,7 +1811,7 @@ public class AttributeIndex
       if (approximateIndex == null &&
           attrType.getApproximateMatchingRule() == null)
       {
-        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
                 String.valueOf(attrType), "approximate");
         unacceptableReasons.add(message);
         return false;
@@ -1823,7 +1823,7 @@ public class AttributeIndex
               cfg.getIndexExtensibleMatchingRule();
       if (newRules == null || newRules.isEmpty())
       {
-        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
                 String.valueOf(attrType), "extensible");
         unacceptableReasons.add(message);
         return false;
@@ -1841,7 +1841,7 @@ public class AttributeIndex
   {
     ConfigChangeResult ccr;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     try
     {
       AttributeType attrType = cfg.getAttribute();
@@ -1880,7 +1880,7 @@ public class AttributeIndex
           {
 
             adminActionRequired = true;
-            Message message =
+            LocalizableMessage message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
                             equalityIndex.getName());
             messages.add(message);
@@ -1900,7 +1900,7 @@ public class AttributeIndex
           }
           catch(DatabaseException de)
           {
-            messages.add(Message.raw(
+            messages.add(LocalizableMessage.raw(
                     StaticUtils.stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
@@ -1942,7 +1942,7 @@ public class AttributeIndex
           {
             adminActionRequired = true;
 
-            Message message =
+            LocalizableMessage message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
                             presenceIndex.getName());
             messages.add(message);
@@ -1961,7 +1961,7 @@ public class AttributeIndex
           }
           catch(DatabaseException de)
           {
-            messages.add(Message.raw(
+            messages.add(LocalizableMessage.raw(
                     StaticUtils.stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
@@ -2003,7 +2003,7 @@ public class AttributeIndex
           if(this.substringIndex.setIndexEntryLimit(indexEntryLimit))
           {
             adminActionRequired = true;
-            Message message =
+            LocalizableMessage message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
                             substringIndex.getName());
             messages.add(message);
@@ -2030,7 +2030,7 @@ public class AttributeIndex
           }
           catch(DatabaseException de)
           {
-            messages.add(Message.raw(
+            messages.add(LocalizableMessage.raw(
                     StaticUtils.stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
@@ -2072,7 +2072,7 @@ public class AttributeIndex
           {
             adminActionRequired = true;
 
-            Message message =
+            LocalizableMessage message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
                             orderingIndex.getName());
             messages.add(message);
@@ -2091,7 +2091,7 @@ public class AttributeIndex
           }
           catch(DatabaseException de)
           {
-            messages.add(Message.raw(
+            messages.add(LocalizableMessage.raw(
                     StaticUtils.stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
@@ -2134,7 +2134,7 @@ public class AttributeIndex
           {
             adminActionRequired = true;
 
-            Message message =
+            LocalizableMessage message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
                             approximateIndex.getName());
             messages.add(message);
@@ -2154,7 +2154,7 @@ public class AttributeIndex
           catch(DatabaseException de)
           {
             messages.add(
-                    Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
+                    LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
             return ccr;
@@ -2185,7 +2185,7 @@ public class AttributeIndex
                                             toLowerCase(ruleName));
            if(rule == null)
           {
-            Message message =
+            LocalizableMessage message =
                     ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE.get(
                     String.valueOf(attrType),ruleName);
             logError(message);
@@ -2232,7 +2232,7 @@ public class AttributeIndex
               if(extensibleIndex.setIndexEntryLimit(indexEntryLimit))
               {
                 adminActionRequired = true;
-                Message message =
+                LocalizableMessage message =
                       NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
                               extensibleIndex.getName());
                 messages.add(message);
@@ -2313,7 +2313,7 @@ public class AttributeIndex
           catch(DatabaseException de)
           {
             messages.add(
-                  Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
+                  LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
               DirectoryServer.getServerErrorResultCode(), false, messages);
             return ccr;
@@ -2341,7 +2341,7 @@ public class AttributeIndex
           catch(DatabaseException de)
           {
             messages.add(
-                  Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
+                  LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
               DirectoryServer.getServerErrorResultCode(), false, messages);
             return ccr;
@@ -2360,7 +2360,7 @@ public class AttributeIndex
     }
     catch(Exception e)
     {
-      messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(e)));
+      messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
       ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
                                    adminActionRequired,
                                    messages);
@@ -2751,8 +2751,8 @@ public class AttributeIndex
       ByteString assertionValue =
               extensibleFilter.getAssertionValue().getValue();
       IndexQuery expression = rule.createIndexQuery(assertionValue, factory);
-      List<Message> debugMessages =
-          monitor.isFilterUseEnabled() ? new ArrayList<Message>() : null;
+      List<LocalizableMessage> debugMessages =
+          monitor.isFilterUseEnabled() ? new ArrayList<LocalizableMessage>() : null;
       EntryIDSet idSet = expression.evaluate(debugMessages);
       if(monitor.isFilterUseEnabled())
       {
@@ -2768,7 +2768,7 @@ public class AttributeIndex
           }
           else
           {
-            monitor.updateStats(extensibleFilter, Message.EMPTY);
+            monitor.updateStats(extensibleFilter, LocalizableMessage.EMPTY);
           }
         }
       }

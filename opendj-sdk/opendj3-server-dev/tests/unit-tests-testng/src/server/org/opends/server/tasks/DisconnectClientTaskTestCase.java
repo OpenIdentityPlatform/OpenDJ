@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.extensions.GetConnectionIDExtendedOperation;
@@ -112,7 +112,7 @@ public class DisconnectClientTaskTestCase
 
     // Invoke the disconnect client task.
     String taskID = "Disconnect Client " + connectionID;
-    Message disconnectMessage = Message.raw("testDisconnectWithNotification");
+    LocalizableMessage disconnectMessage = LocalizableMessage.raw("testDisconnectWithNotification");
     DN taskDN = DN.valueOf("ds-task-id=" + taskID +
                           ",cn=Scheduled Tasks,cn=Tasks");
     TestCaseUtils.addEntry(

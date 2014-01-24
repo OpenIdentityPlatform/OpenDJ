@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 
@@ -33,7 +34,7 @@ import java.util.Random;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ToolMessages.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -115,7 +116,7 @@ public class ListTag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<Message> warnings)
+                                  List<LocalizableMessage> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments, lineNumber, warnings);
@@ -140,7 +141,7 @@ public class ListTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<Message> warnings)
+                                    int lineNumber, List<LocalizableMessage> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments, lineNumber, warnings);
@@ -162,7 +163,7 @@ public class ListTag
    *                                   this tag.
    */
   private void initializeInternal(TemplateFile templateFile, String[] arguments,
-                                  int lineNumber, List<Message> warnings)
+                                  int lineNumber, List<LocalizableMessage> warnings)
           throws InitializationException
   {
     if (arguments.length == 0)

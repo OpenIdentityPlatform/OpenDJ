@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types.operation;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -159,7 +159,7 @@ public interface PostResponseBindOperation
    *          authentication failed, or <CODE>null</CODE> if none is
    *          available.
    */
-  public Message getAuthFailureReason();
+  public LocalizableMessage getAuthFailureReason();
 
 
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -85,8 +86,8 @@ import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.
  SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ObjectClassType;
@@ -107,7 +108,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
   private String ocName;
   private ScrollPaneBorderListener scrollListener;
 
-  private TitlePanel titlePanel = new TitlePanel(Message.EMPTY, Message.EMPTY);
+  private TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY, LocalizableMessage.EMPTY);
   private JLabel lName = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_OBJECTCLASS_NAME_LABEL.get());
   private JLabel lSuperior = Utilities.createPrimaryLabel(
@@ -168,7 +169,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_CUSTOM_OBJECTCLASS_TITLE.get();
   }
@@ -229,7 +230,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
        */
       public void actionPerformed(ActionEvent ev)
       {
-        ArrayList<Message> errors = new ArrayList<Message>();
+        ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
         saveChanges(false, errors);
       }
     });
@@ -490,7 +491,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     {
       n = NOT_APPLICABLE.toString();
     }
-    titlePanel.setDetails(Message.raw(n));
+    titlePanel.setDetails(LocalizableMessage.raw(n));
     name.setText(n);
 
     SortableListModel<AttributeType> modelRequired =
@@ -662,7 +663,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     result = unsavedChangesDlg.getResult();
     if (result == UnsavedChangesDialog.Result.SAVE)
     {
-      ArrayList<Message> errors = new ArrayList<Message>();
+      ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
       saveChanges(true, errors);
       if (!errors.isEmpty())
       {
@@ -690,7 +691,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
   private void deleteObjectclass()
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
@@ -727,7 +728,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     }
     if (errors.size() == 0)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
 
       if (!childClasses.isEmpty())
       {
@@ -736,7 +737,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
             Utilities.getStringFromCollection(childClasses, ", ")));
         mb.append("<br>");
       }
-      Message confirmationMessage =
+      LocalizableMessage confirmationMessage =
         INFO_CTRL_PANEL_CONFIRMATION_DELETE_OBJECTCLASS_DETAILS.get(
             ocName);
       mb.append(confirmationMessage);
@@ -761,14 +762,14 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     }
   }
 
-  private void saveChanges(boolean modal, ArrayList<Message> errors)
+  private void saveChanges(boolean modal, ArrayList<LocalizableMessage> errors)
   {
     for (JLabel label : labels)
     {
       setPrimaryValid(label);
     }
     String n = getObjectClassName();
-    MessageBuilder err = new MessageBuilder();
+    LocalizableMessageBuilder err = new LocalizableMessageBuilder();
     if (n.length() == 0)
     {
       errors.add(ERR_CTRL_PANEL_OBJECTCLASS_NAME_REQUIRED.get());
@@ -780,11 +781,11 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       {
         errors.add(ERR_CTRL_PANEL_INVALID_OBJECTCLASS_NAME.get(err.toString()));
         setPrimaryInvalid(lName);
-        err = new MessageBuilder();
+        err = new LocalizableMessageBuilder();
       }
       else
       {
-        Message elementType = NewAttributePanel.getSchemaElementType(n, schema);
+        LocalizableMessage elementType = NewAttributePanel.getSchemaElementType(n, schema);
         if (elementType != null)
         {
           errors.add(ERR_CTRL_PANEL_OBJECTCLASS_NAME_ALREADY_IN_USE.get(n,
@@ -800,11 +801,11 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       {
         errors.add(ERR_CTRL_PANEL_OID_NOT_VALID.get(err.toString()));
         setPrimaryInvalid(lOID);
-        err = new MessageBuilder();
+        err = new LocalizableMessageBuilder();
       }
       else
       {
-        Message elementType = NewAttributePanel.getSchemaElementType(n, schema);
+        LocalizableMessage elementType = NewAttributePanel.getSchemaElementType(n, schema);
         if (elementType != null)
         {
           errors.add(ERR_CTRL_PANEL_OID_ALREADY_IN_USE.get(n,
@@ -839,7 +840,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
           }
           if (notPreviouslyDefined)
           {
-            Message elementType =
+            LocalizableMessage elementType =
               NewAttributePanel.getSchemaElementType(alias, schema);
             if (elementType != null)
             {
@@ -901,7 +902,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
 
   private void validateSuperiority(ObjectClass superior,
-          ArrayList<Message> errors)
+          ArrayList<LocalizableMessage> errors)
   {
     if(superior.getNameOrOID().equalsIgnoreCase(objectClass.getNameOrOID()))
     {

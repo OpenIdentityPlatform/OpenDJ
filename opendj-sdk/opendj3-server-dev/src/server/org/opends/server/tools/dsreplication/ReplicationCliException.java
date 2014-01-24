@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.tools.dsreplication;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -43,7 +44,7 @@ public class ReplicationCliException extends OpenDsException {
    * @param errorCode the error code associated with this exception.
    * @param cause the cause that generated this exception.
    */
-  public ReplicationCliException(Message message,
+  public ReplicationCliException(LocalizableMessage message,
       ReplicationCliReturnCode errorCode,
       Throwable cause)
   {

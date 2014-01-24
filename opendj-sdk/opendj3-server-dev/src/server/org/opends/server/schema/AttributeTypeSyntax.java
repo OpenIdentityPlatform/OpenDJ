@@ -25,7 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -51,7 +51,7 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -119,7 +119,7 @@ public class AttributeTypeSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      Message message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
           EMR_CASE_IGNORE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME);
       throw new InitializationException(message);
     }
@@ -128,7 +128,7 @@ public class AttributeTypeSyntax
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      Message message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
           OMR_CASE_IGNORE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME);
       throw new InitializationException(message);
     }
@@ -137,7 +137,7 @@ public class AttributeTypeSyntax
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      Message message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_CASE_IGNORE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME);
       throw new InitializationException(message);
     }
@@ -233,7 +233,7 @@ public class AttributeTypeSyntax
    * {@inheritDoc}
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // We'll use the decodeAttributeType method to determine if the value is
     // acceptable.
@@ -303,7 +303,7 @@ public class AttributeTypeSyntax
     {
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
-      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE.get();
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -314,7 +314,7 @@ public class AttributeTypeSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(
           valueStr, (pos-1), String.valueOf(c));
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -331,7 +331,7 @@ public class AttributeTypeSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -354,7 +354,7 @@ public class AttributeTypeSyntax
         {
           if (lastWasPeriod)
           {
-            Message message =
+            LocalizableMessage message =
               ERR_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID.
                   get(valueStr, (pos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -368,7 +368,7 @@ public class AttributeTypeSyntax
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
-          Message message =
+          LocalizableMessage message =
             ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
                 get(valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -397,7 +397,7 @@ public class AttributeTypeSyntax
         else
         {
           // This must have been an illegal character.
-          Message message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.
+          LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.
               get(valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -411,7 +411,7 @@ public class AttributeTypeSyntax
     String oid;
     if (pos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -431,7 +431,7 @@ public class AttributeTypeSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -473,7 +473,7 @@ public class AttributeTypeSyntax
         // We must be at the end of the value.  If not, then that's a problem.
         if (pos < length)
         {
-          Message message =
+          LocalizableMessage message =
             ERR_ATTR_SYNTAX_ATTRTYPE_UNEXPECTED_CLOSE_PARENTHESIS.
                 get(valueStr, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -534,7 +534,7 @@ public class AttributeTypeSyntax
         else
         {
           // This is an illegal character.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR.get(
                       valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -560,7 +560,7 @@ public class AttributeTypeSyntax
               //hyphen is allowed but not as the first byte.
                 if (index==0)
                 {
-                  Message msg = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_DASH.
+                  LocalizableMessage msg = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_DASH.
                         get(value.toString());
                   throw new DirectoryException(
                           ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -573,7 +573,7 @@ public class AttributeTypeSyntax
               // name exceptions option is enabled.
                 if (index==0)
                 {
-                  Message msg =
+                  LocalizableMessage msg =
                           ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_UNDERSCORE.
                         get(value.toString(),
                             ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
@@ -583,7 +583,7 @@ public class AttributeTypeSyntax
                 }
                 else if (!allowExceptions)
                 {
-                  Message msg = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_UNDERSCORE_CHAR.
+                  LocalizableMessage msg = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_UNDERSCORE_CHAR.
                         get(value.toString(),
                             ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
                   throw new DirectoryException(
@@ -597,7 +597,7 @@ public class AttributeTypeSyntax
               //can not be a digit.
                 if(index ==0 && isDigit(ch) && !allowExceptions)
                 {
-                  Message message = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_DIGIT.
+                  LocalizableMessage message = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_DIGIT.
                     get(value.toString(), ch,
                         ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
                   throw new DirectoryException(
@@ -607,7 +607,7 @@ public class AttributeTypeSyntax
                 else if(!((ch>='0' && ch<='9') || (ch>='A' && ch<='Z') ||
                         (ch>='a' && ch<='z')))
                 {
-                  Message msg = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_CHAR.get(
+                  LocalizableMessage msg = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_CHAR.get(
                             value.toString(), ch, index);
                   throw new DirectoryException(
                           ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -652,7 +652,7 @@ public class AttributeTypeSyntax
           {
             // This is bad because we don't know what the superior attribute
             // type is so we can't base this attribute type on it.
-            Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE.
+            LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE.
                 get(String.valueOf(oid), String.valueOf(woidBuffer));
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
@@ -691,7 +691,7 @@ public class AttributeTypeSyntax
         {
           // This is bad because we have no idea what the equality matching
           // rule should be.
-          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR.get(
+          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR.get(
               String.valueOf(oid), String.valueOf(woidBuffer));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                        message);
@@ -713,7 +713,7 @@ public class AttributeTypeSyntax
         {
           // This is bad because we have no idea what the ordering matching
           // rule should be.
-          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR.get(
+          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR.get(
               String.valueOf(oid), String.valueOf(woidBuffer));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                        message);
@@ -735,7 +735,7 @@ public class AttributeTypeSyntax
         {
           // This is bad because we have no idea what the substring matching
           // rule should be.
-          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR.get(
+          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR.get(
               String.valueOf(oid), String.valueOf(woidBuffer));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                        message);
@@ -769,7 +769,7 @@ public class AttributeTypeSyntax
               if ((c = lowerStr.charAt(pos)) != ' '
                       &&  (c = lowerStr.charAt(pos)) != ')')
               {
-                Message message =
+                LocalizableMessage message =
                   ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
                       get(valueStr, String.valueOf(c), (pos-1));
                 throw new DirectoryException(
@@ -780,7 +780,7 @@ public class AttributeTypeSyntax
             }
             else if (! isDigit(c))
             {
-              Message message =
+              LocalizableMessage message =
                 ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
                     get(valueStr, String.valueOf(c), (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -798,7 +798,7 @@ public class AttributeTypeSyntax
             {
               if (lastWasPeriod)
               {
-                Message message =
+                LocalizableMessage message =
                     ERR_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID.
                       get(valueStr, (pos-1));
                 throw new DirectoryException(
@@ -828,7 +828,7 @@ public class AttributeTypeSyntax
             }
             else
             {
-              Message message =
+              LocalizableMessage message =
                 ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
                     get(valueStr, String.valueOf(c), (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -840,7 +840,7 @@ public class AttributeTypeSyntax
         syntax = schema.getSyntax(oidBuffer.toString());
         if (syntax == null)
         {
-          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX.get(
+          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX.get(
               String.valueOf(oid), String.valueOf(oidBuffer));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                        message);
@@ -932,7 +932,7 @@ public class AttributeTypeSyntax
           // This must be an illegal usage.
           attributeUsage = AttributeUsage.USER_APPLICATIONS;
 
-          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE.
+          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE.
               get(String.valueOf(oid), usageStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -961,7 +961,7 @@ public class AttributeTypeSyntax
       {
         // This is bad because we have no idea what the approximate matching
         // rule should be.
-        Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR.get(
+        LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR.get(
             String.valueOf(oid), String.valueOf(ruleName));
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -979,7 +979,7 @@ public class AttributeTypeSyntax
     {
       if (superiorType.getUsage() != attributeUsage)
       {
-        Message message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE.get(
+        LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE.get(
             oid, String.valueOf(attributeUsage), superiorType.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -988,7 +988,7 @@ public class AttributeTypeSyntax
       {
         if (!isCollective)
         {
-          Message message =
+          LocalizableMessage message =
                   WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE.get(
                     oid, superiorType.getNameOrOID());
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
@@ -1003,7 +1003,7 @@ public class AttributeTypeSyntax
     if (isNoUserModification &&
         (attributeUsage == AttributeUsage.USER_APPLICATIONS))
     {
-      Message message =
+      LocalizableMessage message =
           WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL.get(oid);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -1050,7 +1050,7 @@ public class AttributeTypeSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1117,7 +1117,7 @@ public class AttributeTypeSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1126,7 +1126,7 @@ public class AttributeTypeSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      Message message = WARN_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS.get(
+      LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS.get(
           valueStr, startPos, String.valueOf(c));
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -1153,7 +1153,7 @@ public class AttributeTypeSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1202,7 +1202,7 @@ public class AttributeTypeSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1211,7 +1211,7 @@ public class AttributeTypeSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      Message message = WARN_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS.get(
+      LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS.get(
           valueStr, startPos, String.valueOf(c));
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -1239,7 +1239,7 @@ public class AttributeTypeSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1281,7 +1281,7 @@ public class AttributeTypeSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1300,7 +1300,7 @@ public class AttributeTypeSyntax
         {
           if (lastWasPeriod)
           {
-            Message message =
+            LocalizableMessage message =
               ERR_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID.
                   get(lowerStr, (startPos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -1326,7 +1326,7 @@ public class AttributeTypeSyntax
           }
 
           // This must have been an illegal character.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
                 get(lowerStr, String.valueOf(c), (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -1364,7 +1364,7 @@ public class AttributeTypeSyntax
           }
 
           // This must have been an illegal character.
-          Message message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.
+          LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.
               get(lowerStr, String.valueOf(c), (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1373,7 +1373,7 @@ public class AttributeTypeSyntax
     }
     else
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR.
                   get(lowerStr, String.valueOf(c), startPos);
       throw new DirectoryException(
@@ -1391,7 +1391,7 @@ public class AttributeTypeSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1433,7 +1433,7 @@ public class AttributeTypeSyntax
 
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -1471,7 +1471,7 @@ public class AttributeTypeSyntax
 
         if (startPos >= length)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1486,7 +1486,7 @@ public class AttributeTypeSyntax
         else if (c == '(')
         {
           // This is an illegal character.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER.get(
                       valueStr, startPos);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -1523,7 +1523,7 @@ public class AttributeTypeSyntax
 
         if (startPos >= length)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1551,7 +1551,7 @@ public class AttributeTypeSyntax
 
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -1581,7 +1581,7 @@ public class AttributeTypeSyntax
    */
   public boolean isConfigurationChangeAcceptable(
                       AttributeTypeDescriptionAttributeSyntaxCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // The configuration will always be acceptable.
     return true;

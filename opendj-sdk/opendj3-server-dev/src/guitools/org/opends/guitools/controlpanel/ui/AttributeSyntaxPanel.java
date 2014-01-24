@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -45,7 +46,7 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Schema;
@@ -57,8 +58,8 @@ import org.opends.server.types.Schema;
 public class AttributeSyntaxPanel extends SchemaElementPanel
 {
   private static final long serialVersionUID = -2426247742251904863L;
-  private TitlePanel titlePanel = new TitlePanel(Message.EMPTY,
-      Message.EMPTY);
+  private TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY,
+      LocalizableMessage.EMPTY);
   private JLabel name = Utilities.createDefaultLabel();
   private JLabel oid = Utilities.createDefaultLabel();
   private JLabel description = Utilities.createDefaultLabel();
@@ -77,7 +78,7 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_TITLE.get();
   }
@@ -122,7 +123,7 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
     gbc.insets.bottom = 0;
     gbc.insets.top = 8;
 
-    Message[] labels = {INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_NAME.get(),
+    LocalizableMessage[] labels = {INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_NAME.get(),
         INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_OID.get(),
         INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_DESCRIPTION.get()};
     JLabel[] values = {name, oid, description};
@@ -201,7 +202,7 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
     {
       n = NOT_APPLICABLE.toString();
     }
-    titlePanel.setDetails(Message.raw(n));
+    titlePanel.setDetails(LocalizableMessage.raw(n));
     name.setText(n);
     oid.setText(syntax.getOID());
 

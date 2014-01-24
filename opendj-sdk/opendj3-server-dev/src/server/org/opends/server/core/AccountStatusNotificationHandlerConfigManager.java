@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -145,7 +146,7 @@ public class AccountStatusNotificationHandlerConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
-      List<Message> unacceptableReasons
+      List<LocalizableMessage> unacceptableReasons
       )
   {
     // returned status -- all is fine by default
@@ -182,7 +183,7 @@ public class AccountStatusNotificationHandlerConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<Message>()
+        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
         );
 
     // Get the configuration entry DN and the associated handler class.
@@ -242,7 +243,7 @@ public class AccountStatusNotificationHandlerConfigManager
    */
   public boolean isConfigurationAddAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
-      List<Message> unacceptableReasons
+      List<LocalizableMessage> unacceptableReasons
       )
   {
     // returned status -- all is fine by default
@@ -252,7 +253,7 @@ public class AccountStatusNotificationHandlerConfigManager
     DN configEntryDN = configuration.dn();
     if (notificationHandlers.containsKey(configEntryDN))
     {
-      Message message = ERR_CONFIG_ACCTNOTHANDLER_EXISTS.get(
+      LocalizableMessage message = ERR_CONFIG_ACCTNOTHANDLER_EXISTS.get(
               String.valueOf(configEntryDN));
       unacceptableReasons.add (message);
       status = false;
@@ -290,7 +291,7 @@ public class AccountStatusNotificationHandlerConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<Message>()
+        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
         );
 
     // Register a change listener with it so we can be notified of changes
@@ -323,7 +324,7 @@ public class AccountStatusNotificationHandlerConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
-      List<Message> unacceptableReasons
+      List<LocalizableMessage> unacceptableReasons
       )
   {
     // A delete should always be acceptable, so just return true.
@@ -341,7 +342,7 @@ public class AccountStatusNotificationHandlerConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<Message>()
+        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
         );
 
     uninstallNotificationHandler (configuration.dn());
@@ -444,7 +445,7 @@ public class AccountStatusNotificationHandlerConfigManager
                   "isConfigurationAcceptable",
                   AccountStatusNotificationHandlerCfg.class, List.class);
 
-        List<Message> unacceptableReasons = new ArrayList<Message>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         Boolean acceptable = (Boolean) method.invoke(notificationHandler,
                                                      configuration,
                                                      unacceptableReasons);
@@ -453,7 +454,7 @@ public class AccountStatusNotificationHandlerConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<Message> iterator = unacceptableReasons.iterator();
+            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -462,7 +463,7 @@ public class AccountStatusNotificationHandlerConfigManager
             }
           }
 
-          Message message = ERR_CONFIG_ACCTNOTHANDLER_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_ACCTNOTHANDLER_CONFIG_NOT_ACCEPTABLE.get(
               String.valueOf(configuration.dn()), buffer.toString());
           throw new InitializationException(message);
         }
@@ -472,7 +473,7 @@ public class AccountStatusNotificationHandlerConfigManager
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_ACCTNOTHANDLER_INITIALIZATION_FAILED.get(
+      LocalizableMessage message = ERR_CONFIG_ACCTNOTHANDLER_INITIALIZATION_FAILED.get(
               className,
               String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));

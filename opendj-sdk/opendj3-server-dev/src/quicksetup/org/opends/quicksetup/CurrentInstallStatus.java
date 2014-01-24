@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.io.File;
@@ -58,7 +58,7 @@ public class CurrentInstallStatus
 
   private boolean canOverwriteCurrentInstall;
 
-  private Message installationMsg;
+  private LocalizableMessage installationMsg;
 
   /**
    * The constructor of a CurrentInstallStatus object.
@@ -72,7 +72,7 @@ public class CurrentInstallStatus
     } else
     {
       Installation installation = Installation.getLocal();
-      ArrayList<Message> msgs = new ArrayList<Message>();
+      ArrayList<LocalizableMessage> msgs = new ArrayList<LocalizableMessage>();
 
       if (installation.getStatus().isServerRunning())
       {
@@ -101,11 +101,11 @@ public class CurrentInstallStatus
       }
       else if (isInstalled)
       {
-        MessageBuilder buf = new MessageBuilder();
+        LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
         if (Utils.isCli())
         {
-          buf = new MessageBuilder();
-          for (Message msg : msgs)
+          buf = new LocalizableMessageBuilder();
+          for (LocalizableMessage msg : msgs)
           {
             buf.append(Constants.LINE_SEPARATOR);
             buf.append("- ").append(msg);
@@ -119,7 +119,7 @@ public class CurrentInstallStatus
         else
         {
           buf.append("<ul>");
-          for (Message msg : msgs)
+          for (LocalizableMessage msg : msgs)
           {
             buf.append("\n<li>");
             buf.append(msg);
@@ -165,7 +165,7 @@ public class CurrentInstallStatus
    *
    * @return an String in HTML format describing the status of the installation.
    */
-  public Message getInstallationMsg()
+  public LocalizableMessage getInstallationMsg()
   {
     return installationMsg;
   }

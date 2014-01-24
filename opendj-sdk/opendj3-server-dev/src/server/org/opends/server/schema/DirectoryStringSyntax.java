@@ -25,7 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -48,7 +48,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -288,7 +288,7 @@ public class DirectoryStringSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     if (allowZeroLengthValues || (value.length() > 0))
     {
@@ -326,7 +326,7 @@ public class DirectoryStringSyntax
    */
   public boolean isConfigurationChangeAcceptable(
                       DirectoryStringAttributeSyntaxCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // The configuration will always be acceptable.
     return true;

@@ -34,7 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.admin.std.server.StaticGroupImplementationCfg;
 import org.opends.server.api.Group;
@@ -186,14 +186,14 @@ public class StaticGroup
     {
       if (groupEntry.hasObjectClass(groupOfNamesClass))
       {
-        Message message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
+        LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
             get(String.valueOf(groupEntry.getName()), OC_GROUP_OF_ENTRIES,
                 OC_GROUP_OF_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
       else if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
       {
-        Message message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
+        LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
             get(String.valueOf(groupEntry.getName()), OC_GROUP_OF_ENTRIES,
                 OC_GROUP_OF_UNIQUE_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
@@ -206,7 +206,7 @@ public class StaticGroup
     {
       if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
       {
-        Message message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
+        LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
             get(String.valueOf(groupEntry.getName()), OC_GROUP_OF_NAMES,
                 OC_GROUP_OF_UNIQUE_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
@@ -222,7 +222,7 @@ public class StaticGroup
     }
     else
     {
-      Message message = ERR_STATICGROUP_NO_VALID_OC.
+      LocalizableMessage message = ERR_STATICGROUP_NO_VALID_OC.
           get(String.valueOf(groupEntry.getName()), OC_GROUP_OF_NAMES,
               OC_GROUP_OF_UNIQUE_NAMES);
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
@@ -258,7 +258,7 @@ public class StaticGroup
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            Message message = ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN.
+            LocalizableMessage message = ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN.
                 get(v.getValue().toString(),
                     someMemberAttributeType.getNameOrOID(),
                     String.valueOf(groupEntry.getName()),
@@ -410,7 +410,7 @@ public class StaticGroup
     {
       if (nestedGroups.contains(nestedGroupDN))
       {
-        Message msg = ERR_STATICGROUP_ADD_NESTED_GROUP_ALREADY_EXISTS.get(
+        LocalizableMessage msg = ERR_STATICGROUP_ADD_NESTED_GROUP_ALREADY_EXISTS.get(
                 String.valueOf(nestedGroupDN),
                 String.valueOf(groupEntryDN));
         throw new DirectoryException(
@@ -436,7 +436,7 @@ public class StaticGroup
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
-        Message msg = ERR_STATICGROUP_ADD_MEMBER_UPDATE_FAILED.get(
+        LocalizableMessage msg = ERR_STATICGROUP_ADD_MEMBER_UPDATE_FAILED.get(
                 String.valueOf(nestedGroupDN),
                 String.valueOf(groupEntryDN),
                 modifyOperation.getErrorMessage().toString());
@@ -681,7 +681,7 @@ public class StaticGroup
 
       if (memberDNs.contains(userDNString))
       {
-        Message message = ERR_STATICGROUP_ADD_MEMBER_ALREADY_EXISTS.get(
+        LocalizableMessage message = ERR_STATICGROUP_ADD_MEMBER_ALREADY_EXISTS.get(
             String.valueOf(userDN), String.valueOf(groupEntryDN));
         throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
                                      message);
@@ -705,7 +705,7 @@ public class StaticGroup
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
-        Message message = ERR_STATICGROUP_ADD_MEMBER_UPDATE_FAILED.
+        LocalizableMessage message = ERR_STATICGROUP_ADD_MEMBER_UPDATE_FAILED.
             get(String.valueOf(userDN), String.valueOf(groupEntryDN),
                 modifyOperation.getErrorMessage().toString());
         throw new DirectoryException(modifyOperation.getResultCode(), message);
@@ -736,7 +736,7 @@ public class StaticGroup
     {
       if (! memberDNs.contains(userDNString))
       {
-        Message message = ERR_STATICGROUP_REMOVE_MEMBER_NO_SUCH_MEMBER.get(
+        LocalizableMessage message = ERR_STATICGROUP_REMOVE_MEMBER_NO_SUCH_MEMBER.get(
             String.valueOf(userDN), String.valueOf(groupEntryDN));
         throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message);
       }
@@ -760,7 +760,7 @@ public class StaticGroup
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
-        Message message = ERR_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED.
+        LocalizableMessage message = ERR_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED.
             get(String.valueOf(userDN), String.valueOf(groupEntryDN),
                 modifyOperation.getErrorMessage().toString());
         throw new DirectoryException(modifyOperation.getResultCode(), message);

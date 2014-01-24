@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.server.tools.tasks;
@@ -49,7 +49,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.backends.task.FailedDependencyAction;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.TaskMessages.*;
 
@@ -123,7 +123,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * @return LDAPConnectionArgumentParser for processing CLI input
    */
   protected LDAPConnectionArgumentParser createArgParser(String className,
-    Message toolDescription)
+    LocalizableMessage toolDescription)
   {
     ArgumentGroup ldapGroup = new ArgumentGroup(
       INFO_DESCRIPTION_TASK_LDAP_ARGS.get(), 1001);
@@ -275,7 +275,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
         }
         catch (Exception e)
         {
-          Message message = ERR_SERVER_BOOTSTRAP_ERROR.get(
+          LocalizableMessage message = ERR_SERVER_BOOTSTRAP_ERROR.get(
                   getExceptionMessage(e));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
@@ -287,7 +287,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
         conn = argParser.connect(out, err);
         TaskClient tc = new TaskClient(conn);
         TaskEntry taskEntry = tc.schedule(this);
-        Message startTime = taskEntry.getScheduledStartTime();
+        LocalizableMessage startTime = taskEntry.getScheduledStartTime();
         if (taskEntry.getTaskState() == TaskState.RECURRING) {
           out.println(
                   wrapText(INFO_TASK_TOOL_RECURRING_TASK_SCHEDULED.get(
@@ -312,11 +312,11 @@ public abstract class TaskTool implements TaskScheduleInformation {
 
           // Poll the task printing log messages until finished
           String taskId = taskEntry.getId();
-          Set<Message> printedLogMessages = new HashSet<Message>();
+          Set<LocalizableMessage> printedLogMessages = new HashSet<LocalizableMessage>();
           do {
             taskEntry = tc.getTaskEntry(taskId);
-            List<Message> logs = taskEntry.getLogMessages();
-            for (Message log : logs) {
+            List<LocalizableMessage> logs = taskEntry.getLogMessages();
+            for (LocalizableMessage log : logs) {
               if (!printedLogMessages.contains(log)) {
                 printedLogMessages.add(log);
                 out.println(log);
@@ -350,7 +350,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
         }
         ret = 0;
       } catch (LDAPConnectionException e) {
-        Message message;
+        LocalizableMessage message;
         if (isWrongPortException(e,
             new Integer(argParser.getArguments().getPort())))
         {
@@ -363,19 +363,19 @@ public abstract class TaskTool implements TaskScheduleInformation {
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } catch (IOException ioe) {
-        Message message = ERR_TASK_TOOL_IO_ERROR.get(String.valueOf(ioe));
+        LocalizableMessage message = ERR_TASK_TOOL_IO_ERROR.get(String.valueOf(ioe));
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } catch (ASN1Exception ae) {
-        Message message = ERR_TASK_TOOL_DECODE_ERROR.get(ae.getMessage());
+        LocalizableMessage message = ERR_TASK_TOOL_DECODE_ERROR.get(ae.getMessage());
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } catch (LDAPException le) {
-        Message message = ERR_TASK_TOOL_LDAP_ERROR.get(le.getMessage());
+        LocalizableMessage message = ERR_TASK_TOOL_LDAP_ERROR.get(le.getMessage());
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } catch (OpenDsException e) {
-        Message message = e.getMessageObject();
+        LocalizableMessage message = e.getMessageObject();
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } finally

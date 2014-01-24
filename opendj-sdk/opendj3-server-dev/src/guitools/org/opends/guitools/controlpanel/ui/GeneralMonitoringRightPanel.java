@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -36,7 +37,7 @@ import javax.swing.JPanel;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -94,7 +95,7 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
    * @param msg the message.
    *
    */
-  public void displayMessage(Message msg)
+  public void displayMessage(LocalizableMessage msg)
   {
     noEntryPanel.setMessage(msg);
     ((CardLayout)mainPanel.getLayout()).show(mainPanel, getTitle(noEntryPanel));
@@ -173,9 +174,9 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
-    return Message.EMPTY;
+    return LocalizableMessage.EMPTY;
   }
 
   /**

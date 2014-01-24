@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.webstart;
@@ -51,7 +51,7 @@ import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.server.util.SetupUtils;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -84,8 +84,8 @@ public class WebStartInstaller extends Installer {
   private final Map<ProgressStep, Integer> hmRatio =
       new HashMap<ProgressStep, Integer>();
 
-  private final Map<ProgressStep, Message> hmSummary =
-      new HashMap<ProgressStep, Message>();
+  private final Map<ProgressStep, LocalizableMessage> hmSummary =
+      new HashMap<ProgressStep, LocalizableMessage>();
 
   private static final Logger LOG =
     Logger.getLogger(WebStartInstaller.class.getName());
@@ -300,7 +300,7 @@ public class WebStartInstaller extends Installer {
         notifyListeners(getLineBreak());
         updateSummaryWithServerState(hmSummary, false);
         setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
-        Message html = getFormattedError(ex, true);
+        LocalizableMessage html = getFormattedError(ex, true);
         notifyListeners(html);
         LOG.log(Level.SEVERE, "Error installing.", ex);
         notifyListeners(getLineBreak());
@@ -324,7 +324,7 @@ public class WebStartInstaller extends Installer {
       ApplicationException ex = new ApplicationException(
           ReturnCode.BUG,
           Utils.getThrowableMsg(INFO_BUG_MSG.get(), t), t);
-      Message msg = getFormattedError(ex, true);
+      LocalizableMessage msg = getFormattedError(ex, true);
       notifyListeners(msg);
       LOG.log(Level.SEVERE, "Error installing.", t);
       notifyListeners(getLineBreak());
@@ -347,9 +347,9 @@ public class WebStartInstaller extends Installer {
    * {@inheritDoc}
    */
   @Override
-  public Message getSummary(ProgressStep status)
+  public LocalizableMessage getSummary(ProgressStep status)
   {
-    Message summary;
+    LocalizableMessage summary;
     if (InstallProgressStep.DOWNLOADING.equals(status)) {
       summary = loader.getSummary();
     } else {

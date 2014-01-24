@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.uninstaller;
@@ -65,8 +66,8 @@ import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.tools.ToolConstants;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -101,8 +102,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   private HashMap<ProgressStep, Integer> hmRatio =
           new HashMap<ProgressStep, Integer>();
 
-  private HashMap<ProgressStep, Message> hmSummary =
-          new HashMap<ProgressStep, Message>();
+  private HashMap<ProgressStep, LocalizableMessage> hmSummary =
+          new HashMap<ProgressStep, LocalizableMessage>();
 
   private ApplicationException ue;
 
@@ -115,7 +116,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
   private LoginDialog loginDialog;
   private ProgressDialog startProgressDlg;
-  private MessageBuilder startProgressDetails = new MessageBuilder();
+  private LocalizableMessageBuilder startProgressDetails = new LocalizableMessageBuilder();
   private UninstallData conf;
   /**
    * Default constructor.
@@ -155,10 +156,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public Message getFrameTitle() {
-    Message title = Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
+  public LocalizableMessage getFrameTitle() {
+    LocalizableMessage title = Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
         INFO_FRAME_UNINSTALL_TITLE.get(
-        DynamicConstants.PRODUCT_NAME), Message.class);
+        DynamicConstants.PRODUCT_NAME), LocalizableMessage.class);
     return title;
   }
 
@@ -357,21 +358,21 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public Message getCloseButtonToolTip() {
+  public LocalizableMessage getCloseButtonToolTip() {
     return INFO_CLOSE_BUTTON_UNINSTALL_TOOLTIP.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  public Message getFinishButtonToolTip() {
+  public LocalizableMessage getFinishButtonToolTip() {
     return INFO_FINISH_BUTTON_UNINSTALL_TOOLTIP.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  public Message getFinishButtonLabel() {
+  public LocalizableMessage getFinishButtonLabel() {
     return INFO_FINISH_BUTTON_UNINSTALL_LABEL.get();
   }
 
@@ -392,8 +393,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public void notifyListeners(Integer ratio, Message currentPhaseSummary,
-      final Message newLogDetail)
+  public void notifyListeners(Integer ratio, LocalizableMessage currentPhaseSummary,
+      final LocalizableMessage newLogDetail)
   {
     if (runStarted)
     {
@@ -445,14 +446,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           if (throwable != null) {
             if (throwable instanceof UserDataException)
             {
-              qs.displayError(Message.raw(throwable.getLocalizedMessage()),
+              qs.displayError(LocalizableMessage.raw(throwable.getLocalizedMessage()),
                     INFO_ERROR_TITLE.get());
             }
             else
             {
               LOG.log(Level.WARNING, "Error processing task: "+throwable,
                   throwable);
-              qs.displayError(Message.raw(throwable.toString()),
+              qs.displayError(LocalizableMessage.raw(throwable.toString()),
                       INFO_ERROR_TITLE.get());
             }
           } else {
@@ -648,7 +649,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             getFormattedSummary(
                     INFO_SUMMARY_DELETING_INSTALLATION_FILES.get()));
 
-    Message successMsg;
+    LocalizableMessage successMsg;
     Installation installation = getInstallation();
     String libPath = getPath(installation.getLibrariesDirectory());
     String resourcesPath = getPath(installation.getResourcesDirectory());
@@ -698,7 +699,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     hmSummary.put(UninstallProgressStep.FINISHED_SUCCESSFULLY,
             getFormattedSuccess(successMsg));
 
-    Message nonCriticalMsg;
+    LocalizableMessage nonCriticalMsg;
     if (!isCli())
     {
       nonCriticalMsg =
@@ -868,7 +869,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           if (ae.getType() == ReturnCode.FILE_SYSTEM_ACCESS_ERROR)
           {
             errorDeletingOccurred = true;
-            Message msg = getFormattedWarning(ae.getMessageObject());
+            LocalizableMessage msg = getFormattedWarning(ae.getMessageObject());
             notifyListeners(msg);
           }
           else
@@ -897,7 +898,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           if (ae.getType() == ReturnCode.FILE_SYSTEM_ACCESS_ERROR)
           {
             errorDeletingOccurred = true;
-            Message msg = getFormattedWarning(ae.getMessageObject());
+            LocalizableMessage msg = getFormattedWarning(ae.getMessageObject());
             notifyListeners(msg);
           }
           else
@@ -930,7 +931,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           if (ae.getType() == ReturnCode.FILE_SYSTEM_ACCESS_ERROR)
           {
             errorDeletingOccurred = true;
-            Message msg = getFormattedWarning(ae.getMessageObject());
+            LocalizableMessage msg = getFormattedWarning(ae.getMessageObject());
             notifyListeners(msg);
           }
           else
@@ -952,7 +953,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         status = UninstallProgressStep.FINISHED_SUCCESSFULLY;
       }
       if (isCli()) {
-        notifyListeners(new MessageBuilder(getLineBreak())
+        notifyListeners(new LocalizableMessageBuilder(getLineBreak())
                 .append(getLineBreak()).append(getSummary(status))
                 .toMessage());
       } else {
@@ -963,7 +964,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       LOG.log(Level.SEVERE, "Error: "+ex, ex);
       ue = ex;
       status = UninstallProgressStep.FINISHED_WITH_ERROR;
-      Message msg = getFormattedError(ex, true);
+      LocalizableMessage msg = getFormattedError(ex, true);
       notifyListeners(msg);
     }
     catch (Throwable t) {
@@ -972,7 +973,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
               ReturnCode.BUG,
               getThrowableMsg(INFO_BUG_MSG.get(), t), t);
       status = UninstallProgressStep.FINISHED_WITH_ERROR;
-      Message msg = getFormattedError(ue, true);
+      LocalizableMessage msg = getFormattedError(ue, true);
       notifyListeners(msg);
     }
     if (!isCli()) {
@@ -1008,7 +1009,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * @return an formatted representation of the summary for the specified
    *         UninstallProgressStep.
    */
-  public Message getSummary(ProgressStep step) {
+  public LocalizableMessage getSummary(ProgressStep step) {
     return hmSummary.get(step);
   }
 
@@ -1372,7 +1373,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
 
     if (!delete) {
-      Message errMsg;
+      LocalizableMessage errMsg;
       if (isFile) {
         errMsg = INFO_ERROR_DELETING_FILE.get(file.getAbsolutePath());
       } else {
@@ -1506,7 +1507,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             INFO_PROGRESS_DISABLING_WINDOWS_SERVICE.get()));
     int code = ConfigureWindowsService.disableService(System.out, System.err);
 
-    Message errorMessage = INFO_ERROR_DISABLING_WINDOWS_SERVICE.get(
+    LocalizableMessage errorMessage = INFO_ERROR_DISABLING_WINDOWS_SERVICE.get(
             getInstallationPath());
 
     switch (code) {
@@ -1535,11 +1536,11 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   private boolean startServer(JFrame frame)
   {
-    startProgressDetails = new MessageBuilder();
+    startProgressDetails = new LocalizableMessageBuilder();
     startProgressDlg = new ProgressDialog(frame);
     startProgressDlg.setSummary(
         getFormattedSummary(INFO_SUMMARY_STARTING.get()));
-    startProgressDlg.setDetails(Message.EMPTY);
+    startProgressDlg.setDetails(LocalizableMessage.EMPTY);
     startProgressDlg.setCloseButtonEnabled(false);
     final Boolean[] returnValue = new Boolean[] {Boolean.FALSE};
     Thread t = new Thread(new Runnable()
@@ -1572,7 +1573,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         }
         catch (Throwable t)
         {
-          Message msg = getFormattedError(t, true);
+          LocalizableMessage msg = getFormattedError(t, true);
           notifyListeners(msg);
         }
       }
@@ -1711,7 +1712,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         exceptions.add(e);
       }
     }
-    Set<Message> exceptionMsgs = new LinkedHashSet<Message>();
+    Set<LocalizableMessage> exceptionMsgs = new LinkedHashSet<LocalizableMessage>();
     /* Check the exceptions and see if we throw them or not. */
     for (TopologyCacheException e : exceptions)
     {
@@ -1723,7 +1724,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       switch (e.getType())
       {
       case NOT_GLOBAL_ADMINISTRATOR:
-        Message errorMsg = INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get();
+        LocalizableMessage errorMsg = INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get();
         qs.displayError(errorMsg, INFO_ERROR_TITLE.get());
         stopProcessing = true;
         break;
@@ -1782,7 +1783,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
     if (!stopProcessing && (exceptionMsgs.size() > 0))
     {
-      Message confirmationMsg =
+      LocalizableMessage confirmationMsg =
         ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
                 getMessageFromCollection(exceptionMsgs, "\n").toString());
       stopProcessing = !qs.displayConfirmation(confirmationMsg,
@@ -2033,7 +2034,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
         if (!getUninstallUserData().isForceOnError())
         {
-          Message msg =
+          LocalizableMessage msg =
             ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
               "--"+
               parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
@@ -2045,7 +2046,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         }
         else
         {
-          Message html = getFormattedError(ae, true);
+          LocalizableMessage html = getFormattedError(ae, true);
           notifyListeners(html);
         }
       }
@@ -2177,7 +2178,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       LOG.log(Level.WARNING,
           "Error removing references in replication server on "+
           serverDisplay+": "+t, t);
-      Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
+      LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
               serverDisplay, t.toString());
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, errorMessage,

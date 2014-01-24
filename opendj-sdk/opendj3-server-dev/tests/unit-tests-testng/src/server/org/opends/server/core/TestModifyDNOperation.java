@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 import static org.testng.Assert.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ProxiedAuthV1Control;
@@ -560,7 +560,7 @@ public class TestModifyDNOperation extends OperationTestCase
     modifyDNOperation.run();
 
     CancelRequest cancelRequest = new CancelRequest(false,
-                                                    Message.raw("testCancelBeforeStartup"));
+                                                    LocalizableMessage.raw("testCancelBeforeStartup"));
     CancelResult cancelResult = modifyDNOperation.cancel(cancelRequest);
 
     assertEquals(cancelResult.getResultCode(), ResultCode.TOO_LATE);
@@ -1342,7 +1342,7 @@ public class TestModifyDNOperation extends OperationTestCase
                                DN.valueOf("dc=example,dc=com"));
 
     CancelRequest cancelRequest = new CancelRequest(false,
-                                                    Message.raw("testCancelBeforeStartup"));
+                                                    LocalizableMessage.raw("testCancelBeforeStartup"));
     modifyDNOperation.abort(cancelRequest);
     modifyDNOperation.run();
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.CANCELED);

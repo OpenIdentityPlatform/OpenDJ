@@ -25,7 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -43,7 +43,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -119,7 +119,7 @@ public class CharacterSetPasswordValidator
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      MessageBuilder invalidReason)
+                                      LocalizableMessageBuilder invalidReason)
   {
     // Get a handle to the current configuration.
     CharacterSetPasswordValidatorCfg config = currentConfig;
@@ -328,12 +328,12 @@ public class CharacterSetPasswordValidator
       int colonPos = definition.indexOf(':');
       if (colonPos <= 0)
       {
-        Message message = ERR_CHARSET_VALIDATOR_NO_SET_COLON.get(definition);
+        LocalizableMessage message = ERR_CHARSET_VALIDATOR_NO_SET_COLON.get(definition);
         throw new ConfigException(message);
       }
       else if (colonPos == (definition.length() - 1))
       {
-        Message message = ERR_CHARSET_VALIDATOR_NO_SET_CHARS.get(definition);
+        LocalizableMessage message = ERR_CHARSET_VALIDATOR_NO_SET_CHARS.get(definition);
         throw new ConfigException(message);
       }
 
@@ -344,14 +344,14 @@ public class CharacterSetPasswordValidator
       }
       catch (Exception e)
       {
-        Message message = ERR_CHARSET_VALIDATOR_INVALID_SET_COUNT
+        LocalizableMessage message = ERR_CHARSET_VALIDATOR_INVALID_SET_COUNT
             .get(definition);
         throw new ConfigException(message);
       }
 
       if (minCount < 0)
       {
-        Message message = ERR_CHARSET_VALIDATOR_INVALID_SET_COUNT
+        LocalizableMessage message = ERR_CHARSET_VALIDATOR_INVALID_SET_COUNT
             .get(definition);
         throw new ConfigException(message);
       }
@@ -362,7 +362,7 @@ public class CharacterSetPasswordValidator
         char c = characterSet.charAt(i);
         if (usedCharacters.contains(c))
         {
-          Message message = ERR_CHARSET_VALIDATOR_DUPLICATE_CHAR.get(
+          LocalizableMessage message = ERR_CHARSET_VALIDATOR_DUPLICATE_CHAR.get(
               definition, String.valueOf(c));
           throw new ConfigException(message);
         }
@@ -384,12 +384,12 @@ public class CharacterSetPasswordValidator
       int colonPos = definition.indexOf(':');
       if (colonPos <= 0)
       {
-        Message message = ERR_CHARSET_VALIDATOR_NO_RANGE_COLON.get(definition);
+        LocalizableMessage message = ERR_CHARSET_VALIDATOR_NO_RANGE_COLON.get(definition);
         throw new ConfigException(message);
       }
       else if (colonPos == (definition.length() - 1))
       {
-        Message message = ERR_CHARSET_VALIDATOR_NO_RANGE_CHARS.get(definition);
+        LocalizableMessage message = ERR_CHARSET_VALIDATOR_NO_RANGE_CHARS.get(definition);
         throw new ConfigException(message);
       }
 
@@ -400,14 +400,14 @@ public class CharacterSetPasswordValidator
       }
       catch (Exception e)
       {
-        Message message = ERR_CHARSET_VALIDATOR_INVALID_RANGE_COUNT
+        LocalizableMessage message = ERR_CHARSET_VALIDATOR_INVALID_RANGE_COUNT
             .get(definition);
         throw new ConfigException(message);
       }
 
       if (minCount < 0)
       {
-        Message message = ERR_CHARSET_VALIDATOR_INVALID_RANGE_COUNT
+        LocalizableMessage message = ERR_CHARSET_VALIDATOR_INVALID_RANGE_COUNT
             .get(definition);
         throw new ConfigException(message);
       }
@@ -423,14 +423,14 @@ public class CharacterSetPasswordValidator
       {
         if (rangeOffset > characterRange.length() - 3)
         {
-          Message message = ERR_CHARSET_VALIDATOR_SHORT_RANGE
+          LocalizableMessage message = ERR_CHARSET_VALIDATOR_SHORT_RANGE
               .get(definition, characterRange.substring(rangeOffset));
           throw new ConfigException(message);
         }
 
         if (characterRange.charAt(rangeOffset+1) != '-')
         {
-          Message message = ERR_CHARSET_VALIDATOR_MALFORMED_RANGE
+          LocalizableMessage message = ERR_CHARSET_VALIDATOR_MALFORMED_RANGE
               .get(definition, characterRange
                   .substring(rangeOffset,rangeOffset+3));
           throw new ConfigException(message);
@@ -439,7 +439,7 @@ public class CharacterSetPasswordValidator
         if (characterRange.charAt(rangeOffset) >=
             characterRange.charAt(rangeOffset+2))
         {
-          Message message = ERR_CHARSET_VALIDATOR_UNSORTED_RANGE
+          LocalizableMessage message = ERR_CHARSET_VALIDATOR_UNSORTED_RANGE
               .get(definition, characterRange
                   .substring(rangeOffset, rangeOffset+3));
           throw new ConfigException(message);
@@ -466,14 +466,14 @@ public class CharacterSetPasswordValidator
 
       if (minCharacterSets <= mandatoryCharacterSets)
       {
-        Message message = ERR_CHARSET_VALIDATOR_MIN_CHAR_SETS_TOO_SMALL
+        LocalizableMessage message = ERR_CHARSET_VALIDATOR_MIN_CHAR_SETS_TOO_SMALL
             .get(minCharacterSets);
         throw new ConfigException(message);
       }
 
       if (minCharacterSets > (characterSets.size() + characterRanges.size()))
       {
-        Message message = ERR_CHARSET_VALIDATOR_MIN_CHAR_SETS_TOO_BIG
+        LocalizableMessage message = ERR_CHARSET_VALIDATOR_MIN_CHAR_SETS_TOO_BIG
             .get(minCharacterSets);
         throw new ConfigException(message);
       }
@@ -493,7 +493,7 @@ public class CharacterSetPasswordValidator
    */
   @Override()
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     CharacterSetPasswordValidatorCfg config =
          (CharacterSetPasswordValidatorCfg) configuration;
@@ -507,7 +507,7 @@ public class CharacterSetPasswordValidator
    */
   public boolean isConfigurationChangeAcceptable(
                       CharacterSetPasswordValidatorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // Make sure that we can process the defined character sets.  If so, then
     // we'll accept the new configuration.
@@ -534,7 +534,7 @@ public class CharacterSetPasswordValidator
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;
     boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Make sure that we can process the defined character sets.  If so, then

@@ -43,7 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ErrorLogPublisher;
@@ -393,7 +393,7 @@ public class ImportLDIF extends TaskTool {
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -417,7 +417,7 @@ public class ImportLDIF extends TaskTool {
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -446,7 +446,7 @@ public class ImportLDIF extends TaskTool {
     {
       if (templateFile.isPresent())
       {
-        Message message = ERR_LDIFIMPORT_CONFLICTING_OPTIONS.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CONFLICTING_OPTIONS.get(
                 ldifFiles.getLongIdentifier(),
                 templateFile.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -455,7 +455,7 @@ public class ImportLDIF extends TaskTool {
     }
     else if (! templateFile.isPresent())
     {
-      Message message = ERR_LDIFIMPORT_MISSING_REQUIRED_ARGUMENT.get(
+      LocalizableMessage message = ERR_LDIFIMPORT_MISSING_REQUIRED_ARGUMENT.get(
               ldifFiles.getLongIdentifier(),
               templateFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -466,7 +466,7 @@ public class ImportLDIF extends TaskTool {
     // "backendID" argument was provided.
     if(!includeBranchStrings.isPresent() && !backendID.isPresent())
     {
-      Message message = ERR_LDIFIMPORT_MISSING_BACKEND_ARGUMENT.get(
+      LocalizableMessage message = ERR_LDIFIMPORT_MISSING_BACKEND_ARGUMENT.get(
               includeBranchStrings.getLongIdentifier(),
               backendID.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -479,7 +479,7 @@ public class ImportLDIF extends TaskTool {
     if (countRejects.isPresent()
         && argParser.connectionArgumentsPresent())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDIFIMPORT_COUNT_REJECTS_REQUIRES_OFFLINE
               .get(countRejects.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -747,7 +747,7 @@ public class ImportLDIF extends TaskTool {
       }
       catch (Exception e)
       {
-        Message message = ERR_SERVER_BOOTSTRAP_ERROR.get(
+        LocalizableMessage message = ERR_SERVER_BOOTSTRAP_ERROR.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -760,13 +760,13 @@ public class ImportLDIF extends TaskTool {
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -780,19 +780,19 @@ public class ImportLDIF extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -806,21 +806,21 @@ public class ImportLDIF extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
                 ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
                 ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -834,21 +834,21 @@ public class ImportLDIF extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                 ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                 ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -878,14 +878,14 @@ public class ImportLDIF extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_INITIALIZE_ROOTDN_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_ROOTDN_MANAGER.get(
                 ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_INITIALIZE_ROOTDN_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_ROOTDN_MANAGER.get(
                 ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -899,21 +899,21 @@ public class ImportLDIF extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
                 ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
                 ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -926,7 +926,7 @@ public class ImportLDIF extends TaskTool {
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_INITIALIZE_SUBENTRY_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_SUBENTRY_MANAGER.get(
                 ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -939,21 +939,21 @@ public class ImportLDIF extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY.get(
                 ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY.get(
                 ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -971,21 +971,21 @@ public class ImportLDIF extends TaskTool {
     }
     catch (ConfigException ce)
     {
-      Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
+      LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
               ce.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (InitializationException ie)
     {
-      Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
+      LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
               ie.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
+      LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
               getExceptionMessage(e));
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -1077,14 +1077,14 @@ public class ImportLDIF extends TaskTool {
         }
         catch (DirectoryException de)
         {
-          Message message = ERR_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
+          LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
               filterString, de.getMessageObject());
           logError(message);
           return 1;
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
+          LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
               filterString, getExceptionMessage(e));
           logError(message);
           return 1;
@@ -1108,14 +1108,14 @@ public class ImportLDIF extends TaskTool {
         }
         catch (DirectoryException de)
         {
-          Message message = ERR_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
+          LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
               filterString, de.getMessageObject());
           logError(message);
           return 1;
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
+          LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
               filterString, getExceptionMessage(e));
           logError(message);
           return 1;
@@ -1145,14 +1145,14 @@ public class ImportLDIF extends TaskTool {
         }
         catch (DirectoryException de)
         {
-          Message message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
+          LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
               s, de.getMessageObject());
           logError(message);
           return 1;
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
+          LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
               s, getExceptionMessage(e));
           logError(message);
           return 1;
@@ -1214,7 +1214,7 @@ public class ImportLDIF extends TaskTool {
       }
       else
       {
-        Message message = ERR_LDIFIMPORT_MULTIPLE_BACKENDS_FOR_ID.get();
+        LocalizableMessage message = ERR_LDIFIMPORT_MULTIPLE_BACKENDS_FOR_ID.get();
         logError(message);
         return 1;
       }
@@ -1222,14 +1222,14 @@ public class ImportLDIF extends TaskTool {
 
     if (backend == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID.get();
       logError(message);
       return 1;
     }
     else if (! backend.supportsLDIFImport())
     {
-      Message message = ERR_LDIFIMPORT_CANNOT_IMPORT.get(backendID.getValue());
+      LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_IMPORT.get(backendID.getValue());
       logError(message);
       return 1;
     }
@@ -1271,7 +1271,7 @@ public class ImportLDIF extends TaskTool {
         builder.append(" / ");
         builder.append(backend.getBaseDNs()[i].toNormalizedString());
       }
-      Message message = ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND.get(
+      LocalizableMessage message = ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND.get(
               builder.toString(), clearBackend.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -1286,14 +1286,14 @@ public class ImportLDIF extends TaskTool {
       }
       catch (DirectoryException de)
       {
-        Message message = ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
             s, de.getMessageObject());
         logError(message);
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
             s, getExceptionMessage(e));
         logError(message);
         return 1;
@@ -1317,7 +1317,7 @@ public class ImportLDIF extends TaskTool {
         if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
-          Message message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
+          LocalizableMessage message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
               includeBranch.toNormalizedString(), backendID.getValue());
           logError(message);
           return 1;
@@ -1337,7 +1337,7 @@ public class ImportLDIF extends TaskTool {
         File f = new File(pathname);
         if (!f.canRead())
         {
-          Message message = ERR_LDIFIMPORT_CANNOT_READ_FILE.get(pathname);
+          LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_READ_FILE.get(pathname);
           logError(message);
           badFileCount++;
         }
@@ -1368,14 +1368,14 @@ public class ImportLDIF extends TaskTool {
                             PATH_MAKELDIF_RESOURCE_DIR;
       TemplateFile tf = new TemplateFile(resourcePath, random);
 
-      ArrayList<Message> warnings = new ArrayList<Message>();
+      ArrayList<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
       try
       {
         tf.parse(templateFile.getValue(), warnings);
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFIMPORT_CANNOT_PARSE_TEMPLATE_FILE.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_PARSE_TEMPLATE_FILE.get(
             templateFile.getValue(), e.getMessage());
         logError(message);
         return 1;
@@ -1407,7 +1407,7 @@ public class ImportLDIF extends TaskTool {
       }
       catch(Exception e)
       {
-          Message msg = ERR_LDIFIMPORT_CANNOT_PARSE_THREAD_COUNT.get(
+          LocalizableMessage msg = ERR_LDIFIMPORT_CANNOT_PARSE_THREAD_COUNT.get(
                   threadCount.getValue(), e.getMessage());
           logError(msg);
           return 1;
@@ -1444,7 +1444,7 @@ public class ImportLDIF extends TaskTool {
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFIMPORT_CANNOT_OPEN_REJECTS_FILE.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_OPEN_REJECTS_FILE.get(
             rejectFile.getValue(), getExceptionMessage(e));
         logError(message);
         return 1;
@@ -1470,7 +1470,7 @@ public class ImportLDIF extends TaskTool {
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFIMPORT_CANNOT_OPEN_SKIP_FILE.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_OPEN_SKIP_FILE.get(
             skipFile.getValue(), getExceptionMessage(e));
         logError(message);
         return 1;
@@ -1489,7 +1489,7 @@ public class ImportLDIF extends TaskTool {
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        Message message = ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND.get(
+        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
         return 1;
@@ -1497,7 +1497,7 @@ public class ImportLDIF extends TaskTool {
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND.get(
+      LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       logError(message);
       return 1;
@@ -1523,7 +1523,7 @@ public class ImportLDIF extends TaskTool {
     }
     catch (DirectoryException de)
     {
-      Message message = null;
+      LocalizableMessage message = null;
       if (de.getResultCode() == ResultCode.CONSTRAINT_VIOLATION)
       {
         message =
@@ -1539,7 +1539,7 @@ public class ImportLDIF extends TaskTool {
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(getExceptionMessage(e));
       logError(message);
       retCode = 1;
@@ -1553,7 +1553,7 @@ public class ImportLDIF extends TaskTool {
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        Message message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
+        LocalizableMessage message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
         retCode = 1;
@@ -1561,7 +1561,7 @@ public class ImportLDIF extends TaskTool {
     }
     catch (Exception e)
     {
-      Message message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
+      LocalizableMessage message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       logError(message);
       retCode = 1;

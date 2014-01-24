@@ -29,7 +29,7 @@ package org.opends.server.core.networkgroups;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -119,7 +119,7 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
   public void testMaxNumberOfConnections()
           throws Exception
   {
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();
     ResourceLimitsPolicy limits =
@@ -157,7 +157,7 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
   public void testMaxNumberOfConnectionsFromSameIp()
           throws Exception
   {
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();
     ResourceLimitsPolicy limits =
@@ -201,7 +201,7 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
           boolean success)
           throws Exception
   {
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();
     ResourceLimitsPolicy limits =
@@ -237,7 +237,7 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
   public void testMaxThroughput()
           throws Exception
   {
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     final long interval = 1000; // Unit is milliseconds
 
     ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();

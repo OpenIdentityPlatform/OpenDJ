@@ -43,7 +43,7 @@ import java.util.*;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.meta.SambaPasswordPluginCfgDefn.*;
@@ -894,10 +894,10 @@ public final class SambaPasswordPlugin extends
   {
 
     // Verify config parameters.
-    final LinkedList<Message> messages = new LinkedList<Message>();
+    final LinkedList<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
     if (!isConfigurationAcceptable(configuration, messages))
     {
-      for (final Message m : messages)
+      for (final LocalizableMessage m : messages)
       {
         logError(m);
       }
@@ -925,7 +925,7 @@ public final class SambaPasswordPlugin extends
    */
   public boolean isConfigurationAcceptable(
       final SambaPasswordPluginCfg configuration,
-      final List<Message> unacceptableReasons)
+      final List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
@@ -937,7 +937,7 @@ public final class SambaPasswordPlugin extends
    */
   @Override
   public boolean isConfigurationChangeAcceptable(
-      final SambaPasswordPluginCfg newConfig, final List<Message> messages)
+      final SambaPasswordPluginCfg newConfig, final List<LocalizableMessage> messages)
   {
     /*
      * The plugin implements only postoperationmodify and postoperationextended

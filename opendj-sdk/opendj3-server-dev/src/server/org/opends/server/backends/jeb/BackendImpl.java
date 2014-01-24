@@ -38,7 +38,7 @@ import java.util.logging.Level;
 import java.util.zip.Adler32;
 import java.util.zip.CheckedInputStream;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
@@ -300,7 +300,7 @@ public class BackendImpl
     try
     {
       // Log an informational message about the number of entries.
-      Message message = NOTE_JEB_BACKEND_STARTED.get(
+      LocalizableMessage message = NOTE_JEB_BACKEND_STARTED.get(
           cfg.getBackendId(), rootContainer.getEntryCount());
       logError(message);
     }
@@ -310,7 +310,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, databaseException);
       }
-      Message message =
+      LocalizableMessage message =
           WARN_JEB_GET_ENTRY_COUNT_FAILED.get(databaseException.getMessage());
       throw new InitializationException(
                                         message, databaseException);
@@ -329,7 +329,7 @@ public class BackendImpl
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+        LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
             String.valueOf(dn), String.valueOf(e));
         throw new InitializationException(message, e);
       }
@@ -398,7 +398,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message = ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage());
+      LocalizableMessage message = ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage());
       logError(message);
     }
 
@@ -414,7 +414,7 @@ public class BackendImpl
     threadWriteCount.set(0);
 
     // Log an informational message.
-    Message message = NOTE_BACKEND_OFFLINE.get(cfg.getBackendId());
+    LocalizableMessage message = NOTE_BACKEND_OFFLINE.get(cfg.getBackendId());
     logError(message);
   }
 
@@ -593,7 +593,7 @@ public class BackendImpl
     }
     else
     {
-      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
@@ -645,7 +645,7 @@ public class BackendImpl
     }
     else
     {
-      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
@@ -691,7 +691,7 @@ public class BackendImpl
     }
     else
     {
-      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
@@ -733,7 +733,7 @@ public class BackendImpl
     }
     else
     {
-      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
@@ -777,7 +777,7 @@ public class BackendImpl
     }
     else
     {
-      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
@@ -821,7 +821,7 @@ public class BackendImpl
     }
     else
     {
-      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
@@ -832,7 +832,7 @@ public class BackendImpl
     {
       // FIXME: No reason why we cannot implement a move between containers
       // since the containers share the same database environment.
-      Message msg = WARN_JEB_FUNCTION_NOT_SUPPORTED.get();
+      LocalizableMessage msg = WARN_JEB_FUNCTION_NOT_SUPPORTED.get();
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
@@ -872,7 +872,7 @@ public class BackendImpl
     }
     else
     {
-      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
@@ -923,7 +923,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
-      Message message = ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage());
+      LocalizableMessage message = ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
@@ -972,7 +972,7 @@ public class BackendImpl
     // We can't do import while the backend is online.
     if(!openRootContainer)
     {
-      Message message = ERR_JEB_IMPORT_BACKEND_ONLINE.get();
+      LocalizableMessage message = ERR_JEB_IMPORT_BACKEND_ONLINE.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
@@ -1013,7 +1013,7 @@ public class BackendImpl
       }
       else
       {
-        Message message = ERR_EXECUTION_ERROR.get(execEx.getMessage());
+        LocalizableMessage message = ERR_EXECUTION_ERROR.get(execEx.getMessage());
         throw new DirectoryException(
             DirectoryServer.getServerErrorResultCode(), message);
       }
@@ -1024,7 +1024,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, intEx);
       }
-      Message message = ERR_INTERRUPTED_ERROR.get(intEx.getMessage());
+      LocalizableMessage message = ERR_INTERRUPTED_ERROR.get(intEx.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
@@ -1066,7 +1066,7 @@ public class BackendImpl
           rootContainer.close();
           long finishTime = System.currentTimeMillis();
           long closeTime = (finishTime - startTime) / 1000;
-          Message msg =
+          LocalizableMessage msg =
                        NOTE_JEB_IMPORT_LDIF_ROOTCONTAINER_CLOSE.get(closeTime);
           logError(msg);
           rootContainer = null;
@@ -1075,7 +1075,7 @@ public class BackendImpl
         // Sync the environment to disk.
         if (debugEnabled())
         {
-          Message message = NOTE_JEB_IMPORT_CLOSING_DATABASE.get();
+          LocalizableMessage message = NOTE_JEB_IMPORT_CLOSING_DATABASE.get();
           TRACER.debugInfo(message.toString());
         }
       }
@@ -1184,7 +1184,7 @@ public class BackendImpl
      */
     if(!openRootContainer && rebuildConfig.includesSystemIndex())
     {
-      Message message = ERR_JEB_REBUILD_BACKEND_ONLINE.get();
+      LocalizableMessage message = ERR_JEB_REBUILD_BACKEND_ONLINE.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
@@ -1214,7 +1214,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, execEx);
       }
-      Message message = ERR_EXECUTION_ERROR.get(execEx.getMessage());
+      LocalizableMessage message = ERR_EXECUTION_ERROR.get(execEx.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
@@ -1224,7 +1224,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, intEx);
       }
-      Message message = ERR_INTERRUPTED_ERROR.get(intEx.getMessage());
+      LocalizableMessage message = ERR_INTERRUPTED_ERROR.get(intEx.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
@@ -1327,7 +1327,7 @@ public class BackendImpl
   /** {@inheritDoc} */
   @Override()
   public boolean isConfigurationAcceptable(Configuration configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     LocalDBBackendCfg config = (LocalDBBackendCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -1339,13 +1339,13 @@ public class BackendImpl
   @Override
   public boolean isConfigurationChangeAcceptable(
       LocalDBBackendCfg cfg,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // Make sure that the logging level value is acceptable.
     try {
       Level.parse(cfg.getDBLoggingLevel());
     } catch (Exception e) {
-      Message message = ERR_JEB_INVALID_LOGGING_LEVEL.get(
+      LocalizableMessage message = ERR_JEB_INVALID_LOGGING_LEVEL.get(
               String.valueOf(cfg.getDBLoggingLevel()),
               String.valueOf(cfg.dn()));
       unacceptableReasons.add(message);
@@ -1362,7 +1362,7 @@ public class BackendImpl
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg newCfg)
   {
     ResultCode resultCode = ResultCode.SUCCESS;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
 
     try
@@ -1439,7 +1439,7 @@ public class BackendImpl
     }
     catch (Exception e)
     {
-      messages.add(Message.raw(stackTraceToSingleLineString(e)));
+      messages.add(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
       return new ConfigChangeResult(
           DirectoryServer.getServerErrorResultCode(), false, messages);
     }
@@ -1512,7 +1512,7 @@ public class BackendImpl
    */
   DirectoryException createDirectoryException(DatabaseException e) {
     if (e instanceof EnvironmentFailureException && !rootContainer.isValid()) {
-      Message message = NOTE_BACKEND_ENVIRONMENT_UNUSABLE.get(getBackendID());
+      LocalizableMessage message = NOTE_BACKEND_ENVIRONMENT_UNUSABLE.get(getBackendID());
       logError(message);
       DirectoryServer.sendAlertNotification(DirectoryServer.getInstance(),
               ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE, message);
@@ -1522,7 +1522,7 @@ public class BackendImpl
     if (jeMessage == null) {
       jeMessage = stackTraceToSingleLineString(e);
     }
-    Message message = ERR_JEB_DATABASE_EXCEPTION.get(jeMessage);
+    LocalizableMessage message = ERR_JEB_DATABASE_EXCEPTION.get(jeMessage);
     return new DirectoryException(
         DirectoryServer.getServerErrorResultCode(), message, e);
   }
@@ -1566,7 +1566,7 @@ public class BackendImpl
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message = ERR_JEB_OPEN_ENV_FAIL.get(e.getMessage());
+      LocalizableMessage message = ERR_JEB_OPEN_ENV_FAIL.get(e.getMessage());
       throw new InitializationException(message, e);
     }
   }
@@ -1583,7 +1583,7 @@ public class BackendImpl
   /** {@inheritDoc} */
   @Override
   public void diskLowThresholdReached(DiskSpaceMonitor monitor) {
-    Message msg = ERR_JEB_DISK_LOW_THRESHOLD_REACHED.get(
+    LocalizableMessage msg = ERR_JEB_DISK_LOW_THRESHOLD_REACHED.get(
         monitor.getDirectory().getPath(), cfg.getBackendId(),
         monitor.getFreeSpace(), Math.max(monitor.getLowThreshold(),
             monitor.getFullThreshold()));
@@ -1594,7 +1594,7 @@ public class BackendImpl
   /** {@inheritDoc} */
   @Override
   public void diskFullThresholdReached(DiskSpaceMonitor monitor) {
-    Message msg = ERR_JEB_DISK_FULL_THRESHOLD_REACHED.get(
+    LocalizableMessage msg = ERR_JEB_DISK_FULL_THRESHOLD_REACHED.get(
         monitor.getDirectory().getPath(), cfg.getBackendId(),
         monitor.getFreeSpace(), Math.max(monitor.getLowThreshold(),
             monitor.getFullThreshold()));
@@ -1605,7 +1605,7 @@ public class BackendImpl
   /** {@inheritDoc} */
   @Override
   public void diskSpaceRestored(DiskSpaceMonitor monitor) {
-    Message msg = NOTE_JEB_DISK_SPACE_RESTORED.get(monitor.getFreeSpace(),
+    LocalizableMessage msg = NOTE_JEB_DISK_SPACE_RESTORED.get(monitor.getFreeSpace(),
         monitor.getDirectory().getPath(), cfg.getBackendId(),
         Math.max(monitor.getLowThreshold(), monitor.getFullThreshold()));
     logError(msg);

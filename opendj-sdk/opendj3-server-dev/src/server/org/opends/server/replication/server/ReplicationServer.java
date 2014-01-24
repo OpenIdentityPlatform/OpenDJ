@@ -33,10 +33,8 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Severity;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.*;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
@@ -199,7 +197,7 @@ public final class ReplicationServer
 
   void runListen()
   {
-    Message listenMsg = NOTE_REPLICATION_SERVER_LISTENING.get(
+    LocalizableMessage listenMsg = NOTE_REPLICATION_SERVER_LISTENING.get(
         getServerId(),
         listenSocket.getInetAddress().getHostAddress(),
         listenSocket.getLocalPort());
@@ -277,7 +275,7 @@ public final class ReplicationServer
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         if (!shutdown) {
-          Message message =
+          LocalizableMessage message =
             ERR_EXCEPTION_LISTENING.get(e.getLocalizedMessage());
           logError(message);
         }
@@ -443,14 +441,16 @@ public final class ReplicationServer
       logError(ERR_UNKNOWN_HOSTNAME.get());
     } catch (IOException e)
     {
-      Message message = ERR_COULD_NOT_BIND_CHANGELOG.get(
+      LocalizableMessage message = ERR_COULD_NOT_BIND_CHANGELOG.get(
           getReplicationPort(), e.getMessage());
       logError(message);
     } catch (DirectoryException e)
     {
       //FIXME:DirectoryException is raised by initializeECL => fix err msg
-      Message message = Message.raw(Category.SYNC, Severity.SEVERE_ERROR,
-      "Directory Exception raised by ECL initialization: " + e.getMessage());
+      LocalizableMessage message =
+          LocalizableMessage
+              .raw("Directory Exception raised by ECL initialization: "
+                  + e.getMessage());
       logError(message);
     }
   }
@@ -523,7 +523,7 @@ public final class ReplicationServer
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
         NOTE_ERR_UNABLE_TO_ENABLE_ECL_VIRTUAL_ATTR.get(attrName, e.toString());
       throw new DirectoryException(ResultCode.OPERATIONS_ERROR, message, e);
     }
@@ -738,7 +738,7 @@ public final class ReplicationServer
    * @return true if the configuration is acceptable, false other wise.
    */
   public static boolean isConfigurationAcceptable(
-      ReplicationServerCfg configuration, List<Message> unacceptableReasons)
+      ReplicationServerCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     int port = configuration.getReplicationPort();
 
@@ -751,7 +751,7 @@ public final class ReplicationServer
     }
     catch (Exception e)
     {
-      Message message = ERR_COULD_NOT_BIND_CHANGELOG.get(port, e.getMessage());
+      LocalizableMessage message = ERR_COULD_NOT_BIND_CHANGELOG.get(port, e.getMessage());
       unacceptableReasons.add(message);
       return false;
     }
@@ -926,7 +926,7 @@ public final class ReplicationServer
    */
   @Override
   public boolean isConfigurationChangeAcceptable(
-      ReplicationServerCfg configuration, List<Message> unacceptableReasons)
+      ReplicationServerCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -1000,9 +1000,9 @@ public final class ReplicationServer
     }
     catch(Exception e)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(e.getLocalizedMessage());
-      Message msg = ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(mb.toString());
+      LocalizableMessage msg = ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(mb.toString());
       throw new ConfigException(msg, e);
     }
   }
@@ -1053,9 +1053,9 @@ public final class ReplicationServer
     }
     catch(Exception e)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(e.getLocalizedMessage());
-      Message msg = ERR_DELETE_REPL_BACKEND_FAILED.get(mb.toString());
+      LocalizableMessage msg = ERR_DELETE_REPL_BACKEND_FAILED.get(mb.toString());
       logError(msg);
     }
   }

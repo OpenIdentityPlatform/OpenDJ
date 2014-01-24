@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -41,7 +42,7 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
@@ -91,7 +92,7 @@ public class ModifyObjectClassTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getTaskDescription()
+  public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_MODIFY_OBJECTCLASS_TASK_DESCRIPTION.get(
         oldObjectClass.getNameOrOID());
@@ -101,7 +102,7 @@ public class ModifyObjectClassTask extends Task
    * {@inheritDoc}
    */
   public boolean canLaunch(Task taskToBeLaunched,
-      Collection<Message> incompatibilityReasons)
+      Collection<LocalizableMessage> incompatibilityReasons)
   {
     boolean canLaunch = true;
     if (state == State.RUNNING &&

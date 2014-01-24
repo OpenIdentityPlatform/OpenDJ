@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.config;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -91,7 +91,7 @@ public final class StringConfigAttribute
    *                              configuration attribute require administrative
    *                              action before they will take effect.
    */
-  public StringConfigAttribute(String name, Message description,
+  public StringConfigAttribute(String name, LocalizableMessage description,
                                boolean isRequired, boolean isMultiValued,
                                boolean requiresAdminAction)
   {
@@ -121,7 +121,7 @@ public final class StringConfigAttribute
    * @param  value                The value for this string configuration
    *                              attribute.
    */
-  public StringConfigAttribute(String name, Message description,
+  public StringConfigAttribute(String name, LocalizableMessage description,
                                boolean isRequired, boolean isMultiValued,
                                boolean requiresAdminAction, String value)
   {
@@ -161,7 +161,7 @@ public final class StringConfigAttribute
    * @param  values               The set of values for this configuration
    *                              attribute.
    */
-  public StringConfigAttribute(String name, Message description,
+  public StringConfigAttribute(String name, LocalizableMessage description,
                                boolean isRequired, boolean isMultiValued,
                                boolean requiresAdminAction, List<String> values)
   {
@@ -202,7 +202,7 @@ public final class StringConfigAttribute
    * @param  pendingValues        The set of pending values for this
    *                              configuration attribute.
    */
-  public StringConfigAttribute(String name, Message description,
+  public StringConfigAttribute(String name, LocalizableMessage description,
                                boolean isRequired, boolean isMultiValued,
                                boolean requiresAdminAction,
                                List<String> activeValues,
@@ -275,13 +275,13 @@ public final class StringConfigAttribute
   {
     if ((activeValues == null) || activeValues.isEmpty())
     {
-      Message message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
       throw new ConfigException(message);
     }
 
     if (activeValues.size() > 1)
     {
-      Message message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
       throw new ConfigException(message);
     }
 
@@ -323,13 +323,13 @@ public final class StringConfigAttribute
 
     if ((pendingValues == null) || pendingValues.isEmpty())
     {
-      Message message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
       throw new ConfigException(message);
     }
 
     if (pendingValues.size() > 1)
     {
-      Message message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
       throw new ConfigException(message);
     }
 
@@ -369,7 +369,7 @@ public final class StringConfigAttribute
   {
     if ((value == null) || (value.length() == 0))
     {
-      Message message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
       throw new ConfigException(message);
     }
 
@@ -406,7 +406,7 @@ public final class StringConfigAttribute
     {
       if (isRequired())
       {
-        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
         throw new ConfigException(message);
       }
       else
@@ -429,7 +429,7 @@ public final class StringConfigAttribute
     int numValues = values.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
       throw new ConfigException(message);
     }
@@ -443,7 +443,7 @@ public final class StringConfigAttribute
     {
       if ((value == null) || (value.length() == 0))
       {
-        Message message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
         throw new ConfigException(message);
       }
 
@@ -453,7 +453,7 @@ public final class StringConfigAttribute
 
       if (valueSet.contains(attrValue))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value);
         throw new ConfigException(message);
       }
@@ -600,7 +600,7 @@ public final class StringConfigAttribute
     {
       if (isRequired())
       {
-        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
         throw new ConfigException(message);
       }
       else
@@ -613,7 +613,7 @@ public final class StringConfigAttribute
     int numValues = valueStrings.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
       throw new ConfigException(message);
     }
@@ -625,7 +625,7 @@ public final class StringConfigAttribute
     {
       if ((valueString == null) || (valueString.length() == 0))
       {
-        Message message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
 
         if (allowFailures)
         {
@@ -648,7 +648,7 @@ public final class StringConfigAttribute
     // attribute and if so deal with it accordingly.
     if ((isRequired()) && valueSet.isEmpty())
     {
-      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
       throw new ConfigException(message);
     }
 
@@ -737,7 +737,7 @@ public final class StringConfigAttribute
           if (pendingValues != null)
           {
             // We cannot have multiple pending value sets.
-            Message message =
+            LocalizableMessage message =
                 ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName());
             throw new ConfigException(message);
           }
@@ -748,7 +748,7 @@ public final class StringConfigAttribute
             if (isRequired())
             {
               // This is illegal -- it must have a value.
-              Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+              LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
               throw new ConfigException(message);
             }
             else
@@ -763,7 +763,7 @@ public final class StringConfigAttribute
             if ((numValues > 1) && (! isMultiValued()))
             {
               // This is illegal -- the attribute is single-valued.
-              Message message =
+              LocalizableMessage message =
                   ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
               throw new ConfigException(message);
             }
@@ -779,7 +779,7 @@ public final class StringConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          Message message =
+          LocalizableMessage message =
               ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName());
           throw new ConfigException(message);
         }
@@ -790,7 +790,7 @@ public final class StringConfigAttribute
         if (activeValues!= null)
         {
           // We cannot have multiple active value sets.
-          Message message =
+          LocalizableMessage message =
               ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName());
           throw new ConfigException(message);
         }
@@ -801,7 +801,7 @@ public final class StringConfigAttribute
           if (isRequired())
           {
             // This is illegal -- it must have a value.
-            Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+            LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
             throw new ConfigException(message);
           }
           else
@@ -816,7 +816,7 @@ public final class StringConfigAttribute
           if ((numValues > 1) && (! isMultiValued()))
           {
             // This is illegal -- the attribute is single-valued.
-            Message message =
+            LocalizableMessage message =
                 ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
             throw new ConfigException(message);
           }
@@ -833,7 +833,7 @@ public final class StringConfigAttribute
     if (activeValues == null)
     {
       // This is not OK.  The value set must contain an active value.
-      Message message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
       throw new ConfigException(message);
     }
 
@@ -1119,14 +1119,14 @@ public final class StringConfigAttribute
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_CONFIG_ATTR_INVALID_STRING_VALUE.get(
+          LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_STRING_VALUE.get(
               getName(), String.valueOf(value), String.valueOf(e));
           throw new ConfigException(message, e);
         }
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_ATTR_STRING_INVALID_ARRAY_TYPE.get(
                     String.valueOf(jmxAttribute),
                     String.valueOf(componentType));
@@ -1135,7 +1135,7 @@ public final class StringConfigAttribute
     }
     else
     {
-      Message message = ERR_CONFIG_ATTR_STRING_INVALID_TYPE.get(
+      LocalizableMessage message = ERR_CONFIG_ATTR_STRING_INVALID_TYPE.get(
           String.valueOf(value), getName(), value.getClass().getName());
       throw new ConfigException(message);
     }

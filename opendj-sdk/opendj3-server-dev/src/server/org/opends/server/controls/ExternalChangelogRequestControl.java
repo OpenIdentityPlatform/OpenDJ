@@ -32,7 +32,7 @@ import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
@@ -88,7 +88,7 @@ public class ExternalChangelogRequestControl
         }
         catch (Exception e2)
         {
-          Message message =
+          LocalizableMessage message =
             ERR_CANNOT_DECODE_CONTROL_VALUE.get(
                 getOID() + " x=" + value.toHexString() + " v="
                 + mdssValue , getExceptionMessage(e).toString());

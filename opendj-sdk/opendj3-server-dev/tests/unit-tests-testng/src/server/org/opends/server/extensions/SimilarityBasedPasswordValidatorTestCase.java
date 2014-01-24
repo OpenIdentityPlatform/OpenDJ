@@ -35,7 +35,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -295,7 +295,7 @@ public class SimilarityBasedPasswordValidatorTestCase
                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                DN.valueOf("cn=uid=test.user,o=test"), mods);
 
-      MessageBuilder invalidReason = new MessageBuilder();
+      LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       assertTrue(validator.passwordIsAcceptable(password,
                                                 new HashSet<ByteString>(0),
                                                 op, userEntry, invalidReason));
@@ -371,7 +371,7 @@ public class SimilarityBasedPasswordValidatorTestCase
                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                DN.valueOf("cn=uid=test.user,o=test"), mods);
 
-      MessageBuilder invalidReason = new MessageBuilder();
+      LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       assertEquals((buffer.length() >= 6),
                    validator.passwordIsAcceptable(password,
                                                   currentPassword,

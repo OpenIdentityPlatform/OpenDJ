@@ -23,6 +23,7 @@
  *
  *      Copyright 2013-2014 Manuel Gaupp
  *      Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.asn1;
 
@@ -31,7 +32,7 @@ package org.opends.server.protocols.asn1;
 import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.forgerock.util.Reject.*;
 
@@ -231,7 +232,7 @@ public class GSERParser
     }
     else
     {
-      Message msg = ERR_GSER_PATTERN_NO_MATCH.get(pattern.pattern(),
+      LocalizableMessage msg = ERR_GSER_PATTERN_NO_MATCH.get(pattern.pattern(),
                       gserValue.substring(pos,length));
       throw new GSERException(msg);
     }
@@ -257,7 +258,7 @@ public class GSERParser
     }
     else
     {
-      Message msg = ERR_GSER_PATTERN_NO_MATCH.get(pattern.pattern(),
+      LocalizableMessage msg = ERR_GSER_PATTERN_NO_MATCH.get(pattern.pattern(),
                       gserValue.substring(pos,length));
       throw new GSERException(msg);
     }
@@ -345,7 +346,7 @@ public class GSERParser
   {
     if (!hasNext(GSER_SEP))
     {
-      Message msg = ERR_GSER_NO_VALID_SEPARATOR.get(gserValue
+      LocalizableMessage msg = ERR_GSER_NO_VALID_SEPARATOR.get(gserValue
                       .substring(pos,length));
       throw new GSERException(msg);
     }
@@ -368,7 +369,7 @@ public class GSERParser
   {
     if (!hasNext(GSER_STRING))
     {
-      Message msg = ERR_GSER_NO_VALID_STRING.get(gserValue
+      LocalizableMessage msg = ERR_GSER_NO_VALID_STRING.get(gserValue
                       .substring(pos,length));
       throw new GSERException(msg);
     }
@@ -392,7 +393,7 @@ public class GSERParser
   {
     if (!hasNext(GSER_INTEGER))
     {
-      Message msg = ERR_GSER_NO_VALID_INTEGER.get(gserValue
+      LocalizableMessage msg = ERR_GSER_NO_VALID_INTEGER.get(gserValue
                       .substring(pos,length));
       throw new GSERException(msg);
     }
@@ -413,7 +414,7 @@ public class GSERParser
   {
     if (!hasNext(GSER_INTEGER))
     {
-      Message msg = ERR_GSER_NO_VALID_INTEGER.get(gserValue
+      LocalizableMessage msg = ERR_GSER_NO_VALID_INTEGER.get(gserValue
                       .substring(pos,length));
       throw new GSERException(msg);
     }
@@ -434,14 +435,14 @@ public class GSERParser
   {
     if (!hasNext(GSER_IDENTIFIER))
     {
-      Message msg = ERR_GSER_NO_VALID_IDENTIFIER.get(gserValue
+      LocalizableMessage msg = ERR_GSER_NO_VALID_IDENTIFIER.get(gserValue
                       .substring(pos,length));
       throw new GSERException(msg);
     }
     String identifier = next(GSER_IDENTIFIER);
     if (!hasNext(GSER_MSP))
     {
-      Message msg = ERR_GSER_SPACE_CHAR_EXPECTED.get(gserValue
+      LocalizableMessage msg = ERR_GSER_SPACE_CHAR_EXPECTED.get(gserValue
                       .substring(pos,length));
       throw new GSERException(msg);
     }
@@ -463,7 +464,7 @@ public class GSERParser
   {
     if (!hasNext(GSER_CHOICE_IDENTIFIER))
     {
-      Message msg = ERR_GSER_NO_VALID_IDENTIFIEDCHOICE.get(gserValue
+      LocalizableMessage msg = ERR_GSER_NO_VALID_IDENTIFIEDCHOICE.get(gserValue
                       .substring(pos,length));
       throw new GSERException(msg);
     }

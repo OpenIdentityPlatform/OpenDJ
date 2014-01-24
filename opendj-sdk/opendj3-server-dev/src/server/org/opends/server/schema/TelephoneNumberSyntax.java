@@ -25,7 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -49,7 +49,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -252,7 +252,7 @@ public class TelephoneNumberSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // No matter what, the value can't be empty or null.
     String valueStr;
@@ -272,7 +272,7 @@ public class TelephoneNumberSyntax
       // acceptable.
       if (valueStr.charAt(0) != '+')
       {
-        Message message = ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS.get(valueStr);
+        LocalizableMessage message = ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS.get(valueStr);
         invalidReason.append(message);
         return false;
       }
@@ -291,7 +291,7 @@ public class TelephoneNumberSyntax
         }
         else if (! isSeparator(c))
         {
-          Message message = ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR.get(
                   valueStr, String.valueOf(c), i);
           invalidReason.append(message);
           return false;
@@ -300,7 +300,7 @@ public class TelephoneNumberSyntax
 
       if (! digitSeen)
       {
-        Message message = ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS.get(valueStr);
+        LocalizableMessage message = ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS.get(valueStr);
         invalidReason.append(message);
         return false;
       }
@@ -322,7 +322,7 @@ public class TelephoneNumberSyntax
       }
 
       // If we made it here, then we didn't find any digits.
-      Message message = ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS.get(valueStr);
       invalidReason.append(message);
       return false;
     }
@@ -358,7 +358,7 @@ public class TelephoneNumberSyntax
    */
   public boolean isConfigurationChangeAcceptable(
                       TelephoneNumberAttributeSyntaxCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // The configuration will always be acceptable.
     return true;

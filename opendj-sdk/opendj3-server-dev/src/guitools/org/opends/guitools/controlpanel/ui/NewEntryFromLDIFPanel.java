@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -46,7 +47,7 @@ import javax.swing.event.DocumentListener;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.util.LDIFException;
 
 /**
@@ -107,7 +108,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getProgressDialogTitle()
+  protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_PANEL_NEW_ENTRY_FROM_LDIF_TITLE.get();
   }
@@ -115,7 +116,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_ENTRY_FROM_LDIF_TITLE.get();
   }
@@ -151,7 +152,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     lSyntaxCorrect.setIcon(Utilities.createImageIcon(
         "org/opends/quicksetup/images/info_small.gif"));
 
-    ldif = Utilities.createTextArea(Message.EMPTY, 20, 50);
+    ldif = Utilities.createTextArea(LocalizableMessage.EMPTY, 20, 50);
     ldif.getDocument().addDocumentListener(new DocumentListener()
     {
       /**
@@ -198,7 +199,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
        */
       public void actionPerformed(ActionEvent ev)
       {
-        ArrayList<Message> errors = new ArrayList<Message>();
+        ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
         checkSyntax(errors);
         if (errors.size() > 0)
         {
@@ -239,7 +240,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
   /**
    * {@inheritDoc}
    */
-  protected void checkSyntax(ArrayList<Message> errors)
+  protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     try
     {

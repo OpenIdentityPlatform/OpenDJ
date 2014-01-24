@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -33,7 +34,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.opends.messages.AdminToolMessages;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Table Model used to store information about indexes.  It is used basically
@@ -176,7 +177,7 @@ implements Comparator<AbstractIndexDescriptor>
    * @return the message to be displayed in the cell if an index must be
    * rebuilt.
    */
-  protected Message getRebuildRequiredString(AbstractIndexDescriptor index)
+  protected LocalizableMessage getRebuildRequiredString(AbstractIndexDescriptor index)
   {
     if (info.mustReindex(index))
     {

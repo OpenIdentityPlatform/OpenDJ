@@ -47,7 +47,7 @@ import javax.naming.ldap.LdapName;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
@@ -326,7 +326,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
 
     EmbeddedUtils.restartServer(
             this.getClass().getName(),
-            Message.raw("CryptoManager: testing persistent secret keys."),
+            LocalizableMessage.raw("CryptoManager: testing persistent secret keys."),
             DirectoryServer.getEnvironmentConfig());
 
     byte[] plainText = cm.decrypt(cipherText);

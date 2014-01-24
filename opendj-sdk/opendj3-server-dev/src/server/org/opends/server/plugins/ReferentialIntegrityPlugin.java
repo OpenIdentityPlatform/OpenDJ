@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.ReferentialIntegrityPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
@@ -176,7 +176,7 @@ public class ReferentialIntegrityPlugin
          throws ConfigException
   {
     pluginCfg.addReferentialIntegrityChangeListener(this);
-    LinkedList<Message> unacceptableReasons = new LinkedList<Message>();
+    LinkedList<LocalizableMessage> unacceptableReasons = new LinkedList<LocalizableMessage>();
 
     if (!isConfigurationAcceptable(pluginCfg, unacceptableReasons))
     {
@@ -208,7 +208,7 @@ public class ReferentialIntegrityPlugin
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;
     boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     //Load base DNs from new configuration.
     LinkedHashSet<DN> newConfiguredBaseDNs = new LinkedHashSet<DN>();
@@ -289,7 +289,7 @@ public class ReferentialIntegrityPlugin
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     boolean isAcceptable = true;
     ReferentialIntegrityPluginCfg pluginCfg =
@@ -403,7 +403,7 @@ public class ReferentialIntegrityPlugin
   @Override
   public boolean isConfigurationChangeAcceptable(
           ReferentialIntegrityPluginCfg configuration,
-          List<Message> unacceptableReasons)
+          List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigurationAcceptable(configuration, unacceptableReasons);
   }
@@ -554,7 +554,7 @@ public class ReferentialIntegrityPlugin
    *
    */
   private void processIntervalChange(long newInterval,
-                                     ArrayList<Message> msgs) {
+                                     ArrayList<LocalizableMessage> msgs) {
     if(interval == 0) {
       DirectoryServer.registerShutdownListener(this);
       interval=newInterval;
@@ -562,7 +562,7 @@ public class ReferentialIntegrityPlugin
               get(Long.toString(interval)));
       setUpBackGroundProcessing();
     } else if(newInterval == 0) {
-      Message message=
+      LocalizableMessage message=
               INFO_PLUGIN_REFERENT_BACKGROUND_PROCESSING_STOPPING.get();
       msgs.add(message);
       processServerShutdown(message);
@@ -726,7 +726,7 @@ public class ReferentialIntegrityPlugin
         return;
 
       default:
-        Message message1 = ERR_PLUGIN_REFERENT_SEARCH_FAILED.
+        LocalizableMessage message1 = ERR_PLUGIN_REFERENT_SEARCH_FAILED.
                 get(String.valueOf(operation.getErrorMessage()));
         logError(message1);
         return;
@@ -975,7 +975,7 @@ public class ReferentialIntegrityPlugin
           } catch (DirectoryException ex) {
             //This exception should rarely happen since the plugin wrote the DN
             //strings originally.
-            Message message=
+            LocalizableMessage message=
                     ERR_PLUGIN_REFERENT_CANNOT_DECODE_STRING_AS_DN.
                                                            get(ex.getMessage());
             logError(message);
@@ -1022,7 +1022,7 @@ public class ReferentialIntegrityPlugin
    *
    */
   @Override
-  public void processServerShutdown(Message reason)
+  public void processServerShutdown(LocalizableMessage reason)
   {
     stopRequested = true;
 

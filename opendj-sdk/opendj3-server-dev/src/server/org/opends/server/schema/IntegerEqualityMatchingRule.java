@@ -34,7 +34,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
@@ -163,7 +163,7 @@ class IntegerEqualityMatchingRule
               }
               else
               {
-                Message message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
+                LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
                         value.toString());
 
                 switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -185,7 +185,7 @@ class IntegerEqualityMatchingRule
               // This is OK as long as the first character isn't a dash.
               if (buffer.charAt(0) == '-')
               {
-                Message message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
+                LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
                         value.toString());
 
                 switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -248,7 +248,7 @@ class IntegerEqualityMatchingRule
           }
           else
           {
-            Message message = WARN_ATTR_SYNTAX_INTEGER_MISPLACED_DASH.get(
+            LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_MISPLACED_DASH.get(
                     value.toString());
 
             switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -267,7 +267,7 @@ class IntegerEqualityMatchingRule
           }
           break;
         default:
-          Message message = WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
+          LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
                   value.toString(),
                   ((char) value.byteAt(i)), i);
           switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -288,7 +288,7 @@ class IntegerEqualityMatchingRule
 
     if (buffer.length() == 0)
     {
-      Message message = WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE.get(
+      LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE.get(
               value.toString());
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -314,7 +314,7 @@ class IntegerEqualityMatchingRule
     }
     else if ((buffer.length() == 1) && (buffer.charAt(0) == '-'))
     {
-      Message message = WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(
+      LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(
               value.toString());
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {

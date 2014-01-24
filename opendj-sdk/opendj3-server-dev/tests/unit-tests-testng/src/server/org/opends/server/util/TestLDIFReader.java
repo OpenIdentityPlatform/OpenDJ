@@ -35,7 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.testng.Assert;
@@ -641,10 +641,10 @@ public final class TestLDIFReader extends UtilTestCase {
       reader.readChangeRecord(false);
 
       reader.readChangeRecord(false);
-      reader.rejectLastEntry(Message.raw("Rejected"));
+      reader.rejectLastEntry(LocalizableMessage.raw("Rejected"));
 
       reader.readChangeRecord(false);
-      reader.rejectLastEntry(Message.raw("Rejected"));
+      reader.rejectLastEntry(LocalizableMessage.raw("Rejected"));
 
       reader.readChangeRecord(false);
       reader.readChangeRecord(false);

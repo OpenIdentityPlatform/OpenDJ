@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This class is used to describe the current state of the installation.
@@ -49,9 +50,9 @@ public class ProgressDescriptor {
 
   private Integer progressBarRatio;
 
-  private Message progressBarMsg;
+  private LocalizableMessage progressBarMsg;
 
-  private Message detailsMsg;
+  private LocalizableMessage detailsMsg;
 
   /**
    * Constructor for the ProgressDescriptor.
@@ -61,7 +62,7 @@ public class ProgressDescriptor {
    * @param detailsMsg the logs.
    */
   public ProgressDescriptor(ProgressStep step,
-      Integer progressBarRatio, Message progressBarMsg, Message detailsMsg)
+      Integer progressBarRatio, LocalizableMessage progressBarMsg, LocalizableMessage detailsMsg)
   {
     this.step = step;
     this.progressBarRatio = progressBarRatio;
@@ -73,7 +74,7 @@ public class ProgressDescriptor {
    * Returns the details message (the log message) of the install.
    * @return the details message (the log message) of the install.
    */
-  public Message getDetailsMsg()
+  public LocalizableMessage getDetailsMsg()
   {
     return detailsMsg;
   }
@@ -82,7 +83,7 @@ public class ProgressDescriptor {
    * Returns the progress bar message.
    * @return the progress bar message.
    */
-  public Message getProgressBarMsg()
+  public LocalizableMessage getProgressBarMsg()
   {
     return progressBarMsg;
   }

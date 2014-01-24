@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Step in a QuickSetup wizard application.
@@ -38,7 +39,7 @@ public interface WizardStep {
    * @return String message key for accessing this step's display name
    * in a message bundle
    */
-  Message getDisplayMessage();
+  LocalizableMessage getDisplayMessage();
 
   /**
    * Indicates that when this step is displayed the application will

@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -62,7 +62,7 @@ public final class InitializationException
    * @param  message    The message that explains the problem that
    *                    occurred.
    */
-  public InitializationException(Message message)
+  public InitializationException(LocalizableMessage message)
   {
     super(message);
   }
@@ -78,7 +78,7 @@ public final class InitializationException
    * @param  cause      The exception that was caught to trigger this
    *                    exception.
    */
-  public InitializationException(Message message,
+  public InitializationException(LocalizableMessage message,
                                  Throwable cause)
   {
     super(message, cause);

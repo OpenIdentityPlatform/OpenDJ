@@ -75,7 +75,7 @@ public class InitializeTargetMsg extends RoutableMsg
 
   /**
    * Creates an InitializeTargetMsg by decoding the provided byte array.
-   * @param in A byte array containing the encoded information for the Message
+   * @param in A byte array containing the encoded information for the LocalizableMessage
    * @param version The protocol version to use to decode the msg
    * @throws DataFormatException If the in does not contain a properly
    *                             encoded InitializeMessage.

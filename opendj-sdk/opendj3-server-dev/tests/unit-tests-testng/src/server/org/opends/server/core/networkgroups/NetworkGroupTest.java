@@ -37,6 +37,7 @@ import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -344,8 +345,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     catch (InitializationException e)
     {
       exceptionRaised = true;
-      assertEquals(e.getMessageObject().getDescriptor(),
-                   ERR_REGISTER_NETWORK_GROUP_ALREADY_EXISTS);
+      assertTrue(StaticUtils.hasDescriptor(e.getMessageObject(),
+          ERR_REGISTER_NETWORK_GROUP_ALREADY_EXISTS));
     }
     assertEquals(exceptionRaised, true);
 
@@ -368,9 +369,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     catch (DirectoryException de)
     {
       exceptionRaised = true;
-      assertEquals(
-          de.getMessageObject().getDescriptor(),
-              ERR_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS);
+      assertTrue(StaticUtils.hasDescriptor(de.getMessageObject(),
+          ERR_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS));
     }
     assertEquals(exceptionRaised, true);
 

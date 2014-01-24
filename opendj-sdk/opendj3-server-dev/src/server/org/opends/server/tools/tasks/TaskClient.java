@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigConstants;
@@ -429,7 +429,7 @@ public class TaskClient {
     do {
       LDAPMessage responseMessage = reader.readMessage();
       if (responseMessage == null) {
-        Message message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
+        LocalizableMessage message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
         throw new LDAPException(UNAVAILABLE.getIntValue(), message);
       } else {
         opType = responseMessage.getProtocolOpType();
@@ -494,7 +494,7 @@ public class TaskClient {
         LDAPMessage responseMessage = reader.readMessage();
 
         if (responseMessage == null) {
-          Message message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
+          LocalizableMessage message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
           throw new LDAPException(UNAVAILABLE.getIntValue(), message);
         }
 
@@ -509,7 +509,7 @@ public class TaskClient {
 
         ModifyResponseProtocolOp modResponse =
                 responseMessage.getModifyResponseProtocolOp();
-        Message errorMessage = modResponse.getErrorMessage();
+        LocalizableMessage errorMessage = modResponse.getErrorMessage();
         if (errorMessage != null) {
           throw new LDAPException(
                   LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
@@ -529,7 +529,7 @@ public class TaskClient {
         LDAPMessage responseMessage = reader.readMessage();
 
         if (responseMessage == null) {
-          Message message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
+          LocalizableMessage message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
           throw new LDAPException(UNAVAILABLE.getIntValue(), message);
         }
 
@@ -544,7 +544,7 @@ public class TaskClient {
 
         DeleteResponseProtocolOp deleteResponse =
                 responseMessage.getDeleteResponseProtocolOp();
-        Message errorMessage = deleteResponse.getErrorMessage();
+        LocalizableMessage errorMessage = deleteResponse.getErrorMessage();
         if (errorMessage != null) {
           throw new LDAPException(
                   LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,

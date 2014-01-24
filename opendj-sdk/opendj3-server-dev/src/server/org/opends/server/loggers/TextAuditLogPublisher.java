@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FileBasedAuditLogPublisherCfg;
 import org.opends.server.config.ConfigException;
@@ -76,7 +76,7 @@ public final class TextAuditLogPublisher extends
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     File logFile = getFileForPath(config.getLogFile());
     FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
@@ -157,7 +157,7 @@ public final class TextAuditLogPublisher extends
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(config.dn()
+      LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(config.dn()
           .toString(), stackTraceToSingleLineString(e));
       resultCode = DirectoryServer.getServerErrorResultCode();
       messages.add(message);
@@ -185,7 +185,7 @@ public final class TextAuditLogPublisher extends
    * {@inheritDoc}
    */
   @Override()
-  public void initializeLogPublisher(FileBasedAuditLogPublisherCfg cfg)
+  public void initializeLogPublisher(FileBasedAuditLogPublisherCfg cfg, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
     File logFile = getFileForPath(cfg.getLogFile());
@@ -231,14 +231,14 @@ public final class TextAuditLogPublisher extends
     }
     catch (DirectoryException e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg.dn()
+      LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg.dn()
           .toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
     }
     catch (IOException e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(logFile
+      LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(logFile
           .toString(), cfg.dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
@@ -257,7 +257,7 @@ public final class TextAuditLogPublisher extends
   @Override
   public boolean isConfigurationAcceptable(
       FileBasedAuditLogPublisherCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return isFilterConfigurationAcceptable(configuration, unacceptableReasons)
         && isConfigurationChangeAcceptable(configuration, unacceptableReasons);
@@ -270,7 +270,7 @@ public final class TextAuditLogPublisher extends
    */
   @Override
   public boolean isConfigurationChangeAcceptable(
-      FileBasedAuditLogPublisherCfg config, List<Message> unacceptableReasons)
+      FileBasedAuditLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
   {
     // Make sure the permission is valid.
     try
@@ -279,7 +279,7 @@ public final class TextAuditLogPublisher extends
           .getLogFilePermissions());
       if (!filePerm.isOwnerWritable())
       {
-        Message message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config
+        LocalizableMessage message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config
             .getLogFilePermissions());
         unacceptableReasons.add(message);
         return false;
@@ -287,7 +287,7 @@ public final class TextAuditLogPublisher extends
     }
     catch (DirectoryException e)
     {
-      Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(config
+      LocalizableMessage message = ERR_CONFIG_LOGGING_MODE_INVALID.get(config
           .getLogFilePermissions(), String.valueOf(e));
       unacceptableReasons.add(message);
       return false;

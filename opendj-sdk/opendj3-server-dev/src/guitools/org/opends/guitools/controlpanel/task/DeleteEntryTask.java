@@ -59,7 +59,7 @@ import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -151,7 +151,7 @@ public class DeleteEntryTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getTaskDescription()
+  public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_DELETE_ENTRY_TASK_DESCRIPTION.get();
   }
@@ -177,7 +177,7 @@ public class DeleteEntryTask extends Task
    * {@inheritDoc}
    */
   public boolean canLaunch(Task taskToBeLaunched,
-      Collection<Message> incompatibilityReasons)
+      Collection<LocalizableMessage> incompatibilityReasons)
   {
     boolean canLaunch = true;
     if (!isServerRunning())
@@ -348,7 +348,7 @@ public class DeleteEntryTask extends Task
             equivalentCommandWithoutControlPrinted = true;
           }
           getProgressDialog().setSummary(
-              Message.raw(
+              LocalizableMessage.raw(
                   Utilities.applyFont(
                       INFO_CTRL_PANEL_DELETING_ENTRY_SUMMARY.get(
                           lastDn.toString()).toString(),
@@ -450,7 +450,7 @@ public class DeleteEntryTask extends Task
           equivalentCommandWithControlPrinted = true;
         }
         getProgressDialog().setSummary(
-            Message.raw(
+            LocalizableMessage.raw(
                 Utilities.applyFont(
                     INFO_CTRL_PANEL_DELETING_ENTRY_SUMMARY.get(
                         lastDn.toString()).toString(),

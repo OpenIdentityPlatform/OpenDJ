@@ -31,7 +31,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.loggers.debug.DebugTracer;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -314,7 +314,7 @@ public final class HostPort
     catch (UnknownHostException e)
     {
       // We could not resolve this host name, default to the provided host name
-      Message message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(host);
+      LocalizableMessage message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(host);
       logError(message);
       return host;
     }

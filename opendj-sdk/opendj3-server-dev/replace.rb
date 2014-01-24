@@ -27,62 +27,53 @@ require 'fileutils'
 #
 class Replace
 
+  # Messages map : contains for each message its associated level
+  MESSAGES_MAP = {}
+
+  # Mapping of opendj2 log levels to opendj3 logging method
+  LOG_LEVELS = {
+    'INFO' => 'debug',
+    'MILD_WARN' => 'warn',
+    'SEVERE_WARN' => 'warn',
+    'MILD_ERR' => 'error',
+    'SEVERE_ERR' => 'error',
+    'FATAL_ERR' => 'error',
+    'DEBUG' => 'trace',
+    'NOTICE' => 'info',
+  }
+
   # All directories that contains java code
   JAVA_DIRS = ["src/server", "src/quicksetup", "src/ads", "src/guitools", "tests/unit-tests-testng/src"]
-
-  # Replacement for Validator
-  # Modify 88 files, for a total of 227 replacements - leaves 21 compilation errors
-  VALIDATOR = {
-    :dirs => JAVA_DIRS,
-    :extensions => ["java"],
-    :replacements =>
-      [
-        /import org.opends.server.util.\*;/,
-        "import org.opends.server.util.*;\nimport org.forgerock.util.Reject;",
-
-        /import static org.opends.server.util.Validator.ensureNotNull;/,
-        'import static org.forgerock.util.Reject.ifNull;',
-
-        /import static org.opends.server.util.Validator.ensureTrue;/,
-        'import static org.forgerock.util.Reject.ifFalse;',
-
-        /import static org.opends.server.util.Validator.\*;/,
-        'import static org.forgerock.util.Reject.*;',
-
-        /import org.opends.server.util.Validator;/,
-        'import org.forgerock.util.Reject;',
-
-        /(Validator\.| )ensureNotNull\((.*)$/,
-        '\1ifNull(\2',
-
-        /(Validator\.| )ensureTrue\((.*)$/,
-        '\1ifFalse(\2',
-
-        / Validator\./,
-        ' Reject.'
-      ]
-  }
+  SNMP_DIR = ["src/snmp/src"]
+  DSML_DIR = ["src/dsml/org"]
 
   # Replacement for messages
   # Modify 1052 files, for a total of 2366 replacements - leaves 10274 compilation errors mostly due to generated messages
   MESSAGES = {
-    :dirs => JAVA_DIRS,
-    :extensions => ["java"],
-    :replacements =>
-      [
-        /import org.opends.messages.Message;/,
-        'import org.forgerock.i18n.LocalizableMessage;',
+     :dirs => DSML_DIR,
+     :extensions => ["java"],
+     :stopwords => ['org/opends/messages'],
+     :replacements =>
+       [
+        /import org.opends.messages.(\bMessage(Builder)?(Descriptor)?\b|\*)(\.Arg..?)?;/,
+        'import org.forgerock.i18n.Localizable\1\4;',
 
-        /([ <(])Message([ >)(.]|$)/,
-        '\1LocalizableMessage\2',
+        /\bMessage\b/,
+        'LocalizableMessage',
 
-        /import org.opends.messages.MessageBuilder;/,
-        'import org.forgerock.i18n.LocalizableMessageBuilder;',
+        /\bMessageBuilder\b/,
+        'LocalizableMessageBuilder',
 
-        /([ <(])MessageBuilder([ >)(.]|$)/,
-        '\1LocalizableMessageBuilder\2'
-      ]
-  }
+        /\bMessageDescriptor\b/,
+        'LocalizableMessageDescriptor',
+
+        /LocalizableMessage.raw\((\n\s+)?Category.\w+,\s+(\n\s+)?Severity.\w+,\s?/,
+        'LocalizableMessage.raw(',
+
+        /msg.getDescriptor().equals\((\w)+\)/,
+        "msg.resourceName().equals(\\1.resourceName())\n      && msg.ordinal().equals(\\1.ordinal())"
+       ]
+   }
 
   # Replacement for types
   TYPES = {
@@ -99,34 +90,24 @@ class Replace
       ]
   }
 
-  BYTESTRING_TYPE = {
-    :dirs => JAVA_DIRS,
+  # Replacement for types
+  DN_TYPE = {
+    :dirs => JAVA_DIRS + ["src/admin/generated"],
     :extensions => ["java"],
     :replacements =>
       [
-        /package org.opends.server.types;/,
-        "package org.opends.server.types;\n\n" +
-        "import org.forgerock.opendj.ldap.ByteString;\n" +
-        "import org.forgerock.opendj.ldap.ByteStringBuilder;\n" +
-        "import org.forgerock.opendj.ldap.ByteSequence;\n" +
-        "import org.forgerock.opendj.ldap.ByteSequenceReader;",
+        /package org.opends.server.types.(\b\w\b);/,
+        "package org.opends.server.types.\\1;\n\n" +
+        'import org.forgerock.opendj.ldap.DN;',
+
+        /import org.opends.server.types.DN;/,
+        'import org.forgerock.opendj.ldap.DN;',
 
         /import org.opends.server.types.\*;/,
-        "import org.opends.server.types.*;\n" +
-        "import org.forgerock.opendj.ldap.ByteString;\n" +
-        "import org.forgerock.opendj.ldap.ByteStringBuilder;\n" +
-        "import org.forgerock.opendj.ldap.ByteSequence;\n" +
-        "import org.forgerock.opendj.ldap.ByteSequenceReader;",
+        "import org.opends.server.types.*;\nimport org.forgerock.opendj.ldap.DN;",
 
-        /import org.opends.server.types.(ByteString|ByteStringBuilder|ByteSequence|ByteSequenceReader);/,
-        'import org.forgerock.opendj.ldap.\1;',
-
-        /package org.opends.server.protocols.asn1;/,
-        "package org.opends.server.protocols.asn1;\n\n" +
-        "import com.forgerock.opendj.util.ByteSequenceOutputStream;",
-
-        /import org.opends.server.protocols.asn1.ByteSequenceOutputStream;/,
-        "import com.forgerock.opendj.util.ByteSequenceOutputStream;",
+        /DN.NULL_DN/,
+        "DN.rootDN()"
 
       ]
   }
@@ -179,8 +160,8 @@ class Replace
         /import org.opends.server.types.DebugLogLevel;\n/,
         '',
 
-        /import (static )?org.opends.server.loggers.debug.DebugLogger.*;\n/,
-        '',
+        #/import (static )?org.opends.server.loggers.debug.DebugLogger.*;\n/,
+        #'',
 
         /DebugTracer TRACER = (DebugLogger.)?getTracer\(\)/,
         "Logger debugLogger = LoggerFactory.getLogger({CLASSNAME}.class)",
@@ -245,10 +226,13 @@ class Replace
   }
 
   # List of replacements to run
-  REPLACEMENTS = [ BYTESTRING_TYPE ]
-  #REPLACEMENTS = [ VALIDATOR, MESSAGES, TYPES, EXCEPTIONS, LOGGERS, I18N_LOGGERS ]
+  REPLACEMENTS = [ MESSAGES ]
+  #REPLACEMENTS = [ MESSAGES, TYPES, DN_TYPES, EXCEPTIONS, LOGGERS, I18N_LOGGERS ]
 
-  # Run replacements
+
+  ################################### Processing methods ########################################
+
+  # Main method : run replacements defined in REPLACEMENTS constant
   def run
     REPLACEMENTS.each { |repl|
       puts "Replacing " + Replace.constants.find{ |name| Replace.const_get(name)==repl }.to_s
@@ -257,6 +241,7 @@ class Replace
     }
   end
 
+  # Process replacements on the provided directories
   def replace_dirs(replacements, dirs, stopwords, extensions)
     count_files = 0
     count_total = 0
@@ -275,6 +260,7 @@ class Replace
     puts "Replaced in #{count_files} files, for a total of #{count_total} replacements"
   end
 
+  # Process replacement on the provided file
   def replace_file(file, replacements)
     count = 0
     File.open(file) { |source|
@@ -291,17 +277,33 @@ class Replace
     count
   end
 
+  # Return java class name from java filename
   def classname(file)
     name = file.gsub(/.*\/(.*).java$/, '\1')
     if name.nil? then '' else name end
   end
 
+  # Return all files with provided extensions under the provided directory
+  # and all its subdirectories recursively
   def files_under_directory(directory, extensions)
     Dir[directory + '/**/*.{' + extensions.join(",") + '}']
   end
 
+  # Build a map of error messages and error level
+  def messages(message_file)
+    File.open(message_file).each { |line|
+      line = line.chomp
+      next if line.size==0 || line[0..0]=="#" || line[0..0]==" " || line[0..0]!=line[0..0].upcase || line[0..5]=="global"
+      first, *rest = line.split "_"
+      label = rest.join "_"
+      level_label = if %w(INFO DEBUG NOTICE).include?(first) then first else first.to_s + "_" + rest[0].to_s end
+      level = LOG_LEVELS[level_label]
+      puts "level #{level}, line #{line}"
+    }
+  end
+
 end
 
-# Launch replacement
+# Launch all replacements defined in the REPLACEMENTS constant
+#Replace.new.messages("src/messages/messages/admin.properties")
 Replace.new.run
-

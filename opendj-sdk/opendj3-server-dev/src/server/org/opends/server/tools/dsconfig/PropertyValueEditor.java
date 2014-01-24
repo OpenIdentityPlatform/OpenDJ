@@ -40,8 +40,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AggregationPropertyDefinition;
@@ -119,33 +119,33 @@ final class PropertyValueEditor {
         // First get the parent managed object.
         InstantiableRelationDefinition<?, ?> rd = pd.getRelationDefinition();
         ManagedObjectPath<?, ?> path = pd.getParentPath();
-        Message ufn = rd.getUserFriendlyName();
+        LocalizableMessage ufn = rd.getUserFriendlyName();
 
         ManagedObject<?> parent;
         try {
           parent = context.getManagedObject(path);
         } catch (AuthorizationException e) {
-          Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+          LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
           throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
               msg);
         } catch (DefinitionDecodingException e) {
-          Message pufn = path.getManagedObjectDefinition()
+          LocalizableMessage pufn = path.getManagedObjectDefinition()
               .getUserFriendlyName();
-          Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(pufn, pufn, pufn);
+          LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(pufn, pufn, pufn);
           throw new ClientException(LDAPResultCode.OTHER, msg);
         } catch (ManagedObjectDecodingException e) {
-          Message pufn = path.getManagedObjectDefinition()
+          LocalizableMessage pufn = path.getManagedObjectDefinition()
               .getUserFriendlyName();
-          Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
+          LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
           throw new ClientException(LDAPResultCode.OTHER, msg, e);
         } catch (CommunicationException e) {
-          Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
+          LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
               msg);
         } catch (ManagedObjectNotFoundException e) {
-          Message pufn = path.getManagedObjectDefinition()
+          LocalizableMessage pufn = path.getManagedObjectDefinition()
               .getUserFriendlyName();
-          Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
+          LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
           if (app.isInteractive()) {
             app.println();
             app.printVerboseMessage(msg);
@@ -331,7 +331,7 @@ final class PropertyValueEditor {
 
     // The description of the behavior if it is an alias default
     // behavior.
-    private final Message aliasDescription;
+    private final LocalizableMessage aliasDescription;
 
     // The type of behavior.
     private final Type type;
@@ -339,7 +339,7 @@ final class PropertyValueEditor {
 
 
     // Private constructor.
-    private DefaultBehaviorQuery(Type type, Message aliasDescription) {
+    private DefaultBehaviorQuery(Type type, LocalizableMessage aliasDescription) {
       this.type = type;
       this.aliasDescription = aliasDescription;
     }
@@ -356,7 +356,7 @@ final class PropertyValueEditor {
      *         inherits from an alias default behavior, otherwise
      *         <code>null</code>.
      */
-    public Message getAliasDescription() {
+    public LocalizableMessage getAliasDescription() {
       return aliasDescription;
     }
 
@@ -495,7 +495,7 @@ final class PropertyValueEditor {
       }
 
       for (String value : values) {
-        Message option = getPropertyValues(d, Collections.singleton(value));
+        LocalizableMessage option = getPropertyValues(d, Collections.singleton(value));
         builder.addNumberedOption(option, MenuResult.success(value));
       }
       MenuCallback<String> callback = new CreateComponentCallback<C, S>(d);
@@ -606,7 +606,7 @@ final class PropertyValueEditor {
       Set<E> values = new TreeSet<E>(d);
       values.addAll(EnumSet.allOf(d.getEnumClass()));
       for (E value : values) {
-        Message option = getPropertyValues(d, Collections.singleton(value));
+        LocalizableMessage option = getPropertyValues(d, Collections.singleton(value));
         builder.addNumberedOption(option, MenuResult.success(value));
       }
 
@@ -727,7 +727,7 @@ final class PropertyValueEditor {
       final SortedSet<String> oldValues = mo.getPropertyValues(d);
       final SortedSet<String> currentValues = mo.getPropertyValues(d);
       final InstantiableRelationDefinition<C, S> rd = d.getRelationDefinition();
-      final Message ufpn = rd.getUserFriendlyPluralName();
+      final LocalizableMessage ufpn = rd.getUserFriendlyPluralName();
 
       boolean isFirst = true;
       while (true) {
@@ -779,7 +779,7 @@ final class PropertyValueEditor {
               builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
 
               for (String value : values) {
-                Message svalue = getPropertyValues(d, Collections
+                LocalizableMessage svalue = getPropertyValues(d, Collections
                     .singleton(value));
                 builder.addNumberedOption(svalue, MenuResult.success(value));
               }
@@ -841,7 +841,7 @@ final class PropertyValueEditor {
             builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
 
             for (String value : currentValues) {
-              Message svalue = getPropertyValues(d, Collections
+              LocalizableMessage svalue = getPropertyValues(d, Collections
                   .singleton(value));
               builder.addNumberedOption(svalue, MenuResult.success(value));
             }
@@ -931,7 +931,7 @@ final class PropertyValueEditor {
               builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
 
               for (T value : values) {
-                Message svalue = getPropertyValues(d, Collections
+                LocalizableMessage svalue = getPropertyValues(d, Collections
                     .singleton(value));
                 builder.addNumberedOption(svalue, MenuResult.success(value));
               }
@@ -987,7 +987,7 @@ final class PropertyValueEditor {
             builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
 
             for (T value : currentValues) {
-              Message svalue = getPropertyValues(d, Collections
+              LocalizableMessage svalue = getPropertyValues(d, Collections
                   .singleton(value));
               builder.addNumberedOption(svalue, MenuResult.success(value));
             }
@@ -1091,7 +1091,7 @@ final class PropertyValueEditor {
             builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
 
             for (T value : currentValues) {
-              Message svalue = getPropertyValues(d, Collections
+              LocalizableMessage svalue = getPropertyValues(d, Collections
                   .singleton(value));
               builder.addNumberedOption(svalue, MenuResult.success(value));
             }
@@ -1141,7 +1141,7 @@ final class PropertyValueEditor {
      * the user whether or not they want to keep the property's
      * current settings.
      */
-    private <T> Message getKeepDefaultValuesMenuOption(
+    private <T> LocalizableMessage getKeepDefaultValuesMenuOption(
         PropertyDefinition<T> pd, SortedSet<T> defaultValues,
         SortedSet<T> oldValues, SortedSet<T> currentValues) {
       DefaultBehaviorQuery<T> query = DefaultBehaviorQuery.query(pd);
@@ -1167,7 +1167,7 @@ final class PropertyValueEditor {
             return INFO_EDITOR_OPTION_LEAVE_UNDEFINED.get();
           }
         case 1:
-          Message svalue = getPropertyValues(pd, currentValues);
+          LocalizableMessage svalue = getPropertyValues(pd, currentValues);
           if (isDefault) {
             if (query.isInherited()) {
               return INFO_EDITOR_OPTION_USE_INHERITED_DEFAULT_VALUE.get(svalue);
@@ -1206,7 +1206,7 @@ final class PropertyValueEditor {
             return INFO_EDITOR_OPTION_LEAVE_UNDEFINED.get();
           }
         case 1:
-          Message svalue = getPropertyValues(pd, currentValues);
+          LocalizableMessage svalue = getPropertyValues(pd, currentValues);
           if (isDefault) {
             if (query.isInherited()) {
               return INFO_EDITOR_OPTION_KEEP_INHERITED_DEFAULT_VALUE
@@ -1237,7 +1237,7 @@ final class PropertyValueEditor {
      * Generate an appropriate menu option which should be used in the
      * case where a property can be reset to its default behavior.
      */
-    private <T> Message getResetToDefaultValuesMenuOption(
+    private <T> LocalizableMessage getResetToDefaultValuesMenuOption(
         PropertyDefinition<T> pd, SortedSet<T> defaultValues,
         SortedSet<T> currentValues) {
       DefaultBehaviorQuery<T> query = DefaultBehaviorQuery.query(pd);
@@ -1250,7 +1250,7 @@ final class PropertyValueEditor {
         // Only show this option if the current value is different
         // to the default.
         if (!currentValues.equals(defaultValues)) {
-          Message svalue = getPropertyValues(pd, defaultValues);
+          LocalizableMessage svalue = getPropertyValues(pd, defaultValues);
           if (defaultValues.size() > 1) {
             return INFO_EDITOR_OPTION_RESET_DEFAULT_VALUES.get(svalue);
           } else {
@@ -1269,7 +1269,7 @@ final class PropertyValueEditor {
                 .get();
           }
         } else {
-          Message svalue = getPropertyValues(pd, defaultValues);
+          LocalizableMessage svalue = getPropertyValues(pd, defaultValues);
           if (defaultValues.size() > 1) {
             return INFO_EDITOR_OPTION_RESET_INHERITED_DEFAULT_VALUES
                 .get(svalue);
@@ -1307,10 +1307,10 @@ final class PropertyValueEditor {
           result = MenuResult.<Boolean> cancel();
         }
 
-        Message option = getKeepDefaultValuesMenuOption(d, defaultValues,
+        LocalizableMessage option = getKeepDefaultValuesMenuOption(d, defaultValues,
             oldValues, currentValues);
         builder.addNumberedOption(option, result);
-        builder.setDefault(Message.raw("1"), result);
+        builder.setDefault(LocalizableMessage.raw("1"), result);
       }
 
       // Add an option for adding some values.
@@ -1318,7 +1318,7 @@ final class PropertyValueEditor {
         int i = builder.addNumberedOption(
             INFO_EDITOR_OPTION_ADD_ONE_OR_MORE_VALUES.get(), addCallback);
         if (d.hasOption(PropertyOption.MANDATORY) && currentValues.isEmpty()) {
-          builder.setDefault(Message.raw("%d", i), addCallback);
+          builder.setDefault(LocalizableMessage.raw("%d", i), addCallback);
         }
       }
 
@@ -1330,7 +1330,7 @@ final class PropertyValueEditor {
 
       // Add options for removing all values and for resetting the
       // property to its default behavior.
-      Message resetOption = null;
+      LocalizableMessage resetOption = null;
       if (!currentValues.equals(defaultValues)) {
         resetOption = getResetToDefaultValuesMenuOption(d, defaultValues,
             currentValues);
@@ -1529,7 +1529,7 @@ final class PropertyValueEditor {
         // Only alias, undefined, or inherited alias or undefined
         // properties should apply here.
         DefaultBehaviorQuery<T> query = DefaultBehaviorQuery.query(pd);
-        Message aliasDescription = query.getAliasDescription();
+        LocalizableMessage aliasDescription = query.getAliasDescription();
         if (aliasDescription == null) {
           app.println(INFO_EDITOR_HEADING_READ_ONLY_ALIAS_UNDEFINED.get(pd
               .getName()));
@@ -1539,7 +1539,7 @@ final class PropertyValueEditor {
         }
         break;
       case 1:
-        Message svalue = getPropertyValues(pd, mo);
+        LocalizableMessage svalue = getPropertyValues(pd, mo);
         app.println(INFO_EDITOR_HEADING_READ_ONLY_VALUE.get(pd.getName(),
             svalue));
         break;
@@ -1640,9 +1640,9 @@ final class PropertyValueEditor {
           .first();
 
       // First option is for leaving the property unchanged.
-      Message option = getKeepDefaultValuesMenuOption(d);
+      LocalizableMessage option = getKeepDefaultValuesMenuOption(d);
       builder.addNumberedOption(option, MenuResult.<String> cancel());
-      builder.setDefault(Message.raw("1"), MenuResult.<String> cancel());
+      builder.setDefault(LocalizableMessage.raw("1"), MenuResult.<String> cancel());
 
       // Create a list of possible names.
       final Set<String> values = new TreeSet<String>(d);
@@ -1661,14 +1661,14 @@ final class PropertyValueEditor {
         return MenuResult.quit();
       }
 
-      final Message ufn = rd.getUserFriendlyName();
+      final LocalizableMessage ufn = rd.getUserFriendlyName();
       for (String value : values) {
         if (currentValue != null && d.compare(value, currentValue) == 0) {
           // This option is unnecessary.
           continue;
         }
 
-        Message svalue = getPropertyValues(d, Collections.singleton(value));
+        LocalizableMessage svalue = getPropertyValues(d, Collections.singleton(value));
         if (value.equals(defaultValue) && query.isDefined()) {
           option = INFO_EDITOR_OPTION_CHANGE_TO_DEFAULT_COMPONENT.get(ufn,
               svalue);
@@ -1715,14 +1715,14 @@ final class PropertyValueEditor {
           .first();
 
       // First option is for leaving the property unchanged.
-      Message option = getKeepDefaultValuesMenuOption(d);
+      LocalizableMessage option = getKeepDefaultValuesMenuOption(d);
       builder.addNumberedOption(option, MenuResult.<Boolean> cancel());
-      builder.setDefault(Message.raw("1"), MenuResult.<Boolean> cancel());
+      builder.setDefault(LocalizableMessage.raw("1"), MenuResult.<Boolean> cancel());
 
       // The second (and possibly third) option is to always change
       // the property's value.
       if (currentValue == null || currentValue == false) {
-        Message svalue = getPropertyValues(d, Collections.singleton(true));
+        LocalizableMessage svalue = getPropertyValues(d, Collections.singleton(true));
 
         if (defaultValue != null && defaultValue == true) {
           option = INFO_EDITOR_OPTION_CHANGE_TO_DEFAULT_VALUE.get(svalue);
@@ -1734,7 +1734,7 @@ final class PropertyValueEditor {
       }
 
       if (currentValue == null || currentValue == true) {
-        Message svalue = getPropertyValues(d, Collections.singleton(false));
+        LocalizableMessage svalue = getPropertyValues(d, Collections.singleton(false));
 
         if (defaultValue != null && defaultValue == false) {
           option = INFO_EDITOR_OPTION_CHANGE_TO_DEFAULT_VALUE.get(svalue);
@@ -1776,9 +1776,9 @@ final class PropertyValueEditor {
       E defaultValue = defaultValues.isEmpty() ? null : defaultValues.first();
 
       // First option is for leaving the property unchanged.
-      Message option = getKeepDefaultValuesMenuOption(d);
+      LocalizableMessage option = getKeepDefaultValuesMenuOption(d);
       builder.addNumberedOption(option, MenuResult.<E> cancel());
-      builder.setDefault(Message.raw("1"), MenuResult.<E> cancel());
+      builder.setDefault(LocalizableMessage.raw("1"), MenuResult.<E> cancel());
 
       // Create options for changing to other values.
       Set<E> values = new TreeSet<E>(d);
@@ -1789,7 +1789,7 @@ final class PropertyValueEditor {
           continue;
         }
 
-        Message svalue = getPropertyValues(d, Collections.singleton(value));
+        LocalizableMessage svalue = getPropertyValues(d, Collections.singleton(value));
 
         if (value.equals(defaultValue) && query.isDefined()) {
           option = INFO_EDITOR_OPTION_CHANGE_TO_DEFAULT_VALUE.get(svalue);
@@ -1827,9 +1827,9 @@ final class PropertyValueEditor {
       builder.setPrompt(INFO_EDITOR_PROMPT_MODIFY_MENU.get(d.getName()));
 
       // First option is for leaving the property unchanged.
-      Message option = getKeepDefaultValuesMenuOption(d);
+      LocalizableMessage option = getKeepDefaultValuesMenuOption(d);
       builder.addNumberedOption(option, MenuResult.<T> cancel());
-      builder.setDefault(Message.raw("1"), MenuResult.<T> cancel());
+      builder.setDefault(LocalizableMessage.raw("1"), MenuResult.<T> cancel());
 
       // The second option is to always change the property's value.
       builder.addNumberedOption(INFO_EDITOR_OPTION_CHANGE_VALUE.get(),
@@ -1863,17 +1863,17 @@ final class PropertyValueEditor {
      * the user whether or not they want to keep the property's
      * current settings.
      */
-    private <T> Message getKeepDefaultValuesMenuOption(
+    private <T> LocalizableMessage getKeepDefaultValuesMenuOption(
         PropertyDefinition<T> pd) {
       DefaultBehaviorQuery<T> query = DefaultBehaviorQuery.query(pd);
       SortedSet<T> currentValues = mo.getPropertyValues(pd);
       SortedSet<T> defaultValues = mo.getPropertyDefaultValues(pd);
 
       if (query.isDefined() && currentValues.equals(defaultValues)) {
-        Message svalue = getPropertyValues(pd, currentValues);
+        LocalizableMessage svalue = getPropertyValues(pd, currentValues);
         return INFO_EDITOR_OPTION_KEEP_DEFAULT_VALUE.get(svalue);
       } else if (mo.isPropertyPresent(pd)) {
-        Message svalue = getPropertyValues(pd, currentValues);
+        LocalizableMessage svalue = getPropertyValues(pd, currentValues);
         return INFO_EDITOR_OPTION_KEEP_VALUE.get(svalue);
       } else if (query.isAlias()) {
         return INFO_EDITOR_OPTION_KEEP_DEFAULT_ALIAS.get(query
@@ -1888,7 +1888,7 @@ final class PropertyValueEditor {
                 .get();
           }
         } else {
-          Message svalue = getPropertyValues(pd, defaultValues);
+          LocalizableMessage svalue = getPropertyValues(pd, defaultValues);
           return INFO_EDITOR_OPTION_KEEP_INHERITED_DEFAULT_VALUE.get(svalue);
         }
       } else {
@@ -1902,7 +1902,7 @@ final class PropertyValueEditor {
      * Generate an appropriate menu option which should be used in the
      * case where a property can be reset to its default behavior.
      */
-    private <T> Message getResetToDefaultValuesMenuOption(
+    private <T> LocalizableMessage getResetToDefaultValuesMenuOption(
         PropertyDefinition<T> pd) {
       DefaultBehaviorQuery<T> query = DefaultBehaviorQuery.query(pd);
       SortedSet<T> currentValues = mo.getPropertyValues(pd);
@@ -1917,7 +1917,7 @@ final class PropertyValueEditor {
         // Only show this option if the current value is different
         // to the default.
         if (!currentValues.equals(defaultValues)) {
-          Message svalue = getPropertyValues(pd, defaultValues);
+          LocalizableMessage svalue = getPropertyValues(pd, defaultValues);
           return INFO_EDITOR_OPTION_RESET_DEFAULT_VALUE.get(svalue);
         } else {
           return null;
@@ -1932,7 +1932,7 @@ final class PropertyValueEditor {
                 .get();
           }
         } else {
-          Message svalue = getPropertyValues(pd, defaultValues);
+          LocalizableMessage svalue = getPropertyValues(pd, defaultValues);
           return INFO_EDITOR_OPTION_RESET_INHERITED_DEFAULT_VALUE.get(svalue);
         }
       } else if (!isMandatory && query.isUndefined()) {
@@ -2076,22 +2076,22 @@ final class PropertyValueEditor {
 
 
   // Display the set of values associated with a property.
-  private static <T> Message getPropertyValues(PropertyDefinition<T> pd,
+  private static <T> LocalizableMessage getPropertyValues(PropertyDefinition<T> pd,
       Collection<T> values) {
     if (values.isEmpty()) {
       // There are no values or default values. Display the default
       // behavior for alias values.
       DefaultBehaviorQuery<T> query = DefaultBehaviorQuery.query(pd);
-      Message content = query.getAliasDescription();
+      LocalizableMessage content = query.getAliasDescription();
       if (content == null) {
-        return Message.raw("-");
+        return LocalizableMessage.raw("-");
       } else {
         return content;
       }
     } else {
       PropertyValuePrinter printer =
         new PropertyValuePrinter(null, null, false);
-      MessageBuilder builder = new MessageBuilder();
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
       boolean isFirst = true;
       for (T value : values) {
@@ -2109,7 +2109,7 @@ final class PropertyValueEditor {
 
 
   // Display the set of values associated with a property.
-  private static <T> Message getPropertyValues(
+  private static <T> LocalizableMessage getPropertyValues(
       PropertyDefinition<T> pd,
       ManagedObject<?> mo) {
     SortedSet<T> values = mo.getPropertyValues(pd);
@@ -2137,7 +2137,7 @@ final class PropertyValueEditor {
     if (values.isEmpty()) {
       while (true) {
         try {
-          Message prompt;
+          LocalizableMessage prompt;
 
           if (pd.hasOption(PropertyOption.MANDATORY)) {
             prompt = INFO_EDITOR_PROMPT_READ_FIRST_VALUE.get(pd.getName());
@@ -2176,7 +2176,7 @@ final class PropertyValueEditor {
       // Prompt for more values if multi-valued.
       while (true) {
         try {
-          Message prompt = INFO_EDITOR_PROMPT_READ_NEXT_VALUE.get(pd.getName());
+          LocalizableMessage prompt = INFO_EDITOR_PROMPT_READ_NEXT_VALUE.get(pd.getName());
 
           app.println();
           String s = app.readLineOfInput(prompt);
@@ -2286,11 +2286,11 @@ final class PropertyValueEditor {
       // Construct the main menu.
       MenuBuilder<Boolean> builder = new MenuBuilder<Boolean>(app);
 
-      Message ufn = mo.getManagedObjectDefinition().getUserFriendlyName();
+      LocalizableMessage ufn = mo.getManagedObjectDefinition().getUserFriendlyName();
       builder.setPrompt(INFO_EDITOR_HEADING_CONFIGURE_COMPONENT.get(ufn));
 
-      Message heading1 = INFO_DSCFG_HEADING_PROPERTY_NAME.get();
-      Message heading2 = INFO_DSCFG_HEADING_PROPERTY_VALUE.get();
+      LocalizableMessage heading1 = INFO_DSCFG_HEADING_PROPERTY_NAME.get();
+      LocalizableMessage heading2 = INFO_DSCFG_HEADING_PROPERTY_VALUE.get();
       builder.setColumnHeadings(heading1, heading2);
       builder.setColumnWidths(null, 0);
 
@@ -2324,8 +2324,8 @@ final class PropertyValueEditor {
         }
 
         // Create the numeric option.
-        Message values = getPropertyValues(pd, mo);
-        builder.addNumberedOption(Message.raw("%s", pd.getName()), callback,
+        LocalizableMessage values = getPropertyValues(pd, mo);
+        builder.addNumberedOption(LocalizableMessage.raw("%s", pd.getName()), callback,
             values);
       }
 

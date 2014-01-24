@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.config;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -135,7 +135,7 @@ public final class IntegerWithUnitConfigAttribute
    *                              enforced for the calculated value.
    * @param  upperBound           The upper bound for the calculated value.
    */
-  public IntegerWithUnitConfigAttribute(String name, Message description,
+  public IntegerWithUnitConfigAttribute(String name, LocalizableMessage description,
                                         boolean requiresAdminAction,
                                         HashMap<String,Double> units,
                                         boolean hasLowerBound, long lowerBound,
@@ -177,7 +177,7 @@ public final class IntegerWithUnitConfigAttribute
    * @param  selectedUnit         The selected unit for this configuration
    *                              attribute.
    */
-  public IntegerWithUnitConfigAttribute(String name, Message description,
+  public IntegerWithUnitConfigAttribute(String name, LocalizableMessage description,
                                         boolean requiresAdminAction,
                                         HashMap<String,Double> units,
                                         boolean hasLowerBound, long lowerBound,
@@ -238,7 +238,7 @@ public final class IntegerWithUnitConfigAttribute
    * @param  pendingSelectedUnit  The pending selected unit for this
    *                              configuration attribute.
    */
-  public IntegerWithUnitConfigAttribute(String name, Message description,
+  public IntegerWithUnitConfigAttribute(String name, LocalizableMessage description,
                                         boolean requiresAdminAction,
                                         HashMap<String,Double> units,
                                         boolean hasLowerBound, long lowerBound,
@@ -508,7 +508,7 @@ public final class IntegerWithUnitConfigAttribute
   {
     if ((unit == null) || (! units.containsKey(unit)))
     {
-      Message message = ERR_CONFIG_ATTR_INVALID_UNIT.get(unit, getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_UNIT.get(unit, getName());
       throw new ConfigException(message);
     }
 
@@ -516,14 +516,14 @@ public final class IntegerWithUnitConfigAttribute
     long calculatedValue = (long) (intValue * units.get(unit));
     if (hasLowerBound && (calculatedValue < lowerBound))
     {
-      Message message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+      LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
           getName(), calculatedValue, lowerBound);
       throw new ConfigException(message);
     }
 
     if (hasUpperBound && (calculatedValue > upperBound))
     {
-      Message message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+      LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
           getName(), calculatedValue, upperBound);
       throw new ConfigException(message);
     }
@@ -561,7 +561,7 @@ public final class IntegerWithUnitConfigAttribute
     int spacePos = value.indexOf(' ');
     if (spacePos <= 0)
     {
-      Message message = ERR_CONFIG_ATTR_NO_UNIT_DELIMITER.get(
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_UNIT_DELIMITER.get(
           String.valueOf(value), getName());
       throw new ConfigException(message);
     }
@@ -579,7 +579,7 @@ public final class IntegerWithUnitConfigAttribute
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
+      LocalizableMessage message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
           String.valueOf(value), getName(), String.valueOf(e));
       throw new ConfigException(message, e);
     }
@@ -773,7 +773,7 @@ public final class IntegerWithUnitConfigAttribute
     {
       if (isRequired())
       {
-        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
         throw new ConfigException(message);
       }
       else
@@ -786,7 +786,7 @@ public final class IntegerWithUnitConfigAttribute
     int numValues = valueStrings.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
       throw new ConfigException(message);
     }
@@ -798,7 +798,7 @@ public final class IntegerWithUnitConfigAttribute
     {
       if ((valueString == null) || (valueString.length() == 0))
       {
-        Message message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
         if (allowFailures)
         {
           ErrorLogger.logError(message);
@@ -814,7 +814,7 @@ public final class IntegerWithUnitConfigAttribute
       StringBuilder rejectReason = new StringBuilder();
       if (! valueIsAcceptable(valueString.toLowerCase(), rejectReason))
       {
-        Message message = ERR_CONFIG_ATTR_INVALID_VALUE_WITH_UNIT.get(
+        LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_VALUE_WITH_UNIT.get(
                 valueString, getName(),
                 rejectReason.toString());
 
@@ -840,7 +840,7 @@ public final class IntegerWithUnitConfigAttribute
     // attribute and if so deal with it accordingly.
     if ((isRequired()) && valueSet.isEmpty())
     {
-      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
       throw new ConfigException(message);
     }
 
@@ -937,7 +937,7 @@ public final class IntegerWithUnitConfigAttribute
           if (pendingUnit != null)
           {
             // We cannot have multiple pending value sets.
-            Message message =
+            LocalizableMessage message =
                 ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName());
             throw new ConfigException(message);
           }
@@ -946,7 +946,7 @@ public final class IntegerWithUnitConfigAttribute
           if (a.isEmpty())
           {
             // This is illegal -- it must have a value.
-            Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+            LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
             throw new ConfigException(message);
           }
           else
@@ -958,7 +958,7 @@ public final class IntegerWithUnitConfigAttribute
             if (iterator.hasNext())
             {
               // This is illegal -- the attribute is single-valued.
-              Message message =
+              LocalizableMessage message =
                   ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
               throw new ConfigException(message);
             }
@@ -972,7 +972,7 @@ public final class IntegerWithUnitConfigAttribute
             }
             catch (Exception e)
             {
-              Message message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.
+              LocalizableMessage message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.
                   get(valueString, a.getName(), String.valueOf(e));
               throw new ConfigException(message);
             }
@@ -982,7 +982,7 @@ public final class IntegerWithUnitConfigAttribute
             // multiplier.
             if (! units.containsKey(pendingUnit))
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_CONFIG_ATTR_INVALID_UNIT.get(pendingUnit, a.getName());
               throw new ConfigException(message);
             }
@@ -994,14 +994,14 @@ public final class IntegerWithUnitConfigAttribute
             // Check the bounds set for this attribute.
             if (hasLowerBound && (pendingCalculatedValue < lowerBound))
             {
-              Message message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+              LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
                   a.getName(), pendingCalculatedValue, lowerBound);
               throw new ConfigException(message);
             }
 
             if (hasUpperBound && (pendingCalculatedValue > upperBound))
             {
-              Message message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+              LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
                   a.getName(), pendingCalculatedValue, upperBound);
               throw new ConfigException(message);
             }
@@ -1011,7 +1011,7 @@ public final class IntegerWithUnitConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          Message message =
+          LocalizableMessage message =
               ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName());
           throw new ConfigException(message);
         }
@@ -1022,7 +1022,7 @@ public final class IntegerWithUnitConfigAttribute
         if (activeUnit != null)
         {
           // We cannot have multiple active value sets.
-          Message message =
+          LocalizableMessage message =
               ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName());
           throw new ConfigException(message);
         }
@@ -1031,7 +1031,7 @@ public final class IntegerWithUnitConfigAttribute
         if (a.isEmpty())
         {
           // This is illegal -- it must have a value.
-          Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+          LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
           throw new ConfigException(message);
         }
         else
@@ -1043,7 +1043,7 @@ public final class IntegerWithUnitConfigAttribute
           if (iterator.hasNext())
           {
             // This is illegal -- the attribute is single-valued.
-            Message message =
+            LocalizableMessage message =
                 ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
             throw new ConfigException(message);
           }
@@ -1057,7 +1057,7 @@ public final class IntegerWithUnitConfigAttribute
           }
           catch (Exception e)
           {
-            Message message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
+            LocalizableMessage message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
                 valueString, a.getName(), String.valueOf(e));
             throw new ConfigException(message);
           }
@@ -1066,7 +1066,7 @@ public final class IntegerWithUnitConfigAttribute
           // Get the unit and use it to determine the corresponding multiplier.
           if (! units.containsKey(activeUnit))
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_CONFIG_ATTR_INVALID_UNIT.get(activeUnit, a.getName());
             throw new ConfigException(message);
           }
@@ -1078,14 +1078,14 @@ public final class IntegerWithUnitConfigAttribute
           // Check the bounds set for this attribute.
           if (hasLowerBound && (activeCalculatedValue < lowerBound))
           {
-            Message message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+            LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
                 a.getName(), activeCalculatedValue, lowerBound);
             throw new ConfigException(message);
           }
 
           if (hasUpperBound && (activeCalculatedValue > upperBound))
           {
-            Message message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+            LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
                 a.getName(), activeCalculatedValue, upperBound);
             throw new ConfigException(message);
           }
@@ -1096,7 +1096,7 @@ public final class IntegerWithUnitConfigAttribute
     if (activeUnit == null)
     {
       // This is not OK.  The value set must contain an active value.
-      Message message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
       throw new ConfigException(message);
     }
 
@@ -1245,7 +1245,7 @@ public final class IntegerWithUnitConfigAttribute
     }
     else
     {
-      Message message = ERR_CONFIG_ATTR_INT_WITH_UNIT_INVALID_TYPE.get(
+      LocalizableMessage message = ERR_CONFIG_ATTR_INT_WITH_UNIT_INVALID_TYPE.get(
           String.valueOf(value), getName(), value.getClass().getName());
       throw new ConfigException(message);
     }

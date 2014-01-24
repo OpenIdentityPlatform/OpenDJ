@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -29,7 +30,7 @@ package org.opends.server.extensions;
 
 import java.util.List;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -67,7 +68,7 @@ public class UserAttributeNotificationMessageTemplateElement
   /**
    * {@inheritDoc}
    */
-  public void generateValue(MessageBuilder buffer,
+  public void generateValue(LocalizableMessageBuilder buffer,
                             AccountStatusNotification notification)
   {
     Entry userEntry = notification.getUserEntry();

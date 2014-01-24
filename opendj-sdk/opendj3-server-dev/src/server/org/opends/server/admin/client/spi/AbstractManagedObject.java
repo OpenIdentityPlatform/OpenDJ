@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.client.spi;
 
@@ -35,7 +36,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
@@ -317,7 +318,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
     }
 
     // Now enforce any constraints.
-    List<Message> messages = new LinkedList<Message>();
+    List<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
     boolean isAcceptable = true;
     ManagementContext context = getDriver().getManagementContext();
 

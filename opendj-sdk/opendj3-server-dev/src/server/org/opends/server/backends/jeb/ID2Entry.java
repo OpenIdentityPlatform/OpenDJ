@@ -25,7 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.server.core.DirectoryServer.getMaxInternalBufferSize;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -153,7 +153,7 @@ public class ID2Entry extends DatabaseContainer
       byte formatVersion = bytes.byteAt(0);
       if(formatVersion != JebFormat.FORMAT_VERSION)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_JEB_INCOMPATIBLE_ENTRY_VERSION.get(formatVersion);
         throw new ASN1Exception(message);
       }
@@ -502,7 +502,7 @@ public class ID2Entry extends DatabaseContainer
     }
     catch (Exception e)
     {
-      Message message = ERR_JEB_ENTRY_DATABASE_CORRUPT.get(id.toString());
+      LocalizableMessage message = ERR_JEB_ENTRY_DATABASE_CORRUPT.get(id.toString());
       throw new DirectoryException(
           DirectoryServer.getServerErrorResultCode(), message);
     }

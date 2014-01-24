@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.server.tools;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -90,7 +90,7 @@ public class StopWindowsService
     if (serviceName == null)
     {
 
-      Message message = ERR_WINDOWS_SERVICE_NOT_FOUND.get();
+      LocalizableMessage message = ERR_WINDOWS_SERVICE_NOT_FOUND.get();
       err.println(message);
       returnValue = SERVICE_NOT_FOUND;
     }
@@ -137,7 +137,7 @@ public class StopWindowsService
       catch (Throwable t)
       {
 
-        Message message = ERR_WINDOWS_SERVICE_STOP_ERROR.get();
+        LocalizableMessage message = ERR_WINDOWS_SERVICE_STOP_ERROR.get();
         err.println(message);
         err.println("Exception:" + t.toString());
         returnValue = SERVICE_STOP_ERROR;

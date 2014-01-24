@@ -28,7 +28,7 @@ package org.opends.server.replication.plugin;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -135,7 +135,7 @@ public class ExternalChangelogDomain
    */
   public boolean isConfigurationAddAcceptable(
       ExternalChangelogDomainCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -144,7 +144,7 @@ public class ExternalChangelogDomain
    */
   public boolean isConfigurationChangeAcceptable(
       ExternalChangelogDomainCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -155,7 +155,7 @@ public class ExternalChangelogDomain
    */
   public boolean isConfigurationDeleteAcceptable(
       ExternalChangelogDomainCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }

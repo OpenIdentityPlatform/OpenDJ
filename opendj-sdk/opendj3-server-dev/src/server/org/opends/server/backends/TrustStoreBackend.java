@@ -61,7 +61,7 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TrustStoreBackendCfg;
@@ -172,7 +172,7 @@ public class TrustStoreBackend
     SortedSet<DN> baseDNSet = configuration.getBaseDN();
     if (baseDNSet.size() != 1)
     {
-      Message message = ERR_TRUSTSTORE_REQUIRES_ONE_BASE_DN.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_REQUIRES_ONE_BASE_DN.get(
            String.valueOf(configEntryDN));
       throw new InitializationException(message);
     }
@@ -202,7 +202,7 @@ public class TrustStoreBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, kse);
       }
 
-      Message message = ERR_TRUSTSTORE_INVALID_TYPE.
+      LocalizableMessage message = ERR_TRUSTSTORE_INVALID_TYPE.
           get(String.valueOf(trustStoreType), String.valueOf(configEntryDN),
               getExceptionMessage(kse));
       throw new InitializationException(message);
@@ -255,7 +255,7 @@ public class TrustStoreBackend
             }
             catch (Exception e)
             {
-              Message message = ERR_TRUSTSTORE_PIN_FILE_CANNOT_CREATE.get(
+              LocalizableMessage message = ERR_TRUSTSTORE_PIN_FILE_CANNOT_CREATE.get(
                    String.valueOf(pinFilePath), String.valueOf(configEntryDN));
               throw new InitializationException(message);
             }
@@ -272,7 +272,7 @@ public class TrustStoreBackend
             }
             catch (IOException ioe)
             {
-              Message message = ERR_TRUSTSTORE_PIN_FILE_CANNOT_READ.
+              LocalizableMessage message = ERR_TRUSTSTORE_PIN_FILE_CANNOT_READ.
                   get(String.valueOf(pinFilePath),
                       String.valueOf(configEntryDN), getExceptionMessage(ioe));
               throw new InitializationException(message, ioe);
@@ -289,7 +289,7 @@ public class TrustStoreBackend
 
             if (pinStr == null)
             {
-              Message message = ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(
+              LocalizableMessage message = ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(
                   String.valueOf(pinFilePath), String.valueOf(configEntryDN));
               throw new InitializationException(message);
             }
@@ -305,7 +305,7 @@ public class TrustStoreBackend
         String pinStr = System.getenv(pinEnVar);
         if (pinStr == null)
         {
-          Message message = ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(
+          LocalizableMessage message = ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(
               String.valueOf(pinProperty), String.valueOf(configEntryDN));
           throw new InitializationException(message);
         }
@@ -320,7 +320,7 @@ public class TrustStoreBackend
       String pinStr = System.getProperty(pinProperty);
       if (pinStr == null)
       {
-        Message message = ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(
+        LocalizableMessage message = ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(
             String.valueOf(pinProperty), String.valueOf(configEntryDN));
         throw new InitializationException(message);
       }
@@ -388,7 +388,7 @@ public class TrustStoreBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+      LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
           String.valueOf(baseDN), String.valueOf(e));
       throw new InitializationException(message, e);
     }
@@ -493,7 +493,7 @@ public class TrustStoreBackend
     // If the requested entry was null, then throw an exception.
     if (entryDN == null)
     {
-      Message message = ERR_TRUSTSTORE_GET_ENTRY_NULL.get();
+      LocalizableMessage message = ERR_TRUSTSTORE_GET_ENTRY_NULL.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
@@ -553,7 +553,7 @@ public class TrustStoreBackend
     AttributeValue v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
-      Message message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.
+      LocalizableMessage message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.
            get(String.valueOf(entryDN));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                    baseDN, null);
@@ -566,7 +566,7 @@ public class TrustStoreBackend
       Certificate cert = certificateManager.getCertificate(certAlias);
       if (cert == null)
       {
-        Message message = ERR_TRUSTSTORE_CERTIFICATE_NOT_FOUND.get(
+        LocalizableMessage message = ERR_TRUSTSTORE_CERTIFICATE_NOT_FOUND.get(
             String.valueOf(entryDN), certAlias);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
@@ -579,7 +579,7 @@ public class TrustStoreBackend
         TRACER.debugCaught(DebugLogLevel.VERBOSE, e);
       }
 
-      Message message = ERR_TRUSTSTORE_CANNOT_RETRIEVE_CERT.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_RETRIEVE_CERT.get(
           certAlias, trustStoreFile, e.getMessage());
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
@@ -632,7 +632,7 @@ public class TrustStoreBackend
 
     if (entryDN.equals(baseDN))
     {
-      Message message = ERR_TRUSTSTORE_INVALID_BASE.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_INVALID_BASE.get(
            String.valueOf(entryDN));
       throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
     }
@@ -640,7 +640,7 @@ public class TrustStoreBackend
     DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
-      Message message = ERR_TRUSTSTORE_INVALID_BASE.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_INVALID_BASE.get(
            String.valueOf(entryDN));
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
@@ -651,7 +651,7 @@ public class TrustStoreBackend
     }
     else
     {
-      Message message = ERR_TRUSTSTORE_INVALID_BASE.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_INVALID_BASE.get(
            String.valueOf(entryDN));
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
@@ -669,7 +669,7 @@ public class TrustStoreBackend
   {
     if (entryDN.equals(baseDN))
     {
-      Message message = ERR_TRUSTSTORE_INVALID_BASE.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_INVALID_BASE.get(
            String.valueOf(entryDN));
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -677,7 +677,7 @@ public class TrustStoreBackend
     DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null || !parentDN.equals(baseDN))
     {
-      Message message = ERR_TRUSTSTORE_INVALID_BASE.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_INVALID_BASE.get(
            String.valueOf(entryDN));
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
@@ -694,7 +694,7 @@ public class TrustStoreBackend
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
-    Message message = ERR_TRUSTSTORE_MODIFY_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_TRUSTSTORE_MODIFY_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -708,7 +708,7 @@ public class TrustStoreBackend
                           ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    Message message = ERR_TRUSTSTORE_MODIFY_DN_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_TRUSTSTORE_MODIFY_DN_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -807,7 +807,7 @@ public class TrustStoreBackend
     }
     else
     {
-      Message message = ERR_TRUSTSTORE_INVALID_BASE.get(String.valueOf(baseDN));
+      LocalizableMessage message = ERR_TRUSTSTORE_INVALID_BASE.get(String.valueOf(baseDN));
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
   }
@@ -855,7 +855,7 @@ public class TrustStoreBackend
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-    Message message = ERR_TRUSTSTORE_IMPORT_AND_EXPORT_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_TRUSTSTORE_IMPORT_AND_EXPORT_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -881,7 +881,7 @@ public class TrustStoreBackend
          throws DirectoryException
   {
     // This backend does not support LDIF imports.
-    Message message = ERR_TRUSTSTORE_IMPORT_AND_EXPORT_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_TRUSTSTORE_IMPORT_AND_EXPORT_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -920,7 +920,7 @@ public class TrustStoreBackend
        throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    Message message = ERR_TRUSTSTORE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_TRUSTSTORE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -935,7 +935,7 @@ public class TrustStoreBackend
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    Message message = ERR_TRUSTSTORE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_TRUSTSTORE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -961,7 +961,7 @@ public class TrustStoreBackend
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    Message message = ERR_TRUSTSTORE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_TRUSTSTORE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -997,7 +997,7 @@ public class TrustStoreBackend
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-       TrustStoreBackendCfg configuration, List<Message> unacceptableReasons)
+       TrustStoreBackendCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
@@ -1045,7 +1045,7 @@ public class TrustStoreBackend
           TRACER.debugCaught(DebugLogLevel.ERROR, kse);
         }
 
-        Message message = ERR_TRUSTSTORE_INVALID_TYPE.get(
+        LocalizableMessage message = ERR_TRUSTSTORE_INVALID_TYPE.get(
                 String.valueOf(storeType),
                 String.valueOf(cfgEntryDN),
                 getExceptionMessage(kse));
@@ -1062,7 +1062,7 @@ public class TrustStoreBackend
     {
       if (System.getProperty(pinProp) == null)
       {
-        Message message = ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(
+        LocalizableMessage message = ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(
                 String.valueOf(pinProp),
                 String.valueOf(cfgEntryDN));
         unacceptableReasons.add(message);
@@ -1078,7 +1078,7 @@ public class TrustStoreBackend
     {
       if (System.getenv(pinEnVar) == null)
       {
-        Message message = ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(
+        LocalizableMessage message = ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(
                 String.valueOf(pinEnVar),
                 String.valueOf(cfgEntryDN));
         unacceptableReasons.add(message);
@@ -1104,7 +1104,7 @@ public class TrustStoreBackend
         }
         catch (IOException ioe)
         {
-          Message message = ERR_TRUSTSTORE_PIN_FILE_CANNOT_READ.get(
+          LocalizableMessage message = ERR_TRUSTSTORE_PIN_FILE_CANNOT_READ.get(
                   String.valueOf(pinFile),
                   String.valueOf(cfgEntryDN),
                   getExceptionMessage(ioe));
@@ -1123,7 +1123,7 @@ public class TrustStoreBackend
 
         if (pinStr == null)
         {
-          Message message =  ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(
+          LocalizableMessage message =  ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(
                   String.valueOf(pinFile),
                   String.valueOf(cfgEntryDN));
           unacceptableReasons.add(message);
@@ -1145,7 +1145,7 @@ public class TrustStoreBackend
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
     DN configEntryDN = cfg.dn();
 
     // Get the path to the trust store file.
@@ -1383,7 +1383,7 @@ public class TrustStoreBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
           trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -1416,7 +1416,7 @@ public class TrustStoreBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_TRUSTSTORE_CANNOT_CREATE_FACTORY.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_CREATE_FACTORY.get(
           trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -1454,7 +1454,7 @@ public class TrustStoreBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
           trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -1494,7 +1494,7 @@ public class TrustStoreBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_TRUSTSTORE_CANNOT_CREATE_FACTORY.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_CREATE_FACTORY.get(
           trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -1533,7 +1533,7 @@ public class TrustStoreBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
           trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -1561,7 +1561,7 @@ public class TrustStoreBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_TRUSTSTORE_ERROR_READING_KEY.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_ERROR_READING_KEY.get(
            alias, trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -1580,7 +1580,7 @@ public class TrustStoreBackend
     AttributeValue v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
-      Message message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(
            String.valueOf(entryDN));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                    baseDN, null);
@@ -1591,7 +1591,7 @@ public class TrustStoreBackend
     {
       if (certificateManager.aliasInUse(certAlias))
       {
-        Message message = ERR_TRUSTSTORE_ALIAS_IN_USE.get(
+        LocalizableMessage message = ERR_TRUSTSTORE_ALIAS_IN_USE.get(
              String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
                                      message);
@@ -1610,7 +1610,7 @@ public class TrustStoreBackend
         }
         catch (Exception e)
         {
-          Message message = ERR_TRUSTSTORE_CANNOT_GENERATE_CERT.get(
+          LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_GENERATE_CERT.get(
               certAlias, trustStoreFile, getExceptionMessage(e));
           throw new DirectoryException(
                DirectoryServer.getServerErrorResultCode(), message, e);
@@ -1622,7 +1622,7 @@ public class TrustStoreBackend
              ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
         if (certAttrs == null)
         {
-          Message message =
+          LocalizableMessage message =
                ERR_TRUSTSTORE_ENTRY_MISSING_CERT_ATTR.get(
                     String.valueOf(entryDN),
                     ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
@@ -1631,7 +1631,7 @@ public class TrustStoreBackend
         }
         if (certAttrs.size() != 1)
         {
-          Message message =
+          LocalizableMessage message =
                ERR_TRUSTSTORE_ENTRY_HAS_MULTIPLE_CERT_ATTRS.get(
                     String.valueOf(entryDN),
                     ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
@@ -1644,7 +1644,7 @@ public class TrustStoreBackend
 
         if (!i.hasNext())
         {
-          Message message =
+          LocalizableMessage message =
                ERR_TRUSTSTORE_ENTRY_MISSING_CERT_VALUE.get(
                     String.valueOf(entryDN),
                     ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
@@ -1656,7 +1656,7 @@ public class TrustStoreBackend
 
         if (i.hasNext())
         {
-          Message message =
+          LocalizableMessage message =
                ERR_TRUSTSTORE_ENTRY_HAS_MULTIPLE_CERT_VALUES.get(
                     String.valueOf(entryDN),
                     ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
@@ -1691,7 +1691,7 @@ public class TrustStoreBackend
         }
         catch (IOException e)
         {
-          Message message = ERR_TRUSTSTORE_CANNOT_WRITE_CERT.get(
+          LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_WRITE_CERT.get(
               certAlias, getExceptionMessage(e));
           throw new DirectoryException(
                DirectoryServer.getServerErrorResultCode(), message, e);
@@ -1700,7 +1700,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      Message message = ERR_TRUSTSTORE_CANNOT_ADD_CERT.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_ADD_CERT.get(
            certAlias, trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(
            DirectoryServer.getServerErrorResultCode(), message, e);
@@ -1718,7 +1718,7 @@ public class TrustStoreBackend
     AttributeValue v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
-      Message message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(
            String.valueOf(entryDN));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                    baseDN, null);
@@ -1729,7 +1729,7 @@ public class TrustStoreBackend
     {
       if (!certificateManager.aliasInUse(certAlias))
       {
-        Message message = ERR_TRUSTSTORE_INVALID_BASE.get(
+        LocalizableMessage message = ERR_TRUSTSTORE_INVALID_BASE.get(
              String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
                                      message);
@@ -1739,7 +1739,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      Message message = ERR_TRUSTSTORE_CANNOT_DELETE_CERT.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_DELETE_CERT.get(
            certAlias, trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(
            DirectoryServer.getServerErrorResultCode(), message, e);
@@ -1854,12 +1854,12 @@ public class TrustStoreBackend
                                            new FilePermission(0600)))
         {
           // Log a warning that the permissions were not set.
-          Message message = WARN_TRUSTSTORE_SET_PERMISSIONS_FAILED.get(path);
+          LocalizableMessage message = WARN_TRUSTSTORE_SET_PERMISSIONS_FAILED.get(path);
           ErrorLogger.logError(message);
         }
       } catch(DirectoryException e) {
         // Log a warning that the permissions were not set.
-        Message message = WARN_TRUSTSTORE_SET_PERMISSIONS_FAILED.get(path);
+        LocalizableMessage message = WARN_TRUSTSTORE_SET_PERMISSIONS_FAILED.get(path);
         ErrorLogger.logError(message);
       }
     }
@@ -1884,7 +1884,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      Message message = ERR_TRUSTSTORE_CANNOT_ADD_CERT.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_ADD_CERT.get(
            certAlias, trustStoreFile, getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
@@ -1898,7 +1898,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      Message message = ERR_TRUSTSTORE_CANNOT_GENERATE_CERT.get(
+      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_GENERATE_CERT.get(
            certAlias, trustStoreFile, getExceptionMessage(e));
       throw new InitializationException(message, e);
     }

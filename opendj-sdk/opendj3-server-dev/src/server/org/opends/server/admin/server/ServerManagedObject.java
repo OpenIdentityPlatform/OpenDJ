@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.Constraint;
 import org.opends.server.admin.InstantiableRelationDefinition;
@@ -1174,7 +1174,7 @@ public final class ServerManagedObject<S extends Configuration> implements
   void ensureIsUsable() throws ConstraintViolationException {
     // Enforce any constraints.
     boolean isUsable = true;
-    List<Message> reasons = new LinkedList<Message>();
+    List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
     for (Constraint constraint : definition.getAllConstraints()) {
       for (ServerConstraintHandler handler : constraint
           .getServerConstraintHandlers()) {
@@ -1183,7 +1183,7 @@ public final class ServerManagedObject<S extends Configuration> implements
             isUsable = false;
           }
         } catch (ConfigException e) {
-          Message message = ERR_SERVER_CONSTRAINT_EXCEPTION.get(e
+          LocalizableMessage message = ERR_SERVER_CONSTRAINT_EXCEPTION.get(e
               .getMessageObject());
           reasons.add(message);
           isUsable = false;
@@ -1365,7 +1365,7 @@ public final class ServerManagedObject<S extends Configuration> implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_ADMIN_CANNOT_GET_LISTENER_BASE.get(
+      LocalizableMessage message = ERR_ADMIN_CANNOT_GET_LISTENER_BASE.get(
           String.valueOf(dn), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
@@ -1411,7 +1411,7 @@ public final class ServerManagedObject<S extends Configuration> implements
     }
 
     // No parent entry could be found.
-    Message message = ERR_ADMIN_UNABLE_TO_REGISTER_LISTENER
+    LocalizableMessage message = ERR_ADMIN_UNABLE_TO_REGISTER_LISTENER
         .get(String.valueOf(baseDN));
     throw new ConfigException(message);
   }

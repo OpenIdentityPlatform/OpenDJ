@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -31,7 +31,7 @@ import static org.opends.server.loggers.AccessLogger.*;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.types.*;
@@ -192,7 +192,7 @@ abandonProcessing:
       // configurable option in the server.
       boolean notifyRequestor = DirectoryServer.notifyAbandonedOperations();
 
-      Message cancelReason = INFO_CANCELED_BY_ABANDON_REQUEST.get(messageID);
+      LocalizableMessage cancelReason = INFO_CANCELED_BY_ABANDON_REQUEST.get(messageID);
 
       CancelRequest _cancelRequest = new CancelRequest(notifyRequestor,
                                                        cancelReason);

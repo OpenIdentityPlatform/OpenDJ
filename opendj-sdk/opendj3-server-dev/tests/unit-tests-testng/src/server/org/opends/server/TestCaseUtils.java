@@ -35,7 +35,7 @@ import java.util.logging.Handler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPConnection;
@@ -758,7 +758,7 @@ public final class TestCaseUtils {
    * @param reason
    *          The reason for the shutdown.
    */
-  static void shutdownServer(Message reason)
+  static void shutdownServer(LocalizableMessage reason)
   {
     if (SERVER_STARTED)
     {

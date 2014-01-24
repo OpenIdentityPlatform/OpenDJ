@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.AccessControlMessages.*;
 import java.util.regex.Pattern;
@@ -85,7 +85,7 @@ public class IP implements KeywordBindRule {
         List<PatternIP> patternIPList= new LinkedList<PatternIP>();
         for (String ipStr : ipStrs) {
             if (!Pattern.matches(ipRegEx, ipStr)) {
-                Message message =
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_IP_EXPRESSION.get(expr);
                 throw new AciException(message);
             }

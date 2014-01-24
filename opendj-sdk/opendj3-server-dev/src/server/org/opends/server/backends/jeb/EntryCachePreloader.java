@@ -33,7 +33,7 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import java.util.Collection;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -189,7 +189,7 @@ class EntryCachePreloader
         if (processedEntries.get() > 0) {
           long freeMemory =
             Runtime.getRuntime().freeMemory() / bytesPerMegabyte;
-          Message message = NOTE_CACHE_PRELOAD_PROGRESS_REPORT.get(
+          LocalizableMessage message = NOTE_CACHE_PRELOAD_PROGRESS_REPORT.get(
             jeb.getBackendID(), processedEntries.get(), freeMemory);
           logError(message);
         }
@@ -243,7 +243,7 @@ class EntryCachePreloader
       }
       // Cancel progress report task and report done.
       timer.cancel();
-      Message message = NOTE_CACHE_PRELOAD_PROGRESS_DONE.get(
+      LocalizableMessage message = NOTE_CACHE_PRELOAD_PROGRESS_DONE.get(
         jeb.getBackendID(), processedEntries.get());
       logError(message);
     } catch (InterruptedException ex) {
@@ -303,7 +303,7 @@ class EntryCachePreloader
             if (debugEnabled()) {
               TRACER.debugCaught(DebugLogLevel.ERROR, ex);
             }
-            Message message = ERR_CACHE_PRELOAD_ENTRY_FAILED.get(
+            LocalizableMessage message = ERR_CACHE_PRELOAD_ENTRY_FAILED.get(
               entry.getName().toNormalizedString(),
               (ex.getCause() != null ? ex.getCause().getMessage() :
                 stackTraceToSingleLineString(ex)));

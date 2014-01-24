@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.admin.client.cli;
 
@@ -51,8 +51,8 @@ import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.AdministratorProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
 import org.opends.server.types.Privilege;
 import org.opends.server.util.args.Argument;
@@ -68,19 +68,19 @@ import org.opends.server.util.table.TextTablePrinter;
 public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
 {
   // Strings used in property help.
-  private final static Message DESCRIPTION_OPTIONS_TITLE =
+  private final static LocalizableMessage DESCRIPTION_OPTIONS_TITLE =
     INFO_DSCFG_HELP_DESCRIPTION_OPTION.get();
 
-  private final static Message DESCRIPTION_OPTIONS_READ =
+  private final static LocalizableMessage DESCRIPTION_OPTIONS_READ =
     INFO_DSCFG_HELP_DESCRIPTION_READ.get();
 
-  private final static Message DESCRIPTION_OPTIONS_WRITE =
+  private final static LocalizableMessage DESCRIPTION_OPTIONS_WRITE =
     INFO_DSCFG_HELP_DESCRIPTION_WRITE.get();
 
-  private final static Message DESCRIPTION_OPTIONS_MANDATORY =
+  private final static LocalizableMessage DESCRIPTION_OPTIONS_MANDATORY =
     INFO_DSCFG_HELP_DESCRIPTION_MANDATORY.get();
 
-  private final static Message DESCRIPTION_OPTIONS_SINGLE =
+  private final static LocalizableMessage DESCRIPTION_OPTIONS_SINGLE =
     INFO_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED.get();
 
   /**
@@ -364,7 +364,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.UID;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          attName, false, false, true, Message.raw(""), null, null, null);
+          attName, false, false, true, LocalizableMessage.raw(""), null, null, null);
       userAdminProperties.put(prop, arg);
     }
 
@@ -376,7 +376,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.PASSWORD;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          attName, false, false, true, Message.raw(""), null, null, null);
+          attName, false, false, true, LocalizableMessage.raw(""), null, null, null);
       userAdminProperties.put(prop, arg);
     }
 
@@ -387,7 +387,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.DESCRIPTION;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          attName, false, false, true, Message.raw(""), null, null, null);
+          attName, false, false, true, LocalizableMessage.raw(""), null, null, null);
       userAdminProperties.put(prop, arg);
     }
 
@@ -398,7 +398,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.ADMINISTRATOR_DN;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          attName, false, false, true, Message.raw(""), null, null, null);
+          attName, false, false, true, LocalizableMessage.raw(""), null, null, null);
       userAdminProperties.put(prop, arg);
       readonlyadminUserProperties.add(prop);
     }
@@ -410,7 +410,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.PRIVILEGE;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          attName, true, true, true, Message.raw(""), "root", null, null);
+          attName, true, true, true, LocalizableMessage.raw(""), "root", null, null);
       userAdminProperties.put(prop, arg);
     }
   }
@@ -704,23 +704,23 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
           .getAdminUserPropFromName(propertyName);
       if (adminUserProperty == null)
       {
-        Message message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);
+        LocalizableMessage message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);
         throw new ArgumentException(message);
       }
 
       // Check that propName is not hidden.
       if (userAdminProperties.get(adminUserProperty).isHidden())
       {
-        Message message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);
+        LocalizableMessage message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);
         throw new ArgumentException(message);
       }
 
       // Check the property Syntax.
-      MessageBuilder invalidReason = new MessageBuilder();
+      LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       Argument arg = userAdminProperties.get(adminUserProperty) ;
       if ( ! arg.valueIsAcceptable(value, invalidReason))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CLI_ERROR_INVALID_PROPERTY_VALUE.get(propertyName, value);
         throw new ArgumentException(message);
       }
@@ -741,7 +741,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
           }
           if (Privilege.privilegeForName(valueToCheck) == null)
           {
-            Message message = ERR_CLI_ERROR_INVALID_PROPERTY_VALUE.get(
+            LocalizableMessage message = ERR_CLI_ERROR_INVALID_PROPERTY_VALUE.get(
                 AdministratorProperty.PRIVILEGE.getAttributeName(),
                 valueToCheck);
             throw new ArgumentException(message);
@@ -809,7 +809,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       // but not yet is the map. Check if we have a default value.
       if (arg.getDefaultValue() == null)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CLI_ERROR_MISSING_PROPERTY.get(s.getAttributeName());
         throw new ArgumentException(message);
       }

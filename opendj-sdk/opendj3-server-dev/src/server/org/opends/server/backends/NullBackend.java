@@ -32,9 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import java.util.Map;
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
@@ -207,7 +205,7 @@ public class NullBackend extends Backend
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+        LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
             dn.toString(), getExceptionMessage(e));
         throw new InitializationException(message, e);
       }
@@ -219,9 +217,7 @@ public class NullBackend extends Backend
     String topOCName = "top";
     ObjectClass topOC = DirectoryServer.getObjectClass(topOCName);
     if (topOC == null) {
-      throw new InitializationException(Message.raw(
-        Category.BACKEND, Severity.FATAL_ERROR,
-        "Unable to locate " + topOCName +
+      throw new InitializationException(LocalizableMessage.raw("Unable to locate " + topOCName +
         " objectclass in the current server schema"));
     }
     objectClasses.put(topOC, topOCName);
@@ -242,9 +238,7 @@ public class NullBackend extends Backend
     String extOCName = "extensibleobject";
     ObjectClass extOC = DirectoryServer.getObjectClass(extOCName);
     if (extOC == null) {
-      throw new InitializationException(Message.raw(
-        Category.BACKEND, Severity.FATAL_ERROR,
-        "Unable to locate " + extOCName +
+      throw new InitializationException(LocalizableMessage.raw("Unable to locate " + extOCName +
         " objectclass in the current server schema"));
     }
     objectClasses.put(extOC, extOCName);
@@ -453,8 +447,7 @@ public class NullBackend extends Backend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = Message.raw(
-        Category.BACKEND, Severity.SEVERE_ERROR, e.getMessage());
+      LocalizableMessage message = LocalizableMessage.raw(e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
         message);
     }
@@ -491,8 +484,7 @@ public class NullBackend extends Backend
     }
     catch (Exception e)
     {
-      Message message = Message.raw(
-        Category.BACKEND, Severity.SEVERE_ERROR, e.getMessage());
+      LocalizableMessage message = LocalizableMessage.raw(e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
@@ -514,8 +506,7 @@ public class NullBackend extends Backend
         {
           if (! le.canContinueReading())
           {
-            Message message = Message.raw(
-              Category.BACKEND, Severity.SEVERE_ERROR, le.getMessage());
+            LocalizableMessage message = LocalizableMessage.raw(le.getMessage());
             throw new DirectoryException(
               DirectoryServer.getServerErrorResultCode(),message);
           }
@@ -545,8 +536,7 @@ public class NullBackend extends Backend
     }
     catch (Exception e)
     {
-      Message message = Message.raw(
-        Category.BACKEND, Severity.SEVERE_ERROR, e.getMessage());
+      LocalizableMessage message = LocalizableMessage.raw(e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
@@ -584,9 +574,7 @@ public class NullBackend extends Backend
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
-    Message message = Message.raw(
-        Category.BACKEND, Severity.SEVERE_ERROR,
-        "The null backend does not support backup operation");
+    LocalizableMessage message = LocalizableMessage.raw("The null backend does not support backup operation");
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -598,9 +586,7 @@ public class NullBackend extends Backend
                            String backupID)
          throws DirectoryException
   {
-    Message message = Message.raw(
-        Category.BACKEND, Severity.SEVERE_ERROR,
-        "The null backend does not support remove backup operation");
+    LocalizableMessage message = LocalizableMessage.raw("The null backend does not support remove backup operation");
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -621,9 +607,7 @@ public class NullBackend extends Backend
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
-    Message message = Message.raw(
-        Category.BACKEND, Severity.SEVERE_ERROR,
-        "The null backend does not support restore operation");
+    LocalizableMessage message = LocalizableMessage.raw("The null backend does not support restore operation");
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 

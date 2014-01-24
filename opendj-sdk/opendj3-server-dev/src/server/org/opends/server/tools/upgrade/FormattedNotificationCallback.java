@@ -21,13 +21,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools.upgrade;
 
 import javax.security.auth.callback.TextOutputCallback;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A formatted notification callback for display title and more...
@@ -64,7 +64,7 @@ public class FormattedNotificationCallback extends TextOutputCallback
    * @param messageSubType
    *          An integer representing the sub-type of this message.
    */
-  FormattedNotificationCallback(final Message message,
+  FormattedNotificationCallback(final LocalizableMessage message,
       final int messageSubType)
   {
     super(TextOutputCallback.INFORMATION, message.toString());

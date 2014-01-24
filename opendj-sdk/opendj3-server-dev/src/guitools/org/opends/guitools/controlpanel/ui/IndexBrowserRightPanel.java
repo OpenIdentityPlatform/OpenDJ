@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -39,7 +40,7 @@ import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.IndexSelectionListener;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The panel on the right of the 'Manage Indexes' panel.
@@ -219,7 +220,7 @@ public class IndexBrowserRightPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_INDEX_BROWSER_RIGHT_PANEL_TITLE.get();
   }

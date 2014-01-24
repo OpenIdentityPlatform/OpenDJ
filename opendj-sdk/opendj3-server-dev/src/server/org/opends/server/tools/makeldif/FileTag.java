@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -121,7 +122,7 @@ public class FileTag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<Message> warnings)
+                                  List<LocalizableMessage> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments, lineNumber, warnings);
@@ -146,7 +147,7 @@ public class FileTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<Message> warnings)
+                                    int lineNumber, List<LocalizableMessage> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments, lineNumber, warnings);
@@ -168,7 +169,7 @@ public class FileTag
    *                                   this tag.
    */
   private void initializeInternal(TemplateFile templateFile, String[] arguments,
-                                  int lineNumber, List<Message> warnings)
+                                  int lineNumber, List<LocalizableMessage> warnings)
           throws InitializationException
   {
     random = templateFile.getRandom();
@@ -177,7 +178,7 @@ public class FileTag
     // There must be at least one argument, and possibly two.
     if ((arguments.length < 1) || (arguments.length > 2))
     {
-      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+      LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
           getName(), lineNumber, 1, 2, arguments.length);
       throw new InitializationException(message);
     }
@@ -187,7 +188,7 @@ public class FileTag
     dataFile = templateFile.getFile(arguments[0]);
     if ((dataFile == null) || (! dataFile.exists()))
     {
-      Message message = ERR_MAKELDIF_TAG_CANNOT_FIND_FILE.get(
+      LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_FIND_FILE.get(
           arguments[0], getName(), lineNumber);
       throw new InitializationException(message);
     }
@@ -208,7 +209,7 @@ public class FileTag
       }
       else
       {
-        Message message = ERR_MAKELDIF_TAG_INVALID_FILE_ACCESS_MODE.get(
+        LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_FILE_ACCESS_MODE.get(
             arguments[1], getName(), lineNumber);
         throw new InitializationException(message);
       }
@@ -226,7 +227,7 @@ public class FileTag
     }
     catch (IOException ioe)
     {
-      Message message = ERR_MAKELDIF_TAG_CANNOT_READ_FILE.get(
+      LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_READ_FILE.get(
           arguments[0], getName(), lineNumber, String.valueOf(ioe));
       throw new InitializationException(message, ioe);
     }

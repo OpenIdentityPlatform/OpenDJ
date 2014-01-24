@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -51,7 +51,7 @@ import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
@@ -87,7 +87,7 @@ public class LoginPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_LOGIN_PANEL_TITLE.get();
   }
@@ -169,7 +169,7 @@ public class LoginPanel extends StatusGenericPanel
   {
     setPrimaryValid(dnLabel);
     setPrimaryValid(pwdLabel);
-    final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
 
     boolean dnInvalid = false;
     boolean pwdInvalid = false;
@@ -305,7 +305,7 @@ public class LoginPanel extends StatusGenericPanel
               }
               else
               {
-                Message msg = Utils.getThrowableMsg(
+                LocalizableMessage msg = Utils.getThrowableMsg(
                     INFO_ERROR_CONNECTING_TO_LOCAL.get(), throwable);
                 errors.add(msg);
               }

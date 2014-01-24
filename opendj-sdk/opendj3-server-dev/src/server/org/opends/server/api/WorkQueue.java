@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.api;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.WorkQueueCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
@@ -87,7 +87,7 @@ public abstract class WorkQueue<T extends WorkQueueCfg>
    * @param  reason  The human-readable reason that the work queue is
    *                 being shut down.
    */
-  public abstract void finalizeWorkQueue(Message reason);
+  public abstract void finalizeWorkQueue(LocalizableMessage reason);
 
 
 
@@ -167,7 +167,7 @@ public abstract class WorkQueue<T extends WorkQueueCfg>
       int cpus = Runtime.getRuntime().availableProcessors();
       int value = Math.max(24, cpus * 2);
 
-      Message message = INFO_ERGONOMIC_SIZING_OF_WORKER_THREAD_POOL.get(value);
+      LocalizableMessage message = INFO_ERGONOMIC_SIZING_OF_WORKER_THREAD_POOL.get(value);
       logError(message);
 
       return value;

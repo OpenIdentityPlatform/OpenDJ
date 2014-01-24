@@ -25,7 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import com.sleepycat.je.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -155,7 +155,7 @@ public class VLVIndex extends DatabaseContainer
     }
     catch(Exception e)
     {
-      Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
+      LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
           config.getFilter(), name, stackTraceToSingleLineString(e));
       throw new ConfigException(msg);
     }
@@ -185,7 +185,7 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(Exception e)
       {
-        Message msg =
+        LocalizableMessage msg =
             ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
                     String.valueOf(sortKeys[i]), name);
         throw new ConfigException(msg);
@@ -195,7 +195,7 @@ public class VLVIndex extends DatabaseContainer
           DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
       if(attrType == null)
       {
-        Message msg =
+        LocalizableMessage msg =
             ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], name);
         throw new ConfigException(msg);
       }
@@ -1180,7 +1180,7 @@ public class VLVIndex extends DatabaseContainer
               new VLVResponseControl(targetOffset, currentCount,
                                      LDAPResultCode.OFFSET_RANGE_ERROR));
 
-          Message message = ERR_ENTRYIDSORTER_NEGATIVE_START_POS.get();
+          LocalizableMessage message = ERR_ENTRYIDSORTER_NEGATIVE_START_POS.get();
           throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR,
                                        message);
         }
@@ -1698,7 +1698,7 @@ public class VLVIndex extends DatabaseContainer
    */
   public synchronized boolean isConfigurationChangeAcceptable(
       LocalDBVLVIndexCfg cfg,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     try
     {
@@ -1707,7 +1707,7 @@ public class VLVIndex extends DatabaseContainer
     }
     catch(Exception e)
     {
-      Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
+      LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
               cfg.getFilter(), name,
               stackTraceToSingleLineString(e));
       unacceptableReasons.add(msg);
@@ -1739,7 +1739,7 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(Exception e)
       {
-        Message msg =
+        LocalizableMessage msg =
                 ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
                         String.valueOf(sortKeys[i]), name);
         unacceptableReasons.add(msg);
@@ -1750,7 +1750,7 @@ public class VLVIndex extends DatabaseContainer
           DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
       if(attrType == null)
       {
-        Message msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+        LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
                 sortAttrs[i], name);
         unacceptableReasons.add(msg);
         return false;
@@ -1770,7 +1770,7 @@ public class VLVIndex extends DatabaseContainer
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // Update base DN only if changed..
     if(!config.getBaseDN().equals(cfg.getBaseDN()))
@@ -1812,7 +1812,7 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(Exception e)
       {
-        Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
+        LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
                 config.getFilter(), name,
                 stackTraceToSingleLineString(e));
         messages.add(msg);
@@ -1852,7 +1852,7 @@ public class VLVIndex extends DatabaseContainer
         }
         catch(Exception e)
         {
-          Message msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+          LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
                   String.valueOf(String.valueOf(sortKeys[i])), name);
           messages.add(msg);
           if(resultCode == ResultCode.SUCCESS)
@@ -1865,7 +1865,7 @@ public class VLVIndex extends DatabaseContainer
             DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
         if(attrType == null)
         {
-          Message msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+          LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
                   String.valueOf(String.valueOf(sortKeys[i])), name);
           messages.add(msg);
           if(resultCode == ResultCode.SUCCESS)
@@ -1893,7 +1893,7 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(DatabaseException de)
       {
-        messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
+        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
         if(resultCode == ResultCode.SUCCESS)
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
@@ -1911,7 +1911,7 @@ public class VLVIndex extends DatabaseContainer
     if(adminActionRequired)
     {
       trusted = false;
-      Message message = NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(name);
+      LocalizableMessage message = NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(name);
       messages.add(message);
       try
       {
@@ -1919,7 +1919,7 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(DatabaseException de)
       {
-        messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
+        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
         if(resultCode == ResultCode.SUCCESS)
         {
           resultCode = DirectoryServer.getServerErrorResultCode();

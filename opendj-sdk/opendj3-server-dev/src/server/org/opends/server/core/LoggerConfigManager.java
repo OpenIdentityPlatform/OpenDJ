@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -32,7 +32,7 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -63,6 +63,20 @@ public class LoggerConfigManager implements
     ConfigurationAddListener<LogPublisherCfg>,
     ConfigurationDeleteListener<LogPublisherCfg>
 {
+
+  private final ServerContext serverContext;
+
+  /**
+   * Create the logger config manager with the provided
+   * server context.
+   *
+   * @param context
+   *            The server context.
+   */
+  public LoggerConfigManager(final ServerContext context)
+  {
+    this.serverContext = context;
+  }
 
   /**
    * Initializes all the log publishers.
@@ -120,7 +134,7 @@ public class LoggerConfigManager implements
       }
       else
       {
-        Message message = ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(
+        LocalizableMessage message = ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(
             String.valueOf(config.dn()));
         throw new ConfigException(message);
       }
@@ -139,10 +153,10 @@ public class LoggerConfigManager implements
       logError(WARN_CONFIG_LOGGER_NO_ACTIVE_ERROR_LOGGERS.get());
     }
 
-    DebugLogger.getInstance().initializeLogger(debugPublisherCfgs);
-    AccessLogger.getInstance().initializeLogger(accessPublisherCfgs);
-    HTTPAccessLogger.getInstance().initializeLogger(httpAccessPublisherCfgs);
-    ErrorLogger.getInstance().initializeLogger(errorPublisherCfgs);
+    DebugLogger.getInstance().initializeLogger(debugPublisherCfgs, serverContext);
+    AccessLogger.getInstance().initializeLogger(accessPublisherCfgs, serverContext);
+    HTTPAccessLogger.getInstance().initializeLogger(httpAccessPublisherCfgs, serverContext);
+    ErrorLogger.getInstance().initializeLogger(errorPublisherCfgs, serverContext);
   }
 
   /**
@@ -159,7 +173,7 @@ public class LoggerConfigManager implements
    *         corresponds.
    */
   private AbstractLogger getLoggerInstance(LogPublisherCfg config,
-      List<Message> messages)
+      List<LocalizableMessage> messages)
   {
     if (config instanceof DebugLogPublisherCfg)
     {
@@ -190,7 +204,7 @@ public class LoggerConfigManager implements
    */
   @Override
   public boolean isConfigurationAddAcceptable(LogPublisherCfg config,
-                                              List<Message> unacceptableReasons)
+                                              List<LocalizableMessage> unacceptableReasons)
   {
     AbstractLogger instance = getLoggerInstance(config, unacceptableReasons);
     if (instance != null)
@@ -206,7 +220,7 @@ public class LoggerConfigManager implements
   @Override
   public ConfigChangeResult applyConfigurationAdd(LogPublisherCfg config)
   {
-    List<Message> messages = new ArrayList<Message>(1);
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>(1);
     AbstractLogger instance = getLoggerInstance(config, messages);
     if (instance != null)
     {
@@ -225,7 +239,7 @@ public class LoggerConfigManager implements
    */
   @Override
   public boolean isConfigurationDeleteAcceptable(LogPublisherCfg config,
-                                              List<Message> unacceptableReasons)
+                                              List<LocalizableMessage> unacceptableReasons)
   {
     AbstractLogger instance = getLoggerInstance(config, unacceptableReasons);
     if (instance != null)
@@ -242,7 +256,7 @@ public class LoggerConfigManager implements
   @Override
   public ConfigChangeResult applyConfigurationDelete(LogPublisherCfg config)
   {
-    List<Message> messages = new ArrayList<Message>(1);
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>(1);
     AbstractLogger instance = getLoggerInstance(config, messages);
     if (instance != null)
     {

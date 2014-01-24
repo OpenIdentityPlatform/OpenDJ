@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -29,7 +30,7 @@ package org.opends.server.api;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.
        AccountStatusNotificationHandlerCfg;
 import org.opends.server.config.ConfigException;
@@ -106,7 +107,7 @@ public abstract class
   public boolean isConfigurationAcceptable(
                       AccountStatusNotificationHandlerCfg
                            configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by account status

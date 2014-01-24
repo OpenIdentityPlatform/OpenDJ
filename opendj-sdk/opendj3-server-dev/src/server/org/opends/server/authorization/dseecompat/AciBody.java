@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This class represents the body of an ACI. The body of the ACI is the
@@ -186,7 +186,7 @@ public class AciBody {
             startPos=bodyMatcher.start();
             version  = bodyMatcher.group(VERSION);
             if (!version.equalsIgnoreCase(supportedVersion)) {
-                Message message = WARN_ACI_SYNTAX_INVAILD_VERSION.get(version);
+                LocalizableMessage message = WARN_ACI_SYNTAX_INVAILD_VERSION.get(version);
                 throw new AciException(message);
             }
             name = bodyMatcher.group(NAME);
@@ -211,7 +211,7 @@ public class AciBody {
 
         if (lastIndex >= 0 && input.charAt(lastIndex) != ')')
         {
-          Message message = WARN_ACI_SYNTAX_GENERAL_PARSE_FAILED.get(input);
+          LocalizableMessage message = WARN_ACI_SYNTAX_GENERAL_PARSE_FAILED.get(input);
           throw new AciException(message);
         }
 

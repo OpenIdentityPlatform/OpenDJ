@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
 
 import org.opends.guitools.controlpanel.ui.StatusGenericPanel;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The class that is used by the different action buttons on the left side of
@@ -36,7 +37,7 @@ import org.opends.messages.Message;
  */
 public class Action
 {
-  private Message name;
+  private LocalizableMessage name;
 
   private Class<? extends StatusGenericPanel> associatedPanel;
 
@@ -44,7 +45,7 @@ public class Action
    * Returns the name of the action.
    * @return the name of the action.
    */
-  public Message getName()
+  public LocalizableMessage getName()
   {
     return name;
   }
@@ -53,7 +54,7 @@ public class Action
    * Sets the name of the action.
    * @param name the name of the action.
    */
-  public void setName(Message name)
+  public void setName(LocalizableMessage name)
   {
     this.name = name;
   }

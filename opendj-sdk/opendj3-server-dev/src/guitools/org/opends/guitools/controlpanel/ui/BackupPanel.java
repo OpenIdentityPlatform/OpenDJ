@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -66,7 +67,7 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.ScheduleSummaryPanel;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.BackUpDB;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
@@ -119,7 +120,7 @@ public class BackupPanel extends BackupListPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_BACKUP_TITLE.get();
   }
@@ -364,7 +365,7 @@ public class BackupPanel extends BackupListPanel
     setPrimaryValid(lBackupOptions);
     backupIDInitialized = false;
 
-    final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
 
     if (!allBackends.isSelected())
     {
@@ -554,7 +555,7 @@ public class BackupPanel extends BackupListPanel
           }
           if (errors.isEmpty())
           {
-            Message initMsg;
+            LocalizableMessage initMsg;
             if (allBackends.isSelected())
             {
               initMsg = INFO_CTRL_PANEL_RUN_BACKUP_ALL_BACKENDS.get();
@@ -699,7 +700,7 @@ public class BackupPanel extends BackupListPanel
     /**
      * {@inheritDoc}
      */
-    public Message getTaskDescription()
+    public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_BACKUP_TASK_DESCRIPTION.get(
       Utilities.getStringFromCollection(backendSet, ", "), dir);
@@ -709,7 +710,7 @@ public class BackupPanel extends BackupListPanel
      * {@inheritDoc}
      */
     public boolean canLaunch(Task taskToBeLaunched,
-        Collection<Message> incompatibilityReasons)
+        Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))

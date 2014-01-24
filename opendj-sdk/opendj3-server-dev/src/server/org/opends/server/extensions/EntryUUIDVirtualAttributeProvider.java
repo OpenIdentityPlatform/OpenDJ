@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.EntryUUIDVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
@@ -181,7 +181,7 @@ public class EntryUUIDVirtualAttributeProvider
   {
     searchOperation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-    Message message = ERR_ENTRYUUID_VATTR_NOT_SEARCHABLE.get(
+    LocalizableMessage message = ERR_ENTRYUUID_VATTR_NOT_SEARCHABLE.get(
             rule.getAttributeType().getNameOrOID());
     searchOperation.appendErrorMessage(message);
   }

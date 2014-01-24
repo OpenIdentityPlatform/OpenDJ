@@ -35,7 +35,7 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -91,7 +91,7 @@ public class StateMachineTest extends ReplicationTestCase
 
   private void debugInfo(String s)
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE, s));
+    logError(LocalizableMessage.raw(s));
     if (debugEnabled())
     {
       TRACER.debugInfo("** TEST **" + s);

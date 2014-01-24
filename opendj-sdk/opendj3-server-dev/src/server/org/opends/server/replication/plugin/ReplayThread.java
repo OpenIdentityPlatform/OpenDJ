@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -35,7 +35,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
@@ -110,7 +110,7 @@ public class ReplayThread extends DirectoryThread
          * catch all exceptions happening so that the thread never dies even
          * in case of problems.
          */
-        Message message = ERR_EXCEPTION_REPLAYING_REPLICATION_MESSAGE.get(
+        LocalizableMessage message = ERR_EXCEPTION_REPLAYING_REPLICATION_MESSAGE.get(
             stackTraceToSingleLineString(e));
         logError(message);
       }

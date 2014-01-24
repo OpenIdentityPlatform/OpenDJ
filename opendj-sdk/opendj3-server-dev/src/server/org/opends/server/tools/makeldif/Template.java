@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -164,7 +165,7 @@ public class Template
              templates.get(toLowerCase(subordinateTemplateNames[i]));
         if (subordinateTemplates[i] == null)
         {
-          Message message = ERR_MAKELDIF_UNDEFINED_TEMPLATE_SUBORDINATE.get(
+          LocalizableMessage message = ERR_MAKELDIF_UNDEFINED_TEMPLATE_SUBORDINATE.get(
               subordinateTemplateNames[i], name);
           throw new MakeLDIFException(message);
         }
@@ -194,7 +195,7 @@ public class Template
     if (! rdnAttrs.isEmpty())
     {
       AttributeType t       = rdnAttrs.iterator().next();
-      Message message =
+      LocalizableMessage message =
           ERR_MAKELDIF_TEMPLATE_MISSING_RDN_ATTR.get(name, t.getNameOrOID());
       throw new MakeLDIFException(message);
     }

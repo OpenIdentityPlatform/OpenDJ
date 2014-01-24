@@ -25,7 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -363,7 +363,7 @@ public class MemberVirtualAttributeProvider
    */
   public boolean isConfigurationChangeAcceptable(
                       MemberVirtualAttributeCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // The new configuration should always be acceptable.
     return true;

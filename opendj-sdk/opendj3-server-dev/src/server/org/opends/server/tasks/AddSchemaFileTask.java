@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
@@ -68,7 +68,7 @@ public class AddSchemaFileTask
    * {@inheritDoc}
    */
   @Override
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return INFO_TASK_ADD_SCHEMA_FILE_NAME.get();
   }
 
@@ -87,7 +87,7 @@ public class AddSchemaFileTask
       ClientConnection clientConnection = operation.getClientConnection();
       if (! clientConnection.hasPrivilege(Privilege.UPDATE_SCHEMA, operation))
       {
-        Message message = ERR_TASK_ADDSCHEMAFILE_INSUFFICIENT_PRIVILEGES.get();
+        LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                      message);
       }
@@ -101,7 +101,7 @@ public class AddSchemaFileTask
     List<Attribute> attrList = taskEntry.getAttribute(attrType);
     if ((attrList == null) || attrList.isEmpty())
     {
-      Message message = ERR_TASK_ADDSCHEMAFILE_NO_FILENAME.get(
+      LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_NO_FILENAME.get(
           ATTR_TASK_ADDSCHEMAFILE_FILENAME,
           String.valueOf(taskEntry.getName()));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
@@ -125,7 +125,7 @@ public class AddSchemaFileTask
           File schemaFile = new File(schemaInstanceDirectory, filename);
           if (! schemaFile.exists())
           {
-            Message message = ERR_TASK_ADDSCHEMAFILE_NO_SUCH_FILE.get(
+            LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_NO_SUCH_FILE.get(
                 filename, schemaInstanceDirectory);
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
@@ -138,7 +138,7 @@ public class AddSchemaFileTask
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE.get(
+          LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE.get(
               filename, schemaInstanceDirectory,
               getExceptionMessage(e));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
@@ -167,7 +167,7 @@ public class AddSchemaFileTask
           TRACER.debugCaught(DebugLogLevel.ERROR, ce);
         }
 
-        Message message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(
+        LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(
             String.valueOf(schemaFile), ce.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, ce);
@@ -179,7 +179,7 @@ public class AddSchemaFileTask
           TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
-        Message message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(
+        LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(
             String.valueOf(schemaFile), ie.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, ie);
@@ -201,7 +201,7 @@ public class AddSchemaFileTask
     final Lock schemaLock = LockManager.lockWrite(schemaDN);
     if (schemaLock == null)
     {
-      Message message = ERR_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA.get(
+      LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA.get(
           String.valueOf(schemaDN));
       logError(message);
       return TaskState.STOPPED_BY_ERROR;
@@ -253,7 +253,7 @@ public class AddSchemaFileTask
             TRACER.debugCaught(DebugLogLevel.ERROR, ce);
           }
 
-          Message message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.
+          LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.
               get(String.valueOf(schemaFile), ce.getMessage());
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
@@ -265,7 +265,7 @@ public class AddSchemaFileTask
             TRACER.debugCaught(DebugLogLevel.ERROR, ie);
           }
 
-          Message message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.
+          LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.
               get(String.valueOf(schemaFile), ie.getMessage());
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
@@ -288,7 +288,7 @@ public class AddSchemaFileTask
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            Message message =
+            LocalizableMessage message =
                 ERR_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER.
                   get(provider.getClass().getName(), getExceptionMessage(e));
             logError(message);

@@ -38,7 +38,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.SSLException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
@@ -183,7 +183,7 @@ public class StopDS
 
 
     // Define all the arguments that may be used with this program.
-    Message toolDescription = INFO_STOPDS_TOOL_DESCRIPTION.get();
+    LocalizableMessage toolDescription = INFO_STOPDS_TOOL_DESCRIPTION.get();
     ArgumentParser    argParser = new ArgumentParser(CLASS_NAME,
                                                      toolDescription, false);
     BooleanArgument   checkStoppability;
@@ -405,7 +405,7 @@ public class StopDS
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
@@ -419,7 +419,7 @@ public class StopDS
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -448,7 +448,7 @@ public class StopDS
     // an error.
     if (bindPW.isPresent() && bindPWFile.isPresent())
     {
-      Message message = ERR_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+      LocalizableMessage message = ERR_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
               bindPW.getLongIdentifier(),
               bindPWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -460,7 +460,7 @@ public class StopDS
     // then return an error.
     if (keyStorePW.isPresent() && keyStorePWFile.isPresent())
     {
-      Message message = ERR_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+      LocalizableMessage message = ERR_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
               keyStorePW.getLongIdentifier(),
               keyStorePWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -472,7 +472,7 @@ public class StopDS
     // provided, then return an error.
     if (trustStorePW.isPresent() && trustStorePWFile.isPresent())
     {
-      Message message = ERR_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+      LocalizableMessage message = ERR_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
               trustStorePW.getLongIdentifier(),
               trustStorePWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -493,7 +493,7 @@ public class StopDS
         }
         catch (Exception e)
         {
-          Message message = ERR_STOPDS_CANNOT_DECODE_STOP_TIME.get();
+          LocalizableMessage message = ERR_STOPDS_CANNOT_DECODE_STOP_TIME.get();
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
@@ -501,7 +501,7 @@ public class StopDS
         Date currentDate = new Date(System.currentTimeMillis());
         if (currentDate.after(stopTime))
         {
-          Message message = ERR_STOPDS_DATETIME_ALREADY_PASSED.get(
+          LocalizableMessage message = ERR_STOPDS_DATETIME_ALREADY_PASSED.get(
               timeStr);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
@@ -533,7 +533,7 @@ public class StopDS
 
       connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
     } catch (SSLConnectionException sce) {
-      Message message =
+      LocalizableMessage message =
         ERR_STOPDS_CANNOT_INITIALIZE_SSL.get(sce.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
@@ -552,7 +552,7 @@ public class StopDS
         int equalPos = s.indexOf('=');
         if (equalPos <= 0)
         {
-          Message message = ERR_STOPDS_CANNOT_PARSE_SASL_OPTION.get(s);
+          LocalizableMessage message = ERR_STOPDS_CANNOT_PARSE_SASL_OPTION.get(s);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
@@ -573,7 +573,7 @@ public class StopDS
 
       if (mechanism == null)
       {
-        Message message = ERR_STOPDS_NO_SASL_MECHANISM.get();
+        LocalizableMessage message = ERR_STOPDS_NO_SASL_MECHANISM.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
@@ -601,7 +601,7 @@ public class StopDS
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_STOPDS_CANNOT_DETERMINE_PORT.get(
+      LocalizableMessage message = ERR_STOPDS_CANNOT_DETERMINE_PORT.get(
               port.getLongIdentifier(),
               ae.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -609,7 +609,7 @@ public class StopDS
     }
     catch (LDAPConnectionException lce)
     {
-      Message message = null;
+      LocalizableMessage message = null;
       if ((lce.getCause() != null) && (lce.getCause().getCause() != null) &&
         lce.getCause().getCause() instanceof SSLException) {
       message = ERR_STOPDS_CANNOT_CONNECT_SSL.get(host.getValue(),
@@ -701,26 +701,26 @@ public class StopDS
       responseMessage = reader.readMessage();
       if (responseMessage == null)
       {
-        Message message = ERR_STOPDS_UNEXPECTED_CONNECTION_CLOSURE.get();
+        LocalizableMessage message = ERR_STOPDS_UNEXPECTED_CONNECTION_CLOSURE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
       }
     }
     catch (IOException ioe)
     {
-      Message message = ERR_STOPDS_IO_ERROR.get(String.valueOf(ioe));
+      LocalizableMessage message = ERR_STOPDS_IO_ERROR.get(String.valueOf(ioe));
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
     }
     catch (ASN1Exception ae)
     {
-      Message message = ERR_STOPDS_DECODE_ERROR.get(ae.getMessage());
+      LocalizableMessage message = ERR_STOPDS_DECODE_ERROR.get(ae.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_DECODING_ERROR;
     }
     catch (LDAPException le)
     {
-      Message message = ERR_STOPDS_DECODE_ERROR.get(le.getMessage());
+      LocalizableMessage message = ERR_STOPDS_DECODE_ERROR.get(le.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_DECODING_ERROR;
     }
@@ -740,7 +740,7 @@ public class StopDS
         if ((responseOID != null) &&
             (responseOID.equals(LDAPConstants.OID_NOTICE_OF_DISCONNECTION)))
         {
-          Message message = extendedResponse.getErrorMessage();
+          LocalizableMessage message = extendedResponse.getErrorMessage();
           if (message != null)
           {
             err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -751,7 +751,7 @@ public class StopDS
       }
 
 
-      Message message = ERR_STOPDS_INVALID_RESPONSE_TYPE.get(
+      LocalizableMessage message = ERR_STOPDS_INVALID_RESPONSE_TYPE.get(
               responseMessage.getProtocolOpName());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
@@ -760,7 +760,7 @@ public class StopDS
 
     AddResponseProtocolOp addResponse =
          responseMessage.getAddResponseProtocolOp();
-    Message errorMessage = addResponse.getErrorMessage();
+    LocalizableMessage errorMessage = addResponse.getErrorMessage();
     if (errorMessage != null)
     {
       err.println(wrapText(errorMessage, MAX_LINE_WIDTH));
@@ -830,7 +830,7 @@ public class StopDS
         {
           // The server is not running: write a message informing of that
           // in the standard out (this is not an error message).
-          Message message = INFO_STOPDS_SERVER_ALREADY_STOPPED.get();
+          LocalizableMessage message = INFO_STOPDS_SERVER_ALREADY_STOPPED.get();
           out.println(message);
           LockFileManager.releaseLock(lockFile, failureReason);
           isServerRunning = false;
@@ -916,7 +916,7 @@ public class StopDS
             }
             // Display a message informing that we are going to the server.
 
-            Message message = INFO_STOPDS_GOING_TO_STOP.get();
+            LocalizableMessage message = INFO_STOPDS_GOING_TO_STOP.get();
             out.println(message);
           }
         }
@@ -924,7 +924,7 @@ public class StopDS
         {
           // Display a message informing that we are going to the server.
 
-          Message message = INFO_STOPDS_GOING_TO_STOP.get();
+          LocalizableMessage message = INFO_STOPDS_GOING_TO_STOP.get();
           out.println(message);
 
           if (restartPresent)

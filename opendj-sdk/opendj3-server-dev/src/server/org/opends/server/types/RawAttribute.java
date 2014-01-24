@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
@@ -248,7 +248,7 @@ public abstract class RawAttribute
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_ATTRIBUTE_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -266,7 +266,7 @@ public abstract class RawAttribute
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_ATTRIBUTE_DECODE_TYPE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -290,7 +290,7 @@ public abstract class RawAttribute
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_ATTRIBUTE_DECODE_VALUES.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -306,7 +306,7 @@ public abstract class RawAttribute
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_LDAP_ATTRIBUTE_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
