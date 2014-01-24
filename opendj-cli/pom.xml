@@ -55,10 +55,6 @@
       <artifactId>i18n-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.forgerock</groupId>
       <artifactId>forgerock-build-tools</artifactId>
       <version>${forgerockBuildToolsVersion}</version>
@@ -97,16 +93,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>cobertura-maven-plugin</artifactId>
-        <configuration>
-          <instrumentation>
-            <excludes>
-              <exclude>**/*Messages.class</exclude>
-              <exclude>**/config/client/*CfgClient*.class</exclude>
-              <exclude>**/config/server/*Cfg*.class</exclude>
-              <exclude>**/config/meta/*.class</exclude>
-            </excludes>
-          </instrumentation>
-        </configuration>
       </plugin>
     </plugins>
   </build>
