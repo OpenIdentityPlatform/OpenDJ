@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.types.OpenDsException;
 
@@ -55,7 +56,7 @@ public class SSLConnectionException
    *
    * @param  message    The message to use for this exception.
    */
-  public SSLConnectionException(Message message)
+  public SSLConnectionException(LocalizableMessage message)
   {
     super(message);
 
@@ -71,7 +72,7 @@ public class SSLConnectionException
    * @param  cause      The underlying cause that triggered this
    *                    exception.
    */
-  public SSLConnectionException(Message message, Throwable cause)
+  public SSLConnectionException(LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
 

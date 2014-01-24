@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.util.args;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -43,7 +44,7 @@ import java.util.Iterator;
 public class ArgumentGroup implements Comparable<ArgumentGroup> {
 
   // Description for this group of arguments
-  private Message description = null;
+  private LocalizableMessage description = null;
 
   // List of arguments belonging to this group
   private List<Argument> args = null;
@@ -60,7 +61,7 @@ public class ArgumentGroup implements Comparable<ArgumentGroup> {
    *        the usage statement.  Groups with higher priority values appear
    *        before groups with lower priority.
    */
-  public ArgumentGroup(Message description, int priority) {
+  public ArgumentGroup(LocalizableMessage description, int priority) {
     this.description = description;
     this.priority = priority;
     this.args = new LinkedList<Argument>();
@@ -71,7 +72,7 @@ public class ArgumentGroup implements Comparable<ArgumentGroup> {
    *
    * @return description for this argument group
    */
-  public Message getDescription() {
+  public LocalizableMessage getDescription() {
     return this.description;
   }
 
@@ -80,7 +81,7 @@ public class ArgumentGroup implements Comparable<ArgumentGroup> {
    *
    * @param description for this argument group
    */
-  public void setDescription(Message description) {
+  public void setDescription(LocalizableMessage description) {
     this.description = description;
   }
 

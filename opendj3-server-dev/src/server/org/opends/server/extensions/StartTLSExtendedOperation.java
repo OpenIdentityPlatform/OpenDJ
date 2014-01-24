@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.StartTLSExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
@@ -105,7 +105,7 @@ public class StartTLSExtendedOperation
       return;
     }
 
-    MessageBuilder unavailableReason = new MessageBuilder();
+    LocalizableMessageBuilder unavailableReason = new LocalizableMessageBuilder();
     if (! tlsCapableConnection.prepareTLS(unavailableReason))
     {
       operation.setResultCode(ResultCode.UNAVAILABLE);

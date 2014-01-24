@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -69,7 +70,7 @@ public final class LDIFException
    *
    * @param  message    The message to use for this LDIF exception.
    */
-  public LDIFException(Message message)
+  public LDIFException(LocalizableMessage message)
   {
     super(message);
 
@@ -86,7 +87,7 @@ public final class LDIFException
    * @param  message    The message to use for this LDIF exception.
    * @param  cause      The underlying cause that triggered this LDIF exception.
    */
-  public LDIFException(Message message, Throwable cause)
+  public LDIFException(LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
 
@@ -106,7 +107,7 @@ public final class LDIFException
    * @param  canContinueReading  Indicates whether it is possible to continue
    *                             reading from the LDIF input source.
    */
-  public LDIFException(Message message, Number lineNumber,
+  public LDIFException(LocalizableMessage message, Number lineNumber,
                        boolean canContinueReading)
   {
     super(message);
@@ -129,7 +130,7 @@ public final class LDIFException
    * @param  cause               The underlying cause that triggered this LDIF
    *                             exception.
    */
-  public LDIFException(Message message, Number lineNumber,
+  public LDIFException(LocalizableMessage message, Number lineNumber,
                        boolean canContinueReading, Throwable cause)
   {
     super(message, cause);

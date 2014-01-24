@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -43,7 +44,7 @@ import javax.swing.JMenuItem;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The menu bar that appears on the main panel.
@@ -103,8 +104,8 @@ public class MainMenuBar extends GenericMenuBar
     if (runningTasks.size() > 0)
     {
       String allTasks = Utilities.getStringFromCollection(runningTasks, "<br>");
-      Message title = INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get();
-      Message msg =
+      LocalizableMessage title = INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get();
+      LocalizableMessage msg =
         INFO_CTRL_PANEL_RUNNING_TASKS_CONFIRMATION_DETAILS.get(allTasks);
       confirmed = Utilities.displayConfirmationDialog(
           Utilities.getParentDialog(this), title, msg);
@@ -262,8 +263,8 @@ public class MainMenuBar extends GenericMenuBar
     if (runningTasks.size() > 0)
     {
       String allTasks = Utilities.getStringFromCollection(runningTasks, "<br>");
-      Message title = INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get();
-      Message msg =
+      LocalizableMessage title = INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get();
+      LocalizableMessage msg =
         INFO_CTRL_PANEL_RUNNING_TASKS_CHANGE_SERVER_CONFIRMATION_DETAILS.get(
             allTasks);
       confirmed = Utilities.displayConfirmationDialog(

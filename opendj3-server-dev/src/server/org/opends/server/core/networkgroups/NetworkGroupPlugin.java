@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -31,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.NetworkGroupPluginCfg;
@@ -111,7 +112,7 @@ public final class NetworkGroupPlugin
           // These are acceptable
           break;
         default:
-          Message message =
+          LocalizableMessage message =
               ERR_PLUGIN_NETWORKGROUP_INVALID_PLUGIN_TYPE.get(t.toString());
           throw new ConfigException(message);
       }
@@ -139,7 +140,7 @@ public final class NetworkGroupPlugin
           ClientConnection connection,
           PreParseOperation operation,
           boolean fullCheck,
-          ArrayList<Message> messages)
+          ArrayList<LocalizableMessage> messages)
   {
     if (!connection.getNetworkGroup().checkResourceLimitsPolicy(
             connection, operation, fullCheck, messages)) {
@@ -164,7 +165,7 @@ public final class NetworkGroupPlugin
   private boolean setAndCheckNetworkGroup(
           ClientConnection connection,
           PreParseOperation operation,
-          ArrayList<Message> messages)
+          ArrayList<LocalizableMessage> messages)
   {
     boolean fullCheck = false;
     if (connection.mustEvaluateNetworkGroup(operation)) {
@@ -186,7 +187,7 @@ public final class NetworkGroupPlugin
   public final PluginResult.PostConnect
                doPostConnect(ClientConnection clientConnection)
   {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     if (setAndCheckNetworkGroup(clientConnection, null, messages)) {
       return PluginResult.PostConnect.continueConnectProcessing();
     } else {
@@ -201,7 +202,7 @@ public final class NetworkGroupPlugin
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseAddOperation addOperation) {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     ClientConnection connection = addOperation.getClientConnection();
     if (setAndCheckNetworkGroup(connection, addOperation, messages)) {
       return PluginResult.PreParse.continueOperationProcessing();
@@ -217,7 +218,7 @@ public final class NetworkGroupPlugin
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseBindOperation bindOperation) {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     ClientConnection connection = bindOperation.getClientConnection();
     boolean fullCheck = false;
 
@@ -254,7 +255,7 @@ public final class NetworkGroupPlugin
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseCompareOperation compareOperation) {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     ClientConnection connection = compareOperation.getClientConnection();
     if (setAndCheckNetworkGroup(connection, compareOperation, messages)) {
       return PluginResult.PreParse.continueOperationProcessing();
@@ -270,7 +271,7 @@ public final class NetworkGroupPlugin
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseDeleteOperation deleteOperation) {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     ClientConnection connection = deleteOperation.getClientConnection();
     if (setAndCheckNetworkGroup(connection, deleteOperation, messages)) {
       return PluginResult.PreParse.continueOperationProcessing();
@@ -286,7 +287,7 @@ public final class NetworkGroupPlugin
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseExtendedOperation extendedOperation) {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     ClientConnection connection = extendedOperation.getClientConnection();
     if (setAndCheckNetworkGroup(connection, extendedOperation, messages)) {
       return PluginResult.PreParse.continueOperationProcessing();
@@ -302,7 +303,7 @@ public final class NetworkGroupPlugin
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseModifyOperation modifyOperation) {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     ClientConnection connection = modifyOperation.getClientConnection();
     if (setAndCheckNetworkGroup(connection, modifyOperation, messages)) {
       return PluginResult.PreParse.continueOperationProcessing();
@@ -318,7 +319,7 @@ public final class NetworkGroupPlugin
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseModifyDNOperation modifyDNOperation) {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     ClientConnection connection = modifyDNOperation.getClientConnection();
     if (setAndCheckNetworkGroup(connection, modifyDNOperation, messages)) {
       return PluginResult.PreParse.continueOperationProcessing();
@@ -334,7 +335,7 @@ public final class NetworkGroupPlugin
   @Override
   public PluginResult.PreParse
        doPreParse(PreParseSearchOperation searchOperation) {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     ClientConnection connection = searchOperation.getClientConnection();
     if (setAndCheckNetworkGroup(connection, searchOperation, messages)) {
       return PluginResult.PreParse.continueOperationProcessing();
@@ -385,7 +386,7 @@ public final class NetworkGroupPlugin
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     NetworkGroupPluginCfg cfg = (NetworkGroupPluginCfg) configuration;
     return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
@@ -396,7 +397,7 @@ public final class NetworkGroupPlugin
    */
   public boolean isConfigurationChangeAcceptable(
                       NetworkGroupPluginCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -423,7 +424,7 @@ public final class NetworkGroupPlugin
 
 
         default:
-          Message message = ERR_PLUGIN_NETWORKGROUP_INVALID_PLUGIN_TYPE.get(
+          LocalizableMessage message = ERR_PLUGIN_NETWORKGROUP_INVALID_PLUGIN_TYPE.get(
                   pluginType.toString());
           unacceptableReasons.add(message);
           configAcceptable = false;

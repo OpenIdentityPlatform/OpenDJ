@@ -25,7 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -42,7 +42,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -232,7 +232,7 @@ public class IA5StringSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // We will allow any value that does not contain any non-ASCII characters.
     // Empty values are acceptable as well.
@@ -243,7 +243,7 @@ public class IA5StringSyntax
       if ((b & 0x7F) != b)
       {
 
-        Message message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
+        LocalizableMessage message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
                 value.toString(), String.valueOf(b));
         invalidReason.append(message);
         return false;

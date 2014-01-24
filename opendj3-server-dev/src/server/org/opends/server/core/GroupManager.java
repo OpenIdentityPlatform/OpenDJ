@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -203,7 +203,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
   @Override
   public boolean isConfigurationAddAcceptable(
                       GroupImplementationCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -228,7 +228,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
                                  GroupImplementationCfg configuration)
   {
     ResultCode resultCode = ResultCode.SUCCESS;
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     configuration.addChangeListener(this);
 
@@ -264,7 +264,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       GroupImplementationCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // FIXME -- We should try to perform some check to determine whether the
     // group implementation is in use.
@@ -279,7 +279,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
                                  GroupImplementationCfg configuration)
   {
     ResultCode resultCode = ResultCode.SUCCESS;
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     Group group = groupImplementations.remove(configuration.dn());
     if (group != null)
@@ -314,7 +314,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
   @Override
   public boolean isConfigurationChangeAcceptable(
                       GroupImplementationCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -340,7 +340,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     // Get the existing group implementation if it's already enabled.
     Group existingGroup = groupImplementations.get(configuration.dn());
 
@@ -462,13 +462,13 @@ public class GroupManager extends InternalDirectoryServerPlugin
                                                    GroupImplementationCfg.class,
                                                    List.class);
 
-        List<Message> unacceptableReasons = new ArrayList<Message>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         Boolean acceptable = (Boolean) method.invoke(group, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
         {
           String reason = collectionToString(unacceptableReasons, ".  ");
-          Message message = ERR_CONFIG_GROUP_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_GROUP_CONFIG_NOT_ACCEPTABLE.get(
               String.valueOf(configuration.dn()), reason);
           throw new InitializationException(message);
         }
@@ -478,7 +478,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_GROUP_INITIALIZATION_FAILED.
+      LocalizableMessage message = ERR_CONFIG_GROUP_INITIALIZATION_FAILED.
           get(className, String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);

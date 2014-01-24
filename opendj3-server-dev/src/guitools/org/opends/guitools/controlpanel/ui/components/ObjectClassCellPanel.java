@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -44,8 +45,8 @@ import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 /**
  * A simple panel used in the LDAP entry viewers to display the object class
@@ -186,9 +187,9 @@ public class ObjectClassCellPanel extends JPanel
    * @param value the object class value.
    * @return the message describing the provided object class value.
    */
-  public Message getMessage(ObjectClassValue value)
+  public LocalizableMessage getMessage(ObjectClassValue value)
   {
-    MessageBuilder sb = new MessageBuilder();
+    LocalizableMessageBuilder sb = new LocalizableMessageBuilder();
     if (value != null)
     {
       Set<String> aux = new TreeSet<String>();
@@ -210,7 +211,7 @@ public class ObjectClassCellPanel extends JPanel
     }
     if (sb.length() > 0)
     {
-      return Message.raw("<html>"+Utilities.applyFont(sb.toString(),
+      return LocalizableMessage.raw("<html>"+Utilities.applyFont(sb.toString(),
           ColorAndFontConstants.defaultFont));
     }
     else

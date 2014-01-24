@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -626,11 +627,11 @@ public class LDAPMessage
     }
 
     buffer.append(indentBuf);
-    buffer.append("LDAP Message");
+    buffer.append("LDAP LocalizableMessage");
     buffer.append(EOL);
 
     buffer.append(indentBuf);
-    buffer.append("  Message ID:  ");
+    buffer.append("  LocalizableMessage ID:  ");
     buffer.append(messageID);
     buffer.append(EOL);
 

@@ -25,7 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -48,7 +48,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -104,7 +104,7 @@ public class DITContentRuleSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      Message message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
           EMR_CASE_IGNORE_OID, SYNTAX_DIT_CONTENT_RULE_NAME);
       throw new InitializationException(message);
     }
@@ -113,7 +113,7 @@ public class DITContentRuleSyntax
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      Message message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
           OMR_CASE_IGNORE_OID, SYNTAX_DIT_CONTENT_RULE_NAME);
       throw new InitializationException(message);
     }
@@ -122,7 +122,7 @@ public class DITContentRuleSyntax
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      Message message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_CASE_IGNORE_OID, SYNTAX_DIT_CONTENT_RULE_NAME);
       throw new InitializationException(message);
     }
@@ -205,7 +205,7 @@ public class DITContentRuleSyntax
    * {@inheritDoc}
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // We'll use the decodeDITContentRule method to determine if the value is
     // acceptable.
@@ -274,7 +274,7 @@ public class DITContentRuleSyntax
     {
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
-      Message message = ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE.get();
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -285,7 +285,7 @@ public class DITContentRuleSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      Message message = ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.get(
           valueStr, (pos-1), String.valueOf(c));
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -302,7 +302,7 @@ public class DITContentRuleSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -324,7 +324,7 @@ public class DITContentRuleSyntax
         {
           if (lastWasPeriod)
           {
-            Message message = ERR_ATTR_SYNTAX_DCR_DOUBLE_PERIOD_IN_NUMERIC_OID.
+            LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_DOUBLE_PERIOD_IN_NUMERIC_OID.
                 get(valueStr, (pos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
@@ -337,7 +337,7 @@ public class DITContentRuleSyntax
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
-          Message message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
               valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -362,7 +362,7 @@ public class DITContentRuleSyntax
         else
         {
           // This must have been an illegal character.
-          Message message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_STRING_OID.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_STRING_OID.get(
               valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -376,7 +376,7 @@ public class DITContentRuleSyntax
     String oid;
     if (pos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -397,14 +397,14 @@ public class DITContentRuleSyntax
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             ERR_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS.get(valueStr, oid);
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
     else if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
     {
-      Message message = ERR_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL.
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL.
           get(valueStr, oid, structuralClass.getNameOrOID(),
               String.valueOf(structuralClass.getObjectClassType()));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
@@ -421,7 +421,7 @@ public class DITContentRuleSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -460,7 +460,7 @@ public class DITContentRuleSyntax
         // We must be at the end of the value.  If not, then that's a problem.
         if (pos < length)
         {
-          Message message = ERR_ATTR_SYNTAX_DCR_UNEXPECTED_CLOSE_PARENTHESIS.
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNEXPECTED_CLOSE_PARENTHESIS.
               get(valueStr, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -518,7 +518,7 @@ public class DITContentRuleSyntax
         else
         {
           // This is an illegal character.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
                       valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -567,7 +567,7 @@ public class DITContentRuleSyntax
               }
               else
               {
-                Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.
+                LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.
                     get(valueStr, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                              message);
@@ -576,7 +576,7 @@ public class DITContentRuleSyntax
             else if (oc.getObjectClassType() != ObjectClassType.AUXILIARY)
             {
               // This isn't good because it isn't an auxiliary class.
-              Message message =
+              LocalizableMessage message =
                   ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY.
                     get(valueStr, woidBuffer.toString(),
                         oc.getObjectClassType().toString());
@@ -597,7 +597,7 @@ public class DITContentRuleSyntax
             }
             else if (c != '$')
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
                           valueStr, String.valueOf(c), (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -621,7 +621,7 @@ public class DITContentRuleSyntax
             }
             else
             {
-              Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.get(
+              LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.get(
                   valueStr, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            message);
@@ -630,7 +630,7 @@ public class DITContentRuleSyntax
           else if (oc.getObjectClassType() != ObjectClassType.AUXILIARY)
           {
             // This isn't good because it isn't an auxiliary class.
-            Message message = ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY.
+            LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY.
                 get(valueStr, woidBuffer.toString(),
                     oc.getObjectClassType().toString());
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
@@ -670,7 +670,7 @@ public class DITContentRuleSyntax
               }
               else
               {
-                Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(
+                LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(
                     valueStr, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                              message);
@@ -690,7 +690,7 @@ public class DITContentRuleSyntax
             }
             else if (c != '$')
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
                           valueStr, String.valueOf(c), (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -715,7 +715,7 @@ public class DITContentRuleSyntax
             }
             else
             {
-              Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(
+              LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(
                   valueStr, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            message);
@@ -755,7 +755,7 @@ public class DITContentRuleSyntax
               }
               else
               {
-                Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(
+                LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(
                     valueStr, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                              message);
@@ -775,7 +775,7 @@ public class DITContentRuleSyntax
             }
             else if (c != '$')
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
                           valueStr, String.valueOf(c), (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -800,7 +800,7 @@ public class DITContentRuleSyntax
             }
             else
             {
-              Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(
+              LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(
                   valueStr, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            message);
@@ -840,7 +840,7 @@ public class DITContentRuleSyntax
               }
               else
               {
-                Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.
+                LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.
                     get(valueStr, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                              message);
@@ -860,7 +860,7 @@ public class DITContentRuleSyntax
             }
             else if (c != '$')
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
                           valueStr, String.valueOf(c), (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -885,7 +885,7 @@ public class DITContentRuleSyntax
             }
             else
             {
-              Message message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.get(
+              LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.get(
                   valueStr, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            message);
@@ -916,7 +916,7 @@ public class DITContentRuleSyntax
     {
       if (structuralClass.isRequired(t))
       {
-        Message message = ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL.
+        LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL.
             get(valueStr, t.getNameOrOID(), structuralClass.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -925,7 +925,7 @@ public class DITContentRuleSyntax
       {
         if (oc.isRequired(t))
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY.
                 get(valueStr, t.getNameOrOID(), oc.getNameOrOID());
           throw new DirectoryException(
@@ -973,7 +973,7 @@ public class DITContentRuleSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1031,7 +1031,7 @@ public class DITContentRuleSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1040,7 +1040,7 @@ public class DITContentRuleSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_DCR_EXPECTED_QUOTE_AT_POS.get(
                   valueStr, startPos, String.valueOf(c));
       throw new DirectoryException(
@@ -1068,7 +1068,7 @@ public class DITContentRuleSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1117,7 +1117,7 @@ public class DITContentRuleSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1126,7 +1126,7 @@ public class DITContentRuleSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_DCR_EXPECTED_QUOTE_AT_POS.get(
                   valueStr, startPos, String.valueOf(c));
       throw new DirectoryException(
@@ -1155,7 +1155,7 @@ public class DITContentRuleSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1197,7 +1197,7 @@ public class DITContentRuleSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1216,7 +1216,7 @@ public class DITContentRuleSyntax
         {
           if (lastWasPeriod)
           {
-            Message message = ERR_ATTR_SYNTAX_DCR_DOUBLE_PERIOD_IN_NUMERIC_OID.
+            LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_DOUBLE_PERIOD_IN_NUMERIC_OID.
                 get(lowerStr, (startPos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
@@ -1241,7 +1241,7 @@ public class DITContentRuleSyntax
           }
 
           // This must have been an illegal character.
-          Message message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
               lowerStr, String.valueOf(c), (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1279,7 +1279,7 @@ public class DITContentRuleSyntax
           }
 
           // This must have been an illegal character.
-          Message message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_STRING_OID.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_STRING_OID.get(
               lowerStr, String.valueOf(c), (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1288,7 +1288,7 @@ public class DITContentRuleSyntax
     }
     else
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
                   lowerStr, String.valueOf(c), startPos);
       throw new DirectoryException(
@@ -1306,7 +1306,7 @@ public class DITContentRuleSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1348,7 +1348,7 @@ public class DITContentRuleSyntax
 
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -1386,7 +1386,7 @@ public class DITContentRuleSyntax
 
         if (startPos >= length)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1401,7 +1401,7 @@ public class DITContentRuleSyntax
         else if (c == '(')
         {
           // This is an illegal character.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
                       valueStr, String.valueOf(c), startPos);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -1438,7 +1438,7 @@ public class DITContentRuleSyntax
 
         if (startPos >= length)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1466,7 +1466,7 @@ public class DITContentRuleSyntax
 
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);

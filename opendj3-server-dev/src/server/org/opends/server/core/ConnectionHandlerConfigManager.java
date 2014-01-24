@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -103,7 +103,7 @@ public class ConnectionHandlerConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // Register as a change listener for this connection handler entry
     // so that we will be notified of any changes that may be made to
@@ -169,7 +169,7 @@ public class ConnectionHandlerConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // See whether the connection handler should be enabled.
     if (connectionHandler == null) {
@@ -356,7 +356,7 @@ public class ConnectionHandlerConfigManager implements
    */
   public boolean isConfigurationAddAcceptable(
       ConnectionHandlerCfg configuration,
-      List<Message> unacceptableReasons) {
+      List<LocalizableMessage> unacceptableReasons) {
     if (configuration.isEnabled()) {
       // It's enabled so always validate the class.
       return isJavaClassAcceptable(configuration, unacceptableReasons);
@@ -373,7 +373,7 @@ public class ConnectionHandlerConfigManager implements
    */
   public boolean isConfigurationChangeAcceptable(
       ConnectionHandlerCfg configuration,
-      List<Message> unacceptableReasons) {
+      List<LocalizableMessage> unacceptableReasons) {
     if (configuration.isEnabled()) {
       // It's enabled so always validate the class.
       return isJavaClassAcceptable(configuration, unacceptableReasons);
@@ -390,7 +390,7 @@ public class ConnectionHandlerConfigManager implements
    */
   public boolean isConfigurationDeleteAcceptable(
       ConnectionHandlerCfg configuration,
-      List<Message> unacceptableReasons) {
+      List<LocalizableMessage> unacceptableReasons) {
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -422,7 +422,7 @@ public class ConnectionHandlerConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.
+      LocalizableMessage message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.
           get(String.valueOf(className), String.valueOf(config.dn()),
               stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
@@ -444,7 +444,7 @@ public class ConnectionHandlerConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.
+      LocalizableMessage message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.
           get(String.valueOf(className), String.valueOf(config.dn()),
               stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
@@ -460,7 +460,7 @@ public class ConnectionHandlerConfigManager implements
   // class is acceptable.
   private boolean isJavaClassAcceptable(
       ConnectionHandlerCfg config,
-      List<Message> unacceptableReasons) {
+      List<LocalizableMessage> unacceptableReasons) {
     String className = config.getJavaClass();
     ConnectionHandlerCfgDefn d =
       ConnectionHandlerCfgDefn.getInstance();

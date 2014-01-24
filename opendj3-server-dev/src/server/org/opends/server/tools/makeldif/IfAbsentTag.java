@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -109,12 +110,12 @@ public class IfAbsentTag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<Message> warnings)
+                                  List<LocalizableMessage> warnings)
          throws InitializationException
   {
     if ((arguments.length < 1) || (arguments.length > 2))
     {
-      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+      LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
           getName(), lineNumber, 1, 2, arguments.length);
       throw new InitializationException(message);
     }
@@ -123,7 +124,7 @@ public class IfAbsentTag
     AttributeType t = DirectoryServer.getAttributeType(lowerName, true);
     if (! branch.hasAttribute(t))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
       throw new InitializationException(message);
     }
@@ -157,12 +158,12 @@ public class IfAbsentTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<Message> warnings)
+                                    int lineNumber, List<LocalizableMessage> warnings)
          throws InitializationException
   {
     if ((arguments.length < 1) || (arguments.length > 2))
     {
-      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+      LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
           getName(), lineNumber, 1, 2, arguments.length);
       throw new InitializationException(message);
     }
@@ -171,7 +172,7 @@ public class IfAbsentTag
     attributeType = DirectoryServer.getAttributeType(lowerName, true);
     if (! template.hasAttribute(attributeType))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
       throw new InitializationException(message);
     }

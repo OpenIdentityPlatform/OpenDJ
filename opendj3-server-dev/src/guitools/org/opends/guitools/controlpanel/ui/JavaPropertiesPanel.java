@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -73,7 +73,7 @@ import org.opends.guitools.controlpanel.ui.renderer.AttributeCellEditor;
 import org.opends.guitools.controlpanel.ui.renderer.LDAPEntryTableCellRenderer;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.JavaPropertiesTool;
@@ -160,7 +160,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
   private boolean previousLocal = true;
 
-  private Message READING_JAVA_SETTINGS =
+  private LocalizableMessage READING_JAVA_SETTINGS =
     INFO_CTRL_PANEL_READING_JAVA_SETTINGS_SUMMARY.get();
 
   JComponent[] comps;
@@ -179,7 +179,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
    * {@inheritDoc}
    */
   @Override
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_JAVA_PROPERTIES_TITLE.get();
   }
@@ -224,7 +224,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
     lJavaHome = Utilities.createPrimaryLabel(
         INFO_CTRL_PANEL_JAVA_HOME_LABEL.get());
-    useOpenDSJavaHome = Utilities.createRadioButton(Message.EMPTY);
+    useOpenDSJavaHome = Utilities.createRadioButton(LocalizableMessage.EMPTY);
     useOpenDSJavaHome.setOpaque(false);
     useOpenDSJavaHome.getAccessibleContext().setAccessibleName(
         INFO_CTRL_PANEL_USE_OPENDS_JAVA_HOME.get().toString()+" "+
@@ -253,7 +253,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     gbc.weightx = 0.0;
     gbc.insets.top = 10;
     gbc.gridwidth = 1;
-    useSpecifiedJavaHome = Utilities.createRadioButton(Message.EMPTY);
+    useSpecifiedJavaHome = Utilities.createRadioButton(LocalizableMessage.EMPTY);
     useSpecifiedJavaHome.setOpaque(false);
     useSpecifiedJavaHome.getAccessibleContext().setAccessibleName(
         INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_HOME.get().toString() +
@@ -309,12 +309,12 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
     lJavaArgs = Utilities.createPrimaryLabel(
         INFO_CTRL_PANEL_JAVA_ARGUMENTS_LABEL.get());
-    useSpecifiedJavaArgs = Utilities.createRadioButton(Message.EMPTY);
+    useSpecifiedJavaArgs = Utilities.createRadioButton(LocalizableMessage.EMPTY);
     useSpecifiedJavaArgs.getAccessibleContext().setAccessibleName(
         INFO_CTRL_PANEL_USE_OPENDS_JAVA_ARGS.get().toString() +
         " "+INFO_CTRL_PANEL_USE_OPENDS_JAVA_ARGS_HELP.get());
     useSpecifiedJavaArgs.setOpaque(false);
-    useOpenDSJavaArgs = Utilities.createRadioButton(Message.EMPTY);
+    useOpenDSJavaArgs = Utilities.createRadioButton(LocalizableMessage.EMPTY);
     useOpenDSJavaArgs.setOpaque(false);
     lJavaArgs.setLabelFor(useOpenDSJavaArgs);
     gbc.gridx = 0;
@@ -702,9 +702,9 @@ public class JavaPropertiesPanel extends StatusGenericPanel
           {
             arg = t.toString();
           }
-          Message title =
+          LocalizableMessage title =
             ERR_CTRL_PANEL_ERR_READING_JAVA_SETTINGS_SUMMARY.get();
-          Message details =
+          LocalizableMessage details =
             ERR_CTRL_PANEL_READING_JAVA_SETTINGS_DETAILS.get(arg);
           updateErrorPane(errorPane, title,
               ColorAndFontConstants.errorTitleFont, details,
@@ -768,7 +768,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   {
     editor.stopCellEditing();
 
-    final ArrayList<Message> javaHomeErrors = new ArrayList<Message>();
+    final ArrayList<LocalizableMessage> javaHomeErrors = new ArrayList<LocalizableMessage>();
     String f = javaHome.getText().trim();
     if (f.length() > 0)
     {
@@ -806,17 +806,17 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       disableComponents();
       lInitContents.setText(
           INFO_CTRL_PANEL_CHECKING_JAVA_OPTIONS_SUMMARY.get().toString());
-      BackgroundTask<List<Message>> worker =
-        new BackgroundTask<List<Message>>()
+      BackgroundTask<List<LocalizableMessage>> worker =
+        new BackgroundTask<List<LocalizableMessage>>()
       {
         private boolean isConfirmation = false;
         @Override
-        public List<Message> processBackgroundTask() throws Throwable
+        public List<LocalizableMessage> processBackgroundTask() throws Throwable
         {
           String[] jvms;
           String userJVM = javaHome.getText();
-          ArrayList<Message> errorMessages = new ArrayList<Message>();
-          ArrayList<Message> confirmationMessages = new ArrayList<Message>();
+          ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
+          ArrayList<LocalizableMessage> confirmationMessages = new ArrayList<LocalizableMessage>();
           String defaultJVM = System.getenv(SetupUtils.OPENDJ_JAVA_HOME);
           if (defaultJVM == null)
           {
@@ -866,7 +866,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
             if (notWorkingArgs.size() > 0)
             {
               File javaFile = getJavaFile(new File(jvm));
-              Message confirmationMessage;
+              LocalizableMessage confirmationMessage;
               if (useSpecifiedJavaArgs.isSelected())
               {
                 confirmationMessage =
@@ -898,7 +898,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
          * {@inheritDoc}
          */
         @Override
-        public void backgroundTaskCompleted(List<Message> returnValue,
+        public void backgroundTaskCompleted(List<LocalizableMessage> returnValue,
             Throwable t)
         {
           if (t == null)
@@ -935,9 +935,9 @@ public class JavaPropertiesPanel extends StatusGenericPanel
             {
               arg = t.toString();
             }
-            Message title =
+            LocalizableMessage title =
               ERR_CTRL_PANEL_ERROR_CHECKING_JAVA_SETTINGS_SUMMARY.get();
-            Message details =
+            LocalizableMessage details =
               ERR_CTRL_PANEL_ERROR_CHECKING_JAVA_SETTINGS_DETAILS.get(arg);
             updateErrorPane(errorPane, title,
                 ColorAndFontConstants.errorTitleFont, details,
@@ -961,12 +961,12 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       else
       {
         ArrayList<String> s = new ArrayList<String>();
-        for (Message msg : javaHomeErrors)
+        for (LocalizableMessage msg : javaHomeErrors)
         {
           s.add(msg.toString());
         }
-        ArrayList<Message> msgs = new ArrayList<Message>();
-        Message msg = ERR_CTRL_PANEL_GENERIC_ERROR_FALLBACK_JAVAHOME.get(
+        ArrayList<LocalizableMessage> msgs = new ArrayList<LocalizableMessage>();
+        LocalizableMessage msg = ERR_CTRL_PANEL_GENERIC_ERROR_FALLBACK_JAVAHOME.get(
             f, Utilities.getStringFromCollection(s, "<br>-"));
         msgs.add(msg);
         displayErrorDialog(msgs);
@@ -995,7 +995,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
   private void launchTask()
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
@@ -1435,7 +1435,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
      * {@inheritDoc}
      */
     @Override
-    public Message getTaskDescription()
+    public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_UPDATE_JAVA_SETTINGS_TASK_DESCRIPTION.get();
     }
@@ -1445,7 +1445,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
      */
     @Override
     public boolean canLaunch(Task taskToBeLaunched,
-        Collection<Message> incompatibilityReasons)
+        Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (!isServerRunning())

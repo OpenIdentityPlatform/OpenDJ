@@ -31,7 +31,7 @@ package org.opends.dsml.protocol;
 import java.io.IOException;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
@@ -106,7 +106,7 @@ public class DSMLCompareOperation
     CompareResponseProtocolOp compareOp =
           responseMessage.getCompareResponseProtocolOp();
     int resultCode = compareOp.getResultCode();
-    Message errorMessage = compareOp.getErrorMessage();
+    LocalizableMessage errorMessage = compareOp.getErrorMessage();
 
     // Set the response code and error message for the DSML response.
     compareResponse.setErrorMessage(

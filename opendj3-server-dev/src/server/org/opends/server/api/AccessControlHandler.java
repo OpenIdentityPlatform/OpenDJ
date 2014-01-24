@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.api;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.AccessControlHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
@@ -96,7 +96,7 @@ public abstract class AccessControlHandler
    */
   public boolean isConfigurationAcceptable(
       AccessControlHandlerCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation. It should be overridden by access control handler

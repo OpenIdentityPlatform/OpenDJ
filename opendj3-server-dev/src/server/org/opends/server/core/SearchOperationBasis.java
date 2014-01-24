@@ -29,7 +29,7 @@ package org.opends.server.core;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
@@ -1374,7 +1374,7 @@ public class SearchOperationBasis
   private void updateOperationErrMsgAndResCode()
   {
     setResultCode(ResultCode.NO_SUCH_OBJECT);
-    Message message =
+    LocalizableMessage message =
             ERR_SEARCH_BASE_DOESNT_EXIST.get(String.valueOf(getBaseDN()));
     appendErrorMessage(message);
   }

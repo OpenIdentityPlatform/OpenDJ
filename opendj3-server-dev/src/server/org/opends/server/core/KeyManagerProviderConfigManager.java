@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -147,7 +148,7 @@ public class  KeyManagerProviderConfigManager
    */
   public boolean isConfigurationAddAcceptable(
           KeyManagerProviderCfg configuration,
-          List<Message> unacceptableReasons)
+          List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -179,7 +180,7 @@ public class  KeyManagerProviderConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     configuration.addChangeListener(this);
 
@@ -223,7 +224,7 @@ public class  KeyManagerProviderConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
                       KeyManagerProviderCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // FIXME -- We should try to perform some check to determine whether the
     // provider is in use.
@@ -240,7 +241,7 @@ public class  KeyManagerProviderConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     DirectoryServer.deregisterKeyManagerProvider(configuration.dn());
 
@@ -260,7 +261,7 @@ public class  KeyManagerProviderConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       KeyManagerProviderCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -292,7 +293,7 @@ public class  KeyManagerProviderConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the existing provider if it's already enabled.
@@ -408,7 +409,7 @@ public class  KeyManagerProviderConfigManager
                                            KeyManagerProviderCfg.class,
                                            List.class);
 
-        List<Message> unacceptableReasons = new ArrayList<Message>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         Boolean acceptable = (Boolean) method.invoke(provider, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -416,7 +417,7 @@ public class  KeyManagerProviderConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<Message> iterator = unacceptableReasons.iterator();
+            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -425,7 +426,7 @@ public class  KeyManagerProviderConfigManager
             }
           }
 
-          Message message = ERR_CONFIG_KEYMANAGER_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_KEYMANAGER_CONFIG_NOT_ACCEPTABLE.get(
               String.valueOf(configuration.dn()), buffer.toString());
           throw new InitializationException(message);
         }
@@ -439,7 +440,7 @@ public class  KeyManagerProviderConfigManager
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_KEYMANAGER_INITIALIZATION_FAILED.
+      LocalizableMessage message = ERR_CONFIG_KEYMANAGER_INITIALIZATION_FAILED.
           get(className, String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);

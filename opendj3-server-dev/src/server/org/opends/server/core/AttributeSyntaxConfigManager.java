@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -43,7 +44,7 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.config.ConfigException;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
@@ -137,7 +138,7 @@ public class AttributeSyntaxConfigManager
           }
           catch (DirectoryException de)
           {
-            Message message = WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
+            LocalizableMessage message = WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
                String.valueOf(syntaxConfiguration.dn()), de.getMessageObject());
             logError(message);
             continue;
@@ -159,7 +160,7 @@ public class AttributeSyntaxConfigManager
    */
   public boolean isConfigurationAddAcceptable(
                       AttributeSyntaxCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -191,7 +192,7 @@ public class AttributeSyntaxConfigManager
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;
     boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     configuration.addChangeListener(this);
 
@@ -216,7 +217,7 @@ public class AttributeSyntaxConfigManager
       }
       catch (DirectoryException de)
       {
-        Message message = WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
+        LocalizableMessage message = WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
                 String.valueOf(configuration.dn()), de.getMessageObject());
         messages.add(message);
 
@@ -246,7 +247,7 @@ public class AttributeSyntaxConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
                       AttributeSyntaxCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // If the syntax is enabled, then check to see if there are any defined
     // attribute types that use the syntax.  If so, then don't allow it to be
@@ -260,7 +261,7 @@ public class AttributeSyntaxConfigManager
       {
         if (oid.equals(at.getSyntaxOID()))
         {
-          Message message = WARN_CONFIG_SCHEMA_CANNOT_DELETE_SYNTAX_IN_USE.get(
+          LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_DELETE_SYNTAX_IN_USE.get(
                   syntax.getSyntaxName(), at.getNameOrOID());
           unacceptableReasons.add(message);
 
@@ -282,7 +283,7 @@ public class AttributeSyntaxConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     AttributeSyntax syntax = syntaxes.remove(configuration.dn());
     if (syntax != null)
@@ -301,7 +302,7 @@ public class AttributeSyntaxConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       AttributeSyntaxCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -330,7 +331,7 @@ public class AttributeSyntaxConfigManager
         {
           if (oid.equals(at.getSyntaxOID()))
           {
-            Message message =
+            LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DISABLE_SYNTAX_IN_USE.get(
                             syntax.getSyntaxName(),
                             at.getNameOrOID());
@@ -355,7 +356,7 @@ public class AttributeSyntaxConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the existing syntax if it's already enabled.
@@ -409,7 +410,7 @@ public class AttributeSyntaxConfigManager
       }
       catch (DirectoryException de)
       {
-        Message message = WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
+        LocalizableMessage message = WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
                 String.valueOf(configuration.dn()),
                 de.getMessageObject());
         messages.add(message);
@@ -478,7 +479,7 @@ public class AttributeSyntaxConfigManager
                                                     AttributeSyntaxCfg.class,
                                                     List.class);
 
-        List<Message> unacceptableReasons = new ArrayList<Message>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         Boolean acceptable = (Boolean) method.invoke(syntax, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -486,7 +487,7 @@ public class AttributeSyntaxConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<Message> iterator = unacceptableReasons.iterator();
+            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -495,7 +496,7 @@ public class AttributeSyntaxConfigManager
             }
           }
 
-          Message message = ERR_CONFIG_SCHEMA_SYNTAX_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_SCHEMA_SYNTAX_CONFIG_NOT_ACCEPTABLE.get(
               String.valueOf(configuration.dn()), buffer.toString());
           throw new InitializationException(message);
         }
@@ -505,7 +506,7 @@ public class AttributeSyntaxConfigManager
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_SCHEMA_SYNTAX_CANNOT_INITIALIZE.
+      LocalizableMessage message = ERR_CONFIG_SCHEMA_SYNTAX_CANNOT_INITIALIZE.
           get(className, String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);

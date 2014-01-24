@@ -37,8 +37,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.meta.
             RepeatedCharactersPasswordValidatorCfgDefn;
 import org.opends.server.admin.std.server.
@@ -321,7 +321,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.valueOf("uid=test.user,o=test"), mods);
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(validator.passwordIsAcceptable(password,
                               new HashSet<ByteString>(0), modifyOperation,
                               userEntry, invalidReason),
@@ -390,7 +390,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.valueOf("uid=test.user,o=test"), mods);
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertFalse(validator.passwordIsAcceptable(password,
                                new HashSet<ByteString>(0), modifyOperation,
                                userEntry, invalidReason));
@@ -458,7 +458,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.valueOf("uid=test.user,o=test"), mods);
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(validator.passwordIsAcceptable(password,
                               new HashSet<ByteString>(0), modifyOperation,
                               userEntry, invalidReason),
@@ -527,7 +527,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.valueOf("uid=test.user,o=test"), mods);
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertFalse(validator.passwordIsAcceptable(password,
                                new HashSet<ByteString>(0), modifyOperation,
                                userEntry, invalidReason));
@@ -594,7 +594,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.valueOf("uid=test.user,o=test"), mods);
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(validator.passwordIsAcceptable(password,
                               new HashSet<ByteString>(0), modifyOperation,
                               userEntry, invalidReason),
@@ -662,7 +662,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.valueOf("uid=test.user,o=test"), mods);
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(validator.passwordIsAcceptable(password,
                               new HashSet<ByteString>(0), modifyOperation,
                               userEntry, invalidReason),
@@ -685,7 +685,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
               RepeatedCharactersPasswordValidatorCfgDefn.getInstance(),
               updatedValidatorEntry);
 
-    ArrayList<Message> unacceptableReasons = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
     assertTrue(validator.isConfigurationChangeAcceptable(updatedConfiguration,
                                                          unacceptableReasons),
                String.valueOf(unacceptableReasons));

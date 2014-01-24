@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -30,7 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -134,7 +134,7 @@ public abstract class
    */
   public boolean isConfigurationAcceptable(
                       ExtendedOperationHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by extended operation

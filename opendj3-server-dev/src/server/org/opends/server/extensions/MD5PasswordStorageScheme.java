@@ -31,7 +31,7 @@ package org.opends.server.extensions;
 import java.security.MessageDigest;
 import java.util.Arrays;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.MD5PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
@@ -115,7 +115,7 @@ public class MD5PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
           MESSAGE_DIGEST_ALGORITHM_MD5, String.valueOf(e));
       throw new InitializationException(message, e);
     }
@@ -161,7 +161,7 @@ public class MD5PasswordStorageScheme
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -208,7 +208,7 @@ public class MD5PasswordStorageScheme
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -306,7 +306,7 @@ public class MD5PasswordStorageScheme
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
@@ -344,7 +344,7 @@ public class MD5PasswordStorageScheme
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
-    Message message = ERR_PWSCHEME_NOT_REVERSIBLE.get(STORAGE_SCHEME_NAME_MD5);
+    LocalizableMessage message = ERR_PWSCHEME_NOT_REVERSIBLE.get(STORAGE_SCHEME_NAME_MD5);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
@@ -358,7 +358,7 @@ public class MD5PasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }

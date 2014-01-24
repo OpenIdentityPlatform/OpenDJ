@@ -96,8 +96,8 @@ import org.opends.guitools.controlpanel.ui.components.TreePanel;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
@@ -167,22 +167,22 @@ implements BackendPopulatedListener
   /**
    * LDAP filter message.
    */
-  protected static final Message LDAP_FILTER =
+  protected static final LocalizableMessage LDAP_FILTER =
     INFO_CTRL_PANEL_LDAP_FILTER.get();
 
   /**
    * User filter message.
    */
-  protected static final Message USER_FILTER =
+  protected static final LocalizableMessage USER_FILTER =
     INFO_CTRL_PANEL_USERS_FILTER.get();
 
   /**
    * Group filter message.
    */
-  protected static final Message GROUP_FILTER =
+  protected static final LocalizableMessage GROUP_FILTER =
     INFO_CTRL_PANEL_GROUPS_FILTER.get();
 
-  private final Message OTHER_BASE_DN =
+  private final LocalizableMessage OTHER_BASE_DN =
     INFO_CTRL_PANEL_OTHER_BASE_DN.get();
 
   private ArrayList<DN> otherBaseDns = new ArrayList<DN>();
@@ -320,12 +320,12 @@ implements BackendPopulatedListener
     gbc.gridy = 0;
     gbc.gridwidth = 7;
     addErrorPane(gbc);
-    Message title = INFO_CTRL_PANEL_SERVER_NOT_RUNNING_SUMMARY.get();
-    MessageBuilder mb = new MessageBuilder();
+    LocalizableMessage title = INFO_CTRL_PANEL_SERVER_NOT_RUNNING_SUMMARY.get();
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     mb.append(INFO_CTRL_PANEL_SERVER_NOT_RUNNING_DETAILS.get());
     mb.append("<br><br>");
     mb.append(getStartServerHTML());
-    Message details = mb.toMessage();
+    LocalizableMessage details = mb.toMessage();
     updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
         details,
         ColorAndFontConstants.defaultFont);
@@ -685,7 +685,7 @@ implements BackendPopulatedListener
    */
   protected void applyButtonClicked()
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     setPrimaryValid(lFilter);
     String s = getBaseDN();
     boolean displayAll = false;
@@ -1331,14 +1331,14 @@ implements BackendPopulatedListener
   {
     boolean displayNodes = false;
     boolean displayErrorPane = false;
-    Message errorTitle = Message.EMPTY;
-    Message errorDetails = Message.EMPTY;
+    LocalizableMessage errorTitle = LocalizableMessage.EMPTY;
+    LocalizableMessage errorDetails = LocalizableMessage.EMPTY;
     ServerDescriptor.ServerStatus status = desc.getStatus();
     if (status == ServerDescriptor.ServerStatus.STARTED)
     {
       if (!desc.isAuthenticated())
       {
-        MessageBuilder mb = new MessageBuilder();
+        LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(
             INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_TO_BROWSE_SUMMARY.get());
         mb.append("<br><br>"+getAuthenticateHTML());
@@ -1425,7 +1425,7 @@ implements BackendPopulatedListener
     }
     else if (status == ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
           desc.getHostname()));
       mb.append("<br><br>"+getAuthenticateHTML());
@@ -1436,7 +1436,7 @@ implements BackendPopulatedListener
     else
     {
       errorTitle = INFO_CTRL_PANEL_SERVER_NOT_RUNNING_SUMMARY.get();
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(
         INFO_CTRL_PANEL_AUTHENTICATION_SERVER_MUST_RUN_TO_BROWSE_SUMMARY.get());
       mb.append("<br><br>");
@@ -1447,8 +1447,8 @@ implements BackendPopulatedListener
 
     final boolean fDisplayNodes = displayNodes;
     final boolean fDisplayErrorPane = displayErrorPane;
-    final Message fErrorTitle = errorTitle;
-    final Message fErrorDetails = errorDetails;
+    final LocalizableMessage fErrorTitle = errorTitle;
+    final LocalizableMessage fErrorDetails = errorDetails;
     SwingUtilities.invokeLater(new Runnable()
     {
       /**
@@ -1572,7 +1572,7 @@ implements BackendPopulatedListener
       {
         dn = ALL_BASE_DNS;
       }
-      // The following is never true. OTHER_BASE_DN is a Message
+      // The following is never true. OTHER_BASE_DN is a LocalizableMessage
       // Comment out buggy code
       // else if (OTHER_BASE_DN.equals(dn))
       // {
@@ -1774,7 +1774,7 @@ implements BackendPopulatedListener
    */
   class CustomComboBoxCellRenderer extends CustomListCellRenderer
   {
-    private Message ALL_BASE_DNS_STRING = INFO_CTRL_PANEL_ALL_BASE_DNS.get();
+    private LocalizableMessage ALL_BASE_DNS_STRING = INFO_CTRL_PANEL_ALL_BASE_DNS.get();
     /**
      * The constructor.
      * @param combo the combo box to be rendered.

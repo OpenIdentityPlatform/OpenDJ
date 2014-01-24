@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.client;
@@ -30,7 +31,7 @@ package org.opends.server.admin.client;
 
 import static org.opends.messages.AdminMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -80,7 +81,7 @@ public class AuthenticationNotSupportedException
    * @param cause
    *          The cause.
    */
-  public AuthenticationNotSupportedException(Message message, Throwable cause) {
+  public AuthenticationNotSupportedException(LocalizableMessage message, Throwable cause) {
     super(message, cause);
   }
 
@@ -92,7 +93,7 @@ public class AuthenticationNotSupportedException
    * @param message
    *          The message.
    */
-  public AuthenticationNotSupportedException(Message message) {
+  public AuthenticationNotSupportedException(LocalizableMessage message) {
     super(message);
   }
 }

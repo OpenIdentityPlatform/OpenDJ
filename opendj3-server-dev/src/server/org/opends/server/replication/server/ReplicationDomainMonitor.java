@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -32,7 +32,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.MonitorMsg;
@@ -182,7 +182,7 @@ class ReplicationDomainMonitor
               catch (IOException e)
               {
                 // Log a message and do a best effort from here.
-                Message message = ERR_SENDING_REMOTE_MONITOR_DATA_REQUEST.get(
+                LocalizableMessage message = ERR_SENDING_REMOTE_MONITOR_DATA_REQUEST.get(
                     baseDN, serverId, e.getMessage());
                 logError(message);
               }

@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This class defines an exception that may be thrown if a problem
@@ -76,7 +76,7 @@ public final class DirectoryException
    *
    * @see #getMessage() for the message returned to the client
    */
-  private Message maskedMessage;
+  private LocalizableMessage maskedMessage;
 
   /**
    * If set, this is the real result code for this directory exception that
@@ -95,7 +95,7 @@ public final class DirectoryException
    *                         exception.
    */
   public DirectoryException(ResultCode resultCode,
-                            Message errorMessage)
+                            LocalizableMessage errorMessage)
   {
     super(errorMessage);
 
@@ -118,7 +118,7 @@ public final class DirectoryException
    *                         this directory exception.
    */
   public DirectoryException(ResultCode resultCode,
-                            Message errorMessage,
+                            LocalizableMessage errorMessage,
                             Throwable cause)
   {
     super(errorMessage, cause);
@@ -165,7 +165,7 @@ public final class DirectoryException
    *                         this directory exception.
    */
   public DirectoryException(ResultCode resultCode,
-                            Message errorMessage,
+                            LocalizableMessage errorMessage,
                             DN matchedDN, Throwable cause)
   {
     super(errorMessage, cause);
@@ -192,7 +192,7 @@ public final class DirectoryException
    *                         this directory exception.
    */
   public DirectoryException(ResultCode resultCode,
-                            Message errorMessage,
+                            LocalizableMessage errorMessage,
                             DN matchedDN, List<String> referralURLs,
                             Throwable cause)
   {
@@ -249,7 +249,7 @@ public final class DirectoryException
    * @return the real, masked message
    * @see #getMessage() for the message returned to the client
    */
-  public Message getMaskedMessage()
+  public LocalizableMessage getMaskedMessage()
   {
     return maskedMessage;
   }
@@ -273,7 +273,7 @@ public final class DirectoryException
    * @param maskedMessage
    *          the real, masked message to set
    */
-  public void setMaskedMessage(Message maskedMessage)
+  public void setMaskedMessage(LocalizableMessage maskedMessage)
   {
     this.maskedMessage = maskedMessage;
   }

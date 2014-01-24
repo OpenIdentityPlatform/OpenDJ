@@ -65,7 +65,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.CoreMessages;
 import org.opends.messages.JebMessages;
 import org.opends.messages.ReplicationMessages;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.server.tools.ConfigureDS;
@@ -166,7 +166,7 @@ public class InstallerHelper {
         public void processLine(String line)
         {
           LOG.log(Level.WARNING, "import-ldif error log: "+line);
-          application.notifyListeners(Message.raw(line));
+          application.notifyListeners(LocalizableMessage.raw(line));
           application.notifyListeners(application.getLineBreak());
         }
       };
@@ -178,7 +178,7 @@ public class InstallerHelper {
         public void processLine(String line)
         {
           LOG.log(Level.INFO, "import-ldif out log: "+line);
-          application.notifyListeners(Message.raw(line));
+          application.notifyListeners(LocalizableMessage.raw(line));
           application.notifyListeners(application.getLineBreak());
         }
       };
@@ -209,12 +209,12 @@ public class InstallerHelper {
   }
 
   /**
-   * Returns the Message ID that corresponds to a successfully started server.
-   * @return the Message ID that corresponds to a successfully started server.
+   * Returns the LocalizableMessage ID that corresponds to a successfully started server.
+   * @return the LocalizableMessage ID that corresponds to a successfully started server.
    */
   public String getStartedId()
   {
-    return String.valueOf(CoreMessages.NOTE_DIRECTORY_SERVER_STARTED.getId());
+    return String.valueOf(CoreMessages.NOTE_DIRECTORY_SERVER_STARTED.ordinal());
   }
 
   /**
@@ -224,7 +224,7 @@ public class InstallerHelper {
   public void enableWindowsService() throws ApplicationException {
     int code = ConfigureWindowsService.enableService(System.out, System.err);
 
-    Message errorMessage = INFO_ERROR_ENABLING_WINDOWS_SERVICE.get();
+    LocalizableMessage errorMessage = INFO_ERROR_ENABLING_WINDOWS_SERVICE.get();
 
     switch (code) {
       case
@@ -271,7 +271,7 @@ public class InstallerHelper {
       ldifFile.deleteOnExit();
     } catch (IOException ioe)
     {
-      Message failedMsg =
+      LocalizableMessage failedMsg =
               getThrowableMsg(INFO_ERROR_CREATING_TEMP_FILE.get(), ioe);
       throw new ApplicationException(
           ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
@@ -330,7 +330,7 @@ public class InstallerHelper {
     }
     catch (Throwable t)
     {
-      Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
+      LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
               serverDisplay, t.toString());
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, errorMessage,
@@ -397,7 +397,7 @@ public class InstallerHelper {
     }
     catch (Throwable t)
     {
-      Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
+      LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
               serverDisplay, t.toString());
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, errorMessage,
@@ -436,7 +436,7 @@ public class InstallerHelper {
     }
     catch (Throwable t)
     {
-      Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
+      LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
               serverDisplay, t.toString());
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, errorMessage,
@@ -652,7 +652,7 @@ public class InstallerHelper {
     }
     catch (Throwable t)
     {
-      Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
+      LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
               serverDisplay, t.toString());
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, errorMessage,
@@ -765,7 +765,7 @@ public class InstallerHelper {
     }
     catch (Throwable t)
     {
-      Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
+      LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
               serverDisplay, t.toString());
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, errorMessage,
@@ -834,7 +834,7 @@ public class InstallerHelper {
   public boolean isPeersNotFoundError(String logMsg)
   {
     return logMsg.contains("=" + ReplicationMessages.
-        ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.getId());
+        ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.ordinal());
   }
 
   /**
@@ -1216,9 +1216,9 @@ public class InstallerHelper {
     if (msg != null)
     {
       if ((msg.contains("msgID=" + JebMessages
-              .NOTE_JEB_IMPORT_FINAL_STATUS.getId())) ||
+              .NOTE_JEB_IMPORT_FINAL_STATUS.ordinal())) ||
           (msg.contains("msgID=" + JebMessages
-              .NOTE_JEB_IMPORT_PROGRESS_REPORT.getId())))
+              .NOTE_JEB_IMPORT_PROGRESS_REPORT.ordinal())))
       {
         int index = msg.indexOf("msg=");
         if (index != -1)

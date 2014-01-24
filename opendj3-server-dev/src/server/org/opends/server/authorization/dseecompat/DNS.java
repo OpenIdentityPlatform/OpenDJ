@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
@@ -88,7 +88,7 @@ public class DNS implements KeywordBindRule {
     throws AciException
     {
         if (!Pattern.matches(valuesRegExGroup, expr)) {
-            Message message = WARN_ACI_SYNTAX_INVALID_DNS_EXPRESSION.get(expr);
+            LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_DNS_EXPRESSION.get(expr);
             throw new AciException(message);
         }
         List<String> dns = new LinkedList<String>();
@@ -100,7 +100,7 @@ public class DNS implements KeywordBindRule {
             String[] hnArray=hn.split("\\.", -1);
             for(int i=1, n=hnArray.length; i < n; i++) {
                 if(hnArray[i].equals("*")) {
-                    Message message =
+                    LocalizableMessage message =
                         WARN_ACI_SYNTAX_INVALID_DNS_WILDCARD.get(expr);
                     throw new AciException(message);
                 }
@@ -132,14 +132,14 @@ public class DNS implements KeywordBindRule {
                     {
                       dns.add(canonicalName);
 
-                      Message message =
+                      LocalizableMessage message =
                         WARN_ACI_LOCALHOST_DOESNT_MATCH_CANONICAL_VALUE.
                             get(expr, hn, canonicalName);
                       logError(message);
                     }
                     else
                     {
-                      Message message =
+                      LocalizableMessage message =
                         WARN_ACI_HOSTNAME_DOESNT_MATCH_CANONICAL_VALUE.
                             get(expr, hn, addr.getHostAddress(),
                                 addr.getCanonicalHostName());
@@ -155,7 +155,7 @@ public class DNS implements KeywordBindRule {
                   TRACER.debugCaught(DebugLogLevel.ERROR, e);
                 }
 
-                Message message = WARN_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME.
+                LocalizableMessage message = WARN_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME.
                     get(hn, expr, getExceptionMessage(e));
                 logError(message);
               }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -54,8 +54,8 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 
 import org.ietf.jgss.GSSException;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.
   GSSAPISASLMechanismHandlerCfgDefn.QualityOfProtection;
@@ -135,7 +135,7 @@ public class GSSAPISASLMechanismHandler extends
       DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_GSSAPI, this);
       configuration.addGSSAPIChangeListener(this);
       this.configuration = configuration;
-      Message msg = INFO_GSSAPI_STARTED.get();
+      LocalizableMessage msg = INFO_GSSAPI_STARTED.get();
       logError(msg);
     }
     catch (UnknownHostException unhe)
@@ -144,7 +144,7 @@ public class GSSAPISASLMechanismHandler extends
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, unhe);
       }
-      Message message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
+      LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
           .valueOf(configEntryDN), getExceptionMessage(unhe));
       throw new InitializationException(message, unhe);
     }
@@ -154,7 +154,7 @@ public class GSSAPISASLMechanismHandler extends
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
-      Message message = ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG
+      LocalizableMessage message = ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG
           .get(getExceptionMessage(ioe));
       throw new InitializationException(message, ioe);
     }
@@ -181,7 +181,7 @@ public class GSSAPISASLMechanismHandler extends
     if ((kdcAddress != null && realm == null)
         || (kdcAddress == null && realm != null))
     {
-      Message message = ERR_SASLGSSAPI_KDC_REALM_NOT_DEFINED.get();
+      LocalizableMessage message = ERR_SASLGSSAPI_KDC_REALM_NOT_DEFINED.get();
       throw new InitializationException(message);
     }
     else if (kdcAddress != null)
@@ -319,7 +319,7 @@ public class GSSAPISASLMechanismHandler extends
     }
     File keyTabFile = new File(keyTabFilePath);
     if(!keyTabFile.exists()) {
-      Message msg = ERR_SASL_GSSAPI_KEYTAB_INVALID.get(keyTabFilePath);
+      LocalizableMessage msg = ERR_SASL_GSSAPI_KEYTAB_INVALID.get(keyTabFilePath);
       throw new InitializationException(msg);
     }
     w.write("keyTab=\"" + keyTabFile + "\" ");
@@ -339,7 +339,7 @@ public class GSSAPISASLMechanismHandler extends
       principal.append("@").append(realm);
     }
     w.write(principal.toString());
-    Message msg = INFO_GSSAPI_PRINCIPAL_NAME.get(principal.toString());
+    LocalizableMessage msg = INFO_GSSAPI_PRINCIPAL_NAME.get(principal.toString());
     logError(msg);
     w.write("\" isInitiator=false;");
     w.newLine();
@@ -364,7 +364,7 @@ public class GSSAPISASLMechanismHandler extends
     }
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_GSSAPI);
     clearProperties();
-    Message msg = INFO_GSSAPI_STOPPED.get();
+    LocalizableMessage msg = INFO_GSSAPI_STOPPED.get();
     logError(msg);
   }
 
@@ -385,7 +385,7 @@ private void clearProperties() {
     ClientConnection connection = bindOp.getClientConnection();
     if (connection == null)
     {
-      Message message = ERR_SASLGSSAPI_NO_CLIENT_CONNECTION.get();
+      LocalizableMessage message = ERR_SASLGSSAPI_NO_CLIENT_CONNECTION.get();
       bindOp.setAuthFailureReason(message);
       bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
       return;
@@ -398,7 +398,7 @@ private void clearProperties() {
       } catch (SaslException ex) {
         if (debugEnabled())
           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        Message msg;
+        LocalizableMessage msg;
         GSSException gex = (GSSException) ex.getCause();
         if(gex != null) {
           msg = ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_GSSAPI,
@@ -421,7 +421,7 @@ private void clearProperties() {
     {
       if (debugEnabled())
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      Message message = ERR_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT
+      LocalizableMessage message = ERR_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT
             .get(getExceptionMessage(ex));
       // Log a configuration error.
       logError(message);
@@ -442,8 +442,8 @@ private void clearProperties() {
    * @return The message containing the major and (optional) minor codes and
    *         strings.
    */
-  public static Message getGSSExceptionMessage(GSSException gex) {
-    MessageBuilder message = new MessageBuilder();
+  public static LocalizableMessage getGSSExceptionMessage(GSSException gex) {
+    LocalizableMessageBuilder message = new LocalizableMessageBuilder();
     message.append("major code (").append(gex.getMajor()).append(") ")
         .append(gex.getMajorString());
     if(gex.getMinor() != 0)
@@ -481,7 +481,7 @@ private void clearProperties() {
    */
   @Override()
   public boolean isConfigurationAcceptable(
-      SASLMechanismHandlerCfg configuration, List<Message> unacceptableReasons)
+      SASLMechanismHandlerCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     GSSAPISASLMechanismHandlerCfg newConfig =
       (GSSAPISASLMechanismHandlerCfg) configuration;
@@ -495,7 +495,7 @@ private void clearProperties() {
    */
   public boolean isConfigurationChangeAcceptable(
       GSSAPISASLMechanismHandlerCfg newConfiguration,
-      List<Message> unacceptableReasons) {
+      List<LocalizableMessage> unacceptableReasons) {
     boolean isAcceptable = true;
 
     try
@@ -506,7 +506,7 @@ private void clearProperties() {
     {
       if (debugEnabled())
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      Message message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
+      LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
           .valueOf(configEntryDN), getExceptionMessage(ex));
       unacceptableReasons.add(message);
       isAcceptable = false;
@@ -520,7 +520,7 @@ private void clearProperties() {
     }
     File keyTabFile = new File(keyTabFilePath);
     if(!keyTabFile.exists()) {
-      Message message = ERR_SASL_GSSAPI_KEYTAB_INVALID.get(keyTabFilePath);
+      LocalizableMessage message = ERR_SASL_GSSAPI_KEYTAB_INVALID.get(keyTabFilePath);
       unacceptableReasons.add(message);
       if (debugEnabled())
         TRACER.debugError(message.toString());
@@ -532,7 +532,7 @@ private void clearProperties() {
     if ((kdcAddress != null && realm == null)
         || (kdcAddress == null && realm != null))
     {
-      Message message = ERR_SASLGSSAPI_KDC_REALM_NOT_DEFINED.get();
+      LocalizableMessage message = ERR_SASLGSSAPI_KDC_REALM_NOT_DEFINED.get();
       unacceptableReasons.add(message);
       if (debugEnabled())
         TRACER.debugError(message.toString());
@@ -549,7 +549,7 @@ private void clearProperties() {
    */
   public ConfigChangeResult applyConfigurationChange(
       GSSAPISASLMechanismHandlerCfg newConfiguration) {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
     try
@@ -562,14 +562,14 @@ private void clearProperties() {
     catch (InitializationException ex) {
       if (debugEnabled())
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      Message message = ex.getMessageObject();
+      LocalizableMessage message = ex.getMessageObject();
       messages.add(message);
       clearProperties();
       resultCode = ResultCode.OTHER;
     } catch (UnknownHostException ex) {
       if (debugEnabled())
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        Message message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
+        LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
           .valueOf(configEntryDN), getExceptionMessage(ex));
       messages.add(message);
       clearProperties();
@@ -577,7 +577,7 @@ private void clearProperties() {
     } catch (IOException ex) {
       if (debugEnabled())
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      Message message = ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG
+      LocalizableMessage message = ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG
         .get(getExceptionMessage(ex));
       messages.add(message);
       clearProperties();
@@ -605,7 +605,7 @@ throws UnknownHostException, IOException, InitializationException
     DN identityMapperDN = config.getIdentityMapperDN();
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
     serverFQDN = getFQDN(config);
-    Message msg = INFO_GSSAPI_SERVER_FQDN.get(serverFQDN);
+    LocalizableMessage msg = INFO_GSSAPI_SERVER_FQDN.get(serverFQDN);
     logError(msg);
     saslProps = new HashMap<String, String>();
     saslProps.put(Sasl.QOP, getQOP(config));

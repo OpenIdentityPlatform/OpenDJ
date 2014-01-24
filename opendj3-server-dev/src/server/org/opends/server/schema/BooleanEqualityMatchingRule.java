@@ -34,7 +34,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
@@ -157,7 +157,7 @@ class BooleanEqualityMatchingRule
     }
     else
     {
-      Message message = WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(
+      LocalizableMessage message = WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(
               value.toString());
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())

@@ -32,7 +32,7 @@ import static org.testng.Assert.*;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.TestCfg;
@@ -76,7 +76,7 @@ public final class ListenerTest extends AdminTestCase {
      * {@inheritDoc}
      */
     public boolean isConfigurationAddAcceptable(TestParentCfg configuration,
-        List<Message> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
       // No implementation required.
       return false;
     }
@@ -103,7 +103,7 @@ public final class ListenerTest extends AdminTestCase {
      * {@inheritDoc}
      */
     public boolean isConfigurationDeleteAcceptable(TestParentCfg configuration,
-        List<Message> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
       // No implementation required.
       return false;
     }

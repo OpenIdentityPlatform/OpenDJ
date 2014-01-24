@@ -31,9 +31,7 @@ import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
@@ -361,7 +359,7 @@ public final class ECLServerHandler extends ServerHandler
     }
     catch(Exception e)
     {
-      Message message = Message.raw(e.getLocalizedMessage());
+      LocalizableMessage message = LocalizableMessage.raw(e.getLocalizedMessage());
       throw new DirectoryException(ResultCode.OTHER, message);
     }
     return inECLStartMsg.getSSLEncryption();
@@ -481,7 +479,7 @@ public final class ECLServerHandler extends ServerHandler
     }
     catch(Exception e)
     {
-      abortStart(Message.raw(e.getLocalizedMessage()));
+      abortStart(LocalizableMessage.raw(e.getLocalizedMessage()));
     }
     finally
     {
@@ -508,7 +506,7 @@ public final class ECLServerHandler extends ServerHandler
     }
     else if (!(msg instanceof StartECLSessionMsg))
     {
-      Message message = Message.raw(
+      LocalizableMessage message = LocalizableMessage.raw(
           "Protocol error: StartECLSessionMsg required." + msg + " received.");
       abortStart(message);
       return null;
@@ -566,8 +564,7 @@ public final class ECLServerHandler extends ServerHandler
       releaseCursor();
       throw new DirectoryException(
           ResultCode.OPERATIONS_ERROR,
-          Message.raw(Category.SYNC,
-              Severity.FATAL_ERROR,e.getLocalizedMessage()));
+          LocalizableMessage.raw(e.getLocalizedMessage()));
     }
   }
 
@@ -666,7 +663,7 @@ public final class ECLServerHandler extends ServerHandler
     }
 
     // startChangeNumber is greater than the potential newest change number
-    throw new DirectoryException(ResultCode.SUCCESS, Message.raw(""));
+    throw new DirectoryException(ResultCode.SUCCESS, LocalizableMessage.raw(""));
   }
 
   private DBCursor<ChangeNumberIndexRecord> getCursorFrom(
@@ -678,7 +675,7 @@ public final class ECLServerHandler extends ServerHandler
     if (cursor.getRecord() == null)
     {
       close(cursor);
-      throw new ChangelogException(Message.raw("Change Number "
+      throw new ChangelogException(LocalizableMessage.raw("Change Number "
           + startChangeNumber + " is not available in the Changelog"));
     }
     return cursor;
@@ -718,7 +715,7 @@ public final class ECLServerHandler extends ServerHandler
       // FIXME:ECL do not publish internal exception plumb to the client
       throw new DirectoryException(
           ResultCode.OPERATIONS_ERROR,
-          Message.raw(Category.SYNC, Severity.INFORMATION,"Exception raised: " +
+          LocalizableMessage.raw("Exception raised: " +
               e),
               e);
     }
@@ -919,8 +916,7 @@ public final class ECLServerHandler extends ServerHandler
     releaseCursor();
     for (DomainContext domainCtxt : domainCtxts) {
       if (!domainCtxt.unRegisterHandler()) {
-        logError(Message.raw(Category.SYNC, Severity.NOTICE,
-            this + " shutdown() - error when unregistering handler "
+        logError(LocalizableMessage.raw(            this + " shutdown() - error when unregistering handler "
                 + domainCtxt.mh));
       }
       domainCtxt.stopServer();
@@ -1253,7 +1249,7 @@ public final class ECLServerHandler extends ServerHandler
       TRACER.debugCaught(DebugLogLevel.ERROR, e);
       throw new DirectoryException(
           ResultCode.OPERATIONS_ERROR,
-          Message.raw(Category.SYNC, Severity.INFORMATION,"Exception raised: "),
+          LocalizableMessage.raw("Exception raised: "),
           e);
     }
 

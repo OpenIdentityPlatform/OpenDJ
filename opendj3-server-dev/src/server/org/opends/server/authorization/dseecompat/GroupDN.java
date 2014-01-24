@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.Group;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.GroupManager;
@@ -80,7 +80,7 @@ public class GroupDN implements KeywordBindRule {
     public static KeywordBindRule decode(String expr, EnumBindRuleType type)
     throws AciException  {
         if (!Pattern.matches(LDAP_URLS, expr)) {
-            Message message =
+            LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_GROUPDN_EXPRESSION.get(expr);
             throw new AciException(message);
         }
@@ -94,7 +94,7 @@ public class GroupDN implements KeywordBindRule {
                DN dn=LDAPURL.decode(value, true).getBaseDN();
                groupDNs.add(dn);
             } catch (DirectoryException ex) {
-                Message message = WARN_ACI_SYNTAX_INVALID_GROUPDN_URL.get(
+                LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_GROUPDN_URL.get(
                     ex.getMessageObject());
                 throw new AciException(message);
             }

@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.tools.dsreplication;
 
 import static org.opends.messages.AdminToolMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  *
@@ -225,11 +226,11 @@ public enum ReplicationCliReturnCode
       ERR_REPLICATION_NO_MESSAGE.get());
 
 
-  private Message message;
+  private LocalizableMessage message;
   private int returnCode;
 
   // Private constructor.
-  private ReplicationCliReturnCode(int returnCode, Message message)
+  private ReplicationCliReturnCode(int returnCode, LocalizableMessage message)
   {
     this.returnCode = returnCode;
     this.message = message;
@@ -240,7 +241,7 @@ public enum ReplicationCliReturnCode
    *
    * @return The corresponding message.
    */
-  public Message getMessage()
+  public LocalizableMessage getMessage()
   {
     return message;
   }

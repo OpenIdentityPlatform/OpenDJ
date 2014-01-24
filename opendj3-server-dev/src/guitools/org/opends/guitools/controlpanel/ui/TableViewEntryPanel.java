@@ -63,7 +63,7 @@ import org.opends.guitools.controlpanel.task.OnlineUpdateException;
 import org.opends.guitools.controlpanel.ui.renderer.AttributeCellEditor;
 import org.opends.guitools.controlpanel.ui.renderer.LDAPEntryTableCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
@@ -456,8 +456,8 @@ public class TableViewEntryPanel extends ViewEntryPanel
       new TreeSet<AttributeValuePair>(this);
     Set<String> requiredAttrs = new HashSet<String>();
     private final String[] COLUMN_NAMES = new String[] {
-        getHeader(Message.raw("Attribute"), 40),
-        getHeader(Message.raw("Value", 40))};
+        getHeader(LocalizableMessage.raw("Attribute"), 40),
+        getHeader(LocalizableMessage.raw("Value", 40))};
     private int sortColumn = 0;
     private boolean sortAscending = true;
 

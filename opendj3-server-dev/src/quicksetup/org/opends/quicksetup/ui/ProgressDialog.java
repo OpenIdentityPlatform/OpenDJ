@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.awt.Dimension;
@@ -66,13 +66,13 @@ public class ProgressDialog extends JDialog
 
   private JEditorPane detailsTextArea;
 
-  private Message lastText;
+  private LocalizableMessage lastText;
 
   private JFrame parent;
 
   private JButton closeButton;
 
-  private Message panelTitle = INFO_PROGRESS_TITLE.get();
+  private LocalizableMessage panelTitle = INFO_PROGRESS_TITLE.get();
 
   private ProgressMessageFormatter formatter =
     new HtmlProgressMessageFormatter();
@@ -118,7 +118,7 @@ public class ProgressDialog extends JDialog
    * Returns the title of the panel.
    * @return the title of the panel
    */
-  public Message getPanelTitle()
+  public LocalizableMessage getPanelTitle()
   {
     return panelTitle;
   }
@@ -136,7 +136,7 @@ public class ProgressDialog extends JDialog
    * Sets the text in the summary label.  The text can be in HTML format.
    * @param text the text to be set.
    */
-  public void setSummary(Message text)
+  public void setSummary(LocalizableMessage text)
   {
     if (text != null) {
       progressBarLabel.setText(text.toString());
@@ -149,7 +149,7 @@ public class ProgressDialog extends JDialog
    * Sets the text in the details text pane.  The text can be in HTML format.
    * @param text the text to be set.
    */
-  public void setDetails(Message text)
+  public void setDetails(LocalizableMessage text)
   {
     if (text != null) {
       detailsTextArea.setText(text.toString());
@@ -188,7 +188,7 @@ public class ProgressDialog extends JDialog
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.RELATIVE;
 
-    Message title = getPanelTitle();
+    LocalizableMessage title = getPanelTitle();
 
     JLabel l =
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, title,

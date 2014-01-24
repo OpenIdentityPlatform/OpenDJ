@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -105,7 +106,7 @@ public class PresenceTag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<Message> warnings)
+                                  List<LocalizableMessage> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments,  lineNumber);
@@ -130,7 +131,7 @@ public class PresenceTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<Message> warnings)
+                                    int lineNumber, List<LocalizableMessage> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments,  lineNumber);
@@ -157,7 +158,7 @@ public class PresenceTag
 
     if (arguments.length != 1)
     {
-      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(
+      LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(
           getName(), lineNumber, 1, arguments.length);
       throw new InitializationException(message);
     }
@@ -168,20 +169,20 @@ public class PresenceTag
 
       if (percentage < 0)
       {
-        Message message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+        LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
             percentage, 0, getName(), lineNumber);
         throw new InitializationException(message);
       }
       else if (percentage > 100)
       {
-        Message message = ERR_MAKELDIF_TAG_INTEGER_ABOVE_UPPER_BOUND.get(
+        LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_ABOVE_UPPER_BOUND.get(
             percentage, 100, getName(), lineNumber);
         throw new InitializationException(message);
       }
     }
     catch (NumberFormatException nfe)
     {
-      Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+      LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
           arguments[0], getName(), lineNumber);
       throw new InitializationException(message);
     }

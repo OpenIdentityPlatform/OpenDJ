@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -165,7 +166,7 @@ public class SynchronizationProviderConfigManager
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // Attempt to get the existing synchronization provider. This will only
     // succeed if it is currently enabled.
@@ -254,7 +255,7 @@ public class SynchronizationProviderConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
       SynchronizationProviderCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -278,7 +279,7 @@ public class SynchronizationProviderConfigManager
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // Register as a change listener for this synchronization provider entry
     // so that we will be notified if when it is disabled or enabled.
@@ -336,7 +337,7 @@ public class SynchronizationProviderConfigManager
    */
   public boolean isConfigurationAddAcceptable(
       SynchronizationProviderCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -379,7 +380,7 @@ public class SynchronizationProviderConfigManager
     } catch (Exception e)
     {
        // Handle the exception: put a message in the unacceptable reasons.
-       Message message = ERR_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS.
+       LocalizableMessage message = ERR_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS.
            get(String.valueOf(className), String.valueOf(configuration.dn()),
                stackTraceToSingleLineString(e));
        throw new ConfigException(message, e);
@@ -391,7 +392,7 @@ public class SynchronizationProviderConfigManager
     } catch (Exception e)
     {
       // Handle the exception: put a message in the unacceptable reasons.
-      Message message = ERR_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER.
+      LocalizableMessage message = ERR_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER.
           get(String.valueOf(className), String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
@@ -410,7 +411,7 @@ public class SynchronizationProviderConfigManager
       {}
 
       // Handle the exception: put a message in the unacceptable reasons.
-      Message message = ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
+      LocalizableMessage message = ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
               String.valueOf(className), String.valueOf(configuration.dn()));
       throw new ConfigException(message, e);
     }
@@ -430,7 +431,7 @@ public class SynchronizationProviderConfigManager
    */
   private boolean isJavaClassAcceptable(
       SynchronizationProviderCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     String className = configuration.getJavaClass();
     SynchronizationProviderCfgDefn d =
@@ -448,7 +449,7 @@ public class SynchronizationProviderConfigManager
     } catch (Exception e)
     {
        // Handle the exception: put a message in the unacceptable reasons.
-       Message message = ERR_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS.get(
+       LocalizableMessage message = ERR_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS.get(
                String.valueOf(className),
                String.valueOf(configuration.dn()),
                stackTraceToSingleLineString(e));
@@ -474,7 +475,7 @@ public class SynchronizationProviderConfigManager
     } catch (Exception e)
     {
       // Handle the exception: put a message in the unacceptable reasons.
-      Message message = ERR_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER.get(
+      LocalizableMessage message = ERR_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER.get(
               String.valueOf(className),
               String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));
@@ -515,7 +516,7 @@ public class SynchronizationProviderConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
       SynchronizationProviderCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // A delete should always be acceptable, so just return true.
     return true;

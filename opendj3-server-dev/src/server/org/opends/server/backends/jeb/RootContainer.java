@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import com.sleepycat.je.config.EnvironmentParams;
 import com.sleepycat.je.config.ConfigParam;
 import com.sleepycat.je.*;
@@ -155,7 +155,7 @@ public class RootContainer
     {
       if(!backendDirectory.mkdirs())
       {
-        Message message =
+        LocalizableMessage message =
           ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath());
         throw new ConfigException(message);
       }
@@ -163,7 +163,7 @@ public class RootContainer
     //Make sure the directory is valid.
     else if (!backendDirectory.isDirectory())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
       throw new ConfigException(message);
     }
@@ -176,7 +176,7 @@ public class RootContainer
     }
     catch(Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn().toString());
       throw new ConfigException(message);
     }
@@ -187,7 +187,7 @@ public class RootContainer
         !backendPermission.isOwnerReadable() ||
         !backendPermission.isOwnerExecutable())
     {
-      Message message = ERR_CONFIG_BACKEND_INSANE_MODE.get(
+      LocalizableMessage message = ERR_CONFIG_BACKEND_INSANE_MODE.get(
           config.getDBDirectoryPermissions());
       throw new ConfigException(message);
     }
@@ -199,7 +199,7 @@ public class RootContainer
       {
         if(!FilePermission.setPermissions(backendDirectory, backendPermission))
         {
-          Message message = WARN_JEB_UNABLE_SET_PERMISSIONS.get(
+          LocalizableMessage message = WARN_JEB_UNABLE_SET_PERMISSIONS.get(
               backendPermission.toString(), backendDirectory.toString());
           logError(message);
         }
@@ -207,7 +207,7 @@ public class RootContainer
       catch(Exception e)
       {
         // Log an warning that the permissions were not set.
-        Message message = WARN_JEB_SET_PERMISSIONS_FAILED.get(
+        LocalizableMessage message = WARN_JEB_SET_PERMISSIONS_FAILED.get(
             backendDirectory.toString(), e.toString());
         logError(message);
       }
@@ -299,7 +299,7 @@ public class RootContainer
     // another to be opened.
     if (ec1 != null)
     {
-      Message m = ERR_JEB_ENTRY_CONTAINER_ALREADY_REGISTERED.get(
+      LocalizableMessage m = ERR_JEB_ENTRY_CONTAINER_ALREADY_REGISTERED.get(
         ec1.getDatabasePrefix(), baseDN.toString());
       throw new InitializationException(m);
     }
@@ -414,7 +414,7 @@ public class RootContainer
         PreloadConfig preloadConfig = new PreloadConfig();
         preloadConfig.setLoadLNs(true);
 
-        Message message =
+        LocalizableMessage message =
             NOTE_JEB_CACHE_PRELOAD_STARTED.get(backend.getBackendID());
         logError(message);
 
@@ -489,7 +489,7 @@ public class RootContainer
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
           ERR_JEB_CACHE_PRELOAD.get(backend.getBackendID(),
           (e.getCause() != null ? e.getCause().getMessage() :
             stackTraceToSingleLineString(e)));
@@ -700,7 +700,7 @@ public class RootContainer
    */
   public boolean isConfigurationChangeAcceptable(
       LocalDBBackendCfg cfg,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     boolean acceptable = true;
 
@@ -712,7 +712,7 @@ public class RootContainer
     {
       if(!backendDirectory.mkdirs())
       {
-        Message message =
+        LocalizableMessage message =
           ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath());
         unacceptableReasons.add(message);
         acceptable = false;
@@ -725,7 +725,7 @@ public class RootContainer
     //Make sure the directory is valid.
     else if (!backendDirectory.isDirectory())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
       unacceptableReasons.add(message);
       acceptable = false;
@@ -742,7 +742,7 @@ public class RootContainer
           !newBackendPermission.isOwnerReadable() ||
           !newBackendPermission.isOwnerExecutable())
       {
-        Message message = ERR_CONFIG_BACKEND_INSANE_MODE.get(
+        LocalizableMessage message = ERR_CONFIG_BACKEND_INSANE_MODE.get(
             cfg.getDBDirectoryPermissions());
         unacceptableReasons.add(message);
         acceptable = false;
@@ -750,7 +750,7 @@ public class RootContainer
     }
     catch(Exception e)
     {
-      Message message =
+      LocalizableMessage message =
               ERR_CONFIG_BACKEND_MODE_INVALID.get(cfg.dn().toString());
       unacceptableReasons.add(message);
       acceptable = false;
@@ -762,7 +762,7 @@ public class RootContainer
     }
     catch (Exception e)
     {
-      unacceptableReasons.add(Message.raw(e.getLocalizedMessage()));
+      unacceptableReasons.add(LocalizableMessage.raw(e.getLocalizedMessage()));
       acceptable = false;
     }
 
@@ -778,7 +778,7 @@ public class RootContainer
   {
     ConfigChangeResult ccr;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     try
     {
@@ -942,7 +942,7 @@ public class RootContainer
             if(!FilePermission.setPermissions(backendDirectory,
                 backendPermission))
             {
-              Message message = WARN_JEB_UNABLE_SET_PERMISSIONS.get(
+              LocalizableMessage message = WARN_JEB_UNABLE_SET_PERMISSIONS.get(
                   backendPermission.toString(), backendDirectory.toString());
               logError(message);
             }
@@ -950,7 +950,7 @@ public class RootContainer
           catch(Exception e)
           {
             // Log an warning that the permissions were not set.
-            Message message = WARN_JEB_SET_PERMISSIONS_FAILED.get(
+            LocalizableMessage message = WARN_JEB_SET_PERMISSIONS_FAILED.get(
                 backendDirectory.toString(), e.toString());
             logError(message);
           }
@@ -966,7 +966,7 @@ public class RootContainer
     }
     catch (Exception e)
     {
-      messages.add(Message.raw(stackTraceToSingleLineString(e)));
+      messages.add(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
       ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
                                    adminActionRequired,
                                    messages);

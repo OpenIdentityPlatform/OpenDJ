@@ -32,7 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.*;
@@ -169,7 +169,7 @@ public class ReplicationBackend extends Backend
   {
     if ((baseDNs == null) || (baseDNs.length != 1))
     {
-      Message message = ERR_MEMORYBACKEND_REQUIRE_EXACTLY_ONE_BASE.get();
+      LocalizableMessage message = ERR_MEMORYBACKEND_REQUIRE_EXACTLY_ONE_BASE.get();
       throw new ConfigException(message);
     }
 
@@ -191,7 +191,7 @@ public class ReplicationBackend extends Backend
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+        LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
             dn.toString(), getExceptionMessage(e));
         throw new InitializationException(message, e);
       }
@@ -360,7 +360,7 @@ public class ReplicationBackend extends Backend
   public synchronized void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    Message message = ERR_BACKUP_ADD_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_BACKUP_ADD_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -374,7 +374,7 @@ public class ReplicationBackend extends Backend
                                        DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    Message message = ERR_BACKUP_DELETE_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_BACKUP_DELETE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -388,7 +388,7 @@ public class ReplicationBackend extends Backend
                                         ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    Message message = ERR_BACKUP_MODIFY_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_BACKUP_MODIFY_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -402,7 +402,7 @@ public class ReplicationBackend extends Backend
                                        ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    Message message = ERR_BACKUP_MODIFY_DN_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_BACKUP_MODIFY_DN_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -449,7 +449,7 @@ public class ReplicationBackend extends Backend
   throws DirectoryException
   {
     if(server == null) {
-       Message message = ERR_REPLICATONBACKEND_EXPORT_LDIF_FAILED.get();
+       LocalizableMessage message = ERR_REPLICATONBACKEND_EXPORT_LDIF_FAILED.get();
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,message);
     }
 
@@ -477,7 +477,7 @@ public class ReplicationBackend extends Backend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
         ERR_BACKEND_CANNOT_CREATE_LDIF_WRITER.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           message, e);
@@ -512,7 +512,7 @@ public class ReplicationBackend extends Backend
       rate = 1000f*exportedCount / totalTime;
     }
 
-    Message message = NOTE_JEB_EXPORT_FINAL_STATUS.get(
+    LocalizableMessage message = NOTE_JEB_EXPORT_FINAL_STATUS.get(
         exportedCount, skippedCount, totalTime/1000, rate);
     logError(message);
   }
@@ -884,7 +884,7 @@ public class ReplicationBackend extends Backend
 
       final String dnStr = (dn != null) ? dn.toNormalizedString() : "Unknown";
 
-      Message message;
+      LocalizableMessage message;
       if (isExport)
       {
         message = ERR_BACKEND_EXPORT_ENTRY.get(dnStr, String.valueOf(e));
@@ -965,7 +965,7 @@ public class ReplicationBackend extends Backend
   public synchronized LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    Message message = ERR_REPLICATONBACKEND_IMPORT_LDIF_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_REPLICATONBACKEND_IMPORT_LDIF_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -1111,7 +1111,7 @@ public class ReplicationBackend extends Backend
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      Message message =
+      LocalizableMessage message =
           NOTE_JEB_EXPORT_PROGRESS_REPORT.get(latestCount, skippedCount, rate);
       logError(message);
 
@@ -1175,7 +1175,7 @@ public class ReplicationBackend extends Backend
         matchedDN = matchedDN.getParentDNInSuffix();
       }
 
-      Message message = ERR_REPLICATIONBACKEND_ENTRY_DOESNT_EXIST.
+      LocalizableMessage message = ERR_REPLICATIONBACKEND_ENTRY_DOESNT_EXIST.
         get(String.valueOf(searchBaseDN));
       throw new DirectoryException(
           ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
@@ -1188,7 +1188,7 @@ public class ReplicationBackend extends Backend
       {
         if (!baseDNSet.contains(searchBaseDN))
         {
-          Message message = ERR_REPLICATIONBACKEND_ENTRY_DOESNT_EXIST.get(
+          LocalizableMessage message = ERR_REPLICATIONBACKEND_ENTRY_DOESNT_EXIST.get(
               String.valueOf(searchBaseDN));
           throw new DirectoryException(
               ResultCode.NO_SUCH_OBJECT, message, null, null);

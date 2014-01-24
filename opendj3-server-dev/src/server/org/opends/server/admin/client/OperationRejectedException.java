@@ -35,8 +35,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.util.Reject;
 
 
@@ -84,7 +84,7 @@ public class OperationRejectedException extends AdminClientException {
 
 
   // Gets the default message.
-  private static Message getDefaultMessage(Collection<Message> messages) {
+  private static LocalizableMessage getDefaultMessage(Collection<LocalizableMessage> messages) {
     Reject.ifNull(messages);
     Reject.ifFalse(!messages.isEmpty());
 
@@ -100,14 +100,14 @@ public class OperationRejectedException extends AdminClientException {
 
 
   // Merge the messages into a single message.
-  private static Message getSingleMessage(Collection<Message> messages) {
+  private static LocalizableMessage getSingleMessage(Collection<LocalizableMessage> messages) {
     if (messages.size() == 1) {
       return messages.iterator().next();
     } else {
-      MessageBuilder builder = new MessageBuilder();
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
       boolean isFirst = true;
-      for (Message m : messages) {
+      for (LocalizableMessage m : messages) {
         if (!isFirst) {
           builder.append(";  ");
         }
@@ -120,14 +120,14 @@ public class OperationRejectedException extends AdminClientException {
   }
 
   // The messages describing the constraint violations that occurred.
-  private final Collection<Message> messages;
+  private final Collection<LocalizableMessage> messages;
 
   // The type of operation that caused this exception.
   private final OperationType type;
 
   // The user friendly name of the component that caused this
   // exception.
-  private final Message ufn;
+  private final LocalizableMessage ufn;
 
 
 
@@ -141,7 +141,7 @@ public class OperationRejectedException extends AdminClientException {
    *          The user friendly name of the component that caused this
    *          exception.
    */
-  public OperationRejectedException(OperationType type, Message ufn) {
+  public OperationRejectedException(OperationType type, LocalizableMessage ufn) {
     this(type, ufn, ERR_OPERATION_REJECTED_DEFAULT.get());
   }
 
@@ -161,11 +161,11 @@ public class OperationRejectedException extends AdminClientException {
    *          occurred (must be non-<code>null</code> and
    *          non-empty).
    */
-  public OperationRejectedException(OperationType type, Message ufn,
-      Collection<Message> messages) {
+  public OperationRejectedException(OperationType type, LocalizableMessage ufn,
+      Collection<LocalizableMessage> messages) {
     super(getDefaultMessage(messages));
 
-    this.messages = new ArrayList<Message>(messages);
+    this.messages = new ArrayList<LocalizableMessage>(messages);
     this.type = type;
     this.ufn = ufn;
   }
@@ -185,8 +185,8 @@ public class OperationRejectedException extends AdminClientException {
    *          The message describing the constraint violation that
    *          occurred.
    */
-  public OperationRejectedException(OperationType type, Message ufn,
-      Message message) {
+  public OperationRejectedException(OperationType type, LocalizableMessage ufn,
+      LocalizableMessage message) {
     this(type, ufn, Collections.singleton(message));
   }
 
@@ -199,7 +199,7 @@ public class OperationRejectedException extends AdminClientException {
    * @return Returns an unmodifiable collection view of the messages
    *         describing the constraint violations that occurred.
    */
-  public Collection<Message> getMessages() {
+  public Collection<LocalizableMessage> getMessages() {
     return Collections.unmodifiableCollection(messages);
   }
 
@@ -212,7 +212,7 @@ public class OperationRejectedException extends AdminClientException {
    * @return Returns a single message listing all the messages
    *         combined into a single list separated by semi-colons.
    */
-  public Message getMessagesAsSingleMessage() {
+  public LocalizableMessage getMessagesAsSingleMessage() {
     return getSingleMessage(messages);
   }
 
@@ -236,7 +236,7 @@ public class OperationRejectedException extends AdminClientException {
    * @return Returns the user friendly name of the component that
    *         caused this exception.
    */
-  public Message getUserFriendlyName() {
+  public LocalizableMessage getUserFriendlyName() {
     return ufn;
   }
 

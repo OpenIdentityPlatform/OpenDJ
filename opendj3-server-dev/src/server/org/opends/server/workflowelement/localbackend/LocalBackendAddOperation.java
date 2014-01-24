@@ -39,8 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.*;
@@ -424,7 +424,7 @@ public class LocalBackendAddOperation
       if (backend == null)
       {
         setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(Message.raw("No backend for entry "
+        appendErrorMessage(LocalizableMessage.raw("No backend for entry "
             + entryDN.toString())); // TODO: i18n
         return;
       }
@@ -617,7 +617,7 @@ public class LocalBackendAddOperation
   }
 
   private DirectoryException newDirectoryException(DN entryDN,
-      ResultCode resultCode, Message message) throws DirectoryException
+      ResultCode resultCode, LocalizableMessage message) throws DirectoryException
   {
     return LocalBackendWorkflowElement.newDirectoryException(this, null,
         entryDN, resultCode, message, ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -625,7 +625,7 @@ public class LocalBackendAddOperation
   }
 
   private void setResultCodeAndMessageNoInfoDisclosure(DN entryDN,
-      ResultCode resultCode, Message message) throws DirectoryException
+      ResultCode resultCode, LocalizableMessage message) throws DirectoryException
   {
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
         null, entryDN, resultCode, message,
@@ -831,7 +831,7 @@ public class LocalBackendAddOperation
     {
       // This must mean there are attribute options, which we won't allow for
       // passwords.
-      Message message = ERR_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED.get(
+      LocalizableMessage message = ERR_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED.get(
           passwordAttribute.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -839,7 +839,7 @@ public class LocalBackendAddOperation
     Attribute passwordAttr = attrList.get(0);
     if (passwordAttr.hasOptions())
     {
-      Message message = ERR_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED.get(
+      LocalizableMessage message = ERR_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED.get(
           passwordAttribute.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -858,7 +858,7 @@ public class LocalBackendAddOperation
       // same?
       addPWPolicyControl(PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED);
 
-      Message message = ERR_PWPOLICY_MULTIPLE_PW_VALUES_NOT_ALLOWED
+      LocalizableMessage message = ERR_PWPOLICY_MULTIPLE_PW_VALUES_NOT_ALLOWED
           .get(passwordAttribute.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -887,7 +887,7 @@ public class LocalBackendAddOperation
             addPWPolicyControl(
                  PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
 
-            Message message = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(
+            LocalizableMessage message = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(
                 passwordAttribute.getNameOrOID());
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
@@ -909,7 +909,7 @@ public class LocalBackendAddOperation
             addPWPolicyControl(
                  PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
 
-            Message message = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(
+            LocalizableMessage message = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(
                 passwordAttribute.getNameOrOID());
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
@@ -924,7 +924,7 @@ public class LocalBackendAddOperation
       {
         // There are never any current passwords for an add operation.
         HashSet<ByteString> currentPasswords = new HashSet<ByteString>(0);
-        MessageBuilder invalidReason = new MessageBuilder();
+        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         // Work on a copy of the entry without the password to avoid
         // false positives from some validators.
         copy.removeAttribute(passwordAttribute);
@@ -937,7 +937,7 @@ public class LocalBackendAddOperation
             addPWPolicyControl(
                  PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
 
-            Message message = ERR_PWPOLICY_VALIDATION_FAILED.
+            LocalizableMessage message = ERR_PWPOLICY_VALIDATION_FAILED.
                 get(passwordAttribute.getNameOrOID(),
                     String.valueOf(invalidReason));
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
@@ -1026,14 +1026,14 @@ public class LocalBackendAddOperation
    */
   private void checkSchema(Entry parentEntry) throws DirectoryException
   {
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     if (! entry.conformsToSchema(parentEntry, true, true, true, invalidReason))
     {
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
                                    invalidReason.toMessage());
     }
 
-    invalidReason = new MessageBuilder();
+    invalidReason = new LocalizableMessageBuilder();
     checkAttributes(invalidReason, userAttributes);
     checkAttributes(invalidReason, operationalAttributes);
 
@@ -1075,7 +1075,7 @@ public class LocalBackendAddOperation
   }
 
 
-  private void checkAttributes(MessageBuilder invalidReason,
+  private void checkAttributes(LocalizableMessageBuilder invalidReason,
       Map<AttributeType, List<Attribute>> attributes) throws DirectoryException
   {
     for (List<Attribute> attrList : attributes.values())
@@ -1089,7 +1089,7 @@ public class LocalBackendAddOperation
           {
             if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
             {
-              Message message;
+              LocalizableMessage message;
               if (!syntax.isHumanReadable() || syntax.isBinary())
               {
                 // Value is not human-readable

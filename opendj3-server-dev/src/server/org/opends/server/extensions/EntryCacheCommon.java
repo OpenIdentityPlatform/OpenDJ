@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -34,8 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.SortedSet;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageDescriptor;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
@@ -85,10 +86,10 @@ public class EntryCacheCommon
     private EntryCacheCommon.ConfigPhase _configPhase;
 
     // Unacceptable reasons. Used when _configPhase is PHASE_ACCEPTABLE.
-    private List<Message> _unacceptableReasons;
+    private List<LocalizableMessage> _unacceptableReasons;
 
     // Error messages. Used when _configPhase is PHASE_APPLY.
-    private ArrayList<Message> _errorMessages;
+    private ArrayList<LocalizableMessage> _errorMessages;
 
     // Result code. Used when _configPhase is PHASE_APPLY.
     private ResultCode _resultCode;
@@ -113,8 +114,8 @@ public class EntryCacheCommon
      */
     public ConfigErrorHandler (
         EntryCacheCommon.ConfigPhase configPhase,
-        List<Message> unacceptableReasons,
-        ArrayList<Message>            errorMessages
+        List<LocalizableMessage> unacceptableReasons,
+        ArrayList<LocalizableMessage>            errorMessages
         )
     {
       _configPhase           = configPhase;
@@ -133,7 +134,7 @@ public class EntryCacheCommon
      * @param resultCode   the change result for the current configuration
      */
     public void reportError(
-            Message error,
+            LocalizableMessage error,
             boolean isAcceptable,
             ResultCode resultCode
     )
@@ -175,7 +176,7 @@ public class EntryCacheCommon
      *                              is required or <code>false</code> otherwise
      */
     public void reportError(
-            Message error,
+            LocalizableMessage error,
             boolean isAcceptable,
             ResultCode resultCode,
             boolean isAdminActionRequired
@@ -236,7 +237,7 @@ public class EntryCacheCommon
      *
      * @return the list of unacceptable reasons
      */
-    public List<Message> getUnacceptableReasons()
+    public List<LocalizableMessage> getUnacceptableReasons()
     {
       return _unacceptableReasons;
     }
@@ -247,7 +248,7 @@ public class EntryCacheCommon
      *
      * @return the list of error messages
      */
-    public ArrayList<Message> getErrorMessages()
+    public ArrayList<LocalizableMessage> getErrorMessages()
     {
       return _errorMessages;
     }
@@ -290,7 +291,7 @@ public class EntryCacheCommon
    */
   public static HashSet<SearchFilter> getFilters (
       SortedSet<String>       filters,
-      MessageDescriptor.Arg3<CharSequence, CharSequence, CharSequence>
+      LocalizableMessageDescriptor.Arg3<CharSequence, CharSequence, CharSequence>
                               decodeErrorMsg,
       ConfigErrorHandler      errorHandler,
       DN                      configEntryDN
@@ -311,7 +312,7 @@ public class EntryCacheCommon
         catch (DirectoryException de)
         {
           // We couldn't decode this filter. Report an error and continue.
-          Message message = decodeErrorMsg.get(String.valueOf(configEntryDN),
+          LocalizableMessage message = decodeErrorMsg.get(String.valueOf(configEntryDN),
             curFilter, (de.getMessage() != null ? de.getMessage() :
               stackTraceToSingleLineString(de)));
           errorHandler.reportError(message, false,
@@ -339,8 +340,8 @@ public class EntryCacheCommon
    */
   public static ConfigErrorHandler getConfigErrorHandler (
       EntryCacheCommon.ConfigPhase  configPhase,
-      List<Message> unacceptableReasons,
-      ArrayList<Message>             errorMessages
+      List<LocalizableMessage> unacceptableReasons,
+      ArrayList<LocalizableMessage>             errorMessages
       )
   {
     ConfigErrorHandler errorHandler = null;

@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 
@@ -51,6 +51,6 @@ public interface TLSCapableConnection
    * @return  <CODE>true</CODE> if TLS is available on the underlying client
    *          connection, or <CODE>false</CODE> if it is not.
    */
-  public boolean prepareTLS(MessageBuilder unavailableReason);
+  public boolean prepareTLS(LocalizableMessageBuilder unavailableReason);
 }
 

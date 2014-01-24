@@ -32,7 +32,7 @@ import static org.opends.server.authorization.dseecompat.Aci.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.SearchScope;
@@ -252,7 +252,7 @@ public class AciTargets {
         while (targetMatcher.find())
         {
             if (targetMatcher.groupCount() != targetElementCount) {
-                Message message =
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_TARGET_SYNTAX.get(input);
                 throw new AciException(message);
             }
@@ -260,7 +260,7 @@ public class AciTargets {
             EnumTargetKeyword targetKeyword  =
                 EnumTargetKeyword.createKeyword(keyword);
             if (targetKeyword == null) {
-                Message message =
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_TARGET_KEYWORD.get(keyword);
                 throw new AciException(message);
             }
@@ -269,7 +269,7 @@ public class AciTargets {
             EnumTargetOperator targetOperator =
                 EnumTargetOperator.createOperator(operator);
             if (targetOperator == null) {
-                Message message =
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_TARGETS_OPERATOR.get(operator);
                 throw new AciException(message);
             }
@@ -283,7 +283,7 @@ public class AciTargets {
                 }
                 else
                 {
-                  Message message =
+                  LocalizableMessage message =
                           WARN_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS.
                                   get("target", input);
                   throw new AciException(message);
@@ -298,7 +298,7 @@ public class AciTargets {
               }
               else
               {
-                Message message =
+                LocalizableMessage message =
                         WARN_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS.
                                 get("targetcontrol", input);
                 throw new AciException(message);
@@ -312,7 +312,7 @@ public class AciTargets {
               }
               else
               {
-                Message message =
+                LocalizableMessage message =
                         WARN_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS.
                                 get("extop", input);
                 throw new AciException(message);
@@ -326,7 +326,7 @@ public class AciTargets {
                             expression);
                 }
                 else {
-                  Message message =
+                  LocalizableMessage message =
                           WARN_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS.
                                   get("targetattr", input);
                   throw new AciException(message);
@@ -337,7 +337,7 @@ public class AciTargets {
             {
                 // Check the operator for the targetscope is EQUALITY
                 if (targetOperator == EnumTargetOperator.NOT_EQUALITY) {
-                    Message message =
+                    LocalizableMessage message =
                             WARN_ACI_SYNTAX_INVALID_TARGET_NOT_OPERATOR.
                               get(operator, targetKeyword.name());
                     throw new AciException(message);
@@ -352,7 +352,7 @@ public class AciTargets {
                             expression);
                 }
                 else {
-                  Message message =
+                  LocalizableMessage message =
                           WARN_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS.
                                   get("targetfilter", input);
                   throw new AciException(message);
@@ -364,7 +364,7 @@ public class AciTargets {
                 if (targAttrFilters == null){
                     // Check the operator for the targattrfilters is EQUALITY
                     if (targetOperator == EnumTargetOperator.NOT_EQUALITY) {
-                      Message message =
+                      LocalizableMessage message =
                               WARN_ACI_SYNTAX_INVALID_TARGET_NOT_OPERATOR.
                                       get(operator, targetKeyword.name());
                       throw new AciException(message);
@@ -373,7 +373,7 @@ public class AciTargets {
                             expression);
                 }
                 else {
-                  Message message =
+                  LocalizableMessage message =
                           WARN_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS.
                                   get("targattrfilters", input);
                   throw new AciException(message);
@@ -406,7 +406,7 @@ public class AciTargets {
         else if(expression.equalsIgnoreCase("subordinate"))
             return SearchScope.SUBORDINATE_SUBTREE;
         else {
-            Message message =
+            LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_TARGETSCOPE_EXPRESSION.get(expression);
             throw new AciException(message);
         }

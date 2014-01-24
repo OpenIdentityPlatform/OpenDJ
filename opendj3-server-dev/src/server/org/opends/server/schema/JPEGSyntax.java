@@ -48,8 +48,8 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -236,7 +236,7 @@ public class JPEGSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // anything is acceptable if we're not strict.
     if (!config.isStrictFormat())
@@ -278,7 +278,7 @@ public class JPEGSyntax
    */
   public boolean isConfigurationChangeAcceptable(
                       JPEGAttributeSyntaxCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // The configuration will always be acceptable.
     return true;

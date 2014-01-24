@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
 
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -335,7 +335,7 @@ public class DefaultEntryCache
   @Override
   public boolean isConfigurationChangeAcceptable(
       EntryCacheCfg configuration,
-      List<Message> unacceptableReasons
+      List<LocalizableMessage> unacceptableReasons
       )
   {
     // No implementation required.
@@ -354,7 +354,7 @@ public class DefaultEntryCache
   {
     // No implementation required.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<Message>()
+        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
         );
 
     return changeResult;

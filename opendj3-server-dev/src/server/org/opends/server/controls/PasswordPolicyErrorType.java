@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -32,7 +33,7 @@ import static org.opends.messages.ProtocolMessages.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -149,7 +150,7 @@ public enum PasswordPolicyErrorType
   private int value;
 
   // The message ID for the description of this password policy error type.
-  private Message description;
+  private LocalizableMessage description;
 
 
 
@@ -163,7 +164,7 @@ public enum PasswordPolicyErrorType
    * @param  description    The message for the description of this password
    *                        policy error type.
    */
-  private PasswordPolicyErrorType(int value, Message description)
+  private PasswordPolicyErrorType(int value, LocalizableMessage description)
   {
     this.value         = value;
     this.description   = description;

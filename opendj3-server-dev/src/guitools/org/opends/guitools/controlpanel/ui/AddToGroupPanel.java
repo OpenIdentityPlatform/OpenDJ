@@ -60,7 +60,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
@@ -136,7 +136,7 @@ public class AddToGroupPanel extends StatusGenericPanel
    */
   public void okClicked()
   {
-    final ArrayList<Message> errors = new ArrayList<Message>();
+    final ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
       /**
@@ -178,7 +178,7 @@ public class AddToGroupPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_ADD_TO_GROUP_TITLE.get();
   }
@@ -206,7 +206,7 @@ public class AddToGroupPanel extends StatusGenericPanel
         INFO_CTRL_PANEL_ADD_TO_GROUP_ENTRIES_LABEL.get());
     add(l, gbc);
     gbc.insets.top = 5;
-    entries = Utilities.createNonEditableTextArea(Message.EMPTY, 6, 40);
+    entries = Utilities.createNonEditableTextArea(LocalizableMessage.EMPTY, 6, 40);
     scrollEntries = Utilities.createScrollPane(entries);
     gbc.weighty = 0.1;
     gbc.fill = GridBagConstraints.BOTH;
@@ -223,7 +223,7 @@ public class AddToGroupPanel extends StatusGenericPanel
     add(lGroups, gbc);
     gbc.insets.top = 5;
     gbc.gridwidth = 1;
-    groups = Utilities.createTextArea(Message.EMPTY, 8, 40);
+    groups = Utilities.createTextArea(LocalizableMessage.EMPTY, 8, 40);
     JScrollPane scrollGroups = Utilities.createScrollPane(groups);
     gbc.weightx = 1.0;
     gbc.weighty = 1.0;
@@ -361,7 +361,7 @@ public class AddToGroupPanel extends StatusGenericPanel
     }
   }
 
-  private void updateErrors(List<Message> errors)
+  private void updateErrors(List<LocalizableMessage> errors)
   {
     SwingUtilities.invokeLater(new Runnable()
     {
@@ -427,7 +427,7 @@ public class AddToGroupPanel extends StatusGenericPanel
     }
   }
 
-  private void handleErrorsAndLaunchTask(ArrayList<Message> errors)
+  private void handleErrorsAndLaunchTask(ArrayList<LocalizableMessage> errors)
   {
     if (errors.size() == 0)
     {

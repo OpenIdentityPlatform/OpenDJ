@@ -26,7 +26,7 @@
  */
 package org.opends.server.protocols.asn1;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -62,7 +62,7 @@ public final class ASN1Exception
    *
    * @param  message    The message that explains the problem that occurred.
    */
-  public ASN1Exception(Message message)
+  public ASN1Exception(LocalizableMessage message)
   {
     super(message);
   }
@@ -76,7 +76,7 @@ public final class ASN1Exception
    * @param  message    The message that explains the problem that occurred.
    * @param  cause      The exception that was caught to trigger this exception.
    */
-  public ASN1Exception(Message message, Throwable cause)
+  public ASN1Exception(LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
   }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  *
  */
 package org.opends.server.protocols.ldap;
@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
@@ -155,7 +155,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
     // dynamically loaded from the configuration. Rather, it should be
     // explicitly created and registered by the LDAP connection handler
     // or an LDAP client connection.
-    Message message =
+    LocalizableMessage message =
         ERR_LDAP_STATS_INVALID_MONITOR_INITIALIZATION.get(String
             .valueOf(configuration.dn()));
     throw new ConfigException(message);

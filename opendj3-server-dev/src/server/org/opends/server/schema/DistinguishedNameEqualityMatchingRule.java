@@ -36,7 +36,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -190,7 +190,7 @@ class DistinguishedNameEqualityMatchingRule
       if (DirectoryServer.getSyntaxEnforcementPolicy() ==
           AcceptRejectWarn.REJECT)
       {
-        Message message = ERR_ATTR_SYNTAX_DN_INVALID.get(
+        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID.get(
             value.toString(), String.valueOf(e));
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                      message);

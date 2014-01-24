@@ -30,8 +30,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
@@ -244,7 +244,7 @@ public class LocalBackendModifyDNOperation
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message =
+              LocalizableMessage message =
                   ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER
                       .get(getExceptionMessage(e));
               logError(message);
@@ -538,7 +538,7 @@ public class LocalBackendModifyDNOperation
   }
 
   private DirectoryException newDirectoryException(Entry entry,
-      ResultCode resultCode, Message message) throws DirectoryException
+      ResultCode resultCode, LocalizableMessage message) throws DirectoryException
   {
     return LocalBackendWorkflowElement.newDirectoryException(this, entry, null,
         resultCode, message, ResultCode.NO_SUCH_OBJECT,
@@ -546,7 +546,7 @@ public class LocalBackendModifyDNOperation
   }
 
   private void setResultCodeAndMessageNoInfoDisclosure(Entry entry, DN entryDN,
-      ResultCode realResultCode, Message realMessage) throws DirectoryException
+      ResultCode realResultCode, LocalizableMessage realMessage) throws DirectoryException
   {
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
         entry, entryDN, realResultCode, realMessage, ResultCode.NO_SUCH_OBJECT,
@@ -835,7 +835,7 @@ public class LocalBackendModifyDNOperation
     // as per the server schema.
     if ((DirectoryServer.checkSchema()) && (! isSynchronizationOperation()))
     {
-      MessageBuilder invalidReason = new MessageBuilder();
+      LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       if (! newEntry.conformsToSchema(null, false, true, true,
                                       invalidReason))
       {
@@ -912,7 +912,7 @@ public class LocalBackendModifyDNOperation
     // schema.
     if (DirectoryServer.checkSchema() && checkSchema)
     {
-      MessageBuilder invalidReason = new MessageBuilder();
+      LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       if (! newEntry.conformsToSchema(null, false, true, true,
                                       invalidReason))
       {

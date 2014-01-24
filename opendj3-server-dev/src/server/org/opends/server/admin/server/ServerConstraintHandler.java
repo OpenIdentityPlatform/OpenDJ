@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -29,7 +30,7 @@ package org.opends.server.admin.server;
 
 import java.util.Collection;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigException;
 
 
@@ -90,7 +91,7 @@ public abstract class ServerConstraintHandler {
    *           from being evaluated.
    */
   public boolean isDeleteAllowed(ServerManagedObject<?> managedObject,
-      Collection<Message> unacceptableReasons) throws ConfigException {
+      Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
     return true;
   }
 
@@ -123,7 +124,7 @@ public abstract class ServerConstraintHandler {
    *           from being evaluated.
    */
   public boolean isUsable(ServerManagedObject<?> managedObject,
-      Collection<Message> unacceptableReasons) throws ConfigException {
+      Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
     return true;
   }
 

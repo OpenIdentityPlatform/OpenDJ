@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -34,7 +34,7 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
@@ -141,12 +141,12 @@ public class SchemaLoader
       File schemaDir = new File(schemaDirPath);
       if (schemaDirPath == null || !schemaDir.exists())
       {
-        Message message = ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaDirPath);
+        LocalizableMessage message = ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaDirPath);
         throw new InitializationException(message);
       }
       else if (!schemaDir.isDirectory())
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaDirPath);
         throw new InitializationException(message);
       }
@@ -198,7 +198,7 @@ public class SchemaLoader
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES
               .get(schemaDirPath, e.getMessage());
       throw new InitializationException(message, e);

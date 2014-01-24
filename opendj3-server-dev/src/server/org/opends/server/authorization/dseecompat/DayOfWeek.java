@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -33,7 +33,7 @@ import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This class implements the dayofweek bind rule keyword.
@@ -74,7 +74,7 @@ public class DayOfWeek  implements KeywordBindRule {
           EnumDayOfWeek day=EnumDayOfWeek.createDayOfWeek(element);
           if (day == null)
           {
-              Message message = WARN_ACI_SYNTAX_INVALID_DAYOFWEEK.get(expr);
+              LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_DAYOFWEEK.get(expr);
               throw new AciException(message);
           }
           days.add(day);

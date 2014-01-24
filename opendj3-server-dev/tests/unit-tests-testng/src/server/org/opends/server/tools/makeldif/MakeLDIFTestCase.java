@@ -22,7 +22,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2006 Brighton Consulting, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 
@@ -31,7 +31,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.LdifFileWriter;
@@ -87,7 +87,7 @@ public class MakeLDIFTestCase
     // Previous behaviour showed "missingVar" on line 5.
 
     TemplateFile templateFile = new TemplateFile(resourcePath);
-    List<Message> warns = new ArrayList<Message>();
+    List<LocalizableMessage> warns = new ArrayList<LocalizableMessage>();
 
     try
     {
@@ -96,7 +96,7 @@ public class MakeLDIFTestCase
     catch (InitializationException e)
     {
       String msg = e.getMessage();
-      Message msg_locale = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get("missingVar",1);
+      LocalizableMessage msg_locale = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get("missingVar",1);
       assertTrue (msg.equals(msg_locale.toString()), msg);
     }
   }
@@ -160,7 +160,7 @@ public class MakeLDIFTestCase
       throws Exception
   {
     TemplateFile templateFile = new TemplateFile(resourcePath);
-    List<Message> warns = new ArrayList<Message>();
+    List<LocalizableMessage> warns = new ArrayList<LocalizableMessage>();
     templateFile.parse(lines, warns);
     assertTrue(warns.isEmpty(),"Warnings in parsing test template " + testName );
   }

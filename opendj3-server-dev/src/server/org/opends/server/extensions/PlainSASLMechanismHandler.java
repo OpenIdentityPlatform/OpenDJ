@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PlainSASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
@@ -147,7 +147,7 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLPLAIN_NO_SASL_CREDENTIALS.get();
+      LocalizableMessage message = ERR_SASLPLAIN_NO_SASL_CREDENTIALS.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -159,7 +159,7 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLPLAIN_NO_NULLS_IN_CREDENTIALS.get();
+      LocalizableMessage message = ERR_SASLPLAIN_NO_NULLS_IN_CREDENTIALS.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -175,7 +175,7 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLPLAIN_NO_SECOND_NULL.get();
+      LocalizableMessage message = ERR_SASLPLAIN_NO_SECOND_NULL.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -184,7 +184,7 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLPLAIN_ZERO_LENGTH_AUTHCID.get();
+      LocalizableMessage message = ERR_SASLPLAIN_ZERO_LENGTH_AUTHCID.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -193,7 +193,7 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLPLAIN_ZERO_LENGTH_PASSWORD.get();
+      LocalizableMessage message = ERR_SASLPLAIN_ZERO_LENGTH_PASSWORD.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -224,7 +224,7 @@ public class PlainSASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        Message message = ERR_SASLPLAIN_CANNOT_DECODE_AUTHCID_AS_DN.get(
+        LocalizableMessage message = ERR_SASLPLAIN_CANNOT_DECODE_AUTHCID_AS_DN.get(
                 authcID, de.getMessageObject());
         bindOperation.setAuthFailureReason(message);
         return;
@@ -234,7 +234,7 @@ public class PlainSASLMechanismHandler
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        Message message = ERR_SASLPLAIN_AUTHCID_IS_NULL_DN.get();
+        LocalizableMessage message = ERR_SASLPLAIN_AUTHCID_IS_NULL_DN.get();
         bindOperation.setAuthFailureReason(message);
         return;
       }
@@ -269,7 +269,7 @@ public class PlainSASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        Message message = ERR_SASLPLAIN_CANNOT_GET_ENTRY_BY_DN.get(
+        LocalizableMessage message = ERR_SASLPLAIN_CANNOT_GET_ENTRY_BY_DN.get(
                 String.valueOf(userDN),
                 de.getMessageObject());
         bindOperation.setAuthFailureReason(message);
@@ -301,7 +301,7 @@ public class PlainSASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        Message message = ERR_SASLPLAIN_CANNOT_MAP_USERNAME.get(
+        LocalizableMessage message = ERR_SASLPLAIN_CANNOT_MAP_USERNAME.get(
                 String.valueOf(authcID),
                 de.getMessageObject());
         bindOperation.setAuthFailureReason(message);
@@ -315,7 +315,7 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLPLAIN_NO_MATCHING_ENTRIES.get(authcID);
+      LocalizableMessage message = ERR_SASLPLAIN_NO_MATCHING_ENTRIES.get(authcID);
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -347,7 +347,7 @@ public class PlainSASLMechanismHandler
 
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          Message message = ERR_SASLPLAIN_AUTHZID_INVALID_DN.get(
+          LocalizableMessage message = ERR_SASLPLAIN_AUTHZID_INVALID_DN.get(
                   authzID, de.getMessageObject());
           bindOperation.setAuthFailureReason(message);
           return;
@@ -370,7 +370,7 @@ public class PlainSASLMechanismHandler
           {
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            Message message = ERR_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES.get(
+            LocalizableMessage message = ERR_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES.get(
                     String.valueOf(userEntry.getName()));
             bindOperation.setAuthFailureReason(message);
             return;
@@ -389,7 +389,7 @@ public class PlainSASLMechanismHandler
               {
                 bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-                Message message = ERR_SASLPLAIN_AUTHZID_NO_SUCH_ENTRY.get(
+                LocalizableMessage message = ERR_SASLPLAIN_AUTHZID_NO_SUCH_ENTRY.get(
                         String.valueOf(authzDN));
                 bindOperation.setAuthFailureReason(message);
                 return;
@@ -404,7 +404,7 @@ public class PlainSASLMechanismHandler
 
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              Message message = ERR_SASLPLAIN_AUTHZID_CANNOT_GET_ENTRY.get(
+              LocalizableMessage message = ERR_SASLPLAIN_AUTHZID_CANNOT_GET_ENTRY.get(
                       String.valueOf(authzDN),
                       de.getMessageObject());
               bindOperation.setAuthFailureReason(message);
@@ -438,7 +438,7 @@ public class PlainSASLMechanismHandler
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              Message message = ERR_SASLPLAIN_AUTHZID_NO_MAPPED_ENTRY.get(
+              LocalizableMessage message = ERR_SASLPLAIN_AUTHZID_NO_MAPPED_ENTRY.get(
                       authzID);
               bindOperation.setAuthFailureReason(message);
               return;
@@ -453,7 +453,7 @@ public class PlainSASLMechanismHandler
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            Message message = ERR_SASLPLAIN_AUTHZID_CANNOT_MAP_AUTHZID.get(
+            LocalizableMessage message = ERR_SASLPLAIN_AUTHZID_CANNOT_MAP_AUTHZID.get(
                     authzID, de.getMessageObject());
             bindOperation.setAuthFailureReason(message);
             return;
@@ -472,7 +472,7 @@ public class PlainSASLMechanismHandler
           {
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            Message message = ERR_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES.get(
+            LocalizableMessage message = ERR_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES.get(
                     String.valueOf(userEntry.getName()));
             bindOperation.setAuthFailureReason(message);
             return;
@@ -496,7 +496,7 @@ public class PlainSASLMechanismHandler
       {
         // Check to see if the user is administratively disabled or locked.
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-        Message message = ERR_BIND_OPERATION_ACCOUNT_DISABLED.get();
+        LocalizableMessage message = ERR_BIND_OPERATION_ACCOUNT_DISABLED.get();
         bindOperation.setAuthFailureReason(message);
         return;
       }
@@ -504,7 +504,7 @@ public class PlainSASLMechanismHandler
       if (!authState.passwordMatches(ByteString.valueOf(password)))
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-        Message message = ERR_SASLPLAIN_INVALID_PASSWORD.get();
+        LocalizableMessage message = ERR_SASLPLAIN_INVALID_PASSWORD.get();
         bindOperation.setAuthFailureReason(message);
         return;
       }
@@ -518,7 +518,7 @@ public class PlainSASLMechanismHandler
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLPLAIN_CANNOT_CHECK_PASSWORD_VALIDITY.get(
+      LocalizableMessage message = ERR_SASLPLAIN_CANNOT_CHECK_PASSWORD_VALIDITY.get(
               String.valueOf(userEntry.getName()),
               String.valueOf(e));
       bindOperation.setAuthFailureReason(message);
@@ -569,7 +569,7 @@ public class PlainSASLMechanismHandler
   @Override()
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     PlainSASLMechanismHandlerCfg config =
          (PlainSASLMechanismHandlerCfg) configuration;
@@ -584,7 +584,7 @@ public class PlainSASLMechanismHandler
   @Override
   public boolean isConfigurationChangeAcceptable(
                       PlainSASLMechanismHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -600,7 +600,7 @@ public class PlainSASLMechanismHandler
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the identity mapper that should be used to find users.

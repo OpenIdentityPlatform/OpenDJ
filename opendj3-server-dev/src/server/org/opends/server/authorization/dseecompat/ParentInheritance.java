@@ -26,7 +26,7 @@
  */
 
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
@@ -98,7 +98,7 @@ public class ParentInheritance {
         if (skipParse) {
             //The "parent[" pattern is invalid for ROLEDN user attr keyword.
             if(pattern.startsWith(parentPat)) {
-                Message message =
+                LocalizableMessage message =
                   WARN_ACI_SYNTAX_INVALID_USERATTR_ROLEDN_INHERITANCE_PATTERN
                           .get(pattern);
                 throw new AciException(message);
@@ -108,7 +108,7 @@ public class ParentInheritance {
                 Matcher matcher=pattern1.matcher(pattern);
                //Check if valid attribute type name.
                if(!matcher.find() || matcher.groupCount() != 1) {
-                Message message =
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_ATTRIBUTE_TYPE_NAME.get(pattern);
                 throw new AciException(message);
                }
@@ -139,7 +139,7 @@ public class ParentInheritance {
              */
             String[] toks=p.split("\\.");
             if(toks.length != 2) {
-                Message message =
+                LocalizableMessage message =
                   WARN_ACI_SYNTAX_INVALID_USERATTR_INHERITANCE_PATTERN
                           .get(pattern);
                 throw new AciException(message);
@@ -148,7 +148,7 @@ public class ParentInheritance {
             Matcher matcher=pattern1.matcher(toks[1]);
             //Check if valid attribute type name.
             if(!matcher.find() || matcher.groupCount() != 1) {
-                Message message =
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_ATTRIBUTE_TYPE_NAME.get(toks[1]);
                 throw new AciException(message);
             }
@@ -164,13 +164,13 @@ public class ParentInheritance {
                     if(numLevels < MAX_LEVELS) {
                         levels[numLevels++]=Integer.decode(v);
                     } else {
-                        Message message =
+                        LocalizableMessage message =
                         WARN_ACI_SYNTAX_MAX_USERATTR_INHERITANCE_LEVEL_EXCEEDED.
                               get(pattern, Integer.toString(MAX_LEVELS));
                         throw new AciException(message);
                     }
                 } catch (NumberFormatException ex) {
-                    Message message =
+                    LocalizableMessage message =
                         WARN_ACI_SYNTAX_INVALID_INHERITANCE_VALUE.get(pattern);
                     throw new AciException(message);
                 }
@@ -182,19 +182,19 @@ public class ParentInheritance {
               LDAPURL url=LDAPURL.decode(pattern, true);
               LinkedHashSet<String>attrs=url.getAttributes();
               if(attrs.size() != 1) {
-                Message message =
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_USERATTR_ATTR_URL.get(pattern);
                 throw new AciException(message);
               }
               baseDN=url.getBaseDN();
               if(baseDN.isRootDN()){
-                Message message =
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_USERATTR_BASEDN_URL.get(pattern);
                 throw new AciException(message);
               }
               attrTypeStr=attrs.iterator().next();
             } catch (DirectoryException ex) {
-              Message message = WARN_ACI_SYNTAX_INVALID_USERATTR_URL.get(
+              LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_USERATTR_URL.get(
                   ex.getMessageObject());
               throw new AciException(message);
             }

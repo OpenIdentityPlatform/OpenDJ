@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This class defines a data structure that can be used to hold
@@ -46,7 +46,7 @@ public final class CancelRequest
 
   // A message that explains the purpose for this cancellation (may be
   // included in the response to the original requestor).
-  private final Message cancelReason;
+  private final LocalizableMessage cancelReason;
 
 
 
@@ -61,7 +61,7 @@ public final class CancelRequest
    *                                  purpose for this cancellation.
    */
   public CancelRequest(boolean notifyOriginalRequestor,
-                       Message cancelReason)
+                       LocalizableMessage cancelReason)
   {
     this.notifyOriginalRequestor = notifyOriginalRequestor;
     this.cancelReason            = cancelReason;
@@ -91,7 +91,7 @@ public final class CancelRequest
    * @return  A message that explains the purpose for this
    *          cancellation.
    */
-  public Message getCancelReason()
+  public LocalizableMessage getCancelReason()
   {
     return cancelReason;
   }

@@ -22,17 +22,18 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.build.tools;
 
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
+
 import static org.opends.build.tools.Utilities.*;
 import org.opends.messages.Category;
 import org.opends.messages.Severity;
-import org.opends.messages.MessageDescriptor;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -146,11 +147,11 @@ public class GenerateMessageFile extends Task {
     KEY_FORM_MSG = new StringBuilder()
             .append(".\n\nOpenDJ message property keys must be of the form\n\n")
             .append("\t\'[CATEGORY]_[SEVERITY]_[DESCRIPTION]_[ORDINAL]\'\n\n")
-            .append("where\n\n")
-            .append("CATEGORY is one of ")
-            .append(EnumSet.allOf(Category.class))
-            .append("\n\nSEVERITY is one of ")
-            .append(Severity.getPropertyKeyFormSet().toString())
+            //.append("where\n\n")
+            //.append("CATEGORY is one of ...")
+            //.append(EnumSet.allOf(Category.class))
+            //.append("\n\nSEVERITY is one of ")
+            //.append(Severity.getPropertyKeyFormSet().toString())
             .append("\n\nDESCRIPTION is a descriptive string composed ")
             .append("of uppercase character, digits and underscores ")
             .append("describing the purpose of the message ")
@@ -300,14 +301,11 @@ public class GenerateMessageFile extends Task {
     public String getDescriptorClassDeclaration() {
       StringBuilder sb = new StringBuilder();
       if (useGenericMessageTypeClass()) {
-        sb.append(getShortClassName(MessageDescriptor.class));
-        sb.append(".");
-        sb.append(MessageDescriptor.DESCRIPTOR_CLASS_BASE_NAME);
-        sb.append("N");
+        sb.append(getShortClassName(LocalizableMessageDescriptor.class));
+        sb.append(".ArgN");
       } else {
-        sb.append(getShortClassName(MessageDescriptor.class));
-        sb.append(".");
-        sb.append(MessageDescriptor.DESCRIPTOR_CLASS_BASE_NAME);
+        sb.append(getShortClassName(LocalizableMessageDescriptor.class));
+        sb.append(".Arg");
         sb.append(classTypes.size());
         sb.append(getClassTypeVariables());
       }
@@ -393,9 +391,9 @@ public class GenerateMessageFile extends Task {
             sb.append(",");
           }
         }
-        sb.append(", ");
+        //sb.append(", ");
       }
-      sb.append("getClassLoader()");
+      //sb.append("getClassLoader()");
       sb.append(");");
       return sb.toString();
     }
@@ -409,7 +407,7 @@ public class GenerateMessageFile extends Task {
      * @return boolean indicating
      */
     private boolean useGenericMessageTypeClass() {
-      if (specifiers.size() > MessageDescriptor.DESCRIPTOR_MAX_ARG_HANDLER) {
+      if (specifiers.size() > 9) {
         return true;
       } else if (specifiers != null) {
         for (FormatSpecifier s : specifiers) {
@@ -869,12 +867,10 @@ public class GenerateMessageFile extends Task {
             globalOrdinal = new Integer(go);
           }
 
-          // Determine the value of the global category/mask if set
-          Integer  globalMask = null;
           Category globalCategory = null;
           String gms = properties.getProperty(GLOBAL_CATEGORY_MASK);
           if (gms != null) {
-            globalMask = Integer.parseInt(gms);
+            Integer.parseInt(gms);
             globalCategory = Category.USER_DEFINED;
           } else {
             String gcs = properties.getProperty(GLOBAL_CATEGORY);
@@ -986,12 +982,12 @@ public class GenerateMessageFile extends Task {
                 messageRefEntries.add(entry);
                 }
             } else {
+                // old: (BASE,"MILD_ERR_ADD_CANNOT_ADD_ROOT_DSE_230",CORE,MILD_ERROR,230, getClassLoader())
+                // new: CoreMessages.class, RESOURCE, "ERR_ACCTUSABLEREQ_CONTROL_BAD_OID", -1
+                String className = getMessageDescriptorClassName();
               message.setConstructorArguments(
-                "BASE",
-                quote(key.toString()),
-                globalMask != null ? globalMask.toString() : c.name(),
-                s.name(),
-                globalOrdinal != null ?
+                className + ".class", "RESOURCE",
+                quote(key.toString()), globalOrdinal != null ?
                         globalOrdinal.toString() :
                         key.getOrdinal().toString()
               );

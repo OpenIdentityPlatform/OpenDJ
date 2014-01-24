@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.admin.ads.ServerDescriptor;
@@ -76,8 +76,8 @@ public class InstallReviewPanel extends ReviewPanel {
   private JLabel warningLabel;
 
   private JComboBox viewCombo;
-  private final Message DISPLAY_TEXT = INFO_REVIEW_DISPLAY_TEXT.get();
-  private final Message DISPLAY_EQUIVALENT_COMMAND =
+  private final LocalizableMessage DISPLAY_TEXT = INFO_REVIEW_DISPLAY_TEXT.get();
+  private final LocalizableMessage DISPLAY_EQUIVALENT_COMMAND =
     INFO_REVIEW_DISPLAY_EQUIVALENT_COMMAND.get();
 
   private JComponent cardLayoutPanel;
@@ -161,11 +161,11 @@ public class InstallReviewPanel extends ReviewPanel {
   {
     JPanel instructionsPanel = new JPanel(new GridBagLayout());
     instructionsPanel.setOpaque(false);
-    Message instructions = getInstructions();
+    LocalizableMessage instructions = getInstructions();
     JLabel l = new JLabel(instructions.toString());
     l.setFont(UIFactory.INSTRUCTIONS_FONT);
 
-    Message[] values = {
+    LocalizableMessage[] values = {
       DISPLAY_TEXT,
       DISPLAY_EQUIVALENT_COMMAND
     };
@@ -254,7 +254,7 @@ public class InstallReviewPanel extends ReviewPanel {
   /**
    * {@inheritDoc}
    */
-  protected Message getInstructions()
+  protected LocalizableMessage getInstructions()
   {
     return INFO_REVIEW_PANEL_INSTRUCTIONS.get();
   }
@@ -262,7 +262,7 @@ public class InstallReviewPanel extends ReviewPanel {
   /**
    * {@inheritDoc}
    */
-  protected Message getTitle()
+  protected LocalizableMessage getTitle()
   {
     return INFO_REVIEW_PANEL_TITLE.get();
   }
@@ -395,7 +395,7 @@ public class InstallReviewPanel extends ReviewPanel {
     */
   private String getReplicationPortString(UserData userInstallData)
   {
-    MessageBuilder buf = new MessageBuilder();
+    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
 
     DataReplicationOptions repl =
       userInstallData.getReplicationOptions();
@@ -435,7 +435,7 @@ public class InstallReviewPanel extends ReviewPanel {
             .getReplicationPort());
       }
       buf.append(s);
-      TreeSet<Message> remoteServerLines = new TreeSet<Message>();
+      TreeSet<LocalizableMessage> remoteServerLines = new TreeSet<LocalizableMessage>();
       for (ServerDescriptor server : remotePorts.keySet())
       {
         String serverDisplay;
@@ -460,7 +460,7 @@ public class InstallReviewPanel extends ReviewPanel {
         remoteServerLines.add(INFO_REMOTE_SERVER_REPLICATION_PORT.get(s,
                 serverDisplay));
       }
-      for (Message line : remoteServerLines)
+      for (LocalizableMessage line : remoteServerLines)
       {
         buf.append("\n").append(line);
       }
@@ -848,7 +848,7 @@ public class InstallReviewPanel extends ReviewPanel {
           INFO_INSTALL_STOP_SERVER_EQUIVALENT_COMMAND_LINE.get()));
       sb.append(formatter.getLineBreak());
       sb.append(Constants.HTML_BOLD_OPEN)
-          .append(formatter.getFormattedProgress(Message.raw(cmd)))
+          .append(formatter.getFormattedProgress(LocalizableMessage.raw(cmd)))
           .append(Constants.HTML_BOLD_CLOSE);
     }
     equivalentCommandPane.setText(sb.toString());

@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.messages.AdminMessages;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
@@ -262,7 +262,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
 
       public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-          MessageBuilder unacceptableReason) {
+          LocalizableMessageBuilder unacceptableReason) {
         ConfigEntry dependentConfigEntry = getConfigEntry(dn);
         if (dependentConfigEntry != null) {
           return ConfigChangeListenerAdaptor.this.configChangeIsAcceptable(
@@ -310,7 +310,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
 
       public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-          MessageBuilder unacceptableReason) {
+          LocalizableMessageBuilder unacceptableReason) {
         // Always acceptable.
         return true;
       }
@@ -369,7 +369,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
    * {@inheritDoc}
    */
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-      MessageBuilder unacceptableReason) {
+      LocalizableMessageBuilder unacceptableReason) {
     return configChangeIsAcceptable(configEntry, unacceptableReason,
         configEntry);
   }
@@ -396,7 +396,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
    *         does not.
    */
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-      MessageBuilder unacceptableReason, ConfigEntry newConfigEntry) {
+      LocalizableMessageBuilder unacceptableReason, ConfigEntry newConfigEntry) {
     try {
       ServerManagementContext context = ServerManagementContext.getInstance();
       cachedManagedObject = context.decode(path, configEntry, newConfigEntry);
@@ -414,7 +414,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
     }
 
     // Let the change listener decide.
-    List<Message> reasons = new LinkedList<Message>();
+    List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
     if (listener.isConfigurationChangeAcceptable(cachedManagedObject,reasons)) {
       return true;
     } else {
@@ -471,7 +471,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
       if (configEntry != null) {
         return configEntry;
       } else {
-        Message message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST
+        LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST
             .get(String.valueOf(dn));
         ErrorLogger.logError(message);
       }
@@ -481,7 +481,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = AdminMessages.ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
+      LocalizableMessage message = AdminMessages.ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
           String.valueOf(dn), StaticUtils.getExceptionMessage(e));
       ErrorLogger.logError(message);
     }

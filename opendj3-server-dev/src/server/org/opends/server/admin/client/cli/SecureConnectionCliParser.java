@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.client.cli;
@@ -42,8 +43,8 @@ import java.util.LinkedHashSet;
 import javax.net.ssl.KeyManager;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.PasswordReader;
@@ -115,7 +116,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    *          should be treated in a case-sensitive manner.
    */
   protected SecureConnectionCliParser(String mainClassName,
-      Message toolDescription, boolean longArgumentsCaseSensitive)
+      LocalizableMessage toolDescription, boolean longArgumentsCaseSensitive)
   {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
   }
@@ -171,7 +172,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         // read the password from the stdin.
         try
         {
-          out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).getBytes());
+          out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString().getBytes());
           out.flush();
           char[] pwChars = PasswordReader.readPassword();
           bindPasswordValue = new String(pwChars);
@@ -368,10 +369,10 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   /**
    * Indication if provided global options are validate.
    *
-   * @param buf the MessageBuilder to write the error messages.
+   * @param buf the LocalizableMessageBuilder to write the error messages.
    * @return return code.
    */
-  public int validateGlobalOptions(MessageBuilder buf)
+  public int validateGlobalOptions(LocalizableMessageBuilder buf)
   {
     int ret = secureArgsList.validateGlobalOptions(buf) ;
 
@@ -380,7 +381,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
     if (noPropertiesFileArg.isPresent()
         && propertiesFileArg.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           noPropertiesFileArg.getLongIdentifier(), propertiesFileArg
               .getLongIdentifier());
       if (buf.length() > 0)
@@ -401,7 +402,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    */
   public int validateGlobalOptions(PrintStream err)
   {
-    MessageBuilder buf = new MessageBuilder();
+    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
     int returnValue = validateGlobalOptions(buf);
     if (buf.length() > 0)
     {

@@ -28,8 +28,8 @@ package org.opends.server.tasks;
 
 import java.util.List;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -63,7 +63,7 @@ public class InitializeTargetTask extends Task
    * {@inheritDoc}
    */
   @Override
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return TaskMessages.INFO_TASK_INITIALIZE_TARGET_NAME.get();
   }
 
@@ -97,7 +97,7 @@ public class InitializeTargetTask extends Task
     }
     catch(DirectoryException e)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(TaskMessages.ERR_TASK_INITIALIZE_INVALID_DN.get());
       mb.append(" ");
       mb.append(stackTraceToSingleLineString(e));
@@ -133,7 +133,7 @@ public class InitializeTargetTask extends Task
       }
 
       // This log will go to the task log message
-      Message message = ERR_TASK_EXECUTE_FAILED.get(
+      LocalizableMessage message = ERR_TASK_EXECUTE_FAILED.get(
           String.valueOf(getTaskEntryDN()), stackTraceToSingleLineString(e));
       logError(message);
 

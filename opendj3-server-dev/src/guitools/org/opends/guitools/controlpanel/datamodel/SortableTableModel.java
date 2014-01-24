@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -30,7 +31,7 @@ import javax.swing.table.AbstractTableModel;
 
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -78,7 +79,7 @@ public abstract class SortableTableModel extends AbstractTableModel
    * @param msg the header message value (with no HTML formatting).
    * @return the header wrapped with the default line width.
    */
-  protected String getHeader(Message msg)
+  protected String getHeader(LocalizableMessage msg)
   {
     return getHeader(msg, 15);
   }
@@ -89,7 +90,7 @@ public abstract class SortableTableModel extends AbstractTableModel
    * @param wrap the maximum line width before wrapping.
    * @return the header wrapped with the specified line width.
    */
-  protected String getHeader(Message msg, int wrap)
+  protected String getHeader(LocalizableMessage msg, int wrap)
   {
     String text = msg.toString();
     String wrappedText = StaticUtils.wrapText(text, wrap);

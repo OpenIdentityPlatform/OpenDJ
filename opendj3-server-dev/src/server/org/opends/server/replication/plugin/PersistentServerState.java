@@ -31,7 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -189,7 +189,7 @@ public class PersistentServerState
       if (((search.getResultCode() != ResultCode.SUCCESS)) &&
           ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
       {
-        Message message = ERR_ERROR_SEARCHING_RUV.
+        LocalizableMessage message = ERR_ERROR_SEARCHING_RUV.
             get(search.getResultCode().getResultCodeName(), search.toString(),
                 search.getErrorMessage(), baseDn.toString());
         logError(message);
@@ -335,7 +335,7 @@ public class PersistentServerState
     op.run();
     if (op.getResultCode() != ResultCode.SUCCESS)
     {
-      Message message = DEBUG_ERROR_UPDATING_RUV.get(
+      LocalizableMessage message = DEBUG_ERROR_UPDATING_RUV.get(
               op.getResultCode().getResultCodeName().toString(),
               op.toString(),
               op.getErrorMessage().toString(),
@@ -378,7 +378,7 @@ public class PersistentServerState
    * and an ordering index for historical attribute
    */
   public final void checkAndUpdateServerState() {
-    Message message;
+    LocalizableMessage message;
     InternalSearchOperation op;
     CSN serverStateMaxCsn;
     CSN dbMaxCsn;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.LDAPException;
 
@@ -138,7 +138,7 @@ public enum PersistentSearchChangeType
       case 8:
         return MODIFY_DN;
       default:
-        Message message = ERR_PSEARCH_CHANGETYPES_INVALID_TYPE.get(intValue);
+        LocalizableMessage message = ERR_PSEARCH_CHANGETYPES_INVALID_TYPE.get(intValue);
         throw new LDAPException(LDAPResultCode.CONSTRAINT_VIOLATION, message);
     }
   }
@@ -167,7 +167,7 @@ public enum PersistentSearchChangeType
       case 0:
         // No change types are included.  This won't be allowed because it
         // doesn't make any sense.
-        Message message = ERR_PSEARCH_CHANGETYPES_NO_TYPES.get();
+        LocalizableMessage message = ERR_PSEARCH_CHANGETYPES_NO_TYPES.get();
         throw new LDAPException(LDAPResultCode.CONSTRAINT_VIOLATION, message);
       case 1:
         changeTypes.add(ADD);

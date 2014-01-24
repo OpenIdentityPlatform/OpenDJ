@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -44,7 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
@@ -301,7 +301,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             if (cd == null) {
               // The name must be invalid.
               String typeUsage = getSubTypesUsage(d);
-              Message msg = ERR_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED.get(
+              LocalizableMessage msg = ERR_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED.get(
                   name, r.getUserFriendlyName(), typeUsage);
               clie = new CLIException(msg);
               result = MenuResult.quit();
@@ -566,7 +566,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             // Use syntax and description from naming property.
             PropertyDefinitionUsageBuilder b =
               new PropertyDefinitionUsageBuilder(false);
-            Message usage = Message.raw("{" + b.getUsage(pd) + "}");
+            LocalizableMessage usage = LocalizableMessage.raw("{" + b.getUsage(pd) + "}");
             arg = new StringArgument(argName, null, argName, false, true,
                 usage, INFO_DSCFG_DESCRIPTION_NAME_CREATE_EXT.get(d
                     .getUserFriendlyName(), pd.getName(), pd.getSynopsis()));
@@ -1052,7 +1052,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         try {
           return SizeUnit.getUnit(value);
         } catch (IllegalArgumentException e) {
-          Message msg = INFO_DSCFG_ERROR_SIZE_UNIT_UNRECOGNIZED.get(value);
+          LocalizableMessage msg = INFO_DSCFG_ERROR_SIZE_UNIT_UNRECOGNIZED.get(value);
           throw new ArgumentException(msg);
         }
       }
@@ -1079,7 +1079,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         try {
           return DurationUnit.getUnit(value);
         } catch (IllegalArgumentException e) {
-          Message msg = INFO_DSCFG_ERROR_TIME_UNIT_UNRECOGNIZED.get(value);
+          LocalizableMessage msg = INFO_DSCFG_ERROR_TIME_UNIT_UNRECOGNIZED.get(value);
           throw new ArgumentException(msg);
         }
       }
@@ -1210,7 +1210,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     switch (children.size()) {
     case 0: {
       // No options available - abort.
-      Message msg =
+      LocalizableMessage msg =
         ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(d.getUserFriendlyPluralName());
       app.println(msg);
       return MenuResult.cancel();
@@ -1218,7 +1218,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     case 1: {
       // Only one option available so confirm that the user wishes to
       // access it.
-      Message msg = INFO_DSCFG_FINDER_PROMPT_SINGLE.get(
+      LocalizableMessage msg = INFO_DSCFG_FINDER_PROMPT_SINGLE.get(
           d.getUserFriendlyName(), children.firstKey());
       if (app.confirmAction(msg, true)) {
         try
@@ -1272,7 +1272,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
           .getUserFriendlyName()));
 
       for (Map.Entry<String, String> child : children.entrySet()) {
-        Message option = Message.raw("%s", child.getKey());
+        LocalizableMessage option = LocalizableMessage.raw("%s", child.getKey());
         builder.addNumberedOption(option, MenuResult.success(child.getValue()));
       }
 

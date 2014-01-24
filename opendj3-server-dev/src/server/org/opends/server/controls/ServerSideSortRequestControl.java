@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -92,7 +92,7 @@ public class ServerSideSortRequestControl
     {
       if (value == null)
       {
-        Message message = INFO_SORTREQ_CONTROL_NO_VALUE.get();
+        LocalizableMessage message = INFO_SORTREQ_CONTROL_NO_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -102,7 +102,7 @@ public class ServerSideSortRequestControl
         reader.readStartSequence();
         if (!reader.hasNextElement())
         {
-          Message message = INFO_SORTREQ_CONTROL_NO_SORT_KEYS.get();
+          LocalizableMessage message = INFO_SORTREQ_CONTROL_NO_SORT_KEYS.get();
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
         }
 
@@ -133,7 +133,7 @@ public class ServerSideSortRequestControl
                 DirectoryServer.getOrderingMatchingRule(orderingRuleID);
             if (orderingRule == null)
             {
-              Message message =
+              LocalizableMessage message =
                   INFO_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE.
                       get(orderingRuleID);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -150,7 +150,7 @@ public class ServerSideSortRequestControl
           if ((orderingRule == null) &&
               (attrType.getOrderingMatchingRule() == null))
           {
-            Message message =
+            LocalizableMessage message =
                 INFO_SORTREQ_CONTROL_NO_ORDERING_RULE_FOR_ATTR.get(attrName);
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                 message);
@@ -169,7 +169,7 @@ public class ServerSideSortRequestControl
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             INFO_SORTREQ_CONTROL_CANNOT_DECODE_VALUE.get(
                 getExceptionMessage(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
@@ -250,7 +250,7 @@ public class ServerSideSortRequestControl
       {
         if (token.length() == 0)
         {
-          Message message =
+          LocalizableMessage message =
               INFO_SORTREQ_CONTROL_NO_ATTR_NAME.get(sortOrderString);
           throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
         }
@@ -266,13 +266,13 @@ public class ServerSideSortRequestControl
       }
       else if (colonPos == 0)
       {
-        Message message =
+        LocalizableMessage message =
             INFO_SORTREQ_CONTROL_NO_ATTR_NAME.get(sortOrderString);
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
       else if (colonPos == (token.length() - 1))
       {
-        Message message =
+        LocalizableMessage message =
             INFO_SORTREQ_CONTROL_NO_MATCHING_RULE.get(sortOrderString);
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
@@ -294,7 +294,7 @@ public class ServerSideSortRequestControl
 
     if (decodedKeyList.isEmpty())
     {
-      Message message = INFO_SORTREQ_CONTROL_NO_SORT_KEYS.get();
+      LocalizableMessage message = INFO_SORTREQ_CONTROL_NO_SORT_KEYS.get();
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
   }
@@ -464,7 +464,7 @@ public class ServerSideSortRequestControl
                 decodedKey[1].toLowerCase());
         if (orderingRule == null)
         {
-          Message message =
+          LocalizableMessage message =
               INFO_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE.
                   get(decodedKey[1]);
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -481,7 +481,7 @@ public class ServerSideSortRequestControl
       if ((orderingRule == null) &&
           (attrType.getOrderingMatchingRule() == null))
       {
-        Message message =
+        LocalizableMessage message =
             INFO_SORTREQ_CONTROL_NO_ORDERING_RULE_FOR_ATTR.get(
                 decodedKey[0]);
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,

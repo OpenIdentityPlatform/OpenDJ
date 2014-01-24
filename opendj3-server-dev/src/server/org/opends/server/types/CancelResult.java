@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -45,7 +46,7 @@ public class CancelResult
 
   // A human-readable response that the server
   // provided for the result of the cancellation.
-  private final Message responseMessage;
+  private final LocalizableMessage responseMessage;
 
   /**
    * Creates a new cancel result with the provided result code.
@@ -57,7 +58,7 @@ public class CancelResult
    *                         server provided for the result
    *                         of the cancellation.
    */
-  public CancelResult(ResultCode resultCode, Message responseMessage)
+  public CancelResult(ResultCode resultCode, LocalizableMessage responseMessage)
   {
     this.resultCode = resultCode;
     this.responseMessage = responseMessage;
@@ -84,7 +85,7 @@ public class CancelResult
    *          response that the server provided for the result of this
    *          cancellation.
    */
-  public Message getResponseMessage()
+  public LocalizableMessage getResponseMessage()
   {
     return responseMessage;
   }

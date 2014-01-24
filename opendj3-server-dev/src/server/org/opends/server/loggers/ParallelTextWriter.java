@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -32,7 +33,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
@@ -193,7 +194,7 @@ public class ParallelTextWriter
   /**
    * {@inheritDoc}
    */
-  public void processServerShutdown(Message reason)
+  public void processServerShutdown(LocalizableMessage reason)
   {
     // Don't shutdown the wrapped writer on server shutdown as it
     // might get more write requests before the log publishers are

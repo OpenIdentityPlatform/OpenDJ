@@ -63,7 +63,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.OpenDsException;
@@ -143,7 +143,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_GROUP_PANEL_TITLE.get();
   }
@@ -159,7 +159,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getProgressDialogTitle()
+  protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_PANEL_NEW_GROUP_PANEL_TITLE.get();
   }
@@ -175,7 +175,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
   /**
    * {@inheritDoc}
    */
-  protected void checkSyntax(ArrayList<Message> errors)
+  protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     Runnable runnable = new Runnable()
     {
@@ -203,7 +203,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     }
 
     JTextField[] requiredFields = {name};
-    Message[] msgs = {ERR_CTRL_PANEL_NAME_OF_GROUP_REQUIRED.get()};
+    LocalizableMessage[] msgs = {ERR_CTRL_PANEL_NAME_OF_GROUP_REQUIRED.get()};
     for (int i=0; i<requiredFields.length; i++)
     {
       String v = requiredFields[i].getText().trim();
@@ -327,14 +327,14 @@ public class NewGroupPanel extends AbstractNewEntryPanel
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
-    Message[] ls = {
+    LocalizableMessage[] ls = {
         INFO_CTRL_PANEL_NEW_GROUP_NAME_LABEL.get(),
         INFO_CTRL_PANEL_NEW_GROUP_DESCRIPTION_LABEL.get(),
         INFO_CTRL_PANEL_NEW_GROUP_MEMBERS_LABEL.get(),
         INFO_CTRL_PANEL_NEW_GROUP_ENTRY_DN_LABEL.get()
         };
     int i = 0;
-    for (Message l : ls)
+    for (LocalizableMessage l : ls)
     {
       labels[i].setText(l.toString());
       i++;
@@ -415,7 +415,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
         INFO_CTRL_PANEL_GROUP_MEMBER_DNS_LABEL.get());
     gbc.insets.left = 30;
     add(lMemberDNs, gbc);
-    staticMembers = Utilities.createTextArea(Message.EMPTY, 8, 40);
+    staticMembers = Utilities.createTextArea(LocalizableMessage.EMPTY, 8, 40);
     JScrollPane scroll = Utilities.createScrollPane(staticMembers);
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;

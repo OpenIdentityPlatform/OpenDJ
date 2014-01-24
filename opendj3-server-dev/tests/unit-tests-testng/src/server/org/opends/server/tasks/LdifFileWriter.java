@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.tasks;
@@ -35,7 +36,7 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.LDIFException;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.IOException;
 import java.util.Random;
@@ -79,7 +80,7 @@ public class LdifFileWriter implements EntryWriter
        throws IOException, InitializationException, MakeLDIFException
   {
     TemplateFile template = new TemplateFile(resourcePath, new Random(1));
-    ArrayList<Message> warnings = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
     template.parse(templatePath, warnings);
     makeLdif(ldifPath, template);
   }
@@ -103,7 +104,7 @@ public class LdifFileWriter implements EntryWriter
        throws IOException, InitializationException, MakeLDIFException
   {
     TemplateFile template = new TemplateFile(resourcePath, new Random(1));
-    ArrayList<Message> warnings = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
     template.parse(templateLines, warnings);
     makeLdif(ldifPath, template);
   }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -52,7 +53,7 @@ import org.opends.guitools.controlpanel.event.BackupCreatedListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.RestoreDB;
 
 /**
@@ -80,7 +81,7 @@ implements BackupCreatedListener
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_RESTORE_PANEL_TITLE.get();
   }
@@ -167,7 +168,7 @@ implements BackupCreatedListener
    */
   protected void verifyBackupClicked()
   {
-    LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
 //  Launch the task in another progress dialog.
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
@@ -259,7 +260,7 @@ implements BackupCreatedListener
     setPrimaryValid(lAvailableBackups);
     setPrimaryValid(lBackupID);
 
-    final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
 
     BackupDescriptor backup = getSelectedBackup();
 
@@ -402,7 +403,7 @@ implements BackupCreatedListener
     /**
      * {@inheritDoc}
      */
-    public Message getTaskDescription()
+    public LocalizableMessage getTaskDescription()
     {
       if (verify)
       {
@@ -418,7 +419,7 @@ implements BackupCreatedListener
      * {@inheritDoc}
      */
     public boolean canLaunch(Task taskToBeLaunched,
-        Collection<Message> incompatibilityReasons)
+        Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))

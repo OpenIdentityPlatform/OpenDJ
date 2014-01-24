@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -268,7 +268,7 @@ public abstract class StartMsg extends ReplicationMsg
   }
 
   /**
-   * Get the version included in the Start Message mean the replication
+   * Get the version included in the Start LocalizableMessage mean the replication
    * protocol version used by the server that created the message.
    *
    * @return The version used by the server that created the message.

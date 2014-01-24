@@ -29,9 +29,7 @@ package org.opends.server.workflowelement.externalchangelog;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigConstants;
@@ -759,10 +757,7 @@ public class ECLSearchOperation
         // Unable to decode the message - log an error.
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-        logError(Message.raw(
-            Category.SYNC,
-            Severity.MILD_ERROR,
-            "An exception was encountered while try to encode a "
+        logError(LocalizableMessage.raw("An exception was encountered while try to encode a "
                 + "replication add message for entry \""
                 + addMsg.getDN()
                 + "\" into an External Change Log entry: "
@@ -820,10 +815,7 @@ public class ECLSearchOperation
         // Unable to decode the message - log an error.
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-        logError(Message.raw(
-            Category.SYNC,
-            Severity.MILD_ERROR,
-            "An exception was encountered while try to encode a "
+        logError(LocalizableMessage.raw("An exception was encountered while try to encode a "
                 + "replication modify message for entry \""
                 + modifyMsg.getDN()
                 + "\" into an External Change Log entry: "

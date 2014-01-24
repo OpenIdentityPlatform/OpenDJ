@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.TreeMap;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.types.Attribute;
@@ -161,7 +161,7 @@ public class LDIFDiff
     StringArgument  ignoreEntriesFile;
 
 
-    Message toolDescription = INFO_LDIFDIFF_TOOL_DESCRIPTION.get();
+    LocalizableMessage toolDescription = INFO_LDIFDIFF_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
     try
@@ -246,7 +246,7 @@ public class LDIFDiff
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       err.println(message);
       return OPERATIONS_ERROR;
     }
@@ -259,7 +259,7 @@ public class LDIFDiff
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       err.println(message);
       err.println(argParser.getUsage());
       return CLIENT_SIDE_PARAM_ERROR;
@@ -280,7 +280,7 @@ public class LDIFDiff
       {
         scriptName = "ldif-diff";
       }
-      Message message = WARN_LDIFDIFF_NO_CONFIG_FILE.get(scriptName);
+      LocalizableMessage message = WARN_LDIFDIFF_NO_CONFIG_FILE.get(scriptName);
       err.println(message);
     }
 
@@ -304,7 +304,7 @@ public class LDIFDiff
         catch (Exception e)
         {
 
-          Message message = ERR_LDIFDIFF_CANNOT_INITIALIZE_JMX.get(
+          LocalizableMessage message = ERR_LDIFDIFF_CANNOT_INITIALIZE_JMX.get(
                   String.valueOf(configFile.getValue()),
                                       e.getMessage());
           err.println(message);
@@ -318,7 +318,7 @@ public class LDIFDiff
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFDIFF_CANNOT_INITIALIZE_CONFIG.get(
+          LocalizableMessage message = ERR_LDIFDIFF_CANNOT_INITIALIZE_CONFIG.get(
                   String.valueOf(configFile.getValue()),
                                       e.getMessage());
           err.println(message);
@@ -331,7 +331,7 @@ public class LDIFDiff
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFDIFF_CANNOT_INITIALIZE_SCHEMA.get(
+          LocalizableMessage message = ERR_LDIFDIFF_CANNOT_INITIALIZE_SCHEMA.get(
                   String.valueOf(configFile.getValue()),
                   e.getMessage());
           err.println(message);
@@ -360,7 +360,7 @@ public class LDIFDiff
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ATTRIBS.get(
+        LocalizableMessage message = ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ATTRIBS.get(
                 ignoreAttrsFile.getValue(),
                 String.valueOf(e));
         err.println(message);
@@ -392,7 +392,7 @@ public class LDIFDiff
           }
           catch (DirectoryException e)
           {
-            Message message = INFO_LDIFDIFF_CANNOT_PARSE_STRING_AS_DN.get(
+            LocalizableMessage message = INFO_LDIFDIFF_CANNOT_PARSE_STRING_AS_DN.get(
                     line, ignoreEntriesFile.getValue());
             err.println(message);
           }
@@ -401,7 +401,7 @@ public class LDIFDiff
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ENTRIES.get(
+        LocalizableMessage message = ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ENTRIES.get(
                 ignoreEntriesFile.getValue(),
                 String.valueOf(e));
         err.println(message);
@@ -426,7 +426,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFDIFF_CANNOT_OPEN_SOURCE_LDIF.get(
+      LocalizableMessage message = ERR_LDIFDIFF_CANNOT_OPEN_SOURCE_LDIF.get(
               sourceLDIF.getValue(),
               String.valueOf(e));
       err.println(message);
@@ -452,7 +452,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFDIFF_ERROR_READING_SOURCE_LDIF.get(
+      LocalizableMessage message = ERR_LDIFDIFF_ERROR_READING_SOURCE_LDIF.get(
               sourceLDIF.getValue(),
               String.valueOf(e));
       err.println(message);
@@ -475,7 +475,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFDIFF_CANNOT_OPEN_TARGET_LDIF.get(
+      LocalizableMessage message = ERR_LDIFDIFF_CANNOT_OPEN_TARGET_LDIF.get(
               targetLDIF.getValue(),
               String.valueOf(e));
       err.println(message);
@@ -501,7 +501,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFDIFF_ERROR_READING_TARGET_LDIF.get(
+      LocalizableMessage message = ERR_LDIFDIFF_ERROR_READING_TARGET_LDIF.get(
               targetLDIF.getValue(),
               String.valueOf(e));
       err.println(message);
@@ -543,7 +543,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFDIFF_CANNOT_OPEN_OUTPUT.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDIFDIFF_CANNOT_OPEN_OUTPUT.get(String.valueOf(e));
       err.println(message);
       return OPERATIONS_ERROR;
     }
@@ -710,7 +710,7 @@ public class LDIFDiff
 
       if (!differenceFound)
       {
-        Message message = INFO_LDIFDIFF_NO_DIFFERENCES.get();
+        LocalizableMessage message = INFO_LDIFDIFF_NO_DIFFERENCES.get();
         writer.writeComment(message, 0);
       }
       if (useCompareResultCode.isPresent())
@@ -720,7 +720,7 @@ public class LDIFDiff
     }
     catch (IOException e)
     {
-      Message message =
+      LocalizableMessage message =
               ERR_LDIFDIFF_ERROR_WRITING_OUTPUT.get(String.valueOf(e));
       err.println(message);
       return OPERATIONS_ERROR;

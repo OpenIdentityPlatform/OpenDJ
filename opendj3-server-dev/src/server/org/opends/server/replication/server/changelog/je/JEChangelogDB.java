@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -32,8 +32,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -164,11 +164,11 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       if (debugEnabled())
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-      final MessageBuilder mb = new MessageBuilder();
+      final LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(e.getLocalizedMessage());
       mb.append(" ");
       mb.append(String.valueOf(dbDirectory));
-      Message msg = ERR_FILE_CHECK_CREATE_FAILED.get(mb.toString());
+      LocalizableMessage msg = ERR_FILE_CHECK_CREATE_FAILED.get(mb.toString());
       throw new ConfigException(msg, e);
     }
   }

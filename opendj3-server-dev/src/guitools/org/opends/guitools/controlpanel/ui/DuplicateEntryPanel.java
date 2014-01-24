@@ -51,7 +51,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.LDAPEntryReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -169,7 +169,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getProgressDialogTitle()
+  protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_PANEL_DUPLICATE_ENTRY_TITLE.get();
   }
@@ -177,7 +177,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_DUPLICATE_ENTRY_TITLE.get();
   }
@@ -333,7 +333,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
   /**
    * {@inheritDoc}
    */
-  protected void checkSyntax(ArrayList<Message> errors)
+  protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     int origSize = errors.size();
     String name = this.name.getText().trim();
@@ -522,8 +522,8 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       {
         if (throwable != null)
         {
-          Message title = INFO_CTRL_PANEL_ERROR_SEARCHING_ENTRY_TITLE.get();
-          Message details =
+          LocalizableMessage title = INFO_CTRL_PANEL_ERROR_SEARCHING_ENTRY_TITLE.get();
+          LocalizableMessage details =
             ERR_CTRL_PANEL_ERROR_SEARCHING_ENTRY.get(node.getDN(),
                 throwable.toString());
           displayErrorMessage(title, details);

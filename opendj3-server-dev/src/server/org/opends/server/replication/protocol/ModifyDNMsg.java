@@ -42,7 +42,7 @@ import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import static org.opends.server.replication.protocol.OperationContext.*;
 
 /**
- * Message used to send Modify DN information.
+ * LocalizableMessage used to send Modify DN information.
  */
 public class ModifyDNMsg extends ModifyCommonMsg
 {

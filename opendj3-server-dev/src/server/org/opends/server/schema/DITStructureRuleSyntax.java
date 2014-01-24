@@ -25,7 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -48,7 +48,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -104,7 +104,7 @@ public class DITStructureRuleSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      Message message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
           EMR_CASE_IGNORE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME);
       throw new InitializationException(message);
     }
@@ -113,7 +113,7 @@ public class DITStructureRuleSyntax
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      Message message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
           OMR_CASE_IGNORE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME);
       throw new InitializationException(message);
     }
@@ -122,7 +122,7 @@ public class DITStructureRuleSyntax
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      Message message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_CASE_IGNORE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME);
       throw new InitializationException(message);
     }
@@ -205,7 +205,7 @@ public class DITStructureRuleSyntax
    * {@inheritDoc}
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // We'll use the decodeDITStructureRule method to determine if the value is
     // acceptable.
@@ -275,7 +275,7 @@ public class DITStructureRuleSyntax
     {
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
-      Message message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE.get();
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -286,7 +286,7 @@ public class DITStructureRuleSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      Message message = ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(
           valueStr, (pos-1), String.valueOf(c));
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -303,7 +303,7 @@ public class DITStructureRuleSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -315,7 +315,7 @@ public class DITStructureRuleSyntax
     {
       if (! isDigit(c))
       {
-        Message message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.get(
+        LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.get(
             valueStr, String.valueOf(c), (pos-1));
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                      message);
@@ -327,7 +327,7 @@ public class DITStructureRuleSyntax
     int ruleID;
     if (pos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -347,7 +347,7 @@ public class DITStructureRuleSyntax
     {
       // This means that the end of the value was reached before we could find
       // the rule ID.  Ths is illegal.
-      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -381,7 +381,7 @@ public class DITStructureRuleSyntax
         // We must be at the end of the value.  If not, then that's a problem.
         if (pos < length)
         {
-          Message message = ERR_ATTR_SYNTAX_DSR_UNEXPECTED_CLOSE_PARENTHESIS.
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_UNEXPECTED_CLOSE_PARENTHESIS.
               get(valueStr, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -439,7 +439,7 @@ public class DITStructureRuleSyntax
         else
         {
           // This is an illegal character.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR.get(
                       valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -470,7 +470,7 @@ public class DITStructureRuleSyntax
         nameForm = schema.getNameForm(woidBuffer.toString());
         if ((nameForm == null) && (! allowUnknownElements))
         {
-          Message message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(
               valueStr, woidBuffer.toString());
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -497,7 +497,7 @@ public class DITStructureRuleSyntax
 
             if (pos >= length)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
@@ -509,7 +509,7 @@ public class DITStructureRuleSyntax
             {
               if (! isDigit(c))
               {
-                Message message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.
+                LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.
                     get(valueStr, String.valueOf(c), (pos-1));
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -521,7 +521,7 @@ public class DITStructureRuleSyntax
             int supRuleID;
             if (pos >= length)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
@@ -540,7 +540,7 @@ public class DITStructureRuleSyntax
             {
               if (! allowUnknownElements)
               {
-                Message message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.get(
+                LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.get(
                     valueStr, supRuleID);
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -560,7 +560,7 @@ public class DITStructureRuleSyntax
 
             if (pos >= length)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
@@ -579,7 +579,7 @@ public class DITStructureRuleSyntax
 
               if (pos >= length)
               {
-                Message message =
+                LocalizableMessage message =
                     ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -593,7 +593,7 @@ public class DITStructureRuleSyntax
         {
           if (pos >= length)
           {
-            Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
+            LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
           }
@@ -604,7 +604,7 @@ public class DITStructureRuleSyntax
           {
             if (! isDigit(c))
             {
-              Message message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.get(
+              LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.get(
                   valueStr, String.valueOf(c), (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
@@ -616,7 +616,7 @@ public class DITStructureRuleSyntax
           int supRuleID;
           if (pos >= length)
           {
-            Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+            LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
           }
@@ -633,7 +633,7 @@ public class DITStructureRuleSyntax
           {
             if (! allowUnknownElements)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.get(valueStr, supRuleID);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
@@ -653,7 +653,7 @@ public class DITStructureRuleSyntax
 
           if (pos >= length)
           {
-            Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
+            LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
           }
@@ -677,7 +677,7 @@ public class DITStructureRuleSyntax
 
     if ((nameForm == null) && (! nameFormGiven))
     {
-      Message message = ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -720,7 +720,7 @@ public class DITStructureRuleSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -778,7 +778,7 @@ public class DITStructureRuleSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -787,7 +787,7 @@ public class DITStructureRuleSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_DSR_EXPECTED_QUOTE_AT_POS.get(
                   valueStr, startPos, String.valueOf(c));
       throw new DirectoryException(
@@ -815,7 +815,7 @@ public class DITStructureRuleSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -864,7 +864,7 @@ public class DITStructureRuleSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -873,7 +873,7 @@ public class DITStructureRuleSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_DSR_EXPECTED_QUOTE_AT_POS.get(
                   valueStr, startPos, String.valueOf(c));
       throw new DirectoryException(
@@ -902,7 +902,7 @@ public class DITStructureRuleSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -944,7 +944,7 @@ public class DITStructureRuleSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -963,7 +963,7 @@ public class DITStructureRuleSyntax
         {
           if (lastWasPeriod)
           {
-            Message message = ERR_ATTR_SYNTAX_DSR_DOUBLE_PERIOD_IN_NUMERIC_OID.
+            LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_DOUBLE_PERIOD_IN_NUMERIC_OID.
                 get(lowerStr, (startPos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
@@ -988,7 +988,7 @@ public class DITStructureRuleSyntax
           }
 
           // This must have been an illegal character.
-          Message message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
               lowerStr, String.valueOf(c), (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1026,7 +1026,7 @@ public class DITStructureRuleSyntax
           }
 
           // This must have been an illegal character.
-          Message message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_STRING_OID.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_STRING_OID.get(
               lowerStr, String.valueOf(c), (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1035,7 +1035,7 @@ public class DITStructureRuleSyntax
     }
     else
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR.get(
                   lowerStr, String.valueOf(c), startPos);
       throw new DirectoryException(
@@ -1053,7 +1053,7 @@ public class DITStructureRuleSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1095,7 +1095,7 @@ public class DITStructureRuleSyntax
 
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -1133,7 +1133,7 @@ public class DITStructureRuleSyntax
 
         if (startPos >= length)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1148,7 +1148,7 @@ public class DITStructureRuleSyntax
         else if (c == '(')
         {
           // This is an illegal character.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR.get(
                       valueStr, String.valueOf(c), startPos);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -1185,7 +1185,7 @@ public class DITStructureRuleSyntax
 
         if (startPos >= length)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1213,7 +1213,7 @@ public class DITStructureRuleSyntax
 
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);

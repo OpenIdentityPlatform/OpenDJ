@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
@@ -178,7 +178,7 @@ public class AssuredReplicationServerTest
 
   private void debugInfo(String s)
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE, s));
+    logError(LocalizableMessage.raw(s));
     if (debugEnabled())
     {
       TRACER.debugInfo("** TEST **" + s);

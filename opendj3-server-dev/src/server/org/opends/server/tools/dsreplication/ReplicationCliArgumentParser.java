@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.server.tools.dsreplication;
@@ -37,8 +37,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
@@ -376,15 +376,15 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Checks all the options parameters and updates the provided MessageBuilder
+   * Checks all the options parameters and updates the provided LocalizableMessageBuilder
    * with the errors that where encountered.
    *
    * This method assumes that the method parseArguments for the parser has
    * already been called.
-   * @param buf the MessageBuilder object where we add the error messages
+   * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  public void validateOptions(MessageBuilder buf)
+  public void validateOptions(LocalizableMessageBuilder buf)
   {
     validateGlobalOptions(buf);
     validateSubcommandOptions(buf);
@@ -394,14 +394,14 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * {@inheritDoc}
    */
   @Override
-  public int validateGlobalOptions(MessageBuilder buf)
+  public int validateGlobalOptions(LocalizableMessageBuilder buf)
   {
     int returnValue;
     super.validateGlobalOptions(buf);
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     if (secureArgsList.bindPasswordArg.isPresent() &&
         secureArgsList.bindPasswordFileArg.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           secureArgsList.bindPasswordArg.getLongIdentifier(),
           secureArgsList.bindPasswordFileArg.getLongIdentifier());
       errors.add(message);
@@ -431,7 +431,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     if (noPromptArg.isPresent() && advancedArg.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           noPromptArg.getLongIdentifier(),
           advancedArg.getLongIdentifier());
       errors.add(message);
@@ -469,7 +469,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     }
     if (errors.size() > 0)
     {
-      for (Message error : errors)
+      for (LocalizableMessage error : errors)
       {
         addMessage(buf, error);
       }
@@ -913,7 +913,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         "local-only",
         'l',
         "local-only",
-        Message.EMPTY);
+        LocalizableMessage.EMPTY);
     externalInitializationLocalOnlyArg.setHidden(true);
 
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
@@ -1841,15 +1841,15 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Checks the subcommand options and updates the provided MessageBuilder
+   * Checks the subcommand options and updates the provided LocalizableMessageBuilder
    * with the errors that were encountered with the subcommand options.
    *
    * This method assumes that the method parseArguments for the parser has
    * already been called.
-   * @param buf the MessageBuilder object where we add the error messages
+   * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  public void validateSubcommandOptions(MessageBuilder buf)
+  public void validateSubcommandOptions(LocalizableMessageBuilder buf)
   {
     if (isEnableReplicationSubcommand())
     {
@@ -1894,15 +1894,15 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
   /**
    * Checks the purge historical subcommand options and updates the
-   * provided MessageBuilder with the errors that were encountered with the
+   * provided LocalizableMessageBuilder with the errors that were encountered with the
    * subcommand options.
    *
    * This method assumes that the method parseArguments for the parser has
    * already been called.
-   * @param buf the MessageBuilder object where we add the error messages
+   * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  private void validatePurgeHistoricalOptions(MessageBuilder buf)
+  private void validatePurgeHistoricalOptions(LocalizableMessageBuilder buf)
   {
     try
     {
@@ -2029,15 +2029,15 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
   /**
    * Checks the enable replication subcommand options and updates the provided
-   * MessageBuilder with the errors that were encountered with the subcommand
+   * LocalizableMessageBuilder with the errors that were encountered with the subcommand
    * options.
    *
    * This method assumes that the method parseArguments for the parser has
    * already been called.
-   * @param buf the MessageBuilder object where we add the error messages
+   * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  private void validateEnableReplicationOptions(MessageBuilder buf)
+  private void validateEnableReplicationOptions(LocalizableMessageBuilder buf)
   {
     Argument[][] conflictingPairs =
     {
@@ -2056,7 +2056,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       Argument arg2 = conflictingPairs[i][1];
       if (arg1.isPresent() && arg2.isPresent())
       {
-        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+        LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
             arg1.getLongIdentifier(), arg2.getLongIdentifier());
         addMessage(buf, message);
       }
@@ -2067,7 +2067,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
       if (port1Arg.getValue().equals(port2Arg.getValue()))
       {
-        Message message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(
+        LocalizableMessage message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(
             hostName1Arg.getValue(), port1Arg.getValue());
         addMessage(buf, message);
       }
@@ -2076,15 +2076,15 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
   /**
    * Checks the disable replication subcommand options and updates the provided
-   * MessageBuilder with the errors that were encountered with the subcommand
+   * LocalizableMessageBuilder with the errors that were encountered with the subcommand
    * options.
    *
    * This method assumes that the method parseArguments for the parser has
    * already been called.
-   * @param buf the MessageBuilder object where we add the error messages
+   * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  private void validateDisableReplicationOptions(MessageBuilder buf)
+  private void validateDisableReplicationOptions(LocalizableMessageBuilder buf)
   {
     Argument[][] conflictingPairs =
     {
@@ -2099,7 +2099,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       Argument arg2 = conflictingPairs[i][1];
       if (arg1.isPresent() && arg2.isPresent())
       {
-        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+        LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
             arg1.getLongIdentifier(), arg2.getLongIdentifier());
         addMessage(buf, message);
       }
@@ -2108,63 +2108,63 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
   /**
    * Checks the initialize all replication subcommand options and updates the
-   * provided MessageBuilder with the errors that were encountered with the
+   * provided LocalizableMessageBuilder with the errors that were encountered with the
    * subcommand options.
    *
    * This method assumes that the method parseArguments for the parser has
    * already been called.
-   * @param buf the MessageBuilder object where we add the error messages
+   * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  private void validateInitializeAllReplicationOptions(MessageBuilder buf)
+  private void validateInitializeAllReplicationOptions(LocalizableMessageBuilder buf)
   {
   }
 
   /**
    * Checks the pre external initialization subcommand options and updates the
-   * provided MessageBuilder with the errors that were encountered with the
+   * provided LocalizableMessageBuilder with the errors that were encountered with the
    * subcommand options.
    *
    * This method assumes that the method parseArguments for the parser has
    * already been called.
-   * @param buf the MessageBuilder object where we add the error messages
+   * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  private void validatePreExternalInitializationOptions(MessageBuilder buf)
+  private void validatePreExternalInitializationOptions(LocalizableMessageBuilder buf)
   {
     validateInitializeAllReplicationOptions(buf);
   }
 
   /**
    * Checks the post external initialization subcommand options and updates the
-   * provided MessageBuilder with the errors that were encountered with the
+   * provided LocalizableMessageBuilder with the errors that were encountered with the
    * subcommand options.
    *
    * This method assumes that the method parseArguments for the parser has
    * already been called.
-   * @param buf the MessageBuilder object where we add the error messages
+   * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  private void validatePostExternalInitializationOptions(MessageBuilder buf)
+  private void validatePostExternalInitializationOptions(LocalizableMessageBuilder buf)
   {
     validateInitializeAllReplicationOptions(buf);
   }
 
   /**
    * Checks the status replication subcommand options and updates the provided
-   * MessageBuilder with the errors that were encountered with the subcommand
+   * LocalizableMessageBuilder with the errors that were encountered with the subcommand
    * options.
    *
    * This method assumes that the method parseArguments for the parser has
    * already been called.
-   * @param buf the MessageBuilder object where we add the error messages
+   * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  private void validateStatusReplicationOptions(MessageBuilder buf)
+  private void validateStatusReplicationOptions(LocalizableMessageBuilder buf)
   {
     if (quietArg.isPresent())
     {
-      Message message = ERR_REPLICATION_STATUS_QUIET.get(
+      LocalizableMessage message = ERR_REPLICATION_STATUS_QUIET.get(
           STATUS_REPLICATION_SUBCMD_NAME, "--"+quietArg.getLongIdentifier());
       addMessage(buf, message);
     }
@@ -2172,22 +2172,22 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
   /**
    * Checks the initialize replication subcommand options and updates the
-   * provided MessageBuilder with the errors that were encountered with the
+   * provided LocalizableMessageBuilder with the errors that were encountered with the
    * subcommand options.
    *
    * This method assumes that the method parseArguments for the parser has
    * already been called.
-   * @param buf the MessageBuilder object where we add the error messages
+   * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  private void validateInitializeReplicationOptions(MessageBuilder buf)
+  private void validateInitializeReplicationOptions(LocalizableMessageBuilder buf)
   {
     if (hostNameSourceArg.getValue().equalsIgnoreCase(
         hostNameDestinationArg.getValue()) && !isInteractive())
     {
       if (portSourceArg.getValue().equals(portDestinationArg.getValue()))
       {
-        Message message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
+        LocalizableMessage message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
             hostNameSourceArg.getValue(), portSourceArg.getValue());
         addMessage(buf, message);
       }
@@ -2195,11 +2195,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Adds a message to the provided MessageBuilder.
-   * @param buf the MessageBuilder.
+   * Adds a message to the provided LocalizableMessageBuilder.
+   * @param buf the LocalizableMessageBuilder.
    * @param message the message to be added.
    */
-  private void addMessage(MessageBuilder buf, Message message)
+  private void addMessage(LocalizableMessageBuilder buf, LocalizableMessage message)
   {
     if (buf.length() > 0)
     {

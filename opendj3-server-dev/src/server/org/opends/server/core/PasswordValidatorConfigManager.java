@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -148,7 +149,7 @@ public class PasswordValidatorConfigManager
    */
   public boolean isConfigurationAddAcceptable(
                       PasswordValidatorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -180,7 +181,7 @@ public class PasswordValidatorConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     configuration.addChangeListener(this);
 
@@ -226,7 +227,7 @@ public class PasswordValidatorConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
                       PasswordValidatorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // FIXME -- We should try to perform some check to determine whether the
     // password validator is in use.
@@ -243,7 +244,7 @@ public class PasswordValidatorConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     DirectoryServer.deregisterPasswordValidator(configuration.dn());
 
@@ -264,7 +265,7 @@ public class PasswordValidatorConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       PasswordValidatorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -296,7 +297,7 @@ public class PasswordValidatorConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the existing validator if it's already enabled.
@@ -415,7 +416,7 @@ public class PasswordValidatorConfigManager
                                             PasswordValidatorCfg.class,
                                             List.class);
 
-        List<Message> unacceptableReasons = new ArrayList<Message>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         Boolean acceptable = (Boolean) method.invoke(validator, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -423,7 +424,7 @@ public class PasswordValidatorConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<Message> iterator = unacceptableReasons.iterator();
+            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -432,7 +433,7 @@ public class PasswordValidatorConfigManager
             }
           }
 
-          Message message = ERR_CONFIG_PWVALIDATOR_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_PWVALIDATOR_CONFIG_NOT_ACCEPTABLE.get(
               String.valueOf(configuration.dn()), buffer.toString());
           throw new InitializationException(message);
         }
@@ -442,7 +443,7 @@ public class PasswordValidatorConfigManager
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_PWVALIDATOR_INITIALIZATION_FAILED.
+      LocalizableMessage message = ERR_CONFIG_PWVALIDATOR_INITIALIZATION_FAILED.
           get(className, String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);

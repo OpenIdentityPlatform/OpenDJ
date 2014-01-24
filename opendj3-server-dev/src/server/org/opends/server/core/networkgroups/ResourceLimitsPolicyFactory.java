@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ResourceLimitsQOSPolicyCfg;
 import org.opends.server.api.ClientConnection;
@@ -74,7 +74,7 @@ public final class ResourceLimitsPolicyFactory implements
     {
       ResultCode resultCode = ResultCode.SUCCESS;
       boolean adminActionRequired = false;
-      ArrayList<Message> messages = new ArrayList<Message>();
+      ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
       // Save the configuration.
       updateConfiguration(configuration);
@@ -90,7 +90,7 @@ public final class ResourceLimitsPolicyFactory implements
      */
     public boolean isConfigurationChangeAcceptable(
         ResourceLimitsQOSPolicyCfg configuration,
-        List<Message> unacceptableReasons)
+        List<LocalizableMessage> unacceptableReasons)
     {
       return ResourceLimitsPolicyFactory.validateConfiguration(
           configuration, unacceptableReasons);
@@ -227,7 +227,7 @@ public final class ResourceLimitsPolicyFactory implements
     @Override
     boolean isAllowed(ClientConnection connection,
         PreParseOperation operation, boolean fullCheck,
-        List<Message> messages)
+        List<LocalizableMessage> messages)
     {
       boolean result = true;
 
@@ -488,7 +488,7 @@ public final class ResourceLimitsPolicyFactory implements
   // Validates a configuration.
   private static boolean validateConfiguration(
       ResourceLimitsQOSPolicyCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // maxOpsPerInterval must be positive
     long tmpMaxOps = configuration.getMaxOpsInterval();
@@ -537,7 +537,7 @@ public final class ResourceLimitsPolicyFactory implements
    */
   public boolean isConfigurationAcceptable(
       ResourceLimitsQOSPolicyCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return validateConfiguration(configuration, unacceptableReasons);
   }

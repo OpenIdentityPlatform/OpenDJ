@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.util.args;
 
@@ -30,8 +30,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.util.SetupUtils;
 
 import static org.opends.messages.UtilityMessages.*;
@@ -116,7 +116,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * A human-readable description for the tool, which will be included when
    * displaying usage information.
    */
-  private final Message toolDescription;
+  private final LocalizableMessage toolDescription;
 
   /** The raw set of command-line arguments that were provided. */
   private String[] rawArguments;
@@ -148,7 +148,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    *                                     argument names should be treated in a
    *                                     case-sensitive manner.
    */
-  public SubCommandArgumentParser(String mainClassName, Message toolDescription,
+  public SubCommandArgumentParser(String mainClassName, LocalizableMessage toolDescription,
                                   boolean longArgumentsCaseSensitive)
   {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
@@ -196,7 +196,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    *          none is available.
    */
   @Override
-  public Message getToolDescription()
+  public LocalizableMessage getToolDescription()
   {
     return toolDescription;
   }
@@ -463,7 +463,7 @@ public class SubCommandArgumentParser extends ArgumentParser
     String argumentName = argument.getName();
     if (globalArgumentMap.containsKey(argumentName))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_NAME.get(argumentName);
       throw new ArgumentException(message);
     }
@@ -471,7 +471,7 @@ public class SubCommandArgumentParser extends ArgumentParser
     {
       if (s.getArgumentForName(argumentName) != null)
       {
-        Message message = ERR_SUBCMDPARSER_GLOBAL_ARG_NAME_SUBCMD_CONFLICT.get(
+        LocalizableMessage message = ERR_SUBCMDPARSER_GLOBAL_ARG_NAME_SUBCMD_CONFLICT.get(
             argumentName, s.getName());
         throw new ArgumentException(message);
       }
@@ -485,7 +485,7 @@ public class SubCommandArgumentParser extends ArgumentParser
       {
         String name = globalShortIDMap.get(shortID).getName();
 
-        Message message = ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_SHORT_ID.get(
+        LocalizableMessage message = ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_SHORT_ID.get(
             String.valueOf(shortID), argumentName, name);
         throw new ArgumentException(message);
       }
@@ -497,7 +497,7 @@ public class SubCommandArgumentParser extends ArgumentParser
           String cmdName = s.getName();
           String name    = s.getArgument(shortID).getName();
 
-          Message message = ERR_SUBCMDPARSER_GLOBAL_ARG_SHORT_ID_CONFLICT.get(
+          LocalizableMessage message = ERR_SUBCMDPARSER_GLOBAL_ARG_SHORT_ID_CONFLICT.get(
               String.valueOf(shortID), argumentName, name, cmdName);
           throw new ArgumentException(message);
         }
@@ -517,7 +517,7 @@ public class SubCommandArgumentParser extends ArgumentParser
       {
         String name = globalLongIDMap.get(longID).getName();
 
-        Message message = ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_LONG_ID.get(
+        LocalizableMessage message = ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_LONG_ID.get(
             argument.getLongIdentifier(), argumentName, name);
         throw new ArgumentException(message);
       }
@@ -529,7 +529,7 @@ public class SubCommandArgumentParser extends ArgumentParser
           String cmdName = s.getName();
           String name    = s.getArgument(longID).getName();
 
-          Message message = ERR_SUBCMDPARSER_GLOBAL_ARG_LONG_ID_CONFLICT.get(
+          LocalizableMessage message = ERR_SUBCMDPARSER_GLOBAL_ARG_LONG_ID_CONFLICT.get(
               argument.getLongIdentifier(), argumentName, name, cmdName);
           throw new ArgumentException(message);
         }
@@ -712,7 +712,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         if (subCommand.getMaxTrailingArguments() > 0
             && trailingArguments.size() > subCommand.getMaxTrailingArguments())
         {
-          Message message = ERR_ARGPARSER_TOO_MANY_TRAILING_ARGS.get(
+          LocalizableMessage message = ERR_ARGPARSER_TOO_MANY_TRAILING_ARGS.get(
               subCommand.getMaxTrailingArguments());
           throw new ArgumentException(message);
         }
@@ -742,7 +742,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         else if (equalPos == 0)
         {
           // The argument starts with "--=", which is not acceptable.
-          Message message = ERR_SUBCMDPARSER_LONG_ARG_WITHOUT_NAME.get(arg);
+          LocalizableMessage message = ERR_SUBCMDPARSER_LONG_ARG_WITHOUT_NAME.get(arg);
           throw new ArgumentException(message);
         }
         else
@@ -786,7 +786,7 @@ public class SubCommandArgumentParser extends ArgumentParser
             else
             {
               // There is no such global argument.
-              Message message =
+              LocalizableMessage message =
                   ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_LONG_ID.get(
                       origArgName);
               throw new ArgumentException(message);
@@ -817,7 +817,7 @@ public class SubCommandArgumentParser extends ArgumentParser
               else
               {
                 // There is no such global or subcommand argument.
-                Message message =
+                LocalizableMessage message =
                     ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_LONG_ID.get(origArgName);
                 throw new ArgumentException(message);
               }
@@ -843,7 +843,7 @@ public class SubCommandArgumentParser extends ArgumentParser
           {
             if ((i+1) == numArguments)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_SUBCMDPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID.
                     get(argName);
               throw new ArgumentException(message);
@@ -852,10 +852,10 @@ public class SubCommandArgumentParser extends ArgumentParser
             argValue = rawArguments[++i];
           }
 
-          MessageBuilder invalidReason = new MessageBuilder();
+          LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
           if (! a.valueIsAcceptable(argValue, invalidReason))
           {
-            Message message = ERR_SUBCMDPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID.
+            LocalizableMessage message = ERR_SUBCMDPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID.
                 get(argValue, argName, invalidReason.toString());
             throw new ArgumentException(message);
           }
@@ -864,7 +864,7 @@ public class SubCommandArgumentParser extends ArgumentParser
           // acceptable to have more than one.
           if (a.hasValue() && !a.isMultiValued())
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_SUBCMDPARSER_NOT_MULTIVALUED_FOR_LONG_ID.get(origArgName);
             throw new ArgumentException(message);
           }
@@ -875,7 +875,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         {
           if (argValue != null)
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_SUBCMDPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE.get(
                     origArgName);
             throw new ArgumentException(message);
@@ -891,7 +891,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         // -n value
         if (arg.equals("-"))
         {
-          Message message = ERR_SUBCMDPARSER_INVALID_DASH_AS_ARGUMENT.get();
+          LocalizableMessage message = ERR_SUBCMDPARSER_INVALID_DASH_AS_ARGUMENT.get();
           throw new ArgumentException(message);
         }
 
@@ -940,7 +940,7 @@ public class SubCommandArgumentParser extends ArgumentParser
               {
                 // -V is defined in another suncommand, so we can
                 // accepted it as the version information argument
-                Message message =
+                LocalizableMessage message =
                     ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.
                       get(String.valueOf(argCharacter));
                 throw new ArgumentException(message);
@@ -949,7 +949,7 @@ public class SubCommandArgumentParser extends ArgumentParser
             else
             {
               // There is no such argument registered.
-              Message message =
+              LocalizableMessage message =
                   ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.
                     get(String.valueOf(argCharacter));
               throw new ArgumentException(message);
@@ -980,7 +980,7 @@ public class SubCommandArgumentParser extends ArgumentParser
               else
               {
                 // There is no such argument registered.
-                Message message = ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID.get(
+                LocalizableMessage message = ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID.get(
                     String.valueOf(argCharacter));
                 throw new ArgumentException(message);
               }
@@ -1006,7 +1006,7 @@ public class SubCommandArgumentParser extends ArgumentParser
           {
             if ((i+1) == numArguments)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_SUBCMDPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID.
                     get(String.valueOf(argCharacter));
               throw new ArgumentException(message);
@@ -1015,10 +1015,10 @@ public class SubCommandArgumentParser extends ArgumentParser
             argValue = rawArguments[++i];
           }
 
-          MessageBuilder invalidReason = new MessageBuilder();
+          LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
           if (! a.valueIsAcceptable(argValue, invalidReason))
           {
-            Message message = ERR_SUBCMDPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID.
+            LocalizableMessage message = ERR_SUBCMDPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID.
                 get(argValue, String.valueOf(argCharacter),
                     invalidReason.toString());
             throw new ArgumentException(message);
@@ -1028,7 +1028,7 @@ public class SubCommandArgumentParser extends ArgumentParser
           // acceptable to have more than one.
           if (a.hasValue() && !a.isMultiValued())
           {
-            Message message = ERR_SUBCMDPARSER_NOT_MULTIVALUED_FOR_SHORT_ID.get(
+            LocalizableMessage message = ERR_SUBCMDPARSER_NOT_MULTIVALUED_FOR_SHORT_ID.get(
                 String.valueOf(argCharacter));
             throw new ArgumentException(message);
           }
@@ -1053,7 +1053,7 @@ public class SubCommandArgumentParser extends ArgumentParser
               {
                 if (subCommand == null)
                 {
-                  Message message =
+                  LocalizableMessage message =
                       ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.
                         get(String.valueOf(argCharacter));
                   throw new ArgumentException(message);
@@ -1063,7 +1063,7 @@ public class SubCommandArgumentParser extends ArgumentParser
                   b = subCommand.getArgument(c);
                   if (b == null)
                   {
-                    Message message = ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID.
+                    LocalizableMessage message = ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID.
                         get(String.valueOf(argCharacter));
                     throw new ArgumentException(message);
                   }
@@ -1074,7 +1074,7 @@ public class SubCommandArgumentParser extends ArgumentParser
               {
                 // This means we're in a scenario like "-abc" where b is a
                 // valid argument that takes a value.  We don't support that.
-                Message message = ERR_SUBCMDPARSER_CANT_MIX_ARGS_WITH_VALUES.
+                LocalizableMessage message = ERR_SUBCMDPARSER_CANT_MIX_ARGS_WITH_VALUES.
                     get(String.valueOf(argCharacter), argValue,
                         String.valueOf(c));
                 throw new ArgumentException(message);
@@ -1107,7 +1107,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         else
         {
           // Trailing arguments are not allowed for this sub-command.
-          Message message = ERR_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT.get(arg);
+          LocalizableMessage message = ERR_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT.get(arg);
           throw new ArgumentException(message);
         }
       }
@@ -1123,7 +1123,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         SubCommand sc = subCommands.get(nameToCheck);
         if (sc == null)
         {
-          Message message = ERR_SUBCMDPARSER_INVALID_ARGUMENT.get(arg);
+          LocalizableMessage message = ERR_SUBCMDPARSER_INVALID_ARGUMENT.get(arg);
           throw new ArgumentException(message);
         }
         else
@@ -1142,7 +1142,7 @@ public class SubCommandArgumentParser extends ArgumentParser
       if (subCommand.allowsTrailingArguments() && minTrailingArguments > 0
           && trailingArguments.size() < minTrailingArguments)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS.get(minTrailingArguments);
         throw new ArgumentException(message);
       }
@@ -1189,7 +1189,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @param  subCommand  The subcommand for which to display the usage
    *                     information.
    */
-  public void getSubCommandUsage(MessageBuilder buffer, SubCommand subCommand)
+  public void getSubCommandUsage(LocalizableMessageBuilder buffer, SubCommand subCommand)
   {
     usageOrVersionDisplayed = true;
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
@@ -1320,10 +1320,10 @@ public class SubCommandArgumentParser extends ArgumentParser
    * indent the description five characters and try our best to wrap at or
    * before column 79 so it will be friendly to 80-column displays.
    * <p>
-   * FIXME Try to merge with #indentAndWrap(Message, Message, MessageBuilder).
+   * FIXME Try to merge with #indentAndWrap(LocalizableMessage, LocalizableMessage, LocalizableMessageBuilder).
    */
-  private void indentAndWrap2(String indent, Message text,
-      MessageBuilder buffer)
+  private void indentAndWrap2(String indent, LocalizableMessage text,
+      LocalizableMessageBuilder buffer)
   {
     int actualSize = MAX_LENGTH - indent.length() - 1;
     if (text.length() <= actualSize)
@@ -1387,7 +1387,7 @@ public class SubCommandArgumentParser extends ArgumentParser
   @Override
   public String getUsage()
   {
-    MessageBuilder buffer = new MessageBuilder();
+    LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
 
     if (subCommand == null) {
       if (System.getProperty("org.forgerock.opendj.gendoc") != null) {
@@ -1417,7 +1417,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    *
    * @return A string describing how the user can get more help.
    */
-  public Message getHelpUsageReference()
+  public LocalizableMessage getHelpUsageReference()
   {
     usageOrVersionDisplayed = true;
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
@@ -1426,7 +1426,7 @@ public class SubCommandArgumentParser extends ArgumentParser
       scriptName = "java " + mainClassName;
     }
 
-    MessageBuilder buffer = new MessageBuilder();
+    LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
     buffer.append(INFO_GLOBAL_HELP_REFERENCE.get(scriptName));
     buffer.append(EOL);
     return buffer.toMessage();
@@ -1482,7 +1482,7 @@ public class SubCommandArgumentParser extends ArgumentParser
 
   /** Get usage for a specific usage argument. */
   private void getUsage(Argument a, OutputStream outputStream) {
-    MessageBuilder buffer = new MessageBuilder();
+    LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
 
     if (a.equals(usageArgument) && subCommand != null) {
       getSubCommandUsage(buffer, subCommand);
@@ -1522,7 +1522,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * Appends complete usage information for the specified set of sub-commands.
    */
   private void getFullUsage(Collection<SubCommand> c,
-      boolean showGlobalOptions, MessageBuilder buffer) {
+      boolean showGlobalOptions, LocalizableMessageBuilder buffer) {
     usageOrVersionDisplayed = true;
     if (toolDescription != null && toolDescription.length() > 0)
     {
@@ -1588,7 +1588,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         }
         buffer.append(sc.getName());
         buffer.append(EOL);
-        indentAndWrap(Message.raw(INDENT), sc.getDescription(), buffer);
+        indentAndWrap(LocalizableMessage.raw(INDENT), sc.getDescription(), buffer);
         buffer.append(EOL);
         isFirst = false;
       }
@@ -1616,8 +1616,8 @@ public class SubCommandArgumentParser extends ArgumentParser
         if (argGroup.containsArguments() && printGroupHeaders)
         {
           // Print the groups description if any
-          Message groupDesc = argGroup.getDescription();
-          if (groupDesc != null && !Message.EMPTY.equals(groupDesc)) {
+          LocalizableMessage groupDesc = argGroup.getDescription();
+          if (groupDesc != null && !LocalizableMessage.EMPTY.equals(groupDesc)) {
             buffer.append(EOL);
             buffer.append(wrapText(groupDesc.toString(), MAX_LENGTH - 1));
             buffer.append(EOL);
@@ -1657,11 +1657,11 @@ public class SubCommandArgumentParser extends ArgumentParser
    *          The buffer to which the usage information should be
    *          appended.
    */
-  private void printArgumentUsage(Argument a, MessageBuilder buffer) {
+  private void printArgumentUsage(Argument a, LocalizableMessageBuilder buffer) {
     String value;
     if (a.needsValue())
     {
-      Message pHolder = a.getValuePlaceholder();
+      LocalizableMessage pHolder = a.getValuePlaceholder();
       if (pHolder == null)
       {
         value = " {value}";
@@ -1711,12 +1711,12 @@ public class SubCommandArgumentParser extends ArgumentParser
 
     buffer.append(EOL);
 
-    indentAndWrap(Message.raw(INDENT), a.getDescription(), buffer);
+    indentAndWrap(LocalizableMessage.raw(INDENT), a.getDescription(), buffer);
     if (a.needsValue()
         && a.getDefaultValue() != null
         && a.getDefaultValue().length() > 0)
      {
-       indentAndWrap(Message.raw(INDENT),
+       indentAndWrap(LocalizableMessage.raw(INDENT),
            INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()),
            buffer);
      }
@@ -1729,8 +1729,8 @@ public class SubCommandArgumentParser extends ArgumentParser
    * indent the description five characters and try our best to wrap at or
    * before column 79 so it will be friendly to 80-column displays.
    */
-  private void indentAndWrap(Message indent, Message text,
-                             MessageBuilder buffer)
+  private void indentAndWrap(LocalizableMessage indent, LocalizableMessage text,
+                             LocalizableMessageBuilder buffer)
   {
     int actualSize = MAX_LENGTH - indent.length();
     if (text.length() <= actualSize)

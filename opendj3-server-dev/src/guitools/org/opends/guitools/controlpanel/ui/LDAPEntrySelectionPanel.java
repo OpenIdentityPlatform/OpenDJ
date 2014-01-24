@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -44,7 +44,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A basic panel that contains a browser.  It is used in general in panels that
@@ -54,7 +54,7 @@ import org.opends.messages.Message;
  */
 public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
 {
-  private Message title;
+  private LocalizableMessage title;
   private Filter f;
 
   private String[] dns;
@@ -126,7 +126,7 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return title;
   }
@@ -270,7 +270,7 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
    * Sets the title that will be displayed in the dialog containing this panel.
    * @param title the title.
    */
-  public void setTitle(Message title)
+  public void setTitle(LocalizableMessage title)
   {
     this.title = title;
     Window w = Utilities.getParentDialog(this);

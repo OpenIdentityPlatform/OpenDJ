@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -71,8 +72,8 @@ import org.opends.guitools.controlpanel.ui.components.
 import
 org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ObjectClass;
@@ -149,7 +150,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_OBJECTCLASS_PANEL_TITLE.get();
   }
@@ -244,13 +245,13 @@ public class NewObjectClassPanel extends StatusGenericPanel
    */
   public void okClicked()
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     for (JLabel label : labels)
     {
       setPrimaryValid(label);
     }
     String n = getObjectClassName();
-    MessageBuilder err = new MessageBuilder();
+    LocalizableMessageBuilder err = new LocalizableMessageBuilder();
     if (n.length() == 0)
     {
       errors.add(ERR_CTRL_PANEL_OBJECTCLASS_NAME_REQUIRED.get());
@@ -258,11 +259,11 @@ public class NewObjectClassPanel extends StatusGenericPanel
     else if (!StaticUtils.isValidSchemaElement(n, 0, n.length(), err))
     {
       errors.add(ERR_CTRL_PANEL_INVALID_OBJECTCLASS_NAME.get(err.toString()));
-      err = new MessageBuilder();
+      err = new LocalizableMessageBuilder();
     }
     else
     {
-      Message elementType = NewAttributePanel.getSchemaElementType(n, schema);
+      LocalizableMessage elementType = NewAttributePanel.getSchemaElementType(n, schema);
       if (elementType != null)
       {
         errors.add(ERR_CTRL_PANEL_OBJECTCLASS_NAME_ALREADY_IN_USE.get(n,
@@ -276,11 +277,11 @@ public class NewObjectClassPanel extends StatusGenericPanel
       if (!StaticUtils.isValidSchemaElement(n, 0, n.length(), err))
       {
         errors.add(ERR_CTRL_PANEL_OID_NOT_VALID.get(err.toString()));
-        err = new MessageBuilder();
+        err = new LocalizableMessageBuilder();
       }
       else
       {
-        Message elementType = NewAttributePanel.getSchemaElementType(n, schema);
+        LocalizableMessage elementType = NewAttributePanel.getSchemaElementType(n, schema);
         if (elementType != null)
         {
           errors.add(ERR_CTRL_PANEL_OID_ALREADY_IN_USE.get(n,
@@ -302,7 +303,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
           }
           else
           {
-            Message elementType = NewAttributePanel.getSchemaElementType(
+            LocalizableMessage elementType = NewAttributePanel.getSchemaElementType(
                 alias, schema);
             if (elementType != null)
             {

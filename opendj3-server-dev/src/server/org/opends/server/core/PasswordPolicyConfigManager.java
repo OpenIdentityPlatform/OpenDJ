@@ -39,7 +39,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -116,14 +116,14 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     // there are no policies defined, so that's a problem.
     if (passwordPolicyNames.length == 0)
     {
-      Message message = ERR_CONFIG_PWPOLICY_NO_POLICIES.get();
+      LocalizableMessage message = ERR_CONFIG_PWPOLICY_NO_POLICIES.get();
       throw new ConfigException(message);
     }
 
     // Get the DN of the default password policy from the core configuration.
     if (DirectoryServer.getDefaultPasswordPolicyDN() == null)
     {
-      Message message = ERR_CONFIG_PWPOLICY_NO_DEFAULT_POLICY.get();
+      LocalizableMessage message = ERR_CONFIG_PWPOLICY_NO_DEFAULT_POLICY.get();
       throw new ConfigException(message);
     }
 
@@ -141,7 +141,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     if (null == DirectoryServer.getDefaultPasswordPolicy())
     {
       DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
-      Message message = ERR_CONFIG_PWPOLICY_MISSING_DEFAULT_POLICY.get(String
+      LocalizableMessage message = ERR_CONFIG_PWPOLICY_MISSING_DEFAULT_POLICY.get(String
           .valueOf(defaultPolicyDN));
       throw new ConfigException(message);
     }
@@ -165,7 +165,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
           {
             // Just log a message instead of failing the server initialization.
             // This will allow the administrator to fix any problems.
-            Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+            LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
                 String.valueOf(subentry.getDN()),
                 stackTraceToSingleLineString(e));
             logError(message);
@@ -203,7 +203,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(
-      AuthenticationPolicyCfg configuration, List<Message> unacceptableReason)
+      AuthenticationPolicyCfg configuration, List<LocalizableMessage> unacceptableReason)
   {
     // See if we can create a password policy from the provided configuration
     // entry. If so, then it's acceptable.
@@ -221,7 +221,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   {
     // See if we can create a password policy from the provided configuration
     // entry. If so, then register it with the Directory Server.
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     try
     {
       createAuthenticationPolicy(configuration);
@@ -259,7 +259,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(
-      AuthenticationPolicyCfg configuration, List<Message> unacceptableReason)
+      AuthenticationPolicyCfg configuration, List<LocalizableMessage> unacceptableReason)
   {
     // We'll allow the policy to be removed as long as it isn't the default.
     // FIXME: something like a referential integrity check is needed to ensure
@@ -268,7 +268,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
     if ((defaultPolicyDN != null) && defaultPolicyDN.equals(configuration.dn()))
     {
-      Message message = WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY
+      LocalizableMessage message = WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY
           .get(String.valueOf(defaultPolicyDN));
       unacceptableReason.add(message);
       return false;
@@ -291,7 +291,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     // FIXME: something like a referential integrity check is needed to ensure
     // a policy is not removed when referenced by a user entry (either
     // directly or via a virtual attribute).
-    ArrayList<Message> messages = new ArrayList<Message>(1);
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>(1);
     DN policyDN = configuration.dn();
     DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
     if ((defaultPolicyDN != null) && defaultPolicyDN.equals(policyDN))
@@ -481,7 +481,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     {
       if (!(policyConfiguration instanceof PasswordPolicyCfg))
       {
-        Message msg = ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE
+        LocalizableMessage msg = ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE
             .get(String.valueOf(policyConfiguration.dn()));
         throw new ConfigException(msg);
       }
@@ -507,7 +507,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+      LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
           String.valueOf(policyConfiguration.dn()),
           stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
@@ -547,7 +547,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+      LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
           String.valueOf(policyConfiguration.dn()),
           stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
@@ -563,7 +563,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   // implementation class is acceptable.
   private static boolean isAuthenticationPolicyConfigurationAcceptable(
       AuthenticationPolicyCfg policyConfiguration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // If this is going to be the default password policy then check the type is
     // correct.
@@ -572,7 +572,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     {
       if (!(policyConfiguration instanceof PasswordPolicyCfg))
       {
-        Message msg = ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE
+        LocalizableMessage msg = ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE
             .get(String.valueOf(policyConfiguration.dn()));
         unacceptableReasons.add(msg);
         return false;

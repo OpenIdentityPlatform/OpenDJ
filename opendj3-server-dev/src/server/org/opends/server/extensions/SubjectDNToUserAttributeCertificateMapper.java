@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Set;
 import javax.security.auth.x500.X500Principal;
 import static org.opends.messages.ExtensionMessages.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateMapperCfg;
 import org.opends.server.admin.std.server
@@ -123,7 +123,7 @@ public class SubjectDNToUserAttributeCertificateMapper
       Backend b = DirectoryServer.getBackend(baseDN);
       if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
       {
-        Message message = WARN_SATUACM_ATTR_UNINDEXED.get(
+        LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(
             configuration.dn().toString(),
             t.getNameOrOID(), b.getBackendID());
         ErrorLogger.logError(message);
@@ -165,7 +165,7 @@ public class SubjectDNToUserAttributeCertificateMapper
     // Make sure that a peer certificate was provided.
     if ((certificateChain == null) || (certificateChain.length == 0))
     {
-      Message message = ERR_SDTUACM_NO_PEER_CERTIFICATE.get();
+      LocalizableMessage message = ERR_SDTUACM_NO_PEER_CERTIFICATE.get();
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
@@ -183,7 +183,7 @@ public class SubjectDNToUserAttributeCertificateMapper
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_SDTUACM_PEER_CERT_NOT_X509.get(
+      LocalizableMessage message = ERR_SDTUACM_PEER_CERT_NOT_X509.get(
           String.valueOf(certificateChain[0].getType()));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
@@ -232,7 +232,7 @@ public class SubjectDNToUserAttributeCertificateMapper
 
         case SIZE_LIMIT_EXCEEDED:
           // Multiple entries matched the filter.  This is not acceptable.
-          Message message = ERR_SDTUACM_MULTIPLE_SEARCH_MATCHING_ENTRIES.get(
+          LocalizableMessage message = ERR_SDTUACM_MULTIPLE_SEARCH_MATCHING_ENTRIES.get(
                         peerName);
           throw new DirectoryException(
                   ResultCode.INVALID_CREDENTIALS, message);
@@ -264,7 +264,7 @@ public class SubjectDNToUserAttributeCertificateMapper
         }
         else
         {
-          Message message = ERR_SDTUACM_MULTIPLE_MATCHING_ENTRIES.
+          LocalizableMessage message = ERR_SDTUACM_MULTIPLE_MATCHING_ENTRIES.
               get(peerName, String.valueOf(userEntry.getName()),
                   String.valueOf(entry.getName()));
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
@@ -285,7 +285,7 @@ public class SubjectDNToUserAttributeCertificateMapper
    */
   @Override()
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     SubjectDNToUserAttributeCertificateMapperCfg config =
          (SubjectDNToUserAttributeCertificateMapperCfg) configuration;
@@ -301,7 +301,7 @@ public class SubjectDNToUserAttributeCertificateMapper
   public boolean isConfigurationChangeAcceptable(
                       SubjectDNToUserAttributeCertificateMapperCfg
                            configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
     return configAcceptable;

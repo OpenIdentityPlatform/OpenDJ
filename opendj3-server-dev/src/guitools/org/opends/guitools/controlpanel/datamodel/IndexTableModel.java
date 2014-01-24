@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
 
 import static org.opends.messages.AdminToolMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 
 /**
@@ -148,7 +149,7 @@ public class IndexTableModel extends AbstractIndexTableModel
     StringBuilder sb = new StringBuilder();
     for (IndexType type : index.getTypes())
     {
-      Message v;
+      LocalizableMessage v;
       switch (type)
       {
       case SUBSTRING:

@@ -26,7 +26,7 @@
  */
 package org.opends.server.tasks;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.TaskMessages;
 
 import org.opends.server.backends.task.Task;
@@ -81,7 +81,7 @@ public class RebuildTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getDisplayName()
+  public LocalizableMessage getDisplayName()
   {
     return TaskMessages.INFO_TASK_REBUILD_NAME.get();
   }
@@ -101,7 +101,7 @@ public class RebuildTask extends Task
       ClientConnection clientConnection = operation.getClientConnection();
       if (!clientConnection.hasPrivilege(Privilege.LDIF_IMPORT, operation))
       {
-        Message message = ERR_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES.get();
+        LocalizableMessage message = ERR_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
             message);
       }
@@ -133,7 +133,7 @@ public class RebuildTask extends Task
     {
       if (indexes.size() != 1)
       {
-        Message msg = ERR_TASK_INDEXREBUILD_ALL_ERROR.get();
+        LocalizableMessage msg = ERR_TASK_INDEXREBUILD_ALL_ERROR.get();
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
       }
       indexes.clear();
@@ -178,7 +178,7 @@ public class RebuildTask extends Task
     }
     catch (DirectoryException de)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CANNOT_DECODE_BASE_DN.get(baseDN, de.getMessageObject());
       logError(message);
       return TaskState.STOPPED_BY_ERROR;
@@ -206,14 +206,14 @@ public class RebuildTask extends Task
 
     if (backend == null)
     {
-      Message message = ERR_NO_BACKENDS_FOR_BASE.get(baseDN);
+      LocalizableMessage message = ERR_NO_BACKENDS_FOR_BASE.get(baseDN);
       logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
 
     if (!(backend instanceof BackendImpl))
     {
-      Message message = ERR_REBUILDINDEX_WRONG_BACKEND_TYPE.get();
+      LocalizableMessage message = ERR_REBUILDINDEX_WRONG_BACKEND_TYPE.get();
       logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
@@ -246,7 +246,7 @@ public class RebuildTask extends Task
       {
         if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
         {
-          Message message =
+          LocalizableMessage message =
               ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(backend
                   .getBackendID(), String.valueOf(failureReason));
           logError(message);
@@ -255,7 +255,7 @@ public class RebuildTask extends Task
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(backend
                 .getBackendID(), getExceptionMessage(e));
         logError(message);
@@ -269,7 +269,7 @@ public class RebuildTask extends Task
       {
         if (!LockFileManager.acquireSharedLock(lockFile, failureReason))
         {
-          Message message =
+          LocalizableMessage message =
               ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND.get(backend
                   .getBackendID(), String.valueOf(failureReason));
           logError(message);
@@ -278,7 +278,7 @@ public class RebuildTask extends Task
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND.get(backend
                 .getBackendID(), getExceptionMessage(e));
         logError(message);
@@ -298,7 +298,7 @@ public class RebuildTask extends Task
     {
       // This exception catches all 'index not found'
       // The backend needs to be re-enabled at the end of the process.
-      Message message =
+      LocalizableMessage message =
           ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage());
       if (debugEnabled())
       {
@@ -315,7 +315,7 @@ public class RebuildTask extends Task
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage());
       logError(message);
       returnCode = TaskState.STOPPED_BY_ERROR;
@@ -329,7 +329,7 @@ public class RebuildTask extends Task
         failureReason = new StringBuilder();
         if (!LockFileManager.releaseLock(lockFile, failureReason))
         {
-          Message message =
+          LocalizableMessage message =
               WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend
                   .getBackendID(), String.valueOf(failureReason));
           logError(message);
@@ -338,7 +338,7 @@ public class RebuildTask extends Task
       }
       catch (Throwable t)
       {
-        Message message =
+        LocalizableMessage message =
             WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(),
                 getExceptionMessage(t));
         logError(message);

@@ -34,7 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
@@ -1184,7 +1184,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   {
     int sender = 1;
     int dest = 2;
-    Message message = ERR_UNKNOWN_TYPE.get("toto");
+    LocalizableMessage message = ERR_UNKNOWN_TYPE.get("toto");
     Object[] set1 = new Object[] {sender, dest, message};
     return new Object [][] { set1};
   }
@@ -1194,7 +1194,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    * using protocol VLAST and V3 are working.
    */
   @Test(enabled=true, dataProvider="createErrorMsgData")
-  public void errorMsgTestVLASTV3(int sender, int dest, Message message)
+  public void errorMsgTestVLASTV3(int sender, int dest, LocalizableMessage message)
   throws Exception
   {
     // Create VLAST message

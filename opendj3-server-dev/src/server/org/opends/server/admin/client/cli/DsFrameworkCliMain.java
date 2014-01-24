@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.admin.client.cli;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -36,6 +36,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
@@ -43,7 +44,8 @@ import static org.opends.messages.AdminMessages.*;
 import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -153,14 +155,14 @@ public class DsFrameworkCliMain
     DsFrameworkCliParser argParser ;
     try
     {
-      Message toolDescription = INFO_ADMIN_TOOL_DESCRIPTION.get();
+      LocalizableMessage toolDescription = INFO_ADMIN_TOOL_DESCRIPTION.get();
       argParser = new DsFrameworkCliParser(CLASS_NAME,
           toolDescription, false);
       argParser.initializeParser(out);
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return CANNOT_INITIALIZE_ARGS.getReturnCode();
@@ -173,7 +175,7 @@ public class DsFrameworkCliMain
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -199,7 +201,7 @@ public class DsFrameworkCliMain
 
     if (argParser.getSubCommand() == null)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(
               ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println();
@@ -260,13 +262,13 @@ public class DsFrameworkCliMain
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return CANNOT_INITIALIZE_ARGS.getReturnCode();
     }
 
-    Message msg = returnCode.getMessage();
+    LocalizableMessage msg = returnCode.getMessage();
     if ( (returnCode == SUCCESSFUL)
          ||
          (returnCode == SUCCESSFUL_NOP))
@@ -277,10 +279,9 @@ public class DsFrameworkCliMain
       }
     }
     else
-    if (msg != null &&
-            msg.getDescriptor().getId() != ERR_ADMIN_NO_MESSAGE.getId())
+    if (msg != null && StaticUtils.hasDescriptor(msg, ERR_ADMIN_NO_MESSAGE))
     {
-      MessageBuilder mb = new MessageBuilder(INFO_ADMIN_ERROR.get());
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder(INFO_ADMIN_ERROR.get());
       mb.append(msg);
       err.println(wrapText(mb.toString(), MAX_LINE_WIDTH));
       if (argParser.isVerbose() && (adsException != null))

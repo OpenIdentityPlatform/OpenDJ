@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -118,7 +119,7 @@ public class WorkQueueConfigManager
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_WORK_QUEUE_INITIALIZATION_FAILED.
+      LocalizableMessage message = ERR_CONFIG_WORK_QUEUE_INITIALIZATION_FAILED.
           get(workQueueConfig.getJavaClass(),
               String.valueOf(workQueueConfig.dn()),
               stackTraceToSingleLineString(e));
@@ -132,7 +133,7 @@ public class WorkQueueConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(WorkQueueCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // Changes to the work queue configuration will always be acceptable to this
     // generic implementation.
@@ -148,7 +149,7 @@ public class WorkQueueConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // If the work queue class has been changed, then we should warn the user

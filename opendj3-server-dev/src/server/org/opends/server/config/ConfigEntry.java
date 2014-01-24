@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
@@ -349,7 +349,7 @@ public final class ConfigEntry
 
     if (conflictingChild != null)
     {
-      Message message = ERR_CONFIG_ENTRY_CONFLICTING_CHILD.get(
+      LocalizableMessage message = ERR_CONFIG_ENTRY_CONFLICTING_CHILD.get(
           conflictingChild.getDN().toString(), entry.getName().toString());
       throw new ConfigException(message);
     }
@@ -381,14 +381,14 @@ public final class ConfigEntry
         ConfigEntry childEntry = children.get(childDN);
         if (childEntry == null)
         {
-          Message message = ERR_CONFIG_ENTRY_NO_SUCH_CHILD.get(
+          LocalizableMessage message = ERR_CONFIG_ENTRY_NO_SUCH_CHILD.get(
               childDN.toString(), entry.getName().toString());
           throw new ConfigException(message);
         }
 
         if (childEntry.hasChildren())
         {
-          Message message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_NONLEAF.get(
+          LocalizableMessage message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_NONLEAF.get(
               childDN.toString(), entry.getName().toString());
           throw new ConfigException(message);
         }
@@ -407,7 +407,7 @@ public final class ConfigEntry
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_CHILD.
+        LocalizableMessage message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_CHILD.
             get(String.valueOf(childDN), String.valueOf(entry.getName()),
                 stackTraceToSingleLineString(e));
         throw new ConfigException(message, e);

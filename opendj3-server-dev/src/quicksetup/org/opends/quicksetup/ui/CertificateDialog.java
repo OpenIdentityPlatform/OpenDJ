@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -66,8 +66,8 @@ import javax.swing.event.HyperlinkListener;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -255,7 +255,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.RELATIVE;
 
-    Message title = INFO_CERTIFICATE_TITLE.get();
+    LocalizableMessage title = INFO_CERTIFICATE_TITLE.get();
     JLabel l =
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, title,
             UIFactory.TextStyle.TITLE);
@@ -280,7 +280,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    */
   private Component createTextPane()
   {
-    Message text;
+    LocalizableMessage text;
     if (ce.getType() == UserDataCertificateException.Type.NOT_TRUSTED)
     {
       text = INFO_CERTIFICATE_NOT_TRUSTED_TEXT.get(
@@ -314,12 +314,12 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     p.add(explanationPane, gbc);
     if ((ce.getChain() != null) && (ce.getChain().length > 0))
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(text);
       mb.append(INFO_CERTIFICATE_SHOW_DETAILS_TEXT.get());
       explanationWithShowDetails = UIFactory.applyFontToHtml(
               mb.toString(), UIFactory.INSTRUCTIONS_FONT);
-      MessageBuilder mb2 = new MessageBuilder();
+      LocalizableMessageBuilder mb2 = new LocalizableMessageBuilder();
       mb2.append(text);
       mb2.append(INFO_CERTIFICATE_HIDE_DETAILS_TEXT.get());
       explanationWithHideDetails = UIFactory.applyFontToHtml(
@@ -414,7 +414,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
       final JPanel cardPanel = new JPanel(cl);
       final Map<String, JPanel> hmPanels = new HashMap<String, JPanel>();
 
-      Message[] labels =
+      LocalizableMessage[] labels =
       {
           INFO_CERTIFICATE_SUBJECT_LABEL.get(),
           INFO_CERTIFICATE_ISSUED_BY_LABEL.get(),
@@ -531,13 +531,13 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
 
   private JComponent createSubjectComponent(X509Certificate cert)
   {
-    Message dn = Message.raw(cert.getSubjectX500Principal().getName());
+    LocalizableMessage dn = LocalizableMessage.raw(cert.getSubjectX500Principal().getName());
     return makeValueLabel(dn);
   }
 
   private JComponent createIssuedByComponent(X509Certificate cert)
   {
-    Message dn = Message.raw(cert.getIssuerX500Principal().getName());
+    LocalizableMessage dn = LocalizableMessage.raw(cert.getIssuerX500Principal().getName());
     return makeValueLabel(dn);
   }
 
@@ -548,7 +548,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     Date date = cert.getNotBefore();
     DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT,
         DateFormat.SHORT);
-    Message value = Message.raw(df.format(date));
+    LocalizableMessage value = LocalizableMessage.raw(df.format(date));
     long t1 = System.currentTimeMillis();
     long t2 = date.getTime();
     boolean isNotValidYet = t1 < t2;
@@ -574,7 +574,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     Date date = cert.getNotAfter();
     DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT,
     DateFormat.SHORT);
-    Message value = Message.raw(df.format(date));
+    LocalizableMessage value = LocalizableMessage.raw(df.format(date));
     long t1 = System.currentTimeMillis();
     long t2 = date.getTime();
     boolean isExpired = t1 > t2;
@@ -595,25 +595,25 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
 
   private JComponent createTypeComponent(X509Certificate cert)
   {
-    Message type = Message.raw(cert.getType());
+    LocalizableMessage type = LocalizableMessage.raw(cert.getType());
     return makeValueLabel(type);
   }
 
   private JComponent createSerialNumberComponent(X509Certificate cert)
   {
-    Message serialNumber = Message.raw(String.valueOf(cert.getSerialNumber()));
+    LocalizableMessage serialNumber = LocalizableMessage.raw(String.valueOf(cert.getSerialNumber()));
     return makeValueLabel(serialNumber);
   }
 
 
   /**
-   * Returns the Message representation of the SHA1 fingerprint.
+   * Returns the LocalizableMessage representation of the SHA1 fingerprint.
    * @param cert the certificate object.
-   * @return the Message representation of the SHA1 fingerprint.
+   * @return the LocalizableMessage representation of the SHA1 fingerprint.
    */
-  public static Message getSHA1FingerPrint(X509Certificate cert)
+  public static LocalizableMessage getSHA1FingerPrint(X509Certificate cert)
   {
-    Message msg = null;
+    LocalizableMessage msg = null;
     try {
       MessageDigest md = MessageDigest.getInstance("SHA1");
 
@@ -627,7 +627,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
         }
         sb.append(Integer.toHexString(((int) b[i]) & 0xFF));
       }
-      msg = Message.raw(sb);
+      msg = LocalizableMessage.raw(sb);
     }
     catch (NoSuchAlgorithmException nsae) {
       LOG.log(Level.WARNING, "SHA1 algorithm not supported: "+nsae, nsae);
@@ -639,13 +639,13 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
   }
 
   /**
-   * Returns the Message representation of the MD5 fingerprint.
+   * Returns the LocalizableMessage representation of the MD5 fingerprint.
    * @param cert the certificate object.
-   * @return the Message representation of the MD5 fingerprint.
+   * @return the LocalizableMessage representation of the MD5 fingerprint.
    */
-  public static Message getMD5FingerPrint(X509Certificate cert)
+  public static LocalizableMessage getMD5FingerPrint(X509Certificate cert)
   {
-    Message msg = null;
+    LocalizableMessage msg = null;
     try {
       MessageDigest md = MessageDigest.getInstance("MD5");
 
@@ -659,7 +659,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
         }
         sb.append(Integer.toHexString(((int) b[i]) & 0xFF));
       }
-      msg = Message.raw(sb);
+      msg = LocalizableMessage.raw(sb);
     }
     catch (NoSuchAlgorithmException nsae) {
       LOG.log(Level.WARNING, "MD5 algorithm not supported: "+nsae, nsae);
@@ -682,7 +682,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
   }
 
-  private JLabel makeValueLabel(Message value)
+  private JLabel makeValueLabel(LocalizableMessage value)
   {
     if (value == null)
     {

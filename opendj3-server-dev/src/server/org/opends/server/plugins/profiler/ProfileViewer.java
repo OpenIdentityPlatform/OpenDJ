@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.plugins.profiler;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -106,7 +106,7 @@ public class ProfileViewer
 
 
     // Create the command-line argument parser for use with this program.
-    Message toolDescription = INFO_PROFILEVIEWER_TOOL_DESCRIPTION.get();
+    LocalizableMessage toolDescription = INFO_PROFILEVIEWER_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.plugins.profiler.ProfileViewer",
                             toolDescription, false);
@@ -135,7 +135,7 @@ public class ProfileViewer
     }
     catch (ArgumentException ae)
     {
-      Message message =
+      LocalizableMessage message =
               ERR_PROFILEVIEWER_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       System.err.println(message);
@@ -150,7 +150,7 @@ public class ProfileViewer
     }
     catch (ArgumentException ae)
     {
-      Message message =
+      LocalizableMessage message =
               ERR_PROFILEVIEWER_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       System.err.println(message);
@@ -177,7 +177,7 @@ public class ProfileViewer
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_PROFILEVIEWER_CANNOT_PROCESS_DATA_FILE.get(filename,
                                     stackTraceToSingleLineString(e));
         System.err.println(message);

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -42,7 +43,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -112,7 +113,7 @@ public class UpdatePreOpPlugin
           // This is fine.
           break;
         default:
-          throw new ConfigException(Message.raw("Invalid plugin type " + t +
+          throw new ConfigException(LocalizableMessage.raw("Invalid plugin type " + t +
                                     " for update pre-op plugin."));
       }
     }

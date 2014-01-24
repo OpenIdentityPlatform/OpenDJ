@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This is a commodity class used to couple a label and a text component with
@@ -39,9 +40,9 @@ import org.opends.messages.Message;
 
 public class LabelFieldDescriptor
 {
-  private Message label;
+  private LocalizableMessage label;
 
-  private Message tooltip;
+  private LocalizableMessage tooltip;
 
   private FieldType type;
 
@@ -95,7 +96,7 @@ public class LabelFieldDescriptor
    * @param labelType the type of label.
    * @param size the size of the field.
    */
-  public LabelFieldDescriptor(Message label, Message tooltip, FieldType type,
+  public LabelFieldDescriptor(LocalizableMessage label, LocalizableMessage tooltip, FieldType type,
       LabelType labelType, int size)
   {
     this.label = label;
@@ -109,7 +110,7 @@ public class LabelFieldDescriptor
    * Returns the String displayed by the label.
    * @return the String displayed by the label.
    */
-  public Message getLabel()
+  public LocalizableMessage getLabel()
   {
     return label;
   }
@@ -127,7 +128,7 @@ public class LabelFieldDescriptor
    * Returns the tooltip used in the field.
    * @return the tooltip used in the field.
    */
-  public Message getTooltip()
+  public LocalizableMessage getTooltip()
   {
     return tooltip;
   }

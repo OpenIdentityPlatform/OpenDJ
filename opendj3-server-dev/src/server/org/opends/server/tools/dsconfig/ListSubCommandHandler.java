@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -36,7 +36,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinition;
@@ -158,14 +158,14 @@ final class ListSubCommandHandler extends SubCommandHandler {
   // Private constructor.
   private ListSubCommandHandler(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
-      RelationDefinition<?, ?> r, String rname, Message rufn)
+      RelationDefinition<?, ?> r, String rname, LocalizableMessage rufn)
       throws ArgumentException {
     this.path = p;
     this.relation = r;
 
     // Create the sub-command.
     String name = "list-" + rname;
-    Message desc = INFO_DSCFG_DESCRIPTION_SUBCMD_LIST.get(rufn);
+    LocalizableMessage desc = INFO_DSCFG_DESCRIPTION_SUBCMD_LIST.get(rufn);
     this.subCommand = new SubCommand(parser, name, false, 0, 0, null, desc);
 
     // Create the naming arguments.
@@ -233,7 +233,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
     // Get the naming argument values.
     List<String> names = getNamingArgValues(app, namingArgs);
 
-    Message ufn;
+    LocalizableMessage ufn;
     if (relation instanceof InstantiableRelationDefinition) {
       InstantiableRelationDefinition<?, ?> irelation =
         (InstantiableRelationDefinition<?, ?>) relation;
@@ -252,26 +252,26 @@ final class ListSubCommandHandler extends SubCommandHandler {
     try {
       result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
-      Message msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
+      LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
           msg);
     } catch (DefinitionDecodingException e) {
       ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(ufn, ufn, ufn);
+      LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(ufn, ufn, ufn);
       throw new ClientException(LDAPResultCode.OTHER, msg);
     } catch (ManagedObjectDecodingException e) {
       ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(ufn);
+      LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(ufn);
       throw new ClientException(LDAPResultCode.OTHER, msg, e);
     } catch (CommunicationException e) {
-      Message msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
+      LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
-      Message msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
+      LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
       ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(ufn);
+      LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(ufn);
       if (app.isInteractive()) {
         app.println();
         app.printVerboseMessage(msg);
@@ -304,22 +304,22 @@ final class ListSubCommandHandler extends SubCommandHandler {
       } catch (DefinitionDecodingException e) {
         // FIXME: just output this as a warnings (incl. the name) but
         // continue.
-        Message msg = ERR_DSCFG_ERROR_LIST_DDE.get(ufn, ufn, ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_DDE.get(ufn, ufn, ufn);
         throw new ClientException(LDAPResultCode.OTHER, msg);
       } catch (ManagedObjectDecodingException e) {
         // FIXME: just output this as a warnings (incl. the name) but
         // continue.
-        Message msg = ERR_DSCFG_ERROR_LIST_MODE.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_MODE.get(ufn);
         throw new ClientException(LDAPResultCode.OTHER, msg, e);
       } catch (AuthorizationException e) {
-        Message msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
         throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
             msg);
       } catch (ConcurrentModificationException e) {
-        Message msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
         throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
       } catch (CommunicationException e) {
-        Message msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
             msg);
       }
@@ -337,22 +337,22 @@ final class ListSubCommandHandler extends SubCommandHandler {
       } catch (DefinitionDecodingException e) {
         // FIXME: just output this as a warnings (incl. the name) but
         // continue.
-        Message msg = ERR_DSCFG_ERROR_LIST_DDE.get(ufn, ufn, ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_DDE.get(ufn, ufn, ufn);
         throw new ClientException(LDAPResultCode.OTHER, msg);
       } catch (ManagedObjectDecodingException e) {
         // FIXME: just output this as a warnings (incl. the name) but
         // continue.
-        Message msg = ERR_DSCFG_ERROR_LIST_MODE.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_MODE.get(ufn);
         throw new ClientException(LDAPResultCode.OTHER, msg, e);
       } catch (AuthorizationException e) {
-        Message msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
         throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
             msg);
       } catch (ConcurrentModificationException e) {
-        Message msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
         throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
       } catch (CommunicationException e) {
-        Message msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
             msg);
       }
@@ -365,7 +365,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
           children.put(child.getManagedObjectDefinition().getName(), child);
         } else {
           // Indicate that the managed object does not exist.
-          Message msg = ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(ufn);
+          LocalizableMessage msg = ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(ufn);
           if (app.isInteractive()) {
             app.println();
             app.printVerboseMessage(msg);
@@ -375,24 +375,24 @@ final class ListSubCommandHandler extends SubCommandHandler {
           }
         }
       } catch (AuthorizationException e) {
-        Message msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
         throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
             msg);
       } catch (DefinitionDecodingException e) {
-        Message msg = ERR_DSCFG_ERROR_LIST_DDE.get(ufn, ufn, ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_DDE.get(ufn, ufn, ufn);
         throw new ClientException(LDAPResultCode.OTHER, msg);
       } catch (ManagedObjectDecodingException e) {
-        Message msg = ERR_DSCFG_ERROR_LIST_MODE.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_MODE.get(ufn);
         throw new ClientException(LDAPResultCode.OTHER, msg, e);
       } catch (ConcurrentModificationException e) {
-        Message msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
         throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
       } catch (CommunicationException e) {
-        Message msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
             msg);
       } catch (ManagedObjectNotFoundException e) {
-        Message msg = ERR_DSCFG_ERROR_LIST_MONFE.get(ufn);
+        LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_MONFE.get(ufn);
         throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
       }
     }
@@ -415,7 +415,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
           }
         }
 
-        app.println(Message.raw(name));
+        app.println(LocalizableMessage.raw(name));
       }
     } else {
       // Create a table of their properties containing the name, type (if
@@ -431,7 +431,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
         builder.appendHeading(INFO_DSCFG_HEADING_COMPONENT_TYPE.get());
       }
       for (String propertyName : propertyNames) {
-        builder.appendHeading(Message.raw(propertyName));
+        builder.appendHeading(LocalizableMessage.raw(propertyName));
       }
       builder.addSortKey(0);
 

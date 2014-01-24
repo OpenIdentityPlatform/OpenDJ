@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -53,7 +54,7 @@ import org.opends.guitools.controlpanel.event.BrowseActionListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.Schema;
 
 /**
@@ -264,7 +265,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
   private void refresh(final boolean closeAndUpdateValue,
       final boolean updateImage)
   {
-    final ArrayList<Message> errors = new ArrayList<Message>();
+    final ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
 
     setPrimaryValid(useFile);
     setPrimaryValid(useBase64);
@@ -449,7 +450,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EDIT_BINARY_ATTRIBUTE_TITLE.get();
   }

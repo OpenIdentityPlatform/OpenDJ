@@ -25,7 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -49,7 +49,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -105,7 +105,7 @@ public class MatchingRuleUseSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      Message message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
           EMR_CASE_IGNORE_OID, SYNTAX_MATCHING_RULE_USE_NAME);
       throw new InitializationException(message);
     }
@@ -114,7 +114,7 @@ public class MatchingRuleUseSyntax
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      Message message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
           OMR_CASE_IGNORE_OID, SYNTAX_MATCHING_RULE_USE_NAME);
       throw new InitializationException(message);
     }
@@ -123,7 +123,7 @@ public class MatchingRuleUseSyntax
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      Message message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_CASE_IGNORE_OID, SYNTAX_MATCHING_RULE_USE_NAME);
       throw new InitializationException(message);
     }
@@ -206,7 +206,7 @@ public class MatchingRuleUseSyntax
    * {@inheritDoc}
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // We'll use the decodeMatchingRuleUse method to determine if the value is
     // acceptable.
@@ -276,7 +276,7 @@ public class MatchingRuleUseSyntax
     {
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
-      Message message = ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE.get();
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -287,7 +287,7 @@ public class MatchingRuleUseSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.get(
           valueStr, (pos-1), String.valueOf(c));
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -304,7 +304,7 @@ public class MatchingRuleUseSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      Message message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -326,7 +326,7 @@ public class MatchingRuleUseSyntax
         {
           if (lastWasPeriod)
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_ATTR_SYNTAX_MRUSE_DOUBLE_PERIOD_IN_NUMERIC_OID.
                   get(valueStr, (pos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -340,7 +340,7 @@ public class MatchingRuleUseSyntax
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
-          Message message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_NUMERIC_OID.
+          LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_NUMERIC_OID.
               get(valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -365,7 +365,7 @@ public class MatchingRuleUseSyntax
         else
         {
           // This must have been an illegal character.
-          Message message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_STRING_OID.
+          LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_STRING_OID.
               get(valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -379,7 +379,7 @@ public class MatchingRuleUseSyntax
     String oid;
     if (pos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -395,7 +395,7 @@ public class MatchingRuleUseSyntax
     {
       // This is bad because the matching rule use is associated with a matching
       // rule that we don't know anything about.
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE.get(valueStr, oid);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -412,7 +412,7 @@ public class MatchingRuleUseSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      Message message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -443,7 +443,7 @@ public class MatchingRuleUseSyntax
         // We must be at the end of the value.  If not, then that's a problem.
         if (pos < length)
         {
-          Message message = ERR_ATTR_SYNTAX_MRUSE_UNEXPECTED_CLOSE_PARENTHESIS.
+          LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_UNEXPECTED_CLOSE_PARENTHESIS.
               get(valueStr, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -501,7 +501,7 @@ public class MatchingRuleUseSyntax
         else
         {
           // This is an illegal character.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR.get(
                       valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -551,7 +551,7 @@ public class MatchingRuleUseSyntax
               }
               else
               {
-                Message message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(
+                LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(
                     oid, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                              message);
@@ -571,7 +571,7 @@ public class MatchingRuleUseSyntax
             }
             else if (c != '$')
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR.get(
                           valueStr, String.valueOf(c), (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -596,7 +596,7 @@ public class MatchingRuleUseSyntax
             }
             else
             {
-              Message message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(
+              LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(
                   oid, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            message);
@@ -624,7 +624,7 @@ public class MatchingRuleUseSyntax
     // Make sure that the set of attributes was defined.
     if (attributes == null)
     {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -667,7 +667,7 @@ public class MatchingRuleUseSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -725,7 +725,7 @@ public class MatchingRuleUseSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -734,7 +734,7 @@ public class MatchingRuleUseSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_EXPECTED_QUOTE_AT_POS.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_EXPECTED_QUOTE_AT_POS.get(
           valueStr, startPos, String.valueOf(c));
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -761,7 +761,7 @@ public class MatchingRuleUseSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -810,7 +810,7 @@ public class MatchingRuleUseSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -819,7 +819,7 @@ public class MatchingRuleUseSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_EXPECTED_QUOTE_AT_POS.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_EXPECTED_QUOTE_AT_POS.get(
           valueStr, startPos, String.valueOf(c));
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -847,7 +847,7 @@ public class MatchingRuleUseSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -889,7 +889,7 @@ public class MatchingRuleUseSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -908,7 +908,7 @@ public class MatchingRuleUseSyntax
         {
           if (lastWasPeriod)
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_ATTR_SYNTAX_MRUSE_DOUBLE_PERIOD_IN_NUMERIC_OID.
                   get(lowerStr, (startPos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -934,7 +934,7 @@ public class MatchingRuleUseSyntax
           }
 
           // This must have been an illegal character.
-          Message message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_NUMERIC_OID.
+          LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_NUMERIC_OID.
               get(lowerStr, String.valueOf(c), (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -971,7 +971,7 @@ public class MatchingRuleUseSyntax
           }
 
           // This must have been an illegal character.
-          Message message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_STRING_OID.
+          LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_STRING_OID.
               get(lowerStr, String.valueOf(c), (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -980,7 +980,7 @@ public class MatchingRuleUseSyntax
     }
     else
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR.get(
                   lowerStr, String.valueOf(c), startPos);
       throw new DirectoryException(
@@ -998,7 +998,7 @@ public class MatchingRuleUseSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(lowerStr);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(lowerStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1040,7 +1040,7 @@ public class MatchingRuleUseSyntax
 
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -1078,7 +1078,7 @@ public class MatchingRuleUseSyntax
 
         if (startPos >= length)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1093,7 +1093,7 @@ public class MatchingRuleUseSyntax
         else if (c == '(')
         {
           // This is an illegal character.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR.get(
                       valueStr, String.valueOf(c), startPos);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -1130,7 +1130,7 @@ public class MatchingRuleUseSyntax
 
         if (startPos >= length)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -1158,7 +1158,7 @@ public class MatchingRuleUseSyntax
 
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);

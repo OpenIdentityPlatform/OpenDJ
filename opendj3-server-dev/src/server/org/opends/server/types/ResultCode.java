@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -694,7 +694,7 @@ public enum ResultCode
   private int intValue;
 
   // The short human-readable name for this result code.
-  private Message resultCodeName;
+  private LocalizableMessage resultCodeName;
 
 
 
@@ -705,7 +705,7 @@ public enum ResultCode
    * @param  intValue      The integer value for this result code.
    * @param  name          The name for this result code.
    */
-  private ResultCode(int intValue, Message name)
+  private ResultCode(int intValue, LocalizableMessage name)
   {
     Reject.ifNull(name);
     this.intValue       = intValue;
@@ -884,7 +884,7 @@ public enum ResultCode
    *
    * @return  The short human-readable name for this result code.
    */
-  public Message getResultCodeName()
+  public LocalizableMessage getResultCodeName()
   {
     return resultCodeName;
   }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -47,7 +47,7 @@ public class EntryMsg extends RoutableMsg
    * @param sender      The sender of this message.
    * @param destination The destination of this message.
    * @param entryBytes  The bytes of the entry.
-   * @param msgId       Message counter.
+   * @param msgId       LocalizableMessage counter.
    */
   public EntryMsg(
       int sender,
@@ -69,7 +69,7 @@ public class EntryMsg extends RoutableMsg
    * @param entryBytes  The bytes of the entry.
    * @param pos         The starting Position in the array.
    * @param length      Number of array elements to be copied.
-   * @param msgId       Message counter.
+   * @param msgId       LocalizableMessage counter.
    */
   public EntryMsg(
       int serverID,

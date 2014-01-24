@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.plugins;
@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.ChangeNumberControlPluginCfg;
@@ -146,7 +146,7 @@ public final class ChangeNumberControlPlugin
           break;
 
         default:
-          Message message =
+          LocalizableMessage message =
               ERR_PLUGIN_CHANGE_NUMBER_INVALID_PLUGIN_TYPE.get(t.toString());
           throw new ConfigException(message);
       }
@@ -172,7 +172,7 @@ public final class ChangeNumberControlPlugin
         found.append(t.toString());
       }
 
-      Message message = ERR_PLUGIN_CHANGE_NUMBER_INVALID_PLUGIN_TYPE_LIST.get(
+      LocalizableMessage message = ERR_PLUGIN_CHANGE_NUMBER_INVALID_PLUGIN_TYPE_LIST.get(
               found.toString(), expected.toString());
           throw new ConfigException(message);
     }
@@ -249,7 +249,7 @@ public final class ChangeNumberControlPlugin
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     ChangeNumberControlPluginCfg cfg =
         (ChangeNumberControlPluginCfg) configuration;
@@ -263,7 +263,7 @@ public final class ChangeNumberControlPlugin
    */
   public boolean isConfigurationChangeAcceptable(
       ChangeNumberControlPluginCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -282,7 +282,7 @@ public final class ChangeNumberControlPlugin
 
 
         default:
-          Message message = ERR_PLUGIN_CHANGE_NUMBER_INVALID_PLUGIN_TYPE.get(
+          LocalizableMessage message = ERR_PLUGIN_CHANGE_NUMBER_INVALID_PLUGIN_TYPE.get(
                   pluginType.toString());
           unacceptableReasons.add(message);
           configAcceptable = false;

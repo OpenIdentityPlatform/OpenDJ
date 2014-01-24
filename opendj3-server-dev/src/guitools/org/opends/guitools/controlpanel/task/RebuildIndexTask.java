@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -46,7 +46,7 @@ import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.RebuildIndex;
 
 /**
@@ -91,7 +91,7 @@ public class RebuildIndexTask extends IndexTask
    * {@inheritDoc}
    */
   @Override
-  public Message getTaskDescription()
+  public LocalizableMessage getTaskDescription()
   {
     if (baseDNs.size() == 1)
     {
@@ -111,7 +111,7 @@ public class RebuildIndexTask extends IndexTask
    */
   @Override
   public boolean canLaunch(Task taskToBeLaunched,
-      Collection<Message> incompatibilityReasons)
+      Collection<LocalizableMessage> incompatibilityReasons)
   {
     boolean canLaunch = true;
     if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))

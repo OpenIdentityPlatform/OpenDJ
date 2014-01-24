@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -64,7 +64,7 @@ public class PasswordExpiringControl
     {
       if (value == null)
       {
-        Message message = ERR_PWEXPIRING_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_PWEXPIRING_NO_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -81,7 +81,7 @@ public class PasswordExpiringControl
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION.
+        LocalizableMessage message = ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION.
             get(getExceptionMessage(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }

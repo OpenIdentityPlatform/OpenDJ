@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.AccessControlMessages.*;
 import java.util.BitSet;
@@ -239,7 +240,7 @@ public class PatternIP {
         try {
             //Can only have one prefix value and one address string.
             if((numParts  < 1) || (numParts > 2) ) {
-                Message message =
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_PREFIX_FORMAT.get(expr);
                 throw new AciException(message);
             }
@@ -247,12 +248,12 @@ public class PatternIP {
                 prefix = Integer.parseInt(prefixStr);
             //Must be between 0 to maxprefix.
             if((prefix < 0) || (prefix > maxPrefix)) {
-                Message message =
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_PREFIX_VALUE.get(expr);
                 throw new AciException(message);
             }
         } catch(NumberFormatException nfex) {
-            Message msg = WARN_ACI_SYNTAX_PREFIX_NOT_NUMERIC.get(expr);
+            LocalizableMessage msg = WARN_ACI_SYNTAX_PREFIX_NOT_NUMERIC.get(expr);
             throw new AciException(msg);
         }
         return prefix;
@@ -303,12 +304,12 @@ public class PatternIP {
         //Look up the string in the valid netmask hash table. If it isn't
         //there it is an error.
         if(!validNetMasks.containsKey(netmaskStr)) {
-            Message message = WARN_ACI_SYNTAX_INVALID_NETMASK.get(expr);
+            LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_NETMASK.get(expr);
             throw new AciException(message);
         }
         //Can only have one netmask value and one address string.
         if((numParts  < 1) || (numParts > 2) ) {
-            Message message = WARN_ACI_SYNTAX_INVALID_NETMASK_FORMAT.get(expr);
+            LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_NETMASK_FORMAT.get(expr);
             throw new AciException(message);
         }
         String[] s = netmaskStr.split("\\.", -1);
@@ -319,7 +320,7 @@ public class PatternIP {
                 netmaskBytes[i] = (byte) (val & 0xff);
             }
         } catch (NumberFormatException nfex) {
-            Message message = WARN_ACI_SYNTAX_IPV4_NOT_NUMERIC.get(expr);
+            LocalizableMessage message = WARN_ACI_SYNTAX_IPV4_NOT_NUMERIC.get(expr);
             throw new AciException(message);
         }
         return netmaskBytes;
@@ -347,7 +348,7 @@ public class PatternIP {
         String[] s = addrStr.split("\\.", -1);
         try {
             if(s.length != IN4ADDRSZ) {
-                Message message = WARN_ACI_SYNTAX_INVALID_IPV4_FORMAT.get(expr);
+                LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_IPV4_FORMAT.get(expr);
                 throw new AciException(message);
             }
             for(int i=0; i < IN4ADDRSZ; i++) {
@@ -358,7 +359,7 @@ public class PatternIP {
                     long val=Integer.parseInt(quad);
                     //must be between 0-255
                     if((val < 0) ||  (val > 0xff)) {
-                        Message message =
+                        LocalizableMessage message =
                             WARN_ACI_SYNTAX_INVALID_IPV4_VALUE.get(expr);
                         throw new AciException(message);
                     }
@@ -366,7 +367,7 @@ public class PatternIP {
                 }
             }
         } catch (NumberFormatException nfex) {
-            Message message = WARN_ACI_SYNTAX_IPV4_NOT_NUMERIC.get(expr);
+            LocalizableMessage message = WARN_ACI_SYNTAX_IPV4_NOT_NUMERIC.get(expr);
             throw new AciException(message);
         }
         return addrBytes;
@@ -387,14 +388,14 @@ public class PatternIP {
     private static byte[]
     procIPv6Addr(String addrStr, String expr) throws AciException {
         if(addrStr.indexOf('*') > -1) {
-            Message message = WARN_ACI_SYNTAX_IPV6_WILDCARD_INVALID.get(expr);
+            LocalizableMessage message = WARN_ACI_SYNTAX_IPV6_WILDCARD_INVALID.get(expr);
             throw new AciException(message);
         }
         byte[] addrBytes;
         try {
             addrBytes=InetAddress.getByName(addrStr).getAddress();
         } catch (UnknownHostException ex) {
-            Message message =
+            LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_IPV6_FORMAT.get(expr, ex.getMessage());
             throw new AciException(message);
         }

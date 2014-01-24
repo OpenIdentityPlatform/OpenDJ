@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -50,7 +50,7 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attributes;
@@ -178,7 +178,7 @@ public class DeleteSchemaElementsTask extends Task
    * {@inheritDoc}
    */
   public boolean canLaunch(Task taskToBeLaunched,
-      Collection<Message> incompatibilityReasons)
+      Collection<LocalizableMessage> incompatibilityReasons)
   {
     boolean canLaunch = true;
     if (state == State.RUNNING &&
@@ -240,7 +240,7 @@ public class DeleteSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getTaskDescription()
+  public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_DELETE_SCHEMA_ELEMENT_TASK_DESCRIPTION.get();
   }
@@ -505,7 +505,7 @@ public class DeleteSchemaElementsTask extends Task
     String attrValue = getSchemaFileAttributeValue(element);
     if (!isServerRunning())
     {
-      Message msg;
+      LocalizableMessage msg;
       if (element instanceof AttributeType)
       {
         msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ATTRIBUTE_OFFLINE.get(
@@ -531,7 +531,7 @@ public class DeleteSchemaElementsTask extends Task
       String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
           args);
 
-      Message msg;
+      LocalizableMessage msg;
       if (element instanceof AttributeType)
       {
         msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ATTRIBUTE_ONLINE.get(

@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.LoggerMessages.ERR_LOGGER_ERROR_LISTING_FILES;
 
 import org.opends.server.admin.std.server.FileCountLogRetentionPolicyCfg;
@@ -76,7 +77,7 @@ public class FileNumberRetentionPolicy implements
    */
   public boolean isConfigurationChangeAcceptable(
       FileCountLogRetentionPolicyCfg config,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // Changes should always be OK
     return true;
@@ -91,7 +92,7 @@ public class FileNumberRetentionPolicy implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     this.numFiles = config.getNumberOfFiles();
     this.config = config;
@@ -108,7 +109,7 @@ public class FileNumberRetentionPolicy implements
     File[] files = fileNamingPolicy.listFiles();
     if(files == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LOGGER_ERROR_LISTING_FILES.get(
               fileNamingPolicy.getInitialName().toString());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),

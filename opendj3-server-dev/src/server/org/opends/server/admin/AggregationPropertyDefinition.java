@@ -44,7 +44,7 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.SortedSet;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.ClientConstraintHandler;
 import org.opends.server.admin.client.CommunicationException;
@@ -256,7 +256,7 @@ public final class AggregationPropertyDefinition
 
     // The error message which should be returned if an attempt is
     // made to disable the referenced component.
-    private final Message message;
+    private final LocalizableMessage message;
 
     // The path of the referenced component.
     private final ManagedObjectPath<C, S> path;
@@ -265,7 +265,7 @@ public final class AggregationPropertyDefinition
 
     // Creates a new referential integrity delete listener.
     private ReferentialIntegrityChangeListener(ManagedObjectPath<C, S> path,
-        Message message) {
+        LocalizableMessage message) {
       this.path = path;
       this.message = message;
     }
@@ -299,7 +299,7 @@ public final class AggregationPropertyDefinition
      */
     public boolean isConfigurationChangeAcceptable(
         ServerManagedObject<? extends S> mo,
-        List<Message> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
       // Always prevent the referenced component from being
       // disabled.
       try {
@@ -315,7 +315,7 @@ public final class AggregationPropertyDefinition
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo
+        LocalizableMessage message = ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo
             .getManagedObjectDefinition().getUserFriendlyName(), String
             .valueOf(mo.getDN()), StaticUtils.getExceptionMessage(e));
         ErrorLogger.logError(message);
@@ -347,12 +347,12 @@ public final class AggregationPropertyDefinition
 
     // The error message which should be returned if an attempt is
     // made to delete the referenced component.
-    private final Message message;
+    private final LocalizableMessage message;
 
 
 
     // Creates a new referential integrity delete listener.
-    private ReferentialIntegrityDeleteListener(DN dn, Message message) {
+    private ReferentialIntegrityDeleteListener(DN dn, LocalizableMessage message) {
       this.dn = dn;
       this.message = message;
     }
@@ -383,7 +383,7 @@ public final class AggregationPropertyDefinition
      * {@inheritDoc}
      */
     public boolean isConfigurationDeleteAcceptable(S configuration,
-        List<Message> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
       if (configuration.dn().equals(dn)) {
         // Always prevent deletion of the referenced component.
         unacceptableReasons.add(message);
@@ -407,14 +407,14 @@ public final class AggregationPropertyDefinition
      */
     @Override
     public boolean isUsable(ServerManagedObject<?> managedObject,
-        Collection<Message> unacceptableReasons) throws ConfigException {
+        Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
       SortedSet<String> names = managedObject
           .getPropertyValues(AggregationPropertyDefinition.this);
       ServerManagementContext context = ServerManagementContext.getInstance();
-      Message thisUFN = managedObject.getManagedObjectDefinition()
+      LocalizableMessage thisUFN = managedObject.getManagedObjectDefinition()
           .getUserFriendlyName();
       String thisDN = managedObject.getDN().toString();
-      Message thatUFN = getRelationDefinition().getUserFriendlyName();
+      LocalizableMessage thatUFN = getRelationDefinition().getUserFriendlyName();
 
       boolean isUsable = true;
       boolean needsEnabling = targetNeedsEnablingCondition
@@ -424,7 +424,7 @@ public final class AggregationPropertyDefinition
         String thatDN = path.toDN().toString();
 
         if (!context.managedObjectExists(path)) {
-          Message msg = ERR_SERVER_REFINT_DANGLING_REFERENCE.get(name,
+          LocalizableMessage msg = ERR_SERVER_REFINT_DANGLING_REFERENCE.get(name,
               getName(), thisUFN, thisDN, thatUFN, thatDN);
           unacceptableReasons.add(msg);
           isUsable = false;
@@ -433,7 +433,7 @@ public final class AggregationPropertyDefinition
           // required.
           ServerManagedObject<? extends S> ref = context.getManagedObject(path);
           if (!targetIsEnabledCondition.evaluate(ref)) {
-            Message msg = ERR_SERVER_REFINT_TARGET_DISABLED.get(name,
+            LocalizableMessage msg = ERR_SERVER_REFINT_TARGET_DISABLED.get(name,
                 getName(), thisUFN, thisDN, thatUFN, thatDN);
             unacceptableReasons.add(msg);
             isUsable = false;
@@ -461,10 +461,10 @@ public final class AggregationPropertyDefinition
 
       // Add change and delete listeners against all referenced
       // components.
-      Message thisUFN = managedObject.getManagedObjectDefinition()
+      LocalizableMessage thisUFN = managedObject.getManagedObjectDefinition()
           .getUserFriendlyName();
       String thisDN = managedObject.getDN().toString();
-      Message thatUFN = getRelationDefinition().getUserFriendlyName();
+      LocalizableMessage thatUFN = getRelationDefinition().getUserFriendlyName();
 
       // Referenced managed objects will only need a change listener
       // if they have can be disabled.
@@ -493,7 +493,7 @@ public final class AggregationPropertyDefinition
         String thatDN = dn.toString();
 
         // Register the delete listener.
-        Message msg = ERR_SERVER_REFINT_CANNOT_DELETE.get(thatUFN, thatDN,
+        LocalizableMessage msg = ERR_SERVER_REFINT_CANNOT_DELETE.get(thatUFN, thatDN,
             getName(), thisUFN, thisDN);
         ReferentialIntegrityDeleteListener dl =
           new ReferentialIntegrityDeleteListener(dn, msg);
@@ -577,7 +577,7 @@ public final class AggregationPropertyDefinition
      */
     @Override
     public boolean isAddAcceptable(ManagementContext context,
-        ManagedObject<?> managedObject, Collection<Message> unacceptableReasons)
+        ManagedObject<?> managedObject, Collection<LocalizableMessage> unacceptableReasons)
         throws AuthorizationException, CommunicationException {
       // If all of this managed object's "enabled" properties are true
       // then any referenced managed objects must also be enabled.
@@ -587,7 +587,7 @@ public final class AggregationPropertyDefinition
       // Check the referenced managed objects exist and, if required,
       // are enabled.
       boolean isAcceptable = true;
-      Message ufn = getRelationDefinition().getUserFriendlyName();
+      LocalizableMessage ufn = getRelationDefinition().getUserFriendlyName();
       for (String name : managedObject
           .getPropertyValues(AggregationPropertyDefinition.this)) {
         // Retrieve the referenced managed object and make sure it
@@ -597,19 +597,19 @@ public final class AggregationPropertyDefinition
         try {
           ref = context.getManagedObject(path);
         } catch (DefinitionDecodingException e) {
-          Message msg = ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name,
+          LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name,
               getName(), e.getMessageObject());
           unacceptableReasons.add(msg);
           isAcceptable = false;
           continue;
         } catch (ManagedObjectDecodingException e) {
-          Message msg = ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name,
+          LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name,
               getName(), e.getMessageObject());
           unacceptableReasons.add(msg);
           isAcceptable = false;
           continue;
         } catch (ManagedObjectNotFoundException e) {
-          Message msg = ERR_CLIENT_REFINT_TARGET_DANGLING_REFERENCE.get(ufn,
+          LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_DANGLING_REFERENCE.get(ufn,
               name, getName());
           unacceptableReasons.add(msg);
           isAcceptable = false;
@@ -619,7 +619,7 @@ public final class AggregationPropertyDefinition
         // Make sure the reference managed object is enabled.
         if (needsEnabling) {
           if (!targetIsEnabledCondition.evaluate(context, ref)) {
-            Message msg = ERR_CLIENT_REFINT_TARGET_DISABLED.get(ufn, name,
+            LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_DISABLED.get(ufn, name,
                 getName());
             unacceptableReasons.add(msg);
             isAcceptable = false;
@@ -636,7 +636,7 @@ public final class AggregationPropertyDefinition
      */
     @Override
     public boolean isModifyAcceptable(ManagementContext context,
-        ManagedObject<?> managedObject, Collection<Message> unacceptableReasons)
+        ManagedObject<?> managedObject, Collection<LocalizableMessage> unacceptableReasons)
         throws AuthorizationException, CommunicationException {
       // The same constraint applies as for adds.
       return isAddAcceptable(context, managedObject, unacceptableReasons);
@@ -658,7 +658,7 @@ public final class AggregationPropertyDefinition
      */
     @Override
     public boolean isDeleteAcceptable(ManagementContext context,
-        ManagedObjectPath<?, ?> path, Collection<Message> unacceptableReasons)
+        ManagedObjectPath<?, ?> path, Collection<LocalizableMessage> unacceptableReasons)
         throws AuthorizationException, CommunicationException {
       // Any references to the deleted managed object should cause a
       // constraint violation.
@@ -667,12 +667,12 @@ public final class AggregationPropertyDefinition
           getManagedObjectDefinition(), path.getName())) {
         String name = mo.getManagedObjectPath().getName();
         if (name == null) {
-          Message msg = ERR_CLIENT_REFINT_CANNOT_DELETE_WITHOUT_NAME.get(
+          LocalizableMessage msg = ERR_CLIENT_REFINT_CANNOT_DELETE_WITHOUT_NAME.get(
               getName(), mo.getManagedObjectDefinition().getUserFriendlyName(),
               getManagedObjectDefinition().getUserFriendlyName());
           unacceptableReasons.add(msg);
         } else {
-          Message msg = ERR_CLIENT_REFINT_CANNOT_DELETE_WITH_NAME.get(
+          LocalizableMessage msg = ERR_CLIENT_REFINT_CANNOT_DELETE_WITH_NAME.get(
               getName(), mo.getManagedObjectDefinition().getUserFriendlyName(),
               name, getManagedObjectDefinition().getUserFriendlyName());
           unacceptableReasons.add(msg);
@@ -689,7 +689,7 @@ public final class AggregationPropertyDefinition
      */
     @Override
     public boolean isModifyAcceptable(ManagementContext context,
-        ManagedObject<?> managedObject, Collection<Message> unacceptableReasons)
+        ManagedObject<?> managedObject, Collection<LocalizableMessage> unacceptableReasons)
         throws AuthorizationException, CommunicationException {
       // If the modified managed object is disabled and there are some
       // active references then refuse the change.
@@ -706,13 +706,13 @@ public final class AggregationPropertyDefinition
         if (targetNeedsEnablingCondition.evaluate(context, mo)) {
           String name = mo.getManagedObjectPath().getName();
           if (name == null) {
-            Message msg = ERR_CLIENT_REFINT_CANNOT_DISABLE_WITHOUT_NAME.get(
+            LocalizableMessage msg = ERR_CLIENT_REFINT_CANNOT_DISABLE_WITHOUT_NAME.get(
                 managedObject.getManagedObjectDefinition()
                     .getUserFriendlyName(), getName(), mo
                     .getManagedObjectDefinition().getUserFriendlyName());
             unacceptableReasons.add(msg);
           } else {
-            Message msg = ERR_CLIENT_REFINT_CANNOT_DISABLE_WITH_NAME.get(
+            LocalizableMessage msg = ERR_CLIENT_REFINT_CANNOT_DISABLE_WITH_NAME.get(
                 managedObject.getManagedObjectDefinition()
                     .getUserFriendlyName(), getName(), mo
                     .getManagedObjectDefinition().getUserFriendlyName(), name);
@@ -1041,7 +1041,7 @@ public final class AggregationPropertyDefinition
    *         aggregation property definition in the default locale, or
    *         <code>null</code> if there is no constraint synopsis.
    */
-  public final Message getSourceConstraintSynopsis() {
+  public final LocalizableMessage getSourceConstraintSynopsis() {
     return getSourceConstraintSynopsis(Locale.getDefault());
   }
 
@@ -1062,7 +1062,7 @@ public final class AggregationPropertyDefinition
    *         or <code>null</code> if there is no constraint
    *         synopsis.
    */
-  public final Message getSourceConstraintSynopsis(Locale locale) {
+  public final LocalizableMessage getSourceConstraintSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + getName()

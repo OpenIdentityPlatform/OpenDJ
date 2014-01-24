@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 
@@ -48,7 +49,7 @@ import javax.swing.JTextField;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.types.AttributeType;
@@ -64,8 +65,8 @@ public abstract class AbstractIndexPanel extends StatusGenericPanel
   /**
    * Title panel.
    */
-  protected TitlePanel titlePanel = new TitlePanel(Message.EMPTY,
-      Message.EMPTY);
+  protected TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY,
+      LocalizableMessage.EMPTY);
   /**
    * Attributes combo box.
    */
@@ -148,15 +149,15 @@ public abstract class AbstractIndexPanel extends StatusGenericPanel
   protected JPanel typesPanel = new JPanel(new GridBagLayout());
 
   /**
-   * Message to be displayed to indicate that an index is not configurable.
+   * LocalizableMessage to be displayed to indicate that an index is not configurable.
    */
-  protected Message NON_CONFIGURABLE_INDEX =
+  protected LocalizableMessage NON_CONFIGURABLE_INDEX =
     INFO_CTRL_PANEL_NON_CONFIGURABLE_INDEX_LABEL.get();
 
   /**
-   * Message to be displayed to indicate that an index has been modified.
+   * LocalizableMessage to be displayed to indicate that an index has been modified.
    */
-  protected Message INDEX_MODIFIED = INFO_CTRL_PANEL_INDEX_MODIFIED_LABEL.get();
+  protected LocalizableMessage INDEX_MODIFIED = INFO_CTRL_PANEL_INDEX_MODIFIED_LABEL.get();
 
   /**
    * Array of checkboxes.
@@ -175,12 +176,12 @@ public abstract class AbstractIndexPanel extends StatusGenericPanel
   /**
    * Custom attributes message.
    */
-  protected Message CUSTOM_ATTRIBUTES =
+  protected LocalizableMessage CUSTOM_ATTRIBUTES =
     INFO_CTRL_PANEL_CUSTOM_ATTRIBUTES_LABEL.get();
   /**
    * Standard attributes message.
    */
-  protected Message STANDARD_ATTRIBUTES =
+  protected LocalizableMessage STANDARD_ATTRIBUTES =
     INFO_CTRL_PANEL_STANDARD_ATTRIBUTES_LABEL.get();
 
   /**
@@ -392,9 +393,9 @@ public abstract class AbstractIndexPanel extends StatusGenericPanel
    * @return a list of error message with the problems encountered in the data
    * provided by the user.
    */
-  protected List<Message> getErrors()
+  protected List<LocalizableMessage> getErrors()
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     setPrimaryValid(lEntryLimit);
     setPrimaryValid(lType);
 

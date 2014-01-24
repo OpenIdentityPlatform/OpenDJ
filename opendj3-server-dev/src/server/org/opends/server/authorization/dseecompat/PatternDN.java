@@ -26,7 +26,7 @@
  */
 
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -427,7 +427,7 @@ public class PatternDN
       }
       else
       {
-        Message message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(
+        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(
             dnString, attributeName.toString(), c);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                      message);
@@ -493,7 +493,7 @@ public class PatternDN
       {
         // This should not happen.  At any rate, it's an illegal
         // character, so throw an exception.
-        Message message = ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(dnString, c, pos);
+        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(dnString, c, pos);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                      message);
       }
@@ -522,7 +522,7 @@ public class PatternDN
         // because that would be invalid.
         if (pos >= length)
         {
-          Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
               dnString, attributeName.toString());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                        message);
@@ -542,7 +542,7 @@ public class PatternDN
             // This means that we hit the end of the value before
             // finding a '='.  This is illegal because there is no
             // attribute-value separator.
-            Message message =
+            LocalizableMessage message =
                 ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, name);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                          message);
@@ -562,7 +562,7 @@ public class PatternDN
         }
         else
         {
-          Message message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(dnString, name, c);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(dnString, name, c);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                        message);
         }
@@ -630,7 +630,7 @@ public class PatternDN
         {
           // This should not happen.  At any rate, it's an illegal
           // character, so throw an exception.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                        message);
@@ -725,7 +725,7 @@ public class PatternDN
           // know that there is at least one RDN component, and
           // therefore the last non-space character of the DN must
           // have been a comma. This is not acceptable.
-          Message message = ERR_ATTR_SYNTAX_DN_END_WITH_COMMA.get(dnString);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_END_WITH_COMMA.get(dnString);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                        message);
         }
@@ -760,7 +760,7 @@ public class PatternDN
         case ')':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                        message);
@@ -992,7 +992,7 @@ public class PatternDN
     // have at least one character.
     if (attributeName.length() == 0)
     {
-      Message message = ERR_ATTR_SYNTAX_DN_ATTR_NO_NAME.get(dnString);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_NO_NAME.get(dnString);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                    message);
     }
@@ -1067,7 +1067,7 @@ public class PatternDN
 
       if (! validOID)
       {
-        Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(
+        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(
             dnString, attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                      message);
@@ -1121,7 +1121,7 @@ public class PatternDN
       StringBuilder hexString = new StringBuilder();
       if ((pos+2) > length)
       {
-        Message message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnString);
+        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnString);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                      message);
       }
@@ -1135,7 +1135,7 @@ public class PatternDN
         }
         else
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                        message);
@@ -1162,7 +1162,7 @@ public class PatternDN
             }
             else
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
               throw new DirectoryException(
                              ResultCode.INVALID_DN_SYNTAX, message);
@@ -1170,7 +1170,7 @@ public class PatternDN
           }
           else
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnString);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                          message);
@@ -1184,7 +1184,7 @@ public class PatternDN
         }
         else
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                        message);
@@ -1208,7 +1208,7 @@ public class PatternDN
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(
+        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(
             dnString, String.valueOf(e));
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                      message);
@@ -1230,7 +1230,7 @@ public class PatternDN
         {
           // We hit the end of the DN before the closing quote.
           // That's an error.
-          Message message = ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(dnString);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(dnString);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                        message);
         }
@@ -1323,7 +1323,7 @@ public class PatternDN
             // value.
             if (pos >= length)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(dnString);
               throw new DirectoryException(
                              ResultCode.INVALID_DN_SYNTAX, message);
@@ -1338,7 +1338,7 @@ public class PatternDN
               }
               else
               {
-                Message message =
+                LocalizableMessage message =
                     ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(dnString);
                 throw new DirectoryException(
                                ResultCode.INVALID_DN_SYNTAX, message);
@@ -1374,7 +1374,7 @@ public class PatternDN
           appendHexChars(dnString, valueString, hexChars);
           if (valueString.length() == 0)
           {
-            Message message =
+            LocalizableMessage message =
                 WARN_PATTERN_DN_CONSECUTIVE_WILDCARDS_IN_VALUE.get(dnString);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                          message);
@@ -1452,7 +1452,7 @@ public class PatternDN
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(
           dnString, String.valueOf(e));
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                    message);

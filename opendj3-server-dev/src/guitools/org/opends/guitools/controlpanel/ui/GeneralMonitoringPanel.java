@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -31,7 +32,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Abstract class used to refactor some code among the panels that display the
@@ -50,7 +51,7 @@ public abstract class GeneralMonitoringPanel extends StatusGenericPanel
   /**
    * The message to express that the value was not found.
    */
-  protected static Message NO_VALUE_SET =
+  protected static LocalizableMessage NO_VALUE_SET =
     INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
 
   /**
@@ -63,9 +64,9 @@ public abstract class GeneralMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
-    return Message.EMPTY;
+    return LocalizableMessage.EMPTY;
   }
 
   /**

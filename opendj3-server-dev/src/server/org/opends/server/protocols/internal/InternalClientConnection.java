@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
@@ -296,7 +296,7 @@ public final class InternalClientConnection
     Entry userEntry = DirectoryServer.getEntry(userDN);
     if (userEntry == null)
     {
-      Message m =
+      LocalizableMessage m =
            ERR_INTERNALCONN_NO_SUCH_USER.get(String.valueOf(userDN));
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m);
     }
@@ -2595,7 +2595,7 @@ public final class InternalClientConnection
   @Override()
   public void disconnect(DisconnectReason disconnectReason,
                          boolean sendNotification,
-                         Message message)
+                         LocalizableMessage message)
   {
     // No implementation is required since there is nothing to
     // disconnect.  Further, since there is no real disconnect, we can
@@ -2700,7 +2700,7 @@ public final class InternalClientConnection
     // Internal operations cannot be cancelled.
     // TODO: i18n
     return new CancelResult(ResultCode.CANNOT_CANCEL,
-        Message.raw("Internal operations cannot be cancelled"));
+        LocalizableMessage.raw("Internal operations cannot be cancelled"));
   }
 
 

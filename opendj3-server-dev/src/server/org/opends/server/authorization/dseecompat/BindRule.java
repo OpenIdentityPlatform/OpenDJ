@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This class represents a single bind rule of an ACI permission-bind rule
@@ -215,7 +215,7 @@ public class BindRule {
            * Raise an exception otherwise.
            */
           if (numOpen > numClose) {
-              Message message =
+              LocalizableMessage message =
                   ERR_ACI_SYNTAX_BIND_RULE_MISSING_CLOSE_PAREN.get(input);
               throw new AciException(message);
           }
@@ -266,7 +266,7 @@ public class BindRule {
             }
           }
           else {
-              Message message =
+              LocalizableMessage message =
                   ERR_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(input);
               throw new AciException(message);
           }
@@ -293,7 +293,7 @@ public class BindRule {
         keyword = EnumBindRuleKeyword.createBindRuleKeyword(keywordStr);
         if (keyword == null)
         {
-            Message message =
+            LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD.get(keywordStr);
             throw new AciException(message);
         }
@@ -301,14 +301,14 @@ public class BindRule {
         // Get the operator
         operator = EnumBindRuleType.createBindruleOperand(operatorStr);
         if (operator == null) {
-            Message message =
+            LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_BIND_RULE_OPERATOR.get(operatorStr);
             throw new AciException(message);
         }
 
         //expression can't be null
         if (expression == null) {
-            Message message =
+            LocalizableMessage message =
                 WARN_ACI_SYNTAX_MISSING_BIND_RULE_EXPRESSION.get(operatorStr);
             throw new AciException(message);
         }
@@ -344,7 +344,7 @@ public class BindRule {
             if ((operand == null)
                     || ((operand != EnumBooleanTypes.AND_BOOLEAN_TYPE) &&
                             (operand != EnumBooleanTypes.OR_BOOLEAN_TYPE))) {
-                Message message =
+                LocalizableMessage message =
                         WARN_ACI_SYNTAX_INVALID_BIND_RULE_BOOLEAN_OPERATOR
                                 .get(remainingOperand);
                 throw new AciException(message);
@@ -363,7 +363,7 @@ public class BindRule {
             bindrule_2.setNegate(negate);
             return new BindRule(bindrule, bindrule_2, operand);
         } else {
-            Message message = ERR_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(
+            LocalizableMessage message = ERR_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(
                 remainingBindruleStr);
             throw new AciException(message);
         }
@@ -432,7 +432,7 @@ public class BindRule {
         case DAYOFWEEK:
             if ((op != EnumBindRuleType.EQUAL_BINDRULE_TYPE)
                     && (op != EnumBindRuleType.NOT_EQUAL_BINDRULE_TYPE)) {
-                Message message =
+                LocalizableMessage message =
                   WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD_OPERATOR_COMBO
                           .get(keyword.toString(), op.toString());
                 throw new AciException(message);
@@ -476,7 +476,7 @@ public class BindRule {
             {
                 //The roledn keyword is not supported. Throw an exception with
                 //a message if it is seen in the ACI.
-                Message message =
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED.get(expr);
                 throw new AciException(message);
             }
@@ -521,7 +521,7 @@ public class BindRule {
                 break;
             }
             default:  {
-                Message message = WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD.get(
+                LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD.get(
                     keyword.toString());
                 throw new AciException(message);
             }

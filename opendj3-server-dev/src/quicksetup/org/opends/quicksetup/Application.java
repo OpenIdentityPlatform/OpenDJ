@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
@@ -248,8 +248,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param newLogDetail the new log messages that we have for the
    * installation in formatted form.
    */
-  public void notifyListeners(Integer ratio, Message currentPhaseSummary,
-      Message newLogDetail)
+  public void notifyListeners(Integer ratio, LocalizableMessage currentPhaseSummary,
+      LocalizableMessage newLogDetail)
   {
     if (notifyListeners)
     {
@@ -266,7 +266,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param newLogDetail the localized additional log message.
    */
   public void notifyListenersWithPoints(Integer ratio,
-      Message newLogDetail) {
+      LocalizableMessage newLogDetail) {
     notifyListeners(ratio, getSummary(getCurrentProgressStep()),
         formatter.getFormattedWithPoints(newLogDetail));
   }
@@ -299,7 +299,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * representation
    * @return the formatted representation of an error for the given text.
    */
-  protected Message getFormattedSummary(Message text)
+  protected LocalizableMessage getFormattedSummary(LocalizableMessage text)
   {
     return formatter.getFormattedSummary(text);
   }
@@ -310,7 +310,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * representation
    * @return the formatted representation of an error for the given text.
    */
-  protected Message getFormattedError(Message text)
+  protected LocalizableMessage getFormattedError(LocalizableMessage text)
   {
     return formatter.getFormattedError(text, false);
   }
@@ -321,7 +321,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * representation
    * @return the formatted representation of an warning for the given text.
    */
-  public Message getFormattedWarning(Message text)
+  public LocalizableMessage getFormattedWarning(LocalizableMessage text)
   {
     return formatter.getFormattedWarning(text, false);
   }
@@ -333,7 +333,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the formatted representation of an success message for the given
    * text.
    */
-  protected Message getFormattedSuccess(Message text)
+  protected LocalizableMessage getFormattedSuccess(LocalizableMessage text)
   {
     return formatter.getFormattedSuccess(text);
   }
@@ -346,7 +346,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the formatted representation of a log error message for the given
    * text.
    */
-  public Message getFormattedLogError(Message text)
+  public LocalizableMessage getFormattedLogError(LocalizableMessage text)
   {
     return formatter.getFormattedLogError(text);
   }
@@ -357,7 +357,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * representation
    * @return the formatted representation of a log message for the given text.
    */
-  public Message getFormattedLog(Message text)
+  public LocalizableMessage getFormattedLog(LocalizableMessage text)
   {
     return formatter.getFormattedLog(text);
   }
@@ -366,9 +366,9 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Returns the formatted representation of the 'Done' text string.
    * @return the formatted representation of the 'Done' text string.
    */
-  public Message getFormattedDone()
+  public LocalizableMessage getFormattedDone()
   {
-    return Message.raw(formatter.getFormattedDone());
+    return LocalizableMessage.raw(formatter.getFormattedDone());
   }
 
   /**
@@ -376,8 +376,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * with a line break at the end.
    * @return the formatted representation of the 'Done' text string.
    */
-  public Message getFormattedDoneWithLineBreak() {
-    return new MessageBuilder(formatter.getFormattedDone())
+  public LocalizableMessage getFormattedDoneWithLineBreak() {
+    return new LocalizableMessageBuilder(formatter.getFormattedDone())
             .append(formatter.getLineBreak()).toMessage();
   }
 
@@ -388,7 +388,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param text the String to which add points.
    * @return the formatted representation of the '.....' text string.
    */
-  public Message getFormattedWithPoints(Message text)
+  public LocalizableMessage getFormattedWithPoints(LocalizableMessage text)
   {
     return formatter.getFormattedWithPoints(text);
   }
@@ -401,7 +401,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the formatted representation of a progress message for the given
    * text.
    */
-  public Message getFormattedProgress(Message text)
+  public LocalizableMessage getFormattedProgress(LocalizableMessage text)
   {
     return formatter.getFormattedProgress(text);
   }
@@ -414,9 +414,9 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the formatted representation of a progress message for the given
    * text.
    */
-  public Message getFormattedProgressWithLineBreak(Message text)
+  public LocalizableMessage getFormattedProgressWithLineBreak(LocalizableMessage text)
   {
-    return new MessageBuilder(formatter.getFormattedProgress(text))
+    return new LocalizableMessageBuilder(formatter.getFormattedProgress(text))
             .append(getLineBreak()).toMessage();
   }
 
@@ -431,7 +431,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the formatted representation of an error message for the given
    * exception.
    */
-  protected Message getFormattedError(Throwable t, boolean applyMargin)
+  protected LocalizableMessage getFormattedError(Throwable t, boolean applyMargin)
   {
     return formatter.getFormattedError(t, applyMargin);
   }
@@ -440,7 +440,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Returns the line break formatted.
    * @return the line break formatted.
    */
-  public Message getLineBreak()
+  public LocalizableMessage getLineBreak()
   {
     return formatter.getLineBreak();
   }
@@ -449,7 +449,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Returns the task separator formatted.
    * @return the task separator formatted.
    */
-  protected Message getTaskSeparator()
+  protected LocalizableMessage getTaskSeparator()
   {
     return formatter.getTaskSeparator();
   }
@@ -459,10 +459,10 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * notify the ProgressUpdateListeners of this fact.
    * @param newLogDetail the new log detail.
    */
-  public void notifyListeners(Message newLogDetail)
+  public void notifyListeners(LocalizableMessage newLogDetail)
   {
     Integer ratio = getRatio(getCurrentProgressStep());
-    Message currentPhaseSummary = getSummary(getCurrentProgressStep());
+    LocalizableMessage currentPhaseSummary = getSummary(getCurrentProgressStep());
     notifyListeners(ratio, currentPhaseSummary, newLogDetail);
   }
 
@@ -500,7 +500,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param step ProgressStop for which a summary is needed
    * @return String representing the summary
    */
-  public abstract Message getSummary(ProgressStep step);
+  public abstract LocalizableMessage getSummary(ProgressStep step);
 
   /**
    * Sets the current install status for this application.
@@ -616,7 +616,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param e the exception we want to obtain the representation from.
    * @return a localized representation of a TopologyCacheException object.
    */
-  protected Message getMessage(TopologyCacheException e)
+  protected LocalizableMessage getMessage(TopologyCacheException e)
   {
     return Utils.getMessage(e);
   }
@@ -658,7 +658,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
     }
     catch (NamingException ne)
     {
-      Message msg;
+      LocalizableMessage msg;
       if (Utils.isCertificateException(ne))
       {
         msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
@@ -754,8 +754,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
     /**
      * {@inheritDoc}
      */
-    protected Message formatString(String s) {
-      return getFormattedLogError(Message.raw(s));
+    protected LocalizableMessage formatString(String s) {
+      return getFormattedLogError(LocalizableMessage.raw(s));
     }
 
   }
@@ -785,8 +785,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
     /**
      * {@inheritDoc}
      */
-    protected Message formatString(String s) {
-      return getFormattedLog(Message.raw(s));
+    protected LocalizableMessage formatString(String s) {
+      return getFormattedLog(LocalizableMessage.raw(s));
     }
 
   }
@@ -804,7 +804,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
      * @param string to format
      * @return formatted message
      */
-    abstract protected Message formatString(String string);
+    abstract protected LocalizableMessage formatString(String string);
 
     /**
      * Default constructor.
@@ -822,7 +822,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
     @Override
     public void println(String msg)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       if (isFirstLine)
       {
         mb.append(formatString(msg));
@@ -886,14 +886,14 @@ public abstract class Application implements ProgressNotifier, Runnable {
      */
     public void start()
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(formatter.getSpace());
       for (int i=0; i< 5; i++)
       {
         mb.append(formatter.getFormattedPoint());
       }
       Integer ratio = getRatio(getCurrentProgressStep());
-      Message currentPhaseSummary = getSummary(getCurrentProgressStep());
+      LocalizableMessage currentPhaseSummary = getSummary(getCurrentProgressStep());
       listenerDelegate.notifyListeners(getCurrentProgressStep(),
           ratio, currentPhaseSummary, mb.toMessage());
       t = new Thread(this);
@@ -933,7 +933,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
         {
           Thread.sleep(3000);
           Integer ratio = getRatio(getCurrentProgressStep());
-          Message currentPhaseSummary = getSummary(getCurrentProgressStep());
+          LocalizableMessage currentPhaseSummary = getSummary(getCurrentProgressStep());
           listenerDelegate.notifyListeners(getCurrentProgressStep(),
               ratio, currentPhaseSummary, formatter.getFormattedPoint());
         }
@@ -945,7 +945,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
       pointAdderStopped = true;
 
       Integer ratio = getRatio(getCurrentProgressStep());
-      Message currentPhaseSummary = getSummary(getCurrentProgressStep());
+      LocalizableMessage currentPhaseSummary = getSummary(getCurrentProgressStep());
       listenerDelegate.notifyListeners(getCurrentProgressStep(),
           ratio, currentPhaseSummary, formatter.getSpace());
     }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.table;
 
@@ -32,7 +33,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -51,7 +52,7 @@ public final class TableBuilder {
   private List<Integer> columnWidths = new ArrayList<Integer>();
 
   // The list of column headings.
-  private List<Message> header = new ArrayList<Message>();
+  private List<LocalizableMessage> header = new ArrayList<LocalizableMessage>();
 
   // The current number of rows in the table.
   private int height = 0;
@@ -243,7 +244,7 @@ public final class TableBuilder {
    * Appends a new blank column heading to the header row.
    */
   public void appendHeading() {
-    appendHeading(Message.EMPTY);
+    appendHeading(LocalizableMessage.EMPTY);
   }
 
 
@@ -254,7 +255,7 @@ public final class TableBuilder {
    * @param value
    *          The column heading value.
    */
-  public void appendHeading(Message value) {
+  public void appendHeading(LocalizableMessage value) {
     header.add(value);
 
     // Update statistics.
@@ -344,7 +345,7 @@ public final class TableBuilder {
 
     // Column headings.
     serializer.startHeader();
-    for (Message s : header) {
+    for (LocalizableMessage s : header) {
       serializer.addHeading(s.toString());
     }
     serializer.endHeader();

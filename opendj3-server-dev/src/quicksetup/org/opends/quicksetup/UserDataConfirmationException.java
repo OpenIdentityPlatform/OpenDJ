@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This exception is used when there is an confirmation to be asked
@@ -43,7 +44,7 @@ public class UserDataConfirmationException extends UserDataException
    * @param step the step in the wizard where the exception occurred.
    * @param message the localized message describing the error.
    */
-  public UserDataConfirmationException(WizardStep step, Message message)
+  public UserDataConfirmationException(WizardStep step, LocalizableMessage message)
   {
     super(step, message);
   }

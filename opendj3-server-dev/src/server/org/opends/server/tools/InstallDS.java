@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  *      Portions Copyright 2011 profiq s.r.o.
  */
 package org.opends.server.tools;
@@ -45,7 +45,7 @@ import java.util.logging.Logger;
 
 import javax.naming.ldap.LdapName;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.QuickSetupMessages;
 import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.ApplicationException;
@@ -331,7 +331,7 @@ public class InstallDS extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message =
+      LocalizableMessage message =
         ToolMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       return ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode();
@@ -344,10 +344,10 @@ public class InstallDS extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       println(message);
       println();
-      println(Message.raw(argParser.getUsage()));
+      println(LocalizableMessage.raw(argParser.getUsage()));
 
       return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
     }
@@ -604,13 +604,13 @@ public class InstallDS extends ConsoleApplication
         {
           if (!confirmAction(INFO_CLI_DO_YOU_WANT_TO_CONTINUE.get(), true))
           {
-            throw new InitializationException(Message.EMPTY, null);
+            throw new InitializationException(LocalizableMessage.EMPTY, null);
           }
         }
         catch (CLIException ce)
         {
           LOG.log(Level.SEVERE, "Unexpected error: "+ce, ce);
-          throw new InitializationException(Message.EMPTY, null);
+          throw new InitializationException(LocalizableMessage.EMPTY, null);
         }
       }
       else
@@ -686,7 +686,7 @@ public class InstallDS extends ConsoleApplication
   private void initializeUserDataWithParser(UserData uData)
   throws UserDataException
   {
-    List<Message> errorMessages = new LinkedList<Message>();
+    List<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
     uData.setQuiet(isQuiet());
     uData.setVerbose(isVerbose());
     uData.setConnectTimeout(getConnectTimeout());
@@ -703,7 +703,7 @@ public class InstallDS extends ConsoleApplication
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
         ERR_INSTALLDS_CANNOT_PARSE_DN.get(dmDN, e.getMessage());
       errorMessages.add(message);
     }
@@ -724,7 +724,7 @@ public class InstallDS extends ConsoleApplication
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
           ERR_INSTALLDS_CANNOT_PARSE_DN.get(baseDN, e.getMessage());
         errorMessages.add(message);
       }
@@ -907,7 +907,7 @@ public class InstallDS extends ConsoleApplication
     }
   }
 
-  private void checkCanUsePort(int port, List<Message> errorMessages)
+  private void checkCanUsePort(int port, List<LocalizableMessage> errorMessages)
   {
     if (!SetupUtils.canUseAsPort(port))
     {
@@ -915,7 +915,7 @@ public class InstallDS extends ConsoleApplication
     }
   }
 
-  private Message getCannotBindErrorMessage(int port)
+  private LocalizableMessage getCannotBindErrorMessage(int port)
   {
     if (SetupUtils.isPriviledgedPort(port))
     {
@@ -1016,7 +1016,7 @@ public class InstallDS extends ConsoleApplication
    * @throws UserDataException if something went wrong checking the data.
    */
   private LinkedList<String> promptIfRequiredForDNs(StringArgument arg,
-      Message promptMsg, boolean includeLineBreak) throws UserDataException
+      LocalizableMessage promptMsg, boolean includeLineBreak) throws UserDataException
   {
     LinkedList<String> dns = new LinkedList<String>();
 
@@ -1069,7 +1069,7 @@ public class InstallDS extends ConsoleApplication
         catch (Exception e)
         {
           toRemove.add(dn);
-          Message message = prompted ? ERR_INSTALLDS_INVALID_DN_RESPONSE.get() :
+          LocalizableMessage message = prompted ? ERR_INSTALLDS_INVALID_DN_RESPONSE.get() :
             ERR_INSTALLDS_CANNOT_PARSE_DN.get(dn, e.getMessage());
           println(message);
         }
@@ -1136,7 +1136,7 @@ public class InstallDS extends ConsoleApplication
    * @return a valid port number.
    */
   private int promptIfRequiredForPortData(IntegerArgument portArg,
-      Message promptMsg, Collection<Integer> usedPorts,
+      LocalizableMessage promptMsg, Collection<Integer> usedPorts,
       boolean includeLineBreak)
   {
     int portNumber = -1;
@@ -1184,7 +1184,7 @@ public class InstallDS extends ConsoleApplication
         {
           if (!SetupUtils.canUseAsPort(portNumber))
           {
-            Message message = getCannotBindErrorMessage(portNumber);
+            LocalizableMessage message = getCannotBindErrorMessage(portNumber);
             if (prompted || includeLineBreak)
             {
               println();
@@ -1201,7 +1201,7 @@ public class InstallDS extends ConsoleApplication
         {
           if (usedPorts.contains(portNumber))
           {
-            Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
+            LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
                 String.valueOf(portNumber));
             println(message);
             println();
@@ -1367,7 +1367,7 @@ public class InstallDS extends ConsoleApplication
       {
         println();
         println(ae.getMessageObject());
-        Message message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
+        LocalizableMessage message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
         numUsers = promptForInteger(message, 2000, 0, Integer.MAX_VALUE);
       }
       dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs,
@@ -1382,7 +1382,7 @@ public class InstallDS extends ConsoleApplication
 
       int[] indexes = {POPULATE_TYPE_BASE_ONLY, POPULATE_TYPE_LEAVE_EMPTY,
           POPULATE_TYPE_IMPORT_FROM_LDIF, POPULATE_TYPE_GENERATE_SAMPLE_DATA};
-      Message[] msgs = new Message[] {
+      LocalizableMessage[] msgs = new LocalizableMessage[] {
           INFO_INSTALLDS_POPULATE_OPTION_BASE_ONLY.get(),
           INFO_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY.get(),
           INFO_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF.get(),
@@ -1399,7 +1399,7 @@ public class InstallDS extends ConsoleApplication
 
       if (lastResetPopulateOption == null)
       {
-        builder.setDefault(Message.raw(
+        builder.setDefault(LocalizableMessage.raw(
             String.valueOf(POPULATE_TYPE_BASE_ONLY)),
             MenuResult.success(POPULATE_TYPE_BASE_ONLY));
       }
@@ -1408,22 +1408,22 @@ public class InstallDS extends ConsoleApplication
         switch (lastResetPopulateOption)
         {
         case LEAVE_DATABASE_EMPTY:
-          builder.setDefault(Message.raw(
+          builder.setDefault(LocalizableMessage.raw(
               String.valueOf(POPULATE_TYPE_LEAVE_EMPTY)),
               MenuResult.success(POPULATE_TYPE_LEAVE_EMPTY));
           break;
         case IMPORT_FROM_LDIF_FILE:
-          builder.setDefault(Message.raw(
+          builder.setDefault(LocalizableMessage.raw(
               String.valueOf(POPULATE_TYPE_IMPORT_FROM_LDIF)),
               MenuResult.success(POPULATE_TYPE_IMPORT_FROM_LDIF));
           break;
         case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-          builder.setDefault(Message.raw(
+          builder.setDefault(LocalizableMessage.raw(
               String.valueOf(POPULATE_TYPE_GENERATE_SAMPLE_DATA)),
               MenuResult.success(POPULATE_TYPE_GENERATE_SAMPLE_DATA));
           break;
         default:
-          builder.setDefault(Message.raw(
+          builder.setDefault(LocalizableMessage.raw(
               String.valueOf(POPULATE_TYPE_BASE_ONLY)),
               MenuResult.success(POPULATE_TYPE_BASE_ONLY));
         }
@@ -1455,7 +1455,7 @@ public class InstallDS extends ConsoleApplication
         List<String> importLDIFFiles = new LinkedList<String>();
         while (importLDIFFiles.isEmpty())
         {
-          Message message = INFO_INSTALLDS_PROMPT_IMPORT_FILE.get();
+          LocalizableMessage message = INFO_INSTALLDS_PROMPT_IMPORT_FILE.get();
           println();
           try
           {
@@ -1520,7 +1520,7 @@ public class InstallDS extends ConsoleApplication
       }
       else if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
       {
-        Message message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
+        LocalizableMessage message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
         int defaultValue;
         if (lastResetNumEntries == null)
         {
@@ -1675,7 +1675,7 @@ public class InstallDS extends ConsoleApplication
         final int PKCS12 = 4;
         final int PKCS11 = 5;
         int[] indexes = {SELF_SIGNED, JKS, JCEKS, PKCS12, PKCS11};
-        Message[] msgs = {
+        LocalizableMessage[] msgs = {
             INFO_INSTALLDS_CERT_OPTION_SELF_SIGNED.get(),
             INFO_INSTALLDS_CERT_OPTION_JKS.get(),
             INFO_INSTALLDS_CERT_OPTION_JCEKS.get(),
@@ -1694,7 +1694,7 @@ public class InstallDS extends ConsoleApplication
 
         if (lastResetCertType == null)
         {
-          builder.setDefault(Message.raw(String.valueOf(SELF_SIGNED)),
+          builder.setDefault(LocalizableMessage.raw(String.valueOf(SELF_SIGNED)),
             MenuResult.success(SELF_SIGNED));
         }
         else
@@ -1702,23 +1702,23 @@ public class InstallDS extends ConsoleApplication
           switch (lastResetCertType)
           {
           case JKS:
-            builder.setDefault(Message.raw(String.valueOf(JKS)),
+            builder.setDefault(LocalizableMessage.raw(String.valueOf(JKS)),
                 MenuResult.success(JKS));
             break;
           case JCEKS:
-            builder.setDefault(Message.raw(String.valueOf(JCEKS)),
+            builder.setDefault(LocalizableMessage.raw(String.valueOf(JCEKS)),
                 MenuResult.success(JCEKS));
             break;
           case PKCS11:
-            builder.setDefault(Message.raw(String.valueOf(PKCS11)),
+            builder.setDefault(LocalizableMessage.raw(String.valueOf(PKCS11)),
                 MenuResult.success(PKCS11));
             break;
           case PKCS12:
-            builder.setDefault(Message.raw(String.valueOf(PKCS12)),
+            builder.setDefault(LocalizableMessage.raw(String.valueOf(PKCS12)),
                 MenuResult.success(PKCS12));
             break;
           default:
-            builder.setDefault(Message.raw(String.valueOf(SELF_SIGNED)),
+            builder.setDefault(LocalizableMessage.raw(String.valueOf(SELF_SIGNED)),
                 MenuResult.success(SELF_SIGNED));
           }
         }
@@ -1804,7 +1804,7 @@ public class InstallDS extends ConsoleApplication
       else
       {
         println();
-        Message message = INFO_INSTALLDS_PROMPT_ENABLE_SERVICE.get();
+        LocalizableMessage message = INFO_INSTALLDS_PROMPT_ENABLE_SERVICE.get();
         try
         {
           boolean defaultValue = (lastResetEnableWindowsService == null) ?
@@ -1833,7 +1833,7 @@ public class InstallDS extends ConsoleApplication
     if (!argParser.doNotStartArg.isPresent())
     {
       println();
-      Message message = INFO_INSTALLDS_PROMPT_START_SERVER.get();
+      LocalizableMessage message = INFO_INSTALLDS_PROMPT_START_SERVER.get();
       try
       {
         boolean defaultValue = (lastResetStartServer == null) ?
@@ -1852,7 +1852,7 @@ public class InstallDS extends ConsoleApplication
   /**
    * Checks that the provided parameters are valid to access an existing
    * key store.  This method adds the encountered errors to the provided
-   * list of Message.  It also adds the alias (nicknames) found to the provided
+   * list of LocalizableMessage.  It also adds the alias (nicknames) found to the provided
    * list of String.
    * @param type the type of key store.
    * @param path the path of the key store.
@@ -1867,7 +1867,7 @@ public class InstallDS extends ConsoleApplication
   public static void checkCertificateInKeystore(
       SecurityOptions.CertificateType type,
       String path, String pwd, String certNickname,
-      Collection<Message> errorMessages, Collection<String> nicknameList)
+      Collection<LocalizableMessage> errorMessages, Collection<String> nicknameList)
   {
     boolean errorWithPath = false;
     if (type != SecurityOptions.CertificateType.PKCS11)
@@ -2031,7 +2031,7 @@ public class InstallDS extends ConsoleApplication
         pwd = null;
       }
     }
-    Message pathPrompt;
+    LocalizableMessage pathPrompt;
     String defaultPathValue;
 
     switch (type)
@@ -2072,7 +2072,7 @@ public class InstallDS extends ConsoleApplication
       throw new IllegalStateException(
           "Called promptIfRequiredCertificate with invalid type: "+type);
     }
-    List<Message> errorMessages = new LinkedList<Message>();
+    List<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
     LinkedList<String> keystoreAliases = new LinkedList<String>();
     boolean firstTry = true;
     int nPasswordPrompts = 0;
@@ -2189,21 +2189,21 @@ public class InstallDS extends ConsoleApplication
    * to a problem with the key store path and <CODE>false</CODE> otherwise.
    */
   public static boolean containsKeyStorePathErrorMessage(
-      Collection<Message> msgs)
+      Collection<LocalizableMessage> msgs)
   {
     boolean found = false;
-    for (Message msg : msgs)
+    for (LocalizableMessage msg : msgs)
     {
-      if (msg.getDescriptor().equals(INFO_KEYSTORE_PATH_DOES_NOT_EXIST) ||
-          msg.getDescriptor().equals(INFO_KEYSTORE_PATH_NOT_A_FILE) ||
-          msg.getDescriptor().equals(INFO_JKS_KEYSTORE_DOES_NOT_EXIST) ||
-          msg.getDescriptor().equals(INFO_JCEKS_KEYSTORE_DOES_NOT_EXIST) ||
-          msg.getDescriptor().equals(INFO_PKCS12_KEYSTORE_DOES_NOT_EXIST) ||
-          msg.getDescriptor().equals(INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST) ||
-          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_JKS_KEYSTORE) ||
-          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_JCEKS_KEYSTORE) ||
-          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE) ||
-          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE))
+      if (StaticUtils.hasDescriptor(msg, INFO_KEYSTORE_PATH_DOES_NOT_EXIST) ||
+          StaticUtils.hasDescriptor(msg, INFO_KEYSTORE_PATH_NOT_A_FILE) ||
+          StaticUtils.hasDescriptor(msg, INFO_JKS_KEYSTORE_DOES_NOT_EXIST) ||
+          StaticUtils.hasDescriptor(msg, INFO_JCEKS_KEYSTORE_DOES_NOT_EXIST) ||
+          StaticUtils.hasDescriptor(msg, INFO_PKCS12_KEYSTORE_DOES_NOT_EXIST) ||
+          StaticUtils.hasDescriptor(msg, INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST) ||
+          StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_JKS_KEYSTORE) ||
+          StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_JCEKS_KEYSTORE) ||
+          StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_PKCS12_KEYSTORE) ||
+          StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_PKCS11_KEYSTORE))
       {
         found = true;
         break;
@@ -2220,20 +2220,20 @@ public class InstallDS extends ConsoleApplication
    * to a problem with the key store password and <CODE>false</CODE> otherwise.
    */
   public static boolean containsKeyStorePasswordErrorMessage(
-      Collection<Message> msgs)
+      Collection<LocalizableMessage> msgs)
   {
     boolean found = false;
-    for (Message msg : msgs)
+    for (LocalizableMessage msg : msgs)
     {
-      if (msg.getDescriptor().equals(INFO_JKS_KEYSTORE_DOES_NOT_EXIST) ||
-          msg.getDescriptor().equals(INFO_JCEKS_KEYSTORE_DOES_NOT_EXIST) ||
-          msg.getDescriptor().equals(INFO_PKCS12_KEYSTORE_DOES_NOT_EXIST) ||
-          msg.getDescriptor().equals(INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST) ||
-          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_JKS_KEYSTORE) ||
-          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_JCEKS_KEYSTORE) ||
-          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE) ||
-          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE) ||
-          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_KEYSTORE_JDK_BUG))
+      if (StaticUtils.hasDescriptor(msg, INFO_JKS_KEYSTORE_DOES_NOT_EXIST) ||
+          StaticUtils.hasDescriptor(msg, INFO_JCEKS_KEYSTORE_DOES_NOT_EXIST) ||
+          StaticUtils.hasDescriptor(msg, INFO_PKCS12_KEYSTORE_DOES_NOT_EXIST) ||
+          StaticUtils.hasDescriptor(msg, INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST) ||
+          StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_JKS_KEYSTORE) ||
+          StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_JCEKS_KEYSTORE) ||
+          StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_PKCS12_KEYSTORE) ||
+          StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_PKCS11_KEYSTORE) ||
+          StaticUtils.hasDescriptor(msg, INFO_ERROR_ACCESSING_KEYSTORE_JDK_BUG))
       {
         found = true;
         break;
@@ -2251,13 +2251,13 @@ public class InstallDS extends ConsoleApplication
    * otherwise.
    */
   public static boolean containsCertNicknameErrorMessage(
-      Collection<Message> msgs)
+      Collection<LocalizableMessage> msgs)
   {
     boolean found = false;
-    for (Message msg : msgs)
+    for (LocalizableMessage msg : msgs)
     {
-      if (msg.getDescriptor().equals(ERR_INSTALLDS_CERTNICKNAME_NOT_FOUND) ||
-          msg.getDescriptor().equals(ERR_INSTALLDS_MUST_PROVIDE_CERTNICKNAME))
+      if (StaticUtils.hasDescriptor(msg, ERR_INSTALLDS_CERTNICKNAME_NOT_FOUND) ||
+          StaticUtils.hasDescriptor(msg, ERR_INSTALLDS_MUST_PROVIDE_CERTNICKNAME))
       {
         found = true;
         break;
@@ -2273,10 +2273,9 @@ public class InstallDS extends ConsoleApplication
    * @return <CODE>true</CODE> if the error message provided corresponds to a
    * problem with the password tries and <CODE>false</CODE> otherwise.
    */
-  private boolean isPasswordTriesError(Message msg)
+  private boolean isPasswordTriesError(LocalizableMessage msg)
   {
-    return msg.getDescriptor().equals(
-        ERR_INSTALLDS_TOO_MANY_KEYSTORE_PASSWORD_TRIES);
+    return StaticUtils.hasDescriptor(msg, ERR_INSTALLDS_TOO_MANY_KEYSTORE_PASSWORD_TRIES);
   }
 
   /**
@@ -2297,7 +2296,7 @@ public class InstallDS extends ConsoleApplication
    *
    * @return  The <CODE>int</CODE> value read from the user input.
    */
-  private int promptForInteger(Message prompt, Integer defaultValue,
+  private int promptForInteger(LocalizableMessage prompt, Integer defaultValue,
                                       Integer lowerBound, Integer upperBound)
   {
     int returnValue = -1;
@@ -2317,7 +2316,7 @@ public class InstallDS extends ConsoleApplication
       {
         if (defaultValue == null)
         {
-          Message message = ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get();
+          LocalizableMessage message = ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get();
           println(message);
           println();
         }
@@ -2333,14 +2332,14 @@ public class InstallDS extends ConsoleApplication
           int intValue = Integer.parseInt(s);
           if ((lowerBound != null) && (intValue < lowerBound))
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_INSTALLDS_INTEGER_BELOW_LOWER_BOUND.get(lowerBound);
             println(message);
             println();
           }
           else if ((upperBound != null) && (intValue > upperBound))
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_INSTALLDS_INTEGER_ABOVE_UPPER_BOUND.get(upperBound);
             println(message);
             println();
@@ -2352,7 +2351,7 @@ public class InstallDS extends ConsoleApplication
         }
         catch (NumberFormatException nfe)
         {
-          Message message = ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get();
+          LocalizableMessage message = ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get();
           println(message);
           println();
         }
@@ -2400,7 +2399,7 @@ public class InstallDS extends ConsoleApplication
     println();
     println();
     println(INFO_INSTALLDS_SUMMARY.get());
-    Message[] labels =
+    LocalizableMessage[] labels =
     {
         INFO_SERVER_PORT_LABEL.get(),
         INFO_ADMIN_CONNECTOR_PORT_LABEL.get(),
@@ -2412,18 +2411,18 @@ public class InstallDS extends ConsoleApplication
 
     int jmxPort = uData.getServerJMXPort();
 
-    Message[] values =
+    LocalizableMessage[] values =
     {
-        Message.raw(String.valueOf(uData.getServerPort())),
-        Message.raw(String.valueOf(uData.getAdminConnectorPort())),
-        Message.raw(jmxPort != -1 ? String.valueOf(jmxPort) : null),
-        Message.raw(
+        LocalizableMessage.raw(String.valueOf(uData.getServerPort())),
+        LocalizableMessage.raw(String.valueOf(uData.getAdminConnectorPort())),
+        LocalizableMessage.raw(jmxPort != -1 ? String.valueOf(jmxPort) : null),
+        LocalizableMessage.raw(
             Utils.getSecurityOptionsString(uData.getSecurityOptions(), false)),
-        Message.raw(uData.getDirectoryManagerDn()),
-        Message.raw(Utils.getDataDisplayString(uData)),
+        LocalizableMessage.raw(uData.getDirectoryManagerDn()),
+        LocalizableMessage.raw(Utils.getDataDisplayString(uData)),
     };
     int maxWidth = 0;
-    for (Message l : labels)
+    for (LocalizableMessage l : labels)
     {
       maxWidth = Math.max(maxWidth, l.length());
     }
@@ -2433,7 +2432,7 @@ public class InstallDS extends ConsoleApplication
       StringBuilder sb = new StringBuilder();
       if (values[i] != null)
       {
-        Message l = labels[i];
+        LocalizableMessage l = labels[i];
         sb.append(l.toString()).append(" ");
 
         String[] lines = values[i].toString().split(Constants.LINE_SEPARATOR);
@@ -2454,7 +2453,7 @@ public class InstallDS extends ConsoleApplication
             }
           }
           sb.append(lines[j]);
-          println(Message.raw(sb));
+          println(LocalizableMessage.raw(sb));
           sb = new StringBuilder();
         }
       }
@@ -2490,7 +2489,7 @@ public class InstallDS extends ConsoleApplication
     println(INFO_INSTALL_SETUP_EQUIVALENT_COMMAND_LINE.get());
     println();
     ArrayList<String> cmd = Utils.getSetupEquivalentCommandLine(uData);
-    println(Message.raw(
+    println(LocalizableMessage.raw(
         Utils.getFormattedEquivalentCommandLine(cmd, formatter)));
   }
 
@@ -2508,7 +2507,7 @@ public class InstallDS extends ConsoleApplication
     println();
     println();
 
-    Message[] msgs = new Message[] {
+    LocalizableMessage[] msgs = new LocalizableMessage[] {
         INFO_INSTALLDS_CONFIRM_INSTALL.get(),
         INFO_INSTALLDS_PROVIDE_DATA_AGAIN.get(),
         INFO_INSTALLDS_PRINT_EQUIVALENT_COMMAND_LINE.get(),
@@ -2525,7 +2524,7 @@ public class InstallDS extends ConsoleApplication
       i++;
     }
 
-    builder.setDefault(Message.raw(
+    builder.setDefault(LocalizableMessage.raw(
             String.valueOf(ConfirmCode.CONTINUE.getReturnCode())),
             MenuResult.success(ConfirmCode.CONTINUE));
 

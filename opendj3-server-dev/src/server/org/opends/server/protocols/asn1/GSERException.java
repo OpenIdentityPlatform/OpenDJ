@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2013-2014 Manuel Gaupp
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.asn1;
 
 
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.IdentifiedException;
 
 
@@ -55,7 +56,7 @@ public final class GSERException
    *
    * @param  message    The message that explains the problem that occurred.
    */
-  public GSERException(Message message)
+  public GSERException(LocalizableMessage message)
   {
     super(message);
   }
@@ -69,7 +70,7 @@ public final class GSERException
    * @param  message    The message that explains the problem that occurred.
    * @param  cause      The exception that was caught to trigger this exception.
    */
-  public GSERException(Message message, Throwable cause)
+  public GSERException(LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
   }

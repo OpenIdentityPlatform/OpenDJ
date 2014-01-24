@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -168,7 +169,7 @@ public class ExtendedOperationConfigManager implements
    */
   public boolean isConfigurationChangeAcceptable(
        ExtendedOperationHandlerCfg configuration,
-       List<Message> unacceptableReasons)
+       List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled()) {
       // It's enabled so always validate the class.
@@ -193,7 +194,7 @@ public class ExtendedOperationConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // See whether the handler should be enabled.
     if (handler == null) {
@@ -257,7 +258,7 @@ public class ExtendedOperationConfigManager implements
    */
   public boolean isConfigurationAddAcceptable(
        ExtendedOperationHandlerCfg configuration,
-       List<Message> unacceptableReasons)
+       List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
@@ -271,7 +272,7 @@ public class ExtendedOperationConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     // Register as a change listener for this connection handler entry
     // so that we will be notified of any changes that may be made to
@@ -326,7 +327,7 @@ public class ExtendedOperationConfigManager implements
    */
   public boolean isConfigurationDeleteAcceptable(
        ExtendedOperationHandlerCfg configuration,
-       List<Message> unacceptableReasons)
+       List<LocalizableMessage> unacceptableReasons)
   {
     // A delete should always be acceptable, so just return true.
     return true;
@@ -366,7 +367,7 @@ public class ExtendedOperationConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_EXTOP_INVALID_CLASS.
+      LocalizableMessage message = ERR_CONFIG_EXTOP_INVALID_CLASS.
           get(String.valueOf(className), String.valueOf(config.dn()),
               String.valueOf(e));
       throw new ConfigException(message, e);
@@ -381,7 +382,7 @@ public class ExtendedOperationConfigManager implements
   // Determines whether or not the new configuration's implementation
   // class is acceptable.
   private boolean isJavaClassAcceptable(ExtendedOperationHandlerCfg config,
-                                        List<Message> unacceptableReasons)
+                                        List<LocalizableMessage> unacceptableReasons)
   {
     String className = config.getJavaClass();
     ExtendedOperationHandlerCfgDefn d =

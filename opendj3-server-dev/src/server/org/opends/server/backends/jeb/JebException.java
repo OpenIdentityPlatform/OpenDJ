@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
 
 
 import org.opends.server.types.IdentifiedException;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -64,7 +65,7 @@ public class JebException
    *
    * @param  message    The message that explains the problem that occurred.
    */
-  public JebException(Message message)
+  public JebException(LocalizableMessage message)
   {
     super(message);
   }
@@ -78,7 +79,7 @@ public class JebException
    * @param  message    The message that explains the problem that occurred.
    * @param  cause      The exception that was caught to trigger this exception.
    */
-  public JebException(Message message, Throwable cause)
+  public JebException(LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
   }

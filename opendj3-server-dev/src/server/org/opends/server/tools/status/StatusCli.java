@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.tools.status;
@@ -59,8 +59,8 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
@@ -260,7 +260,7 @@ class StatusCli extends ConsoleApplication
     try {
       argParser.initializeGlobalArguments(getOutputStream());
     } catch (ArgumentException ae) {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       return ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode();
     }
@@ -278,10 +278,10 @@ class StatusCli extends ConsoleApplication
     try {
       argParser.parseArguments(args);
     } catch (ArgumentException ae) {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       println(message);
       println();
-      println(Message.raw(argParser.getUsage()));
+      println(LocalizableMessage.raw(argParser.getUsage()));
 
       return ErrorReturnCode.ERROR_PARSING_ARGS.getReturnCode();
     }
@@ -305,7 +305,7 @@ class StatusCli extends ConsoleApplication
     int v = argParser.validateGlobalOptions(getErrorStream());
 
     if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode()) {
-      println(Message.raw(argParser.getUsage()));
+      println(LocalizableMessage.raw(argParser.getUsage()));
       return v;
     } else {
       ControlPanelInfo controlInfo = ControlPanelInfo.getInstance();
@@ -480,7 +480,7 @@ class StatusCli extends ConsoleApplication
 
   private void writeStatus(ServerDescriptor desc)
   {
-    Message[] labels =
+    LocalizableMessage[] labels =
       {
         INFO_SERVER_STATUS_LABEL.get(),
         INFO_CONNECTIONS_LABEL.get(),
@@ -492,10 +492,10 @@ class StatusCli extends ConsoleApplication
         INFO_CTRL_PANEL_ADMIN_CONNECTOR_LABEL.get()
       };
     int labelWidth = 0;
-    Message title = INFO_SERVER_STATUS_TITLE.get();
+    LocalizableMessage title = INFO_SERVER_STATUS_TITLE.get();
     if (!isScriptFriendly())
     {
-      for (Message label : labels)
+      for (LocalizableMessage label : labels)
       {
         labelWidth = Math.max(labelWidth, label.length());
       }
@@ -567,7 +567,7 @@ class StatusCli extends ConsoleApplication
   private void writeStatusContents(ServerDescriptor desc,
       int maxLabelWidth)
   {
-    Message status;
+    LocalizableMessage status;
     switch (desc.getStatus())
     {
     case STARTED:
@@ -609,13 +609,13 @@ class StatusCli extends ConsoleApplication
   private void writeCurrentConnectionContents(ServerDescriptor desc,
       int maxLabelWidth)
   {
-    Message text;
+    LocalizableMessage text;
     if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
     {
       int nConn = desc.getOpenConnections();
       if (nConn >= 0)
       {
-        text = Message.raw(String.valueOf(nConn));
+        text = LocalizableMessage.raw(String.valueOf(nConn));
       }
       else
       {
@@ -646,7 +646,7 @@ class StatusCli extends ConsoleApplication
       int maxLabelWidth)
   {
     writeLabelValue(INFO_HOSTNAME_LABEL.get(),
-        Message.raw(desc.getHostname()),
+        LocalizableMessage.raw(desc.getHostname()),
         maxLabelWidth);
   }
   /**
@@ -659,7 +659,7 @@ class StatusCli extends ConsoleApplication
       int maxLabelWidth)
   {
     Set<DN> administrators = desc.getAdministrativeUsers();
-    Message text;
+    LocalizableMessage text;
     if (administrators.size() > 0)
     {
       TreeSet<DN> ordered = new TreeSet<DN>();
@@ -668,7 +668,7 @@ class StatusCli extends ConsoleApplication
       DN first = ordered.iterator().next();
       writeLabelValue(
               INFO_ADMINISTRATIVE_USERS_LABEL.get(),
-              Message.raw(first.toString()),
+              LocalizableMessage.raw(first.toString()),
               maxLabelWidth);
 
       Iterator<DN> it = ordered.iterator();
@@ -678,7 +678,7 @@ class StatusCli extends ConsoleApplication
       {
         writeLabelValue(
                 INFO_ADMINISTRATIVE_USERS_LABEL.get(),
-                Message.raw(it.next().toString()),
+                LocalizableMessage.raw(it.next().toString()),
                 maxLabelWidth);
       }
     }
@@ -714,7 +714,7 @@ class StatusCli extends ConsoleApplication
       int maxLabelWidth)
   {
     writeLabelValue(INFO_INSTALLATION_PATH_LABEL.get(),
-            Message.raw(desc.getInstallPath()),
+            LocalizableMessage.raw(desc.getInstallPath()),
             maxLabelWidth);
   }
 
@@ -728,7 +728,7 @@ class StatusCli extends ConsoleApplication
       int maxLabelWidth)
   {
     writeLabelValue(INFO_CTRL_PANEL_INSTANCE_PATH_LABEL.get(),
-            Message.raw(desc.getInstancePath()),
+            LocalizableMessage.raw(desc.getInstancePath()),
             maxLabelWidth);
   }
 
@@ -743,7 +743,7 @@ class StatusCli extends ConsoleApplication
   {
     String openDSVersion = desc.getOpenDSVersion();
     writeLabelValue(INFO_OPENDS_VERSION_LABEL.get(),
-            Message.raw(openDSVersion),
+            LocalizableMessage.raw(openDSVersion),
             maxLabelWidth);
   }
 
@@ -757,10 +757,10 @@ class StatusCli extends ConsoleApplication
   private void writeJavaVersionContents(ServerDescriptor desc,
       int maxLabelWidth)
   {
-    Message text;
+    LocalizableMessage text;
     if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
     {
-      text = Message.raw(desc.getJavaVersion());
+      text = LocalizableMessage.raw(desc.getJavaVersion());
       if (text == null)
       {
         if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
@@ -793,7 +793,7 @@ class StatusCli extends ConsoleApplication
     ConnectionHandlerDescriptor adminConnector = desc.getAdminConnector();
     if (adminConnector != null)
     {
-      Message text = INFO_CTRL_PANEL_ADMIN_CONNECTOR_DESCRIPTION.get(
+      LocalizableMessage text = INFO_CTRL_PANEL_ADMIN_CONNECTOR_DESCRIPTION.get(
           adminConnector.getPort());
       writeLabelValue(INFO_CTRL_PANEL_ADMIN_CONNECTOR_LABEL.get(), text,
           maxLabelWidth);
@@ -815,7 +815,7 @@ class StatusCli extends ConsoleApplication
   {
     if (!isScriptFriendly())
     {
-      Message title = INFO_LISTENERS_TITLE.get();
+      LocalizableMessage title = INFO_LISTENERS_TITLE.get();
       getOutputStream().println(centerTitle(title));
     }
 
@@ -856,7 +856,7 @@ class StatusCli extends ConsoleApplication
    */
   private void writeBaseDNContents(ServerDescriptor desc)
   {
-    Message title = INFO_DATABASES_TITLE.get();
+    LocalizableMessage title = INFO_DATABASES_TITLE.get();
     if (!isScriptFriendly())
     {
       getOutputStream().println(centerTitle(title));
@@ -910,7 +910,7 @@ class StatusCli extends ConsoleApplication
   {
     for (OpenDsException ex : desc.getExceptions())
     {
-      Message errorMsg = ex.getMessageObject();
+      LocalizableMessage errorMsg = ex.getMessageObject();
       if (errorMsg != null)
       {
         getOutputStream().println();
@@ -924,7 +924,7 @@ class StatusCli extends ConsoleApplication
    * because the server is down.
    * @return the text.
    */
-  private Message getNotAvailableBecauseServerIsDownText()
+  private LocalizableMessage getNotAvailableBecauseServerIsDownText()
   {
     displayMustStartLegend = true;
     return INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LABEL.get();
@@ -935,7 +935,7 @@ class StatusCli extends ConsoleApplication
    * because authentication is required.
    * @return the text.
    */
-  private Message getNotAvailableBecauseAuthenticationIsRequiredText()
+  private LocalizableMessage getNotAvailableBecauseAuthenticationIsRequiredText()
   {
     displayMustAuthenticateLegend = true;
     return INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get();
@@ -945,7 +945,7 @@ class StatusCli extends ConsoleApplication
    * Returns the not available text explaining that the data is not available.
    * @return the text.
    */
-  private Message getNotAvailableText()
+  private LocalizableMessage getNotAvailableText()
   {
     return INFO_NOT_AVAILABLE_LABEL.get();
   }
@@ -971,7 +971,7 @@ class StatusCli extends ConsoleApplication
           getOutputStream().println("-");
           for (int j=0; j<tableModel.getColumnCount(); j++)
           {
-            MessageBuilder line = new MessageBuilder();
+            LocalizableMessageBuilder line = new LocalizableMessageBuilder();
             line.append(tableModel.getColumnName(j)+": ");
             if (j == 0)
             {
@@ -992,7 +992,7 @@ class StatusCli extends ConsoleApplication
       TableBuilder table = new TableBuilder();
       for (int i=0; i< tableModel.getColumnCount(); i++)
       {
-        table.appendHeading(Message.raw(tableModel.getColumnName(i)));
+        table.appendHeading(LocalizableMessage.raw(tableModel.getColumnName(i)));
       }
       for (int i=0; i<tableModel.getRowCount(); i++)
       {
@@ -1033,21 +1033,21 @@ class StatusCli extends ConsoleApplication
    return v.split("<br>");
   }
 
-  private Message getCellValue(Object v, ServerDescriptor desc)
+  private LocalizableMessage getCellValue(Object v, ServerDescriptor desc)
   {
-    Message s = null;
+    LocalizableMessage s = null;
     if (v != null)
     {
       if (v instanceof String)
       {
-        s = Message.raw((String)v);
+        s = LocalizableMessage.raw((String)v);
       }
       else if (v instanceof Integer)
       {
         int nEntries = ((Integer)v).intValue();
         if (nEntries >= 0)
         {
-          s = Message.raw(String.valueOf(nEntries));
+          s = LocalizableMessage.raw(String.valueOf(nEntries));
         }
         else
         {
@@ -1087,11 +1087,11 @@ class StatusCli extends ConsoleApplication
 
     int labelWidth = 0;
     int labelWidthWithoutReplicated = 0;
-    Message[] labels = new Message[tableModel.getColumnCount()];
+    LocalizableMessage[] labels = new LocalizableMessage[tableModel.getColumnCount()];
     for (int i=0; i<tableModel.getColumnCount(); i++)
     {
-      Message header = Message.raw(tableModel.getColumnName(i));
-      labels[i] = new MessageBuilder(header).append(":").toMessage();
+      LocalizableMessage header = LocalizableMessage.raw(tableModel.getColumnName(i));
+      labels[i] = new LocalizableMessageBuilder(header).append(":").toMessage();
       labelWidth = Math.max(labelWidth, labels[i].length());
       if ((i != 4) && (i != 5))
       {
@@ -1100,7 +1100,7 @@ class StatusCli extends ConsoleApplication
       }
     }
 
-    Message replicatedLabel = INFO_BASEDN_REPLICATED_LABEL.get();
+    LocalizableMessage replicatedLabel = INFO_BASEDN_REPLICATED_LABEL.get();
     for (int i=0; i<tableModel.getRowCount(); i++)
     {
       if (isScriptFriendly())
@@ -1113,7 +1113,7 @@ class StatusCli extends ConsoleApplication
       }
       for (int j=0; j<tableModel.getColumnCount(); j++)
       {
-        Message value;
+        LocalizableMessage value;
         Object v = tableModel.getValueAt(i, j);
         if (v != null)
         {
@@ -1131,18 +1131,18 @@ class StatusCli extends ConsoleApplication
           }
           else if (v instanceof String)
           {
-            value = Message.raw((String)v);
+            value = LocalizableMessage.raw((String)v);
           }
-          else if (v instanceof Message)
+          else if (v instanceof LocalizableMessage)
           {
-            value = (Message)v;
+            value = (LocalizableMessage)v;
           }
           else if (v instanceof Integer)
           {
             int nEntries = ((Integer)v).intValue();
             if (nEntries >= 0)
             {
-              value = Message.raw(String.valueOf(nEntries));
+              value = LocalizableMessage.raw(String.valueOf(nEntries));
             }
             else
             {
@@ -1167,7 +1167,7 @@ class StatusCli extends ConsoleApplication
         }
         else
         {
-          value = Message.EMPTY;
+          value = LocalizableMessage.EMPTY;
         }
 
         if (value.equals(getNotAvailableText()))
@@ -1201,9 +1201,9 @@ class StatusCli extends ConsoleApplication
     }
   }
 
-  private void writeLabelValue(Message label, Message value, int maxLabelWidth)
+  private void writeLabelValue(LocalizableMessage label, LocalizableMessage value, int maxLabelWidth)
   {
-    MessageBuilder buf = new MessageBuilder();
+    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
     buf.append(label);
 
     int extra = maxLabelWidth - label.length();
@@ -1215,12 +1215,12 @@ class StatusCli extends ConsoleApplication
     getOutputStream().println(wrapText(buf.toMessage()));
   }
 
-  private Message centerTitle(Message text)
+  private LocalizableMessage centerTitle(LocalizableMessage text)
   {
-    Message centered;
+    LocalizableMessage centered;
     if (text.length() <= getCommandLineMaxLineWidth() - 8)
     {
-      MessageBuilder buf = new MessageBuilder();
+      LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
       int extra = Math.min(10,
           (getCommandLineMaxLineWidth() - 8 - text.length()) / 2);
       for (int i=0; i<extra; i++)
@@ -1318,9 +1318,9 @@ class StatusCli extends ConsoleApplication
    * @param text to wrap
    * @return raw message representing wrapped string
    */
-  private Message wrapText(Message text)
+  private LocalizableMessage wrapText(LocalizableMessage text)
   {
-    return Message.raw(
+    return LocalizableMessage.raw(
         StaticUtils.wrapText(text, getCommandLineMaxLineWidth()));
   }
 }

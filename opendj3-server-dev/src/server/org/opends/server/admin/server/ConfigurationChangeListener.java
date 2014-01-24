@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -60,7 +61,7 @@ public interface ConfigurationChangeListener<T extends Configuration> {
    *         acceptable, or <code>false</code> if it is not.
    */
   public boolean isConfigurationChangeAcceptable(T configuration,
-      List<Message> unacceptableReasons);
+      List<LocalizableMessage> unacceptableReasons);
 
 
 

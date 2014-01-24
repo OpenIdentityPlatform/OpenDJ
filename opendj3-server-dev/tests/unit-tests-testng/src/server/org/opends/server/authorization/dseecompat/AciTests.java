@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  *      Portions Copyright 2013 Manuel Gaupp
  *
  */
@@ -37,7 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.*;
@@ -1763,7 +1763,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
       ByteArrayOutputStream updatedEntriesStream = new ByteArrayOutputStream();
       LDIFWriter ldifWriter = new LDIFWriter(new LDIFExportConfig(updatedEntriesStream));
 
-      List<Message> errors = new ArrayList<Message>();
+      List<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
       LDIFModify.modifyLDIF(baseReader, changesReader, ldifWriter, errors);
       Assert.assertTrue(errors.isEmpty(), "Unexpected errors applying LDIF changes: " + errors);
       ldifWriter.flush();

@@ -40,7 +40,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.ClientConnection;
@@ -638,7 +638,7 @@ public final class AciHandler extends
       catch (DirectoryException ex)
       {
         // Log a message and keep going.
-        Message message = WARN_ACI_NOT_VALID_DN.get(DNString);
+        LocalizableMessage message = WARN_ACI_NOT_VALID_DN.get(DNString);
         logError(message);
       }
     }
@@ -826,7 +826,7 @@ public final class AciHandler extends
           && !operation.getClientConnection().hasPrivilege(
               Privilege.MODIFY_ACL, operation))
       {
-        Message message =
+        LocalizableMessage message =
             INFO_ACI_MODIFY_FAILED_PRIVILEGE.get(String.valueOf(container
                 .getResourceDN()), String.valueOf(container.getClientDN()));
         logError(message);
@@ -932,7 +932,7 @@ public final class AciHandler extends
             }
             catch (AciException ex)
             {
-              Message message =
+              LocalizableMessage message =
                   WARN_ACI_MODIFY_FAILED_DECODE.get(String.valueOf(dn),
                       ex.getMessage());
               throw new DirectoryException(
@@ -1006,7 +1006,7 @@ public final class AciHandler extends
     final Lock entryLock = LockManager.lockRead(superiorDN);
     if (entryLock == null)
     {
-      Message message =
+      LocalizableMessage message =
           WARN_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER.get(String
               .valueOf(superiorDN));
       logError(message);
@@ -1182,7 +1182,7 @@ public final class AciHandler extends
   {
     Set<String> requestAttrs = new LinkedHashSet<String>(1);
     requestAttrs.add("aci");
-    LinkedList<Message> failedACIMsgs = new LinkedList<Message>();
+    LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<LocalizableMessage>();
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
 
@@ -1227,7 +1227,7 @@ public final class AciHandler extends
           {
             aciListenerMgr.logMsgsSetLockDownMode(failedACIMsgs);
           }
-          Message message =
+          LocalizableMessage message =
             INFO_ACI_ADD_LIST_ACIS.get(Integer.toString(validAcis),
                 String.valueOf(baseDN));
           logError(message);
@@ -1235,7 +1235,7 @@ public final class AciHandler extends
       }
       catch (Exception e)
       {
-        Message message = INFO_ACI_HANDLER_FAIL_PROCESS_ACI.get();
+        LocalizableMessage message = INFO_ACI_HANDLER_FAIL_PROCESS_ACI.get();
         throw new InitializationException(message, e);
       }
     }
@@ -1277,7 +1277,7 @@ public final class AciHandler extends
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message = INFO_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI.get(
+      LocalizableMessage message = INFO_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI.get(
           String.valueOf(configuration.dn()));
       throw new InitializationException(message, e);
     }
@@ -1472,7 +1472,7 @@ public final class AciHandler extends
       if (!operation.getClientConnection().hasPrivilege(
           Privilege.MODIFY_ACL, operation))
       {
-        Message message = INFO_ACI_ADD_FAILED_PRIVILEGE.get(
+        LocalizableMessage message = INFO_ACI_ADD_FAILED_PRIVILEGE.get(
             String.valueOf(entry.getName()), String.valueOf(clientDN));
         logError(message);
         return false;
@@ -1489,7 +1489,7 @@ public final class AciHandler extends
           }
           catch (AciException ex)
           {
-            Message message = WARN_ACI_ADD_FAILED_DECODE.get(
+            LocalizableMessage message = WARN_ACI_ADD_FAILED_DECODE.get(
                 String.valueOf(entry.getName()), ex.getMessage());
             throw new DirectoryException(
                 ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);

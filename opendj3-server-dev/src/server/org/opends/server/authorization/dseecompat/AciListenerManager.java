@@ -29,7 +29,7 @@ package org.opends.server.authorization.dseecompat;
 
 
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.workflowelement.localbackend.*;
 import org.opends.server.api.BackendInitializationListener;
@@ -248,7 +248,7 @@ public class AciListenerManager implements
       {
         // Ignore this list, the ACI syntax has already passed and it
         // should be empty.
-        LinkedList<Message> failedACIMsgs = new LinkedList<Message>();
+        LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<LocalizableMessage>();
 
         aciList.addAci(addedEntry, hasAci, hasGlobalAci, failedACIMsgs);
       }
@@ -433,7 +433,7 @@ public class AciListenerManager implements
 
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
-    LinkedList<Message> failedACIMsgs = new LinkedList<Message>();
+    LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<LocalizableMessage>();
     // Add manageDsaIT control so any ACIs in referral entries will be
     // picked up.
     ArrayList<Control> controls = new ArrayList<Control>(1);
@@ -487,7 +487,7 @@ public class AciListenerManager implements
                 failedACIMsgs);
         if (!failedACIMsgs.isEmpty())
           logMsgsSetLockDownMode(failedACIMsgs);
-        Message message =
+        LocalizableMessage message =
             INFO_ACI_ADD_LIST_ACIS.get(Integer.toString(validAcis),
                 String.valueOf(baseDN));
         logError(message);
@@ -566,12 +566,12 @@ public class AciListenerManager implements
    * @param failedACIMsgs
    *          List of exception messages from failed ACI decodes.
    */
-  public void logMsgsSetLockDownMode(LinkedList<Message> failedACIMsgs)
+  public void logMsgsSetLockDownMode(LinkedList<LocalizableMessage> failedACIMsgs)
   {
 
-    for (Message msg : failedACIMsgs)
+    for (LocalizableMessage msg : failedACIMsgs)
     {
-      Message message = WARN_ACI_SERVER_DECODE_FAILED.get(msg);
+      LocalizableMessage message = WARN_ACI_SERVER_DECODE_FAILED.get(msg);
       logError(message);
     }
     if (!inLockDownMode)
@@ -591,7 +591,7 @@ public class AciListenerManager implements
       inLockDownMode = true;
       // Send ALERT_TYPE_ACCESS_CONTROL_PARSE_FAILED alert that
       // lockdown is about to be entered.
-      Message lockDownMsg = WARN_ACI_ENTER_LOCKDOWN_MODE.get();
+      LocalizableMessage lockDownMsg = WARN_ACI_ENTER_LOCKDOWN_MODE.get();
       DirectoryServer.sendAlertNotification(this,
           ALERT_TYPE_ACCESS_CONTROL_PARSE_FAILED, lockDownMsg);
       // Enter lockdown mode.

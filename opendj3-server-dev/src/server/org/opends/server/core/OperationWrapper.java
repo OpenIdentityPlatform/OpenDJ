@@ -22,15 +22,15 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
 import java.util.List;
 import java.util.Map;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ControlDecoder;
 import org.opends.server.types.*;
@@ -80,14 +80,14 @@ public class OperationWrapper<W extends Operation> implements Operation
    * {@inheritDoc}
    */
   @Override
-  public void appendErrorMessage(Message message)
+  public void appendErrorMessage(LocalizableMessage message)
   {
     operation.appendErrorMessage(message);
   }
 
   /** {@inheritDoc} */
   @Override
-  public void appendMaskedErrorMessage(Message maskedMessage)
+  public void appendMaskedErrorMessage(LocalizableMessage maskedMessage)
   {
     operation.appendMaskedErrorMessage(maskedMessage);
   }
@@ -117,7 +117,7 @@ public class OperationWrapper<W extends Operation> implements Operation
   public void disconnectClient(
           DisconnectReason disconnectReason,
           boolean sendNotification,
-          Message message
+          LocalizableMessage message
   )
   {
     operation.disconnectClient(
@@ -209,14 +209,14 @@ public class OperationWrapper<W extends Operation> implements Operation
    * {@inheritDoc}
    */
   @Override
-  public MessageBuilder getErrorMessage()
+  public LocalizableMessageBuilder getErrorMessage()
   {
     return operation.getErrorMessage();
   }
 
   /** {@inheritDoc} */
   @Override
-  public MessageBuilder getMaskedErrorMessage()
+  public LocalizableMessageBuilder getMaskedErrorMessage()
   {
     return operation.getMaskedErrorMessage();
   }
@@ -450,7 +450,7 @@ public class OperationWrapper<W extends Operation> implements Operation
    * {@inheritDoc}
    */
   @Override
-  public void setErrorMessage(MessageBuilder errorMessage)
+  public void setErrorMessage(LocalizableMessageBuilder errorMessage)
   {
     operation.setErrorMessage(errorMessage);
   }
@@ -475,7 +475,7 @@ public class OperationWrapper<W extends Operation> implements Operation
 
   /** {@inheritDoc} */
   @Override
-  public void setMaskedErrorMessage(MessageBuilder maskedErrorMessage)
+  public void setMaskedErrorMessage(LocalizableMessageBuilder maskedErrorMessage)
   {
     operation.setMaskedErrorMessage(maskedErrorMessage);
   }

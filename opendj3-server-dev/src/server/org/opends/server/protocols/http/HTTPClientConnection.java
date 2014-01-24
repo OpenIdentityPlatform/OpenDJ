@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.protocols.http;
 
@@ -45,8 +45,8 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.responses.Result;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
@@ -537,7 +537,7 @@ final class HTTPClientConnection extends ClientConnection implements
    */
   @Override
   public void disconnect(DisconnectReason disconnectReason,
-      boolean sendNotification, Message message)
+      boolean sendNotification, LocalizableMessage message)
   {
     // Set a flag indicating that the connection is being terminated so
     // that no new requests will be accepted. Also cancel all operations
@@ -569,7 +569,7 @@ final class HTTPClientConnection extends ClientConnection implements
 
     if (message != null)
     {
-      MessageBuilder msgBuilder = new MessageBuilder();
+      LocalizableMessageBuilder msgBuilder = new LocalizableMessageBuilder();
       msgBuilder.append(disconnectReason.getClosureMessage());
       msgBuilder.append(": ");
       msgBuilder.append(message);
@@ -662,7 +662,7 @@ final class HTTPClientConnection extends ClientConnection implements
       // then reject the operation.
       if (disconnectRequested)
       {
-        Message message = WARN_CLIENT_DISCONNECT_IN_PROGRESS.get();
+        LocalizableMessage message = WARN_CLIENT_DISCONNECT_IN_PROGRESS.get();
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 

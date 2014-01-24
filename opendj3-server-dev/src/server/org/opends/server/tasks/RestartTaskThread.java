@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -60,7 +61,7 @@ public class RestartTaskThread
 
 
   // The shutdown message that will be used.
-  private Message shutdownMessage;
+  private LocalizableMessage shutdownMessage;
 
 
 
@@ -70,7 +71,7 @@ public class RestartTaskThread
    *
    * @param  shutdownMessage  The shutdown message that will be used.
    */
-  public RestartTaskThread(Message shutdownMessage)
+  public RestartTaskThread(LocalizableMessage shutdownMessage)
   {
     super("Restart Task Thread");
 

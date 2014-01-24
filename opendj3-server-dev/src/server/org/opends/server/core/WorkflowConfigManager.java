@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -131,7 +131,7 @@ public class WorkflowConfigManager
    */
   public boolean isConfigurationAddAcceptable(
       WorkflowCfg   configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // Nothing to check.
     return true;
@@ -147,7 +147,7 @@ public class WorkflowConfigManager
   {
     ResultCode    resultCode          = ResultCode.SUCCESS;
     boolean       adminActionRequired = false;
-    List<Message> messages            = new ArrayList<Message>();
+    List<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     configuration.addChangeListener(this);
 
@@ -179,7 +179,7 @@ public class WorkflowConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
       WorkflowCfg   configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     boolean acceptable = true;
     WorkflowImpl existingWorkflow = workflows.get(configuration.dn());
@@ -203,7 +203,7 @@ public class WorkflowConfigManager
   {
     ResultCode    resultCode          = ResultCode.SUCCESS;
     boolean       adminActionRequired = false;
-    List<Message> messages            = new ArrayList<Message>();
+    List<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     // check first whether we can remove the workflow
     WorkflowImpl workflow = workflows.remove(configuration.dn());
@@ -240,7 +240,7 @@ public class WorkflowConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
       WorkflowCfg   configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // Get the existing workflow if it's already enabled.
     WorkflowImpl existingWorkflow = workflows.get(configuration.dn());
@@ -267,7 +267,7 @@ public class WorkflowConfigManager
   {
     ResultCode    resultCode          = ResultCode.SUCCESS;
     boolean       adminActionRequired = false;
-    List<Message> messages            = new ArrayList<Message>();
+    List<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     // Get the existing workflow if it's already enabled.
     WorkflowImpl existingWorkflow = workflows.get(configuration.dn());
@@ -385,7 +385,7 @@ public class WorkflowConfigManager
    */
   private boolean checkReferenceCounter(
       WorkflowImpl  workflow,
-      List<Message> messages
+      List<LocalizableMessage> messages
       )
   {
     boolean acceptable = true;
@@ -393,7 +393,7 @@ public class WorkflowConfigManager
     int refCounter = workflow.getReferenceCounter();
     if (refCounter != 0)
     {
-      Message message = INFO_ERR_WORKFLOW_IN_USE.get(
+      LocalizableMessage message = INFO_ERR_WORKFLOW_IN_USE.get(
         workflow.getWorkflowId(), workflow.getReferenceCounter());
       messages.add(message);
       acceptable = false;

@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
@@ -127,8 +127,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     final AttributeType histType =
       DirectoryServer.getAttributeType(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
-    logError(Message.raw(Category.SYNC, Severity.INFORMATION,
-    "Starting replication test : changesCmpTest"));
+    logError(LocalizableMessage.raw("Starting replication test : changesCmpTest"));
 
     // Add the first test entry.
     TestCaseUtils.addEntry(
@@ -158,8 +157,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     String histValue =
       attrs1.get(0).iterator().next().getValue().toString();
 
-    logError(Message.raw(Category.SYNC, Severity.INFORMATION,
-        "First historical value:" + histValue));
+    logError(LocalizableMessage.raw("First historical value:" + histValue));
 
     // Perform a 2nd modification to update the hist attribute with
     // a second value
@@ -175,8 +173,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       Assertions.assertThat(attrs2).isNotEmpty();
 
     for (AttributeValue av : attrs2.get(0)) {
-      logError(Message.raw(Category.SYNC, Severity.INFORMATION,
-          "Second historical value:" + av.getValue()));
+      logError(LocalizableMessage.raw("Second historical value:" + av.getValue()));
     }
 
     LinkedList<ReplicationMsg> opList = new LinkedList<ReplicationMsg>();
@@ -191,7 +188,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
     // Build a CSN from the first modification
     String hv[] = histValue.split(":");
-    logError(Message.raw(Category.SYNC, Severity.INFORMATION, hv[1]));
+    logError(LocalizableMessage.raw(hv[1]));
     CSN fromCSN = new CSN(hv[1]);
 
     opList = new LinkedList<ReplicationMsg>();
@@ -226,8 +223,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
     try
     {
-    logError(Message.raw(Category.SYNC, Severity.INFORMATION,
-    "Starting replication test : changesCmpTest"));
+    logError(LocalizableMessage.raw("Starting replication test : changesCmpTest"));
 
     // Add 3 entries.
     DN dnTest1 = DN.valueOf("cn=test1," + baseDN);

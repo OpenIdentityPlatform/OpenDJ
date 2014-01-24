@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 
 /**
@@ -98,7 +98,7 @@ public class AuthMethod implements KeywordBindRule {
         return new AuthMethod(EnumAuthMethod.AUTHMETHOD_SASL, saslMech, type);
       }
 
-      Message message = WARN_ACI_SYNTAX_INVALID_AUTHMETHOD_EXPRESSION.get(expr);
+      LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_AUTHMETHOD_EXPRESSION.get(expr);
       throw new AciException(message);
     }
 

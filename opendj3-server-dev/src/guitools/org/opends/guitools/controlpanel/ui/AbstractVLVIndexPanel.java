@@ -74,7 +74,7 @@ import org.opends.guitools.controlpanel.ui.renderer.IndexComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.VLVSortOrderRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
@@ -100,8 +100,8 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
   /**
    * Title panel.
    */
-  protected TitlePanel titlePanel = new TitlePanel(Message.EMPTY,
-      Message.EMPTY);
+  protected TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY,
+      LocalizableMessage.EMPTY);
   /**
    * Name label.
    */
@@ -240,29 +240,29 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
   /**
    * Other base DN message.
    */
-  protected final Message OTHER_BASE_DN =
+  protected final LocalizableMessage OTHER_BASE_DN =
     INFO_CTRL_PANEL_VLV_OTHER_BASE_DN_LABEL.get();
   /**
    * Ascending message.
    */
-  protected final Message ASCENDING =
+  protected final LocalizableMessage ASCENDING =
     INFO_CTRL_PANEL_VLV_ASCENDING_LABEL.get();
   /**
    * Descending message.
    */
-  protected final Message DESCENDING =
+  protected final LocalizableMessage DESCENDING =
     INFO_CTRL_PANEL_VLV_DESCENDING_LABEL.get();
 
   /**
    * Custom attributes message.
    */
-  protected Message CUSTOM_ATTRIBUTES =
+  protected LocalizableMessage CUSTOM_ATTRIBUTES =
     INFO_CTRL_PANEL_CUSTOM_ATTRIBUTES_LABEL.get();
 
   /**
    * Standard attributes message.
    */
-  protected Message STANDARD_ATTRIBUTES =
+  protected LocalizableMessage STANDARD_ATTRIBUTES =
     INFO_CTRL_PANEL_STANDARD_ATTRIBUTES_LABEL.get();
 
   /**
@@ -591,12 +591,12 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     try
     {
       LDAPFilter ldapFilter = LDAPFilter.decode(f);
-      ArrayList<Message> msgs = new ArrayList<Message>();
+      ArrayList<LocalizableMessage> msgs = new ArrayList<LocalizableMessage>();
       updateIndexRequiredMessages(ldapFilter, msgs);
       if (!msgs.isEmpty())
       {
         StringBuilder sb = new StringBuilder();
-        for (Message msg : msgs)
+        for (LocalizableMessage msg : msgs)
         {
           sb.append("<br>-"+msg);
         }
@@ -623,7 +623,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
    * @param msgs the list of messages to be updated.
    */
   private void updateIndexRequiredMessages(RawFilter filter,
-      Collection<Message> msgs)
+      Collection<LocalizableMessage> msgs)
   {
     switch (filter.getFilterType())
     {
@@ -650,7 +650,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
           IndexType.ORDERING, IndexType.ORDERING, IndexType.PRESENCE,
           IndexType.APPROXIMATE, null
           };
-      Message[] indexTypeNames = {INFO_CTRL_PANEL_VLV_INDEX_EQUALITY_TYPE.get(),
+      LocalizableMessage[] indexTypeNames = {INFO_CTRL_PANEL_VLV_INDEX_EQUALITY_TYPE.get(),
           INFO_CTRL_PANEL_VLV_INDEX_SUBSTRING_TYPE.get(),
           INFO_CTRL_PANEL_VLV_INDEX_ORDERING_TYPE.get(),
           INFO_CTRL_PANEL_VLV_INDEX_ORDERING_TYPE.get(),
@@ -677,7 +677,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
           }
           else
           {
-            Message type = indexTypeNames[i];
+            LocalizableMessage type = indexTypeNames[i];
             if (type != null)
             {
               msgs.add(INFO_CTRL_PANEL_MUST_DEFINE_INDEX_TYPE.get(
@@ -749,7 +749,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
    * @param checkName whether the name of the VLV index must be checked or not.
    * @return a list containing the error messages found.
    */
-  protected List<Message> checkErrors(boolean checkName)
+  protected List<LocalizableMessage> checkErrors(boolean checkName)
   {
     for (JLabel l : labels)
     {
@@ -758,7 +758,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
 
     BackendDescriptor backend = getBackend();
 
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     if (checkName)
     {
       String n = name.getText();

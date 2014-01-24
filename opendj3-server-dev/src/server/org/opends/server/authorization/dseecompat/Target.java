@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
@@ -83,7 +84,7 @@ public class Target
           //The NULL_LDAP_URL corresponds to the root DSE.
           if((!target.equals(NULL_LDAP_URL)) &&
              (!Pattern.matches(LDAP_URL, target))) {
-              Message message =
+              LocalizableMessage message =
                   WARN_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION.get(target);
               throw new AciException(message);
           }
@@ -94,7 +95,7 @@ public class Target
           } else {
               urlDN=targetURL.getBaseDN();
               if(!urlDN.isDescendantOf(aciDN)) {
-                  Message message = WARN_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF.
+                  LocalizableMessage message = WARN_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF.
                       get(urlDN.toNormalizedString(),
                           aciDN.toNormalizedString());
                   throw new AciException(message);
@@ -102,7 +103,7 @@ public class Target
           }
         }
         catch (DirectoryException e){
-            Message message =
+            LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION.get(target);
             throw new AciException(message);
         }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -65,8 +66,8 @@ import org.opends.guitools.controlpanel.ui.renderer.BaseDNCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.CustomCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
 
@@ -190,7 +191,7 @@ class StatusPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_STATUS_PANEL_TITLE.get();
   }
@@ -252,12 +253,12 @@ class StatusPanel extends StatusGenericPanel
         if (!desc.isAuthenticated())
         {
           errorPaneVisible = true;
-          MessageBuilder mb = new MessageBuilder();
+          LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
           mb.append(
               INFO_CTRL_PANEL_AUTH_REQUIRED_TO_BROWSE_MONITORING_SUMMARY.
               get());
           mb.append("<br><br>"+getAuthenticateHTML());
-          Message title =
+          LocalizableMessage title =
             INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
           updateErrorPane(errorPane, title,
               ColorAndFontConstants.errorTitleFont,
@@ -268,11 +269,11 @@ class StatusPanel extends StatusGenericPanel
         ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE)
       {
         errorPaneVisible = true;
-        MessageBuilder mb = new MessageBuilder();
+        LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
             desc.getHostname()));
         mb.append("<br><br>"+getAuthenticateHTML());
-        Message title =
+        LocalizableMessage title =
           INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_SUMMARY.get();
         updateErrorPane(errorPane, title,
             ColorAndFontConstants.errorTitleFont,
@@ -285,14 +286,14 @@ class StatusPanel extends StatusGenericPanel
     }
     else
     {
-      ArrayList<Message> msgs = new ArrayList<Message>();
+      ArrayList<LocalizableMessage> msgs = new ArrayList<LocalizableMessage>();
       for (OpenDsException oe : exceptions)
       {
         msgs.add(oe.getMessageObject());
       }
-      Message title = ERR_CTRL_PANEL_ERROR_READING_CONFIGURATION_SUMMARY.get();
-      MessageBuilder mb = new MessageBuilder();
-      for (Message error : msgs)
+      LocalizableMessage title = ERR_CTRL_PANEL_ERROR_READING_CONFIGURATION_SUMMARY.get();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
+      for (LocalizableMessage error : msgs)
       {
         if (mb.length() > 0)
         {
@@ -626,7 +627,7 @@ class StatusPanel extends StatusGenericPanel
     l = Utilities.createPrimaryLabel(
         INFO_CTRL_PANEL_OPEN_CONNECTIONS_LABEL.get());
     auxPanel.add(l, gbc);
-    currentConnections = new SelectableLabelWithHelpIcon(Message.EMPTY, null);
+    currentConnections = new SelectableLabelWithHelpIcon(LocalizableMessage.EMPTY, null);
 
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = 5;
@@ -696,7 +697,7 @@ class StatusPanel extends StatusGenericPanel
         ColorAndFontConstants.defaultFont);
     opendsVersion = Utilities.makeHtmlPane("",
         ColorAndFontConstants.defaultFont);
-    javaVersion = new SelectableLabelWithHelpIcon(Message.EMPTY, null);
+    javaVersion = new SelectableLabelWithHelpIcon(LocalizableMessage.EMPTY, null);
     adminConnector = Utilities.makeHtmlPane("",
         ColorAndFontConstants.defaultFont);
 
@@ -866,7 +867,7 @@ class StatusPanel extends StatusGenericPanel
 
   private String getStatusLabel(ServerDescriptor desc)
   {
-    Message status;
+    LocalizableMessage status;
     switch (desc.getStatus())
     {
     case STARTED:
@@ -899,7 +900,7 @@ class StatusPanel extends StatusGenericPanel
     return status.toString();
   }
 
-  private void setTitleBorder(JPanel p, Message title)
+  private void setTitleBorder(JPanel p, LocalizableMessage title)
   {
     p.setBorder(Utilities.makeTitledBorder(title));
     p.getAccessibleContext().setAccessibleName(title.toString());

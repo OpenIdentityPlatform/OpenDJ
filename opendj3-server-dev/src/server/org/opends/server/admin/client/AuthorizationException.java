@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.client;
@@ -30,7 +31,7 @@ package org.opends.server.admin.client;
 
 import static org.opends.messages.AdminMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -79,7 +80,7 @@ public class AuthorizationException extends AdminSecurityException {
    * @param cause
    *          The cause.
    */
-  public AuthorizationException(Message message, Throwable cause) {
+  public AuthorizationException(LocalizableMessage message, Throwable cause) {
     super(message, cause);
   }
 
@@ -91,7 +92,7 @@ public class AuthorizationException extends AdminSecurityException {
    * @param message
    *          The message.
    */
-  public AuthorizationException(Message message) {
+  public AuthorizationException(LocalizableMessage message) {
     super(message);
   }
 }

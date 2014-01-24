@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.PropertyDefinition;
@@ -344,7 +344,7 @@ public class ConfigurableEnvironment
           int cpus = Runtime.getRuntime().availableProcessors();
           value = Integer.valueOf(Math.max(24, cpus * 2));
 
-          Message message =
+          LocalizableMessage message =
               INFO_ERGONOMIC_SIZING_OF_JE_CLEANER_THREADS.get(String
                   .valueOf(cfg.dn().rdn().getAttributeValue(0)),
                   (Number) value);
@@ -362,7 +362,7 @@ public class ConfigurableEnvironment
           BigInteger tmp = BigInteger.valueOf((cleaners + workers) * 2);
           value = tmp.nextProbablePrime();
 
-          Message message =
+          LocalizableMessage message =
               INFO_ERGONOMIC_SIZING_OF_JE_LOCK_TABLES.get(String
                   .valueOf(cfg.dn().rdn().getAttributeValue(0)),
                   (Number) value);
@@ -580,7 +580,7 @@ public class ConfigurableEnvironment
         String jePropertyValue = st.nextToken();
         // Check if it is a duplicate.
         if (uniqueJEProperties.contains(jePropertyName)) {
-          Message message = ERR_CONFIG_JE_DUPLICATE_PROPERTY.get(
+          LocalizableMessage message = ERR_CONFIG_JE_DUPLICATE_PROPERTY.get(
               jePropertyName);
             throw new ConfigException(message);
         }
@@ -589,7 +589,7 @@ public class ConfigurableEnvironment
           envConfig.setConfigParam(jePropertyName, jePropertyValue);
           // If this property shadows an existing config attribute.
           if (configAttrMap.containsKey(jePropertyName)) {
-            Message message = ERR_CONFIG_JE_PROPERTY_SHADOWS_CONFIG.get(
+            LocalizableMessage message = ERR_CONFIG_JE_PROPERTY_SHADOWS_CONFIG.get(
               jePropertyName, attrMap.get(jePropertyName));
             throw new ConfigException(message);
           }
@@ -599,13 +599,13 @@ public class ConfigurableEnvironment
           if (debugEnabled()) {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
-          Message message =
+          LocalizableMessage message =
             ERR_CONFIG_JE_PROPERTY_INVALID.get(
             jeEntry, e.getMessage());
           throw new ConfigException(message, e.getCause());
         }
       } else {
-        Message message =
+        LocalizableMessage message =
           ERR_CONFIG_JE_PROPERTY_INVALID_FORM.get(jeEntry);
         throw new ConfigException(message);
       }

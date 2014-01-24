@@ -38,8 +38,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.*;
@@ -371,7 +371,7 @@ public class LocalBackendModifyOperation
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message = ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER
+              LocalizableMessage message = ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER
                   .get(getExceptionMessage(e));
               logError(message);
             }
@@ -541,7 +541,7 @@ public class LocalBackendModifyOperation
       // make sure that the new entry is valid per the server schema.
       if ((DirectoryServer.checkSchema()) && (!isSynchronizationOperation()))
       {
-        MessageBuilder invalidReason = new MessageBuilder();
+        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         if (!modifiedEntry.conformsToSchema(null, false, false, false,
             invalidReason))
         {
@@ -637,7 +637,7 @@ public class LocalBackendModifyOperation
   }
 
   private DirectoryException newDirectoryException(Entry entry,
-      ResultCode resultCode, Message message) throws DirectoryException
+      ResultCode resultCode, LocalizableMessage message) throws DirectoryException
   {
     return LocalBackendWorkflowElement.newDirectoryException(this, entry,
         entryDN, resultCode, message, ResultCode.NO_SUCH_OBJECT,
@@ -645,7 +645,7 @@ public class LocalBackendModifyOperation
   }
 
   private void setResultCodeAndMessageNoInfoDisclosure(Entry entry,
-      ResultCode realResultCode, Message realMessage) throws DirectoryException
+      ResultCode realResultCode, LocalizableMessage realMessage) throws DirectoryException
   {
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
         entry, entryDN, realResultCode, realMessage, ResultCode.NO_SUCH_OBJECT,
@@ -1415,7 +1415,7 @@ public class LocalBackendModifyOperation
 
       if (syntaxPolicy == AcceptRejectWarn.REJECT)
       {
-        MessageBuilder invalidReason = new MessageBuilder();
+        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         for (AttributeValue v : attr)
         {
           if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
@@ -1440,7 +1440,7 @@ public class LocalBackendModifyOperation
       }
       else if (syntaxPolicy == AcceptRejectWarn.WARN)
       {
-        MessageBuilder invalidReason = new MessageBuilder();
+        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         for (AttributeValue v : attr)
         {
           if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
@@ -1460,7 +1460,7 @@ public class LocalBackendModifyOperation
                   .valueOf(entryDN), attr.getName(), v.getValue().toString(),
                   invalidReason));
             }
-            invalidReason = new MessageBuilder();
+            invalidReason = new LocalizableMessageBuilder();
           }
         }
       }
@@ -1629,7 +1629,7 @@ public class LocalBackendModifyOperation
 
       if (syntaxPolicy == AcceptRejectWarn.REJECT)
       {
-        MessageBuilder invalidReason = new MessageBuilder();
+        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         for (AttributeValue v : attr)
         {
           if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
@@ -1654,7 +1654,7 @@ public class LocalBackendModifyOperation
       }
       else if (syntaxPolicy == AcceptRejectWarn.WARN)
       {
-        MessageBuilder invalidReason = new MessageBuilder();
+        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         for (AttributeValue v : attr)
         {
           if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
@@ -1672,7 +1672,7 @@ public class LocalBackendModifyOperation
                   .valueOf(entryDN), attr.getName(), v.getValue().toString(),
                   invalidReason));
             }
-            invalidReason = new MessageBuilder();
+            invalidReason = new LocalizableMessageBuilder();
           }
         }
       }
@@ -1908,7 +1908,7 @@ public class LocalBackendModifyOperation
 
         for (AttributeValue v : newPasswords)
         {
-          MessageBuilder invalidReason = new MessageBuilder();
+          LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
           if (! pwPolicyState.passwordIsAcceptable(this, modifiedEntry,
                                    v.getValue(), clearPasswords, invalidReason))
           {
@@ -2018,7 +2018,7 @@ public class LocalBackendModifyOperation
           clientConnection.setMustChangePassword(false);
         }
 
-        Message message = INFO_MODIFY_PASSWORD_CHANGED.get();
+        LocalizableMessage message = INFO_MODIFY_PASSWORD_CHANGED.get();
         pwPolicyState.generateAccountStatusNotification(
             AccountStatusNotificationType.PASSWORD_CHANGED,
             modifiedEntry, message,
@@ -2027,7 +2027,7 @@ public class LocalBackendModifyOperation
       }
       else
       {
-        Message message = INFO_MODIFY_PASSWORD_RESET.get();
+        LocalizableMessage message = INFO_MODIFY_PASSWORD_RESET.get();
         pwPolicyState.generateAccountStatusNotification(
             AccountStatusNotificationType.PASSWORD_RESET, modifiedEntry,
             message,
@@ -2040,7 +2040,7 @@ public class LocalBackendModifyOperation
     {
       if (isEnabled)
       {
-        Message message = INFO_MODIFY_ACCOUNT_ENABLED.get();
+        LocalizableMessage message = INFO_MODIFY_ACCOUNT_ENABLED.get();
         pwPolicyState.generateAccountStatusNotification(
             AccountStatusNotificationType.ACCOUNT_ENABLED,
             modifiedEntry, message,
@@ -2049,7 +2049,7 @@ public class LocalBackendModifyOperation
       }
       else
       {
-        Message message = INFO_MODIFY_ACCOUNT_DISABLED.get();
+        LocalizableMessage message = INFO_MODIFY_ACCOUNT_DISABLED.get();
         pwPolicyState.generateAccountStatusNotification(
             AccountStatusNotificationType.ACCOUNT_DISABLED,
             modifiedEntry, message,
@@ -2060,7 +2060,7 @@ public class LocalBackendModifyOperation
 
     if (wasLocked)
     {
-      Message message = INFO_MODIFY_ACCOUNT_UNLOCKED.get();
+      LocalizableMessage message = INFO_MODIFY_ACCOUNT_UNLOCKED.get();
       pwPolicyState.generateAccountStatusNotification(
           AccountStatusNotificationType.ACCOUNT_UNLOCKED, modifiedEntry,
           message,

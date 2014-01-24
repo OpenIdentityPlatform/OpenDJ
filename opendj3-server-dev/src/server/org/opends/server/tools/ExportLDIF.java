@@ -57,7 +57,7 @@ import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.cli.CLIException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -295,7 +295,7 @@ public class ExportLDIF extends TaskTool {
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -320,7 +320,7 @@ public class ExportLDIF extends TaskTool {
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -516,7 +516,7 @@ public class ExportLDIF extends TaskTool {
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -529,13 +529,13 @@ public class ExportLDIF extends TaskTool {
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -549,19 +549,19 @@ public class ExportLDIF extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -575,21 +575,21 @@ public class ExportLDIF extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -603,21 +603,21 @@ public class ExportLDIF extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                         getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -653,21 +653,21 @@ public class ExportLDIF extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS.get(
                         getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -736,14 +736,14 @@ public class ExportLDIF extends TaskTool {
         }
         catch (DirectoryException de)
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
               filterString, de.getMessageObject());
           logError(message);
           return 1;
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
               filterString, getExceptionMessage(e));
           logError(message);
           return 1;
@@ -767,14 +767,14 @@ public class ExportLDIF extends TaskTool {
         }
         catch (DirectoryException de)
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
               filterString, de.getMessageObject());
           logError(message);
           return 1;
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
               filterString, getExceptionMessage(e));
           logError(message);
           return 1;
@@ -814,7 +814,7 @@ public class ExportLDIF extends TaskTool {
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             ERR_LDIFEXPORT_MULTIPLE_BACKENDS_FOR_ID.get(backendID.getValue());
         logError(message);
         return 1;
@@ -823,14 +823,14 @@ public class ExportLDIF extends TaskTool {
 
     if (backend == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDIFEXPORT_NO_BACKENDS_FOR_ID.get(backendID.getValue());
       logError(message);
       return 1;
     }
     else if (! backend.supportsLDIFExport())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDIFEXPORT_CANNOT_EXPORT_BACKEND.get(backendID.getValue());
       logError(message);
       return 1;
@@ -848,14 +848,14 @@ public class ExportLDIF extends TaskTool {
         }
         catch (DirectoryException de)
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
               s, de.getMessageObject());
           logError(message);
           return 1;
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
               s, getExceptionMessage(e));
           logError(message);
           return 1;
@@ -882,14 +882,14 @@ public class ExportLDIF extends TaskTool {
         }
         catch (DirectoryException de)
         {
-          Message message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
+          LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
               s, de.getMessageObject());
           logError(message);
           return 1;
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
+          LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
               s, getExceptionMessage(e));
           logError(message);
           return 1;
@@ -898,7 +898,7 @@ public class ExportLDIF extends TaskTool {
         if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
-          Message message =
+          LocalizableMessage message =
               ERR_LDIFEXPORT_INVALID_INCLUDE_BASE.get(s, backendID.getValue());
           logError(message);
           return 1;
@@ -947,7 +947,7 @@ public class ExportLDIF extends TaskTool {
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_LDIFEXPORT_CANNOT_DECODE_WRAP_COLUMN_AS_INTEGER.get(
+      LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_DECODE_WRAP_COLUMN_AS_INTEGER.get(
           wrapColumn.getValue());
       logError(message);
       return 1;
@@ -966,7 +966,7 @@ public class ExportLDIF extends TaskTool {
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
+        LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
         return 1;
@@ -974,7 +974,7 @@ public class ExportLDIF extends TaskTool {
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
+      LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       logError(message);
       return 1;
@@ -989,14 +989,14 @@ public class ExportLDIF extends TaskTool {
     }
     catch (DirectoryException de)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
       logError(message);
       errorOccurred = true;
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(getExceptionMessage(e));
       logError(message);
       errorOccurred = true;
@@ -1010,14 +1010,14 @@ public class ExportLDIF extends TaskTool {
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
+        LocalizableMessage message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
       }
     }
     catch (Exception e)
     {
-      Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
+      LocalizableMessage message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       logError(message);
     }

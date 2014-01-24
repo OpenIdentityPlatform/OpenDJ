@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin.client.spi;
@@ -37,7 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
@@ -777,7 +778,7 @@ public abstract class Driver {
     // The targeted managed object is guaranteed to exist, so enforce
     // any constraints.
     AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
-    List<Message> messages = new LinkedList<Message>();
+    List<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
     boolean isAcceptable = true;
 
     for (Constraint constraint : d.getAllConstraints()) {

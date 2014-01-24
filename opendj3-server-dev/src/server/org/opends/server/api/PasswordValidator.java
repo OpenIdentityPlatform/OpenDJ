@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -36,7 +36,7 @@ import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -98,7 +98,7 @@ public abstract class PasswordValidator
    */
   public boolean isConfigurationAcceptable(
                       PasswordValidatorCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by password validator
@@ -151,6 +151,6 @@ public abstract class PasswordValidator
                                Set<ByteString> currentPasswords,
                                Operation operation,
                                Entry userEntry,
-                               MessageBuilder invalidReason);
+                               LocalizableMessageBuilder invalidReason);
 }
 

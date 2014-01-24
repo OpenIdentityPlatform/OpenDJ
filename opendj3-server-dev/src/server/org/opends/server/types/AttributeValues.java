@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.loggers.debug.DebugTracer;
 
@@ -181,7 +181,7 @@ public final class AttributeValues
             .getEqualityMatchingRule();
         if (equalityMatchingRule == null)
         {
-          Message message = ERR_ATTR_TYPE_NORMALIZE_NO_MR.get(String
+          LocalizableMessage message = ERR_ATTR_TYPE_NORMALIZE_NO_MR.get(String
               .valueOf(value), attributeType.getNameOrOID());
           throw new DirectoryException(
               ResultCode.INAPPROPRIATE_MATCHING, message);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.tools;
@@ -43,7 +43,7 @@ import java.io.PrintStream;
 import java.util.Enumeration;
 import java.util.Properties;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
@@ -202,7 +202,7 @@ public class JavaPropertiesTool extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message =
+      LocalizableMessage message =
         ToolMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       return ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode();
@@ -215,10 +215,10 @@ public class JavaPropertiesTool extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       println(message);
       println();
-      println(Message.raw(argParser.getUsage()));
+      println(LocalizableMessage.raw(argParser.getUsage()));
 
       return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
     }

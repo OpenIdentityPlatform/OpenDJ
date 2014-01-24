@@ -30,7 +30,7 @@ import java.util.ArrayList;
 
 import java.util.List;
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1;
@@ -44,8 +44,8 @@ import static org.testng.Assert.*;
 
 public class TestBindResponseProtocolOp  extends LdapTestCase {
 
-    private static Message message = Message.raw("This is a message");
-    private static Message message2 = Message.raw("This is a second message");
+    private static LocalizableMessage message = LocalizableMessage.raw("This is a message");
+    private static LocalizableMessage message2 = LocalizableMessage.raw("This is a second message");
     ResultCode        okCode          = ResultCode.SUCCESS;
     ResultCode  busyCode = ResultCode.BUSY;
     ResultCode invalidSyntaxCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;

@@ -35,7 +35,7 @@ import static org.opends.server.schema.StringPrepProfile.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
@@ -184,7 +184,7 @@ class CaseIgnoreIA5SubstringMatchingRule
         // This is not a valid character for an IA5 string.  If strict syntax
         // enforcement is enabled, then we'll throw an exception.  Otherwise,
         // we'll get rid of the character.
-        Message message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
+        LocalizableMessage message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
                 value.toString(), String.valueOf(c));
 
         switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -270,7 +270,7 @@ class CaseIgnoreIA5SubstringMatchingRule
         // This is not a valid character for an IA5 string.  If strict syntax
         // enforcement is enabled, then we'll throw an exception.  Otherwise,
         // we'll get rid of the character.
-        Message message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
+        LocalizableMessage message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
                 substring.toString(), String.valueOf(c));
 
         switch (DirectoryServer.getSyntaxEnforcementPolicy())

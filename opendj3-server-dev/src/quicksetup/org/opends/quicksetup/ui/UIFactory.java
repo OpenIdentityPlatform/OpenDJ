@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -783,7 +783,7 @@ public class UIFactory
    * @param tooltip the tooltip of the button.
    * @return a JButton with the given label and tooltip.
    */
-  public static JButton makeJButton(Message label, Message tooltip)
+  public static JButton makeJButton(LocalizableMessage label, LocalizableMessage tooltip)
   {
     JButton b = new JButton();
 
@@ -827,7 +827,7 @@ public class UIFactory
    * @param style the text style.
    * @return a JLabel with the given icon, text and text style.
    */
-  public static JLabel makeJLabel(IconType iconName, Message text,
+  public static JLabel makeJLabel(IconType iconName, LocalizableMessage text,
       TextStyle style)
   {
     JLabel l = new JLabel();
@@ -839,7 +839,7 @@ public class UIFactory
 
     ImageIcon icon = getImageIcon(iconName);
     l.setIcon(icon);
-    Message tooltip = getIconTooltip(iconName);
+    LocalizableMessage tooltip = getIconTooltip(iconName);
 
     if (tooltip != null)
     {
@@ -868,21 +868,21 @@ public class UIFactory
     case TEXTFIELD:
 
       field =
-          makeJTextField(Message.raw(defaultValue), desc.getTooltip(), desc
+          makeJTextField(LocalizableMessage.raw(defaultValue), desc.getTooltip(), desc
               .getSize(), TextStyle.TEXTFIELD);
       break;
 
     case PASSWORD:
 
       field =
-          makeJPasswordField(Message.raw(defaultValue), desc.getTooltip(), desc
+          makeJPasswordField(LocalizableMessage.raw(defaultValue), desc.getTooltip(), desc
               .getSize(), TextStyle.PASSWORD_FIELD);
       break;
 
     case READ_ONLY:
 
       field =
-          makeTextPane(Message.raw(defaultValue), TextStyle.READ_ONLY);
+          makeTextPane(LocalizableMessage.raw(defaultValue), TextStyle.READ_ONLY);
       break;
 
     default:
@@ -901,7 +901,7 @@ public class UIFactory
    * @return a JTextField with the given icon, tooltip text, size and text
    * style.
    */
-  public static JTextField makeJTextField(Message text, Message tooltip,
+  public static JTextField makeJTextField(LocalizableMessage text, LocalizableMessage tooltip,
       int size, TextStyle style)
   {
     JTextField f = new JTextField();
@@ -920,7 +920,7 @@ public class UIFactory
    * @return a JPasswordField with the given icon, tooltip text, size and text
    * style.
    */
-  public static JPasswordField makeJPasswordField(Message text, Message tooltip,
+  public static JPasswordField makeJPasswordField(LocalizableMessage text, LocalizableMessage tooltip,
       int size, TextStyle style)
   {
     JPasswordField f = new JPasswordField();
@@ -938,7 +938,7 @@ public class UIFactory
    * @return a JRadioButton with the given text, tooltip text and text
    * style.
    */
-  public static JRadioButton makeJRadioButton(Message text, Message tooltip,
+  public static JRadioButton makeJRadioButton(LocalizableMessage text, LocalizableMessage tooltip,
       TextStyle style)
   {
     JRadioButton rb = new JRadioButton();
@@ -966,7 +966,7 @@ public class UIFactory
    * @return a JCheckBox with the given text, tooltip text and text
    * style.
    */
-  public static JCheckBox makeJCheckBox(Message text, Message tooltip,
+  public static JCheckBox makeJCheckBox(LocalizableMessage text, LocalizableMessage tooltip,
       TextStyle style)
   {
     JCheckBox cb = new JCheckBox();
@@ -1101,8 +1101,8 @@ public class UIFactory
     String url =
         String.valueOf(UIFactory.class.getClassLoader().getResource(
             getIconPath(iconType)));
-    Message description = getIconDescription(iconType);
-    Message title = getIconTooltip(iconType);
+    LocalizableMessage description = getIconDescription(iconType);
+    LocalizableMessage title = getIconTooltip(iconType);
     return "<img src=\"" + url + "\" alt=\"" + description +
     "\" align=\"middle\" title=\"" + title + "\" >";
   }
@@ -1121,7 +1121,7 @@ public class UIFactory
     if ((icon == null) && (iconType != IconType.NO_ICON))
     {
       String path = getIconPath(iconType);
-      Message description = getIconDescription(iconType);
+      LocalizableMessage description = getIconDescription(iconType);
       try
       {
         Image im =
@@ -1163,7 +1163,7 @@ public class UIFactory
    * @return a read only JEditorPane containing the provided text with the
    * provided font.
    */
-  public static JEditorPane makeHtmlPane(Message text, Font font)
+  public static JEditorPane makeHtmlPane(LocalizableMessage text, Font font)
   {
     return makeHtmlPane(text, null, font);
   }
@@ -1177,7 +1177,7 @@ public class UIFactory
    * @return a read only JEditorPane containing the provided text with the
    * provided font.
    */
-  public static JEditorPane makeHtmlPane(Message text, HTMLEditorKit ek,
+  public static JEditorPane makeHtmlPane(LocalizableMessage text, HTMLEditorKit ek,
                                          Font font)
   {
     JEditorPane pane = new JEditorPane();
@@ -1199,7 +1199,7 @@ public class UIFactory
    * @return a read only JEditorPane containing the provided text with the
    * provided TextStyle.
    */
-  public static JEditorPane makeTextPane(Message text, TextStyle style)
+  public static JEditorPane makeTextPane(LocalizableMessage text, TextStyle style)
   {
     String s = text != null ? String.valueOf(text) : null;
     JEditorPane pane = new JEditorPane("text/plain", s);
@@ -1412,8 +1412,8 @@ public class UIFactory
    * @param size the new size of the field.
    * @param textStyle the new TextStyle of the field.
    */
-  private static void updateTextFieldComponent(JTextField field, Message text,
-      Message tooltip, int size, TextStyle textStyle)
+  private static void updateTextFieldComponent(JTextField field, LocalizableMessage text,
+      LocalizableMessage tooltip, int size, TextStyle textStyle)
   {
     field.setColumns(size);
     if (text != null)
@@ -1430,7 +1430,7 @@ public class UIFactory
     }
   }
 
-  private static Color getColor(Message l)
+  private static Color getColor(LocalizableMessage l)
   {
     String s = String.valueOf(l);
     String[] colors = s.split(",");
@@ -1465,7 +1465,7 @@ public class UIFactory
    */
   private static String getIconPath(IconType iconType)
   {
-    Message key;
+    LocalizableMessage key;
     switch (iconType)
     {
     case CURRENT_STEP:
@@ -1543,9 +1543,9 @@ public class UIFactory
    * @param iconType the IconType for which we want to get the description.
    * @return the icon description for the given IconType.
    */
-  private static Message getIconDescription(IconType iconType)
+  private static LocalizableMessage getIconDescription(IconType iconType)
   {
-    Message description;
+    LocalizableMessage description;
     switch (iconType)
     {
     case CURRENT_STEP:
@@ -1628,12 +1628,12 @@ public class UIFactory
    * @param iconType the IconType for which we want to get the tooltip text.
    * @return the icon tooltip text for the given IconType.
    */
-  private static Message getIconTooltip(IconType iconType)
+  private static LocalizableMessage getIconTooltip(IconType iconType)
   {
     if (iconType == null) {
       iconType = IconType.NO_ICON;
     }
-    Message tooltip;
+    LocalizableMessage tooltip;
     switch (iconType)
     {
     case CURRENT_STEP:
@@ -1721,8 +1721,9 @@ public class UIFactory
           boolean isSelected,
           boolean cellHasFocus)
       {
-        JLabel l = makeJLabel(IconType.NO_ICON, Message.fromObject(value),
-                              textStyle);
+        JLabel l =
+            makeJLabel(IconType.NO_ICON, LocalizableMessage.raw(value
+                .toString()), textStyle);
         l.setBorder(new EmptyBorder(TOP_INSET_SECONDARY_FIELD, 0, 0, 0));
         return l;
       }

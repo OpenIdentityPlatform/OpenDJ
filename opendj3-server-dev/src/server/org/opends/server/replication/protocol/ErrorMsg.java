@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -47,10 +47,10 @@ public class ErrorMsg extends RoutableMsg
   private static final DebugTracer TRACER = getTracer();
 
   // Specifies the messageID built from the error that was detected
-  private int msgID;
+  private String msgID;
 
   // Specifies the complementary details about the error that was detected
-  private Message details = null;
+  private LocalizableMessage details = null;
 
   // The time of creation of this message.
   //                                        protocol version previous to V4
@@ -64,10 +64,10 @@ public class ErrorMsg extends RoutableMsg
    * @param details The message containing the details of the error.
    */
   public ErrorMsg(int sender, int destination,
-                      Message details)
+                      LocalizableMessage details)
   {
     super(sender, destination);
-    this.msgID  = details.getDescriptor().getId();
+    this.msgID  = getMessageId(details);
     this.details = details;
     this.creationTime = System.currentTimeMillis();
 
@@ -82,10 +82,10 @@ public class ErrorMsg extends RoutableMsg
    * @param i replication server id
    * @param details details of the error
    */
-  public ErrorMsg(int i, Message details)
+  public ErrorMsg(int i, LocalizableMessage details)
   {
     super(-2, i);
-    this.msgID  = details.getDescriptor().getId();
+    this.msgID  = getMessageId(details);
     this.details = details;
     this.creationTime = System.currentTimeMillis();
 
@@ -94,9 +94,17 @@ public class ErrorMsg extends RoutableMsg
   }
 
   /**
+   * Returns the unique message Id.
+   */
+  private String getMessageId(LocalizableMessage details)
+  {
+    return details.resourceName() + "-" + details.ordinal();
+  }
+
+  /**
    * Creates a new ErrorMsg by decoding the provided byte array.
    *
-   * @param  in A byte array containing the encoded information for the Message
+   * @param  in A byte array containing the encoded information for the LocalizableMessage
    * @param version The protocol version to use to decode the msg.
    * @throws DataFormatException If the in does not contain a properly
    *                             encoded message.
@@ -127,13 +135,12 @@ public class ErrorMsg extends RoutableMsg
 
       // MsgID
       length = getNextLength(in, pos);
-      String msgIdString = new String(in, pos, length, "UTF-8");
-      msgID = Integer.valueOf(msgIdString);
+      msgID = new String(in, pos, length, "UTF-8");
       pos += length +1;
 
       // Details
       length = getNextLength(in, pos);
-      details = Message.raw(new String(in, pos, length, "UTF-8"));
+      details = LocalizableMessage.raw(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
@@ -156,7 +163,7 @@ public class ErrorMsg extends RoutableMsg
    *
    * @return the details from this message.
    */
-  public Message getDetails()
+  public LocalizableMessage getDetails()
   {
     return details;
   }
@@ -166,7 +173,7 @@ public class ErrorMsg extends RoutableMsg
    *
    * @return the msgID from this message.
    */
-  public int getMsgID()
+  public String getMsgID()
   {
     return msgID;
   }

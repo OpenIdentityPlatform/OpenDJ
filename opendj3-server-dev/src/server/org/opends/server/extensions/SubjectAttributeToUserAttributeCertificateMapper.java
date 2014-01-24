@@ -34,7 +34,7 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import javax.security.auth.x500.X500Principal;
 import static org.opends.messages.ExtensionMessages.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateMapperCfg;
 import org.opends.server.admin.std.server
@@ -121,7 +121,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       int colonPos = lowerMap.indexOf(':');
       if (colonPos <= 0)
       {
-        Message message = ERR_SATUACM_INVALID_MAP_FORMAT.get(
+        LocalizableMessage message = ERR_SATUACM_INVALID_MAP_FORMAT.get(
             String.valueOf(configEntryDN), mapStr);
         throw new ConfigException(message);
       }
@@ -130,7 +130,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       String userAttrName = lowerMap.substring(colonPos+1).trim();
       if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
       {
-        Message message = ERR_SATUACM_INVALID_MAP_FORMAT.get(
+        LocalizableMessage message = ERR_SATUACM_INVALID_MAP_FORMAT.get(
             String.valueOf(configEntryDN), mapStr);
         throw new ConfigException(message);
       }
@@ -141,7 +141,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
       if (attributeMap.containsKey(certAttrName))
       {
-        Message message = ERR_SATUACM_DUPLICATE_CERT_ATTR.get(
+        LocalizableMessage message = ERR_SATUACM_DUPLICATE_CERT_ATTR.get(
             String.valueOf(configEntryDN), certAttrName);
         throw new ConfigException(message);
       }
@@ -150,7 +150,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
            DirectoryServer.getAttributeType(userAttrName, false);
       if (userAttrType == null)
       {
-        Message message = ERR_SATUACM_NO_SUCH_ATTR.get(
+        LocalizableMessage message = ERR_SATUACM_NO_SUCH_ATTR.get(
             mapStr, String.valueOf(configEntryDN), userAttrName);
         throw new ConfigException(message);
       }
@@ -159,7 +159,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       {
         if (attrType.equals(userAttrType))
         {
-          Message message = ERR_SATUACM_DUPLICATE_USER_ATTR.get(
+          LocalizableMessage message = ERR_SATUACM_DUPLICATE_USER_ATTR.get(
               String.valueOf(configEntryDN), attrType.getNameOrOID());
           throw new ConfigException(message);
         }
@@ -183,7 +183,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         Backend b = DirectoryServer.getBackend(baseDN);
         if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
         {
-          Message message = WARN_SATUACM_ATTR_UNINDEXED.get(
+          LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(
               configuration.dn().toString(),
               t.getNameOrOID(), b.getBackendID());
           ErrorLogger.logError(message);
@@ -227,7 +227,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     // Make sure that a peer certificate was provided.
     if ((certificateChain == null) || (certificateChain.length == 0))
     {
-      Message message = ERR_SATUACM_NO_PEER_CERTIFICATE.get();
+      LocalizableMessage message = ERR_SATUACM_NO_PEER_CERTIFICATE.get();
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
@@ -245,7 +245,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_SATUACM_PEER_CERT_NOT_X509.get(
+      LocalizableMessage message = ERR_SATUACM_PEER_CERT_NOT_X509.get(
           String.valueOf(certificateChain[0].getType()));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
@@ -262,7 +262,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     }
     catch (DirectoryException de)
     {
-      Message message = ERR_SATUACM_CANNOT_DECODE_SUBJECT_AS_DN.get(
+      LocalizableMessage message = ERR_SATUACM_CANNOT_DECODE_SUBJECT_AS_DN.get(
           peerName, de.getMessageObject());
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
                                    de);
@@ -290,7 +290,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
     if (filterComps.isEmpty())
     {
-      Message message = ERR_SATUACM_NO_MAPPABLE_ATTRIBUTES.get(
+      LocalizableMessage message = ERR_SATUACM_NO_MAPPABLE_ATTRIBUTES.get(
            String.valueOf(peerDN));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
@@ -332,7 +332,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
         case SIZE_LIMIT_EXCEEDED:
           // Multiple entries matched the filter.  This is not acceptable.
-          Message message = ERR_SATUACM_MULTIPLE_SEARCH_MATCHING_ENTRIES.get(
+          LocalizableMessage message = ERR_SATUACM_MULTIPLE_SEARCH_MATCHING_ENTRIES.get(
                         String.valueOf(peerDN));
           throw new DirectoryException(
                   ResultCode.INVALID_CREDENTIALS, message);
@@ -364,7 +364,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         }
         else
         {
-          Message message = ERR_SATUACM_MULTIPLE_MATCHING_ENTRIES.
+          LocalizableMessage message = ERR_SATUACM_MULTIPLE_MATCHING_ENTRIES.
               get(String.valueOf(peerDN), String.valueOf(userEntry.getName()),
                   String.valueOf(entry.getName()));
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
@@ -385,7 +385,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
    */
   @Override()
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     SubjectAttributeToUserAttributeCertificateMapperCfg config =
          (SubjectAttributeToUserAttributeCertificateMapperCfg) configuration;
@@ -401,7 +401,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   public boolean isConfigurationChangeAcceptable(
               SubjectAttributeToUserAttributeCertificateMapperCfg
                    configuration,
-              List<Message> unacceptableReasons)
+              List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
@@ -488,7 +488,7 @@ mapLoop:
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get and validate the subject attribute to user attribute mappings.
@@ -595,7 +595,7 @@ mapLoop:
         Backend b = DirectoryServer.getBackend(baseDN);
         if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
         {
-          Message message = WARN_SATUACM_ATTR_UNINDEXED.get(
+          LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(
               configuration.dn().toString(),
               t.getNameOrOID(), b.getBackendID());
           messages.add(message);

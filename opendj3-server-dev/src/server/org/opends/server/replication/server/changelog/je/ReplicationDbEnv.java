@@ -33,8 +33,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
@@ -243,7 +243,7 @@ public class ReplicationDbEnv
     }
     catch (RuntimeException e)
     {
-      final Message message = ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage());
+      final LocalizableMessage message = ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage());
       throw new ChangelogException(message, e);
     }
     catch (DirectoryException e)
@@ -265,7 +265,7 @@ public class ReplicationDbEnv
     {
       // should never happen
       // TODO: i18n
-      throw new ChangelogException(Message.raw(
+      throw new ChangelogException(LocalizableMessage.raw(
           "replicationServer state database has a wrong format: "
           + e.getLocalizedMessage() + "<" + data + ">"));
     }
@@ -281,7 +281,7 @@ public class ReplicationDbEnv
     {
       // should never happen
       // TODO: i18n
-      throw new ChangelogException(Message.raw(
+      throw new ChangelogException(LocalizableMessage.raw(
           "replicationServer state database has a wrong format: "
           + e.getLocalizedMessage() + "<" + data + ">"));
     }
@@ -297,7 +297,7 @@ public class ReplicationDbEnv
     {
       // should never happens
       // TODO: i18n
-      throw new ChangelogException(Message.raw("need UTF-8 support"));
+      throw new ChangelogException(LocalizableMessage.raw("need UTF-8 support"));
     }
   }
 
@@ -454,7 +454,7 @@ public class ReplicationDbEnv
     }
   }
 
-  private Message closeDBErrorMessage(String dbName, DatabaseException e)
+  private LocalizableMessage closeDBErrorMessage(String dbName, DatabaseException e)
   {
     if (dbName != null)
     {
@@ -559,7 +559,7 @@ public class ReplicationDbEnv
       }
       catch (RuntimeException e)
       {
-        MessageBuilder mb = new MessageBuilder();
+        LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(ERR_ERROR_CLEARING_DB.get(databaseName,
             e.getMessage() + " " +
             stackTraceToSingleLineString(e)));

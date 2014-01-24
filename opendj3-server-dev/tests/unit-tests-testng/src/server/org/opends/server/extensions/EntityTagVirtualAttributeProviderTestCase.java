@@ -42,8 +42,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.EntityTagVirtualAttributeCfgDefn.ChecksumAlgorithm;
@@ -540,16 +540,16 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     final SearchOperation search = new SearchOperationWrapper(null)
     {
       ResultCode resultCode = null;
-      MessageBuilder message = null;
+      LocalizableMessageBuilder message = null;
 
 
 
       /**
        * {@inheritDoc}
        */
-      public void appendErrorMessage(final Message message)
+      public void appendErrorMessage(final LocalizableMessage message)
       {
-        this.message = new MessageBuilder(message);
+        this.message = new LocalizableMessageBuilder(message);
       }
 
 
@@ -557,7 +557,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       /**
        * {@inheritDoc}
        */
-      public MessageBuilder getErrorMessage()
+      public LocalizableMessageBuilder getErrorMessage()
       {
         return message;
       }

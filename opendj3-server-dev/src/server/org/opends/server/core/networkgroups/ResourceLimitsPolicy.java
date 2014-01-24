@@ -22,6 +22,7 @@
  *
  *
  *    Copyright 2009-2010 Sun Microsystems, Inc.
+ *    Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
@@ -29,7 +30,7 @@ package org.opends.server.core.networkgroups;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.QOSPolicy;
 import org.opends.server.types.operation.PreParseOperation;
@@ -120,7 +121,7 @@ abstract class ResourceLimitsPolicy extends QOSPolicy
    */
   abstract boolean isAllowed(ClientConnection connection,
       PreParseOperation operation, boolean fullCheck,
-      List<Message> messages);
+      List<LocalizableMessage> messages);
 
 
 

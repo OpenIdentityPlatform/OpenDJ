@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols;
 
@@ -34,8 +35,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.LDIFConnectionHandlerCfg;
@@ -179,7 +180,7 @@ public final class LDIFConnectionHandler
    * {@inheritDoc}
    */
   @Override()
-  public void finalizeConnectionHandler(Message finalizeReason)
+  public void finalizeConnectionHandler(LocalizableMessage finalizeReason)
   {
     stopRequested = true;
 
@@ -414,7 +415,7 @@ public final class LDIFConnectionHandler
           errorEncountered = true;
           if (le.canContinueReading())
           {
-            Message m =
+            LocalizableMessage m =
                  ERR_LDIF_CONNHANDLER_CANNOT_READ_CHANGE_RECORD_NONFATAL.get(
                       le.getMessageObject());
             writer.writeComment(m, 78);
@@ -422,7 +423,7 @@ public final class LDIFConnectionHandler
           }
           else
           {
-            Message m =
+            LocalizableMessage m =
                  ERR_LDIF_CONNHANDLER_CANNOT_READ_CHANGE_RECORD_FATAL.get(
                       le.getMessageObject());
             writer.writeComment(m, 78);
@@ -461,7 +462,7 @@ public final class LDIFConnectionHandler
 
         if (operation == null)
         {
-          Message m = INFO_LDIF_CONNHANDLER_UNKNOWN_CHANGETYPE.get(
+          LocalizableMessage m = INFO_LDIF_CONNHANDLER_UNKNOWN_CHANGETYPE.get(
                changeRecord.getChangeOperationType().getLDIFChangeType());
           writer.writeComment(m, 78);
         }
@@ -473,12 +474,12 @@ public final class LDIFConnectionHandler
                              operation.getResultCode().toString());
           }
 
-          Message m = INFO_LDIF_CONNHANDLER_RESULT_CODE.get(
+          LocalizableMessage m = INFO_LDIF_CONNHANDLER_RESULT_CODE.get(
                            operation.getResultCode().getIntValue(),
                            operation.getResultCode().toString());
           writer.writeComment(m, 78);
 
-          MessageBuilder errorMessage = operation.getErrorMessage();
+          LocalizableMessageBuilder errorMessage = operation.getErrorMessage();
           if ((errorMessage != null) && (errorMessage.length() > 0))
           {
             m = INFO_LDIF_CONNHANDLER_ERROR_MESSAGE.get(errorMessage);
@@ -514,7 +515,7 @@ public final class LDIFConnectionHandler
       }
 
       fullyProcessed = false;
-      Message m = ERR_LDIF_CONNHANDLER_IO_ERROR.get(inputPath,
+      LocalizableMessage m = ERR_LDIF_CONNHANDLER_IO_ERROR.get(inputPath,
                                                     getExceptionMessage(ioe));
       logError(m);
       DirectoryConfig.sendAlertNotification(this,
@@ -573,7 +574,7 @@ public final class LDIFConnectionHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message m = ERR_LDIF_CONNHANDLER_CANNOT_RENAME.get(inputPath,
+        LocalizableMessage m = ERR_LDIF_CONNHANDLER_CANNOT_RENAME.get(inputPath,
                          renamedPath, getExceptionMessage(e));
         logError(m);
         DirectoryConfig.sendAlertNotification(this,
@@ -598,7 +599,7 @@ public final class LDIFConnectionHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message m = ERR_LDIF_CONNHANDLER_CANNOT_DELETE.get(inputPath,
+        LocalizableMessage m = ERR_LDIF_CONNHANDLER_CANNOT_DELETE.get(inputPath,
                          getExceptionMessage(e));
         logError(m);
         DirectoryConfig.sendAlertNotification(this,
@@ -629,7 +630,7 @@ public final class LDIFConnectionHandler
    */
   @Override()
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     LDIFConnectionHandlerCfg cfg = (LDIFConnectionHandlerCfg) configuration;
     return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
@@ -642,7 +643,7 @@ public final class LDIFConnectionHandler
    */
   public boolean isConfigurationChangeAcceptable(
                       LDIFConnectionHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // The configuration should always be acceptable.
     return true;

@@ -44,7 +44,7 @@ import java.util.logging.Logger;
 
 import javax.security.auth.callback.ConfirmationCallback;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.BuildVersion;
@@ -413,7 +413,7 @@ public final class Upgrade
             ConfirmationCallback.YES);
     if (userResponse == ConfirmationCallback.NO)
     {
-      final Message message = INFO_UPGRADE_ABORTED_BY_USER.get();
+      final LocalizableMessage message = INFO_UPGRADE_ABORTED_BY_USER.get();
       context.notify(message, WARNING);
       throw new ClientException(EXIT_CODE_ERROR, message);
     }
@@ -464,7 +464,7 @@ public final class Upgrade
     }
     catch (final Exception e)
     {
-      final Message message = ERR_UPGRADE_TASKS_FAIL.get(e.getMessage());
+      final LocalizableMessage message = ERR_UPGRADE_TASKS_FAIL.get(e.getMessage());
       context.notify(message, ERROR_CALLBACK);
       throw new ClientException(EXIT_CODE_ERROR, message);
     }
@@ -537,7 +537,7 @@ public final class Upgrade
       // running.
       if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        final Message message = ERR_UPGRADE_REQUIRES_SERVER_OFFLINE.get();
+        final LocalizableMessage message = ERR_UPGRADE_REQUIRES_SERVER_OFFLINE.get();
         context.notify(message, NOTICE_CALLBACK);
         throw new ClientException(EXIT_CODE_ERROR, message);
       }
@@ -565,7 +565,7 @@ public final class Upgrade
        * If the server is already up to date then treat it as a successful
        * upgrade so that upgrade is idempotent.
        */
-      final Message message =
+      final LocalizableMessage message =
           ERR_UPGRADE_VERSION_UP_TO_DATE.get(context.getToVersion().toString());
       context.notify(message, NOTICE_CALLBACK);
       throw new ClientException(EXIT_CODE_SUCCESS, message);
@@ -574,7 +574,7 @@ public final class Upgrade
     // The upgrade only supports version >= 2.4.5.
     if (context.getFromVersion().compareTo(UPGRADESUPPORTSVERSIONFROM) < 0)
     {
-      final Message message =
+      final LocalizableMessage message =
           INFO_UPGRADE_VERSION_IS_NOT_SUPPORTED.get(UPGRADESUPPORTSVERSIONFROM
               .toString(), UPGRADESUPPORTSVERSIONFROM.toString());
       context.notify(message, NOTICE_CALLBACK);
@@ -611,7 +611,7 @@ public final class Upgrade
     }
     catch (IOException e)
     {
-      final Message message = Message.raw(e.getMessage());
+      final LocalizableMessage message = LocalizableMessage.raw(e.getMessage());
       context.notify(message, ERROR_CALLBACK);
       throw new ClientException(EXIT_CODE_ERROR, message);
     }
@@ -629,7 +629,7 @@ public final class Upgrade
     {
       if (LicenseFile.exists())
       {
-        context.notify(Message.raw("\n" + LicenseFile.getText()));
+        context.notify(LocalizableMessage.raw("\n" + LicenseFile.getText()));
         context.notify(INFO_LICENSE_DETAILS_CLI_LABEL.get());
         if (!context.isAcceptLicenseMode())
         {
@@ -641,7 +641,7 @@ public final class Upgrade
           if (context.isForceUpgradeMode())
           {
             answer = ConfirmationCallback.NO;
-            context.notify(Message.raw(INFO_LICENSE_ACCEPT.get() + " "
+            context.notify(LocalizableMessage.raw(INFO_LICENSE_ACCEPT.get() + " "
                 + INFO_PROMPT_NO_COMPLETE_ANSWER.get()));
           }
           else
@@ -663,7 +663,7 @@ public final class Upgrade
         else
         {
           // We automatically accept the license with this option.
-          context.notify(Message.raw(INFO_LICENSE_ACCEPT.get() + " "
+          context.notify(LocalizableMessage.raw(INFO_LICENSE_ACCEPT.get() + " "
               + INFO_PROMPT_YES_COMPLETE_ANSWER.get()));
           LicenseFile.setApproval(true);
         }

@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -227,7 +227,7 @@ public class ExactMatchIdentityMapper
 
         case SIZE_LIMIT_EXCEEDED:
           // Multiple entries matched the filter.  This is not acceptable.
-          Message message =
+          LocalizableMessage message =
               ERR_EXACTMAP_MULTIPLE_MATCHING_ENTRIES.get(String.valueOf(id));
           throw new DirectoryException(
                   ResultCode.CONSTRAINT_VIOLATION, message);
@@ -258,7 +258,7 @@ public class ExactMatchIdentityMapper
           matchingEntry = iterator.next();
           if (iterator.hasNext())
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_EXACTMAP_MULTIPLE_MATCHING_ENTRIES.get(String.valueOf(id));
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
@@ -266,7 +266,7 @@ public class ExactMatchIdentityMapper
         }
         else
         {
-          Message message =
+          LocalizableMessage message =
               ERR_EXACTMAP_MULTIPLE_MATCHING_ENTRIES.get(String.valueOf(id));
           throw new DirectoryException(
                   ResultCode.CONSTRAINT_VIOLATION, message);
@@ -292,7 +292,7 @@ public class ExactMatchIdentityMapper
    */
   @Override()
   public boolean isConfigurationAcceptable(IdentityMapperCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     ExactMatchIdentityMapperCfg config =
          (ExactMatchIdentityMapperCfg) configuration;
@@ -306,7 +306,7 @@ public class ExactMatchIdentityMapper
    */
   public boolean isConfigurationChangeAcceptable(
                       ExactMatchIdentityMapperCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -347,7 +347,7 @@ public class ExactMatchIdentityMapper
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     attributeTypes =

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.uninstaller;
@@ -30,7 +30,7 @@ package org.opends.guitools.uninstaller;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.ERR_ERROR_PARSING_ARGS;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.ToolMessages;
 
 import java.io.File;
@@ -127,7 +127,7 @@ public class UninstallLauncher extends Launcher {
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       System.err.println(message);
       System.err.println();
       System.err.println(argParser.getUsage());
@@ -149,7 +149,7 @@ public class UninstallLauncher extends Launcher {
     }
     catch (ArgumentException ae)
     {
-      Message message =
+      LocalizableMessage message =
         ToolMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       System.err.println(org.opends.server.util.StaticUtils.wrapText(message,
           Utils.getCommandLineMaxLineWidth()));
@@ -197,10 +197,10 @@ public class UninstallLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected Message getFrameTitle() {
-    Message title = Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
+  protected LocalizableMessage getFrameTitle() {
+    LocalizableMessage title = Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
         INFO_FRAME_UNINSTALL_TITLE.get(
-        DynamicConstants.PRODUCT_NAME), Message.class);
+        DynamicConstants.PRODUCT_NAME), LocalizableMessage.class);
     return title;
   }
 

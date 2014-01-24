@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.admin.ads;
@@ -63,7 +63,7 @@ import javax.naming.ldap.Control;
 import javax.naming.ldap.LdapContext;
 
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.schema.SchemaConstants;
@@ -2611,7 +2611,7 @@ public class ADSContext
     }
     catch (ADSContextException adce)
     {
-      Message msg = ERR_ADS_MERGE.get(
+      LocalizableMessage msg = ERR_ADS_MERGE.get(
           ConnectionUtils.getHostPort(getDirContext()),
           ConnectionUtils.getHostPort(adsCtx.getDirContext()),
           adce.getMessageObject());
@@ -2642,7 +2642,7 @@ public class ADSContext
     }
     if (!notDefinedAdmins.isEmpty())
     {
-      Message msg = ERR_ADS_ADMINISTRATOR_MERGE.get(
+      LocalizableMessage msg = ERR_ADS_ADMINISTRATOR_MERGE.get(
           ConnectionUtils.getHostPort(adsCtx.getDirContext()),
           ConnectionUtils.getHostPort(getDirContext()),
           Utils.getStringFromCollection(notDefinedAdmins,

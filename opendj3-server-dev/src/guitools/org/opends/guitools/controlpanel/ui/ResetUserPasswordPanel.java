@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -41,7 +42,7 @@ import org.opends.guitools.controlpanel.task.ResetUserPasswordTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Panel that appears when the user wants to change the password of a user.
@@ -105,7 +106,7 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
    */
   public void okClicked()
   {
-    final ArrayList<Message> errors = new ArrayList<Message>();
+    final ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
 
     setPrimaryValid(lPassword);
     setPrimaryValid(lConfirmPassword);
@@ -160,7 +161,7 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_RESET_USER_PASSWORD_TITLE.get();
   }
@@ -184,7 +185,7 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
     gbc.weighty = 0.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
-    Message[] strings =
+    LocalizableMessage[] strings =
     {
         INFO_CTRL_PANEL_RESET_USER_PASSWORD_DN_LABEL.get(),
         INFO_CTRL_PANEL_RESET_USER_PASSWORD_NAME_LABEL.get(),

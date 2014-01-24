@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -38,7 +39,7 @@ import javax.swing.table.TableCellRenderer;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.components.LabelWithHelpIcon;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Class used to render the tables.
@@ -67,7 +68,7 @@ implements TableCellRenderer
    */
   public CustomCellRenderer()
   {
-    super(Message.EMPTY, null);
+    super(LocalizableMessage.EMPTY, null);
     setHelpIconVisible(false);
     setFont(ColorAndFontConstants.tableFont);
     setOpaque(true);

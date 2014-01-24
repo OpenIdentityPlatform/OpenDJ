@@ -31,7 +31,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 
 import java.util.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -560,14 +560,14 @@ public final class RDN
     // A null or empty RDN is not acceptable.
     if (rdnString == null)
     {
-      Message message = ERR_RDN_DECODE_NULL.get();
+      LocalizableMessage message = ERR_RDN_DECODE_NULL.get();
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
     int length = rdnString.length();
     if (length == 0)
     {
-      Message message = ERR_RDN_DECODE_NULL.get();
+      LocalizableMessage message = ERR_RDN_DECODE_NULL.get();
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
@@ -583,7 +583,7 @@ public final class RDN
       {
         // This means that the RDN was completely comprised of spaces,
         // which is not valid.
-        Message message = ERR_RDN_DECODE_NULL.get();
+        LocalizableMessage message = ERR_RDN_DECODE_NULL.get();
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
       else
@@ -604,7 +604,7 @@ public final class RDN
     // that would be invalid.
     if (pos >= length)
     {
-      Message message = ERR_RDN_END_WITH_ATTR_NAME.get(
+      LocalizableMessage message = ERR_RDN_END_WITH_ATTR_NAME.get(
           rdnString, attributeName.toString());
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
@@ -619,7 +619,7 @@ public final class RDN
       {
         // This means that we hit the end of the string before finding a '='.
         // This is illegal because there is no attribute-value separator.
-        Message message = ERR_RDN_END_WITH_ATTR_NAME.get(
+        LocalizableMessage message = ERR_RDN_END_WITH_ATTR_NAME.get(
             rdnString, attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
@@ -638,7 +638,7 @@ public final class RDN
     }
     else
     {
-      Message message = ERR_RDN_NO_EQUAL.get(
+      LocalizableMessage message = ERR_RDN_NO_EQUAL.get(
           rdnString, attributeName.toString(), c);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
@@ -657,7 +657,7 @@ public final class RDN
     {
       String        name      = attributeName.toString();
       String        lowerName = toLowerCase(name);
-      Message message = ERR_RDN_MISSING_ATTRIBUTE_VALUE.get(rdnString,
+      LocalizableMessage message = ERR_RDN_MISSING_ATTRIBUTE_VALUE.get(rdnString,
              lowerName);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
@@ -707,7 +707,7 @@ public final class RDN
     // allowed.  It would be legal for a DN but not an RDN.
     if ((c == ',') || (c == ';'))
     {
-      Message message = ERR_RDN_UNEXPECTED_COMMA.get(rdnString, pos);
+      LocalizableMessage message = ERR_RDN_UNEXPECTED_COMMA.get(rdnString, pos);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
@@ -715,7 +715,7 @@ public final class RDN
     // If the next character is anything but a plus sign, then it is illegal.
     if (c != '+')
     {
-      Message message = ERR_RDN_ILLEGAL_CHARACTER.get(rdnString, c, pos);
+      LocalizableMessage message = ERR_RDN_ILLEGAL_CHARACTER.get(rdnString, c, pos);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
@@ -743,7 +743,7 @@ public final class RDN
       // Make sure we're not at the end of the RDN.
       if (pos >= length)
       {
-        Message message = ERR_RDN_END_WITH_ATTR_NAME.get(
+        LocalizableMessage message = ERR_RDN_END_WITH_ATTR_NAME.get(
             rdnString, attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
@@ -758,7 +758,7 @@ public final class RDN
         {
           // This means that we hit the end of the string before finding a '='.
           // This is illegal because there is no attribute-value separator.
-          Message message = ERR_RDN_END_WITH_ATTR_NAME.get(
+          LocalizableMessage message = ERR_RDN_END_WITH_ATTR_NAME.get(
               rdnString, attributeName.toString());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
         }
@@ -776,7 +776,7 @@ public final class RDN
       }
       else
       {
-        Message message = ERR_RDN_NO_EQUAL.get(
+        LocalizableMessage message = ERR_RDN_NO_EQUAL.get(
             rdnString, attributeName.toString(), c);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
@@ -856,7 +856,7 @@ public final class RDN
       // not allowed.  It would be legal for a DN but not an RDN.
       if ((c == ',') || (c == ';'))
       {
-        Message message = ERR_RDN_UNEXPECTED_COMMA.get(rdnString, pos);
+        LocalizableMessage message = ERR_RDN_UNEXPECTED_COMMA.get(rdnString, pos);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
 
@@ -864,7 +864,7 @@ public final class RDN
       // If the next character is anything but a plus sign, then it is illegal.
       if (c != '+')
       {
-        Message message = ERR_RDN_ILLEGAL_CHARACTER.get(rdnString, c, pos);
+        LocalizableMessage message = ERR_RDN_ILLEGAL_CHARACTER.get(rdnString, c, pos);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
     }

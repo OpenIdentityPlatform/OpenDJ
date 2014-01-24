@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -36,7 +37,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The abstract table model used to display all the network groups.
@@ -51,8 +52,8 @@ implements Comparator<BackendDescriptor>
     new ArrayList<BackendDescriptor>();
 
   private String[] columnNames = {};
-  private Message NO_VALUE_SET = INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
-  private Message NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
+  private LocalizableMessage NO_VALUE_SET = INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
+  private LocalizableMessage NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
 
 
   /**

@@ -40,7 +40,7 @@ import java.util.zip.ZipOutputStream;
 
 import javax.crypto.Mac;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TaskBackendCfg;
@@ -158,12 +158,12 @@ public class TaskBackend
     // We will only allow one base for task entries.
     if ((baseDNs == null) || (baseDNs.length == 0))
     {
-      Message message = ERR_TASKBE_NO_BASE_DNS.get();
+      LocalizableMessage message = ERR_TASKBE_NO_BASE_DNS.get();
       throw new ConfigException(message);
     }
     else if (baseDNs.length > 1)
     {
-      Message message = ERR_TASKBE_MULTIPLE_BASE_DNS.get();
+      LocalizableMessage message = ERR_TASKBE_MULTIPLE_BASE_DNS.get();
       throw new ConfigException(message);
     }
     else
@@ -186,7 +186,7 @@ public class TaskBackend
         }
 
         // This should never happen.
-        Message message = ERR_TASKBE_CANNOT_DECODE_RECURRING_TASK_BASE_DN.get(
+        LocalizableMessage message = ERR_TASKBE_CANNOT_DECODE_RECURRING_TASK_BASE_DN.get(
             String.valueOf(recurringTaskBaseString), getExceptionMessage(e));
         throw new ConfigException(message, e);
       }
@@ -205,7 +205,7 @@ public class TaskBackend
         }
 
         // This should never happen.
-        Message message = ERR_TASKBE_CANNOT_DECODE_SCHEDULED_TASK_BASE_DN.get(
+        LocalizableMessage message = ERR_TASKBE_CANNOT_DECODE_SCHEDULED_TASK_BASE_DN.get(
             String.valueOf(scheduledTaskBaseString), getExceptionMessage(e));
         throw new ConfigException(message, e);
       }
@@ -273,7 +273,7 @@ public class TaskBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+      LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
           taskRootDN.toString(), getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
@@ -305,7 +305,7 @@ public class TaskBackend
     try
     {
 
-      Message message = INFO_TASKBE_INTERRUPTED_BY_SHUTDOWN.get();
+      LocalizableMessage message = INFO_TASKBE_INTERRUPTED_BY_SHUTDOWN.get();
 
       taskScheduler.interruptRunningTasks(TaskState.STOPPED_BY_SHUTDOWN,
                                           message, true);
@@ -539,7 +539,7 @@ public class TaskBackend
 
     if (parentDN == null)
     {
-      Message message = ERR_TASKBE_ADD_DISALLOWED_DN.
+      LocalizableMessage message = ERR_TASKBE_ADD_DISALLOWED_DN.
           get(String.valueOf(scheduledTaskParentDN),
               String.valueOf(recurringTaskParentDN));
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -564,7 +564,7 @@ public class TaskBackend
     }
 
     // We won't allow the entry to be added.
-    Message message = ERR_TASKBE_ADD_DISALLOWED_DN.
+    LocalizableMessage message = ERR_TASKBE_ADD_DISALLOWED_DN.
         get(String.valueOf(scheduledTaskParentDN),
             String.valueOf(recurringTaskParentDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -584,7 +584,7 @@ public class TaskBackend
     DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_TASKBE_DELETE_INVALID_ENTRY.get(String.valueOf(entryDN));
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -594,7 +594,7 @@ public class TaskBackend
       Task t = taskScheduler.getScheduledTask(entryDN);
       if (t == null)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_TASKBE_DELETE_NO_SUCH_TASK.get(String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
@@ -626,7 +626,7 @@ public class TaskBackend
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             ERR_TASKBE_DELETE_RUNNING.get(String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -637,7 +637,7 @@ public class TaskBackend
       RecurringTask rt = taskScheduler.getRecurringTask(entryDN);
       if (rt == null)
       {
-        Message message = ERR_TASKBE_DELETE_NO_SUCH_RECURRING_TASK.get(
+        LocalizableMessage message = ERR_TASKBE_DELETE_NO_SUCH_RECURRING_TASK.get(
             String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
@@ -646,7 +646,7 @@ public class TaskBackend
     }
     else
     {
-      Message message =
+      LocalizableMessage message =
           ERR_TASKBE_DELETE_INVALID_ENTRY.get(String.valueOf(entryDN));
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -682,7 +682,7 @@ public class TaskBackend
       DN parentDN = entryDN.getParentDNInSuffix();
       if (parentDN == null)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_TASKBE_MODIFY_INVALID_ENTRY.get(String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -692,7 +692,7 @@ public class TaskBackend
         Task t = taskScheduler.getScheduledTask(entryDN);
         if (t == null)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_TASKBE_MODIFY_NO_SUCH_TASK.get(String.valueOf(entryDN));
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
         }
@@ -720,13 +720,13 @@ public class TaskBackend
 
           if (acceptable)
           {
-            Message message = INFO_TASKBE_RUNNING_TASK_CANCELLED.get();
+            LocalizableMessage message = INFO_TASKBE_RUNNING_TASK_CANCELLED.get();
             t.interruptTask(TaskState.STOPPED_BY_ADMINISTRATOR, message);
             return;
           }
           else
           {
-            Message message =
+            LocalizableMessage message =
                  ERR_TASKBE_MODIFY_RUNNING.get(String.valueOf(entryDN));
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                          message);
@@ -758,14 +758,14 @@ public class TaskBackend
             else if (newTask.getTaskState() ==
               TaskState.STOPPED_BY_ADMINISTRATOR)
             {
-              Message message = INFO_TASKBE_RUNNING_TASK_CANCELLED.get();
+              LocalizableMessage message = INFO_TASKBE_RUNNING_TASK_CANCELLED.get();
               t.interruptTask(TaskState.STOPPED_BY_ADMINISTRATOR, message);
             }
               return;
           }
           else
           {
-            Message message =
+            LocalizableMessage message =
               ERR_TASKBE_MODIFY_RECURRING.get(String.valueOf(entryDN));
             throw new DirectoryException(
               ResultCode.UNWILLING_TO_PERFORM, message);
@@ -773,7 +773,7 @@ public class TaskBackend
         }
         else
         {
-          Message message =
+          LocalizableMessage message =
               ERR_TASKBE_MODIFY_COMPLETED.get(String.valueOf(entryDN));
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                        message);
@@ -782,13 +782,13 @@ public class TaskBackend
       else if (parentDN.equals(recurringTaskParentDN))
       {
         // We don't currently support altering recurring tasks.
-        Message message =
+        LocalizableMessage message =
             ERR_TASKBE_MODIFY_RECURRING.get(String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             ERR_TASKBE_MODIFY_INVALID_ENTRY.get(String.valueOf(entryDN));
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -864,7 +864,7 @@ public class TaskBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    Message message = ERR_TASKBE_MODIFY_DN_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_TASKBE_MODIFY_DN_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -957,7 +957,7 @@ public class TaskBackend
       DN parentDN = baseDN.getParentDNInSuffix();
       if (parentDN == null)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_TASKBE_SEARCH_INVALID_BASE.get(String.valueOf(baseDN));
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
@@ -970,7 +970,7 @@ public class TaskBackend
           Entry e = taskScheduler.getScheduledTaskEntry(baseDN);
           if (e == null)
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_TASKBE_SEARCH_NO_SUCH_TASK.get(String.valueOf(baseDN));
             throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
                                          scheduledTaskParentDN, null);
@@ -999,7 +999,7 @@ public class TaskBackend
           Entry e = taskScheduler.getRecurringTaskEntry(baseDN);
           if (e == null)
           {
-            Message message = ERR_TASKBE_SEARCH_NO_SUCH_RECURRING_TASK.get(
+            LocalizableMessage message = ERR_TASKBE_SEARCH_NO_SUCH_RECURRING_TASK.get(
                 String.valueOf(baseDN));
             throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
                                          recurringTaskParentDN, null);
@@ -1021,7 +1021,7 @@ public class TaskBackend
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             ERR_TASKBE_SEARCH_INVALID_BASE.get(String.valueOf(baseDN));
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
@@ -1138,7 +1138,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -1157,7 +1157,7 @@ public class TaskBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(
+      LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(
           stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -1181,7 +1181,7 @@ public class TaskBackend
         {
           if (! le.canContinueReading())
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(String.valueOf(e));
             throw new DirectoryException(
                            DirectoryServer.getServerErrorResultCode(),
@@ -1251,7 +1251,7 @@ public class TaskBackend
          throws DirectoryException
   {
     // This backend does not support LDIF imports.
-    Message message = ERR_TASKBE_IMPORT_NOT_SUPPORTED.get();
+    LocalizableMessage message = ERR_TASKBE_IMPORT_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -1330,7 +1330,7 @@ public class TaskBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_TASKS_BACKUP_CANNOT_GET_MAC.get(
+          LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_GET_MAC.get(
               macKeyID, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
@@ -1353,7 +1353,7 @@ public class TaskBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_TASKS_BACKUP_CANNOT_GET_DIGEST.get(
+          LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_GET_DIGEST.get(
               digestAlgorithm, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
@@ -1405,7 +1405,7 @@ public class TaskBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_TASKS_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
+      LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
           get(String.valueOf(filename), backupDirectory.getPath(),
               getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -1429,7 +1429,7 @@ public class TaskBackend
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_TASKS_BACKUP_CANNOT_GET_CIPHER.get(
+        LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_GET_CIPHER.get(
                 stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -1440,7 +1440,7 @@ public class TaskBackend
     // Wrap the file output stream in a zip output stream.
     ZipOutputStream zipStream = new ZipOutputStream(outputStream);
 
-    Message message = ERR_TASKS_BACKUP_ZIP_COMMENT.get(
+    LocalizableMessage message = ERR_TASKS_BACKUP_ZIP_COMMENT.get(
             DynamicConstants.PRODUCT_NAME,
             backupID);
     zipStream.setComment(String.valueOf(message));
@@ -1592,7 +1592,7 @@ public class TaskBackend
     BackupInfo backupInfo = backupDirectory.getBackupInfo(backupID);
     if (backupInfo == null)
     {
-      Message message = ERR_BACKUP_MISSING_BACKUPID.get(
+      LocalizableMessage message = ERR_BACKUP_MISSING_BACKUPID.get(
         backupDirectory.getPath(), backupID);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -1629,7 +1629,7 @@ public class TaskBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
+      LocalizableMessage message = ERR_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
         backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -1669,7 +1669,7 @@ public class TaskBackend
 
     if (backupInfo == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_TASKS_RESTORE_NO_SUCH_BACKUP.get(backupID, backupPath);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -1681,7 +1681,7 @@ public class TaskBackend
          backupInfo.getBackupProperty(BACKUP_PROPERTY_ARCHIVE_FILENAME);
     if (backupFilename == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_TASKS_RESTORE_NO_BACKUP_FILE.get(backupID, backupPath);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -1692,7 +1692,7 @@ public class TaskBackend
     {
       if (! backupFile.exists())
       {
-        Message message =
+        LocalizableMessage message =
             ERR_TASKS_RESTORE_NO_SUCH_FILE.get(backupID, backupFile.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
@@ -1704,7 +1704,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      Message message = ERR_TASKS_RESTORE_CANNOT_CHECK_FOR_ARCHIVE.get(
+      LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_CHECK_FOR_ARCHIVE.get(
           backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -1720,7 +1720,7 @@ public class TaskBackend
            backupInfo.getBackupProperty(BACKUP_PROPERTY_DIGEST_ALGORITHM);
       if (digestAlgorithm == null)
       {
-        Message message = ERR_TASKS_RESTORE_UNKNOWN_DIGEST.get(backupID);
+        LocalizableMessage message = ERR_TASKS_RESTORE_UNKNOWN_DIGEST.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
       }
@@ -1732,7 +1732,7 @@ public class TaskBackend
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_TASKS_RESTORE_CANNOT_GET_DIGEST.get(backupID, digestAlgorithm);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -1748,7 +1748,7 @@ public class TaskBackend
            backupInfo.getBackupProperty(BACKUP_PROPERTY_MAC_KEY_ID);
       if (macKeyID == null)
       {
-        Message message = ERR_TASKS_RESTORE_UNKNOWN_MAC.get(backupID);
+        LocalizableMessage message = ERR_TASKS_RESTORE_UNKNOWN_MAC.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
       }
@@ -1759,7 +1759,7 @@ public class TaskBackend
       }
       catch (Exception e)
       {
-        Message message = ERR_TASKS_RESTORE_CANNOT_GET_MAC.get(
+        LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_GET_MAC.get(
             backupID, macKeyID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -1775,7 +1775,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      Message message = ERR_TASKS_RESTORE_CANNOT_OPEN_BACKUP_FILE.get(
+      LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_OPEN_BACKUP_FILE.get(
           backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -1792,7 +1792,7 @@ public class TaskBackend
       }
       catch (CryptoManagerException e)
       {
-        Message message = ERR_TASKS_RESTORE_CANNOT_GET_CIPHER.get(
+        LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_GET_CIPHER.get(
                 backupFile.getPath(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -1816,7 +1816,7 @@ public class TaskBackend
       }
       catch (Exception e)
       {
-        Message message = ERR_TASKS_RESTORE_CANNOT_GET_ZIP_ENTRY.get(
+        LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_GET_ZIP_ENTRY.get(
             backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -1854,7 +1854,7 @@ public class TaskBackend
         }
         catch (Exception e)
         {
-          Message message = ERR_TASKS_RESTORE_CANNOT_CREATE_FILE.get(
+          LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_CREATE_FILE.get(
               backupID, filePath, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
@@ -1902,7 +1902,7 @@ public class TaskBackend
       }
       catch (Exception e)
       {
-        Message message = ERR_TASKS_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE.get(
+        LocalizableMessage message = ERR_TASKS_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE.get(
             backupID, fileName, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -1916,7 +1916,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      Message message = ERR_TASKS_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE.get(
+      LocalizableMessage message = ERR_TASKS_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE.get(
           backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -1930,12 +1930,12 @@ public class TaskBackend
       byte[] calculatedHash = digest.digest();
       if (Arrays.equals(calculatedHash, unsignedHash))
       {
-        Message message = NOTE_TASKS_RESTORE_UNSIGNED_HASH_VALID.get();
+        LocalizableMessage message = NOTE_TASKS_RESTORE_UNSIGNED_HASH_VALID.get();
         logError(message);
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             ERR_TASKS_RESTORE_UNSIGNED_HASH_INVALID.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
@@ -1947,12 +1947,12 @@ public class TaskBackend
       byte[] calculatedSignature = mac.doFinal();
       if (Arrays.equals(calculatedSignature, signedHash))
       {
-        Message message = NOTE_TASKS_RESTORE_SIGNED_HASH_VALID.get();
+        LocalizableMessage message = NOTE_TASKS_RESTORE_SIGNED_HASH_VALID.get();
         logError(message);
       }
       else
       {
-        Message message = ERR_TASKS_RESTORE_SIGNED_HASH_INVALID.get(backupID);
+        LocalizableMessage message = ERR_TASKS_RESTORE_SIGNED_HASH_INVALID.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
       }
@@ -1961,14 +1961,14 @@ public class TaskBackend
     // If we are just verifying the archive, then we're done.
     if (verifyOnly)
     {
-      Message message =
+      LocalizableMessage message =
           NOTE_TASKS_RESTORE_VERIFY_SUCCESSFUL.get(backupID, backupPath);
       logError(message);
       return;
     }
 
     // If we've gotten here, then the archive was restored successfully.
-    Message message = NOTE_TASKS_RESTORE_SUCCESSFUL.get(backupID, backupPath);
+    LocalizableMessage message = NOTE_TASKS_RESTORE_SUCCESSFUL.get(backupID, backupPath);
     logError(message);
   }
 
@@ -1979,7 +1979,7 @@ public class TaskBackend
    */
   @Override()
   public boolean isConfigurationAcceptable(Configuration configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     TaskBackendCfg config = (TaskBackendCfg) configuration;
     return isConfigAcceptable(config, unacceptableReasons, null);
@@ -1992,7 +1992,7 @@ public class TaskBackend
    */
   @Override
   public boolean isConfigurationChangeAcceptable(TaskBackendCfg configEntry,
-                                            List<Message> unacceptableReasons)
+                                            List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigAcceptable(configEntry, unacceptableReasons,
                               taskBackingFile);
@@ -2016,7 +2016,7 @@ public class TaskBackend
    *          if not.
    */
   private static boolean isConfigAcceptable(TaskBackendCfg config,
-                                            List<Message> unacceptableReasons,
+                                            List<LocalizableMessage> unacceptableReasons,
                                             String taskBackingFile)
   {
     boolean configIsAcceptable = true;
@@ -2093,7 +2093,7 @@ public class TaskBackend
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;
     boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     String tmpBackingFile = taskBackingFile;

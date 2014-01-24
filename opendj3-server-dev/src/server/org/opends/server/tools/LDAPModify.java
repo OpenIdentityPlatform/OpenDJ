@@ -27,7 +27,7 @@
  */
 package org.opends.server.tools;
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -165,7 +165,7 @@ public class LDAPModify
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message =
+      LocalizableMessage message =
           ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(fileNameValue,
                   e.getLocalizedMessage());
       throw new FileNotFoundException(message.toString());
@@ -204,13 +204,13 @@ public class LDAPModify
             }
           }
 
-          Message message = ERR_LDIF_FILE_INVALID_LDIF_ENTRY.get(
+          LocalizableMessage message = ERR_LDIF_FILE_INVALID_LDIF_ENTRY.get(
               le.getLineNumber(), fileNameValue, String.valueOf(le));
           throw new IOException(message.toString());
         }
         else
         {
-          Message message = ERR_LDIF_FILE_INVALID_LDIF_ENTRY.get(
+          LocalizableMessage message = ERR_LDIF_FILE_INVALID_LDIF_ENTRY.get(
                   le.getLineNumber(), fileNameValue, String.valueOf(le));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           continue;
@@ -236,13 +236,13 @@ public class LDAPModify
             }
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_LDIF_FILE_READ_ERROR.get(fileNameValue, String.valueOf(e));
           throw new IOException(message.toString());
         }
         else
         {
-          Message message = ERR_LDIF_FILE_READ_ERROR.get(
+          LocalizableMessage message = ERR_LDIF_FILE_READ_ERROR.get(
               fileNameValue, String.valueOf(e));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           continue;
@@ -344,7 +344,7 @@ public class LDAPModify
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, ae);
           }
-          Message message = INFO_OPERATION_FAILED.get(operationType);
+          LocalizableMessage message = INFO_OPERATION_FAILED.get(operationType);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
           if (!modifyOptions.continueOnError())
@@ -356,7 +356,7 @@ public class LDAPModify
         }
 
         int resultCode = 0;
-        Message errorMessage = null;
+        LocalizableMessage errorMessage = null;
         DN matchedDN = null;
         List<String> referralURLs = null;
         try
@@ -430,7 +430,7 @@ public class LDAPModify
 
         if(resultCode != SUCCESS && resultCode != REFERRAL)
         {
-          Message msg = INFO_OPERATION_FAILED.get(operationType);
+          LocalizableMessage msg = INFO_OPERATION_FAILED.get(operationType);
 
           if(!modifyOptions.continueOnError())
           {
@@ -443,7 +443,7 @@ public class LDAPModify
           }
         } else
         {
-          Message msg = INFO_OPERATION_SUCCESSFUL.get(
+          LocalizableMessage msg = INFO_OPERATION_SUCCESSFUL.get(
                   operationType, asn1OctetStr.toString());
           out.println(msg);
 
@@ -643,7 +643,7 @@ public class LDAPModify
     BooleanArgument   noPropertiesFileArgument = null;
 
     // Create the command-line argument parser for use with this program.
-    Message toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
+    LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
     try
@@ -921,7 +921,7 @@ public class LDAPModify
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
@@ -934,7 +934,7 @@ public class LDAPModify
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -950,7 +950,7 @@ public class LDAPModify
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
               bindPassword.getLongIdentifier(),
               bindPasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -1068,7 +1068,7 @@ public class LDAPModify
         Control ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
-          Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
+          LocalizableMessage message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
@@ -1099,7 +1099,7 @@ public class LDAPModify
       }
       catch (LDAPException le)
       {
-        Message message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
+        LocalizableMessage message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
                 le.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
@@ -1169,13 +1169,13 @@ public class LDAPModify
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
+        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
       if(keyStorePathValue == null)
       {
-        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
+        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }

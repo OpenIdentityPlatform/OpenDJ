@@ -30,7 +30,7 @@ import java.util.*;
 import java.util.zip.DataFormatException;
 
 import org.assertj.core.api.Assertions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -185,7 +185,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   /**
-   * Create an Update Message from the data provided above.
+   * Create an Update LocalizableMessage from the data provided above.
    * The call getBytes() to test the encoding of the Msg and
    * create another ModifyMsg from the encoded byte array.
    * Finally test that both Msgs match.
@@ -1226,7 +1226,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @Test()
   public void errorMsgTest() throws Exception
   {
-    ErrorMsg msg = new ErrorMsg(1, 2, Message.raw("details"));
+    ErrorMsg msg = new ErrorMsg(1, 2, LocalizableMessage.raw("details"));
     ErrorMsg newMsg = new ErrorMsg(msg.getBytes(getCurrentVersion()),getCurrentVersion());
     assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());

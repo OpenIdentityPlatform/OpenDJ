@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.util.args;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.ToolMessages.*;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionOptions;
@@ -75,7 +75,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    * the arguments useSSL and startTLS are not present.
     */
   public LDAPConnectionArgumentParser(String mainClassName,
-                                      Message toolDescription,
+                                      LocalizableMessage toolDescription,
                                       boolean longArgumentsCaseSensitive,
                                       ArgumentGroup argumentGroup,
                                       boolean alwaysSSL) {
@@ -121,7 +121,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    * the arguments useSSL and startTLS are not present.
     */
   public LDAPConnectionArgumentParser(String mainClassName,
-                                      Message toolDescription,
+                                      LocalizableMessage toolDescription,
                                       boolean longArgumentsCaseSensitive,
                                       boolean allowsTrailingArguments,
                                       int minTrailingArguments,
@@ -189,7 +189,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
     if (args.bindPasswordArg.isPresent() &&
             args.bindPasswordFileArg.isPresent())
     {
-      Message message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+      LocalizableMessage message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
               args.bindPasswordArg.getLongIdentifier(),
               args.bindPasswordFileArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -202,7 +202,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
     if (args.keyStorePasswordArg.isPresent() &&
             args.keyStorePasswordFileArg.isPresent())
     {
-      Message message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+      LocalizableMessage message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
               args.keyStorePasswordArg.getLongIdentifier(),
               args.keyStorePasswordFileArg.getLongIdentifier());
       throw new ArgumentException(message);
@@ -214,7 +214,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
     if (args.trustStorePasswordArg.isPresent() &&
             args.trustStorePasswordFileArg.isPresent())
     {
-      Message message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+      LocalizableMessage message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
               args.trustStorePasswordArg.getLongIdentifier(),
               args.trustStorePasswordFileArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -234,7 +234,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
     {
       if (args.useStartTLSArg.isPresent())
       {
-        Message message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+        LocalizableMessage message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
                 args.useSSLArg.getLongIdentifier(),
                 args.useSSLArg.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -279,7 +279,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
       }
       catch (SSLConnectionException sce)
       {
-        Message message =
+        LocalizableMessage message =
                 ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(sce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
       }
@@ -298,7 +298,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
         int equalPos = s.indexOf('=');
         if (equalPos <= 0)
         {
-          Message message = ERR_LDAP_CONN_CANNOT_PARSE_SASL_OPTION.get(s);
+          LocalizableMessage message = ERR_LDAP_CONN_CANNOT_PARSE_SASL_OPTION.get(s);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           throw new ArgumentException(message);
         }
@@ -319,7 +319,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
 
       if (mechanism == null)
       {
-        Message message = ERR_LDAP_CONN_NO_SASL_MECHANISM.get();
+        LocalizableMessage message = ERR_LDAP_CONN_NO_SASL_MECHANISM.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         throw new ArgumentException(message);
       }

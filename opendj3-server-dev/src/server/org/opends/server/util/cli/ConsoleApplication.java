@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.util.cli;
 
@@ -59,13 +59,14 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.OpendsCertificateException;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.SetupUtils;
+import org.opends.server.util.StaticUtils;
 
 
 /**
@@ -223,7 +224,7 @@ public abstract class ConsoleApplication
    *           If the user's response could not be read from the console for
    *           some reason.
    */
-  public final boolean confirmAction(Message prompt, final boolean defaultValue)
+  public final boolean confirmAction(LocalizableMessage prompt, final boolean defaultValue)
       throws CLIException
   {
     if (!isInteractive())
@@ -231,9 +232,9 @@ public abstract class ConsoleApplication
       return defaultValue;
     }
 
-    final Message yes = INFO_GENERAL_YES.get();
-    final Message no = INFO_GENERAL_NO.get();
-    final Message errMsg = ERR_CONSOLE_APP_CONFIRM.get(yes, no);
+    final LocalizableMessage yes = INFO_GENERAL_YES.get();
+    final LocalizableMessage no = INFO_GENERAL_NO.get();
+    final LocalizableMessage errMsg = ERR_CONSOLE_APP_CONFIRM.get(yes, no);
     prompt =
         INFO_MENU_PROMPT_CONFIRM.get(prompt, yes, no, defaultValue ? yes : no);
 
@@ -357,7 +358,7 @@ public abstract class ConsoleApplication
    */
   public final void pressReturnToContinue()
   {
-    Message msg = INFO_MENU_PROMPT_RETURN_TO_CONTINUE.get();
+    LocalizableMessage msg = INFO_MENU_PROMPT_RETURN_TO_CONTINUE.get();
     try
     {
       readLineOfInput(msg);
@@ -382,7 +383,7 @@ public abstract class ConsoleApplication
    * @param msg
    *          The message.
    */
-  public final void println(Message msg)
+  public final void println(LocalizableMessage msg)
   {
     err.println(wrapText(msg, MAX_LINE_WIDTH));
   }
@@ -393,7 +394,7 @@ public abstract class ConsoleApplication
    * @param msg
    *          The message.
    */
-  public final void print(Message msg)
+  public final void print(LocalizableMessage msg)
   {
     err.print(wrapText(msg, MAX_LINE_WIDTH));
   }
@@ -406,7 +407,7 @@ public abstract class ConsoleApplication
    * @param indent
    *          The indentation.
    */
-  public final void println(final Message msg, final int indent)
+  public final void println(final LocalizableMessage msg, final int indent)
   {
     println(Style.NORMAL, msg, indent);
   }
@@ -421,7 +422,7 @@ public abstract class ConsoleApplication
    * @param indent
    *          The indentation.
    */
-  public final void println(final Style msgStyle, final Message msg,
+  public final void println(final Style msgStyle, final LocalizableMessage msg,
       final int indent)
   {
     if (!isQuiet())
@@ -468,12 +469,12 @@ public abstract class ConsoleApplication
 
   /**
    * Displays a message to the output stream if we are not in quiet mode.
-   * Message is wrap to max line width.
+   * LocalizableMessage is wrap to max line width.
    *
    * @param msg
    *          The message.
    */
-  public final void printlnProgress(Message msg)
+  public final void printlnProgress(LocalizableMessage msg)
   {
     if (!isQuiet())
     {
@@ -487,7 +488,7 @@ public abstract class ConsoleApplication
    * @param msg
    *          The message.
    */
-  public final void printProgress(final Message msg)
+  public final void printProgress(final LocalizableMessage msg)
   {
     if (!isQuiet())
     {
@@ -575,7 +576,7 @@ public abstract class ConsoleApplication
    * @param indent
    *          The number of columns to indent.
    */
-  public final void printErrln(Message msg, int indent)
+  public final void printErrln(LocalizableMessage msg, int indent)
   {
     err.println(wrapText(msg, MAX_LINE_WIDTH, indent));
   }
@@ -586,7 +587,7 @@ public abstract class ConsoleApplication
    * @param msg
    *          The verbose message.
    */
-  public final void printVerboseMessage(Message msg)
+  public final void printVerboseMessage(LocalizableMessage msg)
   {
     if (isVerbose() || isInteractive())
     {
@@ -604,7 +605,7 @@ public abstract class ConsoleApplication
    * @throws CLIException
    *           If the line of input could not be retrieved for some reason.
    */
-  public final String readLineOfInput(Message prompt) throws CLIException
+  public final String readLineOfInput(LocalizableMessage prompt) throws CLIException
   {
     if (prompt != null)
     {
@@ -643,12 +644,12 @@ public abstract class ConsoleApplication
    * @throws CLIException
    *           If an Exception occurs during the process.
    */
-  public final String readInput(final Message prompt,
+  public final String readInput(final LocalizableMessage prompt,
       final String defaultValue, final Style msgStyle)
       throws CLIException
   {
     String answer = null;
-    final Message messageToDisplay =
+    final LocalizableMessage messageToDisplay =
         INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(), defaultValue);
     if (msgStyle == Style.TITLE)
     {
@@ -702,7 +703,7 @@ public abstract class ConsoleApplication
    *           If the line of input could not be retrieved for some reason.
    * @return The string value read from the user.
    */
-  public String readInput(Message prompt, String defaultValue)
+  public String readInput(LocalizableMessage prompt, String defaultValue)
       throws CLIException
   {
     while (true)
@@ -748,7 +749,7 @@ public abstract class ConsoleApplication
    *          the Logger to be used to log the error message.
    * @return The string value read from the user.
    */
-  public String readInput(Message prompt, String defaultValue, Logger logger)
+  public String readInput(LocalizableMessage prompt, String defaultValue, Logger logger)
   {
     String s = defaultValue;
     try
@@ -771,7 +772,7 @@ public abstract class ConsoleApplication
    * @throws CLIException
    *           If the password could not be retrieved for some reason.
    */
-  public final String readPassword(Message prompt) throws CLIException
+  public final String readPassword(LocalizableMessage prompt) throws CLIException
   {
     err.print(wrapText(prompt + " ", MAX_LINE_WIDTH));
     char[] pwChars;
@@ -797,7 +798,7 @@ public abstract class ConsoleApplication
    *          the Logger to be used to log the error message.
    * @return Returns the password.
    */
-  protected final String readPassword(Message prompt, Logger logger)
+  protected final String readPassword(LocalizableMessage prompt, Logger logger)
   {
     String pwd = null;
     try
@@ -822,7 +823,7 @@ public abstract class ConsoleApplication
    * @throws CLIException
    *           If the port could not be retrieved for some reason.
    */
-  public final int readPort(Message prompt, final int defaultValue)
+  public final int readPort(LocalizableMessage prompt, final int defaultValue)
       throws CLIException
   {
     ValidationCallback<Integer> callback = new ValidationCallback<Integer>()
@@ -880,7 +881,7 @@ public abstract class ConsoleApplication
    *          the NamingException occurred.
    * @return a message object for the given NamingException.
    */
-  protected Message getMessageForException(NamingException ne, String hostPort)
+  protected LocalizableMessage getMessageForException(NamingException ne, String hostPort)
   {
     return Utils.getMessageForException(ne, hostPort);
   }
@@ -896,7 +897,7 @@ public abstract class ConsoleApplication
    *          the logger where the errors will be written.
    * @return the port value provided by the user.
    */
-  protected int askPort(Message prompt, int defaultValue, Logger logger)
+  protected int askPort(LocalizableMessage prompt, int defaultValue, Logger logger)
   {
     int port = -1;
     while (port == -1)
@@ -930,7 +931,7 @@ public abstract class ConsoleApplication
    * @throws CLIException
    *           If an unexpected error occurred which prevented validation.
    */
-  public final <T> T readValidatedInput(Message prompt,
+  public final <T> T readValidatedInput(LocalizableMessage prompt,
       ValidationCallback<T> validator) throws CLIException
   {
     while (true)
@@ -963,7 +964,7 @@ public abstract class ConsoleApplication
    *           If an unexpected error occurred which prevented validation or if
    *           the maximum number of tries was reached.
    */
-  public final <T> T readValidatedInput(Message prompt,
+  public final <T> T readValidatedInput(LocalizableMessage prompt,
       ValidationCallback<T> validator, int maxTries) throws CLIException
   {
     int nTries = 0;
@@ -1000,7 +1001,7 @@ public abstract class ConsoleApplication
    *           if the user did not provide valid answer after a certain number
    *           of tries (ConsoleApplication.CONFIRMATION_MAX_TRIES)
    */
-  protected final boolean askConfirmation(Message prompt, boolean defaultValue,
+  protected final boolean askConfirmation(LocalizableMessage prompt, boolean defaultValue,
       Logger logger) throws CLIException
   {
     boolean v = defaultValue;
@@ -1018,9 +1019,9 @@ public abstract class ConsoleApplication
       }
       catch (CLIException ce)
       {
-        if (ce.getMessageObject().getDescriptor().equals(
+        if (StaticUtils.hasDescriptor(ce.getMessageObject(),
             ERR_CONFIRMATION_TRIES_LIMIT_REACHED)
-            || ce.getMessageObject().getDescriptor().equals(
+            || StaticUtils.hasDescriptor(ce.getMessageObject(),
                 ERR_TRIES_LIMIT_REACHED))
         {
           throw ce;
@@ -1193,7 +1194,7 @@ public abstract class ConsoleApplication
               if (getCertificateRootException(e) != null
                   || (e.getCause() instanceof SSLHandshakeException))
               {
-                Message message =
+                LocalizableMessage message =
                     ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
                         hostName, String.valueOf(portNumber));
                 throw new ClientException(
@@ -1202,7 +1203,7 @@ public abstract class ConsoleApplication
             }
             if (e.getCause() instanceof SSLException)
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
                       hostName, String.valueOf(portNumber));
               throw new ClientException(
@@ -1211,7 +1212,7 @@ public abstract class ConsoleApplication
           }
           String hostPort =
               ServerDescriptor.getServerRepresentation(hostName, portNumber);
-          Message message = Utils.getMessageForException(e, hostPort);
+          LocalizableMessage message = Utils.getMessageForException(e, hostPort);
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
               message);
         }
@@ -1262,14 +1263,14 @@ public abstract class ConsoleApplication
             }
             else
             {
-              Message message =
+              LocalizableMessage message =
                   ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, String
                       .valueOf(portNumber));
               throw new ClientException(
                   LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
           }
-          Message message =
+          LocalizableMessage message =
               ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, String
                   .valueOf(portNumber));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
@@ -1292,7 +1293,7 @@ public abstract class ConsoleApplication
         }
         catch (NamingException e)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, String
                   .valueOf(portNumber));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
@@ -1398,7 +1399,7 @@ public abstract class ConsoleApplication
    *          the logger where the errors will be written.
    * @return the value provided by the user.
    */
-  protected int askInteger(Message prompt, int defaultValue, Logger logger)
+  protected int askInteger(LocalizableMessage prompt, int defaultValue, Logger logger)
   {
     int newInt = -1;
     while (newInt == -1)
@@ -1427,7 +1428,7 @@ public abstract class ConsoleApplication
    * @throws CLIException
    *           If the value could not be retrieved for some reason.
    */
-  public final int readInteger(Message prompt, final int defaultValue)
+  public final int readInteger(LocalizableMessage prompt, final int defaultValue)
       throws CLIException
   {
     ValidationCallback<Integer> callback = new ValidationCallback<Integer>()

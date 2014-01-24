@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -144,7 +144,7 @@ public class MonitorConfigManager
    */
   public boolean isConfigurationAddAcceptable(
                       MonitorProviderCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -176,7 +176,7 @@ public class MonitorConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     configuration.addChangeListener(this);
 
@@ -220,7 +220,7 @@ public class MonitorConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
                       MonitorProviderCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // It will always be acceptable to delete or disable a monitor provider.
     return true;
@@ -236,7 +236,7 @@ public class MonitorConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     MonitorProvider<?> monitor = monitors.remove(configuration.dn());
     if (monitor != null)
@@ -255,7 +255,7 @@ public class MonitorConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       MonitorProviderCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -287,7 +287,7 @@ public class MonitorConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the existing monitor provider if it's already enabled.
@@ -395,7 +395,7 @@ public class MonitorConfigManager
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_MONITOR_INITIALIZATION_FAILED.
+      LocalizableMessage message = ERR_CONFIG_MONITOR_INITIALIZATION_FAILED.
           get(className, String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);

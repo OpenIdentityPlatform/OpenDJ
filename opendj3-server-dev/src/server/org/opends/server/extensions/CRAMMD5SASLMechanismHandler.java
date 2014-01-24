@@ -36,7 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CramMD5SASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
@@ -139,7 +139,7 @@ public class CRAMMD5SASLMechanismHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_SASLCRAMMD5_CANNOT_GET_MESSAGE_DIGEST.get(getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
@@ -219,7 +219,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLCRAMMD5_NO_STORED_CHALLENGE.get();
+      LocalizableMessage message = ERR_SASLCRAMMD5_NO_STORED_CHALLENGE.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -228,7 +228,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLCRAMMD5_INVALID_STORED_CHALLENGE.get();
+      LocalizableMessage message = ERR_SASLCRAMMD5_INVALID_STORED_CHALLENGE.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -249,7 +249,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLCRAMMD5_NO_SPACE_IN_CREDENTIALS.get();
+      LocalizableMessage message = ERR_SASLCRAMMD5_NO_SPACE_IN_CREDENTIALS.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -264,7 +264,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLCRAMMD5_INVALID_DIGEST_LENGTH.get(
+      LocalizableMessage message = ERR_SASLCRAMMD5_INVALID_DIGEST_LENGTH.get(
               digest.length(),
               (2*MD5_DIGEST_LENGTH));
       bindOperation.setAuthFailureReason(message);
@@ -285,7 +285,7 @@ public class CRAMMD5SASLMechanismHandler
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLCRAMMD5_INVALID_DIGEST_CONTENT.get(
+      LocalizableMessage message = ERR_SASLCRAMMD5_INVALID_DIGEST_CONTENT.get(
               pe.getMessage());
       bindOperation.setAuthFailureReason(message);
       return;
@@ -314,7 +314,7 @@ public class CRAMMD5SASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        Message message = ERR_SASLCRAMMD5_CANNOT_DECODE_USERNAME_AS_DN.get(
+        LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_DECODE_USERNAME_AS_DN.get(
                 userName, de.getMessageObject());
         bindOperation.setAuthFailureReason(message);
         return;
@@ -324,7 +324,7 @@ public class CRAMMD5SASLMechanismHandler
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        Message message = ERR_SASLCRAMMD5_USERNAME_IS_NULL_DN.get();
+        LocalizableMessage message = ERR_SASLCRAMMD5_USERNAME_IS_NULL_DN.get();
         bindOperation.setAuthFailureReason(message);
         return;
       }
@@ -359,7 +359,7 @@ public class CRAMMD5SASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        Message message = ERR_SASLCRAMMD5_CANNOT_GET_ENTRY_BY_DN.get(
+        LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_GET_ENTRY_BY_DN.get(
                 String.valueOf(userDN), de.getMessageObject());
         bindOperation.setAuthFailureReason(message);
         return;
@@ -390,7 +390,7 @@ public class CRAMMD5SASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        Message message = ERR_SASLCRAMMD5_CANNOT_MAP_USERNAME.get(
+        LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_MAP_USERNAME.get(
                 String.valueOf(userName), de.getMessageObject());
         bindOperation.setAuthFailureReason(message);
         return;
@@ -403,7 +403,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLCRAMMD5_NO_MATCHING_ENTRIES.get(userName);
+      LocalizableMessage message = ERR_SASLCRAMMD5_NO_MATCHING_ENTRIES.get(userName);
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -423,7 +423,7 @@ public class CRAMMD5SASLMechanismHandler
       if (!authState.isPasswordPolicy())
       {
         bindOperation.setResultCode(ResultCode.INAPPROPRIATE_AUTHENTICATION);
-        Message message = ERR_SASL_ACCOUNT_NOT_LOCAL
+        LocalizableMessage message = ERR_SASL_ACCOUNT_NOT_LOCAL
             .get(SASL_MECHANISM_CRAM_MD5, String.valueOf(userEntry.getName()));
         bindOperation.setAuthFailureReason(message);
         return;
@@ -435,7 +435,7 @@ public class CRAMMD5SASLMechanismHandler
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        Message message = ERR_SASLCRAMMD5_NO_REVERSIBLE_PASSWORDS.get(
+        LocalizableMessage message = ERR_SASLCRAMMD5_NO_REVERSIBLE_PASSWORDS.get(
                 String.valueOf(userEntry.getName()));
         bindOperation.setAuthFailureReason(message);
         return;
@@ -445,7 +445,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLCRAMMD5_CANNOT_GET_REVERSIBLE_PASSWORDS.get(
+      LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_GET_REVERSIBLE_PASSWORDS.get(
               String.valueOf(userEntry.getName()),
               String.valueOf(e));
       bindOperation.setAuthFailureReason(message);
@@ -470,7 +470,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLCRAMMD5_INVALID_PASSWORD.get();
+      LocalizableMessage message = ERR_SASLCRAMMD5_INVALID_PASSWORD.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -576,7 +576,7 @@ public class CRAMMD5SASLMechanismHandler
   @Override()
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     CramMD5SASLMechanismHandlerCfg config =
          (CramMD5SASLMechanismHandlerCfg) configuration;
@@ -591,7 +591,7 @@ public class CRAMMD5SASLMechanismHandler
   @Override
   public boolean isConfigurationChangeAcceptable(
                       CramMD5SASLMechanismHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -607,7 +607,7 @@ public class CRAMMD5SASLMechanismHandler
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     DN identityMapperDN = configuration.getIdentityMapperDN();
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);

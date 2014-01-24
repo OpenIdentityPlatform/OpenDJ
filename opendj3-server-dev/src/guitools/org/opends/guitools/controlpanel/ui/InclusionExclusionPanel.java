@@ -51,7 +51,7 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.DN;
@@ -166,7 +166,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
     gbc.gridx = 1;
     gbc.weightx = 1.0;
     gbc.insets.left = 10;
-    dnsToInclude = Utilities.createTextArea(Message.EMPTY, 5, 25);
+    dnsToInclude = Utilities.createTextArea(LocalizableMessage.EMPTY, 5, 25);
     final JScrollPane scrollDns = Utilities.createScrollPane(dnsToInclude);
     panel.add(scrollDns, gbc);
     lDnsToInclude.setLabelFor(dnsToInclude);
@@ -285,7 +285,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
     gbc.gridx = 1;
     gbc.weightx = 1.0;
     gbc.insets.left = 10;
-    dnsToExclude = Utilities.createTextArea(Message.EMPTY, 5, 0);
+    dnsToExclude = Utilities.createTextArea(LocalizableMessage.EMPTY, 5, 0);
     final JScrollPane scrollDns = Utilities.createScrollPane(dnsToExclude);
     lDnsToExclude.setLabelFor(dnsToExclude);
     panel.add(scrollDns, gbc);
@@ -429,7 +429,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
    * @param backendName the name of the backend where the operation associated
    * with the panel applies (used to generate the error messages).
    */
-  protected void updateIncludeExclude(Collection<Message> errors,
+  protected void updateIncludeExclude(Collection<LocalizableMessage> errors,
       String backendName)
   {
     updateErrors(lDnsToInclude, dnsToInclude, lAttributesToInclude,
@@ -443,7 +443,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
 
   private void updateErrors(JLabel lDns, JTextComponent dns, JLabel lAttributes,
       JTextComponent attributes, JLabel lFilter, JTextComponent filter,
-      Collection<Message> errors, String backendName)
+      Collection<LocalizableMessage> errors, String backendName)
   {
     setPrimaryValid(lDns);
     setPrimaryValid(lAttributes);

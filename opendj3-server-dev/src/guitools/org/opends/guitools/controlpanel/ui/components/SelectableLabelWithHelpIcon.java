@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -40,7 +41,7 @@ import javax.swing.text.JTextComponent;
 
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A panel containing a label an a help icon.  A customized tool tip is used,
@@ -74,7 +75,7 @@ public class SelectableLabelWithHelpIcon extends JPanel
    * @param text the text of the panel.
    * @param tooltipIcon the tool tip of the help icon.
    */
-  public SelectableLabelWithHelpIcon(Message text, Message tooltipIcon)
+  public SelectableLabelWithHelpIcon(LocalizableMessage text, LocalizableMessage tooltipIcon)
   {
     super(new GridBagLayout());
     setOpaque(false);

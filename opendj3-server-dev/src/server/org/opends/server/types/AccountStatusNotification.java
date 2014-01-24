@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.PasswordPolicyState;
 
@@ -66,7 +66,7 @@ public final class AccountStatusNotification
 
   // A message that provides additional information for this account
   // status notification.
-  private Message message;
+  private LocalizableMessage message;
 
 
 
@@ -86,7 +86,7 @@ public final class AccountStatusNotification
    */
   public AccountStatusNotification(
               AccountStatusNotificationType notificationType,
-              Entry userEntry, Message message,
+              Entry userEntry, LocalizableMessage message,
               Map<AccountStatusNotificationProperty,List<String>>
                    notificationProperties)
   {
@@ -155,7 +155,7 @@ public final class AccountStatusNotification
    * @return  A message that provides additional information for this
    *          account status notification.
    */
-  public Message getMessage()
+  public LocalizableMessage getMessage()
   {
     return message;
   }

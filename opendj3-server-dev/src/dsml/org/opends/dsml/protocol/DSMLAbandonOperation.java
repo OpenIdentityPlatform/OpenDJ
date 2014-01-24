@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.protocols.ldap.AbandonRequestProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -88,7 +88,7 @@ public class DSMLAbandonOperation
     } catch (NumberFormatException nfe)
     {
       throw new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
-                              Message.raw(nfe.getMessage()));
+                              LocalizableMessage.raw(nfe.getMessage()));
     }
 
     // Create and send an LDAP request to the server.

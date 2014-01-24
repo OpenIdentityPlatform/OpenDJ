@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.config;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -91,7 +91,7 @@ public final class DNConfigAttribute
    *                              configuration attribute require administrative
    *                              action before they will take effect.
    */
-  public DNConfigAttribute(String name, Message description, boolean isRequired,
+  public DNConfigAttribute(String name, LocalizableMessage description, boolean isRequired,
                            boolean isMultiValued, boolean requiresAdminAction)
   {
     super(name, description, isRequired, isMultiValued, requiresAdminAction);
@@ -119,7 +119,7 @@ public final class DNConfigAttribute
    *                              action before they will take effect.
    * @param  value                The value for this DN configuration attribute.
    */
-  public DNConfigAttribute(String name, Message description, boolean isRequired,
+  public DNConfigAttribute(String name, LocalizableMessage description, boolean isRequired,
                            boolean isMultiValued, boolean requiresAdminAction,
                            DN value)
   {
@@ -159,7 +159,7 @@ public final class DNConfigAttribute
    * @param  values               The set of values for this configuration
    *                              attribute.
    */
-  public DNConfigAttribute(String name, Message description, boolean isRequired,
+  public DNConfigAttribute(String name, LocalizableMessage description, boolean isRequired,
                            boolean isMultiValued, boolean requiresAdminAction,
                            List<DN> values)
   {
@@ -200,7 +200,7 @@ public final class DNConfigAttribute
    * @param  pendingValues        The set of pending values for this
    *                              configuration attribute.
    */
-  public DNConfigAttribute(String name, Message description, boolean isRequired,
+  public DNConfigAttribute(String name, LocalizableMessage description, boolean isRequired,
                            boolean isMultiValued, boolean requiresAdminAction,
                            List<DN> activeValues, List<DN> pendingValues)
   {
@@ -271,13 +271,13 @@ public final class DNConfigAttribute
   {
     if ((activeValues == null) || activeValues.isEmpty())
     {
-      Message message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
       throw new ConfigException(message);
     }
 
     if (activeValues.size() > 1)
     {
-      Message message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
       throw new ConfigException(message);
     }
 
@@ -319,13 +319,13 @@ public final class DNConfigAttribute
 
     if ((pendingValues == null) || pendingValues.isEmpty())
     {
-      Message message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
       throw new ConfigException(message);
     }
 
     if (pendingValues.size() > 1)
     {
-      Message message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
       throw new ConfigException(message);
     }
 
@@ -365,7 +365,7 @@ public final class DNConfigAttribute
   {
     if (value == null)
     {
-      Message message = ERR_CONFIG_ATTR_DN_NULL.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_DN_NULL.get(getName());
       throw new ConfigException(message);
     }
 
@@ -402,7 +402,7 @@ public final class DNConfigAttribute
     {
       if (isRequired())
       {
-        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
         throw new ConfigException(message);
       }
       else
@@ -425,7 +425,7 @@ public final class DNConfigAttribute
     int numValues = values.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
       throw new ConfigException(message);
     }
@@ -439,7 +439,7 @@ public final class DNConfigAttribute
     {
       if (value == null)
       {
-        Message message = ERR_CONFIG_ATTR_DN_NULL.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_DN_NULL.get(getName());
         throw new ConfigException(message);
       }
 
@@ -449,7 +449,7 @@ public final class DNConfigAttribute
 
       if (valueSet.contains(attrValue))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(
                     getName(), String.valueOf(value));
         throw new ConfigException(message);
@@ -622,7 +622,7 @@ public final class DNConfigAttribute
     {
       if (isRequired())
       {
-        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
         throw new ConfigException(message);
       }
       else
@@ -635,7 +635,7 @@ public final class DNConfigAttribute
     int numValues = valueStrings.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
       throw new ConfigException(message);
     }
@@ -647,7 +647,7 @@ public final class DNConfigAttribute
     {
       if (valueString == null)
       {
-        Message message = ERR_CONFIG_ATTR_DN_NULL.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_DN_NULL.get(getName());
         if (allowFailures)
         {
           ErrorLogger.logError(message);
@@ -672,7 +672,7 @@ public final class DNConfigAttribute
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
+        LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
                 valueString, getName(),
                 String.valueOf(e));
 
@@ -698,7 +698,7 @@ public final class DNConfigAttribute
     // attribute and if so deal with it accordingly.
     if ((isRequired()) && valueSet.isEmpty())
     {
-      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
       throw new ConfigException(message);
     }
 
@@ -800,7 +800,7 @@ public final class DNConfigAttribute
           if (pendingValues != null)
           {
             // We cannot have multiple pending value sets.
-            Message message =
+            LocalizableMessage message =
                 ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName());
             throw new ConfigException(message);
           }
@@ -811,7 +811,7 @@ public final class DNConfigAttribute
             if (isRequired())
             {
               // This is illegal -- it must have a value.
-              Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+              LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
               throw new ConfigException(message);
             }
             else
@@ -826,7 +826,7 @@ public final class DNConfigAttribute
             if ((numValues > 1) && (! isMultiValued()))
             {
               // This is illegal -- the attribute is single-valued.
-              Message message =
+              LocalizableMessage message =
                   ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
               throw new ConfigException(message);
             }
@@ -846,7 +846,7 @@ public final class DNConfigAttribute
                   TRACER.debugCaught(DebugLogLevel.ERROR, e);
                 }
 
-                Message message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
+                LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
                     v.getValue().toString(), getName(), String.valueOf(e));
                 throw new ConfigException(message, e);
               }
@@ -859,7 +859,7 @@ public final class DNConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          Message message =
+          LocalizableMessage message =
               ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName());
           throw new ConfigException(message);
         }
@@ -870,7 +870,7 @@ public final class DNConfigAttribute
         if (activeValues!= null)
         {
           // We cannot have multiple active value sets.
-          Message message =
+          LocalizableMessage message =
               ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName());
           throw new ConfigException(message);
         }
@@ -881,7 +881,7 @@ public final class DNConfigAttribute
           if (isRequired())
           {
             // This is illegal -- it must have a value.
-            Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+            LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
             throw new ConfigException(message);
           }
           else
@@ -896,7 +896,7 @@ public final class DNConfigAttribute
           if ((numValues > 1) && (! isMultiValued()))
           {
             // This is illegal -- the attribute is single-valued.
-            Message message =
+            LocalizableMessage message =
                 ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
             throw new ConfigException(message);
           }
@@ -916,7 +916,7 @@ public final class DNConfigAttribute
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
+              LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
                   v.getValue().toString(), getName(), String.valueOf(e));
               throw new ConfigException(message, e);
             }
@@ -930,7 +930,7 @@ public final class DNConfigAttribute
     if (activeValues == null)
     {
       // This is not OK.  The value set must contain an active value.
-      Message message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
       throw new ConfigException(message);
     }
 
@@ -1188,7 +1188,7 @@ public final class DNConfigAttribute
     Object value = jmxAttribute.getValue();
     if (value == null)
     {
-      Message message = ERR_CONFIG_ATTR_DN_NULL.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_DN_NULL.get(getName());
       throw new ConfigException(message);
     }
     else if (value instanceof DN)
@@ -1209,7 +1209,7 @@ public final class DNConfigAttribute
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
+        LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
             (String) value, getName(), String.valueOf(e));
         throw new ConfigException(message, e);
       }
@@ -1253,7 +1253,7 @@ public final class DNConfigAttribute
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
+              LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
                   valueStr, getName(), String.valueOf(e));
               throw new ConfigException(message, e);
             }
@@ -1279,14 +1279,14 @@ public final class DNConfigAttribute
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_CONFIG_ATTR_INVALID_DN_VALUE.get(
+          LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_DN_VALUE.get(
               getName(), String.valueOf(value), String.valueOf(e));
           throw new ConfigException(message, e);
         }
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_ATTR_DN_INVALID_ARRAY_TYPE.get(
                     String.valueOf(jmxAttribute),
                     String.valueOf(componentType));
@@ -1295,7 +1295,7 @@ public final class DNConfigAttribute
     }
     else
     {
-      Message message = ERR_CONFIG_ATTR_DN_INVALID_TYPE.get(
+      LocalizableMessage message = ERR_CONFIG_ATTR_DN_INVALID_TYPE.get(
           String.valueOf(value), getName(), value.getClass().getName());
       throw new ConfigException(message);
     }

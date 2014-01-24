@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
@@ -217,7 +217,7 @@ public class DisconnectClientPlugin
           // This is fine.
           break;
         default:
-          throw new ConfigException(Message.raw("Invalid plugin type " + t +
+          throw new ConfigException(LocalizableMessage.raw("Invalid plugin type " + t +
                                     " for the disconnect plugin."));
       }
     }
@@ -754,7 +754,7 @@ public class DisconnectClientPlugin
       if (control != null && control.getSection().equalsIgnoreCase(section))
       {
         operation.disconnectClient(DisconnectReason.CLOSED_BY_PLUGIN, true,
-            Message.raw("Closed by disconnect client plugin (section " +
+            LocalizableMessage.raw("Closed by disconnect client plugin (section " +
                 section + ")"));
 
         return true;
@@ -762,7 +762,7 @@ public class DisconnectClientPlugin
     }
     catch (Exception e)
     {
-      ErrorLogger.logError(Message.raw("Unable to decode the disconnect client control:  " +
+      ErrorLogger.logError(LocalizableMessage.raw("Unable to decode the disconnect client control:  " +
               e));
     }
 

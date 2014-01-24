@@ -31,8 +31,8 @@ package org.opends.server.core;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.*;
 import org.opends.server.loggers.ErrorLogger;
@@ -248,7 +248,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
                   userDNString, stackTraceToSingleLineString(e));
             }
 
-            Message message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.
+            LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.
                 get(v.getValue().toString(), attributeType.getNameOrOID(),
                     userDNString, String.valueOf(e));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -2808,7 +2808,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public boolean passwordIsAcceptable(Operation operation, Entry userEntry,
       ByteString newPassword, Set<ByteString> currentPasswords,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     for (PasswordValidator<?> validator : passwordPolicy
         .getPasswordValidators())
@@ -3620,7 +3620,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public void generateAccountStatusNotification(
           AccountStatusNotificationType notificationType,
-          Entry userEntry, Message message,
+          Entry userEntry, LocalizableMessage message,
           Map<AccountStatusNotificationProperty,List<String>>
                notificationProperties)
   {
@@ -3694,7 +3694,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     ResultCode resultCode = internalModify.getResultCode();
     if (resultCode != ResultCode.SUCCESS)
     {
-      Message message = ERR_PWPSTATE_CANNOT_UPDATE_USER_ENTRY.get(userDNString,
+      LocalizableMessage message = ERR_PWPSTATE_CANNOT_UPDATE_USER_ENTRY.get(userDNString,
                             String.valueOf(internalModify.getErrorMessage()));
 
       // If this is a root user, or if the password policy says that we should

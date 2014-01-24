@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.AccessControlMessages.*;
 import org.opends.server.util.TimeThread;
@@ -69,19 +69,19 @@ public class TimeOfDay implements KeywordBindRule {
         int valueAsInt = 0;
         if (!Pattern.matches(timeofdayRegex, expr))
         {
-            Message message = WARN_ACI_SYNTAX_INVALID_TIMEOFDAY.get(expr);
+            LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_TIMEOFDAY.get(expr);
             throw new AciException(message);
          }
         try {
             valueAsInt = Integer.parseInt(expr);
         } catch (NumberFormatException nfe) {
-          Message message =
+          LocalizableMessage message =
            WARN_ACI_SYNTAX_INVALID_TIMEOFDAY_FORMAT.get(expr, nfe.getMessage());
             throw new AciException(message);
         }
         if ((valueAsInt < 0) || (valueAsInt > 2359))
         {
-            Message message = WARN_ACI_SYNTAX_INVALID_TIMEOFDAY_RANGE.get(expr);
+            LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_TIMEOFDAY_RANGE.get(expr);
             throw new AciException(message);
         }
 

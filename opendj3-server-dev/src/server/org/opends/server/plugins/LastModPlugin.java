@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.LastModPluginCfg;
@@ -136,7 +136,7 @@ public final class LastModPlugin
 
 
         default:
-          Message message =
+          LocalizableMessage message =
               ERR_PLUGIN_LASTMOD_INVALID_PLUGIN_TYPE.get(t.toString());
           throw new ConfigException(message);
       }
@@ -320,7 +320,7 @@ public final class LastModPlugin
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     LastModPluginCfg cfg = (LastModPluginCfg) configuration;
     return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
@@ -332,7 +332,7 @@ public final class LastModPlugin
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(LastModPluginCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -350,7 +350,7 @@ public final class LastModPlugin
 
 
         default:
-          Message message = ERR_PLUGIN_LASTMOD_INVALID_PLUGIN_TYPE.get(
+          LocalizableMessage message = ERR_PLUGIN_LASTMOD_INVALID_PLUGIN_TYPE.get(
                   pluginType.toString());
           unacceptableReasons.add(message);
           configAcceptable = false;

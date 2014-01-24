@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.api;
 
@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
@@ -93,7 +93,7 @@ public abstract class ConnectionHandler
    *          finalized.
    */
   public abstract void finalizeConnectionHandler(
-      Message finalizeReason);
+      LocalizableMessage finalizeReason);
 
 
 
@@ -228,7 +228,7 @@ public abstract class ConnectionHandler
    */
   public boolean isConfigurationAcceptable(
                       ConnectionHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by connection handler
@@ -313,7 +313,7 @@ public abstract class ConnectionHandler
       int cpus = Runtime.getRuntime().availableProcessors();
       int value = Math.max(2, cpus / 2);
 
-      Message message =
+      LocalizableMessage message =
           INFO_ERGONOMIC_SIZING_OF_REQUEST_HANDLER_THREADS.get(friendlyName,
               value);
       logError(message);

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -63,8 +64,8 @@ import
 org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -146,8 +147,8 @@ public class NewAttributePanel extends StatusGenericPanel
 
   private Component relativeComponent;
 
-  private Message NO_PARENT = INFO_CTRL_PANEL_NO_PARENT_FOR_ATTRIBUTE.get();
-  private Message NO_MATCHING_RULE =
+  private LocalizableMessage NO_PARENT = INFO_CTRL_PANEL_NO_PARENT_FOR_ATTRIBUTE.get();
+  private LocalizableMessage NO_MATCHING_RULE =
     INFO_CTRL_PANEL_NO_MATCHING_RULE_FOR_ATTRIBUTE.get();
 
   /**
@@ -165,7 +166,7 @@ public class NewAttributePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_ATTRIBUTE_PANEL_TITLE.get();
   }
@@ -377,13 +378,13 @@ public class NewAttributePanel extends StatusGenericPanel
    */
   public void okClicked()
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     for (JLabel label : labels)
     {
       setPrimaryValid(label);
     }
     String n = getAttributeName();
-    MessageBuilder err = new MessageBuilder();
+    LocalizableMessageBuilder err = new LocalizableMessageBuilder();
     if (n.length() == 0)
     {
       errors.add(ERR_CTRL_PANEL_ATTRIBUTE_NAME_REQUIRED.get());
@@ -393,11 +394,11 @@ public class NewAttributePanel extends StatusGenericPanel
     {
       errors.add(ERR_CTRL_PANEL_INVALID_ATTRIBUTE_NAME.get(err.toString()));
       setPrimaryInvalid(lName);
-      err = new MessageBuilder();
+      err = new LocalizableMessageBuilder();
     }
     else
     {
-      Message elementType = getSchemaElementType(n, schema);
+      LocalizableMessage elementType = getSchemaElementType(n, schema);
       if (elementType != null)
       {
         errors.add(ERR_CTRL_PANEL_ATTRIBUTE_NAME_ALREADY_IN_USE.get(n,
@@ -413,11 +414,11 @@ public class NewAttributePanel extends StatusGenericPanel
       {
         errors.add(ERR_CTRL_PANEL_OID_NOT_VALID.get(err.toString()));
         setPrimaryInvalid(lOID);
-        err = new MessageBuilder();
+        err = new LocalizableMessageBuilder();
       }
       else
       {
-        Message elementType = getSchemaElementType(n, schema);
+        LocalizableMessage elementType = getSchemaElementType(n, schema);
         if (elementType != null)
         {
           errors.add(ERR_CTRL_PANEL_OID_ALREADY_IN_USE.get(n,
@@ -441,7 +442,7 @@ public class NewAttributePanel extends StatusGenericPanel
           }
           else
           {
-            Message elementType = getSchemaElementType(alias, schema);
+            LocalizableMessage elementType = getSchemaElementType(alias, schema);
             if (elementType != null)
             {
               errors.add(ERR_CTRL_PANEL_ALIAS_ALREADY_IN_USE.get(n,
@@ -516,7 +517,7 @@ public class NewAttributePanel extends StatusGenericPanel
    * @param schema the schema.
    * @return the message representing the schema element type.
    */
-  static Message getSchemaElementType(String name, Schema schema)
+  static LocalizableMessage getSchemaElementType(String name, Schema schema)
   {
     if (schema.getAttributeType(name.toLowerCase()) != null)
     {
@@ -592,7 +593,7 @@ public class NewAttributePanel extends StatusGenericPanel
 
     JComboBox[] comboBoxes = {parent, syntax, approximate,
         equality, ordering, substring};
-    Message[] defaultValues = {NO_PARENT, Message.EMPTY, NO_MATCHING_RULE,
+    LocalizableMessage[] defaultValues = {NO_PARENT, LocalizableMessage.EMPTY, NO_MATCHING_RULE,
         NO_MATCHING_RULE, NO_MATCHING_RULE, NO_MATCHING_RULE
     };
     SchemaElementComboBoxCellRenderer renderer = new

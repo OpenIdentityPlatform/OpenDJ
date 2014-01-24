@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -45,61 +46,11 @@ public final class DebugLogCategory extends LogCategory
       DEBUG_CATEGORY_MESSAGE);
 
   /**
-   * The log category that will be used for constructor messages.
-   * Only logger related classes may use this.
-   */
-  public static final LogCategory CONSTRUCTOR = new DebugLogCategory(
-      DEBUG_CATEGORY_CONSTRUCTOR);
-
-
-  /**
-   * The log category that will be used for raw data read messages.
-   */
-  public static final LogCategory DATA = new DebugLogCategory(
-      DEBUG_CATEGORY_DATA);
-
-
-  /**
-   * The log category that will be used for thrown exception messages.
-   * Only logger related classes may use this.
-   */
-  public static final LogCategory THROWN = new DebugLogCategory(
-      DEBUG_CATEGORY_THROWN);
-
-  /**
    * The log category that will be used for caught exception messages.
    * Only logger related classes may use this.
    */
   public static final LogCategory CAUGHT = new DebugLogCategory(
       DEBUG_CATEGORY_CAUGHT);
-
-  /**
-   * The log category that will be used for method entry messages.
-   * Only logger related classes may use this.
-   */
-  public static final LogCategory ENTER = new DebugLogCategory(
-      DEBUG_CATEGORY_ENTER);
-
-  /**
-   * The log category that will be used for method exit messages.
-   * Only logger related classes may use this.
-   */
-  public static final LogCategory EXIT = new DebugLogCategory(
-      DEBUG_CATEGORY_EXIT);
-
-  /**
-   * The log category that will be used for protocol
-   * elements messages.
-   */
-  public static final LogCategory PROTOCOL = new DebugLogCategory(
-      DEBUG_CATEGORY_PROTOCOL);
-
-  /**
-   * The log category that will be used for raw data access
-   * from the JE database messages.
-   */
-  public static final LogCategory DATABASE_ACCESS =
-      new DebugLogCategory(DEBUG_CATEGORY_DATABASE_ACCESS);
 
 
   /**

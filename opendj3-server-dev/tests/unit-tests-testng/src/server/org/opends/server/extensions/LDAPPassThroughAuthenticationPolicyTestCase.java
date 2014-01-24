@@ -36,7 +36,7 @@ import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
@@ -2187,7 +2187,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
   {
     final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory();
     assertEquals(
-        factory.isConfigurationAcceptable(cfg, new LinkedList<Message>()),
+        factory.isConfigurationAcceptable(cfg, new LinkedList<LocalizableMessage>()),
         isValid);
   }
 

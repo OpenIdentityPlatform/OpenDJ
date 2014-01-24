@@ -33,7 +33,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -68,7 +68,7 @@ public abstract class ServerHandler extends MessageHandler
    * @param handler         The handler that manages that session.
    */
   static protected void closeSession(Session providedSession,
-      Message providedMsg, ServerHandler handler)
+      LocalizableMessage providedMsg, ServerHandler handler)
   {
     if (providedMsg != null)
     {
@@ -234,7 +234,7 @@ public abstract class ServerHandler extends MessageHandler
    * Abort a start procedure currently establishing.
    * @param reason The provided reason.
    */
-  protected void abortStart(Message reason)
+  protected void abortStart(LocalizableMessage reason)
   {
     // We did not recognize the message, close session as what can happen after
     // is undetermined and we do not want the server to be disturbed
@@ -329,7 +329,7 @@ public abstract class ServerHandler extends MessageHandler
       }
       catch (InterruptedException e)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_SESSION_STARTUP_INTERRUPTED.get(session.getName());
         throw new DirectoryException(ResultCode.OTHER,
             message, e);
@@ -832,7 +832,7 @@ public abstract class ServerHandler extends MessageHandler
     boolean lockAcquired = replicationServerDomain.tryLock(timeout);
     if (!lockAcquired)
     {
-      Message message = WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(
+      LocalizableMessage message = WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(
           getBaseDNString(),
           serverId,
           session.getReadableRemoteAddress(),
@@ -1048,7 +1048,7 @@ public abstract class ServerHandler extends MessageHandler
    * Update the send window size based on the credit specified in the
    * given window message.
    *
-   * @param windowMsg The Window Message containing the information
+   * @param windowMsg The Window LocalizableMessage containing the information
    *                  necessary for updating the window size.
    */
   public void updateWindow(WindowMsg windowMsg)
@@ -1245,7 +1245,7 @@ public abstract class ServerHandler extends MessageHandler
    *
    * @return a "badly disconnected" error message for this server handler
    */
-  public Message getBadlyDisconnectedErrorMessage()
+  public LocalizableMessage getBadlyDisconnectedErrorMessage()
   {
     if (isDataServer())
     {

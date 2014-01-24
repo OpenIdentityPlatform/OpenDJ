@@ -26,7 +26,7 @@
  */
 
 package org.opends.server.admin;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -229,7 +229,7 @@ public final class IntegerPropertyDefinition extends
    *         definition in the default locale, or <code>null</code>
    *         if there is no unit synopsis.
    */
-  public Message getUnitSynopsis() {
+  public LocalizableMessage getUnitSynopsis() {
     return getUnitSynopsis(Locale.getDefault());
   }
 
@@ -245,7 +245,7 @@ public final class IntegerPropertyDefinition extends
    *         definition in the specified locale, or <code>null</code>
    *         if there is no unit synopsis.
    */
-  public Message getUnitSynopsis(Locale locale) {
+  public LocalizableMessage getUnitSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + getName() + ".syntax.integer.unit-synopsis";

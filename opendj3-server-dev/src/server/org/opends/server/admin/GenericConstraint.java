@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -31,7 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.ClientConstraintHandler;
 import org.opends.server.admin.client.CommunicationException;
@@ -68,7 +69,7 @@ public class GenericConstraint extends Constraint {
      */
     @Override
     public boolean isAddAcceptable(ManagementContext context,
-        ManagedObject<?> managedObject, Collection<Message> unacceptableReasons)
+        ManagedObject<?> managedObject, Collection<LocalizableMessage> unacceptableReasons)
         throws AuthorizationException, CommunicationException {
       if (!condition.evaluate(context, managedObject)) {
         unacceptableReasons.add(getSynopsis());
@@ -85,7 +86,7 @@ public class GenericConstraint extends Constraint {
      */
     @Override
     public boolean isModifyAcceptable(ManagementContext context,
-        ManagedObject<?> managedObject, Collection<Message> unacceptableReasons)
+        ManagedObject<?> managedObject, Collection<LocalizableMessage> unacceptableReasons)
         throws AuthorizationException, CommunicationException {
       if (!condition.evaluate(context, managedObject)) {
         unacceptableReasons.add(getSynopsis());
@@ -116,7 +117,7 @@ public class GenericConstraint extends Constraint {
      */
     @Override
     public boolean isUsable(ServerManagedObject<?> managedObject,
-        Collection<Message> unacceptableReasons) throws ConfigException {
+        Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
       if (!condition.evaluate(managedObject)) {
         unacceptableReasons.add(getSynopsis());
         return false;
@@ -188,7 +189,7 @@ public class GenericConstraint extends Constraint {
    * @return Returns the synopsis of this constraint in the default
    *         locale.
    */
-  public final Message getSynopsis() {
+  public final LocalizableMessage getSynopsis() {
     return getSynopsis(Locale.getDefault());
   }
 
@@ -202,7 +203,7 @@ public class GenericConstraint extends Constraint {
    * @return Returns the synopsis of this constraint in the specified
    *         locale.
    */
-  public final Message getSynopsis(Locale locale) {
+  public final LocalizableMessage getSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "constraint." + id + ".synopsis";

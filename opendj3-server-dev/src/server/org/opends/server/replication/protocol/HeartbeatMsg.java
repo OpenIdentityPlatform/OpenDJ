@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.server.replication.protocol;
@@ -60,7 +60,7 @@ public class HeartbeatMsg extends ReplicationMsg
 
     /* first byte is the type */
     if (in.length != 1 || in[0] != MSG_TYPE_HEARTBEAT)
-      throw new DataFormatException("Input is not a valid Heartbeat Message.");
+      throw new DataFormatException("Input is not a valid Heartbeat LocalizableMessage.");
   }
 
   /**

@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
@@ -76,8 +77,8 @@ public class ProgressUpdateListenerDelegate {
    * @param newLogDetail        the new log messages that we have for the
    */
   public void notifyListeners(ProgressStep current, Integer ratio,
-                              Message currentPhaseSummary,
-                              Message newLogDetail) {
+                              LocalizableMessage currentPhaseSummary,
+                              LocalizableMessage newLogDetail) {
     ProgressUpdateEvent ev =
             new ProgressUpdateEvent(current, ratio,
                     currentPhaseSummary, newLogDetail);
@@ -90,7 +91,7 @@ public class ProgressUpdateListenerDelegate {
    * Notify listeners about a change in log detail.
    * @param msg log detail
    */
-  protected void notifyListeners(Message msg) {
+  protected void notifyListeners(LocalizableMessage msg) {
     notifyListeners(null, null, null, msg);
   }
 

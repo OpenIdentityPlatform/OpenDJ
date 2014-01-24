@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.api.plugin;
@@ -31,7 +32,7 @@ package org.opends.server.api.plugin;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DN;
@@ -86,7 +87,7 @@ public abstract class InternalDirectoryServerPlugin extends
    * {@inheritDoc}
    */
   public final boolean isConfigurationAcceptable(
-      PluginCfg configuration, List<Message> unacceptableReasons)
+      PluginCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     // Unused.
     return true;

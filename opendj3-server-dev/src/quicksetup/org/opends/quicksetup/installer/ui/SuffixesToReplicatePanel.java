@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -59,8 +59,8 @@ import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -191,7 +191,7 @@ implements Comparator<SuffixDescriptor>
   /**
    * {@inheritDoc}
    */
-  protected Message getInstructions()
+  protected LocalizableMessage getInstructions()
   {
     return INFO_SUFFIXES_TO_REPLICATE_PANEL_INSTRUCTIONS.get();
   }
@@ -199,7 +199,7 @@ implements Comparator<SuffixDescriptor>
   /**
    * {@inheritDoc}
    */
-  protected Message getTitle()
+  protected LocalizableMessage getTitle()
   {
     return INFO_SUFFIXES_TO_REPLICATE_PANEL_TITLE.get();
   }
@@ -247,7 +247,7 @@ implements Comparator<SuffixDescriptor>
       hmCheckBoxes.clear();
       for (SuffixDescriptor suffix : orderedSuffixes)
       {
-        JCheckBox cb = UIFactory.makeJCheckBox(Message.raw(suffix.getDN()),
+        JCheckBox cb = UIFactory.makeJCheckBox(LocalizableMessage.raw(suffix.getDN()),
             INFO_SUFFIXES_TO_REPLICATE_DN_TOOLTIP.get(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
         cb.setOpaque(false);
@@ -302,13 +302,13 @@ implements Comparator<SuffixDescriptor>
       gbc.weightx = 1.0;
       gbc.gridwidth = GridBagConstraints.REMAINDER;
       JEditorPane l = UIFactory.makeTextPane(
-              Message.raw(getSuffixString(suffix)),
+              LocalizableMessage.raw(getSuffixString(suffix)),
               UIFactory.TextStyle.SECONDARY_FIELD_VALID);
       l.setOpaque(false);
 
       /* Use a prototype label to get the additional insets */
       JEditorPane proto = UIFactory.makeTextPane(
-              Message.raw(suffix.getDN()),
+              LocalizableMessage.raw(suffix.getDN()),
           UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
       gbc.insets.top += Math.abs(cb.getPreferredSize().height -
@@ -326,13 +326,13 @@ implements Comparator<SuffixDescriptor>
 
   private String getSuffixString(SuffixDescriptor desc)
   {
-    TreeSet<Message> replicaDisplays = new TreeSet<Message>();
+    TreeSet<LocalizableMessage> replicaDisplays = new TreeSet<LocalizableMessage>();
     for (ReplicaDescriptor rep: desc.getReplicas())
     {
       replicaDisplays.add(getReplicaDisplay(rep));
     }
-    MessageBuilder buf = new MessageBuilder();
-    for (Message display: replicaDisplays)
+    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
+    for (LocalizableMessage display: replicaDisplays)
     {
       if (buf.length() > 0)
       {
@@ -343,9 +343,9 @@ implements Comparator<SuffixDescriptor>
     return buf.toString();
   }
 
-  private Message getReplicaDisplay(ReplicaDescriptor replica)
+  private LocalizableMessage getReplicaDisplay(ReplicaDescriptor replica)
   {
-    Message display;
+    LocalizableMessage display;
 
     ServerDescriptor server = replica.getServer();
 

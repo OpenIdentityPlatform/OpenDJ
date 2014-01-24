@@ -25,7 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.CursorConfig;
@@ -173,7 +173,7 @@ public class ExportJob
       rate = 1000f*exportedCount / totalTime;
     }
 
-    Message message = NOTE_JEB_EXPORT_FINAL_STATUS.get(
+    LocalizableMessage message = NOTE_JEB_EXPORT_FINAL_STATUS.get(
         exportedCount, skippedCount, totalTime/1000, rate);
     logError(message);
 
@@ -311,7 +311,7 @@ public class ExportJob
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      Message message =
+      LocalizableMessage message =
           NOTE_JEB_EXPORT_PROGRESS_REPORT.get(latestCount, skippedCount, rate);
       logError(message);
 

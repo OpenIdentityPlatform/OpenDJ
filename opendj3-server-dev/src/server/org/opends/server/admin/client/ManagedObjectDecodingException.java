@@ -31,8 +31,8 @@ package org.opends.server.admin.client;
 
 import static org.opends.messages.AdminMessages.*;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -59,7 +59,7 @@ public class ManagedObjectDecodingException extends DecodingException {
 
 
   // Create the message.
-  private static Message createMessage(ManagedObject<?> partialManagedObject,
+  private static LocalizableMessage createMessage(ManagedObject<?> partialManagedObject,
       Collection<PropertyException> causes) {
     Reject.ifNull(causes);
     Reject.ifFalse(!causes.isEmpty());
@@ -70,7 +70,7 @@ public class ManagedObjectDecodingException extends DecodingException {
       return ERR_MANAGED_OBJECT_DECODING_EXCEPTION_SINGLE.get(d
           .getUserFriendlyName(), causes.iterator().next().getMessageObject());
     } else {
-      MessageBuilder builder = new MessageBuilder();
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
       boolean isFirst = true;
       for (PropertyException cause : causes) {

@@ -34,7 +34,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
@@ -99,7 +99,7 @@ public class BindOperationBasis
   private List<Control> responseControls;
 
   /** A message explaining the reason for the authentication failure. */
-  private Message authFailureReason;
+  private LocalizableMessage authFailureReason;
 
   /** The SASL mechanism used for SASL authentication. */
   private String saslMechanism;
@@ -494,7 +494,7 @@ public class BindOperationBasis
    * {@inheritDoc}
    */
   @Override
-  public final Message getAuthFailureReason()
+  public final LocalizableMessage getAuthFailureReason()
   {
     return authFailureReason;
   }
@@ -503,7 +503,7 @@ public class BindOperationBasis
    * {@inheritDoc}
    */
   @Override
-  public final void setAuthFailureReason(Message message)
+  public final void setAuthFailureReason(LocalizableMessage message)
   {
     if (DirectoryServer.returnBindErrorMessages())
     {
@@ -652,7 +652,7 @@ public class BindOperationBasis
     clientConnection.setUnauthenticated();
 
     // Abandon any operations that may be in progress for the client.
-    Message cancelReason = INFO_CANCELED_BY_BIND_REQUEST.get();
+    LocalizableMessage cancelReason = INFO_CANCELED_BY_BIND_REQUEST.get();
     CancelRequest cancelRequest = new CancelRequest(true, cancelReason);
     clientConnection.cancelAllOperationsExcept(cancelRequest, getMessageID());
 
@@ -825,7 +825,7 @@ public class BindOperationBasis
    */
   private void updateOperationErrMsgAndResCode()
   {
-    Message message = ERR_BIND_OPERATION_UNKNOWN_USER.get();
+    LocalizableMessage message = ERR_BIND_OPERATION_UNKNOWN_USER.get();
     setResultCode(ResultCode.INVALID_CREDENTIALS);
     setAuthFailureReason(message);
   }

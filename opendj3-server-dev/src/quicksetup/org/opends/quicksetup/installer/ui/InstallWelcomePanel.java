@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.ui;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.server.util.DynamicConstants;
@@ -58,7 +58,7 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getTitle()
+  protected LocalizableMessage getTitle()
   {
     return INFO_WELCOME_PANEL_TITLE.get();
   }
@@ -66,7 +66,7 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getInstructions()
+  protected LocalizableMessage getInstructions()
   {
     /*
      * We can use org.opends.server.util.DynamicConstants without problems as it
@@ -79,7 +79,7 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
               DynamicConstants.SHORT_NAME,
               DynamicConstants.DOC_REFERENCE_WIKI,
               DynamicConstants.SHORT_NAME),
-          Message.class);
+          LocalizableMessage.class);
   }
 
   /**

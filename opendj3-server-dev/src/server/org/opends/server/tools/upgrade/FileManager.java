@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.opends.server.tools.upgrade;
@@ -31,7 +31,7 @@ package org.opends.server.tools.upgrade;
 
 import static org.opends.messages.ToolMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
 import org.opends.server.util.StaticUtils;
@@ -371,7 +371,7 @@ class FileManager
         {
           if (insureParentsExist(destination))
           {
-            final Message message = Message.raw("Copying file '%s' to '%s'",
+            final LocalizableMessage message = LocalizableMessage.raw("Copying file '%s' to '%s'",
                 objectFile.getAbsolutePath(), destination.getAbsolutePath());
             LOG.log(Level.INFO, message.toString());
             FileInputStream fis = null;
@@ -404,7 +404,7 @@ class FileManager
             }
             catch (Exception e)
             {
-              final Message errMsg = INFO_ERROR_COPYING_FILE.get(
+              final LocalizableMessage errMsg = INFO_ERROR_COPYING_FILE.get(
                   objectFile.getAbsolutePath(), destination.getAbsolutePath());
               throw new IOException(errMsg.toString(), e);
             }
@@ -415,7 +415,7 @@ class FileManager
           }
           else
           {
-            final Message errMsg = INFO_ERROR_COPYING_FILE.get(
+            final LocalizableMessage errMsg = INFO_ERROR_COPYING_FILE.get(
                 objectFile.getAbsolutePath(), destination.getAbsolutePath());
             LOG.log(Level.SEVERE, errMsg.toString());
             throw new IOException(errMsg.toString());
@@ -423,7 +423,7 @@ class FileManager
         }
         else
         {
-          final Message message = Message.raw(
+          final LocalizableMessage message = LocalizableMessage.raw(
               "Ignoring file '%s' since '%s' already exists",
               objectFile.getAbsolutePath(), destination.getAbsolutePath());
 
@@ -589,7 +589,7 @@ class FileManager
 
       if (!delete)
       {
-        Message errMsg;
+        LocalizableMessage errMsg;
         if (isFile)
         {
           errMsg = INFO_ERROR_DELETING_FILE.get(file.getAbsolutePath());

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -33,7 +33,7 @@ import java.util.TreeSet;
 
 import javax.naming.ldap.LdapName;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.*;
 import org.opends.server.admin.client.OperationRejectedException;
@@ -83,7 +83,7 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     @Override
     public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
-        List<Message> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
       return true;
     }
   }
@@ -113,7 +113,7 @@ public final class AggregationServerTest extends AdminTestCase {
      */
     @Override
     public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration,
-        List<Message> unacceptableReasons) {
+        List<LocalizableMessage> unacceptableReasons) {
       return true;
     }
   }
@@ -411,7 +411,7 @@ public final class AggregationServerTest extends AdminTestCase {
       Throwable cause = e.getCause();
       if (cause instanceof ConstraintViolationException) {
         ConstraintViolationException cve = (ConstraintViolationException) cause;
-        Collection<Message> causes = cve.getMessages();
+        Collection<LocalizableMessage> causes = cve.getMessages();
         Assert.assertEquals(causes.size(), 2);
       } else {
         // Got an unexpected cause.
@@ -461,7 +461,7 @@ public final class AggregationServerTest extends AdminTestCase {
       Throwable cause = e.getCause();
       if (cause instanceof ConstraintViolationException) {
         ConstraintViolationException cve = (ConstraintViolationException) cause;
-        Collection<Message> causes = cve.getMessages();
+        Collection<LocalizableMessage> causes = cve.getMessages();
         Assert.assertEquals(causes.size(), 1);
       } else {
         // Got an unexpected cause.
@@ -522,7 +522,7 @@ public final class AggregationServerTest extends AdminTestCase {
       Throwable cause = e.getCause();
       if (cause instanceof ConstraintViolationException) {
         ConstraintViolationException cve = (ConstraintViolationException) cause;
-        Collection<Message> causes = cve.getMessages();
+        Collection<LocalizableMessage> causes = cve.getMessages();
         Assert.assertEquals(causes.size(), 1);
       } else {
         // Got an unexpected cause.
@@ -585,7 +585,7 @@ public final class AggregationServerTest extends AdminTestCase {
       Throwable cause = e.getCause();
       if (cause instanceof ConstraintViolationException) {
         ConstraintViolationException cve = (ConstraintViolationException) cause;
-        Collection<Message> causes = cve.getMessages();
+        Collection<LocalizableMessage> causes = cve.getMessages();
         Assert.assertEquals(causes.size(), 1);
       } else {
         // Got an unexpected cause.

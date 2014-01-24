@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 import org.opends.server.types.DN;
@@ -63,7 +64,7 @@ public class LDAPConnectionException extends OpenDsException {
   /**
    * The server-provided error message for this exception.
    */
-  private final Message errorMessage;
+  private final LocalizableMessage errorMessage;
 
 
   /**
@@ -71,7 +72,7 @@ public class LDAPConnectionException extends OpenDsException {
    *
    * @param  message    The message to use for this exception.
    */
-  public LDAPConnectionException(Message message)
+  public LDAPConnectionException(LocalizableMessage message)
   {
     super(message);
 
@@ -88,8 +89,8 @@ public class LDAPConnectionException extends OpenDsException {
    * @param  resultCode    The result code for this exception.
    * @param  errorMessage  The server-provided error message for this exception.
    */
-  public LDAPConnectionException(Message message, int resultCode,
-                                 Message errorMessage)
+  public LDAPConnectionException(LocalizableMessage message, int resultCode,
+                                 LocalizableMessage errorMessage)
   {
     super(message);
 
@@ -108,7 +109,7 @@ public class LDAPConnectionException extends OpenDsException {
    * @param  cause      The underlying cause that triggered this
    *                    exception.
    */
-  public LDAPConnectionException(Message message, Throwable cause)
+  public LDAPConnectionException(LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
 
@@ -128,8 +129,8 @@ public class LDAPConnectionException extends OpenDsException {
    * @param  cause         The underlying cause that triggered this
    *                       exception.
    */
-  public LDAPConnectionException(Message message, int resultCode,
-                                 Message errorMessage, Throwable cause)
+  public LDAPConnectionException(LocalizableMessage message, int resultCode,
+                                 LocalizableMessage errorMessage, Throwable cause)
   {
     super(message, cause);
 
@@ -152,8 +153,8 @@ public class LDAPConnectionException extends OpenDsException {
    * @param  cause         The underlying cause that triggered this
    *                       exception.
    */
-  public LDAPConnectionException(Message message, int resultCode,
-                                 Message errorMessage, DN matchedDN,
+  public LDAPConnectionException(LocalizableMessage message, int resultCode,
+                                 LocalizableMessage errorMessage, DN matchedDN,
                                  Throwable cause)
   {
     super(message, cause);
@@ -181,7 +182,7 @@ public class LDAPConnectionException extends OpenDsException {
    *
    * @return  The server-provided error message associated with this exception.
    */
-  public Message getErrorMessage()
+  public LocalizableMessage getErrorMessage()
   {
     return this.errorMessage;
   }

@@ -32,7 +32,7 @@ import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.SaltedSHA512PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
@@ -132,7 +132,7 @@ public class SaltedSHA512PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
           MESSAGE_DIGEST_ALGORITHM_SHA_512, String.valueOf(e));
       throw new InitializationException(message, e);
     }
@@ -188,7 +188,7 @@ public class SaltedSHA512PasswordStorageScheme
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -250,7 +250,7 @@ public class SaltedSHA512PasswordStorageScheme
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -294,7 +294,7 @@ public class SaltedSHA512PasswordStorageScheme
       saltLength = decodedBytes.length - SHA512_LENGTH;
       if (saltLength <= 0)
       {
-        Message message =
+        LocalizableMessage message =
           ERR_PWSCHEME_INVALID_BASE64_DECODED_STORED_PASSWORD.get(
           storedPassword.toString());
         ErrorLogger.logError(message);
@@ -312,7 +312,7 @@ public class SaltedSHA512PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
           storedPassword.toString(), String.valueOf(e));
       ErrorLogger.logError(message);
       return false;
@@ -411,7 +411,7 @@ public class SaltedSHA512PasswordStorageScheme
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+        LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -501,7 +501,7 @@ public class SaltedSHA512PasswordStorageScheme
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_NOT_REVERSIBLE.get(STORAGE_SCHEME_NAME_SALTED_SHA_512);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
@@ -516,7 +516,7 @@ public class SaltedSHA512PasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    Message message = ERR_PWSCHEME_NOT_REVERSIBLE.get(
+    LocalizableMessage message = ERR_PWSCHEME_NOT_REVERSIBLE.get(
         AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_512);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
@@ -568,7 +568,7 @@ public class SaltedSHA512PasswordStorageScheme
     }
     catch (Exception e)
     {
-      Message message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
           MESSAGE_DIGEST_ALGORITHM_SHA_512, String.valueOf(e));
       throw new DirectoryException(ResultCode.OTHER, message, e);
     }

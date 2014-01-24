@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -38,8 +39,8 @@ import javax.naming.NamingException;
 import org.opends.guitools.controlpanel.browser.BasicNodeError;
 import org.opends.guitools.controlpanel.browser.ReferralLimitExceededException;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.OpenDsException;
@@ -91,7 +92,7 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_ERROR_SEARCHING_ENTRY_TITLE.get();
   }
@@ -111,8 +112,8 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
    */
   public void setError(String dn, Throwable t)
   {
-    Message title = INFO_CTRL_PANEL_ERROR_SEARCHING_ENTRY_TITLE.get();
-    Message details;
+    LocalizableMessage title = INFO_CTRL_PANEL_ERROR_SEARCHING_ENTRY_TITLE.get();
+    LocalizableMessage details;
     if (t instanceof OpenDsException)
     {
       details = ERR_CTRL_PANEL_ERROR_SEARCHING_ENTRY.get(dn,
@@ -136,8 +137,8 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
   public void setReferralError(String dn, String[] referrals,
       BasicNodeError error)
   {
-    Message title = INFO_CTRL_PANEL_ERROR_RESOLVING_REFERRAL_TITLE.get();
-    MessageBuilder details = new MessageBuilder();
+    LocalizableMessage title = INFO_CTRL_PANEL_ERROR_RESOLVING_REFERRAL_TITLE.get();
+    LocalizableMessageBuilder details = new LocalizableMessageBuilder();
     StringBuilder sb = new StringBuilder();
     for (String ref: referrals)
     {
@@ -152,7 +153,7 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
     if (ex instanceof NamingException)
     {
       Object arg = error.getArg();
-      Message msg = null;
+      LocalizableMessage msg = null;
       if (arg != null)
       {
         // Maybe is the LDAPURL
@@ -164,7 +165,7 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
             String hostPort = url.getHost()+":"+url.getPort();
             if (ex instanceof ReferralLimitExceededException)
             {
-              msg = Message.raw(ex.getLocalizedMessage());
+              msg = LocalizableMessage.raw(ex.getLocalizedMessage());
             }
             else if (ex instanceof NameNotFoundException)
             {
@@ -181,7 +182,7 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
           {
             if (ex instanceof ReferralLimitExceededException)
             {
-              msg = Message.raw(ex.getLocalizedMessage());
+              msg = LocalizableMessage.raw(ex.getLocalizedMessage());
             }
             else if (ex instanceof NameNotFoundException)
             {
@@ -204,7 +205,7 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
       {
         if (ex instanceof ReferralLimitExceededException)
         {
-          msg = Message.raw(ex.getLocalizedMessage());
+          msg = LocalizableMessage.raw(ex.getLocalizedMessage());
         }
         else
         {

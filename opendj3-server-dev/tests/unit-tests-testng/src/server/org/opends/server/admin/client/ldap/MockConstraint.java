@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.client.ldap;
 
@@ -30,7 +31,7 @@ package org.opends.server.admin.client.ldap;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Constraint;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.client.AuthorizationException;
@@ -58,10 +59,10 @@ public final class MockConstraint extends Constraint {
      */
     @Override
     public boolean isAddAcceptable(ManagementContext context,
-        ManagedObject<?> managedObject, Collection<Message> unacceptableReasons)
+        ManagedObject<?> managedObject, Collection<LocalizableMessage> unacceptableReasons)
         throws AuthorizationException, CommunicationException {
       if (!allowAdds) {
-        unacceptableReasons.add(Message.raw("Adds not allowed"));
+        unacceptableReasons.add(LocalizableMessage.raw("Adds not allowed"));
       }
 
       return allowAdds;
@@ -74,10 +75,10 @@ public final class MockConstraint extends Constraint {
      */
     @Override
     public boolean isDeleteAcceptable(ManagementContext context,
-        ManagedObjectPath<?, ?> path, Collection<Message> unacceptableReasons)
+        ManagedObjectPath<?, ?> path, Collection<LocalizableMessage> unacceptableReasons)
         throws AuthorizationException, CommunicationException {
       if (!allowDeletes) {
-        unacceptableReasons.add(Message.raw("Deletes not allowed"));
+        unacceptableReasons.add(LocalizableMessage.raw("Deletes not allowed"));
       }
 
       return allowDeletes;
@@ -90,10 +91,10 @@ public final class MockConstraint extends Constraint {
      */
     @Override
     public boolean isModifyAcceptable(ManagementContext context,
-        ManagedObject<?> managedObject, Collection<Message> unacceptableReasons)
+        ManagedObject<?> managedObject, Collection<LocalizableMessage> unacceptableReasons)
         throws AuthorizationException, CommunicationException {
       if (!allowModifies) {
-        unacceptableReasons.add(Message.raw("Modifies not allowed"));
+        unacceptableReasons.add(LocalizableMessage.raw("Modifies not allowed"));
       }
 
       return allowModifies;

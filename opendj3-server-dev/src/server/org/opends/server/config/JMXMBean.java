@@ -47,7 +47,7 @@ import javax.management.MBeanOperationInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
@@ -167,7 +167,7 @@ public final class JMXMBean
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-          Message message = ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN.get(
+          LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN.get(
               configEntryDN.toString(), String.valueOf(e));
           logError(message);
       }
@@ -222,7 +222,7 @@ public final class JMXMBean
               }
                 e.printStackTrace();
 
-                Message message = ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN.get(
+                LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN.get(
                     configEntryDN.toString(), String.valueOf(e));
                 logError(message);
             }
@@ -500,7 +500,7 @@ public final class JMXMBean
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
+      LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
           get(String.valueOf(attributeName), String.valueOf(configEntryDN),
               getExceptionMessage(e));
       throw new AttributeNotFoundException(message.toString());
@@ -526,7 +526,7 @@ public final class JMXMBean
     if (rc != ResultCode.SUCCESS) {
        clientConnection = null ;
 
-       Message message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
+       LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
          get(String.valueOf(attributeName), String.valueOf(configEntryDN),
              String.valueOf(op.getErrorMessage()));
        throw new AttributeNotFoundException(message.toString());
@@ -543,7 +543,7 @@ public final class JMXMBean
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
+      LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
           String.valueOf(configEntryDN), attributeName);
       logError(message);
       throw new AttributeNotFoundException(message.toString());
@@ -792,7 +792,7 @@ monitorLoop:
 
     buffer.append(")");
 
-    Message message = ERR_CONFIG_JMX_NO_METHOD.get(
+    LocalizableMessage message = ERR_CONFIG_JMX_NO_METHOD.get(
         buffer.toString(), configEntryDN.toString());
     throw new MBeanException(
                    new DirectoryException(ResultCode.NO_SUCH_OPERATION,

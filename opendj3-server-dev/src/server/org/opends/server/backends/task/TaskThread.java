@@ -28,7 +28,7 @@ package org.opends.server.backends.task;
 
 import java.util.Map;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -134,7 +134,7 @@ public class TaskThread extends DirectoryThread
    * @param  exitThread       Indicates whether this thread should exit when
    *                          processing on the active task has completed.
    */
-  public void interruptTask(TaskState interruptState, Message interruptReason,
+  public void interruptTask(TaskState interruptState, LocalizableMessage interruptReason,
                             boolean exitThread)
   {
     if (getAssociatedTask() != null)
@@ -196,7 +196,7 @@ public class TaskThread extends DirectoryThread
         {
           Task task = getAssociatedTask();
 
-          Message message = NOTE_TASK_STARTED.get(
+          LocalizableMessage message = NOTE_TASK_STARTED.get(
             task.getDisplayName(), task.getTaskID());
           logError(message);
 
@@ -216,7 +216,7 @@ public class TaskThread extends DirectoryThread
 
         Task task = getAssociatedTask();
 
-        Message message = ERR_TASK_EXECUTE_FAILED.
+        LocalizableMessage message = ERR_TASK_EXECUTE_FAILED.
             get(String.valueOf(task.getTaskEntry().getName()),
                 stackTraceToSingleLineString(e));
         logError(message);

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -78,8 +79,8 @@ import org.opends.guitools.controlpanel.ui.renderer.
  NoLeftInsetCategoryComboBoxRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 /**
  * Class that displays the monitoring information of connection handlers.
@@ -134,7 +135,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     allowedChOperations.add(BasicMonitoringAttributes.UNBIND_REQUESTS);
   }
 
-  private Message ALL_CONNECTION_HANDLERS =
+  private LocalizableMessage ALL_CONNECTION_HANDLERS =
     INFO_CTRL_PANEL_ALL_CONNECTION_HANDLERS.get();
 
   /**
@@ -257,7 +258,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
    * {@inheritDoc}
    */
   @Override
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_CONNECTION_HANDLER_MONITORING_TITLE.get();
   }
@@ -332,14 +333,14 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
         (DefaultComboBoxModel)connectionHandlers.getModel());
 
     boolean displayErrorPane = false;
-    Message errorTitle = Message.EMPTY;
-    Message errorDetails = Message.EMPTY;
+    LocalizableMessage errorTitle = LocalizableMessage.EMPTY;
+    LocalizableMessage errorDetails = LocalizableMessage.EMPTY;
     ServerDescriptor.ServerStatus status = server.getStatus();
     if (status == ServerDescriptor.ServerStatus.STARTED)
     {
       if (!server.isAuthenticated())
       {
-        MessageBuilder mb = new MessageBuilder();
+        LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(
    INFO_CTRL_PANEL_AUTH_REQUIRED_TO_SEE_TRAFFIC_MONITORING_SUMMARY.
    get());
@@ -352,7 +353,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     }
     else if (status == ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
       server.getHostname()));
       mb.append("<br><br>"+getAuthenticateHTML());
@@ -363,7 +364,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     else
     {
       errorTitle = INFO_CTRL_PANEL_SERVER_NOT_RUNNING_SUMMARY.get();
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(
           INFO_CTRL_PANEL_SERVER_MUST_RUN_TO_SEE_TRAFFIC_MONITORING_SUMMARY.
           get());
@@ -373,8 +374,8 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
       displayErrorPane = true;
     }
     final boolean fDisplayErrorPane = displayErrorPane;
-    final Message fErrorTitle = errorTitle;
-    final Message fErrorDetails = errorDetails;
+    final LocalizableMessage fErrorTitle = errorTitle;
+    final LocalizableMessage fErrorDetails = errorDetails;
     SwingUtilities.invokeLater(new Runnable()
     {
       /**

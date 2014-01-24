@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -48,7 +48,7 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
@@ -106,7 +106,7 @@ public class NewSchemaElementsTask extends Task
    * {@inheritDoc}
    */
   public boolean canLaunch(Task taskToBeLaunched,
-      Collection<Message> incompatibilityReasons)
+      Collection<LocalizableMessage> incompatibilityReasons)
   {
     boolean canLaunch = true;
     if (state == State.RUNNING &&
@@ -152,7 +152,7 @@ public class NewSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getTaskDescription()
+  public LocalizableMessage getTaskDescription()
   {
     if (attrsToAdd.size() == 1 && ocsToAdd.isEmpty())
     {
@@ -457,7 +457,7 @@ public class NewSchemaElementsTask extends Task
         args);
 
     StringBuilder sb = new StringBuilder();
-    Message msg;
+    LocalizableMessage msg;
     if (element instanceof AttributeType)
     {
       msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_ATTRIBUTE_ONLINE.get(

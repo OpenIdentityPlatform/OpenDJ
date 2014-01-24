@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 /*
@@ -48,6 +49,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -65,7 +67,7 @@ import javax.swing.event.DocumentListener;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The panel used to create a new organization.
@@ -139,7 +141,7 @@ public class NewOrganizationPanel extends AbstractNewEntryPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_NEW_ORGANIZATION_PANEL_TITLE.get();
   }
@@ -156,7 +158,7 @@ public class NewOrganizationPanel extends AbstractNewEntryPanel
    * Returns the title of the progress dialog.
    * @return the title of the progress dialog.
    */
-  protected Message getProgressDialogTitle()
+  protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_NEW_ORGANIZATION_PANEL_TITLE.get();
   }
@@ -164,7 +166,7 @@ public class NewOrganizationPanel extends AbstractNewEntryPanel
   /**
    * {@inheritDoc}
    */
-  protected void checkSyntax(ArrayList<Message> errors)
+  protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     for (JLabel label : labels)
     {
@@ -172,7 +174,7 @@ public class NewOrganizationPanel extends AbstractNewEntryPanel
     }
 
     JTextField[] requiredFields = {name};
-    Message[] msgs = {ERR_CTRL_PANEL_NAME_OF_ORGANIZATION_REQUIRED.get()};
+    LocalizableMessage[] msgs = {ERR_CTRL_PANEL_NAME_OF_ORGANIZATION_REQUIRED.get()};
     for (int i=0; i<requiredFields.length; i++)
     {
       String v = requiredFields[i].getText().trim();
@@ -190,12 +192,12 @@ public class NewOrganizationPanel extends AbstractNewEntryPanel
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
-    Message[] ls = {
+    LocalizableMessage[] ls = {
         INFO_CTRL_PANEL_NEW_ORGANIZATION_NAME_LABEL.get(),
         INFO_CTRL_PANEL_NEW_ORGANIZATION_DESCRIPTION_LABEL.get(),
         INFO_CTRL_PANEL_NEW_ORGANIZATION_ENTRY_DN_LABEL.get()};
     int i = 0;
-    for (Message l : ls)
+    for (LocalizableMessage l : ls)
     {
       labels[i].setText(l.toString());
       i++;

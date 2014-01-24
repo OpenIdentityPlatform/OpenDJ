@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
@@ -107,7 +107,7 @@ public class TargetAttr {
                         //after conversion to AttributeType.
                         arrayToAttributeTypes(attributeArray, attrString);
                     } else {
-                      Message message =
+                      LocalizableMessage message =
                           WARN_ACI_SYNTAX_INVALID_TARGETATTRKEYWORD_EXPRESSION.
                             get(attrString);
                       throw new AciException(message);
@@ -137,7 +137,7 @@ public class TargetAttr {
                 if(!allUserAttributes)
                     allUserAttributes=true;
                 else {
-                    Message message =
+                    LocalizableMessage message =
                         WARN_ACI_TARGETATTR_INVALID_ATTR_TOKEN.get(attrStr);
                     throw new AciException(message);
                 }
@@ -145,7 +145,7 @@ public class TargetAttr {
                 if(!allOpAttributes)
                     allOpAttributes=true;
                 else {
-                    Message message =
+                    LocalizableMessage message =
                         WARN_ACI_TARGETATTR_INVALID_ATTR_TOKEN.get(attrStr);
                     throw new AciException(message);
                 }

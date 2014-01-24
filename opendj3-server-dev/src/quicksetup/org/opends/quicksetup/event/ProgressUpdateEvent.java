@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.event;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.ProgressStep;
 
 /**
@@ -44,9 +45,9 @@ public class ProgressUpdateEvent {
 
   private Integer progressRatio;
 
-  private Message currentPhaseSummary;
+  private LocalizableMessage currentPhaseSummary;
 
-  private Message newLogs;
+  private LocalizableMessage newLogs;
 
   /**
    * Constructor of the ProgressUpdateEvent.
@@ -59,7 +60,7 @@ public class ProgressUpdateEvent {
    * @param newLogs the new log messages that we have for the installation.
    */
   public ProgressUpdateEvent(ProgressStep step,
-      Integer progressRatio, Message currentPhaseSummary, Message newLogs)
+      Integer progressRatio, LocalizableMessage currentPhaseSummary, LocalizableMessage newLogs)
   {
     this.step = step;
     this.progressRatio = progressRatio;
@@ -72,7 +73,7 @@ public class ProgressUpdateEvent {
    * status.
    * @return the localized message summary describing the progress status.
    */
-  public Message getCurrentPhaseSummary()
+  public LocalizableMessage getCurrentPhaseSummary()
   {
     return currentPhaseSummary;
   }
@@ -81,7 +82,7 @@ public class ProgressUpdateEvent {
    * Gets the new logs for the install progress.
    * @return the new logs for the current install progress.
    */
-  public Message getNewLogs()
+  public LocalizableMessage getNewLogs()
   {
     return newLogs;
   }

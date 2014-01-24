@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -33,7 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryException;
@@ -119,7 +119,7 @@ public class TargAttrFilterList {
             Matcher matcher=pattern.matcher(subs);
             //Match the attribute:filter pair part of the expression
             if(!matcher.find() || matcher.groupCount() != expectedGroupCount) {
-                Message message =
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LIST_FORMAT.
                       get(expression);
                 throw new AciException(message);
@@ -142,8 +142,8 @@ public class TargAttrFilterList {
                filter = SearchFilter.createFilterFromString(filterString);
                attrFilterList.put(attributeType, filter);
             } catch (DirectoryException ex) {
-                Message er=ex.getMessageObject();
-                Message message =
+                LocalizableMessage er=ex.getMessageObject();
+                LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LISTS_FILTER.
                       get(filterString, er);
                 throw new AciException(message);
@@ -183,7 +183,7 @@ public class TargAttrFilterList {
             default: {
                 AttributeType attrType=filter.getAttributeType();
                 if(!attrType.equals(type)) {
-                    Message message =
+                    LocalizableMessage message =
                WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LISTS_ATTR_FILTER.
                           get(filter.toString());
                     throw new AciException(message);

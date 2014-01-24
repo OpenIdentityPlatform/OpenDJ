@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools.upgrade;
 
@@ -49,7 +49,7 @@ import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.ServerConstants;
@@ -222,7 +222,7 @@ public final class UpgradeCli extends ConsoleApplication implements
   }
 
   // Displays the provided message followed by a help usage reference.
-  private void displayMessageAndUsageReference(final Message message)
+  private void displayMessageAndUsageReference(final LocalizableMessage message)
   {
     println(message);
     println();
@@ -301,7 +301,7 @@ public final class UpgradeCli extends ConsoleApplication implements
     }
     catch (ArgumentException e)
     {
-      final Message message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
+      final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
       this.getOutputStream().print(message);
       return EXIT_CODE_ERROR;
     }
@@ -312,7 +312,7 @@ public final class UpgradeCli extends ConsoleApplication implements
       parser.parseArguments(args);
       if (isInteractive() && isQuiet())
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_UPGRADE_INCOMPATIBLE_ARGS.get(OPTION_LONG_QUIET,
                 "interactive mode");
         this.getOutputStream().println(message);
@@ -320,7 +320,7 @@ public final class UpgradeCli extends ConsoleApplication implements
       }
       if (isInteractive() && isForceUpgrade())
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_UPGRADE_INCOMPATIBLE_ARGS.get(OPTION_LONG_FORCE_UPGRADE,
                 "interactive mode");
         this.getOutputStream().println(message);
@@ -328,7 +328,7 @@ public final class UpgradeCli extends ConsoleApplication implements
       }
       if (isQuiet() && isVerbose())
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_UPGRADE_INCOMPATIBLE_ARGS.get(OPTION_LONG_QUIET,
                 OPTION_LONG_VERBOSE);
         this.getOutputStream().println(message);
@@ -337,7 +337,7 @@ public final class UpgradeCli extends ConsoleApplication implements
     }
     catch (ArgumentException ae)
     {
-      final Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       displayMessageAndUsageReference(message);
       return EXIT_CODE_ERROR;
     }
@@ -391,7 +391,7 @@ public final class UpgradeCli extends ConsoleApplication implements
       {
         final ProgressNotificationCallback pnc =
             (ProgressNotificationCallback) c;
-        final Message msg = Message.raw("  " + pnc.getMessage());
+        final LocalizableMessage msg = LocalizableMessage.raw("  " + pnc.getMessage());
         printProgress(msg);
         printProgressBar(msg.length(), pnc.getProgress());
       }
@@ -403,24 +403,24 @@ public final class UpgradeCli extends ConsoleApplication implements
         switch (fnc.getMessageSubType())
         {
         case TITLE_CALLBACK:
-          println(Style.TITLE, Message.raw(fnc.getMessage()), 0);
+          println(Style.TITLE, LocalizableMessage.raw(fnc.getMessage()), 0);
           LOG.log(INFO, fnc.getMessage());
           break;
         case SUBTITLE_CALLBACK:
-          println(Style.SUBTITLE, Message.raw(fnc.getMessage()),
+          println(Style.SUBTITLE, LocalizableMessage.raw(fnc.getMessage()),
               4);
           LOG.log(INFO, fnc.getMessage());
           break;
         case NOTICE_CALLBACK:
-          println(Style.NOTICE, Message.raw(fnc.getMessage()), 1);
+          println(Style.NOTICE, LocalizableMessage.raw(fnc.getMessage()), 1);
           LOG.log(INFO, fnc.getMessage());
           break;
         case ERROR_CALLBACK:
-          println(Style.ERROR, Message.raw(fnc.getMessage()), 1);
+          println(Style.ERROR, LocalizableMessage.raw(fnc.getMessage()), 1);
           LOG.log(Level.SEVERE, fnc.getMessage());
           break;
         case WARNING:
-          println(Style.WARNING, Message.raw(fnc.getMessage()), 2);
+          println(Style.WARNING, LocalizableMessage.raw(fnc.getMessage()), 2);
           LOG.log(Level.WARNING, fnc.getMessage());
           break;
         default:
@@ -435,7 +435,7 @@ public final class UpgradeCli extends ConsoleApplication implements
         final TextOutputCallback toc = (TextOutputCallback) c;
         if(toc.getMessageType() == TextOutputCallback.INFORMATION) {
           LOG.log(INFO, toc.getMessage());
-          printlnProgress(Message.raw(toc.getMessage()));
+          printlnProgress(LocalizableMessage.raw(toc.getMessage()));
         } else {
           LOG.log(SEVERE, "Unsupported message type: "
             + toc.getMessage());
@@ -497,7 +497,7 @@ public final class UpgradeCli extends ConsoleApplication implements
             try
             {
               value =
-                  readInput(Message.raw(prompt), defaultOption,
+                  readInput(LocalizableMessage.raw(prompt), defaultOption,
                       Style.SUBTITLE);
             }
             catch (CLIException e)
@@ -547,7 +547,7 @@ public final class UpgradeCli extends ConsoleApplication implements
           }
           // Displays the prompt
           prompt.append(" ").append(getDefaultOption(cc.getSelectedIndex()));
-          println(Style.SUBTITLE, Message.raw(prompt), 0);
+          println(Style.SUBTITLE, LocalizableMessage.raw(prompt), 0);
           LOG.log(INFO, getDefaultOption(cc.getSelectedIndex()));
         }
       }

@@ -42,7 +42,7 @@ import java.text.CollationKey;
 import java.text.Collator;
 import java.util.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.
   CollationMatchingRuleCfgDefn.MatchingRuleType;
@@ -249,7 +249,7 @@ public final class CollationMatchingRuleFactory extends
       String languageTag = mapper.getLanguageTag();
       if (nOID == null || languageTag == null)
       {
-        Message msg =
+        LocalizableMessage msg =
             WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_FORMAT
                 .get(collation);
         logError(msg);
@@ -269,7 +269,7 @@ public final class CollationMatchingRuleFactory extends
       else
       {
         // This locale is not supported by JVM.
-        Message msg =
+        LocalizableMessage msg =
             WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_LOCALE.get(
                 collation, configuration.dn().toNormalizedString(),
                 languageTag);
@@ -308,7 +308,7 @@ public final class CollationMatchingRuleFactory extends
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     if (!configuration.isEnabled()
         || currentConfig.isEnabled() != configuration.isEnabled())
@@ -357,7 +357,7 @@ public final class CollationMatchingRuleFactory extends
     }
     catch (DirectoryException de)
     {
-      Message message =
+      LocalizableMessage message =
           WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(String
               .valueOf(configuration.dn()), de.getMessageObject());
       adminActionRequired = true;
@@ -376,7 +376,7 @@ public final class CollationMatchingRuleFactory extends
   @Override
   public boolean isConfigurationChangeAcceptable(
       CollationMatchingRuleCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -401,7 +401,7 @@ public final class CollationMatchingRuleFactory extends
       if (nOID == null || languageTag == null)
       {
         configAcceptable = false;
-        Message msg =
+        LocalizableMessage msg =
             WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_FORMAT
                 .get(collation);
         unacceptableReasons.add(msg);
@@ -411,7 +411,7 @@ public final class CollationMatchingRuleFactory extends
       Locale locale = getLocale(languageTag);
       if (locale == null)
       {
-        Message msg =
+        LocalizableMessage msg =
             WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_LOCALE.get(
                 collation, configuration.dn().toNormalizedString(),
                 languageTag);
@@ -1106,7 +1106,7 @@ public final class CollationMatchingRuleFactory extends
       // If there were no asterisks, then this isn't a substring filter.
       if (asteriskPositions.isEmpty())
       {
-        Message message =
+        LocalizableMessage message =
             ERR_SEARCH_FILTER_SUBSTRING_NO_ASTERISKS.get(filterString,
                 0, endPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);

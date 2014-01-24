@@ -28,7 +28,7 @@ package org.opends.server.crypto;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.
 GetSymmetricKeyExtendedOperationHandlerCfg;
 import org.opends.server.api.ExtendedOperationHandler;
@@ -112,7 +112,7 @@ public class GetSymmetricKeyExtendedOperation
     if (requestValue == null)
     {
       // The request must always have a value.
-      Message message = ERR_GET_SYMMETRIC_KEY_NO_VALUE.get();
+      LocalizableMessage message = ERR_GET_SYMMETRIC_KEY_NO_VALUE.get();
       operation.appendErrorMessage(message);
       return;
     }
@@ -140,7 +140,7 @@ public class GetSymmetricKeyExtendedOperation
         TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
 
-      Message message = ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(
+      LocalizableMessage message = ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(
            ae.getMessage());
       operation.appendErrorMessage(message);
       return;
@@ -154,7 +154,7 @@ public class GetSymmetricKeyExtendedOperation
 
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-      Message message = ERR_GET_SYMMETRIC_KEY_DECODE_EXCEPTION.get(
+      LocalizableMessage message = ERR_GET_SYMMETRIC_KEY_DECODE_EXCEPTION.get(
            StaticUtils.getExceptionMessage(e));
       operation.appendErrorMessage(message);
       return;

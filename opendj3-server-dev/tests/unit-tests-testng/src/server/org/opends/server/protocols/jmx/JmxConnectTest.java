@@ -45,7 +45,7 @@ import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.JMXConnectionHandlerCfgDefn;
@@ -481,7 +481,7 @@ public class JmxConnectTest extends JmxTestCase {
    * @throws Exception
    */
   private void configureJmx(Entry entry) throws Exception {
-    ArrayList<Message> reasons = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> reasons = new ArrayList<LocalizableMessage>();
 
     // Get the Jmx connection handler from the core server
     JmxConnectionHandler jmxConnectionHandler = getJmxConnectionHandler();

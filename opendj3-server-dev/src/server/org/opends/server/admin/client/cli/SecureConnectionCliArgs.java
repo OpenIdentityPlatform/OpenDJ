@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.admin.client.cli;
@@ -32,8 +32,8 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.wrapText;
@@ -315,7 +315,7 @@ public final class SecureConnectionCliArgs
         // read the password from the stdin.
         try
         {
-          out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).getBytes());
+          out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString().getBytes());
           out.flush();
           char[] pwChars = PasswordReader.readPassword();
           bindPasswordValue = new String(pwChars);
@@ -481,7 +481,7 @@ public final class SecureConnectionCliArgs
     argList.add(hostNameArg);
 
 
-    Message portDescription = INFO_DESCRIPTION_PORT.get();
+    LocalizableMessage portDescription = INFO_DESCRIPTION_PORT.get();
     if (alwaysSSL) {
       portDescription = INFO_DESCRIPTION_ADMIN_PORT.get();
     }
@@ -640,15 +640,15 @@ public final class SecureConnectionCliArgs
   /**
    * Indication if provided global options are validate.
    *
-   * @param buf the MessageBuilder to write the error messages.
+   * @param buf the LocalizableMessageBuilder to write the error messages.
    * @return return code.
    */
-  public int validateGlobalOptions(MessageBuilder buf)
+  public int validateGlobalOptions(LocalizableMessageBuilder buf)
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     // Couldn't have at the same time bindPassword and bindPasswordFile
     if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           bindPasswordArg.getLongIdentifier(),
           bindPasswordFileArg.getLongIdentifier());
       errors.add(message);
@@ -657,19 +657,19 @@ public final class SecureConnectionCliArgs
     // Couldn't have at the same time trustAll and
     // trustStore related arg
     if (trustAllArg.isPresent() && trustStorePathArg.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           trustAllArg.getLongIdentifier(),
           trustStorePathArg.getLongIdentifier());
       errors.add(message);
     }
     if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           trustAllArg.getLongIdentifier(),
           trustStorePasswordArg.getLongIdentifier());
       errors.add(message);
     }
     if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           trustAllArg.getLongIdentifier(),
           trustStorePasswordFileArg.getLongIdentifier());
       errors.add(message);
@@ -679,7 +679,7 @@ public final class SecureConnectionCliArgs
     // trustStorePasswordFileArg
     if (trustStorePasswordArg.isPresent()
         && trustStorePasswordFileArg.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           trustStorePasswordArg.getLongIdentifier(),
           trustStorePasswordFileArg.getLongIdentifier());
       errors.add(message);
@@ -691,7 +691,7 @@ public final class SecureConnectionCliArgs
       String value = trustStorePathArg.getValue();
       if (!canRead(trustStorePathArg.getValue()))
       {
-        Message message = ERR_CANNOT_READ_TRUSTSTORE.get(
+        LocalizableMessage message = ERR_CANNOT_READ_TRUSTSTORE.get(
             value);
         errors.add(message);
       }
@@ -703,7 +703,7 @@ public final class SecureConnectionCliArgs
       String value = keyStorePathArg.getValue();
       if (!canRead(trustStorePathArg.getValue()))
       {
-        Message message = ERR_CANNOT_READ_KEYSTORE.get(
+        LocalizableMessage message = ERR_CANNOT_READ_KEYSTORE.get(
             value);
         errors.add(message);
       }
@@ -713,14 +713,14 @@ public final class SecureConnectionCliArgs
     // useSSLArg
     if (useStartTLSArg.isPresent()
         && useSSLArg.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
           useStartTLSArg
           .getLongIdentifier(), useSSLArg.getLongIdentifier());
       errors.add(message);
     }
     if (errors.size() > 0)
     {
-      for (Message error : errors)
+      for (LocalizableMessage error : errors)
       {
         if (buf.length() > 0)
         {
@@ -741,7 +741,7 @@ public final class SecureConnectionCliArgs
    */
   public int validateGlobalOptions(PrintStream err)
   {
-    MessageBuilder buf = new MessageBuilder();
+    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
     int returnValue = validateGlobalOptions(buf);
     if (buf.length() > 0)
     {

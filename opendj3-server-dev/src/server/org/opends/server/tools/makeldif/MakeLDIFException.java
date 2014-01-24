@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 
@@ -29,7 +30,7 @@ package org.opends.server.tools.makeldif;
 
 
 import org.opends.server.types.IdentifiedException;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -55,7 +56,7 @@ public class MakeLDIFException
    *
    * @param  message  The message for this exception.
    */
-  public MakeLDIFException(Message message)
+  public MakeLDIFException(LocalizableMessage message)
   {
     super(message);
   }
@@ -68,7 +69,7 @@ public class MakeLDIFException
    * @param  message  The message for this exception.
    * @param  cause    The underlying cause for this exception.
    */
-  public MakeLDIFException(Message message, Throwable cause)
+  public MakeLDIFException(LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
   }

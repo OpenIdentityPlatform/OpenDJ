@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel;
@@ -52,7 +52,7 @@ import org.opends.guitools.controlpanel.util.BlindApplicationTrustManager;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
 import org.opends.quicksetup.Installation;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.DynamicConstants;
@@ -200,7 +200,7 @@ public class ControlPanel
             "INFO_CONTROL_PANEL_TITLE",
             AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get(
             DynamicConstants.PRODUCT_NAME),
-            Message.class).toString();
+            LocalizableMessage.class).toString();
         dlg.setTitle(title);
         dlg.setContentPane(controlCenterPane);
         dlg.pack();

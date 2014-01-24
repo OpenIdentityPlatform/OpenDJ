@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -43,7 +43,7 @@ import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.ProgressDescriptor;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -62,7 +62,7 @@ public class ProgressPanel extends QuickSetupStepPanel
 
   private JEditorPane detailsTextArea;
 
-  private Message lastText;
+  private LocalizableMessage lastText;
 
   private Component lastFocusComponent;
 
@@ -166,7 +166,7 @@ public class ProgressPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getInstructions()
+  protected LocalizableMessage getInstructions()
   {
     return null;
   }
@@ -174,7 +174,7 @@ public class ProgressPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getTitle()
+  protected LocalizableMessage getTitle()
   {
     return INFO_PROGRESS_PANEL_TITLE.get();
   }

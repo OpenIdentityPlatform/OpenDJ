@@ -30,7 +30,7 @@ import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExternalSASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
@@ -165,14 +165,14 @@ public class ExternalSASLMechanismHandler
     ClientConnection clientConnection = bindOperation.getClientConnection();
     if (clientConnection == null) {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-      Message message = ERR_SASLEXTERNAL_NO_CLIENT_CONNECTION.get();
+      LocalizableMessage message = ERR_SASLEXTERNAL_NO_CLIENT_CONNECTION.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
 
     if(!(clientConnection instanceof LDAPClientConnection)) {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-        Message message = ERR_SASLEXTERNAL_NOT_LDAP_CLIENT_INSTANCE.get();
+        LocalizableMessage message = ERR_SASLEXTERNAL_NOT_LDAP_CLIENT_INSTANCE.get();
         bindOperation.setAuthFailureReason(message);
         return;
     }
@@ -180,7 +180,7 @@ public class ExternalSASLMechanismHandler
     Certificate[] clientCertChain = lc.getClientCertificateChain();
     if ((clientCertChain == null) || (clientCertChain.length == 0)) {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-      Message message = ERR_SASLEXTERNAL_NO_CLIENT_CERT.get();
+      LocalizableMessage message = ERR_SASLEXTERNAL_NO_CLIENT_CERT.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -217,7 +217,7 @@ public class ExternalSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      Message message = ERR_SASLEXTERNAL_NO_MAPPING.get();
+      LocalizableMessage message = ERR_SASLEXTERNAL_NO_MAPPING.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -240,7 +240,7 @@ public class ExternalSASLMechanismHandler
           {
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            Message message = ERR_SASLEXTERNAL_NO_CERT_IN_ENTRY.get(
+            LocalizableMessage message = ERR_SASLEXTERNAL_NO_CERT_IN_ENTRY.get(
                     String.valueOf(userEntry.getName()));
             bindOperation.setAuthFailureReason(message);
             return;
@@ -269,7 +269,7 @@ public class ExternalSASLMechanismHandler
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              Message message = ERR_SASLEXTERNAL_PEER_CERT_NOT_FOUND.get(
+              LocalizableMessage message = ERR_SASLEXTERNAL_PEER_CERT_NOT_FOUND.get(
                       String.valueOf(userEntry.getName()));
               bindOperation.setAuthFailureReason(message);
               return;
@@ -284,7 +284,7 @@ public class ExternalSASLMechanismHandler
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            Message message = ERR_SASLEXTERNAL_CANNOT_VALIDATE_CERT.get(
+            LocalizableMessage message = ERR_SASLEXTERNAL_CANNOT_VALIDATE_CERT.get(
                     String.valueOf(userEntry.getName()),
                     getExceptionMessage(e));
             bindOperation.setAuthFailureReason(message);
@@ -317,7 +317,7 @@ public class ExternalSASLMechanismHandler
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              Message message = ERR_SASLEXTERNAL_PEER_CERT_NOT_FOUND.get(
+              LocalizableMessage message = ERR_SASLEXTERNAL_PEER_CERT_NOT_FOUND.get(
                       String.valueOf(userEntry.getName()));
               bindOperation.setAuthFailureReason(message);
               return;
@@ -332,7 +332,7 @@ public class ExternalSASLMechanismHandler
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            Message message = ERR_SASLEXTERNAL_CANNOT_VALIDATE_CERT.get(
+            LocalizableMessage message = ERR_SASLEXTERNAL_CANNOT_VALIDATE_CERT.get(
                     String.valueOf(userEntry.getName()),
                     getExceptionMessage(e));
             bindOperation.setAuthFailureReason(message);
@@ -380,7 +380,7 @@ public class ExternalSASLMechanismHandler
   @Override()
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     ExternalSASLMechanismHandlerCfg config =
          (ExternalSASLMechanismHandlerCfg) configuration;
@@ -394,7 +394,7 @@ public class ExternalSASLMechanismHandler
    */
   public boolean isConfigurationChangeAcceptable(
                       ExternalSASLMechanismHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -409,7 +409,7 @@ public class ExternalSASLMechanismHandler
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // See if we should attempt to validate client certificates against those in

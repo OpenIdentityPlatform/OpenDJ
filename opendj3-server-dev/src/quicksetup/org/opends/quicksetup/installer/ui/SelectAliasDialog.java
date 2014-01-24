@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -48,7 +48,7 @@ import javax.swing.text.JTextComponent;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -157,7 +157,7 @@ public class SelectAliasDialog extends JDialog
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
     gbc.fill = GridBagConstraints.BOTH;
-    Message msg = INFO_SELECT_ALIAS_MSG.get();
+    LocalizableMessage msg = INFO_SELECT_ALIAS_MSG.get();
     JTextComponent tf = UIFactory.makeHtmlPane(msg,
             UIFactory.INSTRUCTIONS_FONT);
     tf.setOpaque(false);

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.uninstaller;
@@ -36,8 +37,8 @@ import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.guitools.controlpanel.datamodel.ConnectionProtocolPolicy;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -159,7 +160,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       /*
        * Step 2: check that the provided parameters are compatible.
        */
-      MessageBuilder buf = new MessageBuilder();
+      LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
       int v = args.validateGlobalOptions(buf);
       if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode())
       {
@@ -262,7 +263,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         "Error retrieving a valid LDAP URL in conf file.");
         if (!parser.isInteractive())
         {
-          Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
+          LocalizableMessage msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
           throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
               null);
         }
@@ -330,7 +331,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     final int REMOVE_ALL = 1;
     final int SPECIFY_TO_REMOVE = 2;
     int[] indexes = {REMOVE_ALL, SPECIFY_TO_REMOVE};
-    Message[] msgs = new Message[] {
+    LocalizableMessage[] msgs = new LocalizableMessage[] {
         INFO_CLI_UNINSTALL_REMOVE_ALL.get(),
         INFO_CLI_UNINSTALL_SPECIFY_WHAT_REMOVE.get()
       };
@@ -345,7 +346,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
     builder.addQuitOption();
 
-    builder.setDefault(Message.raw(String.valueOf(REMOVE_ALL)),
+    builder.setDefault(LocalizableMessage.raw(String.valueOf(REMOVE_ALL)),
         MenuResult.success(REMOVE_ALL));
 
     builder.setMaxTries(CONFIRMATION_MAX_TRIES);
@@ -399,7 +400,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       {
         println();
 //      Ask for confirmation for the different items
-        msgs = new Message [] {
+        msgs = new LocalizableMessage [] {
                 INFO_CLI_UNINSTALL_CONFIRM_LIBRARIES_BINARIES.get(),
                 INFO_CLI_UNINSTALL_CONFIRM_DATABASES.get(),
                 INFO_CLI_UNINSTALL_CONFIRM_LOGS.get(),
@@ -860,7 +861,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         {
           LOG.log(Level.WARNING,
          "Error retrieving a valid Administration Connector URL in conf file.");
-          Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
+          LocalizableMessage msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
             throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
                 null);
         }
@@ -889,7 +890,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         {
           LOG.log(Level.WARNING,
          "Error retrieving a valid Administration Connector URL in conf file.");
-          Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
+          LocalizableMessage msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
           throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
               null);
         }
@@ -1054,7 +1055,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       /**
        * {@inheritDoc}
        */
-      public Message getSummary(ProgressStep step)
+      public LocalizableMessage getSummary(ProgressStep step)
       {
         return null;
       }
@@ -1155,7 +1156,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
     boolean exceptionOccurred = true;
 
-    Message exceptionMsg = null;
+    LocalizableMessage exceptionMsg = null;
 
     LOG.log(Level.INFO, "Updating user data with remote servers.");
 
@@ -1334,7 +1335,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         exceptions.add(e);
       }
     }
-    Set<Message> exceptionMsgs = new LinkedHashSet<Message>();
+    Set<LocalizableMessage> exceptionMsgs = new LinkedHashSet<LocalizableMessage>();
     /* Check the exceptions and see if we throw them or not. */
     for (TopologyCacheException e : exceptions)
     {
@@ -1418,7 +1419,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       {
         if (parser.isForceOnError())
         {
-          Message msg = Utils.getMessageFromCollection(exceptionMsgs,
+          LocalizableMessage msg = Utils.getMessageFromCollection(exceptionMsgs,
               Constants.LINE_SEPARATOR);
           println();
           printErrorMessage(msg);
@@ -1426,7 +1427,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         }
         else
         {
-          Message msg =
+          LocalizableMessage msg =
             ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
               "--"+
               parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
@@ -1554,7 +1555,7 @@ public class UninstallCliHelper extends ConsoleApplication {
      forceNonInteractive = false;
    }
 
-   private void printErrorMessage(Message msg)
+   private void printErrorMessage(LocalizableMessage msg)
    {
      super.println(msg);
      LOG.log(Level.WARNING, msg.toString());

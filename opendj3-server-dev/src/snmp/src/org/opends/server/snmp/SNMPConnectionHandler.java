@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.snmp;
 
@@ -33,7 +34,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
@@ -97,7 +98,7 @@ public final class SNMPConnectionHandler
             throws ConfigException, InitializationException {
 
         if (configuration == null) {
-            Message message = ERR_SNMP_CONNHANDLER_NO_CONFIGURATION.get();
+            LocalizableMessage message = ERR_SNMP_CONNHANDLER_NO_CONFIGURATION.get();
             logError(message);
             return;
         }
@@ -107,7 +108,7 @@ public final class SNMPConnectionHandler
 
         String jarLocation = this.currentConfig.getOpendmkJarfile();
         if ((jarLocation==null) || (jarLocation.length()==0)){
-            Message message = ERR_SNMP_CONNHANDLER_NO_OPENDMK_JARFILES.get();
+            LocalizableMessage message = ERR_SNMP_CONNHANDLER_NO_OPENDMK_JARFILES.get();
             logError(message);
             return;
         }
@@ -125,7 +126,7 @@ public final class SNMPConnectionHandler
         }
 
         if (!fullpathFile.exists()) {
-            Message message =
+            LocalizableMessage message =
               ERR_SNMP_CONNHANDLER_OPENDMK_JARFILES_DOES_NOT_EXIST.get(
                   fullpathFile.getAbsolutePath());
             logError(message);
@@ -138,7 +139,7 @@ public final class SNMPConnectionHandler
                 this.currentConfig.getListenPort()));
 
         if (!this.isOperational(fullpathFile)) {
-            Message message =
+            LocalizableMessage message =
               ERR_SNMP_CONNHANDLER_OPENDMK_JARFILES_NOT_OPERATIONAL.get(
                   fullpathFile.getAbsolutePath());
             logError(message);
@@ -153,7 +154,7 @@ public final class SNMPConnectionHandler
           this.provider.initializeConnectionHandler(this.currentConfig);
         }
         catch (Exception ex) {
-            Message message = ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get();
+            LocalizableMessage message = ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get();
             logError(message);
             return;
         }
@@ -213,7 +214,7 @@ public final class SNMPConnectionHandler
      */
     public boolean isConfigurationChangeAcceptable(
             SNMPConnectionHandlerCfg configuration,
-            List<Message> unacceptableReasons) {
+            List<LocalizableMessage> unacceptableReasons) {
         // The configuration should always be acceptable.
         return true;
     }
@@ -310,7 +311,7 @@ public final class SNMPConnectionHandler
      * {@inheritDoc}
     */
     @Override
-    public void finalizeConnectionHandler(Message finalizeReason) {
+    public void finalizeConnectionHandler(LocalizableMessage finalizeReason) {
         if (this.provider!=null) {
             this.provider.finalizeConnectionHandler();
         }

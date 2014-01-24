@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -33,7 +34,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
@@ -138,7 +139,7 @@ public class ConfigChangeListenerTestCase
     ConfigEntry e = DirectoryServer.getConfigEntry(dn);
     assertNotNull(e);
 
-    MessageBuilder unacceptableReason = new MessageBuilder();
+    LocalizableMessageBuilder unacceptableReason = new LocalizableMessageBuilder();
     assertTrue(l.configChangeIsAcceptable(e, unacceptableReason),
                unacceptableReason.toString());
   }

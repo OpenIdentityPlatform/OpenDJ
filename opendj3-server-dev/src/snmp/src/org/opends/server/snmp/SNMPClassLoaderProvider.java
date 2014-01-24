@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.snmp;
 
@@ -45,7 +45,7 @@ import java.net.UnknownHostException;
 import java.util.SortedSet;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
@@ -262,7 +262,7 @@ public class SNMPClassLoaderProvider {
                     this.currentConfig.getTrapsDestination());
 
             if (this.sentTraps == false) {
-                Message message =
+                LocalizableMessage message =
                         ERR_SNMP_CONNHANDLER_NO_VALID_TRAP_DESTINATIONS.get();
                 logError(message);
             } else {
@@ -400,7 +400,7 @@ public class SNMPClassLoaderProvider {
                 InetAddress addr = InetAddress.getByName(dest);
                 found = true;
             } catch (UnknownHostException ex) {
-                Message message = ERR_SNMP_CONNHANDLER_TRAPS_DESTINATION.get(
+                LocalizableMessage message = ERR_SNMP_CONNHANDLER_TRAPS_DESTINATION.get(
                         dest);
                 logError(message);
             }

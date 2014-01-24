@@ -31,7 +31,7 @@ import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
@@ -78,8 +78,7 @@ public class StressTest extends ReplicationTestCase
   @Test(enabled=false, groups="slow")
   public void fromServertoBroker() throws Exception
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE,
-        "Starting replication StressTest : fromServertoBroker"));
+    logError(LocalizableMessage.raw("Starting replication StressTest : fromServertoBroker"));
 
     final DN baseDN = DN.valueOf("ou=People," + TEST_ROOT_DN_STRING);
     final int TOTAL_MESSAGES = 1000;

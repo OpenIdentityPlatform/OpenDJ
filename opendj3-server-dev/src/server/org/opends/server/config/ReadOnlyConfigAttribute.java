@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.config;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -72,7 +72,7 @@ public final class ReadOnlyConfigAttribute
    * @param  isMultiValued  Indicates whether this configuration attribute may
    *                        have multiple values.
    */
-  public ReadOnlyConfigAttribute(String name, Message description,
+  public ReadOnlyConfigAttribute(String name, LocalizableMessage description,
                                  boolean isMultiValued)
   {
     super(name, description, false, isMultiValued, false);
@@ -91,7 +91,7 @@ public final class ReadOnlyConfigAttribute
    * @param  description  The description for this configuration attribute.
    * @param  value        The value for this configuration attribute.
    */
-  public ReadOnlyConfigAttribute(String name, Message description, String value)
+  public ReadOnlyConfigAttribute(String name, LocalizableMessage description, String value)
   {
     super(name, description, false, false, false, getValueSet(value));
 
@@ -117,7 +117,7 @@ public final class ReadOnlyConfigAttribute
    * @param  description  The description for this configuration attribute.
    * @param  values       The set of values for this configuration attribute.
    */
-  public ReadOnlyConfigAttribute(String name, Message description,
+  public ReadOnlyConfigAttribute(String name, LocalizableMessage description,
                                  List<String> values)
   {
     super(name, description, false, true, false, getValueSet(values));
@@ -176,13 +176,13 @@ public final class ReadOnlyConfigAttribute
   {
     if ((values == null) || values.isEmpty())
     {
-      Message message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
       throw new ConfigException(message);
     }
 
     if (values.size() > 1)
     {
-      Message message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
       throw new ConfigException(message);
     }
 
@@ -246,7 +246,7 @@ public final class ReadOnlyConfigAttribute
   public void setValue(String value)
          throws ConfigException
   {
-    Message message = ERR_CONFIG_ATTR_READ_ONLY.get(getName());
+    LocalizableMessage message = ERR_CONFIG_ATTR_READ_ONLY.get(getName());
     throw new ConfigException(message);
   }
 
@@ -263,7 +263,7 @@ public final class ReadOnlyConfigAttribute
   public void setValues(List<String> values)
          throws ConfigException
   {
-    Message message = ERR_CONFIG_ATTR_READ_ONLY.get(getName());
+    LocalizableMessage message = ERR_CONFIG_ATTR_READ_ONLY.get(getName());
     throw new ConfigException(message);
   }
 
@@ -597,7 +597,7 @@ public final class ReadOnlyConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-    Message message = ERR_CONFIG_ATTR_READ_ONLY.get(getName());
+    LocalizableMessage message = ERR_CONFIG_ATTR_READ_ONLY.get(getName());
     throw new ConfigException(message);
   }
 

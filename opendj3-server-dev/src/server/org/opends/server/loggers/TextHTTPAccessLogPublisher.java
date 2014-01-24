@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -40,12 +40,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FileBasedHTTPAccessLogPublisherCfg;
 import org.opends.server.api.HTTPAccessLogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -122,7 +123,7 @@ public final class TextHTTPAccessLogPublisher extends
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    final List<Message> messages = new ArrayList<Message>();
+    final List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     final File logFile = getFileForPath(config.getLogFile());
     final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
@@ -227,7 +228,7 @@ public final class TextHTTPAccessLogPublisher extends
 
         cfg = config;
         logFormatFields = extractFieldsOrder(cfg.getLogFormat());
-        Message errorMessage = validateLogFormat(logFormatFields);
+        LocalizableMessage errorMessage = validateLogFormat(logFormatFields);
         if (errorMessage != null)
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
@@ -238,7 +239,7 @@ public final class TextHTTPAccessLogPublisher extends
     }
     catch (final Exception e)
     {
-      final Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+      final LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
           config.dn().toString(), stackTraceToSingleLineString(e));
       resultCode = DirectoryServer.getServerErrorResultCode();
       messages.add(message);
@@ -262,7 +263,7 @@ public final class TextHTTPAccessLogPublisher extends
    *          the fields comprising the log format.
    * @return an error message when validation fails, null otherwise
    */
-  private Message validateLogFormat(List<String> fields)
+  private LocalizableMessage validateLogFormat(List<String> fields)
   {
     final Collection<String> unsupportedFields =
         subtract(fields, ALL_SUPPORTED_FIELDS);
@@ -304,7 +305,7 @@ public final class TextHTTPAccessLogPublisher extends
   /** {@inheritDoc} */
   @Override
   public void initializeLogPublisher(
-      final FileBasedHTTPAccessLogPublisherCfg cfg)
+      final FileBasedHTTPAccessLogPublisherCfg cfg, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
     final File logFile = getFileForPath(cfg.getLogFile());
@@ -358,20 +359,20 @@ public final class TextHTTPAccessLogPublisher extends
     }
     catch (final DirectoryException e)
     {
-      final Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg
+      final LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg
           .dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
     }
     catch (final IOException e)
     {
-      final Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
+      final LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
           logFile.toString(), cfg.dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
     }
 
     this.cfg = cfg;
     logFormatFields = extractFieldsOrder(cfg.getLogFormat());
-    Message error = validateLogFormat(logFormatFields);
+    LocalizableMessage error = validateLogFormat(logFormatFields);
     if (error != null)
     {
       throw new InitializationException(error);
@@ -386,7 +387,7 @@ public final class TextHTTPAccessLogPublisher extends
   @Override
   public boolean isConfigurationAcceptable(
       final FileBasedHTTPAccessLogPublisherCfg configuration,
-      final List<Message> unacceptableReasons)
+      final List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
@@ -396,7 +397,7 @@ public final class TextHTTPAccessLogPublisher extends
   @Override
   public boolean isConfigurationChangeAcceptable(
       final FileBasedHTTPAccessLogPublisherCfg config,
-      final List<Message> unacceptableReasons)
+      final List<LocalizableMessage> unacceptableReasons)
   {
     // Validate the time-stamp formatter.
     final String formatString = config.getLogRecordTimeFormat();
@@ -406,7 +407,7 @@ public final class TextHTTPAccessLogPublisher extends
     }
     catch (final Exception e)
     {
-      final Message message = ERR_CONFIG_LOGGING_INVALID_TIME_FORMAT.get(String
+      final LocalizableMessage message = ERR_CONFIG_LOGGING_INVALID_TIME_FORMAT.get(String
           .valueOf(formatString));
       unacceptableReasons.add(message);
       return false;
@@ -419,7 +420,7 @@ public final class TextHTTPAccessLogPublisher extends
           .getLogFilePermissions());
       if (!filePerm.isOwnerWritable())
       {
-        final Message message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config
+        final LocalizableMessage message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config
             .getLogFilePermissions());
         unacceptableReasons.add(message);
         return false;
@@ -427,7 +428,7 @@ public final class TextHTTPAccessLogPublisher extends
     }
     catch (final DirectoryException e)
     {
-      final Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
+      final LocalizableMessage message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
           config.getLogFilePermissions(), String.valueOf(e));
       unacceptableReasons.add(message);
       return false;

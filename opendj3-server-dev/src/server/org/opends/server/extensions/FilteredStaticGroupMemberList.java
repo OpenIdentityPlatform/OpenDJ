@@ -26,7 +26,7 @@
  */
 package org.opends.server.extensions;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -166,7 +166,7 @@ public class FilteredStaticGroupMemberList
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        Message message = ERR_STATICMEMBERS_CANNOT_DECODE_DN.
+        LocalizableMessage message = ERR_STATICMEMBERS_CANNOT_DECODE_DN.
             get(String.valueOf(nextDN), String.valueOf(groupDN),
                 String.valueOf(de.getMessageObject()));
         nextMembershipException =
@@ -218,7 +218,7 @@ public class FilteredStaticGroupMemberList
         Entry memberEntry = DirectoryConfig.getEntry(nextDN);
         if (memberEntry == null)
         {
-          Message message = ERR_STATICMEMBERS_NO_SUCH_ENTRY.get(
+          LocalizableMessage message = ERR_STATICMEMBERS_NO_SUCH_ENTRY.get(
               String.valueOf(nextDN), String.valueOf(groupDN));
           nextMembershipException =
                new MembershipException(message, true);
@@ -250,7 +250,7 @@ public class FilteredStaticGroupMemberList
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        Message message = ERR_STATICMEMBERS_CANNOT_GET_ENTRY.
+        LocalizableMessage message = ERR_STATICMEMBERS_CANNOT_GET_ENTRY.
             get(String.valueOf(nextDN), String.valueOf(groupDN),
                 String.valueOf(de.getMessageObject()));
         nextMembershipException =

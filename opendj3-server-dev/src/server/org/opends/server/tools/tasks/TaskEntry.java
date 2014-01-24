@@ -27,7 +27,7 @@
 
 package org.opends.server.tools.tasks;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -60,11 +60,11 @@ import java.text.ParseException;
  */
 public class TaskEntry {
 
-  private static Map<String, Message> mapClassToTypeName =
-          new HashMap<String, Message>();
+  private static Map<String, LocalizableMessage> mapClassToTypeName =
+          new HashMap<String, LocalizableMessage>();
 
-  private static Map<String, Message> mapAttrToDisplayName =
-          new HashMap<String, Message>();
+  private static Map<String, LocalizableMessage> mapAttrToDisplayName =
+          new HashMap<String, LocalizableMessage>();
 
   private int hashCode;
 
@@ -107,8 +107,8 @@ public class TaskEntry {
    */
   private Task task;
 
-  private Map<Message, List<String>> taskSpecificAttrValues =
-          new HashMap<Message, List<String>>();
+  private Map<LocalizableMessage, List<String>> taskSpecificAttrValues =
+          new HashMap<LocalizableMessage, List<String>>();
 
   /**
    * Creates a parameterized instance.
@@ -140,7 +140,7 @@ public class TaskEntry {
 
       // See if we've handled it already above
       if (!supAttrNames.contains(typeName)) {
-        Message attrTypeName = getAttributeDisplayName(
+        LocalizableMessage attrTypeName = getAttributeDisplayName(
                 type.getNormalizedPrimaryName());
         List<Attribute> attrList = entry.getUserAttribute(type);
         for (Attribute attr : attrList) {
@@ -249,10 +249,10 @@ public class TaskEntry {
   /**
    * Gets the state of the task.
    *
-   * @return Message representing state
+   * @return LocalizableMessage representing state
    */
-  public Message getState() {
-    Message m = Message.EMPTY;
+  public LocalizableMessage getState() {
+    LocalizableMessage m = LocalizableMessage.EMPTY;
     if (state != null) {
       TaskState ts = TaskState.fromString(state);
       if (ts != null) {
@@ -267,7 +267,7 @@ public class TaskEntry {
    *
    * @return String time
    */
-  public Message getScheduledStartTime() {
+  public LocalizableMessage getScheduledStartTime() {
     return formatTimeString(schedStart);
   }
 
@@ -276,7 +276,7 @@ public class TaskEntry {
    *
    * @return String time
    */
-  public Message getActualStartTime() {
+  public LocalizableMessage getActualStartTime() {
     return formatTimeString(actStart);
   }
 
@@ -285,17 +285,17 @@ public class TaskEntry {
    *
    * @return String time
    */
-  public Message getCompletionTime() {
+  public LocalizableMessage getCompletionTime() {
     return formatTimeString(compTime);
   }
 
   /**
    * Gets recurring schedule tab.
    *
-   * @return Message tab string
+   * @return LocalizableMessage tab string
    */
-  public Message getScheduleTab() {
-    return Message.raw(schedTab);
+  public LocalizableMessage getScheduleTab() {
+    return LocalizableMessage.raw(schedTab);
   }
 
   /**
@@ -312,8 +312,8 @@ public class TaskEntry {
    *
    * @return String action
    */
-  public Message getFailedDependencyAction() {
-    Message m = null;
+  public LocalizableMessage getFailedDependencyAction() {
+    LocalizableMessage m = null;
     if (depFailAct != null) {
       FailedDependencyAction fda =
               FailedDependencyAction.fromString(depFailAct);
@@ -329,10 +329,10 @@ public class TaskEntry {
    *
    * @return array of log messages
    */
-  public List<Message> getLogMessages() {
-    List<Message> formattedLogs = new ArrayList<Message>();
+  public List<LocalizableMessage> getLogMessages() {
+    List<LocalizableMessage> formattedLogs = new ArrayList<LocalizableMessage>();
     for (String aLog : logs) {
-      formattedLogs.add(Message.raw(aLog));
+      formattedLogs.add(LocalizableMessage.raw(aLog));
     }
     return Collections.unmodifiableList(formattedLogs);
   }
@@ -360,10 +360,10 @@ public class TaskEntry {
   /**
    * Gets a user presentable string indicating the type of this task.
    *
-   * @return Message type
+   * @return LocalizableMessage type
    */
-  public Message getType() {
-    Message type = Message.EMPTY;
+  public LocalizableMessage getType() {
+    LocalizableMessage type = LocalizableMessage.EMPTY;
     if (className != null) {
       type = mapClassToTypeName.get(className);
       if (type == null) {
@@ -372,9 +372,9 @@ public class TaskEntry {
           try {
             Method m = Task.class.getMethod("getDisplayName");
             Object oName = m.invoke(task);
-            if (oName instanceof Message) {
-              mapClassToTypeName.put(className, (Message) oName);
-              type = (Message) oName;
+            if (oName instanceof LocalizableMessage) {
+              mapClassToTypeName.put(className, (LocalizableMessage) oName);
+              type = (LocalizableMessage) oName;
             }
           } catch (Exception e) {
             // ignore; this is best effort
@@ -385,7 +385,7 @@ public class TaskEntry {
       // If we still can't get the type just resort
       // to the class displayName
       if (type == null) {
-        type = Message.raw(className);
+        type = LocalizableMessage.raw(className);
       }
     }
     return type;
@@ -417,7 +417,7 @@ public class TaskEntry {
    * @return mapping of atribute field labels to lists of string values for
    *         each field.
    */
-  public Map<Message, List<String>> getTaskSpecificAttributeValuePairs() {
+  public Map<LocalizableMessage, List<String>> getTaskSpecificAttributeValuePairs() {
     return taskSpecificAttrValues;
   }
 
@@ -468,8 +468,8 @@ public class TaskEntry {
     return valuesList;
   }
 
-  private Message getAttributeDisplayName(String attrName) {
-    Message name = mapAttrToDisplayName.get(attrName);
+  private LocalizableMessage getAttributeDisplayName(String attrName) {
+    LocalizableMessage name = mapAttrToDisplayName.get(attrName);
     if (name == null) {
       Task task = getTask();
       if (task != null) {
@@ -477,8 +477,8 @@ public class TaskEntry {
           Method m = Task.class.getMethod(
                   "getAttributeDisplayName", String.class);
           Object o = m.invoke(task, attrName);
-          if (o != null && Message.class.isAssignableFrom(o.getClass())) {
-            name= (Message)o;
+          if (o != null && LocalizableMessage.class.isAssignableFrom(o.getClass())) {
+            name= (LocalizableMessage)o;
             mapAttrToDisplayName.put(attrName, name);
           }
         } catch (Exception e) {
@@ -487,7 +487,7 @@ public class TaskEntry {
       }
     }
     if (name == null) {
-      name = Message.raw(attrName);
+      name = LocalizableMessage.raw(attrName);
     }
     return name;
   }
@@ -497,8 +497,8 @@ public class TaskEntry {
    * @param timeString the is human hostile
    * @return string of time that is human friendly
    */
-  private Message formatTimeString(String timeString) {
-    Message ret = Message.EMPTY;
+  private LocalizableMessage formatTimeString(String timeString) {
+    LocalizableMessage ret = LocalizableMessage.EMPTY;
     if (timeString != null && timeString.length() > 0) {
       try {
         SimpleDateFormat dateFormat;
@@ -513,9 +513,9 @@ public class TaskEntry {
                 DateFormat.MEDIUM,
                 DateFormat.LONG);
         String dateString = df.format(date);
-        ret = Message.raw(dateString);
+        ret = LocalizableMessage.raw(dateString);
       } catch (ParseException pe){
-        ret = Message.raw(timeString);
+        ret = LocalizableMessage.raw(timeString);
       }
     }
     return ret;

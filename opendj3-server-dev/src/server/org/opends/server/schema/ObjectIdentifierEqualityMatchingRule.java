@@ -35,8 +35,8 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -202,7 +202,7 @@ class ObjectIdentifierEqualityMatchingRule
     switch (DirectoryServer.getSyntaxEnforcementPolicy())
     {
       case REJECT:
-        MessageBuilder invalidReason = new MessageBuilder();
+        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         if (isValidSchemaElement(lowerValue, 0, lowerValue.length(),
                                 invalidReason))
         {
@@ -210,18 +210,18 @@ class ObjectIdentifierEqualityMatchingRule
         }
         else
         {
-          Message message = ERR_ATTR_SYNTAX_OID_INVALID_VALUE.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_OID_INVALID_VALUE.get(
               lowerValue, invalidReason.toString());
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
 
       case WARN:
-        invalidReason = new MessageBuilder();
+        invalidReason = new LocalizableMessageBuilder();
         if (! isValidSchemaElement(lowerValue, 0, lowerValue.length(),
                                    invalidReason))
         {
-          Message message = ERR_ATTR_SYNTAX_OID_INVALID_VALUE.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_OID_INVALID_VALUE.get(
               lowerValue, invalidReason.toString());
           ErrorLogger.logError(message);
         }

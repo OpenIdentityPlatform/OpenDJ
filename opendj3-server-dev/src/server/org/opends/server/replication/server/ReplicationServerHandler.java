@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
@@ -95,7 +95,7 @@ public class ReplicationServerHandler extends ServerHandler
     }
     catch(Exception e)
     {
-      Message message = Message.raw(e.getLocalizedMessage());
+      LocalizableMessage message = LocalizableMessage.raw(e.getLocalizedMessage());
       throw new DirectoryException(ResultCode.OTHER, message);
     }
     return inReplServerStartMsg.getSSLEncryption();
@@ -176,7 +176,7 @@ public class ReplicationServerHandler extends ServerHandler
         }
         else
         {
-          Message message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(msg
+          LocalizableMessage message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(msg
               .getClass().getCanonicalName(), "ReplServerStartMsg");
           abortStart(message);
         }
@@ -247,7 +247,7 @@ public class ReplicationServerHandler extends ServerHandler
         replicationServerDomain.receiveTopoInfoFromRS(inTopoMsg, this, false);
       }
 
-      Message message = INFO_REPLICATION_SERVER_CONNECTION_TO_RS
+      LocalizableMessage message = INFO_REPLICATION_SERVER_CONNECTION_TO_RS
           .get(getReplicationServerId(), getServerId(),
               replicationServerDomain.getBaseDN().toNormalizedString(),
               session.getReadableRemoteAddress());
@@ -261,7 +261,7 @@ public class ReplicationServerHandler extends ServerHandler
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
+      LocalizableMessage errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
           String.valueOf(getReplicationServerId()),
           session.getReadableRemoteAddress());
       abortStart(errMessage);
@@ -280,7 +280,7 @@ public class ReplicationServerHandler extends ServerHandler
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      abortStart(Message.raw(e.getLocalizedMessage()));
+      abortStart(LocalizableMessage.raw(e.getLocalizedMessage()));
     }
     finally
     {
@@ -382,7 +382,7 @@ public class ReplicationServerHandler extends ServerHandler
       if (inTopoMsg!=null)
         replicationServerDomain.receiveTopoInfoFromRS(inTopoMsg, this, false);
 
-      Message message = INFO_REPLICATION_SERVER_CONNECTION_FROM_RS
+      LocalizableMessage message = INFO_REPLICATION_SERVER_CONNECTION_FROM_RS
           .get(getReplicationServerId(), getServerId(),
               replicationServerDomain.getBaseDN().toNormalizedString(),
               session.getReadableRemoteAddress());
@@ -396,7 +396,7 @@ public class ReplicationServerHandler extends ServerHandler
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
+      LocalizableMessage errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
           Integer.toString(inReplServerStartMsg.getServerId()),
           Integer.toString(replicationServer.getServerId()));
       abortStart(errMessage);
@@ -415,7 +415,7 @@ public class ReplicationServerHandler extends ServerHandler
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      abortStart(Message.raw(e.getLocalizedMessage()));
+      abortStart(LocalizableMessage.raw(e.getLocalizedMessage()));
     }
     finally
     {
@@ -438,7 +438,7 @@ public class ReplicationServerHandler extends ServerHandler
     }
     catch(Exception e)
     {
-      Message message = Message.raw(e.getLocalizedMessage());
+      LocalizableMessage message = LocalizableMessage.raw(e.getLocalizedMessage());
       throw new DirectoryException(ResultCode.OTHER, message);
     }
 
@@ -451,7 +451,7 @@ public class ReplicationServerHandler extends ServerHandler
         return null;
       }
 
-      Message message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(
+      LocalizableMessage message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(
           msg.getClass().getCanonicalName(), "TopologyMsg");
       throw new DirectoryException(ResultCode.OTHER, message);
     }
@@ -536,7 +536,7 @@ public class ReplicationServerHandler extends ServerHandler
        * and we have a null state ?
        * replicationServerDomain.setGenerationId(generationId, false);
        */
-      Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
+      LocalizableMessage message = WARN_BAD_GENERATION_ID_FROM_RS.get(
           serverId, session.getReadableRemoteAddress(), generationId,
           getBaseDNString(), getReplicationServerId(), localGenerationId);
       logError(message);

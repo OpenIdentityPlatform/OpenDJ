@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -48,8 +49,8 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ObjectClass;
@@ -62,8 +63,8 @@ import org.opends.server.types.Schema;
 public class StandardAttributePanel extends SchemaElementPanel
 {
   private static final long serialVersionUID = -7922968631524763675L;
-  private TitlePanel titlePanel = new TitlePanel(Message.EMPTY,
-      Message.EMPTY);
+  private TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY,
+      LocalizableMessage.EMPTY);
   private JLabel name = Utilities.createDefaultLabel();
   private JLabel parent = Utilities.createDefaultLabel();
   private JLabel oid = Utilities.createDefaultLabel();
@@ -93,7 +94,7 @@ public class StandardAttributePanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_STANDARD_ATTRIBUTE_TITLE.get();
   }
@@ -157,7 +158,7 @@ public class StandardAttributePanel extends SchemaElementPanel
     gbc.gridwidth = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
-    Message[] labels = {
+    LocalizableMessage[] labels = {
         INFO_CTRL_PANEL_ATTRIBUTE_NAME_LABEL.get(),
         INFO_CTRL_PANEL_ATTRIBUTE_PARENT_LABEL.get(),
         INFO_CTRL_PANEL_ATTRIBUTE_OID_LABEL.get(),
@@ -186,7 +187,7 @@ public class StandardAttributePanel extends SchemaElementPanel
       c.add(values[i], gbc);
       gbc.gridy ++;
     }
-    labels = new Message[] {
+    labels = new LocalizableMessage[] {
         INFO_CTRL_PANEL_REQUIRED_BY_LABEL.get(),
         INFO_CTRL_PANEL_ALLOWED_BY_LABEL.get()
         };
@@ -262,7 +263,7 @@ public class StandardAttributePanel extends SchemaElementPanel
     {
       n = NOT_APPLICABLE.toString();
     }
-    titlePanel.setDetails(Message.raw(n));
+    titlePanel.setDetails(LocalizableMessage.raw(n));
     name.setText(n);
     AttributeType superior = attr.getSuperiorType();
     if (superior == null)
@@ -366,13 +367,13 @@ public class StandardAttributePanel extends SchemaElementPanel
    * @return the message describing the attribute type (operational, single
    * valued, etc.).
    */
-  static Message getTypeValue(AttributeType attr)
+  static LocalizableMessage getTypeValue(AttributeType attr)
   {
-    MessageBuilder mb = new MessageBuilder();
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     Boolean[] props = {attr.isOperational(), attr.isSingleValue(),
         attr.isNoUserModification(), attr.isCollective(),
         attr.isObsolete()};
-    Message[][] values = {
+    LocalizableMessage[][] values = {
         {INFO_CTRL_PANEL_ATTRIBUTE_OPERATIONAL_LABEL.get(), null},
         {INFO_CTRL_PANEL_ATTRIBUTE_SINGLE_VALUED_LABEL.get(),
           INFO_CTRL_PANEL_ATTRIBUTE_MULTI_VALUED_LABEL.get()},
@@ -382,7 +383,7 @@ public class StandardAttributePanel extends SchemaElementPanel
     int i = 0;
     for (Boolean prop : props)
     {
-      Message value = prop ? values[i][0] : values[i][1];
+      LocalizableMessage value = prop ? values[i][0] : values[i][1];
       if (value != null)
       {
         if (mb.length() > 0)

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -34,7 +35,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -231,7 +232,7 @@ public final class SetRelationDefinition
    * @return Returns the user friendly plural name of this relation
    *         definition in the default locale.
    */
-  public Message getUserFriendlyPluralName()
+  public LocalizableMessage getUserFriendlyPluralName()
   {
     return getUserFriendlyPluralName(Locale.getDefault());
   }
@@ -247,7 +248,7 @@ public final class SetRelationDefinition
    * @return Returns the user friendly plural name of this relation
    *         definition in the specified locale.
    */
-  public Message getUserFriendlyPluralName(Locale locale)
+  public LocalizableMessage getUserFriendlyPluralName(Locale locale)
   {
     String property =
         "relation." + getName() + ".user-friendly-plural-name";

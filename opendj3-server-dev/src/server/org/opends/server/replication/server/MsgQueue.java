@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 
@@ -122,7 +122,7 @@ public class MsgQueue
             // Adding 2 msgs with the same CSN is ok only when
             // the 2 msgs are the same
             bytesCount += (update.size() - msgSameCSN.size());
-            Message errMsg = ERR_RSQUEUE_DIFFERENT_MSGS_WITH_SAME_CN.get(
+            LocalizableMessage errMsg = ERR_RSQUEUE_DIFFERENT_MSGS_WITH_SAME_CN.get(
                 msgSameCSN.getCSN().toString(),
                 msgSameCSN.toString(), update.toString());
             logError(errMsg);
@@ -154,7 +154,7 @@ public class MsgQueue
       if ((map.size() == 0) && (bytesCount != 0))
       {
         // should never happen
-        Message msg = ERR_BYTE_COUNT.get(Integer.toString(bytesCount));
+        LocalizableMessage msg = ERR_BYTE_COUNT.get(Integer.toString(bytesCount));
         logError(msg);
         bytesCount = 0;
       }

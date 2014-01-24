@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -60,7 +61,7 @@ import org.opends.guitools.controlpanel.ui.components.TimeDocumentFilter;
 import org.opends.guitools.controlpanel.ui.renderer.
  NoLeftInsetCategoryComboBoxRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.task.RecurringTask;
 
 /**
@@ -139,13 +140,13 @@ public class TaskToSchedulePanel extends StatusGenericPanel
   private Component monthlyPanel;
   private Component cronPanel;
 
-  private Message LAUNCH_NOW = INFO_CTRL_PANEL_LAUNCH_NOW.get();
-  private Message LAUNCH_LATER = INFO_CTRL_PANEL_LAUNCH_LATER.get();
-  private Message LAUNCH_DAILY = INFO_CTRL_PANEL_TASK_TO_SCHEDULE_DAILY.get();
-  private Message LAUNCH_WEEKLY = INFO_CTRL_PANEL_TASK_TO_SCHEDULE_WEEKLY.get();
-  private Message LAUNCH_MONTHLY =
+  private LocalizableMessage LAUNCH_NOW = INFO_CTRL_PANEL_LAUNCH_NOW.get();
+  private LocalizableMessage LAUNCH_LATER = INFO_CTRL_PANEL_LAUNCH_LATER.get();
+  private LocalizableMessage LAUNCH_DAILY = INFO_CTRL_PANEL_TASK_TO_SCHEDULE_DAILY.get();
+  private LocalizableMessage LAUNCH_WEEKLY = INFO_CTRL_PANEL_TASK_TO_SCHEDULE_WEEKLY.get();
+  private LocalizableMessage LAUNCH_MONTHLY =
     INFO_CTRL_PANEL_TASK_TO_SCHEDULE_MONTHLY.get();
-  private Message CRON = INFO_CTRL_PANEL_TASK_TO_SCHEDULE_CRON.get();
+  private LocalizableMessage CRON = INFO_CTRL_PANEL_TASK_TO_SCHEDULE_CRON.get();
 
   private ScheduleType schedule;
 
@@ -302,7 +303,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_TASK_TO_SCHEDULE_TITLE.get(taskName);
   }
@@ -313,7 +314,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
   public void okClicked()
   {
     schedule = null;
-    ArrayList<Message> errorMessages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
 
     updateErrorMessages(errorMessages);
 
@@ -333,7 +334,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
    * collection of messages with the errors that have been found.
    * @param errorMessages the collection of messages to be updated.
    */
-  private void updateErrorMessages(Collection<Message> errorMessages)
+  private void updateErrorMessages(Collection<LocalizableMessage> errorMessages)
   {
     Object type =
       ((CategorizedComboBoxElement)scheduleType.getSelectedItem()).getValue();
@@ -365,7 +366,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
    * The associated labels are also updated.
    * @param errorMessages the collection of messages to be updated.
    */
-  private void updateLaunchLaterErrorMessages(Collection<Message> errorMessages)
+  private void updateLaunchLaterErrorMessages(Collection<LocalizableMessage> errorMessages)
   {
     setPrimaryValid(lTime);
     setPrimaryValid(lDay);
@@ -426,7 +427,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
    * The associated labels are also updated.
    * @param errorMessages the collection of messages to be updated.
    */
-  private void updateLaunchDailyErrorMessages(Collection<Message> errorMessages)
+  private void updateLaunchDailyErrorMessages(Collection<LocalizableMessage> errorMessages)
   {
     setPrimaryValid(lDailyTime);
 
@@ -442,7 +443,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
    * @param errorMessages the collection of messages to be updated.
    */
   private void updateLaunchWeeklyErrorMessages(
-      Collection<Message> errorMessages)
+      Collection<LocalizableMessage> errorMessages)
   {
     setPrimaryValid(lWeeklyTime);
     setPrimaryValid(lWeeklyDays);
@@ -474,7 +475,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
    * @param errorMessages the collection of messages to be updated.
    */
   private void updateLaunchMonthlyErrorMessages(
-      Collection<Message> errorMessages)
+      Collection<LocalizableMessage> errorMessages)
   {
     setPrimaryValid(lMonthlyTime);
     setPrimaryValid(lMonthlyDays);
@@ -505,7 +506,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
    * The associated labels are also updated.
    * @param errorMessages the collection of messages to be updated.
    */
-  private void updateCronErrorMessages(Collection<Message> errorMessages)
+  private void updateCronErrorMessages(Collection<LocalizableMessage> errorMessages)
   {
     setPrimaryValid(lCronMinute);
     setPrimaryValid(lCronHour);
@@ -560,8 +561,8 @@ public class TaskToSchedulePanel extends StatusGenericPanel
    * @param errorMessages the collection of messages to be updated.
    */
   private void updateCronErrorMessages(String value, JLabel label,
-      Message errorIfEmpty, Message contentError, int minValue, int maxValue,
-      Collection<Message> errorMessages)
+      LocalizableMessage errorIfEmpty, LocalizableMessage contentError, int minValue, int maxValue,
+      Collection<LocalizableMessage> errorMessages)
   {
     if (value.length() == 0)
     {
@@ -694,7 +695,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
    * with the encountered problems.
    */
   private void checkTime(JTextField time, JLabel lTime, int[] h, int[] m,
-      Collection<Message> errorMessages)
+      Collection<LocalizableMessage> errorMessages)
   {
     String sTime = time.getText().trim();
     int index = sTime.indexOf(':');
@@ -845,7 +846,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     DefaultComboBoxModel model = new DefaultComboBoxModel();
     month.setModel(model);
 
-    Message[] monthMessages =
+    LocalizableMessage[] monthMessages =
     {
         INFO_CTRL_PANEL_JANUARY.get(),
         INFO_CTRL_PANEL_FEBRUARY.get(),
@@ -860,7 +861,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
         INFO_CTRL_PANEL_NOVEMBER.get(),
         INFO_CTRL_PANEL_DECEMBER.get(),
     };
-    for (Message msg : monthMessages)
+    for (LocalizableMessage msg : monthMessages)
     {
       model.addElement(msg.toString());
     }
@@ -880,7 +881,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
 
     JLabel[] labels = {lTime, lDay, lMonth, lYear};
     JComponent[] comps = {time, day, month, year};
-    Message[] inlineHelp =
+    LocalizableMessage[] inlineHelp =
     {
         INFO_CTRL_PANEL_TASK_TO_SCHEDULE_TIME_TOOLTIP.get(),
         null,
@@ -1090,7 +1091,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     gbc.gridwidth = 1;
     for (int i=0 ; i<monthDays.length; i++)
     {
-      monthDays[i] = Utilities.createCheckBox(Message.raw(String.valueOf(i+1)));
+      monthDays[i] = Utilities.createCheckBox(LocalizableMessage.raw(String.valueOf(i+1)));
       monthDays[i].setFont(ColorAndFontConstants.inlineHelpFont);
       int x = i % 7;
       if (x == 0 && i != 0)
@@ -1167,7 +1168,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
         lCronMonth};
     Component[] comps = {cronMinute, cronHour, cronWeekDay, cronMonthDay,
         cronMonth};
-    Message[] help =
+    LocalizableMessage[] help =
     {
       INFO_CTRL_PANEL_CRON_MINUTE_HELP.get(),
       INFO_CTRL_PANEL_CRON_HOUR_HELP.get(),

@@ -284,12 +284,15 @@ Please:
   </target>
 
 
-  <target name="generatemessages" depends="buildtools">
+  <target name="generatemessages" depends="buildtools,resolve">
     <typedef name="genmsg"
              classname="org.opends.build.tools.GenerateMessageFile" >
       <classpath>
         <fileset dir="${build.dir}/build-tools">
           <include name="*.jar" />
+        </fileset>
+        <fileset dir="${lib.dir}/compile">
+          <include name="i18n-core.jar" />
         </fileset>
       </classpath>
     </typedef>
@@ -781,6 +784,9 @@ Please:
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
         </fileset>
+      	<fileset dir="${lib.dir}/compile">
+      	  <include name="i18n-core.jar" />
+      	</fileset>
         <pathelement path="${classes.dir}"/>
       </classpath>
     </javac>
@@ -796,12 +802,20 @@ Please:
       <include name="**/org/opends/messages/Category.java"/>
       <include name="**/org/opends/messages/QuickSetupMessages.java"/>
       <include name="**/org/opends/server/types/OpenDsException.java"/>
+      <classpath>
+      	<fileset dir="${lib.dir}/compile">
+      	    <include name="i18n-core.jar" />
+      	</fileset>
+      </classpath>
     </javac>
     <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}">
       <classpath>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
         </fileset>
+      	<fileset dir="${lib.dir}/compile">
+      	    <include name="i18n-core.jar" />
+      	</fileset>
         <pathelement path="${classes.dir}"/>
       </classpath>
     </javac>
@@ -2429,7 +2443,7 @@ Please:
 
 
 
-  <target name="buildtools" depends="init"
+  <target name="buildtools" depends="init,resolve"
         description="Builds the build tools">
 
     <mkdir dir="${buildtools.classes.dir}" />
@@ -2452,6 +2466,10 @@ Please:
         <fileset dir="${ant.lib.dir}">
           <include name="*.jar" />
         </fileset>
+
+      	 <fileset dir="${lib.dir}/compile">
+      	  <include name="i18n-core.jar" />
+      	 </fileset>
 
         <fileset dir="${emma.dir}">
           <include name="*.jar" />

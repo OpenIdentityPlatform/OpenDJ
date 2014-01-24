@@ -83,7 +83,7 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.util.Utils;
@@ -137,7 +137,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
   private DocumentListener documentListener;
 
-  private final Message NEW_BACKEND = INFO_CTRL_PANEL_NEW_BACKEND_LABEL.get();
+  private final LocalizableMessage NEW_BACKEND = INFO_CTRL_PANEL_NEW_BACKEND_LABEL.get();
 
   /**
    * The default constructor.
@@ -152,7 +152,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_BASE_DN_TITLE.get();
   }
@@ -493,7 +493,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     setPrimaryValid(lDirectoryData);
     setSecondaryValid(lPath);
     setSecondaryValid(lNumberOfEntries);
-    final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
 
     ServerDescriptor desc = getInfo().getServerDescriptor();
 
@@ -610,7 +610,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       String nEntries = numberOfEntries.getText();
       int minValue = 1;
       int maxValue = isLocal() ? 20000 : 1000;
-      Message errMsg = ERR_NUMBER_OF_ENTRIES_INVALID.get(minValue, maxValue);
+      LocalizableMessage errMsg = ERR_NUMBER_OF_ENTRIES_INVALID.get(minValue, maxValue);
       checkIntValue(errors, nEntries, minValue, maxValue, errMsg);
     }
 
@@ -727,7 +727,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
-    public Message getTaskDescription()
+    public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_NEW_BASE_DN_TASK_DESCRIPTION.get(newBaseDN,
       backendSet.iterator().next());
@@ -737,7 +737,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
      * {@inheritDoc}
      */
     public boolean canLaunch(Task taskToBeLaunched,
-        Collection<Message> incompatibilityReasons)
+        Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
@@ -896,7 +896,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
              */
             public void run()
             {
-              Message msg = INFO_CTRL_PANEL_CREATING_BACKEND_PROGRESS.get(
+              LocalizableMessage msg = INFO_CTRL_PANEL_CREATING_BACKEND_PROGRESS.get(
                   getBackendName(), newBaseDN);
               getProgressDialog().appendProgressHtml(
                   Utilities.getProgressWithPoints(msg,
@@ -923,7 +923,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
              */
             public void run()
             {
-              Message msg = INFO_CTRL_PANEL_CREATING_BASE_DN_PROGRESS.get(
+              LocalizableMessage msg = INFO_CTRL_PANEL_CREATING_BASE_DN_PROGRESS.get(
                   newBaseDN, getBackendName());
               getProgressDialog().appendProgressHtml(
                   Utilities.getProgressWithPoints(msg,

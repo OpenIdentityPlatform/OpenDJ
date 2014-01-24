@@ -26,7 +26,7 @@
  */
 
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -105,7 +105,7 @@ public class GetEffectiveRightsRequestControl extends Control
           if (lowerAuthzIDString.startsWith("dn:"))
             authzDN = DN.valueOf(authzIDString.substring(3));
           else {
-            Message message = INFO_GETEFFECTIVERIGHTS_INVALID_AUTHZID.get(
+            LocalizableMessage message = INFO_GETEFFECTIVERIGHTS_INVALID_AUTHZID.get(
                 lowerAuthzIDString);
             throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
           }
@@ -132,7 +132,7 @@ public class GetEffectiveRightsRequestControl extends Control
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message =
+          LocalizableMessage message =
               INFO_GETEFFECTIVERIGHTS_DECODE_ERROR.get(e.getMessage());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
         }

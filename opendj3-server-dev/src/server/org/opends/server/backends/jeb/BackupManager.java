@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -173,7 +173,7 @@ public class BackupManager
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_JEB_BACKUP_CANNOT_GET_MAC.get(
+          LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_MAC.get(
               macKeyID, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                DirectoryServer.getServerErrorResultCode(), message, e);
@@ -196,7 +196,7 @@ public class BackupManager
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_JEB_BACKUP_CANNOT_GET_DIGEST.get(
+          LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_DIGEST.get(
               digestAlgorithm, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                DirectoryServer.getServerErrorResultCode(), message, e);
@@ -228,7 +228,7 @@ public class BackupManager
         // No incremental backup ID: log a message informing that a backup
         // could not be found and that a normal backup will be done.
         incremental = false;
-        Message message = WARN_BACKUPDB_INCREMENTAL_NOT_FOUND_DOING_NORMAL.get(
+        LocalizableMessage message = WARN_BACKUPDB_INCREMENTAL_NOT_FOUND_DOING_NORMAL.get(
             backupDir.getPath());
         logError(message);
       }
@@ -293,7 +293,7 @@ public class BackupManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_JEB_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
+      LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
           get(String.valueOf(archiveFilename), backupDir.getPath(),
               stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -316,7 +316,7 @@ public class BackupManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
+        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
                 stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -327,7 +327,7 @@ public class BackupManager
     // Wrap the file output stream in a zip output stream.
     ZipOutputStream zipStream = new ZipOutputStream(outputStream);
 
-    Message message = ERR_JEB_BACKUP_ZIP_COMMENT.get(
+    LocalizableMessage message = ERR_JEB_BACKUP_ZIP_COMMENT.get(
             DynamicConstants.PRODUCT_NAME,
             backupID, backendID);
     zipStream.setComment(message.toString());
@@ -669,7 +669,7 @@ public class BackupManager
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
+      LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
           backupInfo.getBackupID(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -689,7 +689,7 @@ public class BackupManager
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        Message message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
+        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
             dependent.getBackupID(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -707,7 +707,7 @@ public class BackupManager
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
+      LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
           backupInfo.getBackupID(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -720,7 +720,7 @@ public class BackupManager
       backendDir.delete();
       if (!restoreDir.renameTo(backendDir))
       {
-        Message msg = ERR_JEB_CANNOT_RENAME_RESTORE_DIRECTORY.get(
+        LocalizableMessage msg = ERR_JEB_CANNOT_RENAME_RESTORE_DIRECTORY.get(
             restoreDir.getPath(), backendDir.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      msg);
@@ -780,7 +780,7 @@ public class BackupManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
+      LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
           backupDir.getDescriptorPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -861,7 +861,7 @@ public class BackupManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_JEB_BACKUP_CANNOT_GET_MAC.get(
+        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_MAC.get(
             macKeyID, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -884,7 +884,7 @@ public class BackupManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_JEB_BACKUP_CANNOT_GET_DIGEST.get(
+        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_DIGEST.get(
             digestAlgorithm, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -907,7 +907,7 @@ public class BackupManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
+        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
             stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -988,7 +988,7 @@ public class BackupManager
       {
         if (verifyOnly)
         {
-          Message message = NOTE_JEB_BACKUP_VERIFY_FILE.get(zipEntry.getName());
+          LocalizableMessage message = NOTE_JEB_BACKUP_VERIFY_FILE.get(zipEntry.getName());
           logError(message);
         }
 
@@ -1033,7 +1033,7 @@ public class BackupManager
         {
           outputStream.close();
 
-          Message message = NOTE_JEB_BACKUP_RESTORED_FILE.get(
+          LocalizableMessage message = NOTE_JEB_BACKUP_RESTORED_FILE.get(
               zipEntry.getName(), totalBytesRead);
           logError(message);
         }
@@ -1049,7 +1049,7 @@ public class BackupManager
     {
       if (!Arrays.equals(digest.digest(), hash))
       {
-        Message message = ERR_JEB_BACKUP_UNSIGNED_HASH_ERROR.get(backupID);
+        LocalizableMessage message = ERR_JEB_BACKUP_UNSIGNED_HASH_ERROR.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
       }
@@ -1061,7 +1061,7 @@ public class BackupManager
 
       if (!Arrays.equals(computedSignHash, signHash))
       {
-        Message message = ERR_JEB_BACKUP_SIGNED_HASH_ERROR.get(backupID);
+        LocalizableMessage message = ERR_JEB_BACKUP_SIGNED_HASH_ERROR.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
       }
@@ -1130,7 +1130,7 @@ public class BackupManager
     // Finish the zip entry.
     zipStream.closeEntry();
 
-    Message message = NOTE_JEB_BACKUP_ARCHIVED_FILE.get(zipEntry.getName());
+    LocalizableMessage message = NOTE_JEB_BACKUP_ARCHIVED_FILE.get(zipEntry.getName());
     logError(message);
 
     return totalBytesRead;
@@ -1233,7 +1233,7 @@ public class BackupManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
+        LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
                 stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -1308,7 +1308,7 @@ public class BackupManager
     BackupInfo backupInfo = backupDir.getBackupInfo(backupID);
     if (backupInfo == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_JEB_BACKUP_MISSING_BACKUPID.get(backupDir.getPath(), backupID);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);

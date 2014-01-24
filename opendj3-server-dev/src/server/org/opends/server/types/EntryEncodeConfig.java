@@ -31,7 +31,7 @@ import org.forgerock.opendj.ldap.ByteSequenceReader;
 
 
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.core.DirectoryServer;
 
@@ -297,7 +297,7 @@ public final class EntryEncodeConfig
   {
     if (length != 1)
     {
-      Message message = ERR_ENTRYENCODECFG_INVALID_LENGTH.get();
+      LocalizableMessage message = ERR_ENTRYENCODECFG_INVALID_LENGTH.get();
       throw new DirectoryException(
                      DirectoryServer.getServerErrorResultCode(),
                      message);

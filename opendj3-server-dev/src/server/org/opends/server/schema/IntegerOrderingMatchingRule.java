@@ -35,7 +35,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -176,7 +176,7 @@ public class IntegerOrderingMatchingRule
               else
               {
 
-                Message message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
+                LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
                         value.toString());
 
                 switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -199,7 +199,7 @@ public class IntegerOrderingMatchingRule
               if (buffer.charAt(0) == '-')
               {
 
-                Message message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
+                LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
                         value.toString());
 
                 switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -263,7 +263,7 @@ public class IntegerOrderingMatchingRule
           }
           else
           {
-            Message message = WARN_ATTR_SYNTAX_INTEGER_MISPLACED_DASH.get(
+            LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_MISPLACED_DASH.get(
                     value.toString());
 
             switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -283,7 +283,7 @@ public class IntegerOrderingMatchingRule
           }
           break;
         default:
-          Message message = WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
+          LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
                   value.toString(),
                   ((char) value.byteAt(i)), i);
           switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -305,7 +305,7 @@ public class IntegerOrderingMatchingRule
 
     if (buffer.length() == 0)
     {
-      Message message = WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE.get(
+      LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE.get(
               value.toString());
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -332,7 +332,7 @@ public class IntegerOrderingMatchingRule
     }
     else if ((buffer.length() == 1) && (buffer.charAt(0) == '-'))
     {
-      Message message = WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(
+      LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(
               value.toString());
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())

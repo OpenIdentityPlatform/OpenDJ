@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -42,8 +42,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -454,7 +454,7 @@ public class ReplicationBroker
     /**
      * Create a new instance of ReplicationServerInfo wrapping the passed
      * message.
-     * @param msg Message to wrap.
+     * @param msg LocalizableMessage to wrap.
      * @param newServerURL Override serverURL.
      * @return The new instance wrapping the passed message.
      * @throws IllegalArgumentException If the passed message has an unexpected
@@ -471,7 +471,7 @@ public class ReplicationBroker
     /**
      * Create a new instance of ReplicationServerInfo wrapping the passed
      * message.
-     * @param msg Message to wrap.
+     * @param msg LocalizableMessage to wrap.
      * @return The new instance wrapping the passed message.
      * @throws IllegalArgumentException If the passed message has an unexpected
      *                                  type.
@@ -1131,7 +1131,7 @@ public class ReplicationBroker
     Session newSession = null;
     Socket socket = null;
     boolean hasConnected = false;
-    Message errorMessage = null;
+    LocalizableMessage errorMessage = null;
 
     try
     {
@@ -1354,8 +1354,8 @@ public class ReplicationBroker
 
     private final int localServerId;
     private Map<Integer, ReplicationServerInfo> bestRSs;
-    private final Map<Integer, Message> rsEvals =
-        new HashMap<Integer, Message>();
+    private final Map<Integer, LocalizableMessage> rsEvals =
+        new HashMap<Integer, LocalizableMessage>();
 
     /**
      * Ctor.
@@ -1393,7 +1393,7 @@ public class ReplicationBroker
      * @param rejectedRSsEval
      *          the evaluation for all the rejected replication servers
      */
-    private void setBestRS(int bestRsId, Message rejectedRSsEval)
+    private void setBestRS(int bestRsId, LocalizableMessage rejectedRSsEval)
     {
       for (Iterator<Entry<Integer, ReplicationServerInfo>> it =
           this.bestRSs.entrySet().iterator(); it.hasNext();)
@@ -1409,7 +1409,7 @@ public class ReplicationBroker
       }
     }
 
-    private void discardAll(Message eval)
+    private void discardAll(LocalizableMessage eval)
     {
       for (Integer rsId : bestRSs.keySet())
       {
@@ -1440,17 +1440,17 @@ public class ReplicationBroker
     /**
      * Returns the evaluations for all the candidate replication servers.
      *
-     * @return a Map of serverId => Message containing the evaluation for each
+     * @return a Map of serverId => LocalizableMessage containing the evaluation for each
      *         candidate replication servers.
      */
-    Map<Integer, Message> getEvaluations()
+    Map<Integer, LocalizableMessage> getEvaluations()
     {
       if (foundBestRS())
       {
         final Integer bestRSServerId = getBestRS().getServerId();
         if (rsEvals.get(bestRSServerId) == null)
         {
-          final Message eval = NOTE_BEST_RS.get(bestRSServerId, localServerId);
+          final LocalizableMessage eval = NOTE_BEST_RS.get(bestRSServerId, localServerId);
           rsEvals.put(bestRSServerId, eval);
         }
       }
@@ -1465,12 +1465,12 @@ public class ReplicationBroker
      *
      * @param rsServerId
      *          the supplied replication server Id
-     * @return the evaluation {@link Message} for the supplied replication
+     * @return the evaluation {@link LocalizableMessage} for the supplied replication
      *         server Id
      */
-    private Message getEvaluation(int rsServerId)
+    private LocalizableMessage getEvaluation(int rsServerId)
     {
-      final Message evaluation = getEvaluations().get(rsServerId);
+      final LocalizableMessage evaluation = getEvaluations().get(rsServerId);
       if (evaluation != null)
       {
         return evaluation;
@@ -1497,8 +1497,8 @@ public class ReplicationBroker
   {
     private final Map<Integer, ReplicationServerInfo> accepted =
         new HashMap<Integer, ReplicationServerInfo>();
-    private final Map<ReplicationServerInfo, Message> rsEvals =
-        new HashMap<ReplicationServerInfo, Message>();
+    private final Map<ReplicationServerInfo, LocalizableMessage> rsEvals =
+        new HashMap<ReplicationServerInfo, LocalizableMessage>();
 
     private void accept(Integer rsId, ReplicationServerInfo rsInfo)
     {
@@ -1507,7 +1507,7 @@ public class ReplicationBroker
       this.accepted.put(rsId, rsInfo);
     }
 
-    private void reject(ReplicationServerInfo rsInfo, Message reason)
+    private void reject(ReplicationServerInfo rsInfo, LocalizableMessage reason)
     {
       this.accepted.remove(rsInfo.getServerId()); // undo accept
       this.rsEvals.put(rsInfo, reason);
@@ -1524,10 +1524,10 @@ public class ReplicationBroker
           new ReplicationServerInfo[accepted.size()]);
     }
 
-    public Map<Integer, Message> getRejected()
+    public Map<Integer, LocalizableMessage> getRejected()
     {
-      final Map<Integer, Message> result = new HashMap<Integer, Message>();
-      for (Entry<ReplicationServerInfo, Message> entry : rsEvals.entrySet())
+      final Map<Integer, LocalizableMessage> result = new HashMap<Integer, LocalizableMessage>();
+      for (Entry<ReplicationServerInfo, LocalizableMessage> entry : rsEvals.entrySet())
       {
         result.put(entry.getKey().getServerId(), entry.getValue());
       }
@@ -1850,7 +1850,7 @@ public class ReplicationBroker
     {
       final String rsCSN =
           getCSN(rsInfo.getServerState(), localServerId).toStringUI();
-      final Message reason =
+      final LocalizableMessage reason =
           NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS.get(
             rsInfo.getServerId(), rsCSN, localServerId, localCSN.toStringUI());
       eval.reject(rsInfo, reason);
@@ -2298,7 +2298,7 @@ public class ReplicationBroker
         }
         catch (Exception e)
         {
-          MessageBuilder mb = new MessageBuilder();
+          LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
           mb.append(NOTE_EXCEPTION_RESTARTING_SESSION.get(
               getBaseDN().toNormalizedString(), e.getLocalizedMessage()));
           mb.append(stackTraceToSingleLineString(e));
@@ -2359,7 +2359,7 @@ public class ReplicationBroker
   /**
    * Publish a message to the other servers.
    * @param msg the message to publish
-   * @param recoveryMsg the message is a recovery Message
+   * @param recoveryMsg the message is a recovery LocalizableMessage
    * @param retryOnFailure whether retry should be done on failure
    * @return whether the message was successfully sent.
    */
@@ -2598,7 +2598,7 @@ public class ReplicationBroker
         else if (msg instanceof StopMsg)
         {
           // RS performs a proper disconnection
-          Message message = WARN_REPLICATION_SERVER_PROPERLY_DISCONNECTED.get(
+          LocalizableMessage message = WARN_REPLICATION_SERVER_PROPERLY_DISCONNECTED.get(
               previousRsServerID, rs.replicationServer,
               serverId, baseDN.toNormalizedString());
           logError(message);
@@ -2661,7 +2661,7 @@ public class ReplicationBroker
               {
                 // The best replication server is no more the one we are
                 // currently using. Disconnect properly then reconnect.
-                Message message;
+                LocalizableMessage message;
                 if (bestServerInfo == null)
                 {
                   message = NOTE_LOAD_BALANCE_REPLICATION_SERVER.get(
@@ -2742,7 +2742,7 @@ public class ReplicationBroker
   {
     monitorResponse.set(false);
 
-    // publish Monitor Request Message to the Replication Server
+    // publish Monitor Request LocalizableMessage to the Replication Server
     publish(new MonitorRequestMsg(getServerId(), getRsServerId()));
 
     // wait for Response up to 10 seconds.
@@ -2967,7 +2967,7 @@ public class ReplicationBroker
           new ChangeStatusMsg(ServerStatus.INVALID_STATUS, newStatus));
     } catch (IOException ex)
     {
-      Message message = ERR_EXCEPTION_SENDING_CS.get(
+      LocalizableMessage message = ERR_EXCEPTION_SENDING_CS.get(
         getBaseDN().toNormalizedString(),
         Integer.toString(getServerId()),
         ex.getLocalizedMessage() + " " + stackTraceToSingleLineString(ex));

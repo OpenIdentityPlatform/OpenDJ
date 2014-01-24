@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.ui;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.awt.Component;
@@ -202,7 +203,7 @@ implements Comparator<ServerDescriptor>
   /**
    * {@inheritDoc}
    */
-  protected Message getInstructions()
+  protected LocalizableMessage getInstructions()
   {
     return INFO_REMOTE_REPLICATION_PORT_INSTRUCTIONS.get();
   }
@@ -210,7 +211,7 @@ implements Comparator<ServerDescriptor>
   /**
    * {@inheritDoc}
    */
-  protected Message getTitle()
+  protected LocalizableMessage getTitle()
   {
     return INFO_REMOTE_REPLICATION_PORT_TITLE.get();
   }
@@ -280,7 +281,7 @@ implements Comparator<ServerDescriptor>
           serverDisplay = server.getHostPort(true);
         }
         LabelFieldDescriptor desc = new LabelFieldDescriptor(
-                Message.raw(serverDisplay),
+                LocalizableMessage.raw(serverDisplay),
                 INFO_REPLICATION_PORT_TOOLTIP.get(),
                 LabelFieldDescriptor.FieldType.TEXTFIELD,
                 LabelFieldDescriptor.LabelType.PRIMARY,

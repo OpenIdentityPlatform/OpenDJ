@@ -36,8 +36,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageDescriptor.Arg2;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -1047,7 +1047,7 @@ public abstract class AbstractTextAccessLogPublisher
     @Override
     public final boolean isConfigurationChangeAcceptable(
         final AccessLogPublisherCfg configuration,
-        final List<Message> unacceptableReasons)
+        final List<LocalizableMessage> unacceptableReasons)
     {
       return true;
     }
@@ -1113,7 +1113,7 @@ public abstract class AbstractTextAccessLogPublisher
     @Override
     public boolean isConfigurationAddAcceptable(
         final AccessLogFilteringCriteriaCfg configuration,
-        final List<Message> unacceptableReasons)
+        final List<LocalizableMessage> unacceptableReasons)
     {
       return validateConfiguration(configuration, unacceptableReasons);
     }
@@ -1126,7 +1126,7 @@ public abstract class AbstractTextAccessLogPublisher
     @Override
     public boolean isConfigurationChangeAcceptable(
         final AccessLogFilteringCriteriaCfg configuration,
-        final List<Message> unacceptableReasons)
+        final List<LocalizableMessage> unacceptableReasons)
     {
       return validateConfiguration(configuration, unacceptableReasons);
     }
@@ -1139,7 +1139,7 @@ public abstract class AbstractTextAccessLogPublisher
     @Override
     public boolean isConfigurationDeleteAcceptable(
         final AccessLogFilteringCriteriaCfg configuration,
-        final List<Message> unacceptableReasons)
+        final List<LocalizableMessage> unacceptableReasons)
     {
       // Always allow criteria to be deleted.
       return true;
@@ -1149,7 +1149,7 @@ public abstract class AbstractTextAccessLogPublisher
 
     private boolean validateConfiguration(
         final AccessLogFilteringCriteriaCfg configuration,
-        final List<Message> unacceptableReasons)
+        final List<LocalizableMessage> unacceptableReasons)
     {
       try
       {
@@ -1327,7 +1327,7 @@ public abstract class AbstractTextAccessLogPublisher
    *         access log publisher, or {@code false} if not.
    */
   protected final boolean isFilterConfigurationAcceptable(final T config,
-      final List<Message> unacceptableReasons)
+      final List<LocalizableMessage> unacceptableReasons)
   {
     for (final String criteriaName : config.listAccessLogFilteringCriteria())
     {

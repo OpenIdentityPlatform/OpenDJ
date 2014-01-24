@@ -31,7 +31,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.*;
 import static org.opends.server.util.ServerConstants.EOL;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
@@ -66,7 +66,7 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   /**
    * The error message to use for add result operations.
    */
-  private static final Message resultMsg = Message.raw("Test Successful");
+  private static final LocalizableMessage resultMsg = LocalizableMessage.raw("Test Successful");
 
 /**
    * The DN to use for add result operations
@@ -402,7 +402,7 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
     key.append(EOL);
 
     key.append(indentBuf);
-    key.append("  Error Message:  ");
+    key.append("  Error LocalizableMessage:  ");
     key.append(resultMsg);
     key.append(EOL);
 

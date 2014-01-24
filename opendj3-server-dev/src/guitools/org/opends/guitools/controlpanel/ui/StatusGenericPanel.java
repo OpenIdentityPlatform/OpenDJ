@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -94,9 +94,9 @@ import org.opends.guitools.controlpanel.ui.components.AddRemovePanel;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.MessageDescriptor;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.ObjectClass;
@@ -124,11 +124,11 @@ implements ConfigChangeListener
   /**
    * The not applicable message.
    */
-  protected final static Message NOT_APPLICABLE =
+  protected final static LocalizableMessage NOT_APPLICABLE =
     INFO_NOT_APPLICABLE_LABEL.get();
 
-  private Message AUTHENTICATE = INFO_AUTHENTICATE_BUTTON_LABEL.get();
-  private Message START = INFO_START_BUTTON_LABEL.get();
+  private LocalizableMessage AUTHENTICATE = INFO_AUTHENTICATE_BUTTON_LABEL.get();
+  private LocalizableMessage START = INFO_START_BUTTON_LABEL.get();
 
   private ControlPanelInfo info;
 
@@ -173,7 +173,7 @@ implements ConfigChangeListener
    * Returns the title that will be used as title of the dialog.
    * @return the title that will be used as title of the dialog.
    */
-  public abstract Message getTitle();
+  public abstract LocalizableMessage getTitle();
 
   /**
    * Returns the buttons that the dialog where this panel is contained should
@@ -637,7 +637,7 @@ implements ConfigChangeListener
    * Displays a dialog with the provided list of error messages.
    * @param errors the error messages.
    */
-  protected void displayErrorDialog(Collection<Message> errors)
+  protected void displayErrorDialog(Collection<LocalizableMessage> errors)
   {
     Utilities.displayErrorDialog(Utilities.getParentDialog(this), errors);
   }
@@ -649,7 +649,7 @@ implements ConfigChangeListener
    * @return <CODE>true</CODE> if the user confirms and <CODE>false</CODE>
    * otherwise.
    */
-  protected boolean displayConfirmationDialog(Message title, Message msg)
+  protected boolean displayConfirmationDialog(LocalizableMessage title, LocalizableMessage msg)
   {
     return Utilities.displayConfirmationDialog(Utilities.getParentDialog(this),
         title, msg);
@@ -708,7 +708,7 @@ implements ConfigChangeListener
 
       RebuildIndexTask newTask = new RebuildIndexTask(getInfo(),
           progressDialog, baseDNs, indexes);
-      ArrayList<Message> errors = new ArrayList<Message>();
+      ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
       for (Task task : getInfo().getTasks())
       {
         task.canLaunch(newTask, errors);
@@ -843,14 +843,14 @@ implements ConfigChangeListener
    * provided and the server is running.
    */
   protected void updateErrorPaneAndOKButtonIfAuthRequired(ServerDescriptor desc,
-      Message details)
+      LocalizableMessage details)
   {
     if (authenticationRequired(desc))
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(details);
       mb.append("<br><br>"+getAuthenticateHTML());
-      Message title = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
+      LocalizableMessage title = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
       updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
           mb.toMessage(), ColorAndFontConstants.defaultFont);
       SwingUtilities.invokeLater(new Runnable()
@@ -913,12 +913,12 @@ implements ConfigChangeListener
    * provided and the server is running.
    */
   protected void updateErrorPaneIfAuthRequired(ServerDescriptor desc,
-      Message details)
+      LocalizableMessage details)
   {
     if (authenticationRequired(desc))
     {
-      Message title = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessage title = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(details);
       mb.append("<br><br>"+getAuthenticateHTML());
       updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
@@ -962,15 +962,15 @@ implements ConfigChangeListener
    * been provided and the server is running.
    */
   protected void updateErrorPaneIfServerRunningAndAuthRequired(
-      ServerDescriptor desc, Message detailsServerNotRunning,
-      Message authRequired)
+      ServerDescriptor desc, LocalizableMessage detailsServerNotRunning,
+      LocalizableMessage authRequired)
   {
     ServerDescriptor.ServerStatus status = desc.getStatus();
     if ((status != ServerDescriptor.ServerStatus.STARTED) &&
         (status != ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE))
     {
-      Message title = INFO_CTRL_PANEL_SERVER_NOT_RUNNING_SUMMARY.get();
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessage title = INFO_CTRL_PANEL_SERVER_NOT_RUNNING_SUMMARY.get();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(detailsServerNotRunning);
       mb.append("<br><br>"+getStartServerHTML());
       updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
@@ -990,8 +990,8 @@ implements ConfigChangeListener
     }
     else if (authenticationRequired(desc))
     {
-      Message title = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessage title = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(authRequired);
       mb.append("<br><br>"+getAuthenticateHTML());
       updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
@@ -1152,7 +1152,7 @@ implements ConfigChangeListener
    * Displays a message and hides the main panel.
    * @param msg the message to be displayed.
    */
-  protected void displayMessage(Message msg)
+  protected void displayMessage(LocalizableMessage msg)
   {
     message.setText(Utilities.applyFont(msg.toString(),
         ColorAndFontConstants.defaultFont));
@@ -1165,7 +1165,7 @@ implements ConfigChangeListener
    * @param title the title of the message to be displayed.
    * @param msg the message to be displayed.
    */
-  protected void displayErrorMessage(Message title, Message msg)
+  protected void displayErrorMessage(LocalizableMessage title, LocalizableMessage msg)
   {
     updateErrorPane(message, title, ColorAndFontConstants.errorTitleFont,
         msg, ColorAndFontConstants.defaultFont);
@@ -1190,8 +1190,8 @@ implements ConfigChangeListener
    * @param details the details message.
    * @param detailsFont the font to be used for the details.
    */
-  protected void updateErrorPane(JEditorPane pane, Message title,
-      Font titleFont, Message details, Font detailsFont)
+  protected void updateErrorPane(JEditorPane pane, LocalizableMessage title,
+      Font titleFont, LocalizableMessage details, Font detailsFont)
   {
     updatePane(pane, title, titleFont, details, detailsFont, PanelType.ERROR);
   }
@@ -1204,8 +1204,8 @@ implements ConfigChangeListener
    * @param details the details message.
    * @param detailsFont the font to be used for the details.
    */
-  protected void updateWarningPane(JEditorPane pane, Message title,
-      Font titleFont, Message details, Font detailsFont)
+  protected void updateWarningPane(JEditorPane pane, LocalizableMessage title,
+      Font titleFont, LocalizableMessage details, Font detailsFont)
   {
     updatePane(pane, title, titleFont, details, detailsFont, PanelType.WARNING);
   }
@@ -1218,8 +1218,8 @@ implements ConfigChangeListener
    * @param details the details message.
    * @param detailsFont the font to be used for the details.
    */
-  protected void updateConfirmationPane(JEditorPane pane, Message title,
-      Font titleFont, Message details, Font detailsFont)
+  protected void updateConfirmationPane(JEditorPane pane, LocalizableMessage title,
+      Font titleFont, LocalizableMessage details, Font detailsFont)
   {
     updatePane(pane, title, titleFont, details, detailsFont,
         PanelType.CONFIRMATION);
@@ -1258,8 +1258,8 @@ implements ConfigChangeListener
    * @param detailsFont the font to be used for the details.
    * @param type the type of panel.
    */
-  private void updatePane(final JEditorPane pane, Message title,
-      Font titleFont, Message details, Font detailsFont, PanelType type)
+  private void updatePane(final JEditorPane pane, LocalizableMessage title,
+      Font titleFont, LocalizableMessage details, Font detailsFont, PanelType type)
   {
     String text;
     switch (type)
@@ -1283,8 +1283,8 @@ implements ConfigChangeListener
     }
     if (!text.equals(lastDisplayedError))
     {
-      Message wrappedTitle = Utilities.wrapHTML(title, 80);
-      Message wrappedDetails = Utilities.wrapHTML(details, 90);
+      LocalizableMessage wrappedTitle = Utilities.wrapHTML(title, 80);
+      LocalizableMessage wrappedDetails = Utilities.wrapHTML(details, 90);
 
       JEditorPane wrappedPane = Utilities.makeHtmlPane(null, pane.getFont());
       String wrappedText;
@@ -1655,11 +1655,11 @@ implements ConfigChangeListener
    * error code).
    * @param dialog the progress dialog.
    */
-  protected void launchOperation(final Task task, Message initialSummary,
-      final Message successSummary, final Message successDetail,
-      final Message errorSummary,
-      final Message errorDetail,
-      final MessageDescriptor.Arg1<Number> errorDetailCode,
+  protected void launchOperation(final Task task, LocalizableMessage initialSummary,
+      final LocalizableMessage successSummary, final LocalizableMessage successDetail,
+      final LocalizableMessage errorSummary,
+      final LocalizableMessage errorDetail,
+      final LocalizableMessageDescriptor.Arg1<Number> errorDetailCode,
       final ProgressDialog dialog)
   {
     launchOperation(task, initialSummary, successSummary, successDetail,
@@ -1687,11 +1687,11 @@ implements ConfigChangeListener
    * @param resetLogs whether the contents of the progress dialog should be
    * reset or not.
    */
-  protected void launchOperation(final Task task, Message initialSummary,
-      final Message successSummary, final Message successDetail,
-      final Message errorSummary,
-      final Message errorDetail,
-      final MessageDescriptor.Arg1<Number> errorDetailCode,
+  protected void launchOperation(final Task task, LocalizableMessage initialSummary,
+      final LocalizableMessage successSummary, final LocalizableMessage successDetail,
+      final LocalizableMessage errorSummary,
+      final LocalizableMessage errorDetail,
+      final LocalizableMessageDescriptor.Arg1<Number> errorDetailCode,
       final ProgressDialog dialog, boolean resetLogs)
   {
     launchOperation(task, initialSummary, successSummary, successDetail,
@@ -1721,11 +1721,11 @@ implements ConfigChangeListener
    * reset or not.
    * @param info the ControlPanelInfo.
    */
-  public static void launchOperation(final Task task, Message initialSummary,
-      final Message successSummary, final Message successDetail,
-      final Message errorSummary,
-      final Message errorDetail,
-      final MessageDescriptor.Arg1<Number> errorDetailCode,
+  public static void launchOperation(final Task task, LocalizableMessage initialSummary,
+      final LocalizableMessage successSummary, final LocalizableMessage successDetail,
+      final LocalizableMessage errorSummary,
+      final LocalizableMessage errorDetail,
+      final LocalizableMessageDescriptor.Arg1<Number> errorDetailCode,
       final ProgressDialog dialog, boolean resetLogs,
       final ControlPanelInfo info)
   {
@@ -1746,7 +1746,7 @@ implements ConfigChangeListener
           ColorAndFontConstants.progressFont));
     }
     dialog.setEnabledClose(false);
-    dialog.setSummary(Message.raw(
+    dialog.setSummary(LocalizableMessage.raw(
         Utilities.applyFont(initialSummary.toString(),
             ColorAndFontConstants.defaultFont)));
     dialog.getProgressBar().setVisible(true);
@@ -1806,7 +1806,7 @@ implements ConfigChangeListener
                   sThrowable = t.toString();
                 }
               }
-              MessageBuilder mb = new MessageBuilder();
+              LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
               mb.append(errorDetailCode.get(task.getReturnCode()));
               mb.append(
                   "  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(sThrowable));
@@ -1816,7 +1816,7 @@ implements ConfigChangeListener
             }
             else if (errorDetail != null)
             {
-              MessageBuilder mb = new MessageBuilder();
+              LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
               mb.append(errorDetail);
               mb.append(
                   "  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t.toString()));
@@ -1850,7 +1850,7 @@ implements ConfigChangeListener
         }
         if (summaryMsg != null)
         {
-          dialog.setSummary(Message.raw(summaryMsg));
+          dialog.setSummary(LocalizableMessage.raw(summaryMsg));
         }
         dialog.setEnabledClose(true);
         dialog.getProgressBar().setVisible(false);
@@ -1875,8 +1875,8 @@ implements ConfigChangeListener
    * @param errMsg the error message to use to update the error list if the
    * provided value is not valid.
    */
-  protected void checkIntValue(Collection<Message> errors, String stringValue,
-      int minValue, int maxValue, Message errMsg)
+  protected void checkIntValue(Collection<LocalizableMessage> errors, String stringValue,
+      int minValue, int maxValue, LocalizableMessage errMsg)
   {
     try
     {
@@ -1900,7 +1900,7 @@ implements ConfigChangeListener
    */
   protected void startServer()
   {
-    LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
     ProgressDialog progressDialog = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
@@ -1936,7 +1936,7 @@ implements ConfigChangeListener
    */
   protected void stopServer()
   {
-    LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
     ProgressDialog progressDialog = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
@@ -1979,7 +1979,7 @@ implements ConfigChangeListener
    */
   protected void restartServer()
   {
-    LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
     ProgressDialog progressDialog = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
@@ -2214,7 +2214,7 @@ implements ConfigChangeListener
    * @return the label to be used in panels (with ':') based on the definition
    * of the monitoring attribute.
    */
-  protected static Message getLabel(MonitoringAttributes attr)
+  protected static LocalizableMessage getLabel(MonitoringAttributes attr)
   {
     return INFO_CTRL_PANEL_OPERATION_NAME_AS_LABEL.get(
         attr.getMessage().toString());
@@ -2250,7 +2250,7 @@ implements ConfigChangeListener
    * @param label the label to be marked as invalid if errors where encountered.
    */
   protected void addScheduleErrors(ScheduleType schedule,
-      Collection<Message> errors, JLabel label)
+      Collection<LocalizableMessage> errors, JLabel label)
   {
     if (!isServerRunning())
     {
@@ -2285,7 +2285,7 @@ implements ConfigChangeListener
    * @param errors the list of error messages.
    */
   protected void checkCompatibleSuperiors(Set<ObjectClass> objectClassSuperiors,
-      ObjectClassType objectClassType, List<Message> errors)
+      ObjectClassType objectClassType, List<LocalizableMessage> errors)
   {
     SortedSet<String> notCompatibleClasses =
       new TreeSet<String>(new LowerCaseComparator());

@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
@@ -208,7 +208,7 @@ public abstract class CommonSchemaElements {
       String filename = filenames.get(0);
       if (filename.indexOf('/') != -1 || filename.indexOf('\\') != -1)
       {
-        Message message = ERR_ATTR_SYNTAX_ILLEGAL_X_SCHEMA_FILE.get(filename);
+        LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_X_SCHEMA_FILE.get(filename);
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
             message);
       }

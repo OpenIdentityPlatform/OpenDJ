@@ -32,8 +32,8 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.List;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -70,13 +70,13 @@ public class InitializeTask extends Task
    */
   private long left = 0;
 
-  private Message taskCompletionError = null;
+  private LocalizableMessage taskCompletionError = null;
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return TaskMessages.INFO_TASK_INITIALIZE_NAME.get();
   }
 
@@ -113,7 +113,7 @@ public class InitializeTask extends Task
     }
     catch(DirectoryException e)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(TaskMessages.ERR_TASK_INITIALIZE_INVALID_DN.get());
       mb.append(e.getMessage());
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, e);

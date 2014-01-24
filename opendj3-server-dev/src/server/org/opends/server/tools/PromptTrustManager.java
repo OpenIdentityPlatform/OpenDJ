@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -102,7 +103,7 @@ public class PromptTrustManager
   public void checkClientTrusted(X509Certificate[] chain, String authType)
          throws CertificateException
   {
-    Message message = ERR_PROMPTTM_REJECTING_CLIENT_CERT.get();
+    LocalizableMessage message = ERR_PROMPTTM_REJECTING_CLIENT_CERT.get();
     throw new CertificateException(message.toString());
   }
 
@@ -133,13 +134,13 @@ public class PromptTrustManager
 
       if (currentDate.after(notAfterDate))
       {
-        Message message = WARN_PROMPTTM_CERT_EXPIRED.get(
+        LocalizableMessage message = WARN_PROMPTTM_CERT_EXPIRED.get(
                 String.valueOf(notAfterDate));
         System.err.println(message);
       }
       else if (currentDate.before(notBeforeDate))
       {
-        Message message = WARN_PROMPTTM_CERT_NOT_YET_VALID.get(
+        LocalizableMessage message = WARN_PROMPTTM_CERT_NOT_YET_VALID.get(
                 String.valueOf(notBeforeDate));
         System.err.println(message);
       }
@@ -152,7 +153,7 @@ public class PromptTrustManager
     }
 
 
-    Message prompt = INFO_PROMPTTM_YESNO_PROMPT.get();
+    LocalizableMessage prompt = INFO_PROMPTTM_YESNO_PROMPT.get();
     BufferedReader reader =
          new BufferedReader(new InputStreamReader(System.in));
     while (true)
@@ -175,7 +176,7 @@ public class PromptTrustManager
             line.equalsIgnoreCase(
             INFO_PROMPT_NO_FIRST_LETTER_ANSWER.get().toString()))
         {
-          Message message = ERR_PROMPTTM_USER_REJECTED.get();
+          LocalizableMessage message = ERR_PROMPTTM_USER_REJECTED.get();
           throw new CertificateException(message.toString());
         }
       } catch (IOException ioe) {}

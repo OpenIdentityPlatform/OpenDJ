@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -52,8 +53,8 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.ObjectClass;
@@ -66,7 +67,7 @@ import org.opends.server.types.Schema;
 public class StandardObjectClassPanel extends SchemaElementPanel
 {
   private static final long serialVersionUID = 5561268287795223026L;
-  private TitlePanel titlePanel = new TitlePanel(Message.EMPTY, Message.EMPTY);
+  private TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY, LocalizableMessage.EMPTY);
 
   private JLabel lParent;
 
@@ -80,13 +81,13 @@ public class StandardObjectClassPanel extends SchemaElementPanel
   private JList requiredAttributes = new JList(new DefaultListModel());
   private JList optionalAttributes = new JList(new DefaultListModel());
 
-  private static Message ABSTRACT_VALUE =
+  private static LocalizableMessage ABSTRACT_VALUE =
     INFO_CTRL_PANEL_OBJECTCLASS_ABSTRACT_LABEL.get();
-  private static Message STRUCTURAL_VALUE =
+  private static LocalizableMessage STRUCTURAL_VALUE =
     INFO_CTRL_PANEL_OBJECTCLASS_STRUCTURAL_LABEL.get();
-  private static Message AUXILIARY_VALUE =
+  private static LocalizableMessage AUXILIARY_VALUE =
     INFO_CTRL_PANEL_OBJECTCLASS_AUXILIARY_LABEL.get();
-  private static Message OBSOLETE_VALUE =
+  private static LocalizableMessage OBSOLETE_VALUE =
     INFO_CTRL_PANEL_OBJECTCLASS_OBSOLETE_LABEL.get();
 
   private Map<String, AttributeType> hmAttrs =
@@ -105,7 +106,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_STANDARD_OBJECTCLASS_TITLE.get();
   }
@@ -152,7 +153,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     requiredAttributes.setVisibleRowCount(5);
     optionalAttributes.setVisibleRowCount(9);
 
-    Message[] labels = {
+    LocalizableMessage[] labels = {
         INFO_CTRL_PANEL_OBJECTCLASS_NAME_LABEL.get(),
         INFO_CTRL_PANEL_OBJECTCLASS_PARENT_LABEL.get(),
         INFO_CTRL_PANEL_OBJECTCLASS_OID_LABEL.get(),
@@ -194,7 +195,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       c.add(values[i], gbc);
       gbc.gridy ++;
     }
-    labels = new Message[] {
+    labels = new LocalizableMessage[] {
         INFO_CTRL_PANEL_REQUIRED_ATTRIBUTES_LABEL.get(),
         INFO_CTRL_PANEL_OPTIONAL_ATTRIBUTES_LABEL.get()
         };
@@ -269,9 +270,9 @@ public class StandardObjectClassPanel extends SchemaElementPanel
    * @param element the schema element.
    * @return the message describing the schema element origin (file, RFC, etc.).
    */
-  static Message getOrigin(CommonSchemaElements element)
+  static LocalizableMessage getOrigin(CommonSchemaElements element)
   {
-    MessageBuilder returnValue = new MessageBuilder();
+    LocalizableMessageBuilder returnValue = new LocalizableMessageBuilder();
     String fileName = element.getSchemaFile();
     String xOrigin = Utilities.getOrigin(element);
     if (xOrigin != null)
@@ -313,7 +314,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     {
       n = NOT_APPLICABLE.toString();
     }
-    titlePanel.setDetails(Message.raw(n));
+    titlePanel.setDetails(LocalizableMessage.raw(n));
     name.setText(n);
     parent.setText(getSuperiorText(oc));
     oid.setText(oc.getOID());
@@ -477,9 +478,9 @@ public class StandardObjectClassPanel extends SchemaElementPanel
    * @return the message describing the object class type (structural, obsolete,
    * etc.) of the provided object class.
    */
-  static Message getTypeValue(ObjectClass oc)
+  static LocalizableMessage getTypeValue(ObjectClass oc)
   {
-    MessageBuilder mb = new MessageBuilder();
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     switch (oc.getObjectClassType())
     {
     case ABSTRACT:

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -31,7 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.LDAPAttributeDescriptionListPluginCfg;
@@ -180,7 +180,7 @@ public final class LDAPADListPlugin
     // The set of plugin types must contain only the pre-parse search element.
     if (pluginTypes.isEmpty())
     {
-      Message message = ERR_PLUGIN_ADLIST_NO_PLUGIN_TYPES.get(
+      LocalizableMessage message = ERR_PLUGIN_ADLIST_NO_PLUGIN_TYPES.get(
           String.valueOf(configuration.dn()));
       throw new ConfigException(message);
     }
@@ -190,7 +190,7 @@ public final class LDAPADListPlugin
       {
         if (t != PluginType.PRE_PARSE_SEARCH)
         {
-          Message message = ERR_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE.get(
+          LocalizableMessage message = ERR_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE.get(
               String.valueOf(configuration.dn()), String.valueOf(t));
           throw new ConfigException(message);
         }
@@ -234,7 +234,7 @@ public final class LDAPADListPlugin
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     LDAPAttributeDescriptionListPluginCfg cfg =
          (LDAPAttributeDescriptionListPluginCfg) configuration;
@@ -248,7 +248,7 @@ public final class LDAPADListPlugin
    */
   public boolean isConfigurationChangeAcceptable(
                       LDAPAttributeDescriptionListPluginCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -263,7 +263,7 @@ public final class LDAPADListPlugin
 
 
         default:
-          Message message = ERR_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE.get(
+          LocalizableMessage message = ERR_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE.get(
                   String.valueOf(configuration.dn()),
                   String.valueOf(pluginType));
           unacceptableReasons.add(message);

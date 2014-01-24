@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -50,7 +50,7 @@ import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.URLWorker;
 import org.opends.quicksetup.util.Utils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -258,16 +258,16 @@ implements HyperlinkListener
    * @return the text to be displayed in the progress label for a give icon
    * type.
    */
-  protected Message getTextForIcon(UIFactory.IconType iconType)
+  protected LocalizableMessage getTextForIcon(UIFactory.IconType iconType)
   {
-    Message text;
+    LocalizableMessage text;
     if (iconType == UIFactory.IconType.WAIT)
     {
       text = INFO_GENERAL_CHECKING_DATA.get();
     }
     else
     {
-      text = Message.EMPTY;
+      text = LocalizableMessage.EMPTY;
     }
     return text;
   }
@@ -387,13 +387,13 @@ implements HyperlinkListener
    * Returns the title of this panel.
    * @return the title of this panel.
    */
-  protected abstract Message getTitle();
+  protected abstract LocalizableMessage getTitle();
 
   /**
    * Returns the instruction of this panel.
    * @return the instruction of this panel.
    */
-  protected abstract Message getInstructions();
+  protected abstract LocalizableMessage getInstructions();
 
   /**
    * Commodity method that adds a vertical glue at the bottom of a given panel.
@@ -461,7 +461,7 @@ implements HyperlinkListener
   private Component createTitlePanel()
   {
     Component titlePanel = null;
-    Message title = getTitle();
+    LocalizableMessage title = getTitle();
     if (title != null)
     {
       JPanel p = new JPanel(new GridBagLayout());
@@ -493,7 +493,7 @@ implements HyperlinkListener
   protected Component createInstructionsPanel()
   {
     Component instructionsPanel = null;
-    Message instructions = getInstructions();
+    LocalizableMessage instructions = getInstructions();
     if (instructions != null)
     {
       JEditorPane p =

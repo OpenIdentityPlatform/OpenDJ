@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -167,7 +168,7 @@ public class RootDNConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(RootDNUserCfg configuration,
-                                              List<Message> unacceptableReasons)
+                                              List<LocalizableMessage> unacceptableReasons)
   {
     // The new root user must not have an alternate bind DN that is already
     // in use.
@@ -178,7 +179,7 @@ public class RootDNConfigManager
       if (existingRootDN != null)
       {
 
-        Message message = ERR_CONFIG_ROOTDN_CONFLICTING_MAPPING.get(
+        LocalizableMessage message = ERR_CONFIG_ROOTDN_CONFLICTING_MAPPING.get(
                 String.valueOf(altBindDN),
                 String.valueOf(configuration.dn()),
                 String.valueOf(existingRootDN));
@@ -202,7 +203,7 @@ public class RootDNConfigManager
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     HashSet<DN> altBindDNs = new HashSet<DN>();
     for (DN altBindDN : configuration.getAlternateBindDN())
@@ -242,7 +243,7 @@ public class RootDNConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(RootDNUserCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -260,7 +261,7 @@ public class RootDNConfigManager
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     HashSet<DN> altBindDNs = alternateBindDNs.remove(configuration.dn());
     if (altBindDNs != null)
@@ -280,7 +281,7 @@ public class RootDNConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(RootDNUserCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -292,7 +293,7 @@ public class RootDNConfigManager
       if ((existingRootDN != null) &&
           (! existingRootDN.equals(configuration.dn())))
       {
-        Message message = ERR_CONFIG_ROOTDN_CONFLICTING_MAPPING.get(
+        LocalizableMessage message = ERR_CONFIG_ROOTDN_CONFLICTING_MAPPING.get(
                 String.valueOf(altBindDN),
                 String.valueOf(configuration.dn()),
                 String.valueOf(existingRootDN));
@@ -315,7 +316,7 @@ public class RootDNConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     HashSet<DN> setDNs = new HashSet<DN>();
     HashSet<DN> addDNs = new HashSet<DN>();

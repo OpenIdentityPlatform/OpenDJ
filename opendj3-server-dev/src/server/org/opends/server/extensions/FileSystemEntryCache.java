@@ -56,8 +56,8 @@ import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.config.ConfigParam;
 import com.sleepycat.je.config.EnvironmentParams;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.admin.std.server.EntryCacheCfg;
@@ -220,22 +220,22 @@ public class FileSystemEntryCache
 
     // Read and apply configuration.
     boolean applyChanges = true;
-    ArrayList<Message> errorMessages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_INIT, null, errorMessages
           );
     if (!processEntryCacheConfig(configuration, applyChanges, errorHandler)) {
-      MessageBuilder buffer = new MessageBuilder();
+      LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
       if (!errorMessages.isEmpty()) {
-        Iterator<Message> iterator = errorMessages.iterator();
+        Iterator<LocalizableMessage> iterator = errorMessages.iterator();
         buffer.append(iterator.next());
         while (iterator.hasNext()) {
           buffer.append(".  ");
           buffer.append(iterator.next());
         }
       }
-      Message message = ERR_FSCACHE_CANNOT_INITIALIZE.get(buffer.toString());
+      LocalizableMessage message = ERR_FSCACHE_CANNOT_INITIALIZE.get(buffer.toString());
       throw new ConfigException(message);
     }
 
@@ -273,7 +273,7 @@ public class FileSystemEntryCache
 
       // Not having any home directory for the cache db environment is a
       // fatal error as we are unable to continue any further without it.
-      Message message =
+      LocalizableMessage message =
           ERR_FSCACHE_HOMELESS.get();
       throw new InitializationException(message, e);
     }
@@ -334,7 +334,7 @@ public class FileSystemEntryCache
               INDEXKEY.getBytes("UTF-8"));
 
           // Persistent state report.
-          Message message = NOTE_FSCACHE_RESTORE.get();
+          LocalizableMessage message = NOTE_FSCACHE_RESTORE.get();
           logError(message);
 
           if (OperationStatus.SUCCESS ==
@@ -422,7 +422,7 @@ public class FileSystemEntryCache
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_FSCACHE_CANNOT_INITIALIZE.get(
           (e.getCause() != null ? e.getCause().getMessage() :
             stackTraceToSingleLineString(e)));
@@ -457,7 +457,7 @@ public class FileSystemEntryCache
           DatabaseEntry indexData = new DatabaseEntry();
 
           // Persistent state save report.
-          Message message = NOTE_FSCACHE_SAVE.get();
+          LocalizableMessage message = NOTE_FSCACHE_SAVE.get();
           logError(message);
           //This line causes an unchecked call error if the SuppressWarnings
           //annotation is removed at the beginning of this method.
@@ -478,7 +478,7 @@ public class FileSystemEntryCache
         }
 
         // Persistent state save report.
-        Message message = NOTE_FSCACHE_SAVE_REPORT.get(
+        LocalizableMessage message = NOTE_FSCACHE_SAVE_REPORT.get(
           entryCacheIndex.dnMap.size());
         logError(message);
       }
@@ -943,7 +943,7 @@ public class FileSystemEntryCache
    */
   @Override()
   public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     FileSystemEntryCacheCfg config = (FileSystemEntryCacheCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -955,7 +955,7 @@ public class FileSystemEntryCache
   @Override
   public boolean isConfigurationChangeAcceptable(
       FileSystemEntryCacheCfg configuration,
-      List<Message> unacceptableReasons
+      List<LocalizableMessage> unacceptableReasons
       )
   {
     boolean applyChanges = false;
@@ -979,7 +979,7 @@ public class FileSystemEntryCache
       )
   {
     boolean applyChanges = true;
-    ArrayList<Message> errorMessages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_APPLY, null, errorMessages
@@ -1161,7 +1161,7 @@ public class FileSystemEntryCache
                 String oldValue = oldEnvConfig.getConfigParam(param.getName());
                 String newValue = jePropertyValue;
                 if (!oldValue.equalsIgnoreCase(newValue)) {
-                  Message message =
+                  LocalizableMessage message =
                     INFO_CONFIG_JE_PROPERTY_REQUIRES_RESTART.get(
                     jePropertyName);
                   errorHandler.reportError(message, true, ResultCode.SUCCESS,
@@ -1185,7 +1185,7 @@ public class FileSystemEntryCache
           false, DirectoryServer.getServerErrorResultCode());
       } catch (Exception e) {
         errorHandler.reportError(
-          Message.raw(stackTraceToSingleLineString(e)),
+          LocalizableMessage.raw(stackTraceToSingleLineString(e)),
           false, DirectoryServer.getServerErrorResultCode());
       }
       break;
@@ -1478,7 +1478,7 @@ public class FileSystemEntryCache
           }
         } catch(Exception e) {
           // Log a warning that the permissions were not set.
-          Message message = WARN_FSCACHE_SET_PERMISSIONS_FAILED.get(cacheHome);
+          LocalizableMessage message = WARN_FSCACHE_SET_PERMISSIONS_FAILED.get(cacheHome);
           logError(message);
         }
       }

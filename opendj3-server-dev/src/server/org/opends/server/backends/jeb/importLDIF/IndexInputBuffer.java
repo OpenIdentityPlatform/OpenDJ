@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.opends.server.backends.jeb.importLDIF;
@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.jeb.importLDIF.Importer.IndexManager;
 
 import com.sleepycat.util.PackedInteger;
@@ -193,7 +193,7 @@ public final class IndexInputBuffer implements Comparable<IndexInputBuffer>
       }
       catch (IOException ex)
       {
-        Message message = ERR_JEB_IMPORT_BUFFER_IO_ERROR.get(indexMgr
+        LocalizableMessage message = ERR_JEB_IMPORT_BUFFER_IO_ERROR.get(indexMgr
             .getBufferFileName());
         logError(message);
         throw new RuntimeException(ex);

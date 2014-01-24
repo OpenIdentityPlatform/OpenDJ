@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.TaskMessages;
 
 import static org.opends.server.core.DirectoryServer.getAttributeType;
@@ -68,8 +68,8 @@ public class ExportTask extends Task
   /**
    * Stores mapping between configuration attribute name and its label.
    */
-  static private Map<String,Message> argDisplayMap =
-          new HashMap<String,Message>();
+  static private Map<String,LocalizableMessage> argDisplayMap =
+          new HashMap<String,LocalizableMessage>();
   static {
     argDisplayMap.put(
             ATTR_TASK_EXPORT_LDIF_FILE,
@@ -144,14 +144,14 @@ public class ExportTask extends Task
   /**
    * {@inheritDoc}
    */
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return INFO_TASK_EXPORT_NAME.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  public Message getAttributeDisplayName(String name) {
+  public LocalizableMessage getAttributeDisplayName(String name) {
     return argDisplayMap.get(name);
   }
 
@@ -168,7 +168,7 @@ public class ExportTask extends Task
       ClientConnection clientConnection = operation.getClientConnection();
       if (! clientConnection.hasPrivilege(Privilege.LDIF_EXPORT, operation))
       {
-        Message message = ERR_TASK_LDIFEXPORT_INSUFFICIENT_PRIVILEGES.get();
+        LocalizableMessage message = ERR_TASK_LDIFEXPORT_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                      message);
       }
@@ -286,7 +286,7 @@ public class ExportTask extends Task
   /**
    * {@inheritDoc}
    */
-  public void interruptTask(TaskState interruptState, Message interruptReason)
+  public void interruptTask(TaskState interruptState, LocalizableMessage interruptReason)
   {
     if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
             exportConfig != null)
@@ -372,14 +372,14 @@ public class ExportTask extends Task
         }
         catch (DirectoryException de)
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
               filterString, de.getMessageObject());
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
               filterString, getExceptionMessage(e));
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
@@ -403,14 +403,14 @@ public class ExportTask extends Task
         }
         catch (DirectoryException de)
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
               filterString, de.getMessageObject());
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
               filterString, getExceptionMessage(e));
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
@@ -426,13 +426,13 @@ public class ExportTask extends Task
 
     if (backend == null)
     {
-      Message message = ERR_LDIFEXPORT_NO_BACKENDS_FOR_ID.get(backendID);
+      LocalizableMessage message = ERR_LDIFEXPORT_NO_BACKENDS_FOR_ID.get(backendID);
       logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
     else if (! backend.supportsLDIFExport())
     {
-      Message message = ERR_LDIFEXPORT_CANNOT_EXPORT_BACKEND.get(backendID);
+      LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_EXPORT_BACKEND.get(backendID);
       logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
@@ -455,14 +455,14 @@ public class ExportTask extends Task
         }
         catch (DirectoryException de)
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
               s, de.getMessageObject());
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
               s, getExceptionMessage(e));
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
@@ -489,14 +489,14 @@ public class ExportTask extends Task
         }
         catch (DirectoryException de)
         {
-          Message message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
+          LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
               s, de.getMessageObject());
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
+          LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
               s, getExceptionMessage(e));
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
@@ -505,7 +505,7 @@ public class ExportTask extends Task
         if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
-          Message message =
+          LocalizableMessage message =
               ERR_LDIFEXPORT_INVALID_INCLUDE_BASE.get(s, backendID);
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
@@ -563,7 +563,7 @@ public class ExportTask extends Task
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
         {
-          Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
+          LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
               backend.getBackendID(), String.valueOf(failureReason));
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
@@ -571,7 +571,7 @@ public class ExportTask extends Task
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
+        LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), getExceptionMessage(e));
         logError(message);
         return TaskState.STOPPED_BY_ERROR;
@@ -592,7 +592,7 @@ public class ExportTask extends Task
         catch (DirectoryException de)
         {
           DirectoryServer.notifyExportEnded(backend, exportConfig, false);
-          Message message =
+          LocalizableMessage message =
               ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
@@ -600,7 +600,7 @@ public class ExportTask extends Task
         catch (Exception e)
         {
           DirectoryServer.notifyExportEnded(backend, exportConfig, false);
-          Message message =
+          LocalizableMessage message =
               ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(getExceptionMessage(e));
           logError(message);
           return TaskState.STOPPED_BY_ERROR;
@@ -615,7 +615,7 @@ public class ExportTask extends Task
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
+            LocalizableMessage message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
                 backend.getBackendID(), String.valueOf(failureReason));
             logError(message);
             return TaskState.COMPLETED_WITH_ERRORS;
@@ -623,7 +623,7 @@ public class ExportTask extends Task
         }
         catch (Exception e)
         {
-          Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
+          LocalizableMessage message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
               backend.getBackendID(), getExceptionMessage(e));
           logError(message);
           return TaskState.COMPLETED_WITH_ERRORS;

@@ -26,7 +26,7 @@
  */
 package org.opends.server.tools;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
@@ -81,7 +81,7 @@ public class BackendToolUtils
     }
     catch (DirectoryException de)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(DN_BACKEND_BASE, de
               .getMessageObject());
       logError(message);
@@ -89,7 +89,7 @@ public class BackendToolUtils
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(DN_BACKEND_BASE,
               getExceptionMessage(e));
       logError(message);
@@ -103,7 +103,7 @@ public class BackendToolUtils
     }
     catch (ConfigException ce)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(DN_BACKEND_BASE, ce
               .getMessage());
       logError(message);
@@ -111,7 +111,7 @@ public class BackendToolUtils
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(DN_BACKEND_BASE,
               getExceptionMessage(e));
       logError(message);
@@ -146,7 +146,7 @@ public class BackendToolUtils
       }
       catch (ConfigException ce)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CANNOT_DETERMINE_BACKEND_ID.get(String.valueOf(configEntry
                 .getDN()), ce.getMessage());
         logError(message);
@@ -154,7 +154,7 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CANNOT_DETERMINE_BACKEND_ID.get(String.valueOf(configEntry
                 .getDN()), getExceptionMessage(e));
         logError(message);
@@ -184,7 +184,7 @@ public class BackendToolUtils
       }
       catch (ConfigException ce)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CANNOT_DETERMINE_BACKEND_CLASS.get(String.valueOf(configEntry
                 .getDN()), ce.getMessage());
         logError(message);
@@ -192,7 +192,7 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CANNOT_DETERMINE_BACKEND_CLASS.get(String.valueOf(configEntry
                 .getDN()), getExceptionMessage(e));
         logError(message);
@@ -206,7 +206,7 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CANNOT_LOAD_BACKEND_CLASS.get(backendClassName, String
                 .valueOf(configEntry.getDN()), getExceptionMessage(e));
         logError(message);
@@ -224,7 +224,7 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CANNOT_INSTANTIATE_BACKEND_CLASS.get(backendClassName, String
                 .valueOf(configEntry.getDN()), getExceptionMessage(e));
         logError(message);
@@ -245,7 +245,7 @@ public class BackendToolUtils
             (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
         if (baseDNAttr == null)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_NO_BASES_FOR_BACKEND.get(String.valueOf(configEntry.getDN()));
           logError(message);
         }
@@ -256,7 +256,7 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND.get(String
                 .valueOf(configEntry.getDN()), getExceptionMessage(e));
         logError(message);

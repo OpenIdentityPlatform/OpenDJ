@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 
 package org.opends.server.tools.upgrade;
@@ -36,7 +36,7 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.ClientException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
@@ -277,7 +277,7 @@ public final class UpgradeContext
    * @throws ClientException
    *           If an error occurred while reporting the message.
    */
-  void notify(final Message message) throws ClientException
+  void notify(final LocalizableMessage message) throws ClientException
   {
     try
     {
@@ -304,7 +304,7 @@ public final class UpgradeContext
    * @throws ClientException
    *           If an error occurred while reporting the message.
    */
-  void notify(final Message message, final int msgType) throws ClientException
+  void notify(final LocalizableMessage message, final int msgType) throws ClientException
   {
     try
     {
@@ -355,7 +355,7 @@ public final class UpgradeContext
    *           If an error occurred while reporting the message.
    * @return an integer corresponding to the user's answer.
    */
-  int confirmYN(final Message message, final int defaultOption)
+  int confirmYN(final LocalizableMessage message, final int defaultOption)
       throws ClientException
   {
     final ConfirmationCallback confirmYNCallback = new ConfirmationCallback(

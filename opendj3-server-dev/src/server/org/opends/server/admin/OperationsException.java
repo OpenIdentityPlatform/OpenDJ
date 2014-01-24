@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
 
 
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -53,7 +54,7 @@ public abstract class OperationsException extends AdminException {
    * @param cause
    *          The cause.
    */
-  protected OperationsException(Message message, Throwable cause) {
+  protected OperationsException(LocalizableMessage message, Throwable cause) {
     super(message, cause);
   }
 
@@ -65,7 +66,7 @@ public abstract class OperationsException extends AdminException {
    * @param message
    *          The message.
    */
-  protected OperationsException(Message message) {
+  protected OperationsException(LocalizableMessage message) {
     super(message);
   }
 }

@@ -72,7 +72,7 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.renderer.TaskCellRenderer;
 import org.opends.guitools.controlpanel.util.ConfigFromFile;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
@@ -117,7 +117,7 @@ public class ManageTasksPanel extends StatusGenericPanel
 
   private ManageTasksMenuBar menuBar;
 
-  private MonitoringAttributesViewPanel<Message> operationViewPanel;
+  private MonitoringAttributesViewPanel<LocalizableMessage> operationViewPanel;
   private GenericDialog operationViewDlg;
 
   private JPanel detailsPanel;
@@ -145,7 +145,7 @@ public class ManageTasksPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_TASK_TO_SCHEDULE_LIST_TITLE.get();
   }
@@ -322,7 +322,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     logsLabel.setFont(ColorAndFontConstants.titleFont);
     add(logsLabel, gbc);
 
-    logs = Utilities.createNonEditableTextArea(Message.EMPTY, 5, 50);
+    logs = Utilities.createNonEditableTextArea(LocalizableMessage.EMPTY, 5, 50);
     logs.setFont(ColorAndFontConstants.defaultFont);
     gbc.fill = GridBagConstraints.BOTH;
     gbc.weightx = 1.0;
@@ -436,13 +436,13 @@ public class ManageTasksPanel extends StatusGenericPanel
     else
     {
       TaskEntry taskEntry = tasks.iterator().next();
-      Map<Message,List<String>> taskSpecificAttrs =
+      Map<LocalizableMessage,List<String>> taskSpecificAttrs =
         taskEntry.getTaskSpecificAttributeValuePairs();
-      List<Message> lastLogMessages = taskEntry.getLogMessages();
+      List<LocalizableMessage> lastLogMessages = taskEntry.getLogMessages();
       if (!lastLogMessages.isEmpty())
       {
         StringBuilder sb = new StringBuilder();
-        for (Message msg : lastLogMessages)
+        for (LocalizableMessage msg : lastLogMessages)
         {
           if (sb.length() != 0)
           {
@@ -472,7 +472,7 @@ public class ManageTasksPanel extends StatusGenericPanel
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.NORTHWEST;
         gbc.insets.top = 10;
-        for (Message label : taskSpecificAttrs.keySet())
+        for (LocalizableMessage label : taskSpecificAttrs.keySet())
         {
           List<String> values = taskSpecificAttrs.get(label);
           gbc.gridx = 0;
@@ -545,11 +545,11 @@ public class ManageTasksPanel extends StatusGenericPanel
           "Completion Time",
           "Dependency ID",
           "Failed Dependency Action",
-          "Log Message.                              Should be pretty long"+
-          "Log Message.                              Should be pretty long"+
-          "Log Message.                              Should be pretty long"+
-          "Log Message.                              Should be pretty long"+
-          "Log Message.                              Should be pretty long",
+          "Log LocalizableMessage.                              Should be pretty long"+
+          "Log LocalizableMessage.                              Should be pretty long"+
+          "Log LocalizableMessage.                              Should be pretty long"+
+          "Log LocalizableMessage.                              Should be pretty long"+
+          "Log LocalizableMessage.                              Should be pretty long",
           "Notify On Error",
           "Notify On Completion",
           "Recurring Task Schedule"
@@ -612,11 +612,11 @@ public class ManageTasksPanel extends StatusGenericPanel
           "Completion Time",
           "Dependency ID",
           "Failed Dependency Action",
-          "Log Message.                              Should be pretty long\n"+
-          "Log Message.                              Should be pretty long\n"+
-          "Log Message.                              Should be pretty long\n"+
-          "Log Message.                              Should be pretty long\n"+
-          "Log Message.                              Should be pretty long\n",
+          "Log LocalizableMessage.                              Should be pretty long\n"+
+          "Log LocalizableMessage.                              Should be pretty long\n"+
+          "Log LocalizableMessage.                              Should be pretty long\n"+
+          "Log LocalizableMessage.                              Should be pretty long\n"+
+          "Log LocalizableMessage.                              Should be pretty long\n",
           "Notify On Error",
           "Notify On Completion",
           "Recurring Task Schedule"
@@ -643,7 +643,7 @@ public class ManageTasksPanel extends StatusGenericPanel
 
   private void cancelTaskClicked()
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
@@ -896,7 +896,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     operationViewDlg.setVisible(true);
     if (!operationViewPanel.isCanceled())
     {
-      LinkedHashSet<Message> displayedAttributes =
+      LinkedHashSet<LocalizableMessage> displayedAttributes =
         operationViewPanel.getAttributes();
       setAttributesToDisplay(displayedAttributes);
       updateTableSizes();
@@ -964,7 +964,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     Utilities.updateScrollMode(tableScroll, taskTable);
   }
 
-  private void setAttributesToDisplay(LinkedHashSet<Message> attributes)
+  private void setAttributesToDisplay(LinkedHashSet<LocalizableMessage> attributes)
   {
     Set<String> selectedIds = getSelectedIds();
     tableModel.setAttributes(attributes);

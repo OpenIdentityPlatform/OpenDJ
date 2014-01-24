@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types.operation;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -176,6 +176,6 @@ public interface PreParseBindOperation
    * @param  reason  A human-readable message providing the reason
    *                 that the authentication failed.
    */
-  public void setAuthFailureReason(Message reason);
+  public void setAuthFailureReason(LocalizableMessage reason);
 }
 

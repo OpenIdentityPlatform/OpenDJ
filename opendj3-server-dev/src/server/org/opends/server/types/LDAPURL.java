@@ -31,7 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 
@@ -337,13 +337,13 @@ public final class LDAPURL
     int schemeEndPos = url.indexOf("://");
     if (schemeEndPos < 0)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDAPURL_NO_COLON_SLASH_SLASH.get(String.valueOf(url));
       throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
     }
     else if (schemeEndPos == 0)
     {
-      Message message = ERR_LDAPURL_NO_SCHEME.get(String.valueOf(url));
+      LocalizableMessage message = ERR_LDAPURL_NO_SCHEME.get(String.valueOf(url));
       throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
     }
     else
@@ -389,12 +389,12 @@ public final class LDAPURL
       }
       else if (colonPos == 0)
       {
-        Message message = ERR_LDAPURL_NO_HOST.get(String.valueOf(url));
+        LocalizableMessage message = ERR_LDAPURL_NO_HOST.get(String.valueOf(url));
         throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
       }
       else if (colonPos == (hostPort.length() - 1))
       {
-        Message message = ERR_LDAPURL_NO_PORT.get(String.valueOf(url));
+        LocalizableMessage message = ERR_LDAPURL_NO_PORT.get(String.valueOf(url));
         throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
       }
       else
@@ -407,13 +407,13 @@ public final class LDAPURL
         }
         catch (NumberFormatException e)
         {
-          Message message = ERR_LDAPURL_CANNOT_DECODE_PORT.get(
+          LocalizableMessage message = ERR_LDAPURL_CANNOT_DECODE_PORT.get(
               String.valueOf(url), hostPort.substring(colonPos+1));
           throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
         }
         catch (IllegalArgumentException e)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_LDAPURL_INVALID_PORT.get(String.valueOf(url), port);
           throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
         }
@@ -557,7 +557,7 @@ public final class LDAPURL
     }
     else
     {
-      Message message = ERR_LDAPURL_INVALID_SCOPE_STRING.get(
+      LocalizableMessage message = ERR_LDAPURL_INVALID_SCOPE_STRING.get(
           String.valueOf(url), String.valueOf(scopeString));
       throw new DirectoryException(
                      ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -681,7 +681,7 @@ public final class LDAPURL
         // a problem.
         if (i+2 > length)
         {
-          Message message = ERR_LDAPURL_PERCENT_TOO_CLOSE_TO_END.get(
+          LocalizableMessage message = ERR_LDAPURL_PERCENT_TOO_CLOSE_TO_END.get(
               String.valueOf(s), i);
           throw new DirectoryException(
                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -745,7 +745,7 @@ public final class LDAPURL
             b = (byte) 0xF0;
             break;
           default:
-            Message message = ERR_LDAPURL_INVALID_HEX_BYTE.get(
+            LocalizableMessage message = ERR_LDAPURL_INVALID_HEX_BYTE.get(
                 String.valueOf(s), i);
             throw new DirectoryException(
                            ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -808,7 +808,7 @@ public final class LDAPURL
             b |= 0x0F;
             break;
           default:
-            Message message = ERR_LDAPURL_INVALID_HEX_BYTE.get(
+            LocalizableMessage message = ERR_LDAPURL_INVALID_HEX_BYTE.get(
                 String.valueOf(s), i);
             throw new DirectoryException(
                            ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -835,7 +835,7 @@ public final class LDAPURL
       }
 
       // This should never happen.
-      Message message = ERR_LDAPURL_CANNOT_CREATE_UTF8_STRING.get(
+      LocalizableMessage message = ERR_LDAPURL_CANNOT_CREATE_UTF8_STRING.get(
           getExceptionMessage(e));
       throw new DirectoryException(
                      ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);

@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 import java.util.Iterator;
@@ -69,7 +69,7 @@ public class BindResponseProtocolOp
   private List<String> referralURLs;
 
   // The error message for this response.
-  private Message errorMessage;
+  private LocalizableMessage errorMessage;
 
 
 
@@ -97,7 +97,7 @@ public class BindResponseProtocolOp
    * @param  resultCode    The result code for this response.
    * @param  errorMessage  The error message for this response.
    */
-  public BindResponseProtocolOp(int resultCode, Message errorMessage)
+  public BindResponseProtocolOp(int resultCode, LocalizableMessage errorMessage)
   {
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
@@ -117,7 +117,7 @@ public class BindResponseProtocolOp
    * @param  matchedDN     The matched DN for this response.
    * @param  referralURLs  The referral URLs for this response.
    */
-  public BindResponseProtocolOp(int resultCode, Message errorMessage,
+  public BindResponseProtocolOp(int resultCode, LocalizableMessage errorMessage,
                                 DN matchedDN, List<String> referralURLs)
   {
     this.resultCode   = resultCode;
@@ -139,7 +139,7 @@ public class BindResponseProtocolOp
    * @param  referralURLs           The referral URLs for this response.
    * @param  serverSASLCredentials  The server SASL credentials for this
    */
-  public BindResponseProtocolOp(int resultCode, Message errorMessage,
+  public BindResponseProtocolOp(int resultCode, LocalizableMessage errorMessage,
                                 DN matchedDN, List<String> referralURLs,
                                 ByteString serverSASLCredentials)
   {
@@ -170,7 +170,7 @@ public class BindResponseProtocolOp
    * @return  The error message for this response, or <CODE>null</CODE> if none
    *          is available.
    */
-  public Message getErrorMessage()
+  public LocalizableMessage getErrorMessage()
   {
     return errorMessage;
   }
@@ -366,7 +366,7 @@ public class BindResponseProtocolOp
     if (errorMessage != null)
     {
       buffer.append(indentBuf);
-      buffer.append("  Error Message:  ");
+      buffer.append("  Error LocalizableMessage:  ");
       buffer.append(errorMessage);
       buffer.append(EOL);
     }

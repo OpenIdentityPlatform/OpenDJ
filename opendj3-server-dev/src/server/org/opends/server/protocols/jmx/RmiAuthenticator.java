@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.*;
 
@@ -289,7 +289,7 @@ public class RmiAuthenticator implements JMXAuthenticator
       // Check JMX_READ privilege.
       if (! jmxClientConnection.hasPrivilege(Privilege.JMX_READ, null))
       {
-        Message message = ERR_JMX_INSUFFICIENT_PRIVILEGES.get();
+        LocalizableMessage message = ERR_JMX_INSUFFICIENT_PRIVILEGES.get();
 
         jmxClientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED,
             false, message);

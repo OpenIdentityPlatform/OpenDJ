@@ -36,7 +36,7 @@ import static org.opends.server.schema.StringPrepProfile.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
@@ -164,7 +164,7 @@ class NumericStringEqualityMatchingRule
         else
         {
           // This is an illegal character.  Either log it or reject it.
-          Message message = WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(
+          LocalizableMessage message = WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(
                   value.toString(), String.valueOf(c), pos);
 
           switch (DirectoryServer.getSyntaxEnforcementPolicy())

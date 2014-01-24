@@ -44,7 +44,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
@@ -123,7 +123,7 @@ public class CompressedSchema
     Entry<AttributeType, Set<String>> ad = adDecodeMap.get(id);
     if (ad == null)
     {
-      final Message message = ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN
+      final LocalizableMessage message = ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN
           .get(String.valueOf(id));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           message);
@@ -209,7 +209,7 @@ public class CompressedSchema
     }
     else
     {
-      final Message message = ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(String
+      final LocalizableMessage message = ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(String
           .valueOf(id));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           message);

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -43,7 +44,7 @@ import javax.swing.JPanel;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Dialog used to inform the user that there are unsaved changes in a panel.
@@ -95,7 +96,7 @@ public class UnsavedChangesDialog extends GenericDialog
    * @param title the title of the message.
    * @param details the details of the message.
    */
-  public void setMessage(Message title, Message details)
+  public void setMessage(LocalizableMessage title, LocalizableMessage details)
   {
     panel.updateConfirmationPane(panel.errorPane, title,
         ColorAndFontConstants.errorTitleFont, details,
@@ -284,7 +285,7 @@ public class UnsavedChangesDialog extends GenericDialog
     /**
      * {@inheritDoc}
      */
-    public Message getTitle()
+    public LocalizableMessage getTitle()
     {
       return INFO_CTRL_PANEL_UNSAVED_CHANGES_DIALOG_TITLE.get();
     }

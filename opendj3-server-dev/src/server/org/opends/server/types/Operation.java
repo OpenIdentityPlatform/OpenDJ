@@ -22,15 +22,15 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.types;
 
 import java.util.List;
 import java.util.Map;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ControlDecoder;
 
@@ -84,7 +84,7 @@ public interface Operation extends Runnable
    */
   public abstract void disconnectClient(
           DisconnectReason disconnectReason,
-          boolean sendNotification, Message message
+          boolean sendNotification, LocalizableMessage message
   );
 
   /**
@@ -223,7 +223,7 @@ public interface Operation extends Runnable
    *
    * @return  The error message for this operation.
    */
-  public abstract MessageBuilder getErrorMessage();
+  public abstract LocalizableMessageBuilder getErrorMessage();
 
   /**
    * Specifies the error message for this operation.  This method may
@@ -231,7 +231,7 @@ public interface Operation extends Runnable
    *
    * @param  errorMessage  The error message for this operation.
    */
-  public abstract void setErrorMessage(MessageBuilder errorMessage);
+  public abstract void setErrorMessage(LocalizableMessageBuilder errorMessage);
 
   /**
    * Appends the provided message to the error message buffer.  If the
@@ -241,7 +241,7 @@ public interface Operation extends Runnable
    *
    * @param  message  The message to append to the error message
    */
-  public abstract void appendErrorMessage(Message message);
+  public abstract void appendErrorMessage(LocalizableMessage message);
 
   /**
    * Retrieves the real, masked error message for this operation. Its contents
@@ -250,7 +250,7 @@ public interface Operation extends Runnable
    *
    * @return The real, masked error message for this operation.
    */
-  MessageBuilder getMaskedErrorMessage();
+  LocalizableMessageBuilder getMaskedErrorMessage();
 
   /**
    * Specifies the real, masked error message for this operation. This method
@@ -259,7 +259,7 @@ public interface Operation extends Runnable
    * @param maskedErrorMessage
    *          The real, masked error message for this operation.
    */
-  void setMaskedErrorMessage(MessageBuilder maskedErrorMessage);
+  void setMaskedErrorMessage(LocalizableMessageBuilder maskedErrorMessage);
 
   /**
    * Appends the provided message to the real, masked error message buffer. If
@@ -270,7 +270,7 @@ public interface Operation extends Runnable
    * @param maskedMessage
    *          The message to append to the real, masked error message
    */
-  void appendMaskedErrorMessage(Message maskedMessage);
+  void appendMaskedErrorMessage(LocalizableMessage maskedMessage);
 
   /**
    * Returns an unmodifiable list containing the additional log items for this

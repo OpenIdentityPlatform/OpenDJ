@@ -25,7 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -209,7 +209,7 @@ public class RestoreDB extends TaskTool {
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -233,7 +233,7 @@ public class RestoreDB extends TaskTool {
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -257,7 +257,7 @@ public class RestoreDB extends TaskTool {
 
 
     if (listBackups.isPresent() && argParser.connectionArgumentsPresent()) {
-      Message message = ERR_LDAP_CONN_INCOMPATIBLE_ARGS.get(
+      LocalizableMessage message = ERR_LDAP_CONN_INCOMPATIBLE_ARGS.get(
               listBackups.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -348,7 +348,7 @@ public class RestoreDB extends TaskTool {
       }
       catch (Exception e)
       {
-        Message message = ERR_SERVER_BOOTSTRAP_ERROR.get(
+        LocalizableMessage message = ERR_SERVER_BOOTSTRAP_ERROR.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -361,13 +361,13 @@ public class RestoreDB extends TaskTool {
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -381,19 +381,19 @@ public class RestoreDB extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -407,21 +407,21 @@ public class RestoreDB extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
                 ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
                 ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -435,21 +435,21 @@ public class RestoreDB extends TaskTool {
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                 ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                 ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -484,7 +484,7 @@ public class RestoreDB extends TaskTool {
     }
     catch (Exception e)
     {
-      Message message = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
+      LocalizableMessage message = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
           backupDirectory.getValue(), getExceptionMessage(e));
       logError(message);
       return 1;
@@ -497,7 +497,7 @@ public class RestoreDB extends TaskTool {
     {
       for (BackupInfo backupInfo : backupDir.getBackups().values())
       {
-        Message message = INFO_RESTOREDB_LIST_BACKUP_ID.get(
+        LocalizableMessage message = INFO_RESTOREDB_LIST_BACKUP_ID.get(
                 backupInfo.getBackupID());
         out.println(message);
 
@@ -572,7 +572,7 @@ public class RestoreDB extends TaskTool {
       BackupInfo backupInfo = backupDir.getLatestBackup();
       if (backupInfo == null)
       {
-        Message message = ERR_RESTOREDB_NO_BACKUPS_IN_DIRECTORY.get(
+        LocalizableMessage message = ERR_RESTOREDB_NO_BACKUPS_IN_DIRECTORY.get(
             backupDirectory.getValue());
         logError(message);
         return 1;
@@ -584,14 +584,14 @@ public class RestoreDB extends TaskTool {
         backupInfo = backupDir.getBackupInfo(backupID);
         if (backupInfo == null)
         {
-          Message message = ERR_RESTOREDB_INVALID_BACKUP_ID.get(
+          LocalizableMessage message = ERR_RESTOREDB_INVALID_BACKUP_ID.get(
                   backupID, backupDirectory.getValue());
           logError(message);
           return 1;
         }
       }
       if (backupInfo.isEncrypted() || null != backupInfo.getSignedHash()) {
-        Message message = ERR_RESTOREDB_ENCRYPT_OR_SIGN_REQUIRES_ONLINE.get();
+        LocalizableMessage message = ERR_RESTOREDB_ENCRYPT_OR_SIGN_REQUIRES_ONLINE.get();
         logError(message);
         return 1;
       }
@@ -626,14 +626,14 @@ public class RestoreDB extends TaskTool {
 
     if (backend == null)
     {
-      Message message = ERR_RESTOREDB_NO_BACKENDS_FOR_DN.get(
+      LocalizableMessage message = ERR_RESTOREDB_NO_BACKENDS_FOR_DN.get(
           backupDirectory.getValue(), configEntryDN.toString());
       logError(message);
       return 1;
     }
     else if (! backend.supportsRestore())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_RESTOREDB_CANNOT_RESTORE.get(backend.getBackendID());
       logError(message);
       return 1;
@@ -652,7 +652,7 @@ public class RestoreDB extends TaskTool {
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        Message message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
+        LocalizableMessage message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
         return 1;
@@ -660,7 +660,7 @@ public class RestoreDB extends TaskTool {
     }
     catch (Exception e)
     {
-      Message message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
+      LocalizableMessage message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       logError(message);
       return 1;
@@ -674,13 +674,13 @@ public class RestoreDB extends TaskTool {
     }
     catch (DirectoryException de)
     {
-      Message message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
+      LocalizableMessage message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
           backupID, backupDir.getPath(), de.getMessageObject());
       logError(message);
     }
     catch (Exception e)
     {
-      Message message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
+      LocalizableMessage message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
           backupID, backupDir.getPath(), getExceptionMessage(e));
       logError(message);
     }
@@ -693,14 +693,14 @@ public class RestoreDB extends TaskTool {
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        Message message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
+        LocalizableMessage message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
       }
     }
     catch (Exception e)
     {
-      Message message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
+      LocalizableMessage message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       logError(message);
     }

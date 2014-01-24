@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -32,7 +32,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
@@ -181,7 +181,7 @@ public class WaitForFileDelete extends ConsoleApplication
     BooleanArgument useLastKnownGoodConfig = null;
     BooleanArgument quietMode              = null;
 
-    Message toolDescription = INFO_WAIT4DEL_TOOL_DESCRIPTION.get();
+    LocalizableMessage toolDescription = INFO_WAIT4DEL_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
 
@@ -238,7 +238,7 @@ public class WaitForFileDelete extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       return EXIT_CODE_INTERNAL_ERROR;
     }
@@ -251,10 +251,10 @@ public class WaitForFileDelete extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       println(message);
-      println(Message.raw(argParser.getUsage()));
+      println(LocalizableMessage.raw(argParser.getUsage()));
       return EXIT_CODE_INTERNAL_ERROR;
     }
 
@@ -292,7 +292,7 @@ public class WaitForFileDelete extends ConsoleApplication
       }
       catch (Exception e)
       {
-        Message message = WARN_WAIT4DEL_CANNOT_OPEN_LOG_FILE.get(
+        LocalizableMessage message = WARN_WAIT4DEL_CANNOT_OPEN_LOG_FILE.get(
                 logFilePath.getValue(), String.valueOf(e));
         println(message);
 
@@ -321,7 +321,7 @@ public class WaitForFileDelete extends ConsoleApplication
         }
         catch (Exception e)
         {
-          Message message = WARN_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE.get(
+          LocalizableMessage message = WARN_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE.get(
                   outputFilePath.getValue(), String.valueOf(e));
           println(message);
 

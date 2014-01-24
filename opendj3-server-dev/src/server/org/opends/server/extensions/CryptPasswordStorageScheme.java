@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CryptPasswordStorageSchemeCfg;
 import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
@@ -137,7 +137,7 @@ public class CryptPasswordStorageScheme
     }
     catch (Exception e)
     {
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
           CLASS_NAME, stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -179,7 +179,7 @@ public class CryptPasswordStorageScheme
     }
     catch (Exception e)
     {
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
           CLASS_NAME, stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -199,7 +199,7 @@ public class CryptPasswordStorageScheme
     }
     catch (Exception e)
     {
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
           CLASS_NAME, stackTraceToSingleLineString(e));
       throw new DirectoryException(
           DirectoryServer.getServerErrorResultCode(), message, e);
@@ -224,7 +224,7 @@ public class CryptPasswordStorageScheme
     }
     catch (Exception e)
     {
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
           CLASS_NAME, stackTraceToSingleLineString(e));
       throw new DirectoryException(
           DirectoryServer.getServerErrorResultCode(), message, e);
@@ -420,7 +420,7 @@ public class CryptPasswordStorageScheme
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
@@ -458,7 +458,7 @@ public class CryptPasswordStorageScheme
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_NOT_REVERSIBLE.get(STORAGE_SCHEME_NAME_CRYPT);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
@@ -473,7 +473,7 @@ public class CryptPasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
       ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
@@ -508,7 +508,7 @@ public class CryptPasswordStorageScheme
   @Override()
   public boolean isConfigurationAcceptable(
           PasswordStorageSchemeCfg configuration,
-          List<Message> unacceptableReasons)
+          List<LocalizableMessage> unacceptableReasons)
   {
     CryptPasswordStorageSchemeCfg config =
             (CryptPasswordStorageSchemeCfg) configuration;
@@ -523,7 +523,7 @@ public class CryptPasswordStorageScheme
   @Override
   public boolean isConfigurationChangeAcceptable(
                       CryptPasswordStorageSchemeCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // If we've gotten this far, then we'll accept the change.
     return true;
@@ -540,7 +540,7 @@ public class CryptPasswordStorageScheme
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    List<Message>     messages            = new ArrayList<Message>();
+    List<LocalizableMessage>     messages            = new ArrayList<LocalizableMessage>();
 
 
     currentConfig = configuration;

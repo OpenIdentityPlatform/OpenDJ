@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.config;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -62,7 +63,7 @@ public final class ConfigException
    *
    * @param  message    The message to use for this configuration exception.
    */
-  public ConfigException(Message message)
+  public ConfigException(LocalizableMessage message)
   {
     super(message);
   }
@@ -77,7 +78,7 @@ public final class ConfigException
    * @param  cause      The underlying cause that triggered this configuration
    *                    exception.
    */
-  public ConfigException(Message message, Throwable cause)
+  public ConfigException(LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
   }

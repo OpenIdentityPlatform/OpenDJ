@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.TaskMessages.*;
 
 
@@ -339,18 +340,18 @@ public enum TaskState
     }
   }
 
-  private Message displayName;
+  private LocalizableMessage displayName;
 
   /**
    * Gets a locale sensitive representation of this state.
    *
-   * @return Message describing state
+   * @return LocalizableMessage describing state
    */
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return displayName;
   }
 
-  private TaskState(Message displayName) {
+  private TaskState(LocalizableMessage displayName) {
     this.displayName = displayName;
   }
 }

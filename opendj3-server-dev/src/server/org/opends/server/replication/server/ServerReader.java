@@ -28,7 +28,7 @@ package org.opends.server.replication.server;
 
 import java.net.SocketException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ServerStatus;
@@ -83,7 +83,7 @@ public class ServerReader extends DirectoryThread
   @Override
   public void run()
   {
-    Message errMessage = null;
+    LocalizableMessage errMessage = null;
     if (debugEnabled())
     {
       TRACER.debugInfo(getName() + " starting");

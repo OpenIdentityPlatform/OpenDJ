@@ -27,7 +27,7 @@
  */
 package org.opends.server.crypto;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.CoreMessages.*;
 
 import java.io.InputStream;
@@ -279,7 +279,7 @@ public class CryptoManagerImpl
     }
 
     // CryptoMangager crypto config parameters.
-    List<Message> why = new LinkedList<Message>();
+    List<LocalizableMessage> why = new LinkedList<LocalizableMessage>();
     if (! isConfigurationChangeAcceptable(cfg, why)) {
       throw new InitializationException(why.get(0));
     }
@@ -301,7 +301,7 @@ public class CryptoManagerImpl
    */
   public boolean isConfigurationChangeAcceptable(
        CryptoManagerCfg cfg,
-       List<Message> unacceptableReasons)
+       List<LocalizableMessage> unacceptableReasons)
   {
     // Acceptable until we find an error.
     boolean isAcceptable = true;
@@ -443,7 +443,7 @@ public class CryptoManagerImpl
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     preferredDigestAlgorithm = cfg.getDigestAlgorithm();
     preferredMACAlgorithm = cfg.getMacAlgorithm();
@@ -468,14 +468,14 @@ public class CryptoManagerImpl
          ConfigConstants.ID_ADS_TRUST_STORE_BACKEND);
     if (b == null)
     {
-      Message msg =
+      LocalizableMessage msg =
            ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_NOT_ENABLED.get(
                 ConfigConstants.ID_ADS_TRUST_STORE_BACKEND);
       throw new ConfigException(msg);
     }
     if (!(b instanceof TrustStoreBackend))
     {
-      Message msg =
+      LocalizableMessage msg =
            ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_WRONG_CLASS.get(
                 ConfigConstants.ID_ADS_TRUST_STORE_BACKEND);
       throw new ConfigException(msg);
@@ -575,10 +575,10 @@ public class CryptoManagerImpl
             ERR_CRYPTOMGR_FAILED_TO_RETRIEVE_INSTANCE_CERTIFICATE.get(
                     entryDN.toString(), getExceptionMessage(ex)), ex);
     }
-    //The certificate can never be null. The Message digest code that will
+    //The certificate can never be null. The LocalizableMessage digest code that will
     //use it later throws a NPE if the certificate is null.
     if(certificate == null) {
-      Message msg =
+      LocalizableMessage msg =
         ERR_CRYPTOMGR_FAILED_INSTANCE_CERTIFICATE_NULL.get(entryDN.toString());
         throw new CryptoManagerException(msg);
     }
@@ -3067,7 +3067,7 @@ public class CryptoManagerImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
            ERR_CRYPTOMGR_SSL_CONTEXT_CANNOT_INITIALIZE.get(
                 getExceptionMessage(e));
       throw new ConfigException(message, e);

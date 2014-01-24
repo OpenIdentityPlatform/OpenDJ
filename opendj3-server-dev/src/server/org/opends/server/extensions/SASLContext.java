@@ -43,7 +43,7 @@ import javax.security.auth.login.LoginContext;
 import javax.security.sasl.*;
 
 import org.ietf.jgss.GSSException;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.IdentityMapper;
@@ -125,7 +125,7 @@ public class SASLContext implements CallbackHandler,
   private String userName;
 
   // Error message used by callbacks.
-  private Message cbMsg;
+  private LocalizableMessage cbMsg;
 
   // Error code used by callbacks.
   private ResultCode cbResultCode;
@@ -205,7 +205,7 @@ public class SASLContext implements CallbackHandler,
       }
       else
       {
-        final Message message = INFO_SASL_UNSUPPORTED_CALLBACK.get(mechanism,
+        final LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK.get(mechanism,
             String.valueOf(callback));
         throw new UnsupportedCallbackException(callback, message.toString());
       }
@@ -244,7 +244,7 @@ public class SASLContext implements CallbackHandler,
         }
         final GSSException gex = (GSSException) ex.getCause();
 
-        final Message msg;
+        final LocalizableMessage msg;
         if (gex != null)
         {
           msg = ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_GSSAPI,
@@ -313,7 +313,7 @@ public class SASLContext implements CallbackHandler,
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      final Message msg = ERR_SASL_PROTOCOL_ERROR.get(mechanism,
+      final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(mechanism,
           getExceptionMessage(e));
       handleError(msg);
       return false;
@@ -358,7 +358,7 @@ public class SASLContext implements CallbackHandler,
 
     if ((clientCredentials == null) || (clientCredentials.length() == 0))
     {
-      final Message msg = ERR_SASL_NO_CREDENTIALS.get(mechanism, mechanism);
+      final LocalizableMessage msg = ERR_SASL_NO_CREDENTIALS.get(mechanism, mechanism);
       handleError(msg);
       return;
     }
@@ -400,7 +400,7 @@ public class SASLContext implements CallbackHandler,
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      final Message msg = ERR_SASL_PROTOCOL_ERROR.get(mechanism,
+      final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(mechanism,
           getExceptionMessage(e));
       handleError(msg);
     }
@@ -433,7 +433,7 @@ public class SASLContext implements CallbackHandler,
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      final Message msg = ERR_SASL_PROTOCOL_ERROR.get(mechanism,
+      final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(mechanism,
           getExceptionMessage(e));
       handleError(msg);
     }
@@ -585,7 +585,7 @@ public class SASLContext implements CallbackHandler,
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      final Message msg = ERR_SASL_PROTOCOL_ERROR.get(mechanism,
+      final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(mechanism,
           getExceptionMessage(e));
       handleError(msg);
     }
@@ -946,7 +946,7 @@ public class SASLContext implements CallbackHandler,
    * @param msg
    *          The message to use if the callback message is not null.
    */
-  private void handleError(final Message msg)
+  private void handleError(final LocalizableMessage msg)
   {
     dispose();
     final ClientConnection clientConn = bindOp.getClientConnection();
@@ -1047,9 +1047,9 @@ public class SASLContext implements CallbackHandler,
         serverFQDN, saslProps, this);
     if (saslServer == null)
     {
-      final Message msg = ERR_SASL_CREATE_SASL_SERVER_FAILED.get(mechanism,
+      final LocalizableMessage msg = ERR_SASL_CREATE_SASL_SERVER_FAILED.get(mechanism,
           serverFQDN);
-      throw new SaslException(Message.toString(msg));
+      throw new SaslException(msg.toString());
     }
   }
 
@@ -1182,7 +1182,7 @@ public class SASLContext implements CallbackHandler,
 
       if (!authState.isPasswordPolicy())
       {
-        final Message message = ERR_SASL_ACCOUNT_NOT_LOCAL.get(mechanism,
+        final LocalizableMessage message = ERR_SASL_ACCOUNT_NOT_LOCAL.get(mechanism,
             String.valueOf(authEntry.getName()));
         setCallbackMsg(ResultCode.INAPPROPRIATE_AUTHENTICATION, message);
         return;
@@ -1234,7 +1234,7 @@ public class SASLContext implements CallbackHandler,
    * @param cbMsg
    *          The message to set the callback message to.
    */
-  private void setCallbackMsg(final Message cbMsg)
+  private void setCallbackMsg(final LocalizableMessage cbMsg)
   {
     setCallbackMsg(ResultCode.INVALID_CREDENTIALS, cbMsg);
   }
@@ -1250,7 +1250,7 @@ public class SASLContext implements CallbackHandler,
    *          The message.
    */
   private void setCallbackMsg(final ResultCode cbResultCode,
-      final Message cbMsg)
+      final LocalizableMessage cbMsg)
   {
     this.cbResultCode = cbResultCode;
     this.cbMsg = cbMsg;

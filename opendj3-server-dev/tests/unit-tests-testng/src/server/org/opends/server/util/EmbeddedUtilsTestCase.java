@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -31,7 +32,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryEnvironmentConfig;
@@ -93,7 +94,7 @@ public class EmbeddedUtilsTestCase
     assertNotNull(environmentConfig);
 
     EmbeddedUtils.restartServer(getClass().getName(),
-                                Message.raw("testRestartServer"),
+                                LocalizableMessage.raw("testRestartServer"),
                                 environmentConfig);
 
     assertTrue(EmbeddedUtils.isRunning());
@@ -118,7 +119,7 @@ public class EmbeddedUtilsTestCase
     assertNotNull(environmentConfig);
 
     EmbeddedUtils.stopServer(getClass().getName(),
-                             Message.raw("testStopAndStartServer"));
+                             LocalizableMessage.raw("testStopAndStartServer"));
     assertFalse(EmbeddedUtils.isRunning());
 
     EmbeddedUtils.startServer(environmentConfig);

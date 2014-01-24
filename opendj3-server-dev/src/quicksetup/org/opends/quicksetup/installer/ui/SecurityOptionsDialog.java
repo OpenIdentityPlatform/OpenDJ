@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
 
  */
 
@@ -65,7 +65,7 @@ import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.StaticUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -301,7 +301,7 @@ public class SecurityOptionsDialog extends JDialog
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.RELATIVE;
 
-    Message title = INFO_SECURITY_OPTIONS_TITLE.get();
+    LocalizableMessage title = INFO_SECURITY_OPTIONS_TITLE.get();
     JLabel l =
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, title,
             UIFactory.TextStyle.TITLE);
@@ -326,7 +326,7 @@ public class SecurityOptionsDialog extends JDialog
    */
   private Component createInstructionsPane()
   {
-    Message instructions = INFO_SECURITY_OPTIONS_INSTRUCTIONS.get();
+    LocalizableMessage instructions = INFO_SECURITY_OPTIONS_INSTRUCTIONS.get();
 
     JTextComponent instructionsPane =
       UIFactory.makeHtmlPane(instructions, UIFactory.INSTRUCTIONS_FONT);
@@ -363,7 +363,7 @@ public class SecurityOptionsDialog extends JDialog
     {
       sPort = String.valueOf(port);
     }
-    tfPort = UIFactory.makeJTextField(Message.raw(sPort),
+    tfPort = UIFactory.makeJTextField(LocalizableMessage.raw(sPort),
         INFO_SSL_PORT_TEXTFIELD_TOOLTIP.get(), UIFactory.PORT_FIELD_SIZE,
         UIFactory.TextStyle.TEXTFIELD);
     cbEnableStartTLS = UIFactory.makeJCheckBox(INFO_ENABLE_STARTTLS_LABEL.get(),
@@ -419,7 +419,7 @@ public class SecurityOptionsDialog extends JDialog
         INFO_KEYSTORE_PATH_LABEL.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     lKeystorePath.setOpaque(false);
-    tfKeystorePath = UIFactory.makeJTextField(Message.EMPTY,
+    tfKeystorePath = UIFactory.makeJTextField(LocalizableMessage.EMPTY,
         INFO_KEYSTORE_PATH_TOOLTIP.get(),
         UIFactory.HOST_FIELD_SIZE, UIFactory.TextStyle.TEXTFIELD);
     lKeystorePath.setLabelFor(tfKeystorePath);
@@ -437,7 +437,7 @@ public class SecurityOptionsDialog extends JDialog
         INFO_KEYSTORE_PWD_LABEL.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     lKeystorePwd.setOpaque(false);
-    tfKeystorePwd = UIFactory.makeJPasswordField(Message.EMPTY,
+    tfKeystorePwd = UIFactory.makeJPasswordField(LocalizableMessage.EMPTY,
         INFO_KEYSTORE_PWD_TOOLTIP.get(),
         UIFactory.PASSWORD_FIELD_SIZE, UIFactory.TextStyle.PASSWORD_FIELD);
     lKeystorePwd.setLabelFor(tfKeystorePwd);
@@ -666,13 +666,13 @@ public class SecurityOptionsDialog extends JDialog
    */
   private void okClicked()
   {
-    BackgroundTask<ArrayList<Message>> worker =
-      new BackgroundTask<ArrayList<Message>>()
+    BackgroundTask<ArrayList<LocalizableMessage>> worker =
+      new BackgroundTask<ArrayList<LocalizableMessage>>()
     {
       @Override
-      public ArrayList<Message> processBackgroundTask()
+      public ArrayList<LocalizableMessage> processBackgroundTask()
       {
-        ArrayList<Message> errorMsgs = new ArrayList<Message>();
+        ArrayList<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
 
         errorMsgs.addAll(checkPort());
 
@@ -682,7 +682,7 @@ public class SecurityOptionsDialog extends JDialog
       }
 
       @Override
-      public void backgroundTaskCompleted(ArrayList<Message> returnValue,
+      public void backgroundTaskCompleted(ArrayList<LocalizableMessage> returnValue,
           Throwable throwable)
       {
         if (throwable != null)
@@ -760,7 +760,7 @@ public class SecurityOptionsDialog extends JDialog
    * @param title
    *          the title for the dialog.
    */
-  private void displayError(Message msg, Message title)
+  private void displayError(LocalizableMessage msg, LocalizableMessage title)
   {
     Utilities.displayError(this, msg, title);
     toFront();
@@ -884,9 +884,9 @@ public class SecurityOptionsDialog extends JDialog
    * @return the port help message that we display when we cannot use the
    * default port (636).
    */
-  private Message getPortHelpMessage()
+  private LocalizableMessage getPortHelpMessage()
   {
-    Message s = Message.EMPTY;
+    LocalizableMessage s = LocalizableMessage.EMPTY;
     if (securityOptions.getSslPort() != DEFAULT_PORT)
     {
       s = INFO_CANNOT_USE_DEFAULT_SECURE_PORT.get();
@@ -898,9 +898,9 @@ public class SecurityOptionsDialog extends JDialog
    * Checks the port.
    * @return the error messages found while checking the port.
    */
-  private ArrayList<Message> checkPort()
+  private ArrayList<LocalizableMessage> checkPort()
   {
-    ArrayList<Message> errorMsgs = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
 
     if (cbEnableSSL.isSelected())
     {
@@ -950,9 +950,9 @@ public class SecurityOptionsDialog extends JDialog
    * @return the error messages found while checking existing keystore
    * parameters.
    */
-  private ArrayList<Message> checkKeystore()
+  private ArrayList<LocalizableMessage> checkKeystore()
   {
-    ArrayList<Message> errorMsgs = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
 
     boolean pathValid = true;
     boolean pwdValid = true;

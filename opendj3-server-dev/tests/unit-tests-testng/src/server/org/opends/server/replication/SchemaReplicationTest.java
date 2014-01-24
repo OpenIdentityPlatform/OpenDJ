@@ -33,7 +33,7 @@ import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
@@ -110,8 +110,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @Test()
   public void pushSchemaChange() throws Exception
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE,
-        "Starting replication test : pushSchemaChange "));
+    logError(LocalizableMessage.raw("Starting replication test : pushSchemaChange "));
 
     cleanUpReplicationServersDB();
 
@@ -178,8 +177,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @Test(enabled=true,dependsOnMethods = { "pushSchemaChange" })
   public void replaySchemaChange() throws Exception
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE,
-        "Starting replication test : replaySchemaChange "));
+    logError(LocalizableMessage.raw("Starting replication test : replaySchemaChange "));
 
     cleanUpReplicationServersDB();
 
@@ -215,8 +213,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "replaySchemaChange" })
   public void pushSchemaFilesChange() throws Exception
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE,
-        "Starting replication test : pushSchemaFilesChange "));
+    logError(LocalizableMessage.raw("Starting replication test : pushSchemaFilesChange "));
 
     cleanUpReplicationServersDB();
 
@@ -297,7 +294,6 @@ public class SchemaReplicationTest extends ReplicationTestCase
     {
       broker.stop();
     }
-    logError(Message.raw(Category.SYNC, Severity.NOTICE,
-    "Ending replication test : pushSchemaFilesChange "));
+    logError(LocalizableMessage.raw("Ending replication test : pushSchemaFilesChange "));
   }
 }

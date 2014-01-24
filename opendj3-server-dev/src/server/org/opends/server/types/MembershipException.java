@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -71,7 +71,7 @@ public final class MembershipException
    *                            continue iterating through the list of
    *                            group members.
    */
-  public MembershipException(Message errorMessage,
+  public MembershipException(LocalizableMessage errorMessage,
                              boolean continueIterating)
   {
     super(errorMessage);
@@ -92,7 +92,7 @@ public final class MembershipException
    * @param  cause              The underlying cause for this
    *                            membership exception.
    */
-  public MembershipException(Message errorMessage,
+  public MembershipException(LocalizableMessage errorMessage,
                              boolean continueIterating,
                              Throwable cause)
   {
@@ -109,7 +109,7 @@ public final class MembershipException
    *
    * @return  The error message for this membership exception.
    */
-  public Message getErrorMessage()
+  public LocalizableMessage getErrorMessage()
   {
     return getMessageObject();
   }

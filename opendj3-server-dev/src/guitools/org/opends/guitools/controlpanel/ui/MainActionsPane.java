@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -51,7 +52,7 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.ActionButton;
 import org.opends.guitools.controlpanel.ui.components.CategoryPanel;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The panel on the left side of the main Control Center dialog.  It contains
@@ -188,10 +189,10 @@ public class MainActionsPane extends StatusGenericPanel
   protected ArrayList<Category> createCategories()
   {
     ArrayList<Category> categories = new ArrayList<Category>();
-    Message[][] labels;
+    LocalizableMessage[][] labels;
     if (Utilities.isWindows())
     {
-      labels = new Message[][] {
+      labels = new LocalizableMessage[][] {
           {
             INFO_CTRL_PANEL_CATEGORY_DIRECTORY_DATA.get(),
             INFO_CTRL_PANEL_ACTION_MANAGE_ENTRIES.get(),
@@ -226,7 +227,7 @@ public class MainActionsPane extends StatusGenericPanel
     }
     else
     {
-      labels = new Message[][] {
+      labels = new LocalizableMessage[][] {
           {
             INFO_CTRL_PANEL_CATEGORY_DIRECTORY_DATA.get(),
             INFO_CTRL_PANEL_ACTION_MANAGE_ENTRIES.get(),
@@ -400,7 +401,7 @@ public class MainActionsPane extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return null;
   }

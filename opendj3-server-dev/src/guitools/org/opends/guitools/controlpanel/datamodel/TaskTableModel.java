@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -38,7 +39,7 @@ import java.util.TreeSet;
 
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.tools.tasks.TaskEntry;
@@ -54,15 +55,15 @@ implements Comparator<TaskEntry>
   private Set<TaskEntry> data = new HashSet<TaskEntry>();
   private ArrayList<TaskEntry> dataSourceArray = new ArrayList<TaskEntry>();
 
-  LinkedHashSet<Message> displayedAttributes = new LinkedHashSet<Message>();
-  final LinkedHashSet<Message> defaultAttributes = new LinkedHashSet<Message>();
+  LinkedHashSet<LocalizableMessage> displayedAttributes = new LinkedHashSet<LocalizableMessage>();
+  final LinkedHashSet<LocalizableMessage> defaultAttributes = new LinkedHashSet<LocalizableMessage>();
   {
     defaultAttributes.add(INFO_TASKINFO_FIELD_ID.get());
     defaultAttributes.add(INFO_TASKINFO_FIELD_TYPE.get());
     defaultAttributes.add(INFO_TASKINFO_FIELD_STATUS.get());
     defaultAttributes.add(INFO_CTRL_PANEL_TASK_CANCELABLE.get());
   }
-  LinkedHashSet<Message> allAttributes = new LinkedHashSet<Message>();
+  LinkedHashSet<LocalizableMessage> allAttributes = new LinkedHashSet<LocalizableMessage>();
   {
     allAttributes.addAll(defaultAttributes);
     allAttributes.add(INFO_TASKINFO_FIELD_SCHEDULED_START.get());
@@ -148,7 +149,7 @@ implements Comparator<TaskEntry>
    * Sets the operations displayed by this table model.
    * @param attributes the attributes displayed by this table model.
    */
-  public void setAttributes(LinkedHashSet<Message> attributes)
+  public void setAttributes(LinkedHashSet<LocalizableMessage> attributes)
   {
     if (!allAttributes.containsAll(attributes))
     {
@@ -160,7 +161,7 @@ implements Comparator<TaskEntry>
     int columnCount = attributes.size();
     columnNames = new String[columnCount];
     int i = 0;
-    for (Message attribute : attributes)
+    for (LocalizableMessage attribute : attributes)
     {
       columnNames[i] = getHeader(attribute, 15);
       i++;
@@ -172,7 +173,7 @@ implements Comparator<TaskEntry>
    */
   public Class<?> getColumnClass(int column)
   {
-    return Message.class;
+    return LocalizableMessage.class;
   }
 
   /**
@@ -187,13 +188,13 @@ implements Comparator<TaskEntry>
    */
   public Object getValueAt(int row, int column)
   {
-    Message value;
+    LocalizableMessage value;
     column = getFixedOrderColumn(column);
     TaskEntry taskEntry = get(row);
     switch (column)
     {
     case 0:
-      value = Message.raw(taskEntry.getId());
+      value = LocalizableMessage.raw(taskEntry.getId());
       break;
     case 1:
       value = taskEntry.getType();
@@ -217,7 +218,7 @@ implements Comparator<TaskEntry>
         value = taskEntry.getScheduleTab();
       } else {
         value = taskEntry.getScheduledStartTime();
-        if (value == null || value.equals(Message.EMPTY))
+        if (value == null || value.equals(LocalizableMessage.EMPTY))
         {
           value = INFO_TASKINFO_IMMEDIATE_EXECUTION.get();
         }
@@ -286,7 +287,7 @@ implements Comparator<TaskEntry>
    * Returns the set of attributes ordered.
    * @return the set of attributes ordered.
    */
-  public LinkedHashSet<Message> getDisplayedAttributes()
+  public LinkedHashSet<LocalizableMessage> getDisplayedAttributes()
   {
     return displayedAttributes;
   }
@@ -295,7 +296,7 @@ implements Comparator<TaskEntry>
    * Returns the set of attributes ordered.
    * @return the set of attributes ordered.
    */
-  public LinkedHashSet<Message> getAllAttributes()
+  public LinkedHashSet<LocalizableMessage> getAllAttributes()
   {
     return allAttributes;
   }
@@ -374,8 +375,8 @@ implements Comparator<TaskEntry>
   {
     int fixedOrderColumn = 0;
     int i=0;
-    Message colMsg = null;
-    for (Message msg : displayedAttributes)
+    LocalizableMessage colMsg = null;
+    for (LocalizableMessage msg : displayedAttributes)
     {
       if (i == column)
       {
@@ -384,7 +385,7 @@ implements Comparator<TaskEntry>
       }
       i++;
     }
-    for (Message msg : allAttributes)
+    for (LocalizableMessage msg : allAttributes)
     {
       if (msg.equals(colMsg))
       {
@@ -395,9 +396,9 @@ implements Comparator<TaskEntry>
     return fixedOrderColumn;
   }
 
-  private Message getValue(List<String> values, Message valueIfEmpty)
+  private LocalizableMessage getValue(List<String> values, LocalizableMessage valueIfEmpty)
   {
-    Message msg;
+    LocalizableMessage msg;
     if (values.isEmpty())
     {
       msg = valueIfEmpty;
@@ -407,12 +408,12 @@ implements Comparator<TaskEntry>
       String s = Utils.getStringFromCollection(values, "<br>");
       if (values.size() > 1)
       {
-        msg = Message.raw(
+        msg = LocalizableMessage.raw(
             "<html>"+Utilities.applyFont(s, ColorAndFontConstants.tableFont));
       }
       else
       {
-        msg = Message.raw(s);
+        msg = LocalizableMessage.raw(s);
       }
     }
     return msg;

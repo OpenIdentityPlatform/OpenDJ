@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.RequestFilteringQOSPolicyCfgDefn.AllowedOperations;
@@ -357,7 +357,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
           boolean success)
           throws Exception
   {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
     RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
@@ -394,7 +394,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
           boolean success)
           throws Exception
   {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
     RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
@@ -431,7 +431,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
           boolean success)
           throws Exception
   {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
     RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
@@ -468,7 +468,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
           boolean success)
           throws Exception
   {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
     RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
@@ -505,7 +505,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
           boolean success)
           throws Exception
   {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
     RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
@@ -543,7 +543,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
           boolean success)
           throws Exception
   {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
     RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
@@ -586,7 +586,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
            boolean success)
            throws Exception
    {
-     ArrayList<Message> messages = new ArrayList<Message>();
+     ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
      RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
      RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {

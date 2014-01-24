@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -501,7 +501,7 @@ public final class RemotePendingChanges
    * Check the dependencies of a given Operation/UpdateMsg.
    *
    * @param op   The Operation for which dependencies must be checked.
-   * @param msg  The Message for which dependencies must be checked.
+   * @param msg  The LocalizableMessage for which dependencies must be checked.
    * @return     A boolean indicating if an operation cannot be replayed
    *             because of dependencies.
    */

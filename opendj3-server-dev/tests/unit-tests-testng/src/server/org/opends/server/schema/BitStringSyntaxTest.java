@@ -30,7 +30,7 @@ import static org.testng.Assert.*;
 
 import org.opends.server.api.AttributeSyntax;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -78,7 +78,7 @@ public class BitStringSyntaxTest extends AttributeSyntaxTest
 
     ByteString byteStringValue = ByteString.valueOf(value);
 
-    MessageBuilder reason = new MessageBuilder();
+    LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
     Boolean liveResult =
       syntax.valueIsAcceptable(byteStringValue, reason);
 

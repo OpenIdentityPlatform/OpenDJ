@@ -31,7 +31,7 @@ package org.opends.server.admin;
 
 import static org.opends.messages.AdminMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -173,7 +173,7 @@ public final class PropertyException extends RuntimeException
 
 
   // Create the message.
-  private static Message createMessage(PropertyDefinition<?> pd, Object value)
+  private static LocalizableMessage createMessage(PropertyDefinition<?> pd, Object value)
   {
     PropertyDefinitionUsageBuilder builder = new PropertyDefinitionUsageBuilder(
         true);
@@ -183,8 +183,8 @@ public final class PropertyException extends RuntimeException
 
 
 
-  // Message that explains the problem.
-  private final Message message;
+  // LocalizableMessage that explains the problem.
+  private final LocalizableMessage message;
 
   /*
    * The property definition associated with the property that caused the
@@ -194,7 +194,7 @@ public final class PropertyException extends RuntimeException
 
 
 
-  private PropertyException(PropertyDefinition<?> pd, Message message)
+  private PropertyException(PropertyDefinition<?> pd, LocalizableMessage message)
   {
     super(message.toString());
     this.message = message;
@@ -203,7 +203,7 @@ public final class PropertyException extends RuntimeException
 
 
 
-  private PropertyException(PropertyDefinition<?> pd, Message message,
+  private PropertyException(PropertyDefinition<?> pd, LocalizableMessage message,
       Throwable cause)
   {
     super(message.toString(), cause);
@@ -219,7 +219,7 @@ public final class PropertyException extends RuntimeException
    * @return Returns the message describing the problem that occurred (never
    *         <code>null</code>).
    */
-  public Message getMessageObject()
+  public LocalizableMessage getMessageObject()
   {
     return message;
   }

@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -249,7 +249,7 @@ public final class BackupDirectory
     String backupID = backupInfo.getBackupID();
     if (backups.containsKey(backupID))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_BACKUPDIRECTORY_ADD_DUPLICATE_ID.get(backupID, path);
       throw new ConfigException(message);
     }
@@ -276,7 +276,7 @@ public final class BackupDirectory
   {
     if (! backups.containsKey(backupID))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_BACKUPDIRECTORY_NO_SUCH_BACKUP.get(backupID, path);
       throw new ConfigException(message);
     }
@@ -285,7 +285,7 @@ public final class BackupDirectory
     {
       if (backup.dependsOn(backupID))
       {
-        Message message = ERR_BACKUPDIRECTORY_UNRESOLVED_DEPENDENCY.
+        LocalizableMessage message = ERR_BACKUPDIRECTORY_UNRESOLVED_DEPENDENCY.
             get(backupID, path, backup.getBackupID());
         throw new ConfigException(message);
       }
@@ -335,14 +335,14 @@ public final class BackupDirectory
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_BACKUPDIRECTORY_CANNOT_CREATE_DIRECTORY.
+        LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_CREATE_DIRECTORY.
             get(path, getExceptionMessage(e));
         throw new IOException(message.toString());
       }
     }
     else if (! dir.isDirectory())
     {
-      Message message = ERR_BACKUPDIRECTORY_NOT_DIRECTORY.get(path);
+      LocalizableMessage message = ERR_BACKUPDIRECTORY_NOT_DIRECTORY.get(path);
       throw new IOException(message.toString());
     }
 
@@ -407,7 +407,7 @@ public final class BackupDirectory
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message =
+          LocalizableMessage message =
               ERR_BACKUPDIRECTORY_CANNOT_DELETE_SAVED_DESCRIPTOR.
                 get(savedDescriptorFilePath, getExceptionMessage(e),
                     newDescriptorFilePath, descriptorFilePath);
@@ -426,7 +426,7 @@ public final class BackupDirectory
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_BACKUPDIRECTORY_CANNOT_RENAME_CURRENT_DESCRIPTOR.
               get(descriptorFilePath, savedDescriptorFilePath,
                   getExceptionMessage(e), newDescriptorFilePath,
@@ -448,7 +448,7 @@ public final class BackupDirectory
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
         ERR_BACKUPDIRECTORY_CANNOT_RENAME_NEW_DESCRIPTOR.
             get(newDescriptorFilePath, descriptorFilePath,
                 getExceptionMessage(e));
@@ -486,7 +486,7 @@ public final class BackupDirectory
     File descriptorFile = new File(descriptorFilePath);
     if (! descriptorFile.exists())
     {
-      Message message = ERR_BACKUPDIRECTORY_NO_DESCRIPTOR_FILE.get(
+      LocalizableMessage message = ERR_BACKUPDIRECTORY_NO_DESCRIPTOR_FILE.get(
           descriptorFilePath);
       throw new ConfigException(message);
     }
@@ -499,14 +499,14 @@ public final class BackupDirectory
     String line = reader.readLine();
     if ((line == null) || (line.length() == 0))
     {
-      Message message =
+      LocalizableMessage message =
         ERR_BACKUPDIRECTORY_CANNOT_READ_CONFIG_ENTRY_DN.
             get(descriptorFilePath);
       throw new ConfigException(message);
     }
     else if (! line.startsWith(PROPERTY_BACKEND_CONFIG_DN))
     {
-      Message message = ERR_BACKUPDIRECTORY_FIRST_LINE_NOT_DN.get(
+      LocalizableMessage message = ERR_BACKUPDIRECTORY_FIRST_LINE_NOT_DN.get(
           descriptorFilePath, line);
       throw new ConfigException(message);
     }
@@ -520,13 +520,13 @@ public final class BackupDirectory
     }
     catch (DirectoryException de)
     {
-      Message message = ERR_BACKUPDIRECTORY_CANNOT_DECODE_DN.get(
+      LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_DECODE_DN.get(
           dnString, descriptorFilePath, de.getMessageObject());
       throw new ConfigException(message, de);
     }
     catch (Exception e)
     {
-      Message message = ERR_BACKUPDIRECTORY_CANNOT_DECODE_DN.get(
+      LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_DECODE_DN.get(
           dnString, descriptorFilePath, getExceptionMessage(e));
       throw new ConfigException(message, e);
     }

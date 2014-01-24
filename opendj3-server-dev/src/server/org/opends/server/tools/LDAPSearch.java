@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.*;
@@ -163,7 +163,7 @@ public class LDAPSearch
           do
           {
             int resultCode = 0;
-            Message errorMessage = null;
+            LocalizableMessage errorMessage = null;
             DN matchedDN = null;
             LDAPMessage responseMessage =
                  connection.getLDAPReader().readMessage();
@@ -211,7 +211,7 @@ public class LDAPSearch
                         if (acrc.getSecondsBeforeExpiration() > 0)
                         {
                           int timeToExp = acrc.getSecondsBeforeExpiration();
-                          Message timeToExpStr = secondsToTimeString(timeToExp);
+                          LocalizableMessage timeToExpStr = secondsToTimeString(timeToExp);
 
                           out.println(
                                INFO_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION.
@@ -255,7 +255,7 @@ public class LDAPSearch
                           if (acrc.getSecondsBeforeUnlock() > 0)
                           {
                             int timeToUnlock = acrc.getSecondsBeforeUnlock();
-                            Message timeToUnlockStr =
+                            LocalizableMessage timeToUnlockStr =
                                         secondsToTimeString(timeToUnlock);
 
                             out.println(
@@ -320,14 +320,14 @@ public class LDAPSearch
                       int rc = sortResponse.getResultCode();
                       if (rc != LDAPResultCode.SUCCESS)
                       {
-                        Message msg   = WARN_LDAPSEARCH_SORT_ERROR.get(
+                        LocalizableMessage msg   = WARN_LDAPSEARCH_SORT_ERROR.get(
                                 LDAPResultCode.toString(rc));
                         err.println(msg);
                       }
                     }
                     catch (Exception e)
                     {
-                      Message msg   =
+                      LocalizableMessage msg   =
                               WARN_LDAPSEARCH_CANNOT_DECODE_SORT_RESPONSE.get(
                                       getExceptionMessage(e));
                       err.println(msg);
@@ -343,7 +343,7 @@ public class LDAPSearch
                       int rc = vlvResponse.getVLVResultCode();
                       if (rc == LDAPResultCode.SUCCESS)
                       {
-                        Message msg = INFO_LDAPSEARCH_VLV_TARGET_OFFSET.get(
+                        LocalizableMessage msg = INFO_LDAPSEARCH_VLV_TARGET_OFFSET.get(
                                 vlvResponse.getTargetPosition());
                         out.println(msg);
 
@@ -354,14 +354,14 @@ public class LDAPSearch
                       }
                       else
                       {
-                        Message msg = WARN_LDAPSEARCH_VLV_ERROR.get(
+                        LocalizableMessage msg = WARN_LDAPSEARCH_VLV_ERROR.get(
                                 LDAPResultCode.toString(rc));
                         err.println(msg);
                       }
                     }
                     catch (Exception e)
                     {
-                      Message msg   =
+                      LocalizableMessage msg   =
                               WARN_LDAPSEARCH_CANNOT_DECODE_VLV_RESPONSE.get(
                                       getExceptionMessage(e));
                       err.println(msg);
@@ -384,14 +384,14 @@ public class LDAPSearch
                   }
                 }
                 // FIXME - throw exception?
-                Message msg = INFO_SEARCH_OPERATION_INVALID_PROTOCOL.get(
+                LocalizableMessage msg = INFO_SEARCH_OPERATION_INVALID_PROTOCOL.get(
                         String.valueOf(opType));
                 err.println(wrapText(msg, MAX_LINE_WIDTH));
             }
 
             if(resultCode != SUCCESS)
             {
-              Message msg = INFO_OPERATION_FAILED.get("SEARCH");
+              LocalizableMessage msg = INFO_OPERATION_FAILED.get("SEARCH");
               throw new LDAPException(resultCode, errorMessage, msg,
                                       matchedDN, null);
             }
@@ -416,7 +416,7 @@ public class LDAPSearch
 
     if (searchOptions.countMatchingEntries())
     {
-      Message message =
+      LocalizableMessage message =
               INFO_LDAPSEARCH_MATCHING_ENTRY_COUNT.get(matchingEntries);
       out.println(message);
       out.println();
@@ -703,7 +703,7 @@ public class LDAPSearch
 
 
     // Create the command-line argument parser for use with this program.
-    Message toolDescription = INFO_LDAPSEARCH_TOOL_DESCRIPTION.get();
+    LocalizableMessage toolDescription = INFO_LDAPSEARCH_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false, true, 0, 0,
                                                   "[filter] [attributes ...]");
@@ -1088,7 +1088,7 @@ public class LDAPSearch
     } catch (ArgumentException ae)
     {
 
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
@@ -1101,7 +1101,7 @@ public class LDAPSearch
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -1151,7 +1151,7 @@ public class LDAPSearch
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      Message message =
+      LocalizableMessage message =
               ERR_TOOL_CONFLICTING_ARGS.get(
                       bindPassword.getLongIdentifier(),
                       bindPasswordFile.getLongIdentifier());
@@ -1161,7 +1161,7 @@ public class LDAPSearch
 
     if (useSSL.isPresent() && startTLS.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
               useSSL.getLongIdentifier(),
               startTLS.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -1170,7 +1170,7 @@ public class LDAPSearch
 
     if (keyStorePassword.isPresent() && keyStorePasswordFile.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
               keyStorePassword.getLongIdentifier(),
               keyStorePasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -1179,7 +1179,7 @@ public class LDAPSearch
 
     if (trustStorePassword.isPresent() && trustStorePasswordFile.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
               trustStorePassword.getLongIdentifier(),
               trustStorePasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -1328,7 +1328,7 @@ public class LDAPSearch
         Control ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
-          Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
+          LocalizableMessage message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
@@ -1340,7 +1340,7 @@ public class LDAPSearch
     if(effectiveRightsUser.isPresent()) {
       String authzID=effectiveRightsUser.getValue();
       if (!authzID.startsWith("dn:")) {
-        Message message = ERR_EFFECTIVERIGHTS_INVALID_AUTHZID.get(authzID);
+        LocalizableMessage message = ERR_EFFECTIVERIGHTS_INVALID_AUTHZID.get(authzID);
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
         return CLIENT_SIDE_PARAM_ERROR;
@@ -1371,7 +1371,7 @@ public class LDAPSearch
 
       if (! tokenizer.hasMoreTokens())
       {
-        Message message = ERR_PSEARCH_MISSING_DESCRIPTOR.get();
+        LocalizableMessage message = ERR_PSEARCH_MISSING_DESCRIPTOR.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
@@ -1380,7 +1380,7 @@ public class LDAPSearch
         String token = tokenizer.nextToken();
         if (! token.equals("ps"))
         {
-          Message message = ERR_PSEARCH_DOESNT_START_WITH_PS.get(
+          LocalizableMessage message = ERR_PSEARCH_DOESNT_START_WITH_PS.get(
                   String.valueOf(infoString));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return CLIENT_SIDE_PARAM_ERROR;
@@ -1419,7 +1419,7 @@ public class LDAPSearch
           }
           else
           {
-            Message message =
+            LocalizableMessage message =
                     ERR_PSEARCH_INVALID_CHANGE_TYPE.get(String.valueOf(token));
             err.println(wrapText(message, MAX_LINE_WIDTH));
             return CLIENT_SIDE_PARAM_ERROR;
@@ -1449,7 +1449,7 @@ public class LDAPSearch
         }
         else
         {
-          Message message = ERR_PSEARCH_INVALID_CHANGESONLY.get(
+          LocalizableMessage message = ERR_PSEARCH_INVALID_CHANGESONLY.get(
                   String.valueOf(token));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return CLIENT_SIDE_PARAM_ERROR;
@@ -1470,7 +1470,7 @@ public class LDAPSearch
         }
         else
         {
-          Message message = ERR_PSEARCH_INVALID_RETURN_ECS.get(
+          LocalizableMessage message = ERR_PSEARCH_INVALID_RETURN_ECS.get(
                   String.valueOf(token));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return CLIENT_SIDE_PARAM_ERROR;
@@ -1498,7 +1498,7 @@ public class LDAPSearch
       }
       catch (LDAPException le)
       {
-        Message message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
+        LocalizableMessage message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
                 le.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
@@ -1519,7 +1519,7 @@ public class LDAPSearch
         }
         catch (LDAPException le)
         {
-          Message message = ERR_LDAP_MATCHEDVALUES_INVALID_FILTER.get(
+          LocalizableMessage message = ERR_LDAP_MATCHEDVALUES_INVALID_FILTER.get(
                   le.getMessage());
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return CLIENT_SIDE_PARAM_ERROR;
@@ -1539,7 +1539,7 @@ public class LDAPSearch
       }
       catch (LDAPException le)
       {
-        Message message = ERR_LDAP_SORTCONTROL_INVALID_ORDER.get(
+        LocalizableMessage message = ERR_LDAP_SORTCONTROL_INVALID_ORDER.get(
                 le.getErrorMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
@@ -1550,7 +1550,7 @@ public class LDAPSearch
     {
       if (! sortOrder.isPresent())
       {
-        Message message = ERR_LDAPSEARCH_VLV_REQUIRES_SORT.get(
+        LocalizableMessage message = ERR_LDAPSEARCH_VLV_REQUIRES_SORT.get(
                 vlvDescriptor.getLongIdentifier(),
                 sortOrder.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -1572,7 +1572,7 @@ public class LDAPSearch
         }
         catch (Exception e)
         {
-          Message message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
+          LocalizableMessage message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return CLIENT_SIDE_PARAM_ERROR;
         }
@@ -1591,14 +1591,14 @@ public class LDAPSearch
         }
         catch (Exception e)
         {
-          Message message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
+          LocalizableMessage message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return CLIENT_SIDE_PARAM_ERROR;
         }
       }
       else
       {
-        Message message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
+        LocalizableMessage message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
@@ -1642,13 +1642,13 @@ public class LDAPSearch
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
+        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
       if(keyStorePathValue == null)
       {
-        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
+        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
@@ -1764,7 +1764,7 @@ public class LDAPSearch
       {
         if (filters.size() > 1)
         {
-          Message message = ERR_PAGED_RESULTS_REQUIRES_SINGLE_FILTER.get();
+          LocalizableMessage message = ERR_PAGED_RESULTS_REQUIRES_SINGLE_FILTER.get();
           throw new LDAPException(CLIENT_SIDE_PARAM_ERROR, message);
         }
 
@@ -1803,7 +1803,7 @@ public class LDAPSearch
               }
               catch (DirectoryException de)
               {
-                Message message =
+                LocalizableMessage message =
                     ERR_PAGED_RESULTS_CANNOT_DECODE.get(de.getMessage());
                 throw new LDAPException(
                         CLIENT_SIDE_DECODING_ERROR, message, de);
@@ -1813,7 +1813,7 @@ public class LDAPSearch
 
           if (! responseFound)
           {
-            Message message = ERR_PAGED_RESULTS_RESPONSE_NOT_FOUND.get();
+            LocalizableMessage message = ERR_PAGED_RESULTS_RESPONSE_NOT_FOUND.get();
             throw new LDAPException(CLIENT_SIDE_CONTROL_NOT_FOUND, message);
           }
           else if (cookieValue.length() == 0)

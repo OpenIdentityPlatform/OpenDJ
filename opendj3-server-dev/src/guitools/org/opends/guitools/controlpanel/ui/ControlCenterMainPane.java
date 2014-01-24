@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -47,7 +48,7 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigChangeListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The main panel of the control panel.  It contains a split pane.  On the left
@@ -60,7 +61,7 @@ public class ControlCenterMainPane extends JPanel
   private static final long serialVersionUID = -8939025523701408656L;
   private StatusPanel statusPane;
   private JLabel lAuthenticatedAs =
-    Utilities.createInlineHelpLabel(Message.EMPTY);
+    Utilities.createInlineHelpLabel(LocalizableMessage.EMPTY);
 
   /**
    * Constructor.

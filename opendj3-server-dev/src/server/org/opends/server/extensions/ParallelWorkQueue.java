@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -40,7 +40,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ParallelWorkQueueCfg;
 import org.opends.server.api.WorkQueue;
@@ -179,7 +179,7 @@ public class ParallelWorkQueue
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR.get(
+      LocalizableMessage message = ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR.get(
           String.valueOf(ParallelWorkQueueMonitor.class), String.valueOf(e));
       logError(message);
     }
@@ -191,7 +191,7 @@ public class ParallelWorkQueue
    * {@inheritDoc}
    */
   @Override()
-  public void finalizeWorkQueue(Message reason)
+  public void finalizeWorkQueue(LocalizableMessage reason)
   {
     shutdownRequested = true;
 
@@ -276,7 +276,7 @@ public class ParallelWorkQueue
   {
     if (shutdownRequested)
     {
-      Message message = WARN_OP_REJECTED_BY_SHUTDOWN.get();
+      LocalizableMessage message = WARN_OP_REJECTED_BY_SHUTDOWN.get();
       throw new DirectoryException(ResultCode.UNAVAILABLE, message);
     }
 
@@ -374,7 +374,7 @@ public class ParallelWorkQueue
     {
       if (numFailures > MAX_RETRY_COUNT)
       {
-        Message message = ERR_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES.get(
+        LocalizableMessage message = ERR_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES.get(
             Thread.currentThread().getName(), numFailures, MAX_RETRY_COUNT);
         logError(message);
       }
@@ -508,7 +508,7 @@ public class ParallelWorkQueue
   @Override
   public boolean isConfigurationChangeAcceptable(
                       ParallelWorkQueueCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -522,7 +522,7 @@ public class ParallelWorkQueue
   public ConfigChangeResult applyConfigurationChange(
                                  ParallelWorkQueueCfg configuration)
   {
-    ArrayList<Message> resultMessages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> resultMessages = new ArrayList<LocalizableMessage>();
     int newNumThreads =
         computeNumWorkerThreads(configuration.getNumWorkerThreads());
 

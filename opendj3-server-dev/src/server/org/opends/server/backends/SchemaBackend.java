@@ -54,7 +54,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import javax.crypto.Mac;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.std.server.SchemaBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -271,7 +271,7 @@ public class SchemaBackend
     // not be able to complete initialization.
     if (config == null)
     {
-      Message message = ERR_SCHEMA_CONFIG_ENTRY_NULL.get();
+      LocalizableMessage message = ERR_SCHEMA_CONFIG_ENTRY_NULL.get();
       throw new ConfigException(message);
     }
 
@@ -402,7 +402,7 @@ public class SchemaBackend
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+        LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
             baseDN.toString(), getExceptionMessage(e));
         throw new InitializationException(message, e);
       }
@@ -461,7 +461,7 @@ public class SchemaBackend
           }
           else
           {
-            Message message = ERR_SCHEMA_CANNOT_FIND_CONCAT_FILE.
+            LocalizableMessage message = ERR_SCHEMA_CANNOT_FIND_CONCAT_FILE.
                 get(upgradeDirectory.getAbsolutePath(), SCHEMA_CONCAT_FILE_NAME,
                     concatFile.getName());
             throw new InitializationException(message);
@@ -516,7 +516,7 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES.get(
+      LocalizableMessage message = ERR_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES.get(
           getExceptionMessage(e));
       ErrorLogger.logError(message);
     }
@@ -1091,7 +1091,7 @@ public class SchemaBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_SCHEMA_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getName()));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
@@ -1105,7 +1105,7 @@ public class SchemaBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_SCHEMA_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
@@ -1125,7 +1125,7 @@ public class SchemaBackend
     if (! clientConnection.hasPrivilege(Privilege.UPDATE_SCHEMA,
                                         modifyOperation))
     {
-      Message message = ERR_SCHEMA_MODIFY_INSUFFICIENT_PRIVILEGES.get();
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_INSUFFICIENT_PRIVILEGES.get();
       throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                    message);
     }
@@ -1173,7 +1173,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
+                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
@@ -1199,7 +1199,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
+                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
                     get(v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
@@ -1225,7 +1225,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
+                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
@@ -1251,7 +1251,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
+                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
@@ -1277,7 +1277,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
+                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
@@ -1303,7 +1303,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
+                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
@@ -1329,7 +1329,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message =
+                LocalizableMessage message =
                     ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
                         v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
@@ -1340,7 +1340,7 @@ public class SchemaBackend
           }
           else
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getName());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                 message);
@@ -1352,7 +1352,7 @@ public class SchemaBackend
         case DELETE:
           if (a.isEmpty())
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_SCHEMA_MODIFY_DELETE_NO_VALUES.get(a.getName());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                 message);
@@ -1375,7 +1375,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
+                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
@@ -1402,7 +1402,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
+                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
                     get(v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
@@ -1428,7 +1428,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
+                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
@@ -1454,7 +1454,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
+                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
@@ -1481,7 +1481,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
+                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
@@ -1508,7 +1508,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
+                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
                     v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
@@ -1535,7 +1535,7 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                Message message =
+                LocalizableMessage message =
                     ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
                         v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
@@ -1546,7 +1546,7 @@ public class SchemaBackend
           }
           else
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getName());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                 message);
@@ -1559,7 +1559,7 @@ public class SchemaBackend
           if ((!m.isInternal()) &&
               (!modifyOperation.isSynchronizationOperation()))
           {
-            Message message = ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(
+            LocalizableMessage message = ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(
                 String.valueOf(m.getModificationType()));
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                 message);
@@ -1570,7 +1570,7 @@ public class SchemaBackend
             // in the extraAttribute map. This in fact acts as a replace.
             if (SchemaConfigManager.isSchemaAttribute(a))
             {
-              Message message = ERR_SCHEMA_INVALID_REPLACE_MODIFICATION.get(
+              LocalizableMessage message = ERR_SCHEMA_INVALID_REPLACE_MODIFICATION.get(
                   a.getNameWithOptions());
               ErrorLogger.logError(message);
             }
@@ -1583,7 +1583,7 @@ public class SchemaBackend
           break;
 
         default:
-          Message message = ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(
+          LocalizableMessage message = ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(
               String.valueOf(m.getModificationType()));
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
               message);
@@ -1658,7 +1658,7 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA.get(getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -1720,7 +1720,7 @@ public class SchemaBackend
         // NOTE:  We really do want to use "!=" instead of "! t.equals()"
         // because we want to check whether it's the same object instance, not
         // just a logical equivalent.
-        Message message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_ATTRTYPE.
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_ATTRTYPE.
             get(attributeType.getNameOrOID(), existingType.getNameOrOID(),
                 t.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -1735,13 +1735,13 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(superiorType.getOID()))
       {
-        Message message = ERR_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_ATTRIBUTE_TYPE.
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_ATTRIBUTE_TYPE.
             get(attributeType.getNameOrOID(), superiorType.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (superiorType.isObsolete())
       {
-        Message message = ERR_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_ATTRIBUTE_TYPE.
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_ATTRIBUTE_TYPE.
             get(attributeType.getNameOrOID(), superiorType.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -1752,7 +1752,7 @@ public class SchemaBackend
     MatchingRule mr = attributeType.getEqualityMatchingRule();
     if ((mr != null) && mr.isObsolete())
     {
-      Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
           attributeType.getNameOrOID(), mr.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -1760,7 +1760,7 @@ public class SchemaBackend
     mr = attributeType.getOrderingMatchingRule();
     if ((mr != null) && mr.isObsolete())
     {
-      Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
           attributeType.getNameOrOID(), mr.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -1768,7 +1768,7 @@ public class SchemaBackend
     mr = attributeType.getSubstringMatchingRule();
     if ((mr != null) && mr.isObsolete())
     {
-      Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
           attributeType.getNameOrOID(), mr.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -1776,7 +1776,7 @@ public class SchemaBackend
     mr = attributeType.getApproximateMatchingRule();
     if ((mr != null) && mr.isObsolete())
     {
-      Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
           attributeType.getNameOrOID(), mr.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -1871,7 +1871,7 @@ public class SchemaBackend
     AttributeType removeType = schema.getAttributeType(attributeType.getOID());
     if ((removeType == null) || (! removeType.equals(attributeType)))
     {
-      Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE.get(
           attributeType.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -1906,7 +1906,7 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
+          LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
               v.getValue().toString(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
@@ -1930,7 +1930,7 @@ public class SchemaBackend
       AttributeType superiorType = at.getSuperiorType();
       if ((superiorType != null) && superiorType.equals(removeType))
       {
-        Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_SUPERIOR_TYPE.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_SUPERIOR_TYPE.get(
             removeType.getNameOrOID(), superiorType.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -1944,7 +1944,7 @@ public class SchemaBackend
       if (oc.getRequiredAttributes().contains(removeType) ||
           oc.getOptionalAttributes().contains(removeType))
       {
-        Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_OC.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_OC.get(
             removeType.getNameOrOID(), oc.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -1961,7 +1961,7 @@ public class SchemaBackend
         if (nf.getRequiredAttributes().contains(removeType) ||
             nf.getOptionalAttributes().contains(removeType))
         {
-          Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_NF.get(
+          LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_NF.get(
               removeType.getNameOrOID(), nf.getNameOrOID());
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                   message);
@@ -1978,7 +1978,7 @@ public class SchemaBackend
           dcr.getOptionalAttributes().contains(removeType) ||
           dcr.getProhibitedAttributes().contains(removeType))
       {
-        Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_DCR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_DCR.get(
             removeType.getNameOrOID(), dcr.getName());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -1991,7 +1991,7 @@ public class SchemaBackend
     {
       if (mru.getAttributes().contains(removeType))
       {
-        Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_MR_USE.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_MR_USE.get(
             removeType.getNameOrOID(), mru.getName());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -2052,7 +2052,7 @@ public class SchemaBackend
         // NOTE:  We really do want to use "!=" instead of "! t.equals()"
         // because we want to check whether it's the same object instance, not
         // just a logical equivalent.
-        Message message =
+        LocalizableMessage message =
                 ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_OBJECTCLASS
                         .get(objectClass.getNameOrOID(),
                                 existingClass.getNameOrOID(),
@@ -2069,13 +2069,13 @@ public class SchemaBackend
     {
       if (! schema.hasObjectClass(superiorClass.getOID()))
       {
-        Message message = ERR_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_OBJECTCLASS.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_OBJECTCLASS.get(
             objectClass.getNameOrOID(), superiorClass.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (superiorClass.isObsolete())
       {
-        Message message = ERR_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_OBJECTCLASS.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_OBJECTCLASS.get(
             objectClass.getNameOrOID(), superiorClass.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -2085,13 +2085,13 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        Message message = ERR_SCHEMA_MODIFY_OC_UNDEFINED_REQUIRED_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_OC_UNDEFINED_REQUIRED_ATTR.get(
             objectClass.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        Message message = ERR_SCHEMA_MODIFY_OC_OBSOLETE_REQUIRED_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_OC_OBSOLETE_REQUIRED_ATTR.get(
             objectClass.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -2101,13 +2101,13 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        Message message = ERR_SCHEMA_MODIFY_OC_UNDEFINED_OPTIONAL_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_OC_UNDEFINED_OPTIONAL_ATTR.get(
             objectClass.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        Message message = ERR_SCHEMA_MODIFY_OC_OBSOLETE_OPTIONAL_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_OC_OBSOLETE_OPTIONAL_ATTR.get(
             objectClass.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -2202,7 +2202,7 @@ public class SchemaBackend
     ObjectClass removeClass = schema.getObjectClass(objectClass.getOID());
     if ((removeClass == null) || (! removeClass.equals(objectClass)))
     {
-      Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS.get(
           objectClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -2236,7 +2236,7 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.get(
+          LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.get(
               v.getValue().toString(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
@@ -2261,7 +2261,7 @@ public class SchemaBackend
       {
         if (superiorClass.equals(removeClass))
         {
-          Message message = ERR_SCHEMA_MODIFY_REMOVE_OC_SUPERIOR_CLASS.get(
+          LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_OC_SUPERIOR_CLASS.get(
               removeClass.getNameOrOID(), superiorClass.getNameOrOID());
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                   message);
@@ -2281,7 +2281,7 @@ public class SchemaBackend
         buffer.append(nf.getNameOrOID());
         buffer.append("\t");
       }
-      Message message = ERR_SCHEMA_MODIFY_REMOVE_OC_IN_NF.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_OC_IN_NF.get(
           removeClass.getNameOrOID(), buffer.toString());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -2294,7 +2294,7 @@ public class SchemaBackend
       if (dcr.getStructuralClass().equals(removeClass) ||
           dcr.getAuxiliaryClasses().contains(removeClass))
       {
-        Message message = ERR_SCHEMA_MODIFY_REMOVE_OC_IN_DCR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_OC_IN_DCR.get(
             removeClass.getNameOrOID(), dcr.getName());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -2355,7 +2355,7 @@ public class SchemaBackend
         // NOTE:  We really do want to use "!=" instead of "! t.equals()"
         // because we want to check whether it's the same object instance, not
         // just a logical equivalent.
-        Message message =
+        LocalizableMessage message =
                 ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_NAME_FORM
                         .get(nameForm.getNameOrOID(), existingNF.getNameOrOID(),
                   nf.getNameOrOID());
@@ -2370,19 +2370,19 @@ public class SchemaBackend
     ObjectClass structuralClass = nameForm.getStructuralClass();
     if (! schema.hasObjectClass(structuralClass.getOID()))
     {
-      Message message = ERR_SCHEMA_MODIFY_NF_UNDEFINED_STRUCTURAL_OC.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_UNDEFINED_STRUCTURAL_OC.get(
           nameForm.getNameOrOID(), structuralClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
     if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
     {
-      Message message = ERR_SCHEMA_MODIFY_NF_OC_NOT_STRUCTURAL.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_OC_NOT_STRUCTURAL.get(
           nameForm.getNameOrOID(), structuralClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
     if (structuralClass.isObsolete())
     {
-      Message message = ERR_SCHEMA_MODIFY_NF_OC_OBSOLETE.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_OC_OBSOLETE.get(
           nameForm.getNameOrOID(), structuralClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -2391,13 +2391,13 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        Message message = ERR_SCHEMA_MODIFY_NF_UNDEFINED_REQUIRED_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_UNDEFINED_REQUIRED_ATTR.get(
             nameForm.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        Message message = ERR_SCHEMA_MODIFY_NF_OBSOLETE_REQUIRED_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_OBSOLETE_REQUIRED_ATTR.get(
             nameForm.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -2407,13 +2407,13 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        Message message = ERR_SCHEMA_MODIFY_NF_UNDEFINED_OPTIONAL_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_UNDEFINED_OPTIONAL_ATTR.get(
             nameForm.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        Message message = ERR_SCHEMA_MODIFY_NF_OBSOLETE_OPTIONAL_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_OBSOLETE_OPTIONAL_ATTR.get(
             nameForm.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -2507,7 +2507,7 @@ public class SchemaBackend
     NameForm removeNF = schema.getNameForm(nameForm.getOID());
     if ((removeNF == null) || (! removeNF.equals(nameForm)))
     {
-      Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM.get(
           nameForm.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -2541,7 +2541,7 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
+          LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
               v.getValue().toString(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
@@ -2563,7 +2563,7 @@ public class SchemaBackend
     DITStructureRule dsr = schema.getDITStructureRule(removeNF);
     if (dsr != null)
     {
-      Message message = ERR_SCHEMA_MODIFY_REMOVE_NF_IN_DSR.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NF_IN_DSR.get(
           removeNF.getNameOrOID(), dsr.getNameOrRuleID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -2619,7 +2619,7 @@ public class SchemaBackend
           }
           else
           {
-            Message message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DCR.
+            LocalizableMessage message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DCR.
                 get(ditContentRule.getName(), existingDCR.getName(),
                     dcr.getName());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -2639,7 +2639,7 @@ public class SchemaBackend
          schema.getDITContentRule(structuralClass);
     if ((existingRuleForClass != null) && (existingRuleForClass != existingDCR))
     {
-      Message message = ERR_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_DCR.
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_DCR.
           get(ditContentRule.getName(), structuralClass.getNameOrOID(),
               existingRuleForClass.getName());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -2651,21 +2651,21 @@ public class SchemaBackend
     // prohibited attribute type.
     if (! schema.hasObjectClass(structuralClass.getOID()))
     {
-      Message message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_STRUCTURAL_OC.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_STRUCTURAL_OC.get(
           ditContentRule.getName(), structuralClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
     {
-      Message message = ERR_SCHEMA_MODIFY_DCR_OC_NOT_STRUCTURAL.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OC_NOT_STRUCTURAL.get(
           ditContentRule.getName(), structuralClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     if (structuralClass.isObsolete())
     {
-      Message message = ERR_SCHEMA_MODIFY_DCR_STRUCTURAL_OC_OBSOLETE.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_STRUCTURAL_OC_OBSOLETE.get(
           ditContentRule.getName(), structuralClass.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -2674,19 +2674,19 @@ public class SchemaBackend
     {
       if (! schema.hasObjectClass(oc.getOID()))
       {
-        Message message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_AUXILIARY_OC.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_AUXILIARY_OC.get(
             ditContentRule.getName(), oc.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       if (oc.getObjectClassType() != ObjectClassType.AUXILIARY)
       {
-        Message message = ERR_SCHEMA_MODIFY_DCR_OC_NOT_AUXILIARY.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OC_NOT_AUXILIARY.get(
             ditContentRule.getName(), oc.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       if (oc.isObsolete())
       {
-        Message message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_AUXILIARY_OC.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_AUXILIARY_OC.get(
             ditContentRule.getName(), oc.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -2696,13 +2696,13 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        Message message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_REQUIRED_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_REQUIRED_ATTR.get(
             ditContentRule.getName(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        Message message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_REQUIRED_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_REQUIRED_ATTR.get(
             ditContentRule.getName(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -2712,13 +2712,13 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        Message message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_OPTIONAL_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_OPTIONAL_ATTR.get(
             ditContentRule.getName(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        Message message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_OPTIONAL_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_OPTIONAL_ATTR.get(
             ditContentRule.getName(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -2728,13 +2728,13 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        Message message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_PROHIBITED_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_PROHIBITED_ATTR.get(
             ditContentRule.getName(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        Message message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_PROHIBITED_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_PROHIBITED_ATTR.get(
             ditContentRule.getName(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -2831,7 +2831,7 @@ public class SchemaBackend
          schema.getDITContentRule(ditContentRule.getStructuralClass());
     if ((removeDCR == null) || (! removeDCR.equals(ditContentRule)))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DCR.get(ditContentRule.getName());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -2891,7 +2891,7 @@ public class SchemaBackend
           // acceptable if we find match for the same object instance.
           if ((existingDSR != null) && (existingDSR != dsr))
           {
-            Message message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DSR.
+            LocalizableMessage message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DSR.
                 get(ditStructureRule.getNameOrRuleID(),
                     existingDSR.getNameOrRuleID(), dsr.getNameOrRuleID());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -2908,7 +2908,7 @@ public class SchemaBackend
       //any existing rules sharing this name. It means that it is a
       //new rule with a conflicting rule id.Raise an Exception as the
       //rule id should be unique.
-      Message message = ERR_SCHEMA_MODIFY_RULEID_CONFLICTS_FOR_ADD_DSR.
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_RULEID_CONFLICTS_FOR_ADD_DSR.
                 get(ditStructureRule.getNameOrRuleID(),
                     existingDSR.getNameOrRuleID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -2926,7 +2926,7 @@ public class SchemaBackend
     if ((existingRuleForNameForm != null) &&
         (existingRuleForNameForm != existingDSR))
     {
-      Message message = ERR_SCHEMA_MODIFY_NAME_FORM_CONFLICT_FOR_ADD_DSR.
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_NAME_FORM_CONFLICT_FOR_ADD_DSR.
           get(ditStructureRule.getNameOrRuleID(), nameForm.getNameOrOID(),
               existingRuleForNameForm.getNameOrRuleID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -2937,13 +2937,13 @@ public class SchemaBackend
     // name form or superior DIT structure rule.
     if (! schema.hasNameForm(nameForm.getOID()))
     {
-      Message message = ERR_SCHEMA_MODIFY_DSR_UNDEFINED_NAME_FORM.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_DSR_UNDEFINED_NAME_FORM.get(
           ditStructureRule.getNameOrRuleID(), nameForm.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
     if (nameForm.isObsolete())
     {
-      Message message = ERR_SCHEMA_MODIFY_DSR_OBSOLETE_NAME_FORM.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_DSR_OBSOLETE_NAME_FORM.get(
           ditStructureRule.getNameOrRuleID(), nameForm.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -2955,7 +2955,7 @@ public class SchemaBackend
     {
       if (dsr.isObsolete())
       {
-        Message message = ERR_SCHEMA_MODIFY_DSR_OBSOLETE_SUPERIOR_RULE.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_DSR_OBSOLETE_SUPERIOR_RULE.get(
             ditStructureRule.getNameOrRuleID(), dsr.getNameOrRuleID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -3052,7 +3052,7 @@ public class SchemaBackend
          schema.getDITStructureRule(ditStructureRule.getRuleID());
     if ((removeDSR == null) || (! removeDSR.equals(ditStructureRule)))
     {
-      Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DSR.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DSR.get(
           ditStructureRule.getNameOrRuleID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -3087,7 +3087,7 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
+          LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
               v.getValue().toString(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
@@ -3110,7 +3110,7 @@ public class SchemaBackend
     {
       if (dsr.getSuperiorRules().contains(removeDSR))
       {
-        Message message = ERR_SCHEMA_MODIFY_REMOVE_DSR_SUPERIOR_RULE.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_DSR_SUPERIOR_RULE.get(
             removeDSR.getNameOrRuleID(), dsr.getNameOrRuleID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -3169,7 +3169,7 @@ public class SchemaBackend
           }
           else
           {
-            Message message =
+            LocalizableMessage message =
                     ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_MR_USE.get(
                             matchingRuleUse.getName(),
                             existingMRU.getName(),
@@ -3192,7 +3192,7 @@ public class SchemaBackend
          schema.getMatchingRuleUse(matchingRule);
     if ((existingMRUForRule != null) && (existingMRUForRule != existingMRU))
     {
-      Message message = ERR_SCHEMA_MODIFY_MR_CONFLICT_FOR_ADD_MR_USE.
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_MR_CONFLICT_FOR_ADD_MR_USE.
           get(matchingRuleUse.getName(), matchingRule.getNameOrOID(),
               existingMRUForRule.getName());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -3200,7 +3200,7 @@ public class SchemaBackend
 
     if (matchingRule.isObsolete())
     {
-      Message message = ERR_SCHEMA_MODIFY_MRU_OBSOLETE_MR.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_MRU_OBSOLETE_MR.get(
           matchingRuleUse.getName(), matchingRule.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
@@ -3212,13 +3212,13 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        Message message = ERR_SCHEMA_MODIFY_MRU_UNDEFINED_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_MRU_UNDEFINED_ATTR.get(
             matchingRuleUse.getName(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        Message message = ERR_SCHEMA_MODIFY_MRU_OBSOLETE_ATTR.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_MRU_OBSOLETE_ATTR.get(
             matchingRuleUse.getName(), matchingRule.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -3316,7 +3316,7 @@ public class SchemaBackend
          schema.getMatchingRuleUse(matchingRuleUse.getMatchingRule());
     if ((removeMRU == null) || (! removeMRU.equals(matchingRuleUse)))
     {
-      Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_MR_USE.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_MR_USE.get(
           matchingRuleUse.getName());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -3365,7 +3365,7 @@ public class SchemaBackend
     // We allow only unimplemented syntaxes to be substituted.
     if(schema.getSyntax(oid) !=null)
     {
-      Message message = ERR_ATTR_SYNTAX_INVALID_LDAP_SYNTAX.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_INVALID_LDAP_SYNTAX.get(
               ldapSyntaxDesc.getDefinition(),oid);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                      message);
@@ -3440,7 +3440,7 @@ public class SchemaBackend
 
     if ((removeLSD == null) || (! removeLSD.equals(ldapSyntaxDesc)))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_LSD.get(oid);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -3741,7 +3741,7 @@ public class SchemaBackend
   {
     if (depth > 20)
     {
-      Message message = ERR_SCHEMA_MODIFY_CIRCULAR_REFERENCE_AT.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_CIRCULAR_REFERENCE_AT.get(
           attributeType.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -3792,7 +3792,7 @@ public class SchemaBackend
   {
     if (depth > 20)
     {
-      Message message = ERR_SCHEMA_MODIFY_CIRCULAR_REFERENCE_OC.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_CIRCULAR_REFERENCE_OC.get(
           objectClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -3843,7 +3843,7 @@ public class SchemaBackend
   {
     if (depth > 20)
     {
-      Message message = ERR_SCHEMA_MODIFY_CIRCULAR_REFERENCE_DSR.get(
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_CIRCULAR_REFERENCE_DSR.get(
           ditStructureRule.getNameOrRuleID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
@@ -3959,7 +3959,7 @@ public class SchemaBackend
 
       if (allCleaned)
       {
-        Message message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_CLEANED.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_CLEANED.get(
             getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -3967,7 +3967,7 @@ public class SchemaBackend
       else
       {
 
-        Message message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED
                 .get(getExceptionMessage(e));
 
         DirectoryServer.sendAlertNotification(this,
@@ -4045,14 +4045,14 @@ public class SchemaBackend
 
       if (allRestored)
       {
-        Message message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_RESTORED.get(
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_RESTORED.get(
             getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
       else
       {
-        Message message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED
+        LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED
                 .get(getExceptionMessage(e));
 
         DirectoryServer.sendAlertNotification(this,
@@ -4202,7 +4202,7 @@ public class SchemaBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_SCHEMA_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
@@ -4237,7 +4237,7 @@ public class SchemaBackend
 
     if (! found)
     {
-      Message message = ERR_SCHEMA_INVALID_BASE.get(String.valueOf(baseDN));
+      LocalizableMessage message = ERR_SCHEMA_INVALID_BASE.get(String.valueOf(baseDN));
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
               matchedDN, null);
     }
@@ -4319,7 +4319,7 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_SCHEMA_UNABLE_TO_CREATE_LDIF_WRITER.get(
+      LocalizableMessage message = ERR_SCHEMA_UNABLE_TO_CREATE_LDIF_WRITER.get(
           stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -4339,7 +4339,7 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_SCHEMA_UNABLE_TO_EXPORT_BASE.get(stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -4387,7 +4387,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -4411,7 +4411,7 @@ public class SchemaBackend
         {
           if (! le.canContinueReading())
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_MEMORYBACKEND_ERROR_READING_LDIF.get(String.valueOf(e));
             throw new DirectoryException(
                            DirectoryServer.getServerErrorResultCode(),
@@ -4436,7 +4436,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_MEMORYBACKEND_ERROR_DURING_IMPORT.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -4543,14 +4543,14 @@ public class SchemaBackend
           }
           catch (DirectoryException de)
           {
-            Message message =
+            LocalizableMessage message =
               NOTE_SCHEMA_IMPORT_FAILED.get(
                   attrType.toString(), de.getMessage());
             logError(message);
           }
           catch (Exception e)
           {
-            Message message =
+            LocalizableMessage message =
               NOTE_SCHEMA_IMPORT_FAILED.get(
                   attrType.toString(), e.getMessage());
             logError(message);
@@ -4665,14 +4665,14 @@ public class SchemaBackend
           }
           catch (DirectoryException de)
           {
-            Message message =
+            LocalizableMessage message =
               NOTE_SCHEMA_IMPORT_FAILED.get(
                   newObjectClass.toString(), de.getMessage());
             logError(message);
           }
           catch (Exception e)
           {
-            Message message =
+            LocalizableMessage message =
               NOTE_SCHEMA_IMPORT_FAILED.get(
                   newObjectClass.toString(), e.getMessage());
             logError(message);
@@ -4794,7 +4794,7 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_SCHEMA_BACKUP_CANNOT_GET_MAC.get(
+          LocalizableMessage message = ERR_SCHEMA_BACKUP_CANNOT_GET_MAC.get(
               macKeyID, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
@@ -4818,7 +4818,7 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_SCHEMA_BACKUP_CANNOT_GET_DIGEST.get(
+          LocalizableMessage message = ERR_SCHEMA_BACKUP_CANNOT_GET_DIGEST.get(
               digestAlgorithm, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
@@ -4870,7 +4870,7 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_SCHEMA_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
+      LocalizableMessage message = ERR_SCHEMA_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
           get(String.valueOf(filename), backupDirectory.getPath(),
               getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -4894,7 +4894,7 @@ public class SchemaBackend
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_SCHEMA_BACKUP_CANNOT_GET_CIPHER.get(
+        LocalizableMessage message = ERR_SCHEMA_BACKUP_CANNOT_GET_CIPHER.get(
                 stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -4905,7 +4905,7 @@ public class SchemaBackend
     // Wrap the file output stream in a zip output stream.
     ZipOutputStream zipStream = new ZipOutputStream(outputStream);
 
-    Message message = ERR_SCHEMA_BACKUP_ZIP_COMMENT.get(
+    LocalizableMessage message = ERR_SCHEMA_BACKUP_ZIP_COMMENT.get(
             DynamicConstants.PRODUCT_NAME,
             backupID);
     zipStream.setComment(String.valueOf(message));
@@ -5159,7 +5159,7 @@ public class SchemaBackend
     BackupInfo backupInfo = backupDirectory.getBackupInfo(backupID);
     if (backupInfo == null)
     {
-      Message message = ERR_BACKUP_MISSING_BACKUPID.get(
+      LocalizableMessage message = ERR_BACKUP_MISSING_BACKUPID.get(
         backupDirectory.getPath(), backupID);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -5196,7 +5196,7 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
+      LocalizableMessage message = ERR_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
         backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -5234,7 +5234,7 @@ public class SchemaBackend
     BackupInfo      backupInfo      = backupDirectory.getBackupInfo(backupID);
     if (backupInfo == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SCHEMA_RESTORE_NO_SUCH_BACKUP.get(backupID, backupPath);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -5247,7 +5247,7 @@ public class SchemaBackend
          backupInfo.getBackupProperty(BACKUP_PROPERTY_ARCHIVE_FILENAME);
     if (backupFilename == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_SCHEMA_RESTORE_NO_BACKUP_FILE.get(backupID, backupPath);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
@@ -5258,7 +5258,7 @@ public class SchemaBackend
     {
       if (! backupFile.exists())
       {
-        Message message =
+        LocalizableMessage message =
             ERR_SCHEMA_RESTORE_NO_SUCH_FILE.get(backupID, backupFile.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
@@ -5270,7 +5270,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      Message message = ERR_SCHEMA_RESTORE_CANNOT_CHECK_FOR_ARCHIVE.get(
+      LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_CHECK_FOR_ARCHIVE.get(
           backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -5287,7 +5287,7 @@ public class SchemaBackend
            backupInfo.getBackupProperty(BACKUP_PROPERTY_DIGEST_ALGORITHM);
       if (digestAlgorithm == null)
       {
-        Message message = ERR_SCHEMA_RESTORE_UNKNOWN_DIGEST.get(backupID);
+        LocalizableMessage message = ERR_SCHEMA_RESTORE_UNKNOWN_DIGEST.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
       }
@@ -5299,7 +5299,7 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_SCHEMA_RESTORE_CANNOT_GET_DIGEST.get(backupID, digestAlgorithm);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -5316,7 +5316,7 @@ public class SchemaBackend
            backupInfo.getBackupProperty(BACKUP_PROPERTY_MAC_KEY_ID);
       if (macKeyID == null)
       {
-        Message message = ERR_SCHEMA_RESTORE_UNKNOWN_MAC.get(backupID);
+        LocalizableMessage message = ERR_SCHEMA_RESTORE_UNKNOWN_MAC.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
       }
@@ -5327,7 +5327,7 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        Message message = ERR_SCHEMA_RESTORE_CANNOT_GET_MAC.get(
+        LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_GET_MAC.get(
             backupID, macKeyID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -5344,7 +5344,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      Message message = ERR_SCHEMA_RESTORE_CANNOT_OPEN_BACKUP_FILE.get(
+      LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_OPEN_BACKUP_FILE.get(
           backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -5361,7 +5361,7 @@ public class SchemaBackend
       }
       catch (CryptoManagerException e)
       {
-        Message message = ERR_SCHEMA_RESTORE_CANNOT_GET_CIPHER.get(
+        LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_GET_CIPHER.get(
                 backupFile.getPath(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -5419,7 +5419,7 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        Message message = ERR_SCHEMA_RESTORE_CANNOT_RENAME_CURRENT_DIRECTORY.
+        LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_RENAME_CURRENT_DIRECTORY.
             get(backupID, schemaInstanceDirPath,
                 String.valueOf(backupInstanceDirPath),
                 stackTraceToSingleLineString(e));
@@ -5442,20 +5442,20 @@ public class SchemaBackend
           try
           {
             schemaBackupInstanceDir.renameTo(schemaInstanceDir);
-            Message message =
+            LocalizableMessage message =
                 NOTE_SCHEMA_RESTORE_RESTORED_OLD_SCHEMA.get(
                     schemaInstanceDirPath);
             logError(message);
           }
           catch (Exception e2)
           {
-            Message message = ERR_SCHEMA_RESTORE_CANNOT_RESTORE_OLD_SCHEMA.get(
+            LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_RESTORE_OLD_SCHEMA.get(
                 schemaBackupInstanceDir.getPath());
             logError(message);
           }
         }
 
-        Message message = ERR_SCHEMA_RESTORE_CANNOT_CREATE_SCHEMA_DIRECTORY.get(
+        LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_CREATE_SCHEMA_DIRECTORY.get(
             backupID, schemaInstanceDirPath, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -5479,12 +5479,12 @@ public class SchemaBackend
         // Tell the user where the previous schema was archived.
         if (schemaBackupInstanceDir != null)
         {
-          Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+          LocalizableMessage message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
               schemaBackupInstanceDir.getPath());
           logError(message);
         }
 
-        Message message = ERR_SCHEMA_RESTORE_CANNOT_GET_ZIP_ENTRY.get(
+        LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_GET_ZIP_ENTRY.get(
             backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -5536,12 +5536,12 @@ public class SchemaBackend
           // Tell the user where the previous schema was archived.
           if (schemaBackupInstanceDir != null)
           {
-            Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+            LocalizableMessage message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
                 schemaBackupInstanceDir.getPath());
             logError(message);
           }
 
-          Message message = ERR_SCHEMA_RESTORE_CANNOT_CREATE_FILE.get(
+          LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_CREATE_FILE.get(
               backupID, filePath, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
@@ -5597,12 +5597,12 @@ public class SchemaBackend
         // Tell the user where the previous schema was archived.
         if (schemaBackupInstanceDir != null)
         {
-          Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+          LocalizableMessage message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
               schemaBackupInstanceDir.getPath());
           logError(message);
         }
 
-        Message message = ERR_SCHEMA_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE.get(
+        LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE.get(
             backupID, fileName, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -5617,7 +5617,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      Message message = ERR_SCHEMA_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE.get(
+      LocalizableMessage message = ERR_SCHEMA_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE.get(
           backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
@@ -5632,7 +5632,7 @@ public class SchemaBackend
       byte[] calculatedHash = digest.digest();
       if (Arrays.equals(calculatedHash, unsignedHash))
       {
-        Message message = NOTE_SCHEMA_RESTORE_UNSIGNED_HASH_VALID.get();
+        LocalizableMessage message = NOTE_SCHEMA_RESTORE_UNSIGNED_HASH_VALID.get();
         logError(message);
       }
       else
@@ -5640,12 +5640,12 @@ public class SchemaBackend
         // Tell the user where the previous schema was archived.
         if (schemaBackupInstanceDir != null)
         {
-          Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+          LocalizableMessage message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
               schemaBackupInstanceDir.getPath());
           logError(message);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_SCHEMA_RESTORE_UNSIGNED_HASH_INVALID.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
@@ -5657,7 +5657,7 @@ public class SchemaBackend
       byte[] calculatedSignature = mac.doFinal();
       if (Arrays.equals(calculatedSignature, signedHash))
       {
-        Message message = NOTE_SCHEMA_RESTORE_SIGNED_HASH_VALID.get();
+        LocalizableMessage message = NOTE_SCHEMA_RESTORE_SIGNED_HASH_VALID.get();
         logError(message);
       }
       else
@@ -5665,12 +5665,12 @@ public class SchemaBackend
         // Tell the user where the previous schema was archived.
         if (schemaBackupInstanceDir != null)
         {
-          Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+          LocalizableMessage message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
               schemaBackupInstanceDir.getPath());
           logError(message);
         }
 
-        Message message = ERR_SCHEMA_RESTORE_SIGNED_HASH_INVALID.get(backupID);
+        LocalizableMessage message = ERR_SCHEMA_RESTORE_SIGNED_HASH_INVALID.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
       }
@@ -5680,7 +5680,7 @@ public class SchemaBackend
     // If we are just verifying the archive, then we're done.
     if (verifyOnly)
     {
-      Message message =
+      LocalizableMessage message =
           NOTE_SCHEMA_RESTORE_VERIFY_SUCCESSFUL.get(backupID, backupPath);
       logError(message);
       return;
@@ -5695,7 +5695,7 @@ public class SchemaBackend
       recursiveDelete(schemaBackupInstanceDir);
     }
 
-    Message message = NOTE_SCHEMA_RESTORE_SUCCESSFUL.get(backupID, backupPath);
+    LocalizableMessage message = NOTE_SCHEMA_RESTORE_SUCCESSFUL.get(backupID, backupPath);
     logError(message);
   }
 
@@ -5707,7 +5707,7 @@ public class SchemaBackend
   @Override
   public boolean isConfigurationChangeAcceptable(
        SchemaBackendCfg configEntry,
-       List<Message> unacceptableReasons)
+       List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -5723,7 +5723,7 @@ public class SchemaBackend
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Check to see if we should apply a new set of base DNs.
@@ -5868,7 +5868,7 @@ public class SchemaBackend
 
 
       userDefinedAttributes = newUserAttrs;
-      Message message = INFO_SCHEMA_USING_NEW_USER_ATTRS.get();
+      LocalizableMessage message = INFO_SCHEMA_USING_NEW_USER_ATTRS.get();
       messages.add(message);
     }
 

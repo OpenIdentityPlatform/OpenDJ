@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -29,7 +30,7 @@ package org.opends.server.tasks;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.types.Attribute;
@@ -57,8 +58,8 @@ public class DummyTask
    * {@inheritDoc}
    */
   @Override
-  public Message getDisplayName() {
-    return Message.raw("Dummy");
+  public LocalizableMessage getDisplayName() {
+    return LocalizableMessage.raw("Dummy");
   }
 
   /**
@@ -133,7 +134,7 @@ public class DummyTask
    * {@inheritDoc}
    */
   @Override
-  public void interruptTask(TaskState taskState, Message interruptMessage)
+  public void interruptTask(TaskState taskState, LocalizableMessage interruptMessage)
   {
     interruptedState = taskState;
     setTaskInterruptState(taskState);

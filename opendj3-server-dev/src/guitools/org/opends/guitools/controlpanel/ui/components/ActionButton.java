@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 
@@ -45,7 +46,7 @@ import javax.swing.border.EmptyBorder;
 import org.opends.guitools.controlpanel.datamodel.Action;
 import org.opends.guitools.controlpanel.datamodel.Category;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A basic extension of a button that changes its rendering so that the looks
@@ -67,7 +68,7 @@ public class ActionButton extends JButton
   {
     //Calculate border based on category settings
     Category cat = new Category();
-    cat.setName(Message.EMPTY);
+    cat.setName(LocalizableMessage.EMPTY);
     CategoryButton b = new CategoryButton(cat);
     int n = b.getIconTextGap() + b.getIcon().getIconWidth() +
     b.getBorder().getBorderInsets(b).left;

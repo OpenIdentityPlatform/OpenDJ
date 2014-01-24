@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server;
 
@@ -31,7 +31,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.annotations.AfterClass;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,7 +59,7 @@ public abstract class DirectoryServerTestCase {
 
   @AfterSuite
   public final void shutdownServer() {
-    TestCaseUtils.shutdownServer(Message.raw("The current test suite has finished."));
+    TestCaseUtils.shutdownServer(LocalizableMessage.raw("The current test suite has finished."));
     TestCaseUtils.unsupressOutput();
   }
 

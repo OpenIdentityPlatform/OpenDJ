@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
@@ -232,7 +232,7 @@ public class ShortCircuitPlugin
           // This is fine.
           break;
         default:
-          throw new ConfigException(Message.raw("Invalid plugin type " + t +
+          throw new ConfigException(LocalizableMessage.raw("Invalid plugin type " + t +
                                     " for the short circuit plugin."));
       }
     }
@@ -252,7 +252,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreParse.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-parse"));
+          LocalizableMessage.raw("Short-circuit in pre-parse"));
     }
     else
     {
@@ -273,7 +273,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreParse.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-parse"));
+          LocalizableMessage.raw("Short-circuit in pre-parse"));
     }
     else
     {
@@ -294,7 +294,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreParse.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-parse"));
+          LocalizableMessage.raw("Short-circuit in pre-parse"));
     }
     else
     {
@@ -316,7 +316,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreParse.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-parse"));
+          LocalizableMessage.raw("Short-circuit in pre-parse"));
     }
     else
     {
@@ -338,7 +338,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreParse.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-parse"));
+          LocalizableMessage.raw("Short-circuit in pre-parse"));
     }
     else
     {
@@ -360,7 +360,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreParse.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-parse"));
+          LocalizableMessage.raw("Short-circuit in pre-parse"));
     }
     else
     {
@@ -382,7 +382,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreParse.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-parse"));
+          LocalizableMessage.raw("Short-circuit in pre-parse"));
     }
     else
     {
@@ -404,7 +404,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreParse.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-parse"));
+          LocalizableMessage.raw("Short-circuit in pre-parse"));
     }
     else
     {
@@ -426,7 +426,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreParse.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-parse"));
+          LocalizableMessage.raw("Short-circuit in pre-parse"));
     }
     else
     {
@@ -448,7 +448,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreParse.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-parse"));
+          LocalizableMessage.raw("Short-circuit in pre-parse"));
     }
     else
     {
@@ -470,7 +470,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreOperation.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-operation"));
+          LocalizableMessage.raw("Short-circuit in pre-operation"));
     }
     else
     {
@@ -492,7 +492,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreOperation.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-operation"));
+          LocalizableMessage.raw("Short-circuit in pre-operation"));
     }
     else
     {
@@ -514,7 +514,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreOperation.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-operation"));
+          LocalizableMessage.raw("Short-circuit in pre-operation"));
     }
     else
     {
@@ -536,7 +536,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreOperation.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-operation"));
+          LocalizableMessage.raw("Short-circuit in pre-operation"));
     }
     else
     {
@@ -558,7 +558,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreOperation.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-operation"));
+          LocalizableMessage.raw("Short-circuit in pre-operation"));
     }
     else
     {
@@ -580,7 +580,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreOperation.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-operation"));
+          LocalizableMessage.raw("Short-circuit in pre-operation"));
     }
     else
     {
@@ -602,7 +602,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreOperation.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-operation"));
+          LocalizableMessage.raw("Short-circuit in pre-operation"));
     }
     else
     {
@@ -624,7 +624,7 @@ public class ShortCircuitPlugin
     {
       return PluginResult.PreOperation.stopProcessing(
           ResultCode.valueOf(resultCode),
-          Message.raw("Short-circuit in pre-operation"));
+          LocalizableMessage.raw("Short-circuit in pre-operation"));
     }
     else
     {

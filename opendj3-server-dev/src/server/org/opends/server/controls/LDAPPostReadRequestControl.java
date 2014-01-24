@@ -28,7 +28,7 @@ package org.opends.server.controls;
 
 
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -71,7 +71,7 @@ public class LDAPPostReadRequestControl extends Control
     {
       if (value == null)
       {
-        Message message = ERR_POSTREADREQ_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_POSTREADREQ_NO_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -93,7 +93,7 @@ public class LDAPPostReadRequestControl extends Control
           TRACER.debugCaught(DebugLogLevel.ERROR, ae);
         }
 
-        Message message = ERR_POSTREADREQ_CANNOT_DECODE_VALUE.get(ae
+        LocalizableMessage message = ERR_POSTREADREQ_CANNOT_DECODE_VALUE.get(ae
             .getMessage());
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, ae);
       }

@@ -35,7 +35,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -173,7 +173,7 @@ public class LDIFSearch
     StringArgument      outputFile;
 
 
-    Message toolDescription = INFO_LDIFSEARCH_TOOL_DESCRIPTION.get();
+    LocalizableMessage toolDescription = INFO_LDIFSEARCH_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false, true, 0, 0,
                                                   "[filter] [attributes ...]");
@@ -261,7 +261,7 @@ public class LDIFSearch
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       err.println(message);
       return 1;
     }
@@ -274,7 +274,7 @@ public class LDIFSearch
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(message);
       err.println(argParser.getUsage());
@@ -380,7 +380,7 @@ public class LDIFSearch
       ArrayList<String> trailingArguments = argParser.getTrailingArguments();
       if ((trailingArguments == null) || trailingArguments.isEmpty())
       {
-        Message message = ERR_LDIFSEARCH_NO_FILTER.get();
+        LocalizableMessage message = ERR_LDIFSEARCH_NO_FILTER.get();
         err.println(message);
         return 1;
       }
@@ -456,7 +456,7 @@ public class LDIFSearch
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFSEARCH_CANNOT_INITIALIZE_JMX.get(
+        LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_INITIALIZE_JMX.get(
                 String.valueOf(configFile.getValue()),
                 e.getMessage());
         err.println(message);
@@ -470,7 +470,7 @@ public class LDIFSearch
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFSEARCH_CANNOT_INITIALIZE_CONFIG.get(
+        LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_INITIALIZE_CONFIG.get(
                 String.valueOf(configFile.getValue()),
                 e.getMessage());
         err.println(message);
@@ -483,7 +483,7 @@ public class LDIFSearch
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFSEARCH_CANNOT_INITIALIZE_SCHEMA.get(
+        LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_INITIALIZE_SCHEMA.get(
                 String.valueOf(configFile.getValue()),
                 e.getMessage());
         err.println(message);
@@ -530,7 +530,7 @@ public class LDIFSearch
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFSEARCH_CANNOT_PARSE_FILTER.get(
+        LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_PARSE_FILTER.get(
                 filterString, e.getMessage());
         err.println(message);
         return 1;
@@ -597,7 +597,7 @@ public class LDIFSearch
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIFSEARCH_CANNOT_PARSE_BASE_DN.get(
+          LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_PARSE_BASE_DN.get(
                   dnString, e.getMessage());
           err.println(message);
           return 1;
@@ -625,7 +625,7 @@ public class LDIFSearch
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFSEARCH_CANNOT_PARSE_TIME_LIMIT.get(
+      LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_PARSE_TIME_LIMIT.get(
               String.valueOf(e));
       err.println(message);
       return 1;
@@ -647,7 +647,7 @@ public class LDIFSearch
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFSEARCH_CANNOT_PARSE_SIZE_LIMIT.get(
+      LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_PARSE_SIZE_LIMIT.get(
               String.valueOf(e));
       err.println(message);
       return 1;
@@ -708,7 +708,7 @@ public class LDIFSearch
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFSEARCH_CANNOT_CREATE_READER.get(
+      LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_CREATE_READER.get(
               String.valueOf(e));
       err.println(message);
       return 1;
@@ -725,7 +725,7 @@ public class LDIFSearch
         reader.close();
       } catch (Exception e2) {}
 
-      Message message = ERR_LDIFSEARCH_CANNOT_CREATE_WRITER.get(
+      LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_CREATE_WRITER.get(
               String.valueOf(e));
       err.println(message);
       return 1;
@@ -744,7 +744,7 @@ public class LDIFSearch
       {
         resultCode = LDAPResultCode.TIME_LIMIT_EXCEEDED;
 
-        Message message = WARN_LDIFSEARCH_TIME_LIMIT_EXCEEDED.get();
+        LocalizableMessage message = WARN_LDIFSEARCH_TIME_LIMIT_EXCEEDED.get();
         err.println(message);
         break;
       }
@@ -831,7 +831,7 @@ public class LDIFSearch
         {
           resultCode = LDAPResultCode.SIZE_LIMIT_EXCEEDED;
 
-          Message message = WARN_LDIFSEARCH_SIZE_LIMIT_EXCEEDED.get();
+          LocalizableMessage message = WARN_LDIFSEARCH_SIZE_LIMIT_EXCEEDED.get();
           err.println(message);
           break;
         }
@@ -840,13 +840,13 @@ public class LDIFSearch
       {
         if (le.canContinueReading())
         {
-          Message message = ERR_LDIFSEARCH_CANNOT_READ_ENTRY_RECOVERABLE.get(
+          LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_READ_ENTRY_RECOVERABLE.get(
                   le.getMessage());
           err.println(message);
         }
         else
         {
-          Message message = ERR_LDIFSEARCH_CANNOT_READ_ENTRY_FATAL.get(
+          LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_READ_ENTRY_FATAL.get(
                   le.getMessage());
           err.println(message);
           resultCode = LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
@@ -855,7 +855,7 @@ public class LDIFSearch
       }
       catch (Exception e)
       {
-        Message message = ERR_LDIFSEARCH_ERROR_DURING_PROCESSING.get(
+        LocalizableMessage message = ERR_LDIFSEARCH_ERROR_DURING_PROCESSING.get(
                 String.valueOf(e));
         err.println(message);
         resultCode = LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;

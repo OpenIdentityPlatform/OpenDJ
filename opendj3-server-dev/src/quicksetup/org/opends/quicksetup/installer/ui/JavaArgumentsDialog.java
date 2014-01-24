@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -57,8 +57,8 @@ import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.SetupUtils;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -82,7 +82,7 @@ public class JavaArgumentsDialog extends JDialog
 
   private boolean isCanceled = true;
 
-  private Message message;
+  private LocalizableMessage message;
 
   private JavaArguments javaArguments;
 
@@ -104,7 +104,7 @@ public class JavaArgumentsDialog extends JDialog
    * @throws IllegalArgumentException if options is null.
    */
   public JavaArgumentsDialog(JFrame parent, JavaArguments javaArguments,
-      Message title, Message message)
+      LocalizableMessage title, LocalizableMessage message)
   throws IllegalArgumentException
   {
     super(parent);
@@ -234,7 +234,7 @@ public class JavaArgumentsDialog extends JDialog
     gbc.gridwidth = 3;
     gbc.gridx = 0;
     gbc.gridy = 0;
-    Message title = INFO_JAVA_RUNTIME_SETTINGS_TITLE.get();
+    LocalizableMessage title = INFO_JAVA_RUNTIME_SETTINGS_TITLE.get();
     JLabel l =
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, title,
             UIFactory.TextStyle.TITLE);
@@ -296,7 +296,7 @@ public class JavaArgumentsDialog extends JDialog
         INFO_INITIAL_MEMORY_LABEL.get(),
         UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     lInitialMemory.setOpaque(false);
-    tfInitialMemory = UIFactory.makeJTextField(Message.EMPTY,
+    tfInitialMemory = UIFactory.makeJTextField(LocalizableMessage.EMPTY,
         INFO_INITIAL_MEMORY_TOOLTIP.get(), 10, UIFactory.TextStyle.TEXTFIELD);
     lInitialMemory.setLabelFor(tfInitialMemory);
 
@@ -304,7 +304,7 @@ public class JavaArgumentsDialog extends JDialog
         INFO_MAX_MEMORY_LABEL.get(),
         UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     lMaxMemory.setOpaque(false);
-    tfMaxMemory = UIFactory.makeJTextField(Message.EMPTY,
+    tfMaxMemory = UIFactory.makeJTextField(LocalizableMessage.EMPTY,
         INFO_MAX_MEMORY_TOOLTIP.get(), 10, UIFactory.TextStyle.TEXTFIELD);
     lMaxMemory.setLabelFor(tfMaxMemory);
 
@@ -312,7 +312,7 @@ public class JavaArgumentsDialog extends JDialog
         INFO_OTHER_JAVA_ARGUMENTS_LABEL.get(),
         UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     lOtherArguments.setOpaque(false);
-    tfOtherArguments = UIFactory.makeJTextField(Message.EMPTY,
+    tfOtherArguments = UIFactory.makeJTextField(LocalizableMessage.EMPTY,
         INFO_OTHER_JAVA_ARGUMENTS_TOOLTIP.get(), 30,
         UIFactory.TextStyle.TEXTFIELD);
     lOtherArguments.setLabelFor(tfOtherArguments);
@@ -461,18 +461,18 @@ public class JavaArgumentsDialog extends JDialog
    */
   private void okClicked()
   {
-    BackgroundTask<ArrayList<Message>> worker =
-      new BackgroundTask<ArrayList<Message>>()
+    BackgroundTask<ArrayList<LocalizableMessage>> worker =
+      new BackgroundTask<ArrayList<LocalizableMessage>>()
     {
       @Override
-      public ArrayList<Message> processBackgroundTask()
+      public ArrayList<LocalizableMessage> processBackgroundTask()
       {
         setValidLater(lInitialMemory, true);
         setValidLater(lMaxMemory, true);
         setValidLater(lOtherArguments, true);
         int initialMemory = -1;
         int maxMemory = -1;
-        ArrayList<Message> errorMsgs = new ArrayList<Message>();
+        ArrayList<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
         try
         {
           String sInitialMemory = tfInitialMemory.getText().trim();
@@ -523,14 +523,14 @@ public class JavaArgumentsDialog extends JDialog
         if (errorMsgs.isEmpty())
         {
           // Try the options together, often there are interdependencies.
-          ArrayList<Message> allErrors = new ArrayList<Message>();
+          ArrayList<LocalizableMessage> allErrors = new ArrayList<LocalizableMessage>();
           checkAllArgumentsTogether(initialMemory, maxMemory, allErrors);
 
           if (!allErrors.isEmpty())
           {
-            ArrayList<Message> memoryErrors = new ArrayList<Message>();
+            ArrayList<LocalizableMessage> memoryErrors = new ArrayList<LocalizableMessage>();
             checkMemoryArguments(initialMemory, maxMemory, memoryErrors);
-            ArrayList<Message> otherErrors = new ArrayList<Message>();
+            ArrayList<LocalizableMessage> otherErrors = new ArrayList<LocalizableMessage>();
             checkOtherArguments(otherErrors);
 
             if (!memoryErrors.isEmpty())
@@ -563,7 +563,7 @@ public class JavaArgumentsDialog extends JDialog
       }
 
       @Override
-      public void backgroundTaskCompleted(ArrayList<Message> returnValue,
+      public void backgroundTaskCompleted(ArrayList<LocalizableMessage> returnValue,
           Throwable throwable)
       {
         setCheckingVisible(false);
@@ -612,7 +612,7 @@ public class JavaArgumentsDialog extends JDialog
    * @param title
    *          the title for the dialog.
    */
-  private void displayError(Message msg, Message title)
+  private void displayError(LocalizableMessage msg, LocalizableMessage title)
   {
     Utilities.displayError(this, msg, title);
     toFront();
@@ -630,7 +630,7 @@ public class JavaArgumentsDialog extends JDialog
    * @return <CODE>true</CODE> if the user accepts the message displayed in the
    * dialog and <CODE>false</CODE> otherwise.
    */
-  private boolean displayConfirmationDialog(Message msg, Message title)
+  private boolean displayConfirmationDialog(LocalizableMessage msg, LocalizableMessage title)
   {
     toFront();
     return Utilities.displayConfirmation(this, msg, title);
@@ -734,8 +734,8 @@ public class JavaArgumentsDialog extends JDialog
       javaArgs.setAdditionalArguments(new String[]{"" , "-client", "-XX"});
       // UIFactory.initialize();
       JavaArgumentsDialog dlg = new JavaArgumentsDialog(new JFrame(), javaArgs,
-          Message.raw("my title"),
-          Message.raw("Set the java arguments for the test command-line."));
+          LocalizableMessage.raw("my title"),
+          LocalizableMessage.raw("Set the java arguments for the test command-line."));
       dlg.pack();
       dlg.setVisible(true);
     } catch (Exception ex)
@@ -747,14 +747,14 @@ public class JavaArgumentsDialog extends JDialog
   private final static String INSTALL_PATH =
     Utils.getInstallPathFromClasspath();
 
-  private void checkOptions(String options, Collection<Message> errorMsgs,
-      JLabel l,  Message errorMsg)
+  private void checkOptions(String options, Collection<LocalizableMessage> errorMsgs,
+      JLabel l,  LocalizableMessage errorMsg)
   {
     checkOptions(options, errorMsgs, new JLabel[]{l}, errorMsg);
   }
 
-  private void checkOptions(String options, Collection<Message> errorMsgs,
-      JLabel[] ls,  Message errorMsg)
+  private void checkOptions(String options, Collection<LocalizableMessage> errorMsgs,
+      JLabel[] ls,  LocalizableMessage errorMsg)
   {
     if (!Utils.isWebStart())
     {
@@ -774,7 +774,7 @@ public class JavaArgumentsDialog extends JDialog
     }
   }
 
-  private Message getMemoryErrorMessage(Message msg, int memValue)
+  private LocalizableMessage getMemoryErrorMessage(LocalizableMessage msg, int memValue)
   {
     // 2048 MB is acceptable max heap size on 32Bit OS
     if (memValue < 2048)
@@ -783,7 +783,7 @@ public class JavaArgumentsDialog extends JDialog
     }
     else
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(msg);
       mb.append("  ");
       mb.append(ERR_MEMORY_32_BIT_LIMIT.get());
@@ -792,7 +792,7 @@ public class JavaArgumentsDialog extends JDialog
   }
 
   private void checkMemoryArguments(int initialMemory, int maxMemory,
-      Collection<Message> errorMsgs)
+      Collection<LocalizableMessage> errorMsgs)
   {
     setValidLater(lInitialMemory, true);
     setValidLater(lMaxMemory, true);
@@ -800,7 +800,7 @@ public class JavaArgumentsDialog extends JDialog
     {
       if (maxMemory != -1)
       {
-        Message msg = getMemoryErrorMessage(ERR_MEMORY_VALUE_EXTENDED.get(
+        LocalizableMessage msg = getMemoryErrorMessage(ERR_MEMORY_VALUE_EXTENDED.get(
               JavaArguments.getInitialMemoryGenericArgument(),
               JavaArguments.getMaxMemoryGenericArgument()), maxMemory);
         String sMemory =
@@ -813,7 +813,7 @@ public class JavaArgumentsDialog extends JDialog
       }
       else
       {
-        Message msg = getMemoryErrorMessage(
+        LocalizableMessage msg = getMemoryErrorMessage(
             ERR_INITIAL_MEMORY_VALUE_EXTENDED.get(
                 JavaArguments.getInitialMemoryGenericArgument()),
                 initialMemory);
@@ -825,7 +825,7 @@ public class JavaArgumentsDialog extends JDialog
     }
     else if (maxMemory != -1)
     {
-      Message msg = getMemoryErrorMessage(
+      LocalizableMessage msg = getMemoryErrorMessage(
           ERR_MAX_MEMORY_VALUE_EXTENDED.get(
               JavaArguments.getInitialMemoryGenericArgument()), maxMemory);
       checkOptions(JavaArguments.getMaxMemoryArgument(maxMemory),
@@ -836,7 +836,7 @@ public class JavaArgumentsDialog extends JDialog
   }
 
   private void checkAllArgumentsTogether(int initialMemory, int maxMemory,
-      Collection<Message> errorMsgs)
+      Collection<LocalizableMessage> errorMsgs)
   {
     setValidLater(lInitialMemory, true);
     setValidLater(lMaxMemory, true);
@@ -888,7 +888,7 @@ public class JavaArgumentsDialog extends JDialog
     }
   }
 
-  private void checkOtherArguments(Collection<Message> errorMsgs)
+  private void checkOtherArguments(Collection<LocalizableMessage> errorMsgs)
   {
     setValidLater(lOtherArguments, true);
     ArrayList<JLabel> ls = new ArrayList<JLabel>();

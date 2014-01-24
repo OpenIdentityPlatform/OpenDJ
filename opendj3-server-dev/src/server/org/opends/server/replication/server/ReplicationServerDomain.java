@@ -35,10 +35,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Severity;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
@@ -244,7 +242,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         } else
         {
           // Unknown assured mode: should never happen
-          Message errorMsg = ERR_RS_UNKNOWN_ASSURED_MODE.get(
+          LocalizableMessage errorMsg = ERR_RS_UNKNOWN_ASSURED_MODE.get(
             Integer.toString(localReplicationServer.getServerId()),
             assuredMode.toString(), baseDN.toNormalizedString(),
             update.toString());
@@ -598,7 +596,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     if (safeDataLevel < (byte) 1)
     {
       // Should never happen
-      Message errorMsg = ERR_UNKNOWN_ASSURED_SAFE_DATA_LEVEL.get(
+      LocalizableMessage errorMsg = ERR_UNKNOWN_ASSURED_SAFE_DATA_LEVEL.get(
         Integer.toString(localReplicationServer.getServerId()),
         Byte.toString(safeDataLevel), baseDN.toNormalizedString(),
         update.toString());
@@ -749,7 +747,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
              * An error happened trying the send back an ack to the server.
              * Log an error and close the connection to this server.
              */
-            MessageBuilder mb = new MessageBuilder();
+            LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
             mb.append(ERR_RS_ERROR_SENDING_ACK.get(
               Integer.toString(localReplicationServer.getServerId()),
               Integer.toString(origServer.getServerId()),
@@ -827,7 +825,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
              * An error happened trying the send back an ack to the server.
              * Log an error and close the connection to this server.
              */
-            MessageBuilder mb = new MessageBuilder();
+            LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
             mb.append(ERR_RS_ERROR_SENDING_ACK.get(
                 Integer.toString(localReplicationServer.getServerId()),
                 Integer.toString(origServer.getServerId()),
@@ -934,7 +932,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     if (connectedDSs.containsKey(dsHandler.getServerId()))
     {
       // looks like two connected LDAP servers have the same serverId
-      Message message = ERR_DUPLICATE_SERVER_ID.get(
+      LocalizableMessage message = ERR_DUPLICATE_SERVER_ID.get(
           localReplicationServer.getMonitorInstanceName(),
           connectedDSs.get(dsHandler.getServerId()).toString(),
           dsHandler.toString(), dsHandler.getServerId());
@@ -1023,8 +1021,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
       catch(Exception e)
       {
-        logError(Message.raw(Category.SYNC, Severity.NOTICE,
-            stackTraceToSingleLineString(e)));
+        logError(LocalizableMessage.raw(            stackTraceToSingleLineString(e)));
       }
       finally
       {
@@ -1107,8 +1104,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
       catch(Exception e)
       {
-        logError(Message.raw(Category.SYNC, Severity.NOTICE,
-            stackTraceToSingleLineString(e)));
+        logError(LocalizableMessage.raw(            stackTraceToSingleLineString(e)));
       }
       finally
       {
@@ -1232,7 +1228,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     // looks like two replication servers have the same serverId
     // log an error message and drop this connection.
-    Message message = ERR_DUPLICATE_REPLICATION_SERVER_ID.get(
+    LocalizableMessage message = ERR_DUPLICATE_REPLICATION_SERVER_ID.get(
         localReplicationServer.getMonitorInstanceName(),
         oldRsHandler.getServerAddressURL(), rsHandler.getServerAddressURL(),
         rsHandler.getServerId());
@@ -1500,7 +1496,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     String msgClassname = msg.getClass().getCanonicalName();
     logError(NOTE_ERR_ROUTING_TO_SERVER.get(msgClassname));
 
-    MessageBuilder mb = new MessageBuilder();
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     mb.append(NOTE_ERR_ROUTING_TO_SERVER.get(msgClassname));
     mb.append("serverID:").append(msg.getDestination());
     ErrorMsg errMsg = new ErrorMsg(msg.getSenderID(), mb.toMessage());
@@ -1519,14 +1515,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   private void replyWithUnreachablePeerMsg(ServerHandler msgEmitter,
       RoutableMsg msg)
   {
-    MessageBuilder mb = new MessageBuilder();
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     mb.append(ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(
         baseDN.toNormalizedString(), Integer.toString(msg.getDestination())));
     mb.append(" In Replication Server=").append(
       this.localReplicationServer.getMonitorInstanceName());
     mb.append(" unroutable message =").append(msg.getClass().getSimpleName());
     mb.append(" Details:routing table is empty");
-    final Message message = mb.toMessage();
+    final LocalizableMessage message = mb.toMessage();
     logError(message);
 
     ErrorMsg errMsg = new ErrorMsg(this.localReplicationServer.getServerId(),
@@ -1542,7 +1538,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
        * An error happened trying to send an error msg to this server.
        * Log an error and close the connection to this server.
        */
-      MessageBuilder mb2 = new MessageBuilder();
+      LocalizableMessageBuilder mb2 = new LocalizableMessageBuilder();
       mb2.append(ERR_CHANGELOG_ERROR_SENDING_ERROR.get(this.toString()));
       mb2.append(" ");
       mb2.append(stackTraceToSingleLineString(ignored));
@@ -1566,13 +1562,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
          * destination server.
          * Send back an error to the originator of the message.
          */
-        MessageBuilder mb = new MessageBuilder();
+        LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(
             baseDN.toNormalizedString(),
             Integer.toString(msg.getDestination())));
         mb.append(" unroutable message =" + msg.getClass().getSimpleName());
         mb.append(" Details: " + ioe.getLocalizedMessage());
-        final Message message = mb.toMessage();
+        final LocalizableMessage message = mb.toMessage();
         logError(message);
 
         ErrorMsg errMsg = new ErrorMsg(msg.getSenderID(), message);
@@ -1752,7 +1748,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             {
               if (i == 2)
               {
-                Message message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
+                LocalizableMessage message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
                     baseDN.toNormalizedString(), "directory",
                     Integer.toString(dsHandler.getServerId()), e.getMessage());
                 logError(message);
@@ -1788,7 +1784,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           {
             if (i == 2)
             {
-              Message message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
+              LocalizableMessage message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
                   baseDN.toNormalizedString(), "replication",
                   Integer.toString(rsHandler.getServerId()), e.getMessage());
               logError(message);
@@ -2013,8 +2009,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
     catch(Exception e)
     {
-      logError(Message.raw(Category.SYNC, Severity.NOTICE,
-          stackTraceToSingleLineString(e)));
+      logError(LocalizableMessage.raw(          stackTraceToSingleLineString(e)));
     }
     finally
     {
@@ -2063,15 +2058,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
       sendTopoInfoToAllExcept(senderHandler);
 
-      Message message = NOTE_DIRECTORY_SERVER_CHANGED_STATUS.get(
+      LocalizableMessage message = NOTE_DIRECTORY_SERVER_CHANGED_STATUS.get(
           senderHandler.getServerId(), baseDN.toNormalizedString(),
           newStatus.toString());
       logError(message);
     }
     catch(Exception e)
     {
-      logError(Message.raw(Category.SYNC, Severity.NOTICE,
-          stackTraceToSingleLineString(e)));
+      logError(LocalizableMessage.raw(          stackTraceToSingleLineString(e)));
     }
     finally
     {
@@ -2145,8 +2139,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
     catch (Exception e)
     {
-      logError(Message.raw(Category.SYNC, Severity.NOTICE,
-          stackTraceToSingleLineString(e)));
+      logError(LocalizableMessage.raw(          stackTraceToSingleLineString(e)));
     }
     finally
     {
@@ -2187,7 +2180,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
     catch (ChangelogException e)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(ERR_ERROR_CLEARING_DB.get(baseDN.toString(), e.getMessage()
           + " " + stackTraceToSingleLineString(e)));
       logError(mb.toMessage());
@@ -2276,7 +2269,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
       if (isDifferentGenerationId(rsHandler.getGenerationId()))
       {
-        Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
+        LocalizableMessage message = WARN_BAD_GENERATION_ID_FROM_RS.get(
             rsHandler.getServerId(),
             rsHandler.session.getReadableRemoteAddress(),
             rsHandler.getGenerationId(),
@@ -2296,8 +2289,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
     catch(Exception e)
     {
-      logError(Message.raw(Category.SYNC, Severity.NOTICE,
-          stackTraceToSingleLineString(e)));
+      logError(LocalizableMessage.raw(          stackTraceToSingleLineString(e)));
     }
     finally
     {

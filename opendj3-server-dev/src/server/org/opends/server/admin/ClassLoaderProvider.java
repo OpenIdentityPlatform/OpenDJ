@@ -57,7 +57,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -418,7 +418,7 @@ public final class ClassLoaderProvider {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_ADMIN_CANNOT_OPEN_JAR_FILE.
+        LocalizableMessage message = ERR_ADMIN_CANNOT_OPEN_JAR_FILE.
             get(extension.getName(), extension.getParent(),
                 stackTraceToSingleLineString(e));
         throw new InitializationException(message);
@@ -565,7 +565,7 @@ public final class ClassLoaderProvider {
       if (!extensionsPath.exists()) {
         // The extensions directory does not exist. This is not a
         // critical problem.
-        Message message = ERR_ADMIN_NO_EXTENSIONS_DIR.get(
+        LocalizableMessage message = ERR_ADMIN_NO_EXTENSIONS_DIR.get(
                 String.valueOf(extensionsPath));
         logError(message);
         return;
@@ -574,7 +574,7 @@ public final class ClassLoaderProvider {
       if (!extensionsPath.isDirectory()) {
         // The extensions directory is not a directory. This is more
         // critical.
-        Message message =
+        LocalizableMessage message =
             ERR_ADMIN_EXTENSIONS_DIR_NOT_DIRECTORY.get(
                     String.valueOf(extensionsPath));
         throw new InitializationException(message);
@@ -609,7 +609,7 @@ public final class ClassLoaderProvider {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_ADMIN_EXTENSIONS_CANNOT_LIST_FILES.get(
+      LocalizableMessage message = ERR_ADMIN_EXTENSIONS_CANNOT_LIST_FILES.get(
           String.valueOf(extensionsPath), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
@@ -631,7 +631,7 @@ public final class ClassLoaderProvider {
         + CORE_MANIFEST);
 
     if (is == null) {
-      Message message = ERR_ADMIN_CANNOT_FIND_CORE_MANIFEST.get(CORE_MANIFEST);
+      LocalizableMessage message = ERR_ADMIN_CANNOT_FIND_CORE_MANIFEST.get(CORE_MANIFEST);
       throw new InitializationException(message);
     }
 
@@ -642,7 +642,7 @@ public final class ClassLoaderProvider {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(CORE_MANIFEST,
+      LocalizableMessage message = ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(CORE_MANIFEST,
           stackTraceToSingleLineString(e));
       throw new InitializationException(message);
     }
@@ -674,7 +674,7 @@ public final class ClassLoaderProvider {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.get(
+        LocalizableMessage message = ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.get(
             EXTENSION_MANIFEST, jarFile.getName(),
             stackTraceToSingleLineString(e));
         throw new InitializationException(message);
@@ -687,7 +687,7 @@ public final class ClassLoaderProvider {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile
+        LocalizableMessage message = ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile
             .getName(), EXTENSION_MANIFEST, stackTraceToSingleLineString(e));
         throw new InitializationException(message);
       }
@@ -728,7 +728,7 @@ public final class ClassLoaderProvider {
       try {
         className = reader.readLine();
       } catch (IOException e) {
-        Message msg = ERR_CLASS_LOADER_CANNOT_READ_MANIFEST_FILE.get(String
+        LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_READ_MANIFEST_FILE.get(String
             .valueOf(e.getMessage()));
         throw new InitializationException(msg, e);
       }
@@ -756,7 +756,7 @@ public final class ClassLoaderProvider {
       try {
         theClass = Class.forName(className, true, loader);
       } catch (Exception e) {
-        Message msg = ERR_CLASS_LOADER_CANNOT_LOAD_CLASS.get(className, String
+        LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_LOAD_CLASS.get(className, String
             .valueOf(e.getMessage()));
         throw new InitializationException(msg, e);
       }
@@ -766,7 +766,7 @@ public final class ClassLoaderProvider {
         try {
           method = theClass.getMethod("getInstance");
         } catch (Exception e) {
-          Message msg = ERR_CLASS_LOADER_CANNOT_FIND_GET_INSTANCE_METHOD.get(
+          LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_FIND_GET_INSTANCE_METHOD.get(
               className, String.valueOf(e.getMessage()));
           throw new InitializationException(msg, e);
         }
@@ -776,7 +776,7 @@ public final class ClassLoaderProvider {
         try {
           d = (AbstractManagedObjectDefinition<?, ?>) method.invoke(null);
         } catch (Exception e) {
-          Message msg = ERR_CLASS_LOADER_CANNOT_INVOKE_GET_INSTANCE_METHOD.get(
+          LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_INVOKE_GET_INSTANCE_METHOD.get(
               className, String.valueOf(e.getMessage()));
           throw new InitializationException(msg, e);
         }
@@ -789,7 +789,7 @@ public final class ClassLoaderProvider {
       try {
         d.initialize();
       } catch (Exception e) {
-        Message msg = ERR_CLASS_LOADER_CANNOT_INITIALIZE_DEFN.get(d.getName(),
+        LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_INITIALIZE_DEFN.get(d.getName(),
             d.getClass().getName(), String.valueOf(e.getMessage()));
         throw new InitializationException(msg, e);
       }
@@ -819,7 +819,7 @@ public final class ClassLoaderProvider {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_ADMIN_CANNOT_OPEN_JAR_FILE.get(
+      LocalizableMessage message = ERR_ADMIN_CANNOT_OPEN_JAR_FILE.get(
           jar.getName(), jar.getParent(), stackTraceToSingleLineString(e));
       throw new InitializationException(message);
     }

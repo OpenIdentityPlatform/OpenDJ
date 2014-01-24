@@ -31,7 +31,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -283,7 +283,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void cleanConfigEntries() throws Exception
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE, "ReplicationTestCase/Cleaning config entries"));
+    logError(LocalizableMessage.raw("ReplicationTestCase/Cleaning config entries"));
 
     for (DN dn : configEntriesToCleanup)
     {
@@ -300,7 +300,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void cleanRealEntries() throws Exception
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE, "ReplicationTestCase/Cleaning entries"));
+    logError(LocalizableMessage.raw("ReplicationTestCase/Cleaning entries"));
 
     for (DN dn : entriesToCleanup)
     {
@@ -317,8 +317,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   @AfterClass
   public void classCleanUp() throws Exception
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE,
-      " ##### Calling ReplicationTestCase.classCleanUp ##### "));
+    logError(LocalizableMessage.raw(" ##### Calling ReplicationTestCase.classCleanUp ##### "));
 
     removeReplicationServerDB();
 
@@ -345,8 +344,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void paranoiaCheck() throws Exception
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE,
-      "Performing paranoia check"));
+    logError(LocalizableMessage.raw("Performing paranoia check"));
 
     // Check for config entries for replication server
     assertNoConfigEntriesWithFilter("(objectclass=ds-cfg-replication-server)",
@@ -701,7 +699,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * result code is not SUCCESS
    */
   protected void addTask(Entry taskEntry, ResultCode expectedResult,
-      Message errorMessage) throws Exception
+      LocalizableMessage errorMessage) throws Exception
   {
     TRACER.debugInfo("AddTask/" + taskEntry);
 
@@ -718,7 +716,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       Assertions.assertThat(addOperation.getErrorMessage().toString())
           .startsWith(errorMessage.toString());
       TRACER.debugInfo("Create config task: <"
-          + errorMessage.getDescriptor().getId()
+          + errorMessage.resourceName() + "-" + errorMessage.ordinal()
           + addOperation.getErrorMessage() + ">");
     }
     else
@@ -733,7 +731,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   protected void waitTaskState(Entry taskEntry, TaskState expectedTaskState,
-      long maxWaitTimeInMillis, Message expectedMessage) throws Exception
+      long maxWaitTimeInMillis, LocalizableMessage expectedMessage) throws Exception
   {
     long startTime = System.currentTimeMillis();
 

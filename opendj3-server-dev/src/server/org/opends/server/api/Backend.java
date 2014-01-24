@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -149,7 +150,7 @@ public abstract class Backend
    */
   public boolean isConfigurationAcceptable(
                       Configuration configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by backend implementations
@@ -1084,7 +1085,7 @@ public abstract class Backend
           {
             if (subBaseDNs.length > 1)
             {
-              Message message =
+              LocalizableMessage message =
                       ERR_BACKEND_CANNOT_REMOVE_MULTIBASE_SUB_SUFFIX.
                               get(String.valueOf(subSuffixDN),
                                       String.valueOf(parentDN));

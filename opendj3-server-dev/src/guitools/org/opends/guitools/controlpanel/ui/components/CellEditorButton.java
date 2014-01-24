@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -31,7 +32,7 @@ import java.awt.event.KeyEvent;
 import javax.swing.JButton;
 import javax.swing.KeyStroke;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This is a simple extension of the JButton class used to be able to invoke
@@ -46,7 +47,7 @@ public class CellEditorButton extends JButton
    * The constructor of the cell editor button.
    * @param label the label of the button.
    */
-  public CellEditorButton(Message label)
+  public CellEditorButton(LocalizableMessage label)
   {
     super(label.toString());
   }

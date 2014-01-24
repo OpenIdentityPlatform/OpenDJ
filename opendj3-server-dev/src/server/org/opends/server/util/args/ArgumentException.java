@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.args;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -57,7 +58,7 @@ public class ArgumentException
    *
    * @param  message    The message that explains the problem that occurred.
    */
-  public ArgumentException(Message message)
+  public ArgumentException(LocalizableMessage message)
   {
     super(message);
   }
@@ -70,7 +71,7 @@ public class ArgumentException
    * @param  message    The message that explains the problem that occurred.
    * @param  cause      The exception that was caught to trigger this exception.
    */
-  public ArgumentException(Message message, Throwable cause)
+  public ArgumentException(LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
   }

@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.browser;
 
 import javax.naming.NamingException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The exception that is launched when we exceed the maximum number of hops
@@ -43,7 +44,7 @@ public class ReferralLimitExceededException extends NamingException
    * Constructor of the exception.
    * @param message the message associated with the exception.
    */
-  public ReferralLimitExceededException(Message message)
+  public ReferralLimitExceededException(LocalizableMessage message)
   {
     super(message.toString());
   }

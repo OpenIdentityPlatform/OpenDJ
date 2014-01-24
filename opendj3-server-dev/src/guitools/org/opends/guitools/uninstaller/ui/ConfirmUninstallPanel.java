@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.uninstaller.ui;
@@ -46,7 +46,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.AdminToolMessages.*;
 
 /**
@@ -124,7 +124,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
    * {@inheritDoc}
    */
   @Override
-  protected Message getTitle()
+  protected LocalizableMessage getTitle()
   {
     return INFO_CONFIRM_UNINSTALL_PANEL_TITLE.get();
   }
@@ -144,7 +144,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
         FieldName.REMOVE_LDIFS,
     };
 
-    Message[] labels = {
+    LocalizableMessage[] labels = {
         INFO_REMOVE_LIBRARIES_AND_TOOLS_LABEL.get(),
         INFO_REMOVE_DATABASES_LABEL.get(),
         INFO_REMOVE_LOGS_LABEL.get(),
@@ -153,7 +153,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
         INFO_REMOVE_LDIFS_LABEL.get()
     };
 
-    Message[] tooltips = {
+    LocalizableMessage[] tooltips = {
         INFO_REMOVE_LIBRARIES_AND_TOOLS_TOOLTIP.get(),
         INFO_REMOVE_DATABASES_TOOLTIP.get(),
         INFO_REMOVE_LOGS_TOOLTIP.get(),
@@ -188,7 +188,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
     p.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        Message.raw(Utils.getInstallPathFromClasspath()),
+        LocalizableMessage.raw(Utils.getInstallPathFromClasspath()),
         UIFactory.TextStyle.INSTRUCTIONS),
         gbc);
 
@@ -258,7 +258,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
    * {@inheritDoc}
    */
   @Override
-  protected Message getInstructions()
+  protected LocalizableMessage getInstructions()
   {
     return INFO_CONFIRM_UNINSTALL_PANEL_INSTRUCTIONS.get();
   }
@@ -302,7 +302,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
   }
 
   private JPanel createOutsidePathPanel(JCheckBox cb, Set<String> paths,
-      Message msg)
+      LocalizableMessage msg)
   {
     JPanel panel = new JPanel(new GridBagLayout());
     panel.setOpaque(false);

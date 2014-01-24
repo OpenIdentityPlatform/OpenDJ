@@ -36,10 +36,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.DataFormatException;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Severity;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.*;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
@@ -291,11 +289,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private int importErrorMessageId = -1;
   /**
-   * Message type for ERR_FULL_UPDATE_IMPORT_FRACTIONAL_BAD_REMOTE.
+   * LocalizableMessage type for ERR_FULL_UPDATE_IMPORT_FRACTIONAL_BAD_REMOTE.
    */
   public static final int IMPORT_ERROR_MESSAGE_BAD_REMOTE = 1;
   /**
-   * Message type for ERR_FULL_UPDATE_IMPORT_FRACTIONAL_REMOTE_IS_FRACTIONAL.
+   * LocalizableMessage type for ERR_FULL_UPDATE_IMPORT_FRACTIONAL_REMOTE_IS_FRACTIONAL.
    */
   public static final int IMPORT_ERROR_MESSAGE_REMOTE_IS_FRACTIONAL = 2;
 
@@ -1502,7 +1500,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // This is an error termination during the import
     // The error is stored and the import is ended by returning null
     final IEContext ieCtx = getImportExportContext();
-    Message msg = null;
+    LocalizableMessage msg = null;
     switch (importErrorMessageId)
     {
     case IMPORT_ERROR_MESSAGE_BAD_REMOTE:
@@ -1532,7 +1530,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (target == RoutableMsg.ALL_SERVERS && fractionalConfig.isFractional())
     {
-      Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_FULL_UPDATE_FRACTIONAL.get(
+      LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_FULL_UPDATE_FRACTIONAL.get(
             getBaseDNString(), Integer.toString(getServerId()));
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -1554,7 +1552,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (!deleteOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
-      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
+      LocalizableMessage msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
       return new SynchronizationProviderResult.StopProcessing(
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -1626,7 +1624,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (!addOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
-      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
+      LocalizableMessage msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
       return new SynchronizationProviderResult.StopProcessing(
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -1653,7 +1651,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          */
         if (fractionalFilterOperation(addOperation, false))
         {
-          Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
+          LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
             getBaseDNString(), addOperation.toString());
           return new SynchronizationProviderResult.StopProcessing(
             ResultCode.UNWILLING_TO_PERFORM, msg);
@@ -1756,7 +1754,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (!modifyDNOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
-      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
+      LocalizableMessage msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
       return new SynchronizationProviderResult.StopProcessing(
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -1781,7 +1779,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          */
         if (fractionalFilterOperation(modifyDNOperation, false))
         {
-          Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
+          LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
             getBaseDNString(), modifyDNOperation.toString());
           return new SynchronizationProviderResult.StopProcessing(
             ResultCode.UNWILLING_TO_PERFORM, msg);
@@ -1874,7 +1872,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (!modifyOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
-      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
+      LocalizableMessage msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
       return new SynchronizationProviderResult.StopProcessing(
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -1914,7 +1912,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           case FRACTIONAL_HAS_FRACTIONAL_FILTERED_ATTRIBUTES:
             // Some attributes not compliant with fractional configuration :
             // forbid the operation
-            Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
+            LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
               getBaseDNString(), modifyOperation.toString());
             return new SynchronizationProviderResult.StopProcessing(
               ResultCode.UNWILLING_TO_PERFORM, msg);
@@ -2449,7 +2447,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           // Continue with the next change but the servers could now become
           // inconsistent.
           // Let the repair tool know about this.
-          Message message = ERR_LOOP_REPLAYING_OPERATION.get(op.toString(),
+          LocalizableMessage message = ERR_LOOP_REPLAYING_OPERATION.get(op.toString(),
             op.getErrorMessage().toString());
           logError(message);
           numUnresolvedNamingConflicts.incrementAndGet();
@@ -2475,7 +2473,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * to be inconsistent.
            * Let the repair tool know about this.
            */
-          Message message = ERR_EXCEPTION_REPLAYING_OPERATION.get(
+          LocalizableMessage message = ERR_EXCEPTION_REPLAYING_OPERATION.get(
             stackTraceToSingleLineString(e), op.toString());
           logError(message);
           replayErrorMsg = message.toString();
@@ -2501,7 +2499,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   private String logDecodingOperationError(LDAPUpdateMsg msg, Exception e)
   {
-    Message message = ERR_EXCEPTION_DECODING_OPERATION.get(
+    LocalizableMessage message = ERR_EXCEPTION_DECODING_OPERATION.get(
         String.valueOf(msg) + " " + stackTraceToSingleLineString(e));
     logError(message);
     return message.toString();
@@ -3051,7 +3049,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       else
       {
         // log error and information for the REPAIR tool.
-        MessageBuilder mb = new MessageBuilder();
+        LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(ERR_CANNOT_RENAME_CONFLICT_ENTRY.get());
         mb.append(String.valueOf(entryDN));
         mb.append(" ");
@@ -3063,7 +3061,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     } catch (DirectoryException e)
     {
       // log error and information for the REPAIR tool.
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(ERR_EXCEPTION_RENAME_CONFLICT_ENTRY.get());
       mb.append(String.valueOf(entryDN));
       mb.append(" ");
@@ -3088,7 +3086,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   private void renameConflictEntry(Operation conflictOp, DN dn,
       String entryUUID)
   {
-    Message alertMessage = NOTE_UNRESOLVED_CONFLICT.get(dn.toString());
+    LocalizableMessage alertMessage = NOTE_UNRESOLVED_CONFLICT.get(dn.toString());
     DirectoryServer.sendAlertNotification(this,
         ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT, alertMessage);
 
@@ -3098,7 +3096,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     if (newOp.getResultCode() != ResultCode.SUCCESS)
     {
       // log information for the repair tool.
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(ERR_CANNOT_RENAME_CONFLICT_ENTRY.get());
       mb.append(String.valueOf(dn));
       mb.append(" ");
@@ -3137,7 +3135,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     if (newOp.getResultCode() != ResultCode.SUCCESS)
     {
       // Log information for the repair tool.
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(ERR_CANNOT_ADD_CONFLICT_ATTRIBUTE.get());
       mb.append(String.valueOf(op));
       mb.append(" ");
@@ -3147,7 +3145,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     // Generate an alert to let the administration know that some
     // conflict could not be solved.
-    Message alertMessage = NOTE_UNRESOLVED_CONFLICT.get(conflictDN.toString());
+    LocalizableMessage alertMessage = NOTE_UNRESOLVED_CONFLICT.get(conflictDN.toString());
     DirectoryServer.sendAlertNotification(this,
         ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT, alertMessage);
   }
@@ -3167,7 +3165,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     // Generate an alert to let the administrator know that some
     // conflict could not be solved.
-    Message alertMessage = NOTE_UNRESOLVED_CONFLICT.get(normalizedDN);
+    LocalizableMessage alertMessage = NOTE_UNRESOLVED_CONFLICT.get(normalizedDN);
     DirectoryServer.sendAlertNotification(this,
         ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT, alertMessage);
 
@@ -3555,7 +3553,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
+        LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
         throw new DirectoryException(ResultCode.OTHER, message);
@@ -3563,7 +3561,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
+      LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
           backend.getBackendID(), stackTraceToSingleLineString(e));
       logError(message);
       throw new DirectoryException(ResultCode.OTHER, message);
@@ -3626,7 +3624,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       if (ros == null ||
           ros.getNumExportedEntries() < entryCount)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
         logError(message);
         throw new DirectoryException(ResultCode.OTHER, message);
@@ -3634,7 +3632,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch (Exception e)
     {
-      Message message = ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(
+      LocalizableMessage message = ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(
           stackTraceToSingleLineString(e));
       logError(message);
       throw new DirectoryException(ResultCode.OTHER, message);
@@ -3657,7 +3655,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
+          LocalizableMessage message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
               backend.getBackendID(), String.valueOf(failureReason));
           logError(message);
           throw new DirectoryException(ResultCode.OTHER, message);
@@ -3665,7 +3663,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       catch (Exception e)
       {
-        Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
+        LocalizableMessage message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
             backend.getBackendID(), stackTraceToSingleLineString(e));
         logError(message);
         throw new DirectoryException(ResultCode.OTHER, message);
@@ -3695,7 +3693,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     StringBuilder failureReason = new StringBuilder();
     if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
     {
-      Message message = ERR_INIT_CANNOT_LOCK_BACKEND.get(
+      LocalizableMessage message = ERR_INIT_CANNOT_LOCK_BACKEND.get(
                           backend.getBackendID(),
                           String.valueOf(failureReason));
       logError(message);
@@ -3810,7 +3808,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // Release lock
     if (!LockFileManager.releaseLock(lockFile, failureReason))
     {
-      Message message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
+      LocalizableMessage message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
           backend.getBackendID(), String.valueOf(failureReason));
       logError(message);
       throw new DirectoryException(ResultCode.OTHER, message);
@@ -3838,7 +3836,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       if (!(provider instanceof MultimasterReplication))
       {
-        Message message = ERR_INVALID_PROVIDER.get();
+        LocalizableMessage message = ERR_INVALID_PROVIDER.get();
         throw new DirectoryException(ResultCode.OTHER, message);
       }
 
@@ -3852,7 +3850,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       if (replicationDomain != null)
       {
         // Should never happen
-        Message message = ERR_MULTIPLE_MATCHING_DOMAIN.get();
+        LocalizableMessage message = ERR_MULTIPLE_MATCHING_DOMAIN.get();
         throw new DirectoryException(ResultCode.OTHER, message);
       }
       replicationDomain = domain;
@@ -3917,7 +3915,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @return true if the configuration is acceptable, false other wise.
    */
   public static boolean isConfigurationAcceptable(
-      ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
+      ReplicationDomainCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     // Check that there is not already a domain with the same DN
     final DN dn = configuration.getBaseDN();
@@ -3977,7 +3975,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
-         ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
+         ReplicationDomainCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     // Check that a import/export is not in progress
     if (ieRunning())
@@ -4420,7 +4418,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     Backend backend = getBackend();
     if (!backend.supportsLDIFExport())
     {
-      Message msg = ERR_INIT_EXPORT_NOT_SUPPORTED.get(backend.getBackendID());
+      LocalizableMessage msg = ERR_INIT_EXPORT_NOT_SUPPORTED.get(backend.getBackendID());
       logError(msg);
       throw new DirectoryException(ResultCode.OTHER, msg);
     }
@@ -4539,13 +4537,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch (Exception e)
     {
-      Message message = ERR_INVALID_IMPORT_SOURCE.get(
+      LocalizableMessage message = ERR_INVALID_IMPORT_SOURCE.get(
           getBaseDNString(), Integer.toString(getServerId()),
           sourceString, stackTraceToSingleLineString(e));
       throw new DirectoryException(ResultCode.OTHER, message, e);
     }
 
-    Message message = ERR_INVALID_IMPORT_SOURCE.get(getBaseDNString(),
+    LocalizableMessage message = ERR_INVALID_IMPORT_SOURCE.get(getBaseDNString(),
         Integer.toString(getServerId()), Integer.toString(source), "");
     throw new DirectoryException(ResultCode.OTHER, message);
   }
@@ -5165,7 +5163,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        if (maxTimeToRun < 0)
        {
         throw new DirectoryException(ResultCode.ADMIN_LIMIT_EXCEEDED,
-            Message.raw(Category.SYNC, Severity.NOTICE, " end date reached"));
+            LocalizableMessage.raw(" end date reached"));
        }
 
        EntryHistorical entryHist = EntryHistorical.newInstanceFromEntry(entry);
@@ -5187,7 +5185,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        if (newOp.getResultCode() != ResultCode.SUCCESS)
        {
          // Log information for the repair tool.
-         MessageBuilder mb = new MessageBuilder();
+         LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
          mb.append(ERR_CANNOT_ADD_CONFLICT_ATTRIBUTE.get());
          mb.append(String.valueOf(newOp));
          mb.append(" ");

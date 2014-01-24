@@ -37,7 +37,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.meta.AttributeValuePasswordValidatorCfgDefn;
 import org.opends.server.admin.std.server.AttributeValuePasswordValidatorCfg;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -449,7 +449,7 @@ public class AttributeValuePasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.valueOf("uid=test.user,o=test"), mods);
 
-    MessageBuilder invalidReason = new MessageBuilder();
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertEquals(validator.passwordIsAcceptable(pwOS,
                               new HashSet<ByteString>(0), modifyOperation,
                               userEntry, invalidReason),

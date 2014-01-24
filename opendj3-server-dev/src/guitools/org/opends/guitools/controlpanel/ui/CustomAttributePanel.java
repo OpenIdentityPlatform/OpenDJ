@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -84,8 +84,8 @@ import org.opends.guitools.controlpanel.ui.renderer.
  SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -112,8 +112,8 @@ public class CustomAttributePanel extends SchemaElementPanel
   private String attrName;
   private ScrollPaneBorderListener scrollListener;
 
-  private TitlePanel titlePanel = new TitlePanel(Message.EMPTY,
-      Message.EMPTY);
+  private TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY,
+      LocalizableMessage.EMPTY);
   private JLabel lName = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_ATTRIBUTE_NAME_LABEL.get());
   private JLabel lSuperior = Utilities.createPrimaryLabel(
@@ -173,8 +173,8 @@ public class CustomAttributePanel extends SchemaElementPanel
 
   private Set<String> lastAliases = new LinkedHashSet<String>();
 
-  private Message NO_PARENT = INFO_CTRL_PANEL_NO_PARENT_FOR_ATTRIBUTE.get();
-  private Message NO_MATCHING_RULE =
+  private LocalizableMessage NO_PARENT = INFO_CTRL_PANEL_NO_PARENT_FOR_ATTRIBUTE.get();
+  private LocalizableMessage NO_MATCHING_RULE =
     INFO_CTRL_PANEL_NO_MATCHING_RULE_FOR_ATTRIBUTE.get();
 
   private Schema schema;
@@ -194,7 +194,7 @@ public class CustomAttributePanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_CUSTOM_ATTRIBUTE_TITLE.get();
   }
@@ -255,7 +255,7 @@ public class CustomAttributePanel extends SchemaElementPanel
        */
       public void actionPerformed(ActionEvent ev)
       {
-        ArrayList<Message> errors = new ArrayList<Message>();
+        ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
         saveChanges(false, errors);
       }
     });
@@ -291,7 +291,7 @@ public class CustomAttributePanel extends SchemaElementPanel
 
     JComboBox[] comboBoxes = {parent, syntax, approximate,
         equality, ordering, substring};
-    Message[] defaultValues = {NO_PARENT, Message.EMPTY, NO_MATCHING_RULE,
+    LocalizableMessage[] defaultValues = {NO_PARENT, LocalizableMessage.EMPTY, NO_MATCHING_RULE,
         NO_MATCHING_RULE, NO_MATCHING_RULE, NO_MATCHING_RULE
     };
     SchemaElementComboBoxCellRenderer renderer = new
@@ -403,7 +403,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     };
     syntax.addItemListener(itemListener);
 
-    Message[] msgs = new Message[] {
+    LocalizableMessage[] msgs = new LocalizableMessage[] {
         INFO_CTRL_PANEL_REQUIRED_BY_LABEL.get(),
         INFO_CTRL_PANEL_ALLOWED_BY_LABEL.get()
         };
@@ -555,7 +555,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     result = unsavedChangesDlg.getResult();
     if (result == UnsavedChangesDialog.Result.SAVE)
     {
-      ArrayList<Message> errors = new ArrayList<Message>();
+      ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
       saveChanges(true, errors);
       if (!errors.isEmpty())
       {
@@ -586,7 +586,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     {
       n = "";
     }
-    titlePanel.setDetails(Message.raw(n));
+    titlePanel.setDetails(LocalizableMessage.raw(n));
     name.setText(n);
 
     oid.setText(attr.getOID());
@@ -876,7 +876,7 @@ public class CustomAttributePanel extends SchemaElementPanel
 
   private void deleteAttribute()
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     Schema schema = getInfo().getServerDescriptor().getSchema();
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
@@ -923,7 +923,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     }
     if (errors.isEmpty())
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
 
       if (!childAttributes.isEmpty())
       {
@@ -939,7 +939,7 @@ public class CustomAttributePanel extends SchemaElementPanel
             Utilities.getStringFromCollection(dependentClasses, ", ")));
         mb.append("<br>");
       }
-      Message confirmationMessage =
+      LocalizableMessage confirmationMessage =
         INFO_CTRL_PANEL_CONFIRMATION_DELETE_ATTRIBUTE_DETAILS.get(
             attribute.getNameOrOID());
       mb.append(confirmationMessage);
@@ -964,7 +964,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     }
   }
 
-  private void saveChanges(boolean modal, ArrayList<Message> errors)
+  private void saveChanges(boolean modal, ArrayList<LocalizableMessage> errors)
   {
     // Check if the aliases or the name have changed
     for (JLabel label : labels)
@@ -972,7 +972,7 @@ public class CustomAttributePanel extends SchemaElementPanel
       setPrimaryValid(label);
     }
     String n = getAttributeName();
-    MessageBuilder err = new MessageBuilder();
+    LocalizableMessageBuilder err = new LocalizableMessageBuilder();
     if (n.length() == 0)
     {
       errors.add(ERR_CTRL_PANEL_ATTRIBUTE_NAME_REQUIRED.get());
@@ -984,11 +984,11 @@ public class CustomAttributePanel extends SchemaElementPanel
       {
         errors.add(ERR_CTRL_PANEL_INVALID_ATTRIBUTE_NAME.get(err.toString()));
         setPrimaryInvalid(lName);
-        err = new MessageBuilder();
+        err = new LocalizableMessageBuilder();
       }
       else
       {
-        Message elementType = NewAttributePanel.getSchemaElementType(n, schema);
+        LocalizableMessage elementType = NewAttributePanel.getSchemaElementType(n, schema);
         if (elementType != null)
         {
           errors.add(ERR_CTRL_PANEL_ATTRIBUTE_NAME_ALREADY_IN_USE.get(n,
@@ -1004,11 +1004,11 @@ public class CustomAttributePanel extends SchemaElementPanel
       {
         errors.add(ERR_CTRL_PANEL_OID_NOT_VALID.get(err.toString()));
         setPrimaryInvalid(lOID);
-        err = new MessageBuilder();
+        err = new LocalizableMessageBuilder();
       }
       else
       {
-        Message elementType = NewAttributePanel.getSchemaElementType(n, schema);
+        LocalizableMessage elementType = NewAttributePanel.getSchemaElementType(n, schema);
         if (elementType != null)
         {
           errors.add(ERR_CTRL_PANEL_OID_ALREADY_IN_USE.get(n,
@@ -1043,7 +1043,7 @@ public class CustomAttributePanel extends SchemaElementPanel
           }
           if (notPreviouslyDefined)
           {
-            Message elementType =
+            LocalizableMessage elementType =
               NewAttributePanel.getSchemaElementType(alias, schema);
             if (elementType != null)
             {

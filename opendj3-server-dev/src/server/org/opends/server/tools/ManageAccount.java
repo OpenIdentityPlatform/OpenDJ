@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
@@ -592,7 +592,7 @@ public class ManageAccount
       }
       catch (Exception e)
       {
-        Message message = ERR_PWPSTATE_CANNOT_SEND_REQUEST_EXTOP.get(
+        LocalizableMessage message = ERR_PWPSTATE_CANNOT_SEND_REQUEST_EXTOP.get(
                 getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
@@ -605,7 +605,7 @@ public class ManageAccount
         LDAPMessage responseMessage = ldapReader.readMessage();
         if (responseMessage == null)
         {
-          Message message =
+          LocalizableMessage message =
                   ERR_PWPSTATE_CONNECTION_CLOSED_READING_RESPONSE.get();
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
@@ -617,7 +617,7 @@ public class ManageAccount
         int resultCode = extendedResponse.getResultCode();
         if (resultCode != LDAPResultCode.SUCCESS)
         {
-          Message message =
+          LocalizableMessage message =
                ERR_PWPSTATE_REQUEST_FAILED.get(resultCode,
                           LDAPResultCode.toString(resultCode),
                           String.valueOf(extendedResponse.getErrorMessage()));
@@ -656,7 +656,7 @@ public class ManageAccount
           }
           catch (Exception e)
           {
-            Message message = ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_OP.get(
+            LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_OP.get(
                 getExceptionMessage(e));
             err.println(wrapText(message, MAX_LINE_WIDTH));
             continue;
@@ -665,7 +665,7 @@ public class ManageAccount
           switch (opType)
           {
             case OP_GET_PASSWORD_POLICY_DN:
-              Message message = INFO_PWPSTATE_LABEL_PASSWORD_POLICY_DN.get();
+              LocalizableMessage message = INFO_PWPSTATE_LABEL_PASSWORD_POLICY_DN.get();
               printLabelAndValues(message, opValues);
               break;
 
@@ -787,7 +787,7 @@ public class ManageAccount
       }
       catch (Exception e)
       {
-        Message message = ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_MESSAGE.get(
+        LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_MESSAGE.get(
             getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
@@ -977,7 +977,7 @@ public class ManageAccount
       booleanValues.add(INFO_MULTICHOICE_FALSE_VALUE.get().toString());
 
 
-      Message msg = INFO_DESCRIPTION_PWPSTATE_GET_ALL.get();
+      LocalizableMessage msg = INFO_DESCRIPTION_PWPSTATE_GET_ALL.get();
       new SubCommand(argParser, SC_GET_ALL, msg);
 
       msg = INFO_DESCRIPTION_PWPSTATE_GET_PASSWORD_POLICY_DN.get();
@@ -1198,7 +1198,7 @@ public class ManageAccount
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
@@ -1210,7 +1210,7 @@ public class ManageAccount
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -1245,7 +1245,7 @@ public class ManageAccount
     // return an error.
     if (bindPW.isPresent() && bindPWFile.isPresent())
     {
-      Message message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+      LocalizableMessage message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
               bindPW.getLongIdentifier(),
               bindPWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -1256,7 +1256,7 @@ public class ManageAccount
     // then return an error.
     if (keyStorePW.isPresent() && keyStorePWFile.isPresent())
     {
-      Message message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+      LocalizableMessage message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
               keyStorePW.getLongIdentifier(),
               keyStorePWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -1268,7 +1268,7 @@ public class ManageAccount
     // provided, then return an error.
     if (trustStorePW.isPresent() && trustStorePWFile.isPresent())
     {
-      Message message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+      LocalizableMessage message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
               trustStorePW.getLongIdentifier(),
               trustStorePWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -1294,7 +1294,7 @@ public class ManageAccount
 
       connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
     } catch (SSLConnectionException sce) {
-      Message message = ERR_PWPSTATE_CANNOT_INITIALIZE_SSL.get(
+      LocalizableMessage message = ERR_PWPSTATE_CANNOT_INITIALIZE_SSL.get(
         sce.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
@@ -1313,7 +1313,7 @@ public class ManageAccount
         int equalPos = s.indexOf('=');
         if (equalPos <= 0)
         {
-          Message message = ERR_PWPSTATE_CANNOT_PARSE_SASL_OPTION.get(s);
+          LocalizableMessage message = ERR_PWPSTATE_CANNOT_PARSE_SASL_OPTION.get(s);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
@@ -1334,7 +1334,7 @@ public class ManageAccount
 
       if (mechanism == null)
       {
-        Message message = ERR_PWPSTATE_NO_SASL_MECHANISM.get();
+        LocalizableMessage message = ERR_PWPSTATE_NO_SASL_MECHANISM.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
@@ -1361,7 +1361,7 @@ public class ManageAccount
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_PWPSTATE_CANNOT_DETERMINE_PORT.get(
+      LocalizableMessage message = ERR_PWPSTATE_CANNOT_DETERMINE_PORT.get(
               port.getLongIdentifier(),
               ae.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -1369,7 +1369,7 @@ public class ManageAccount
     }
     catch (LDAPConnectionException lce)
     {
-      Message message;
+      LocalizableMessage message;
       if ((lce.getCause() != null) && (lce.getCause().getCause() != null) &&
         lce.getCause().getCause() instanceof SSLException) {
         message = ERR_PWPSTATE_CANNOT_CONNECT_SSL.get(host.getValue(),
@@ -1404,7 +1404,7 @@ public class ManageAccount
     SubCommand subCommand = argParser.getSubCommand();
     if (subCommand == null)
     {
-      Message message = ERR_PWPSTATE_NO_SUBCOMMAND.get();
+      LocalizableMessage message = ERR_PWPSTATE_NO_SUBCOMMAND.get();
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
@@ -1439,14 +1439,14 @@ public class ManageAccount
         }
         else
         {
-          Message message = ERR_PWPSTATE_INVALID_BOOLEAN_VALUE.get(valueStr);
+          LocalizableMessage message = ERR_PWPSTATE_INVALID_BOOLEAN_VALUE.get(valueStr);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
       }
       else
       {
-        Message message = ERR_PWPSTATE_NO_BOOLEAN_VALUE.get();
+        LocalizableMessage message = ERR_PWPSTATE_NO_BOOLEAN_VALUE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
@@ -1626,14 +1626,14 @@ public class ManageAccount
         }
         else
         {
-          Message message = ERR_PWPSTATE_INVALID_BOOLEAN_VALUE.get(valueStr);
+          LocalizableMessage message = ERR_PWPSTATE_INVALID_BOOLEAN_VALUE.get(valueStr);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
       }
       else
       {
-        Message message = ERR_PWPSTATE_NO_BOOLEAN_VALUE.get();
+        LocalizableMessage message = ERR_PWPSTATE_NO_BOOLEAN_VALUE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
@@ -1726,7 +1726,7 @@ public class ManageAccount
     }
     else
     {
-      Message message = ERR_PWPSTATE_INVALID_SUBCOMMAND.get(subCommandName);
+      LocalizableMessage message = ERR_PWPSTATE_INVALID_SUBCOMMAND.get(subCommandName);
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
@@ -1744,7 +1744,7 @@ public class ManageAccount
    * @param  msg     The message ID for the message to use as the label.
    * @param  values  The set of values for the associated state variable.
    */
-  private static void printLabelAndValues(Message msg, ArrayList<String> values)
+  private static void printLabelAndValues(LocalizableMessage msg, ArrayList<String> values)
   {
     String label = String.valueOf(msg);
     if ((values == null) || values.isEmpty())

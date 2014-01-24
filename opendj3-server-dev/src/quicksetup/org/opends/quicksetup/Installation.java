@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.quicksetup;
 
@@ -36,7 +36,7 @@ import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.SetupUtils;
 
@@ -315,7 +315,7 @@ public final class Installation
   static public void validateRootDirectory(File rootDirectory)
       throws IllegalArgumentException
   {
-    Message failureReason = null;
+    LocalizableMessage failureReason = null;
     if (rootDirectory == null)
     {
       failureReason = INFO_ERROR_INSTALL_ROOT_DIR_NULL.get();

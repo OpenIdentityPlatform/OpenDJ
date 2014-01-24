@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -149,7 +150,7 @@ public class SASLConfigManager implements
    */
   public boolean isConfigurationAddAcceptable(
                       SASLMechanismHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -181,7 +182,7 @@ public class SASLConfigManager implements
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     configuration.addChangeListener(this);
 
@@ -224,7 +225,7 @@ public class SASLConfigManager implements
    */
   public boolean isConfigurationDeleteAcceptable(
                       SASLMechanismHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // FIXME -- We should try to perform some check to determine whether the
     // SASL mechanism handler is in use.
@@ -241,7 +242,7 @@ public class SASLConfigManager implements
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
     SASLMechanismHandler handler = handlers.remove(configuration.dn());
     if (handler != null)
@@ -259,7 +260,7 @@ public class SASLConfigManager implements
    */
   public boolean isConfigurationChangeAcceptable(
                       SASLMechanismHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -291,7 +292,7 @@ public class SASLConfigManager implements
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the existing handler if it's already enabled.
@@ -402,7 +403,7 @@ public class SASLConfigManager implements
                                           SASLMechanismHandlerCfg.class,
                                           List.class);
 
-        List<Message> unacceptableReasons = new ArrayList<Message>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         Boolean acceptable = (Boolean) method.invoke(handler, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -410,7 +411,7 @@ public class SASLConfigManager implements
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<Message> iterator = unacceptableReasons.iterator();
+            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -419,7 +420,7 @@ public class SASLConfigManager implements
             }
           }
 
-          Message message = ERR_CONFIG_SASL_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_SASL_CONFIG_NOT_ACCEPTABLE.get(
               String.valueOf(configuration.dn()), buffer.toString());
           throw new InitializationException(message);
         }
@@ -429,7 +430,7 @@ public class SASLConfigManager implements
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_SASL_INITIALIZATION_FAILED.
+      LocalizableMessage message = ERR_CONFIG_SASL_INITIALIZATION_FAILED.
           get(className, String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);

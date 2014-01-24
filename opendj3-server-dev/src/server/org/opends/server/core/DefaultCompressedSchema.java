@@ -42,7 +42,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1;
@@ -305,7 +305,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        final Message message = ERR_COMPRESSEDSCHEMA_CANNOT_WRITE_UPDATED_DATA
+        final LocalizableMessage message = ERR_COMPRESSEDSCHEMA_CANNOT_WRITE_UPDATED_DATA
             .get(stackTraceToSingleLineString(e));
         throw new DirectoryException(
             DirectoryServer.getServerErrorResultCode(), message, e);

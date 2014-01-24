@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -44,7 +44,7 @@ import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.ProgressDescriptor;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 /**
  * This class represents the dialog used by quicksetup applications.
  *
@@ -194,7 +194,7 @@ public class QuickSetupDialog
    * @param title
    *          the title for the dialog.
    */
-  public void displayError(Message msg, Message title)
+  public void displayError(LocalizableMessage msg, LocalizableMessage title)
   {
     Utilities.displayError(getFrame(), msg, title);
   }
@@ -209,7 +209,7 @@ public class QuickSetupDialog
    * @return <CODE>true</CODE> if the user confirms the message, or
    * <CODE>false</CODE> if not.
    */
-  public boolean displayConfirmation(Message msg, Message title)
+  public boolean displayConfirmation(LocalizableMessage msg, LocalizableMessage title)
   {
     return Utilities.displayConfirmation(getFrame(), msg, title);
   }

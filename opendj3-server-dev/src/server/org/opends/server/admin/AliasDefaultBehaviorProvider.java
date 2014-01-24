@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.Locale;
 
@@ -88,7 +89,7 @@ public final class AliasDefaultBehaviorProvider<T> extends
    * @return Returns the synopsis of this alias default behavior in
    *         the default locale.
    */
-  public final Message getSynopsis() {
+  public final LocalizableMessage getSynopsis() {
     return getSynopsis(Locale.getDefault());
   }
 
@@ -103,7 +104,7 @@ public final class AliasDefaultBehaviorProvider<T> extends
    * @return Returns the synopsis of this alias default behavior in
    *         the specified locale.
    */
-  public final Message getSynopsis(Locale locale) {
+  public final LocalizableMessage getSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + propertyName

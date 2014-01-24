@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -31,7 +32,7 @@ import java.util.List;
 
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -103,7 +104,7 @@ public abstract class MatchingRuleFactory<T extends MatchingRuleCfg>
    */
   public  boolean isConfigurationAcceptable(
                       T configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by matching rule

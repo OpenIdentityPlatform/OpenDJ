@@ -29,7 +29,7 @@ package org.opends.server.backends.jeb;
 
 import com.sleepycat.je.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -507,7 +507,7 @@ public class DN2URI extends DatabaseContainer
     }
 
     // Throw a directory referral exception containing the URIs.
-    Message msg =
+    LocalizableMessage msg =
         NOTE_JEB_REFERRAL_RESULT_MESSAGE.get(String.valueOf(referralDN));
     throw new DirectoryException(
             ResultCode.REFERRAL, msg, referralDN, URIList, null);

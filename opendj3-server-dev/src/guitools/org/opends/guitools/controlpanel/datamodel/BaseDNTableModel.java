@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock, AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -37,7 +37,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The table model used to display all the base DNs.
@@ -637,7 +637,7 @@ implements Comparator<BaseDNDescriptor>
    */
   private String getStringForReplState(BaseDNDescriptor rep)
   {
-    Message s;
+    LocalizableMessage s;
     if (rep.getType() == BaseDNDescriptor.Type.REPLICATED)
     {
       s = INFO_BASEDN_REPLICATED_LABEL.get();

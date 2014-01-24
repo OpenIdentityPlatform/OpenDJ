@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -188,7 +188,7 @@ public interface BindOperation extends Operation
    * @return  A human-readable message providing the reason that the
    *          authentication failed, or <CODE>null</CODE> if none is available.
    */
-  public abstract Message getAuthFailureReason();
+  public abstract LocalizableMessage getAuthFailureReason();
 
   /**
    * Specifies the reason that the authentication failed.
@@ -196,7 +196,7 @@ public interface BindOperation extends Operation
    * @param  message providing the reason that the
    *                 authentication failed.
    */
-  public abstract void setAuthFailureReason(Message message);
+  public abstract void setAuthFailureReason(LocalizableMessage message);
 
   /**
    * Retrieves the user entry DN for this bind operation.  It will only be

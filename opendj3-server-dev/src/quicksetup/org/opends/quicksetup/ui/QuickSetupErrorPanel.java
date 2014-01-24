@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
@@ -37,7 +38,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.event.ButtonActionListener;
@@ -78,7 +79,7 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
    * @param msg the error message to display formatted in HTML.
    */
   public QuickSetupErrorPanel(GuiApplication application,
-                              Message msg)
+                              LocalizableMessage msg)
   {
     super(application);
     JPanel p1 = new JPanel(new GridBagLayout());

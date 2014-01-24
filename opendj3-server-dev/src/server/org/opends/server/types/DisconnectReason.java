@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -190,7 +190,7 @@ public enum DisconnectReason
 
 
   // The disconnect reason.
-  private Message message;
+  private LocalizableMessage message;
 
 
   /**
@@ -199,7 +199,7 @@ public enum DisconnectReason
    *
    * @param  message  The message for this disconnect reason.
    */
-  private DisconnectReason(Message message)
+  private DisconnectReason(LocalizableMessage message)
   {
     this.message = message;
   }
@@ -211,7 +211,7 @@ public enum DisconnectReason
    *
    * @return  The human-readable disconnect reason.
    */
-  public Message getClosureMessage()
+  public LocalizableMessage getClosureMessage()
   {
     return message;
   }

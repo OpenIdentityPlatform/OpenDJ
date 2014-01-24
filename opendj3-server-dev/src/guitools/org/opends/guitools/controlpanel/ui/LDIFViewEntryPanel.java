@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -47,7 +47,7 @@ import javax.swing.tree.TreePath;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
@@ -106,7 +106,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     gbc.gridy ++;
     gbc.insets.top = 10;
 
-    editableAttributes = Utilities.createTextArea(Message.EMPTY, 20, 30);
+    editableAttributes = Utilities.createTextArea(LocalizableMessage.EMPTY, 20, 30);
     editableAttributes.getDocument().addDocumentListener(new DocumentListener()
     {
       @Override
@@ -141,7 +141,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     gbc.gridy ++;
     add(lReadOnly, gbc);
     gbc.insets.top = 5;
-    readOnlyAttributes = Utilities.createNonEditableTextArea(Message.EMPTY, 10,
+    readOnlyAttributes = Utilities.createNonEditableTextArea(LocalizableMessage.EMPTY, 10,
         30);
     gbc.weightx = 1.0;
     gbc.weighty = 0.4;

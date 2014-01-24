@@ -31,7 +31,7 @@ package org.opends.dsml.protocol;
 import java.io.IOException;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -115,7 +115,7 @@ public class DSMLModifyDNOperation
     ModifyDNResponseProtocolOp modDNOp =
          responseMessage.getModifyDNResponseProtocolOp();
     int resultCode = modDNOp.getResultCode();
-    Message errorMessage = modDNOp.getErrorMessage();
+    LocalizableMessage errorMessage = modDNOp.getErrorMessage();
 
     modDNResponse.setErrorMessage(
             errorMessage != null ? errorMessage.toString() : null);

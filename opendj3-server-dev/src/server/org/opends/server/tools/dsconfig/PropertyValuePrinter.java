@@ -22,14 +22,15 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
 
 
 import java.text.NumberFormat;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import static org.opends.messages.DSConfigMessages.*;
 
@@ -53,7 +54,7 @@ final class PropertyValuePrinter {
    * Perform property type specific print formatting.
    */
   private static class MyPropertyValueVisitor extends
-      PropertyValueVisitor<Message, Void> {
+      PropertyValueVisitor<LocalizableMessage, Void> {
 
     // The requested size unit (null if the property's unit should be
     // used).
@@ -95,7 +96,7 @@ final class PropertyValuePrinter {
      * {@inheritDoc}
      */
     @Override
-    public Message visitBoolean(BooleanPropertyDefinition pd, Boolean v,
+    public LocalizableMessage visitBoolean(BooleanPropertyDefinition pd, Boolean v,
         Void p) {
       if (v == false) {
         return INFO_VALUE_FALSE.get();
@@ -110,13 +111,13 @@ final class PropertyValuePrinter {
      * {@inheritDoc}
      */
     @Override
-    public Message visitDuration(DurationPropertyDefinition pd, Long v,
+    public LocalizableMessage visitDuration(DurationPropertyDefinition pd, Long v,
         Void p) {
       if (pd.getUpperLimit() == null && (v < 0 || v == Long.MAX_VALUE)) {
         return INFO_VALUE_UNLIMITED.get();
       }
 
-      MessageBuilder builder = new MessageBuilder();
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
       long ms = pd.getBaseUnit().toMilliSeconds(v);
 
       if (timeUnit == null && !isScriptFriendly && ms != 0) {
@@ -144,7 +145,7 @@ final class PropertyValuePrinter {
      * {@inheritDoc}
      */
     @Override
-    public Message visitSize(SizePropertyDefinition pd, Long v, Void p) {
+    public LocalizableMessage visitSize(SizePropertyDefinition pd, Long v, Void p) {
       if (pd.isAllowUnlimited() && v < 0) {
         return INFO_VALUE_UNLIMITED.get();
       }
@@ -159,7 +160,7 @@ final class PropertyValuePrinter {
         }
       }
 
-      MessageBuilder builder = new MessageBuilder();
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
       builder.append(numberFormat.format(unit.fromBytes(v)));
       builder.append(' ');
       builder.append(unit.getShortName());
@@ -173,18 +174,18 @@ final class PropertyValuePrinter {
      * {@inheritDoc}
      */
     @Override
-    public <T> Message visitUnknown(PropertyDefinition<T> pd, T v, Void p) {
+    public <T> LocalizableMessage visitUnknown(PropertyDefinition<T> pd, T v, Void p) {
       // For all other property definition types the default encoding
       // will do.
       String s = pd.encodeValue(v);
       if (isScriptFriendly) {
-        return Message.raw("%s", s);
+        return LocalizableMessage.raw("%s", s);
       } else if (s.trim().length() == 0 || s.contains(",")) {
         // Quote empty strings or strings containing commas
         // non-scripting mode.
-        return Message.raw("\"%s\"", s);
+        return LocalizableMessage.raw("\"%s\"", s);
       } else {
-        return Message.raw("%s", s);
+        return LocalizableMessage.raw("%s", s);
       }
     }
 
@@ -230,7 +231,7 @@ final class PropertyValuePrinter {
    *         encoded according to the rules of this property value
    *         printer.
    */
-  public <T> Message print(PropertyDefinition<T> pd, T value) {
+  public <T> LocalizableMessage print(PropertyDefinition<T> pd, T value) {
     return pd.accept(pimpl, value, null);
   }
 }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -32,7 +33,7 @@ import static org.opends.messages.ProtocolMessages.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -84,7 +85,7 @@ public enum PasswordPolicyWarningType
   private final byte type;
 
   // The message ID for the description of this password policy error type.
-  private final Message description;
+  private final LocalizableMessage description;
 
 
 
@@ -97,7 +98,7 @@ public enum PasswordPolicyWarningType
    * @param  description    The message for the description of this password
    *                        policy error type.
    */
-  private PasswordPolicyWarningType(byte type, Message description)
+  private PasswordPolicyWarningType(byte type, LocalizableMessage description)
   {
     this.type          = type;
     this.description   = description;
@@ -143,7 +144,7 @@ public enum PasswordPolicyWarningType
   @Override
   public String toString()
   {
-    return Message.toString(description);
+    return description == null ? null : description.toString();
   }
 }
 

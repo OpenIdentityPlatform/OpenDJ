@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -66,7 +66,7 @@ public abstract class IdentifiedException
    * @param  message  The message that explains the problem that
    *                  occurred.
    */
-  protected IdentifiedException(Message message)
+  protected IdentifiedException(LocalizableMessage message)
   {
     super(message);
   }
@@ -94,7 +94,7 @@ public abstract class IdentifiedException
    * @param  cause    The underlying cause that triggered this
    *                  exception.
    */
-  protected IdentifiedException(Message message, Throwable cause)
+  protected IdentifiedException(LocalizableMessage message, Throwable cause)
   {
     super(message, cause);
   }

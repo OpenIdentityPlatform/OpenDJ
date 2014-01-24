@@ -52,7 +52,7 @@ import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
@@ -91,7 +91,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_VLV_INDEX_TITLE.get();
   }
@@ -133,7 +133,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
    */
   public void okClicked()
   {
-    List<Message> errors = checkErrors(true);
+    List<LocalizableMessage> errors = checkErrors(true);
     if (errors.isEmpty())
     {
       ProgressDialog dlg = new ProgressDialog(
@@ -230,7 +230,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
-    public Message getTaskDescription()
+    public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_NEW_VLV_INDEX_TASK_DESCRIPTION.get(
           indexName, backendID);
@@ -240,7 +240,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
      * {@inheritDoc}
      */
     public boolean canLaunch(Task taskToBeLaunched,
-        Collection<Message> incompatibilityReasons)
+        Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))

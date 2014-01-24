@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -30,7 +31,7 @@ package org.opends.server.admin;
 
 import static org.opends.messages.AdminMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -74,9 +75,9 @@ public class DefinitionDecodingException extends DecodingException {
 
 
   // Create the message.
-  private static Message createMessage(AbstractManagedObjectDefinition<?, ?> d,
+  private static LocalizableMessage createMessage(AbstractManagedObjectDefinition<?, ?> d,
       Reason reason) {
-    Message ufn = d.getUserFriendlyName();
+    LocalizableMessage ufn = d.getUserFriendlyName();
     switch (reason) {
     case NO_TYPE_INFORMATION:
       return ERR_DECODING_EXCEPTION_NO_TYPE_INFO.get(ufn);

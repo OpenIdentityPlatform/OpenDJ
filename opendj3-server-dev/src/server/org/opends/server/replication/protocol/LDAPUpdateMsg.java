@@ -113,7 +113,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   }
 
   /**
-   * Generates an Update Message with the provided information.
+   * Generates an Update LocalizableMessage with the provided information.
    *
    * @param op The operation for which the message must be created.
    * @return The generated message.
@@ -361,10 +361,10 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   }
 
   /**
-   * Get the byte array representation of this Message. This uses the version
+   * Get the byte array representation of this LocalizableMessage. This uses the version
    * 1 of the replication protocol (used for compatibility purpose).
    *
-   * @return The byte array representation of this Message.
+   * @return The byte array representation of this LocalizableMessage.
    *
    * @throws UnsupportedEncodingException  When the encoding of the message
    *         failed because the UTF-8 encoding is not supported.
@@ -372,10 +372,10 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   public abstract byte[] getBytes_V1() throws UnsupportedEncodingException;
 
   /**
-   * Get the byte array representation of this Message. This uses the version
+   * Get the byte array representation of this LocalizableMessage. This uses the version
    * 2 of the replication protocol (used for compatibility purpose).
    *
-   * @return The byte array representation of this Message.
+   * @return The byte array representation of this LocalizableMessage.
    *
    * @throws UnsupportedEncodingException  When the encoding of the message
    *         failed because the UTF-8 encoding is not supported.
@@ -384,11 +384,11 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
 
 
   /**
-   * Get the byte array representation of this Message. This uses the provided
+   * Get the byte array representation of this LocalizableMessage. This uses the provided
    * version number which must be version 4 or newer.
    * @param reqProtocolVersion TODO
    *
-   * @return The byte array representation of this Message.
+   * @return The byte array representation of this LocalizableMessage.
    *
    * @throws UnsupportedEncodingException  When the encoding of the message
    *         failed because the UTF-8 encoding is not supported.
@@ -425,9 +425,9 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   // ============
 
   /**
-   * Decode the Header part of this Update Message, and check its type.
+   * Decode the Header part of this Update LocalizableMessage, and check its type.
    *
-   * @param types The allowed types of this Update Message.
+   * @param types The allowed types of this Update LocalizableMessage.
    * @param encodedMsg the encoded form of the UpdateMsg.
    * @return the position at which the remaining part of the message starts.
    * @throws DataFormatException if the encodedMsg does not contain a valid
@@ -510,7 +510,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   }
 
   /**
-   * Decode the Header part of this Update Message, and check its type. This
+   * Decode the Header part of this Update LocalizableMessage, and check its type. This
    * uses the version 1 of the replication protocol (used for compatibility
    * purpose).
    *

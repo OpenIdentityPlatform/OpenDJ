@@ -22,14 +22,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.admin;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.AdminMessages.*;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -38,11 +37,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
 import javax.naming.ldap.Rdn;
 
 import org.forgerock.opendj.ldap.AddressMask;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn.
@@ -220,7 +218,7 @@ public final class AdministrationConnector implements
    */
   public boolean isConfigurationChangeAcceptable(
       AdministrationConnectorCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     LDAPConnectionHandlerCfg cfg = new FakeLDAPConnectionHandlerCfg(
         configuration);
@@ -237,7 +235,7 @@ public final class AdministrationConnector implements
       AdministrationConnectorCfg configuration)
   {
     return new ConfigChangeResult(ResultCode.SUCCESS, true,
-        new ArrayList<Message>());
+        new ArrayList<LocalizableMessage>());
   }
 
 
@@ -678,7 +676,7 @@ public final class AdministrationConnector implements
         {
           err += pinFilePath + " ";
         }
-        Message message = ERR_ADMIN_CERTIFICATE_GENERATION_MISSING_FILES
+        LocalizableMessage message = ERR_ADMIN_CERTIFICATE_GENERATION_MISSING_FILES
             .get(err);
         logError(message);
         throw new InitializationException(message);
@@ -730,7 +728,7 @@ public final class AdministrationConnector implements
               new FilePermission(0600)))
           {
             // Log a warning that the permissions were not set.
-            Message message = WARN_ADMIN_SET_PERMISSIONS_FAILED
+            LocalizableMessage message = WARN_ADMIN_SET_PERMISSIONS_FAILED
                 .get(pinFilePath);
             ErrorLogger.logError(message);
           }
@@ -738,7 +736,7 @@ public final class AdministrationConnector implements
         catch (DirectoryException e)
         {
           // Log a warning that the permissions were not set.
-          Message message = WARN_ADMIN_SET_PERMISSIONS_FAILED.get(pinFilePath);
+          LocalizableMessage message = WARN_ADMIN_SET_PERMISSIONS_FAILED.get(pinFilePath);
           ErrorLogger.logError(message);
         }
       }
@@ -757,7 +755,7 @@ public final class AdministrationConnector implements
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message = ERR_ADMIN_CERTIFICATE_GENERATION.get(e.getMessage());
+      LocalizableMessage message = ERR_ADMIN_CERTIFICATE_GENERATION.get(e.getMessage());
       logError(message);
       throw new InitializationException(message);
     }

@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.loggers.debug.DebugTracer;
 
 /**
@@ -255,7 +255,7 @@ public final class LDIFExportConfig extends OperationConfig
         case FAIL:
           if (f.exists())
           {
-            Message message = ERR_LDIF_FILE_EXISTS.get(ldifFile);
+            LocalizableMessage message = ERR_LDIF_FILE_EXISTS.get(ldifFile);
             throw new IOException(message.toString());
           }
           else
@@ -279,7 +279,7 @@ public final class LDIFExportConfig extends OperationConfig
           catch (Exception e)
           {
             // The file could not be created with the correct permissions.
-            Message message =
+            LocalizableMessage message =
               WARN_EXPORT_LDIF_SET_PERMISSION_FAILED.get(f.toString(),
                     stackTraceToSingleLineString(e));
             throw new IOException(message.toString());

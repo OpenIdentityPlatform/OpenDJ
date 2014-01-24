@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.client.cli;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.AdminMessages.*;
 
@@ -153,10 +154,10 @@ import org.opends.admin.ads.ADSContextException.ErrorType;
     private final int returnCode;
 
     // The message id to be used of the value.
-    private final Message message;
+    private final LocalizableMessage message;
 
     // Private constructor.
-    private DsFrameworkCliReturnCode(int returnCode, Message message)
+    private DsFrameworkCliReturnCode(int returnCode, LocalizableMessage message)
     {
       this.returnCode = returnCode;
       this.message = message;
@@ -167,7 +168,7 @@ import org.opends.admin.ads.ADSContextException.ErrorType;
      *
      * @return The corresponding message.
      */
-    public Message getMessage()
+    public LocalizableMessage getMessage()
     {
       return message;
     }

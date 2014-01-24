@@ -34,8 +34,8 @@ import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.management.remote.JMXConnectionNotification;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.*;
 import org.opends.server.core.*;
 import org.opends.server.core.networkgroups.NetworkGroup;
@@ -427,8 +427,8 @@ public class JmxClientConnection
     // Check if we have enough privilege
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      Message message = ERR_JMX_ADD_INSUFFICIENT_PRIVILEGES.get();
-      addOperation.setErrorMessage(new MessageBuilder(message));
+      LocalizableMessage message = ERR_JMX_ADD_INSUFFICIENT_PRIVILEGES.get();
+      addOperation.setErrorMessage(new LocalizableMessageBuilder(message));
       addOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -470,8 +470,8 @@ public class JmxClientConnection
     // Check if we have enough privilege
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      Message message = ERR_JMX_ADD_INSUFFICIENT_PRIVILEGES.get();
-      addOperation.setErrorMessage(new MessageBuilder(message));
+      LocalizableMessage message = ERR_JMX_ADD_INSUFFICIENT_PRIVILEGES.get();
+      addOperation.setErrorMessage(new LocalizableMessageBuilder(message));
       addOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -500,8 +500,8 @@ public class JmxClientConnection
     // Check if we have enough privilege
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      Message message = ERR_JMX_DELETE_INSUFFICIENT_PRIVILEGES.get();
-      deleteOperation.setErrorMessage(new MessageBuilder(message));
+      LocalizableMessage message = ERR_JMX_DELETE_INSUFFICIENT_PRIVILEGES.get();
+      deleteOperation.setErrorMessage(new LocalizableMessageBuilder(message));
       deleteOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -534,8 +534,8 @@ public class JmxClientConnection
     // Check if we have enough privilege
     if (! hasPrivilege(Privilege.JMX_READ, null))
     {
-      Message message = ERR_JMX_SEARCH_INSUFFICIENT_PRIVILEGES.get();
-      compareOperation.setErrorMessage(new MessageBuilder(message));
+      LocalizableMessage message = ERR_JMX_SEARCH_INSUFFICIENT_PRIVILEGES.get();
+      compareOperation.setErrorMessage(new LocalizableMessageBuilder(message));
       compareOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -564,8 +564,8 @@ public class JmxClientConnection
     // Check if we have enough privilege
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      Message message = ERR_JMX_DELETE_INSUFFICIENT_PRIVILEGES.get();
-      deleteOperation.setErrorMessage(new MessageBuilder(message));
+      LocalizableMessage message = ERR_JMX_DELETE_INSUFFICIENT_PRIVILEGES.get();
+      deleteOperation.setErrorMessage(new LocalizableMessageBuilder(message));
       deleteOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -621,8 +621,8 @@ public class JmxClientConnection
 
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      Message message = ERR_JMX_MODIFY_INSUFFICIENT_PRIVILEGES.get();
-      modifyOperation.setErrorMessage(new MessageBuilder(message));
+      LocalizableMessage message = ERR_JMX_MODIFY_INSUFFICIENT_PRIVILEGES.get();
+      modifyOperation.setErrorMessage(new LocalizableMessageBuilder(message));
       modifyOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -655,8 +655,8 @@ public class JmxClientConnection
                              modifications);
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      Message message = ERR_JMX_MODIFY_INSUFFICIENT_PRIVILEGES.get();
-      modifyOperation.setErrorMessage(new MessageBuilder(message));
+      LocalizableMessage message = ERR_JMX_MODIFY_INSUFFICIENT_PRIVILEGES.get();
+      modifyOperation.setErrorMessage(new LocalizableMessageBuilder(message));
       modifyOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -712,8 +712,8 @@ public class JmxClientConnection
 
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      Message message = ERR_JMX_MODDN_INSUFFICIENT_PRIVILEGES.get();
-      modifyDNOperation.setErrorMessage(new MessageBuilder(message));
+      LocalizableMessage message = ERR_JMX_MODDN_INSUFFICIENT_PRIVILEGES.get();
+      modifyDNOperation.setErrorMessage(new LocalizableMessageBuilder(message));
       modifyDNOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -751,8 +751,8 @@ public class JmxClientConnection
 
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      Message message = ERR_JMX_MODDN_INSUFFICIENT_PRIVILEGES.get();
-      modifyDNOperation.setErrorMessage(new MessageBuilder(message));
+      LocalizableMessage message = ERR_JMX_MODDN_INSUFFICIENT_PRIVILEGES.get();
+      modifyDNOperation.setErrorMessage(new LocalizableMessageBuilder(message));
       modifyDNOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -816,8 +816,8 @@ public class JmxClientConnection
 
     if (! hasPrivilege(Privilege.JMX_READ, null))
     {
-      Message message = ERR_JMX_SEARCH_INSUFFICIENT_PRIVILEGES.get();
-      searchOperation.setErrorMessage(new MessageBuilder(message));
+      LocalizableMessage message = ERR_JMX_SEARCH_INSUFFICIENT_PRIVILEGES.get();
+      searchOperation.setErrorMessage(new LocalizableMessageBuilder(message));
       searchOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -955,7 +955,7 @@ public class JmxClientConnection
   @Override
   public void disconnect(DisconnectReason disconnectReason,
                          boolean sendNotification,
-                         Message message)
+                         LocalizableMessage message)
   {
     // we are already performing a disconnect
     if (disconnectStarted)
@@ -1073,7 +1073,7 @@ public class JmxClientConnection
     // Jmx operations cannot be cancelled.
     // TODO: i18n
     return new CancelResult(ResultCode.CANNOT_CANCEL,
-        Message.raw("Jmx operations cannot be cancelled"));
+        LocalizableMessage.raw("Jmx operations cannot be cancelled"));
   }
 
 

@@ -27,7 +27,7 @@
 
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
@@ -233,7 +233,7 @@ public class SubEntry {
     // that means all parsers have failed and it is ivalid syntax.
     if (!isValidSpec)
     {
-      Message message =
+      LocalizableMessage message =
         ERR_ATTR_SYNTAX_SUBTREE_SPECIFICATION_INVALID.get(
           specString);
       throw new DirectoryException(

@@ -40,7 +40,7 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.ResultCode;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -155,7 +155,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
    * {@inheritDoc}
    */
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
-      MessageBuilder unacceptableReason) {
+      LocalizableMessageBuilder unacceptableReason) {
     // Always acceptable.
     return true;
   }

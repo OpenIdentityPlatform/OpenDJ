@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.api;
@@ -30,7 +31,7 @@ package org.opends.server.api;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.QOSPolicyCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
@@ -84,5 +85,5 @@ public interface QOSPolicyFactory<T extends QOSPolicyCfg>
    *         it is not.
    */
   boolean isConfigurationAcceptable(T configuration,
-      List<Message> unacceptableReasons);
+      List<LocalizableMessage> unacceptableReasons);
 }

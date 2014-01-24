@@ -40,7 +40,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
@@ -179,7 +179,7 @@ public abstract class ClientConnection
     mustEvaluateNetworkGroup = true;
     if (debugEnabled())
       {
-        Message message =
+        LocalizableMessage message =
                 INFO_CHANGE_NETWORK_GROUP.get(
                   getConnectionID(),
                   "null",
@@ -659,7 +659,7 @@ public abstract class ClientConnection
    */
   public abstract void disconnect(DisconnectReason disconnectReason,
                                   boolean sendNotification,
-                                  Message message);
+                                  LocalizableMessage message);
 
 
 
@@ -1063,7 +1063,7 @@ public abstract class ClientConnection
       {
         DN authDN = authenticationInfo.getAuthenticationDN();
 
-        Message message = INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGE
+        LocalizableMessage message = INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGE
                 .get(getConnectionID(), -1L,
                      String.valueOf(authDN),
                      privilege.getName(), result);
@@ -1082,7 +1082,7 @@ public abstract class ClientConnection
         {
           DN authDN = authenticationInfo.getAuthenticationDN();
 
-          Message message =
+          LocalizableMessage message =
                   INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGE.get(
                     getConnectionID(),
                     operation.getOperationID(),
@@ -1172,7 +1172,7 @@ public abstract class ClientConnection
       {
         DN authDN = authenticationInfo.getAuthenticationDN();
 
-        Message message =
+        LocalizableMessage message =
                 INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES.get(
                   getConnectionID(), -1L,
                   String.valueOf(authDN),
@@ -1184,7 +1184,7 @@ public abstract class ClientConnection
       {
         DN authDN = authenticationInfo.getAuthenticationDN();
 
-        Message message = INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES
+        LocalizableMessage message = INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES
                 .get(
                   getConnectionID(),
                   operation.getOperationID(),
@@ -1711,7 +1711,7 @@ public abstract class ClientConnection
     if (this.networkGroup != networkGroup) {
       if (debugEnabled())
       {
-        Message message =
+        LocalizableMessage message =
                 INFO_CHANGE_NETWORK_GROUP.get(
                   getConnectionID(),
                   this.networkGroup.getID(),

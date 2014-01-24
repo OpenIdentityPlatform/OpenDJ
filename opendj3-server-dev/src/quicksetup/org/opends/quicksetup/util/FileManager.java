@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.util;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.*;
@@ -521,7 +521,7 @@ public class FileManager {
               }
 
             } catch (Exception e) {
-              Message errMsg = INFO_ERROR_COPYING_FILE.get(
+              LocalizableMessage errMsg = INFO_ERROR_COPYING_FILE.get(
                       objectFile.getAbsolutePath(),
                       destination.getAbsolutePath());
               throw new ApplicationException(
@@ -544,7 +544,7 @@ public class FileManager {
               }
             }
           } else {
-            Message errMsg = INFO_ERROR_COPYING_FILE.get(
+            LocalizableMessage errMsg = INFO_ERROR_COPYING_FILE.get(
                     objectFile.getAbsolutePath(),
                     destination.getAbsolutePath());
             throw new ApplicationException(
@@ -645,7 +645,7 @@ public class FileManager {
       }
 
       if (!delete) {
-        Message errMsg;
+        LocalizableMessage errMsg;
         if (isFile) {
           errMsg = INFO_ERROR_DELETING_FILE.get(file.getAbsolutePath());
         } else {

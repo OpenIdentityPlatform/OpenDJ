@@ -32,8 +32,8 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.List;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -61,7 +61,7 @@ public class SetGenerationIdTask extends Task
    * {@inheritDoc}
    */
   @Override
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return TaskMessages.INFO_TASK_SET_GENERATION_ID_NAME.get();
   }
 
@@ -91,7 +91,7 @@ public class SetGenerationIdTask extends Task
       }
       catch(Exception e)
       {
-        MessageBuilder mb = new MessageBuilder();
+        LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(TaskMessages.ERR_TASK_INITIALIZE_INVALID_GENERATION_ID.get());
         mb.append(e.getMessage());
         throw new DirectoryException(ResultCode.CLIENT_SIDE_PARAM_ERROR,
@@ -113,7 +113,7 @@ public class SetGenerationIdTask extends Task
     }
     catch(DirectoryException e)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(TaskMessages.ERR_TASK_INITIALIZE_INVALID_DN.get());
       mb.append(e.getMessage());
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, e);

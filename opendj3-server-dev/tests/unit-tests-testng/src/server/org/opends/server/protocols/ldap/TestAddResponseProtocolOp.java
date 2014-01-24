@@ -32,7 +32,7 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -64,7 +64,7 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
   /**
    * The error message to use for add result operations.
    */
-  private static final Message resultMsg = Message.raw("Test Successful");
+  private static final LocalizableMessage resultMsg = LocalizableMessage.raw("Test Successful");
 
   /**
    * The DN to use for add result operations
@@ -120,8 +120,6 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
   public void testConstructors() throws Exception
   {
     AddResponseProtocolOp addResponse;
-    ArrayList<LDAPAttribute> attributes;
-
     //Test to make sure the constructor with result code param works.
     addResponse = new AddResponseProtocolOp(resultCode);
     assertEquals(addResponse.getResultCode(), resultCode);

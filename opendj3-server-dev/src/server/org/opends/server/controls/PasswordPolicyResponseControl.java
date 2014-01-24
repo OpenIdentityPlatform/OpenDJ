@@ -25,7 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -68,7 +68,7 @@ public class PasswordPolicyResponseControl
       if (value == null)
       {
         // The response control must always have a value.
-        Message message = ERR_PWPOLICYRES_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_PWPOLICYRES_NO_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -92,7 +92,7 @@ public class PasswordPolicyResponseControl
           warningValue = (int)reader.readInteger();
           if (warningType == null)
           {
-            Message message = ERR_PWPOLICYRES_INVALID_WARNING_TYPE.get(
+            LocalizableMessage message = ERR_PWPOLICYRES_INVALID_WARNING_TYPE.get(
                 byteToHex(reader.peekType()));
             throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                 message);
@@ -106,7 +106,7 @@ public class PasswordPolicyResponseControl
           errorType = PasswordPolicyErrorType.valueOf(errorValue);
           if (errorType == null)
           {
-            Message message =
+            LocalizableMessage message =
                 ERR_PWPOLICYRES_INVALID_ERROR_TYPE.get(errorValue);
             throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                 message);
@@ -130,7 +130,7 @@ public class PasswordPolicyResponseControl
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_PWPOLICYRES_DECODE_ERROR.get(getExceptionMessage(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }

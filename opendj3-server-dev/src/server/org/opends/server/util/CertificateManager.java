@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 
 package org.opends.server.util;
@@ -32,7 +32,7 @@ import java.security.*;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.UtilityMessages.*;
 
 
@@ -137,7 +137,7 @@ public final class CertificateManager {
     ensureValid(keyStoreType, KEYSTORE_TYPE_MSG);
     if (keyStoreType.equals(KEY_STORE_TYPE_PKCS11)) {
       if (! keyStorePath.equals(KEY_STORE_PATH_PKCS11)) {
-        Message msg =
+        LocalizableMessage msg =
           ERR_CERTMGR_INVALID_PKCS11_PATH.get(KEY_STORE_PATH_PKCS11);
         throw new IllegalArgumentException(msg.toString());
       }
@@ -147,19 +147,19 @@ public final class CertificateManager {
       File keyStoreFile = new File(keyStorePath);
       if (keyStoreFile.exists()) {
         if (! keyStoreFile.isFile()) {
-          Message msg = ERR_CERTMGR_INVALID_KEYSTORE_PATH.get(keyStorePath);
+          LocalizableMessage msg = ERR_CERTMGR_INVALID_KEYSTORE_PATH.get(keyStorePath);
           throw new IllegalArgumentException(msg.toString());
         }
       } else {
         final File keyStoreDirectory = keyStoreFile.getParentFile();
         if ((keyStoreDirectory == null) || (! keyStoreDirectory.exists()) ||
             (! keyStoreDirectory.isDirectory())) {
-          Message msg = ERR_CERTMGR_INVALID_PARENT.get(keyStorePath);
+          LocalizableMessage msg = ERR_CERTMGR_INVALID_PARENT.get(keyStorePath);
           throw new IllegalArgumentException(msg.toString());
         }
       }
     } else {
-      Message msg =  ERR_CERTMGR_INVALID_STORETYPE.get(
+      LocalizableMessage msg =  ERR_CERTMGR_INVALID_STORETYPE.get(
           KEY_STORE_TYPE_JKS, KEY_STORE_TYPE_JCEKS,
           KEY_STORE_TYPE_PKCS11, KEY_STORE_TYPE_PKCS12);
       throw new IllegalArgumentException(msg.toString());
@@ -240,7 +240,7 @@ public final class CertificateManager {
     Certificate cert = null;
     KeyStore ks = getKeyStore();
     if (ks == null) {
-      Message msg = ERR_CERTMGR_KEYSTORE_NONEXISTANT.get();
+      LocalizableMessage msg = ERR_CERTMGR_KEYSTORE_NONEXISTANT.get();
       throw new KeyStoreException(msg.toString());
     }
     cert = ks.getCertificate(alias);
@@ -271,11 +271,11 @@ public final class CertificateManager {
     ensureValid(alias, CERT_ALIAS_MSG);
     ensureValid(subjectDN, SUBJECT_DN_MSG);
     if (validity <= 0) {
-      Message msg = ERR_CERTMGR_VALIDITY.get(validity);
+      LocalizableMessage msg = ERR_CERTMGR_VALIDITY.get(validity);
       throw new IllegalArgumentException(msg.toString());
     }
     if (aliasInUse(alias)) {
-      Message msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
+      LocalizableMessage msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
       throw new IllegalArgumentException(msg.toString());
     }
     keyStore = null;
@@ -306,7 +306,7 @@ public final class CertificateManager {
     ensureFileValid(certificateFile, CERT_REQUEST_FILE_MSG);
     if ((! certificateFile.exists()) ||
         (! certificateFile.isFile())) {
-      Message msg = ERR_CERTMGR_INVALID_CERT_FILE.get(
+      LocalizableMessage msg = ERR_CERTMGR_INVALID_CERT_FILE.get(
           certificateFile.getAbsolutePath());
       throw new IllegalArgumentException(msg.toString());
     }
@@ -332,7 +332,7 @@ public final class CertificateManager {
   throws KeyStoreException, IllegalArgumentException {
     ensureValid(alias, CERT_ALIAS_MSG);
     if (!aliasInUse(alias)) {
-      Message msg = ERR_CERTMGR_ALIAS_CAN_NOT_DELETE.get(alias);
+      LocalizableMessage msg = ERR_CERTMGR_ALIAS_CAN_NOT_DELETE.get(alias);
       throw new IllegalArgumentException(msg.toString());
     }
     keyStore = null;
@@ -447,14 +447,14 @@ public final class CertificateManager {
 
   private static void ensureFileValid(File arg, String msgStr) {
     if(arg == null) {
-      Message msg = ERR_CERTMGR_FILE_NAME_INVALID.get(msgStr);
+      LocalizableMessage msg = ERR_CERTMGR_FILE_NAME_INVALID.get(msgStr);
       throw new NullPointerException(msg.toString());
     }
   }
 
   private static void ensureValid(String arg, String msgStr) {
     if(arg == null || arg.length() == 0) {
-     Message msg = ERR_CERTMGR_VALUE_INVALID.get(msgStr);
+     LocalizableMessage msg = ERR_CERTMGR_VALUE_INVALID.get(msgStr);
       throw new NullPointerException(msg.toString());
     }
   }

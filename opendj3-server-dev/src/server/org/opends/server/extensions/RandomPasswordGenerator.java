@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PasswordGeneratorCfg;
 import org.opends.server.admin.std.server.RandomPasswordGeneratorCfg;
@@ -115,7 +115,7 @@ public class RandomPasswordGenerator
 
       if (encodedCharacterSets.size() == 0)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_RANDOMPWGEN_NO_CHARSETS.get(String.valueOf(configEntryDN));
         throw new ConfigException(message);
       }
@@ -124,7 +124,7 @@ public class RandomPasswordGenerator
       {
         if (charsets.containsKey(s.getName()))
         {
-          Message message = ERR_RANDOMPWGEN_CHARSET_NAME_CONFLICT.get(
+          LocalizableMessage message = ERR_RANDOMPWGEN_CHARSET_NAME_CONFLICT.get(
               String.valueOf(configEntryDN), s.getName());
           throw new ConfigException(message);
         }
@@ -145,7 +145,7 @@ public class RandomPasswordGenerator
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS.get(getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
@@ -175,7 +175,7 @@ public class RandomPasswordGenerator
           NamedCharacterSet charset = charsets.get(name);
           if (charset == null)
           {
-            Message message = ERR_RANDOMPWGEN_UNKNOWN_CHARSET.get(
+            LocalizableMessage message = ERR_RANDOMPWGEN_UNKNOWN_CHARSET.get(
                 String.valueOf(formatString), String.valueOf(name));
             throw new ConfigException(message);
           }
@@ -196,7 +196,7 @@ public class RandomPasswordGenerator
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(
+          LocalizableMessage message = ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(
               String.valueOf(formatString));
           throw new ConfigException(message, e);
         }
@@ -224,7 +224,7 @@ public class RandomPasswordGenerator
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT.get(getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
@@ -281,7 +281,7 @@ public class RandomPasswordGenerator
    */
   @Override()
   public boolean isConfigurationAcceptable(PasswordGeneratorCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     RandomPasswordGeneratorCfg config =
          (RandomPasswordGeneratorCfg) configuration;
@@ -295,7 +295,7 @@ public class RandomPasswordGenerator
    */
   public boolean isConfigurationChangeAcceptable(
       RandomPasswordGeneratorCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     DN cfgEntryDN = configuration.dn();
 
@@ -309,7 +309,7 @@ public class RandomPasswordGenerator
       SortedSet<String> currentPasSet = configuration.getPasswordCharacterSet();
       if (currentPasSet.size() == 0)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_RANDOMPWGEN_NO_CHARSETS.get(String.valueOf(cfgEntryDN));
         throw new ConfigException(message);
       }
@@ -319,7 +319,7 @@ public class RandomPasswordGenerator
       {
         if (charsets.containsKey(s.getName()))
         {
-          Message message = ERR_RANDOMPWGEN_CHARSET_NAME_CONFLICT.get(
+          LocalizableMessage message = ERR_RANDOMPWGEN_CHARSET_NAME_CONFLICT.get(
                   String.valueOf(cfgEntryDN), s.getName());
           unacceptableReasons.add(message);
           return false;
@@ -342,7 +342,7 @@ public class RandomPasswordGenerator
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS.get(
+      LocalizableMessage message = ERR_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS.get(
               getExceptionMessage(e));
       unacceptableReasons.add(message);
       return false;
@@ -369,7 +369,7 @@ public class RandomPasswordGenerator
             NamedCharacterSet charset = charsets.get(name);
             if (charset == null)
             {
-              Message message = ERR_RANDOMPWGEN_UNKNOWN_CHARSET.get(
+              LocalizableMessage message = ERR_RANDOMPWGEN_UNKNOWN_CHARSET.get(
                       String.valueOf(formatString), String.valueOf(name));
               unacceptableReasons.add(message);
               return false;
@@ -382,7 +382,7 @@ public class RandomPasswordGenerator
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            Message message = ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(
+            LocalizableMessage message = ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(
                     String.valueOf(formatString));
             unacceptableReasons.add(message);
             return false;
@@ -396,7 +396,7 @@ public class RandomPasswordGenerator
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT.get(
+      LocalizableMessage message = ERR_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT.get(
               getExceptionMessage(e));
       unacceptableReasons.add(message);
       return false;
@@ -417,7 +417,7 @@ public class RandomPasswordGenerator
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the character sets for use in generating the password.  At least one

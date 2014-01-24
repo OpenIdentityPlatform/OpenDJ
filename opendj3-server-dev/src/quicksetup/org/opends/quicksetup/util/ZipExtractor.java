@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.ApplicationException;
@@ -210,7 +210,7 @@ public class ZipExtractor {
                     ratioBeforeCompleted, ratioWhenCompleted, permissions);
 
           } catch (IOException ioe) {
-            Message errorMsg =
+            LocalizableMessage errorMsg =
                     Utils.getThrowableMsg(
                             INFO_ERROR_COPYING.get(entry.getName()), ioe);
 
@@ -247,7 +247,7 @@ public class ZipExtractor {
       }
 
     } catch (IOException ioe) {
-      Message errorMsg =
+      LocalizableMessage errorMsg =
               Utils.getThrowableMsg(
                       INFO_ERROR_ZIP_STREAM.get(zipFileName), ioe);
       throw new ApplicationException(
@@ -275,7 +275,7 @@ public class ZipExtractor {
       throws IOException
   {
     if (application != null) {
-      Message progressSummary =
+      LocalizableMessage progressSummary =
               INFO_PROGRESS_EXTRACTING.get(Utils.getPath(destination));
       if (application.isVerbose())
       {

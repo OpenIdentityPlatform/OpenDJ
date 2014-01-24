@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -39,7 +40,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.core.DirectoryServer;
 
@@ -124,7 +125,7 @@ public class JMXAlertHandlerTestCase
     TestAlertGenerator generator = new TestAlertGenerator();
 
     handler.sendAlertNotification(generator, generator.getAlertType(),
-            Message.raw("This is a test alert message."));
+            LocalizableMessage.raw("This is a test alert message."));
   }
 
 

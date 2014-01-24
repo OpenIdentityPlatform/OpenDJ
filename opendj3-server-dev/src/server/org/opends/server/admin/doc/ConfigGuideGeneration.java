@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.admin.doc;
 
@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.ACIPropertyDefinition;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
@@ -715,7 +715,7 @@ public class ConfigGuideGeneration {
 
     String action = "None";
     if (prop.getAdministratorAction() != null) {
-      Message synopsis = prop.getAdministratorAction().getSynopsis();
+      LocalizableMessage synopsis = prop.getAdministratorAction().getSynopsis();
       Type actionType = prop.getAdministratorAction().getType();
       String actionStr = "";
       if (actionType == Type.COMPONENT_RESTART) {
@@ -1451,7 +1451,7 @@ public class ConfigGuideGeneration {
     return "<br>\n";
   }
 
-  private void paragraph(Message description) {
+  private void paragraph(LocalizableMessage description) {
     if (description != null) {
       paragraph(description.toString());
     }

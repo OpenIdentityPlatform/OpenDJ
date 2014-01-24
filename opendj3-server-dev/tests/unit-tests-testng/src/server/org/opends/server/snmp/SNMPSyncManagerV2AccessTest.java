@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.snmp;
 
@@ -36,7 +37,7 @@ import com.sun.management.snmp.manager.SnmpSession;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Map.Entry;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.SNMPConnectionHandlerCfgDefn;

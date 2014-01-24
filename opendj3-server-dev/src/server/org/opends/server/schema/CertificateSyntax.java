@@ -51,8 +51,8 @@ import org.opends.server.protocols.asn1.ASN1Reader;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
 
@@ -134,7 +134,7 @@ public class CertificateSyntax
    */
   public boolean isConfigurationChangeAcceptable(
       CertificateAttributeSyntaxCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     // The configuration is always acceptable.
     return true;
@@ -264,7 +264,7 @@ public class CertificateSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // Skip validation if strict validation is disabled.
     if (!config.isStrictFormat())

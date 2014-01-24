@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -34,7 +35,7 @@ import java.util.Set;
 
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor.
 Protocol;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The table model used to display the monitoring information of connection
@@ -214,7 +215,7 @@ AddressConnectionHandlerDescriptor>
   /**
    * {@inheritDoc}
    */
-  protected Message getNameHeader()
+  protected LocalizableMessage getNameHeader()
   {
     return INFO_CTRL_PANEL_CONNECTION_HANDLER_HEADER.get();
   }

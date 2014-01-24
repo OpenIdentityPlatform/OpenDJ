@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.args;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -51,7 +52,7 @@ public class StringArgument
    *                           be displayed in usage information, or
    *                           <CODE>null</CODE> if this argument does not
    *                           require a value.
-   * @param  description       Message for the description of this
+   * @param  description       LocalizableMessage for the description of this
    *                           argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
@@ -59,8 +60,8 @@ public class StringArgument
    */
   public StringArgument(String name, Character shortIdentifier,
                         String longIdentifier, boolean isRequired,
-                        boolean needsValue, Message valuePlaceholder,
-                        Message description)
+                        boolean needsValue, LocalizableMessage valuePlaceholder,
+                        LocalizableMessage description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false, needsValue,
@@ -94,7 +95,7 @@ public class StringArgument
    * @param  propertyName      The name of the property in a property file that
    *                           may be used to override the default value but
    *                           will be overridden by a command-line argument.
-   * @param  description       Message for the description of this
+   * @param  description       LocalizableMessage for the description of this
    *                           argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
@@ -103,8 +104,8 @@ public class StringArgument
   public StringArgument(String name, Character shortIdentifier,
                         String longIdentifier, boolean isRequired,
                         boolean isMultiValued, boolean needsValue,
-                        Message valuePlaceholder, String defaultValue,
-                        String propertyName, Message description)
+                        LocalizableMessage valuePlaceholder, String defaultValue,
+                        String propertyName, LocalizableMessage description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
@@ -126,7 +127,7 @@ public class StringArgument
    *          <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // All values will be acceptable for this argument.
     return true;

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup;
@@ -36,7 +37,7 @@ import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.cli.CLIException;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Class used by Launcher to start a CLI application.
@@ -96,7 +97,7 @@ public class QuickSetupCli {
           cliApp.addProgressUpdateListener(
                   new ProgressUpdateListener() {
                     public void progressUpdate(ProgressUpdateEvent ev) {
-                      Message newLogs = ev.getNewLogs();
+                      LocalizableMessage newLogs = ev.getNewLogs();
                       if (newLogs != null) {
                         System.out.print(
                                 StaticUtils.wrapText(

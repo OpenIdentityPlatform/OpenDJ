@@ -35,7 +35,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
@@ -212,7 +212,7 @@ public class LocalBackendDeleteOperation
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message =
+              LocalizableMessage message =
                   ERR_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER
                       .get(getExceptionMessage(e));
               logError(message);
@@ -393,7 +393,7 @@ public class LocalBackendDeleteOperation
   }
 
   private DirectoryException newDirectoryException(Entry entry,
-      ResultCode resultCode, Message message) throws DirectoryException
+      ResultCode resultCode, LocalizableMessage message) throws DirectoryException
   {
     return LocalBackendWorkflowElement.newDirectoryException(this, entry,
         entryDN,
@@ -402,7 +402,7 @@ public class LocalBackendDeleteOperation
   }
 
   private void setResultCodeAndMessageNoInfoDisclosure(Entry entry,
-      ResultCode resultCode, Message message) throws DirectoryException
+      ResultCode resultCode, LocalizableMessage message) throws DirectoryException
   {
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
         entry, entryDN, resultCode, message, ResultCode.NO_SUCH_OBJECT,

@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -83,7 +83,7 @@ public final class NamedCharacterSet
 
     if ((name == null) || (name.length() == 0))
     {
-      Message message = ERR_CHARSET_CONSTRUCTOR_NO_NAME.get();
+      LocalizableMessage message = ERR_CHARSET_CONSTRUCTOR_NO_NAME.get();
       throw new ConfigException(message);
     }
 
@@ -91,7 +91,7 @@ public final class NamedCharacterSet
     {
       if (! isAlpha(name.charAt(i)))
       {
-        Message message = ERR_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR.
+        LocalizableMessage message = ERR_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR.
             get(String.valueOf(name.charAt(i)), i);
         throw new ConfigException(message);
       }
@@ -122,7 +122,7 @@ public final class NamedCharacterSet
 
     if ((name == null) || (name.length() == 0))
     {
-      Message message = ERR_CHARSET_CONSTRUCTOR_NO_NAME.get();
+      LocalizableMessage message = ERR_CHARSET_CONSTRUCTOR_NO_NAME.get();
       throw new ConfigException(message);
     }
 
@@ -130,7 +130,7 @@ public final class NamedCharacterSet
     {
       if (! isAlpha(name.charAt(i)))
       {
-        Message message = ERR_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR.
+        LocalizableMessage message = ERR_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR.
             get(String.valueOf(name.charAt(i)), i);
         throw new ConfigException(message);
       }
@@ -242,19 +242,19 @@ public final class NamedCharacterSet
       int colonPos = value.indexOf(':');
       if (colonPos < 0)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CHARSET_NO_COLON.get(String.valueOf(value));
         throw new ConfigException(message);
       }
       else if (colonPos == 0)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CHARSET_NO_NAME.get(String.valueOf(value));
         throw new ConfigException(message);
       }
       else if (colonPos == (value.length() - 1))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CHARSET_NO_CHARS.get(String.valueOf(value));
         throw new ConfigException(message);
       }

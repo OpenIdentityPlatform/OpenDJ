@@ -35,7 +35,7 @@ import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
@@ -77,7 +77,7 @@ public class EntryChangelogNotificationControl
     {
       if (value == null)
       {
-        Message message = ERR_ECLN_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_ECLN_NO_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -96,7 +96,7 @@ public class EntryChangelogNotificationControl
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
           ERR_ECLN_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
       }

@@ -66,7 +66,7 @@ import javax.xml.soap.*;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -286,7 +286,7 @@ public class DSMLServlet extends HttpServlet {
               getResultCode())
           {
             default:
-              Message m = INFO_RESULT_AUTHORIZATION_DENIED.get();
+              LocalizableMessage m = INFO_RESULT_AUTHORIZATION_DENIED.get();
               throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR,
                   null);
             case LDAPResultCode.SUCCESS:
@@ -297,18 +297,18 @@ public class DSMLServlet extends HttpServlet {
     }
     catch (LDAPException le)
     {
-      Message m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
+      LocalizableMessage m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
       throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null, le);
     }
     catch (ASN1Exception ae)
     {
-      Message m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
+      LocalizableMessage m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
       throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null,
           ae);
     }
     catch (IOException ie)
     {
-      Message m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
+      LocalizableMessage m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
       throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null, ie);
     }
   }
@@ -359,7 +359,7 @@ public class DSMLServlet extends HttpServlet {
         batchResponses.add(
           createErrorResponse(
             new LDAPException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
-              Message.raw(
+              LocalizableMessage.raw(
               "Invalid SSL or TLS configuration to connect to LDAP server."))));
       }
       connOptions.setSSLConnectionFactory(sslConnectionFactory);
@@ -402,7 +402,7 @@ public class DSMLServlet extends HttpServlet {
             batchResponses.add(
               createErrorResponse(
                     new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
-                    Message.raw(ex.getMessage()))));
+                    LocalizableMessage.raw(ex.getMessage()))));
             break;
           }
         }
@@ -427,7 +427,7 @@ public class DSMLServlet extends HttpServlet {
           batchResponses.add(
               createErrorResponse(
                     new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
-                    Message.raw("Invalid configured credentials."))));
+                    LocalizableMessage.raw("Invalid configured credentials."))));
         }
       }
       else
@@ -442,7 +442,7 @@ public class DSMLServlet extends HttpServlet {
         batchResponses.add(
               createErrorResponse(
                     new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
-                    Message.raw("Unable to retrieve credentials."))));
+                    LocalizableMessage.raw("Unable to retrieve credentials."))));
       }
     }
 

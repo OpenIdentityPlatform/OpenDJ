@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -54,7 +55,7 @@ import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.UserData;
 
 import org.opends.server.util.CertificateManager;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -226,7 +227,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       gbc.weightx = 0.0;
       gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
       auxPanel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-          Message.raw(File.separator), UIFactory.TextStyle.TEXTFIELD), gbc);
+          LocalizableMessage.raw(File.separator), UIFactory.TextStyle.TEXTFIELD), gbc);
 
       gbc.gridwidth = GridBagConstraints.REMAINDER;
       gbc.weightx = 0.3;
@@ -346,7 +347,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getInstructions()
+  protected LocalizableMessage getInstructions()
   {
     if (Utils.isWebStart())
     {
@@ -361,7 +362,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getTitle()
+  protected LocalizableMessage getTitle()
   {
     return INFO_SERVER_SETTINGS_PANEL_TITLE.get();
   }
@@ -513,7 +514,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       else
       {
         lSecurity = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-                Message.raw(defaultValue),
+                LocalizableMessage.raw(defaultValue),
                 UIFactory.TextStyle.SECONDARY_FIELD_VALID);
       }
 
@@ -666,9 +667,9 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
    * @return the port help message that we display when we cannot use the
    * default admin connector port (4444).
    */
-  private Message getAdminConnectorPortHelpMessage()
+  private LocalizableMessage getAdminConnectorPortHelpMessage()
   {
-    Message s = Message.EMPTY;
+    LocalizableMessage s = LocalizableMessage.EMPTY;
     if (defaultUserData.getAdminConnectorPort() != 4444)
     {
       s = INFO_CANNOT_USE_DEFAULT_ADMIN_CONNECTOR_PORT.get();
@@ -682,9 +683,9 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
    * @return the port help message that we display when we cannot use the
    * default port (389).
    */
-  private Message getPortHelpMessage()
+  private LocalizableMessage getPortHelpMessage()
   {
-    Message s = Message.EMPTY;
+    LocalizableMessage s = LocalizableMessage.EMPTY;
     if (defaultUserData.getServerPort() != 389)
     {
       s = INFO_CANNOT_USE_DEFAULT_PORT.get();

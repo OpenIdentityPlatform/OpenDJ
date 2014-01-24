@@ -33,9 +33,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
@@ -360,8 +358,7 @@ public class MultiDomainServerState implements Iterable<DN>
       {
         throw new DirectoryException(
             ResultCode.PROTOCOL_ERROR,
-            Message.raw(Category.SYNC, Severity.INFORMATION,
-            "Exception raised: " + e),
+            LocalizableMessage.raw("Exception raised: " + e),
             e);
       }
     }

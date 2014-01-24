@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -30,7 +31,7 @@ package org.opends.server.admin.server;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Constraint;
 import org.opends.server.admin.client.ClientConstraintHandler;
 import org.opends.server.config.ConfigEntry;
@@ -57,10 +58,10 @@ public final class MockConstraint extends Constraint {
      */
     @Override
     public boolean isDeleteAllowed(ServerManagedObject<?> managedObject,
-        Collection<Message> unacceptableReasons) throws ConfigException {
+        Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
       if (!isDeleteAllowed) {
         unacceptableReasons
-            .add(Message.raw("Configuration cannot be deleted."));
+            .add(LocalizableMessage.raw("Configuration cannot be deleted."));
       }
 
       return isDeleteAllowed;
@@ -73,9 +74,9 @@ public final class MockConstraint extends Constraint {
      */
     @Override
     public boolean isUsable(ServerManagedObject<?> managedObject,
-        Collection<Message> unacceptableReasons) throws ConfigException {
+        Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
       if (!isUsable) {
-        unacceptableReasons.add(Message.raw("Configuration is not usable."));
+        unacceptableReasons.add(LocalizableMessage.raw("Configuration is not usable."));
       }
 
       return isUsable;

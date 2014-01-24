@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.args;
 
@@ -35,7 +36,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import static org.opends.messages.ToolMessages.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -63,7 +64,7 @@ public final class TestSubCommandArgumentParser extends ArgsTestCase {
   @BeforeClass
   public void setup() throws Exception {
     parser = new SubCommandArgumentParser(this.getClass().getName(),
-        Message.raw("test description"), true);
+        LocalizableMessage.raw("test description"), true);
 
     sc1 = new SubCommand(parser, "sub-command1", INFO_BACKUPDB_DESCRIPTION_BACKEND_ID.get());
     sc2 = new SubCommand(parser, "sub-command2", true, 2, 4,

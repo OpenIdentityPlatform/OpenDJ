@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
@@ -798,14 +798,14 @@ public class ReplicationDB
         {
           /*
            * An error happening trying to convert the data from the
-           * replicationServer database to an Update Message. This can only
+           * replicationServer database to an Update LocalizableMessage. This can only
            * happen if the database is corrupted. There is not much more that we
            * can do at this point except trying to continue with the next
            * record. In such case, it is therefore possible that we miss some
            * changes.
            * TODO : This should be handled by the repair functionality.
            */
-          Message message = ERR_REPLICATIONDB_CANNOT_PROCESS_CHANGE_RECORD
+          LocalizableMessage message = ERR_REPLICATIONDB_CANNOT_PROCESS_CHANGE_RECORD
               .get(replicationServer.getServerId(),
                   (csn == null ? "" : csn.toString()),
                   e.getMessage());
@@ -867,7 +867,7 @@ public class ReplicationDB
     }
     catch (Exception e)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(ERR_ERROR_CLEARING_DB.get(toString(),
           e.getMessage() + " " + stackTraceToSingleLineString(e)));
       logError(mb.toMessage());

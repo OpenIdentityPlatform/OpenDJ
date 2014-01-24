@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -290,7 +291,7 @@ public final class AccessControlConfigManager
         newHandler = new DefaultAccessControlHandler();
         newHandler.initializeAccessControlHandler(null);
         if(logMessage) {
-          Message message = WARN_CONFIG_AUTHZ_DISABLED.get();
+          LocalizableMessage message = WARN_CONFIG_AUTHZ_DISABLED.get();
           logError(message);
           if (currentConfiguration != null) {
             DirectoryServer.sendAlertNotification(this,
@@ -300,7 +301,7 @@ public final class AccessControlConfigManager
       } else {
         newHandler = loadHandler(handlerClassName, config, initHandler);
         if(logMessage) {
-          Message message = NOTE_CONFIG_AUTHZ_ENABLED.get(handlerClassName);
+          LocalizableMessage message = NOTE_CONFIG_AUTHZ_ENABLED.get(handlerClassName);
           logError(message);
           if (currentConfiguration != null) {
             DirectoryServer.sendAlertNotification(this,
@@ -312,7 +313,7 @@ public final class AccessControlConfigManager
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message = ERR_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER.
+      LocalizableMessage message = ERR_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER.
               get(handlerClassName, String.valueOf(config.dn().toString()),
                       stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
@@ -326,7 +327,7 @@ public final class AccessControlConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       AccessControlHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     try
     {
@@ -356,7 +357,7 @@ public final class AccessControlConfigManager
                                  AccessControlHandlerCfg configuration)
   {
     ResultCode resultCode = ResultCode.SUCCESS;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     try
     {
@@ -467,7 +468,7 @@ public final class AccessControlConfigManager
                                            AccessControlHandlerCfg.class,
                                            List.class);
 
-        List<Message> unacceptableReasons = new ArrayList<Message>();
+        List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         Boolean acceptable = (Boolean) method.invoke(provider, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -475,7 +476,7 @@ public final class AccessControlConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<Message> iterator = unacceptableReasons.iterator();
+            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -484,7 +485,7 @@ public final class AccessControlConfigManager
             }
           }
 
-          Message message = ERR_CONFIG_AUTHZ_CONFIG_NOT_ACCEPTABLE.get(
+          LocalizableMessage message = ERR_CONFIG_AUTHZ_CONFIG_NOT_ACCEPTABLE.get(
             // Bug: where in a section where configuration is null
             // WAS: String.valueOf( configuration.dn())
             // Now:
@@ -498,7 +499,7 @@ public final class AccessControlConfigManager
     }
     catch (Exception e)
     {
-      Message message = ERR_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER.
+      LocalizableMessage message = ERR_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER.
           get(className, String.valueOf(configuration.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);

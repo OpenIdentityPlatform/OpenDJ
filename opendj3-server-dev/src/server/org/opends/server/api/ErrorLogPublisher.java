@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -32,8 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 
@@ -56,8 +55,8 @@ public abstract class ErrorLogPublisher<T extends ErrorLogPublisherCfg>
    * The hash map that will be used to define specific log severities
    * for the various categories.
    */
-  protected Map<Category, Set<Severity>> definedSeverities =
-      new HashMap<Category, Set<Severity>>();
+  protected Map<String, Set<Severity>> definedSeverities =
+      new HashMap<String, Set<Severity>>();
 
 
 
@@ -72,7 +71,7 @@ public abstract class ErrorLogPublisher<T extends ErrorLogPublisherCfg>
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(T configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation. It should be overridden by error log publisher
@@ -80,15 +79,46 @@ public abstract class ErrorLogPublisher<T extends ErrorLogPublisherCfg>
     return true;
   }
 
-
+  /**
+   * Writes a message to the error log using the provided information. The
+   * message's category and severity information will be used to determine
+   * whether to actually log this message.
+   *
+   * @param message
+   *          The message to be logged.
+   */
+  public void logError(LocalizableMessage message) {
+    // TODO : to remove
+  }
 
   /**
    * Writes a message to the error log using the provided information.
-   * The message's category and severity information will be used to
-   * determine whether to actually log this message.
+   * <p>
+   * The category and severity information are used to determine whether to
+   * actually log this message.
    *
-   * @param  message   The message to be logged.
+   * @param category
+   *          The category of the message.
+   * @param severity
+   *          The severity of the message.
+   * @param message
+   *          The message to be logged.
+   * @param exception
+   *          The exception to be logged.
    */
-  public abstract void logError(Message message);
+  public abstract void log(String category, Severity severity,
+      LocalizableMessage message, Throwable exception);
+
+  /**
+   * Check if a message should be logged for the provided category and severity.
+   *
+   * @param category
+   *          The category of the message.
+   * @param severity
+   *          The severity of the message.
+   * @return {@code true} if the message should be logged, {@code false}
+   *         otherwise
+   */
+  public abstract boolean isEnabledFor(String category, Severity severity);
 
 }

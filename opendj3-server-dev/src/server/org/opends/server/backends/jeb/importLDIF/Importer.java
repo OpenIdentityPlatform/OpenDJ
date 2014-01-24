@@ -43,9 +43,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
@@ -276,7 +274,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     recursiveDelete(tempDir);
     if (!tempDir.exists() && !tempDir.mkdirs())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(String.valueOf(tempDir));
       throw new InitializationException(message);
     }
@@ -344,7 +342,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     recursiveDelete(tempDir);
     if (!tempDir.exists() && !tempDir.mkdirs())
     {
-      Message message =
+      LocalizableMessage message =
           ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(String.valueOf(tempDir));
       throw new InitializationException(message);
     }
@@ -537,7 +535,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           // Not enough memory.
           final long minimumPhaseOneBufferMemory =
               totalPhaseOneBufferCount * MIN_BUFFER_SIZE;
-          Message message =
+          LocalizableMessage message =
               ERR_IMPORT_LDIF_LACK_MEM.get(usableMemory,
                   minimumPhaseOneBufferMemory + dbCacheSize + tmpEnvCacheSize);
           throw new InitializationException(message);
@@ -906,7 +904,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       catch (IOException ioe)
       {
-        Message message = ERR_JEB_IMPORT_LDIF_READER_IO_ERROR.get();
+        LocalizableMessage message = ERR_JEB_IMPORT_LDIF_READER_IO_ERROR.get();
         throw new InitializationException(message, ioe);
       }
 
@@ -930,7 +928,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       dbMonitor.initializeMonitorProvider(null);
       DirectoryServer.registerMonitorProvider(dbMonitor);
 
-      Message message =
+      LocalizableMessage message =
           NOTE_JEB_IMPORT_STARTING.get(DirectoryServer.getVersionString(),
               BUILD_ID, REVISION_NUMBER);
       logError(message);
@@ -1058,7 +1056,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
     catch (DatabaseException ex)
     {
-      Message message =
+      LocalizableMessage message =
           NOTE_JEB_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage());
       throw new JebException(message);
     }
@@ -1220,7 +1218,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         readAheadSize = MIN_READ_AHEAD_CACHE_SIZE;
         buffers = (int) (usableMemory / readAheadSize);
 
-        Message message = WARN_IMPORT_LDIF_LACK_MEM_PHASE_TWO.get(usableMemory);
+        LocalizableMessage message = WARN_IMPORT_LDIF_LACK_MEM_PHASE_TWO.get(usableMemory);
         logError(message);
         break;
       }
@@ -1230,7 +1228,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     // processing of smaller indexes.
     dbThreads = Math.max(2, dbThreads);
 
-    Message message =
+    LocalizableMessage message =
         NOTE_JEB_IMPORT_LDIF_PHASE_TWO_MEM_REPORT.get(availableMemory,
             readAheadSize, buffers);
     logError(message);
@@ -1293,7 +1291,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           DatabaseEntry data = new DatabaseEntry();
           LockMode lockMode = LockMode.DEFAULT;
           OperationStatus status;
-          Message message =
+          LocalizableMessage message =
               NOTE_JEB_IMPORT_MIGRATION_START.get("excluded", String
                   .valueOf(suffix.getBaseDN()));
           logError(message);
@@ -1387,7 +1385,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           DatabaseEntry data = new DatabaseEntry();
           LockMode lockMode = LockMode.DEFAULT;
           OperationStatus status;
-          Message message =
+          LocalizableMessage message =
               NOTE_JEB_IMPORT_MIGRATION_START.get("existing", String
                   .valueOf(suffix.getBaseDN()));
           logError(message);
@@ -1500,7 +1498,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_JEB_IMPORT_LDIF_APPEND_REPLACE_TASK_ERR.get(e.getMessage());
         logError(message);
         isCanceled = true;
@@ -1627,7 +1625,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_JEB_IMPORT_LDIF_IMPORT_TASK_ERR.get(e.getMessage());
         logError(message);
         isCanceled = true;
@@ -1668,7 +1666,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       {
         if (!suffix.isParentProcessed(parentDN, tmpEnv, clearedBackend))
         {
-          Message message =
+          LocalizableMessage message =
               ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(parentDN.toString());
           reader.rejectEntry(entry, message);
           return false;
@@ -1682,14 +1680,14 @@ public final class Importer implements DiskSpaceMonitorHandler
         EntryID id = suffix.getDN2ID().get(null, entryDN, LockMode.DEFAULT);
         if (id != null || !tmpEnv.insert(entryDN, keyEntry, valEntry))
         {
-          Message message = WARN_JEB_IMPORT_ENTRY_EXISTS.get();
+          LocalizableMessage message = WARN_JEB_IMPORT_ENTRY_EXISTS.get();
           reader.rejectEntry(entry, message);
           return false;
         }
       }
       else if (!tmpEnv.insert(entryDN, keyEntry, valEntry))
       {
-        Message message = WARN_JEB_IMPORT_ENTRY_EXISTS.get();
+        LocalizableMessage message = WARN_JEB_IMPORT_ENTRY_EXISTS.get();
         reader.rejectEntry(entry, message);
         return false;
       }
@@ -1852,17 +1850,15 @@ public final class Importer implements DiskSpaceMonitorHandler
         indexBuffer = freeBufferQueue.take();
         if (indexBuffer == null)
         {
-          Message message =
-              Message.raw(Category.JEB, Severity.SEVERE_ERROR,
-                  "Index buffer processing error.");
+          LocalizableMessage message =
+              LocalizableMessage.raw("Index buffer processing error.");
           throw new InterruptedException(message.toString());
         }
       }
       if (indexBuffer.isPoison())
       {
-        Message message =
-            Message.raw(Category.JEB, Severity.SEVERE_ERROR,
-                "Cancel processing received.");
+        LocalizableMessage message =
+            LocalizableMessage.raw("Cancel processing received.");
         throw new InterruptedException(message.toString());
       }
       return indexBuffer;
@@ -1966,7 +1962,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       nextBufferID = 0;
       ownedPermits = 0;
 
-      Message message =
+      LocalizableMessage message =
           NOTE_JEB_IMPORT_LDIF_INDEX_STARTED.get(indexMgr.getBufferFileName(),
               remainingBuffers, totalBatches);
       logError(message);
@@ -2048,7 +2044,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           }
           if (!isCanceled)
           {
-            Message msg =
+            LocalizableMessage msg =
                 NOTE_JEB_IMPORT_LDIF_DN_CLOSE.get(indexMgr.getDNCount());
             logError(msg);
           }
@@ -2061,7 +2057,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           }
           if (!isCanceled)
           {
-            Message message =
+            LocalizableMessage message =
                 NOTE_JEB_IMPORT_LDIF_INDEX_CLOSE.get(indexMgr
                     .getBufferFileName());
             logError(message);
@@ -2121,7 +2117,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         final long kiloBytesRate = bytesReadInterval / deltaTime;
         final long kiloBytesRemaining = (bufferFileSize - tmpBytesRead) / 1024;
 
-        Message message =
+        LocalizableMessage message =
             NOTE_JEB_IMPORT_LDIF_PHASE_TWO_REPORT.get(indexMgr
                 .getBufferFileName(), bytesReadPercent, kiloBytesRemaining,
                 kiloBytesRate, currentBatch, totalBatches);
@@ -2244,7 +2240,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_JEB_IMPORT_LDIF_INDEX_WRITE_DB_ERR.get(indexMgr
                 .getBufferFileName(), e.getMessage());
         logError(message);
@@ -2716,7 +2712,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       catch (IOException e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_JEB_IMPORT_LDIF_INDEX_FILEWRITER_ERR.get(indexMgr
                 .getBufferFile().getAbsolutePath(), e.getMessage());
         logError(message);
@@ -3223,7 +3219,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       suffix = Suffix.createSuffixContext(entryContainer, null, null, null);
       if (suffix == null)
       {
-        Message msg =
+        LocalizableMessage msg =
             ERR_JEB_REBUILD_SUFFIX_ERROR.get(rebuildConfig.getBaseDN()
                 .toString());
         throw new InitializationException(msg);
@@ -3250,7 +3246,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       totalEntries = suffix.getID2Entry().getRecordCount();
 
-      Message message = null;
+      LocalizableMessage message = null;
       switch (rebuildConfig.getRebuildMode())
       {
       case ALL:
@@ -3290,7 +3286,7 @@ public final class Importer implements DiskSpaceMonitorHandler
 
       if (!rebuildConfig.isClearDegradedState())
       {
-        Message message =
+        LocalizableMessage message =
             NOTE_JEB_REBUILD_FINAL_STATUS.get(entriesProcessed.get(),
                 totalTime / 1000, rate);
         logError(message);
@@ -3332,7 +3328,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        Message message = ERR_JEB_IMPORT_LDIF_REBUILD_INDEX_TASK_ERR.get(
+        LocalizableMessage message = ERR_JEB_IMPORT_LDIF_REBUILD_INDEX_TASK_ERR.get(
           stackTraceToSingleLineString(e));
         logError(message);
         isCanceled = true;
@@ -3378,7 +3374,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             NOTE_JEB_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS.get(rebuildConfig
                 .getRebuildList().toString());
         logError(message);
@@ -3677,7 +3673,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       catch (DatabaseException ex)
       {
-        Message message =
+        LocalizableMessage message =
             NOTE_JEB_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage());
         throw new JebException(message);
       }
@@ -3783,7 +3779,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           {
             if (lowerName.length() < 5)
             {
-              Message msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName);
+              LocalizableMessage msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName);
               throw new JebException(msg);
             }
             indexCount++;
@@ -3791,7 +3787,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           else if (lowerName.equals("id2subtree")
               || lowerName.equals("id2children"))
           {
-            Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+            LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
             throw new InitializationException(msg);
           }
           else
@@ -3799,14 +3795,14 @@ public final class Importer implements DiskSpaceMonitorHandler
             String[] attrIndexParts = lowerName.split("\\.");
             if ((attrIndexParts.length <= 0) || (attrIndexParts.length > 3))
             {
-              Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+              LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
               throw new InitializationException(msg);
             }
             AttributeType attrType =
                 DirectoryServer.getAttributeType(attrIndexParts[0]);
             if (attrType == null)
             {
-              Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+              LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
               throw new InitializationException(msg);
             }
             if (attrIndexParts.length != 1)
@@ -3835,7 +3831,7 @@ public final class Importer implements DiskSpaceMonitorHandler
                 }
                 else
                 {
-                  Message msg =
+                  LocalizableMessage msg =
                       ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
                   throw new InitializationException(msg);
                 }
@@ -3868,7 +3864,7 @@ public final class Importer implements DiskSpaceMonitorHandler
                 }
                 if (!found)
                 {
-                  Message msg =
+                  LocalizableMessage msg =
                       ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
                   throw new InitializationException(msg);
                 }
@@ -3936,7 +3932,7 @@ public final class Importer implements DiskSpaceMonitorHandler
               }
               if (!found)
               {
-                Message msg =
+                LocalizableMessage msg =
                     ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
                 throw new InitializationException(msg);
               }
@@ -4048,7 +4044,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     public void diskFullThresholdReached(DiskSpaceMonitor monitor)
     {
       isCanceled = true;
-      Message msg =
+      LocalizableMessage msg =
           ERR_REBUILD_INDEX_LACK_DISK.get(monitor.getDirectory().getPath(),
               monitor.getFreeSpace(), monitor.getLowThreshold());
       logError(msg);
@@ -4115,7 +4111,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       {
         completed = 100f * entriesProcessed / rebuildManager.getTotEntries();
       }
-      Message message =
+      LocalizableMessage message =
           NOTE_JEB_REBUILD_PROGRESS_REPORT.get(completed, entriesProcessed,
               rebuildManager.getTotEntries(), rate);
       logError(message);
@@ -4202,7 +4198,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       long deltaCount = (latestCount - previousCount);
       long latestTime = System.currentTimeMillis();
       long deltaTime = latestTime - previousTime;
-      Message message;
+      LocalizableMessage message;
       if (deltaTime == 0)
       {
         return;
@@ -4346,7 +4342,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       long deltaCount = (latestCount - previousCount);
       long latestTime = System.currentTimeMillis();
       long deltaTime = latestTime - previousTime;
-      Message message;
+      LocalizableMessage message;
       if (deltaTime == 0)
       {
         return;
@@ -4777,9 +4773,8 @@ public final class Importer implements DiskSpaceMonitorHandler
           status = cursor.getSearchKey(key, dns, LockMode.RMW);
           if (status == OperationStatus.NOTFOUND)
           {
-            Message message =
-                Message.raw(Category.JEB, Severity.SEVERE_ERROR,
-                    "Search DN cache failed.");
+            LocalizableMessage message =
+                LocalizableMessage.raw("Search DN cache failed.");
             throw new JebException(message);
           }
           if (!isDNMatched(dns, dnBytes))
@@ -4815,9 +4810,8 @@ public final class Importer implements DiskSpaceMonitorHandler
       OperationStatus status = cursor.putCurrent(newVal);
       if (status != OperationStatus.SUCCESS)
       {
-        Message message =
-            Message.raw(Category.JEB, Severity.SEVERE_ERROR,
-                "Add of DN to DN cache failed.");
+        LocalizableMessage message =
+            LocalizableMessage.raw("Add of DN to DN cache failed.");
         throw new JebException(message);
       }
     }
@@ -4911,7 +4905,7 @@ public final class Importer implements DiskSpaceMonitorHandler
   public void diskFullThresholdReached(DiskSpaceMonitor monitor)
   {
     isCanceled = true;
-    Message msg;
+    LocalizableMessage msg;
     if (!isPhaseOneDone)
     {
       msg =

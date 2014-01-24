@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.protocols.http;
 
@@ -48,7 +48,7 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.SchemaConstants;
@@ -359,7 +359,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
 
       sendErrorReponse(ctx.response, ctx.prettyPrint, ex);
 
-      Message message =
+      LocalizableMessage message =
           INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(ctx.clientConnection
               .getClientHostPort(), ctx.clientConnection.getServerHostPort(),
               getExceptionMessage(e));

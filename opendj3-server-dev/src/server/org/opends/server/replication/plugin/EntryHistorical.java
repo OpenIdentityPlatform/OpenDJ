@@ -28,7 +28,7 @@ package org.opends.server.replication.plugin;
 
 import java.util.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
@@ -689,7 +689,7 @@ public class EntryHistorical
                * historical information is going to be kept.
                * Log information for the repair tool.
                */
-              Message message = ERR_UNKNOWN_ATTRIBUTE_IN_HISTORICAL.get(
+              LocalizableMessage message = ERR_UNKNOWN_ATTRIBUTE_IN_HISTORICAL.get(
                   entry.getName().toNormalizedString(),
                   histVal.getAttrString());
               logError(message);
@@ -734,7 +734,7 @@ public class EntryHistorical
       // Any exception happening here means that the coding of the historical
       // information was wrong.
       // Log an error and continue with an empty historical.
-      Message message = ERR_BAD_HISTORICAL.get(entry.getName().toString());
+      LocalizableMessage message = ERR_BAD_HISTORICAL.get(entry.getName().toString());
       logError(message);
     }
 

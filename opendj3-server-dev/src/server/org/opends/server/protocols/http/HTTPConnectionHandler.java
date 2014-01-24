@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.http;
@@ -67,7 +67,7 @@ import org.glassfish.grizzly.servlet.WebappContext;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.utils.Charsets;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.HTTPConnectionHandlerCfg;
@@ -215,7 +215,7 @@ public class HTTPConnectionHandler extends
   {
     // Create variables to include in the response.
     boolean adminActionRequired = false;
-    List<Message> messages = new ArrayList<Message>();
+    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     if (anyChangeRequiresRestart(config))
     {
@@ -327,7 +327,7 @@ public class HTTPConnectionHandler extends
 
   /** {@inheritDoc} */
   @Override
-  public void finalizeConnectionHandler(Message finalizeReason)
+  public void finalizeConnectionHandler(LocalizableMessage finalizeReason)
   {
     shutdownRequested = true;
     // Unregister this as a change listener.
@@ -534,7 +534,7 @@ public class HTTPConnectionHandler extends
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     HTTPConnectionHandlerCfg config = (HTTPConnectionHandlerCfg) configuration;
 
@@ -542,7 +542,7 @@ public class HTTPConnectionHandler extends
     {
       // Attempt to bind to the listen port on all configured addresses to
       // verify whether the connection handler will be able to start.
-      Message errorMessage =
+      LocalizableMessage errorMessage =
           checkAnyListenAddressInUse(config.getListenAddress(), config
               .getListenPort(), config.isAllowTCPReuseAddress(), config.dn());
       if (errorMessage != null)
@@ -592,7 +592,7 @@ public class HTTPConnectionHandler extends
    * @return an error message if at least one of the address is already in use,
    *         null otherwise.
    */
-  private Message checkAnyListenAddressInUse(
+  private LocalizableMessage checkAnyListenAddressInUse(
       Collection<InetAddress> listenAddresses, int listenPort,
       boolean allowReuseAddress, DN configEntryDN)
   {
@@ -622,7 +622,7 @@ public class HTTPConnectionHandler extends
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
-      HTTPConnectionHandlerCfg configuration, List<Message> unacceptableReasons)
+      HTTPConnectionHandlerCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigurationAcceptable(configuration, unacceptableReasons);
   }
@@ -640,7 +640,7 @@ public class HTTPConnectionHandler extends
 
   /** {@inheritDoc} */
   @Override
-  public void processServerShutdown(Message reason)
+  public void processServerShutdown(LocalizableMessage reason)
   {
     shutdownRequested = true;
   }
@@ -750,7 +750,7 @@ public class HTTPConnectionHandler extends
           // encountered a failure. Rather than enter a potential
           // infinite loop of failures, disable this acceptor and
           // log an error.
-          Message message =
+          LocalizableMessage message =
               ERR_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES.get(friendlyName,
                   String.valueOf(currentConfig.dn()),
                   stackTraceToSingleLineString(e));
@@ -1025,7 +1025,7 @@ public class HTTPConnectionHandler extends
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       ResultCode resCode = DirectoryServer.getServerErrorResultCode();
-      Message message =
+      LocalizableMessage message =
           ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE.get(getExceptionMessage(e));
       throw new DirectoryException(resCode, message, e);
     }

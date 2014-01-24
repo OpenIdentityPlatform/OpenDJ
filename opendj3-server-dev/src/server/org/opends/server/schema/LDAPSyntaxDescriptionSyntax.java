@@ -44,12 +44,12 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.config.ConfigException;
@@ -285,7 +285,7 @@ public class LDAPSyntaxDescriptionSyntax
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
 
-      Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_EMPTY_VALUE.get();
+      LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_EMPTY_VALUE.get();
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
     }
@@ -297,7 +297,7 @@ public class LDAPSyntaxDescriptionSyntax
     if (c != '(')
     {
 
-      Message message =
+      LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
                       valueStr, (pos-1), String.valueOf(c));
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -315,7 +315,7 @@ public class LDAPSyntaxDescriptionSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(
               valueStr);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
@@ -334,7 +334,7 @@ public class LDAPSyntaxDescriptionSyntax
         {
           if (lastWasPeriod)
           {
-            Message message =
+            LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID.
                   get(valueStr, (pos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -348,7 +348,7 @@ public class LDAPSyntaxDescriptionSyntax
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID.
                 get(valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -377,7 +377,7 @@ public class LDAPSyntaxDescriptionSyntax
         else
         {
           // This must have been an illegal character.
-          Message message =
+          LocalizableMessage message =
                   ERR_ATTR_SYNTAX_LDAPSYNTAX_ILLEGAL_CHAR_IN_STRING_OID.
               get(valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -391,7 +391,7 @@ public class LDAPSyntaxDescriptionSyntax
     String oid;
     if (pos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(
               valueStr);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
@@ -412,7 +412,7 @@ public class LDAPSyntaxDescriptionSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(
               valueStr);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
@@ -442,7 +442,7 @@ public class LDAPSyntaxDescriptionSyntax
         // We must be at the end of the value.  If not, then that's a problem.
         if (pos < length)
         {
-          Message message =
+          LocalizableMessage message =
             ERR_ATTR_SYNTAX_LDAPSYNTAX_UNEXPECTED_CLOSE_PARENTHESIS.
                 get(valueStr, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -464,7 +464,7 @@ public class LDAPSyntaxDescriptionSyntax
         if (hasXSyntaxToken)
         {
           // We've already seen syntax extension. More than 1 is not allowed
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_TOO_MANY_EXTENSIONS.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -476,7 +476,7 @@ public class LDAPSyntaxDescriptionSyntax
         AttributeSyntax<?> subSyntax = schema.getSyntax(syntaxOID);
         if (subSyntax == null)
         {
-          Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_SYNTAX.get(
+          LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_SYNTAX.get(
               String.valueOf(oid), syntaxOID);
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                        message);
@@ -489,7 +489,7 @@ public class LDAPSyntaxDescriptionSyntax
         if (hasXSyntaxToken)
         {
           // We've already seen syntax extension. More than 1 is not allowed
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_TOO_MANY_EXTENSIONS.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -500,7 +500,7 @@ public class LDAPSyntaxDescriptionSyntax
         String regex = regexBuffer.toString().trim();
         if(regex.length() == 0)
         {
-          Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_NO_PATTERN.get(
+          LocalizableMessage message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_NO_PATTERN.get(
                valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -513,7 +513,7 @@ public class LDAPSyntaxDescriptionSyntax
         }
         catch(Exception e)
         {
-          Message message =
+          LocalizableMessage message =
               WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get
                   (valueStr,regex);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -525,7 +525,7 @@ public class LDAPSyntaxDescriptionSyntax
         if (hasXSyntaxToken)
         {
           // We've already seen syntax extension. More than 1 is not allowed
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_TOO_MANY_EXTENSIONS.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -536,7 +536,7 @@ public class LDAPSyntaxDescriptionSyntax
 
         if (values.isEmpty())
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_ENUM_NO_VALUES.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -548,7 +548,7 @@ public class LDAPSyntaxDescriptionSyntax
           ByteString entry = ByteString.valueOf(v);
           if (entries.contains(entry))
           {
-            Message message =
+            LocalizableMessage message =
                   WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(
                           valueStr, entry.toString(),pos);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -571,7 +571,7 @@ public class LDAPSyntaxDescriptionSyntax
       else
       {
         // Unknown Token
-        Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_EXT.get(
+        LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_EXT.get(
             valueStr, tokenName, pos);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
@@ -607,7 +607,7 @@ public class LDAPSyntaxDescriptionSyntax
    */
   @Override
   public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     // We'll use the decodeAttributeType method to determine if the value is
     // acceptable.
@@ -659,7 +659,7 @@ public class LDAPSyntaxDescriptionSyntax
 
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -718,7 +718,7 @@ public class LDAPSyntaxDescriptionSyntax
 
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -728,7 +728,7 @@ public class LDAPSyntaxDescriptionSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_EXPECTED_QUOTE_AT_POS.get(
+      LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_EXPECTED_QUOTE_AT_POS.get(
           valueStr, startPos, String.valueOf(c));
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -755,7 +755,7 @@ public class LDAPSyntaxDescriptionSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -797,7 +797,7 @@ public class LDAPSyntaxDescriptionSyntax
 
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -835,7 +835,7 @@ public class LDAPSyntaxDescriptionSyntax
 
         if (startPos >= length)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -850,7 +850,7 @@ public class LDAPSyntaxDescriptionSyntax
         else if (c == '(')
         {
           // This is an illegal character.
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_EXTENSION_INVALID_CHARACTER.get(
                       valueStr, startPos);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -887,7 +887,7 @@ public class LDAPSyntaxDescriptionSyntax
 
         if (startPos >= length)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -915,7 +915,7 @@ public class LDAPSyntaxDescriptionSyntax
 
     if (startPos >= length)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -1033,7 +1033,7 @@ public class LDAPSyntaxDescriptionSyntax
      */
     @Override
     public boolean valueIsAcceptable(ByteSequence value,
-                                     MessageBuilder invalidReason)
+                                     LocalizableMessageBuilder invalidReason)
     {
       return  subSyntax.valueIsAcceptable(value, invalidReason);
     }
@@ -1202,13 +1202,13 @@ public class LDAPSyntaxDescriptionSyntax
      */
     @Override
     public boolean valueIsAcceptable(ByteSequence value,
-                                     MessageBuilder invalidReason)
+                                     LocalizableMessageBuilder invalidReason)
     {
       String strValue = value.toString();
       boolean matches = pattern.matcher(strValue).matches();
       if(!matches)
       {
-        Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_VALUE.get(
+        LocalizableMessage message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_VALUE.get(
                 strValue,pattern.pattern());
         invalidReason.append(message);
       }
@@ -1413,14 +1413,14 @@ public class LDAPSyntaxDescriptionSyntax
      */
     @Override
     public boolean valueIsAcceptable(ByteSequence value,
-                                     MessageBuilder invalidReason)
+                                     LocalizableMessageBuilder invalidReason)
     {
       //The value is acceptable if it belongs to the set.
       boolean isAllowed = entries.contains(value);
 
       if(!isAllowed)
       {
-        Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(
+        LocalizableMessage message = WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(
                 value.toString(),oid);
         invalidReason.append(message);
       }

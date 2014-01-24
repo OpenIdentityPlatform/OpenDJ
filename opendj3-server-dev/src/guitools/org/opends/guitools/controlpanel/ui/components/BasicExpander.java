@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -32,7 +33,7 @@ import javax.swing.SwingConstants;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A component that acts as a checkbox but uses some customized buttons to
@@ -48,7 +49,7 @@ public class BasicExpander extends JCheckBox
    * Constructor of the BasicExpander.
    * @param text the text to be displayed in the label of the BasicExpander.
    */
-  public BasicExpander(Message text)
+  public BasicExpander(LocalizableMessage text)
   {
     super(text.toString());
     setHorizontalTextPosition(SwingConstants.TRAILING);

@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -136,7 +137,7 @@ public final class InternalConnectionHandler
    * {@inheritDoc}
    */
   @Override()
-  public void finalizeConnectionHandler(Message finalizeReason)
+  public void finalizeConnectionHandler(LocalizableMessage finalizeReason)
   {
     // No implementation is required.
   }

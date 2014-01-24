@@ -22,16 +22,17 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.api;
 
 import java.io.Closeable;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.LogPublisherCfg;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
@@ -58,6 +59,8 @@ public interface LogPublisher<T extends LogPublisherCfg> extends Closeable
    * @param config
    *          The publisher configuration that contains the information to use
    *          to initialize this publisher.
+   * @param serverContext
+   *          The server context.
    * @throws ConfigException
    *           If an unrecoverable problem arises in the process of performing
    *           the initialization as a result of the server configuration.
@@ -65,7 +68,7 @@ public interface LogPublisher<T extends LogPublisherCfg> extends Closeable
    *           If a problem occurs during initialization that is not related to
    *           the server configuration.
    */
-  void initializeLogPublisher(T config) throws ConfigException,
+  void initializeLogPublisher(T config, ServerContext serverContext) throws ConfigException,
       InitializationException;
 
 
@@ -90,7 +93,7 @@ public interface LogPublisher<T extends LogPublisherCfg> extends Closeable
    *         log publisher, or {@code false} if not.
    */
   boolean isConfigurationAcceptable(T configuration,
-      List<Message> unacceptableReasons);
+      List<LocalizableMessage> unacceptableReasons);
 
 
 

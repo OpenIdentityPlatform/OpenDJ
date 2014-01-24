@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -99,14 +100,14 @@ public enum Step implements WizardStep
    */
   FINISHED(INFO_FINISHED_STEP.get());
 
-  private Message msg;
+  private LocalizableMessage msg;
 
   /**
    * Creates a step.
    * @param msg the message key used to access a message catalog to
    * retreive this step's display name
    */
-  Step(Message msg) {
+  Step(LocalizableMessage msg) {
     this.msg = msg;
   }
 
@@ -115,7 +116,7 @@ public enum Step implements WizardStep
    * @return String message key used to access a message catalog to
    * retreive this step's display name
    */
-  public Message getDisplayMessage() {
+  public LocalizableMessage getDisplayMessage() {
     return msg;
   }
 

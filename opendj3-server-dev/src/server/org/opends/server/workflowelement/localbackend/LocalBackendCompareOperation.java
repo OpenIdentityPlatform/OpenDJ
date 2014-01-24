@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
@@ -344,7 +344,7 @@ public class LocalBackendCompareOperation
   }
 
   private DirectoryException newDirectoryException(Entry entry,
-      ResultCode resultCode, Message message) throws DirectoryException
+      ResultCode resultCode, LocalizableMessage message) throws DirectoryException
   {
     return LocalBackendWorkflowElement.newDirectoryException(this, entry, null,
         resultCode, message, ResultCode.NO_SUCH_OBJECT,
@@ -352,7 +352,7 @@ public class LocalBackendCompareOperation
   }
 
   private void setResultCodeAndMessageNoInfoDisclosure(Entry entry, DN entryDN,
-      ResultCode realResultCode, Message realMessage) throws DirectoryException
+      ResultCode realResultCode, LocalizableMessage realMessage) throws DirectoryException
   {
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
         entry, entryDN, realResultCode, realMessage, ResultCode.NO_SUCH_OBJECT,

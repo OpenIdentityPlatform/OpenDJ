@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock, AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.admin.client.ldap;
 
@@ -47,7 +47,7 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.Configuration;
@@ -480,7 +480,7 @@ final class LDAPDriver extends Driver {
         throw new OperationRejectedException(OperationType.DELETE, d
             .getUserFriendlyName());
       } else {
-        Message m = Message.raw("%s", e.getMessage());
+        LocalizableMessage m = LocalizableMessage.raw("%s", e.getMessage());
         throw new OperationRejectedException(OperationType.DELETE, d
             .getUserFriendlyName(), m);
       }

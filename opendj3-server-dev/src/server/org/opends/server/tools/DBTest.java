@@ -32,7 +32,7 @@ import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.api.Backend;
@@ -159,15 +159,15 @@ public class DBTest
     this.out = NullOutputStream.wrapOrNullStream(out);
     this.err = NullOutputStream.wrapOrNullStream(err);
 
-    Message toolDescription = INFO_DESCRIPTION_DBTEST_TOOL.get();
+    LocalizableMessage toolDescription = INFO_DESCRIPTION_DBTEST_TOOL.get();
     this.parser = new SubCommandArgumentParser(this.getClass().getName(),
                                                toolDescription, false);
   }
 
   // Displays the provided message followed by a help usage reference.
-  private void displayMessageAndUsageReference(Message message) {
+  private void displayMessageAndUsageReference(LocalizableMessage message) {
     printMessage(message);
-    printMessage(Message.EMPTY);
+    printMessage(LocalizableMessage.EMPTY);
     printMessage(parser.getHelpUsageReference());
   }
 
@@ -356,7 +356,7 @@ public class DBTest
       initializeGlobalArguments();
       initializeSubCommands();
     } catch (ArgumentException e) {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
       printMessage(message);
       return 1;
     }
@@ -365,7 +365,7 @@ public class DBTest
     try {
       parser.parseArguments(args);
     } catch (ArgumentException ae) {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       displayMessageAndUsageReference(message);
       return 1;
     }
@@ -403,7 +403,7 @@ public class DBTest
       }
       catch (Exception e)
       {
-        Message message = ERR_SERVER_BOOTSTRAP_ERROR.get(
+        LocalizableMessage message = ERR_SERVER_BOOTSTRAP_ERROR.get(
                 getExceptionMessage(e));
         printMessage(message);
         return 1;
@@ -416,14 +416,14 @@ public class DBTest
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_LOAD_CONFIG.get(
+        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(
             ie.getMessage());
         printMessage(message);
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_LOAD_CONFIG.get(
+        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(
             getExceptionMessage(e));
         printMessage(message);
         return 1;
@@ -438,21 +438,21 @@ public class DBTest
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(
             ce.getMessage());
         printMessage(message);
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(
             ie.getMessage());
         printMessage(message);
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_LOAD_SCHEMA.get(
+        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(
             getExceptionMessage(e));
         printMessage(message);
         return 1;
@@ -468,21 +468,21 @@ public class DBTest
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
                 ce.getMessage());
         printMessage(message);
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
                 ie.getMessage());
         printMessage(message);
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
                 getExceptionMessage(e));
         printMessage(message);
         return 1;
@@ -496,21 +496,21 @@ public class DBTest
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                 ce.getMessage());
         printMessage(message);
         return 1;
       }
       catch (InitializationException ie)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                 ie.getMessage());
         printMessage(message);
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
                 getExceptionMessage(e));
         printMessage(message);
         return 1;
@@ -520,7 +520,7 @@ public class DBTest
     // Make sure that we have a sub-command.
     if (parser.getSubCommand() == null)
     {
-      Message message = ERR_DBTEST_MISSING_SUBCOMMAND.get();
+      LocalizableMessage message = ERR_DBTEST_MISSING_SUBCOMMAND.get();
       displayMessageAndUsageReference(message);
       return 1;
     }
@@ -565,7 +565,7 @@ public class DBTest
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      printMessage(Message.raw(StaticUtils.stackTraceToString(e)));
+      printMessage(LocalizableMessage.raw(StaticUtils.stackTraceToString(e)));
       return 1;
     }
   }
@@ -624,7 +624,7 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        Message message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
+        LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         printMessage(message);
         return 1;
@@ -632,7 +632,7 @@ public class DBTest
     }
     catch (Exception e)
     {
-      Message message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
+      LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       printMessage(message);
       return 1;
@@ -703,14 +703,14 @@ public class DBTest
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-        Message message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
+        LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
           printMessage(message);
         }
       }
       catch (Exception e)
       {
-      Message message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
+      LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
         printMessage(message);
       }
@@ -760,7 +760,7 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        Message message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
+        LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         printMessage(message);
         return 1;
@@ -768,7 +768,7 @@ public class DBTest
     }
     catch (Exception e)
     {
-      Message message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
+      LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       printMessage(message);
       return 1;
@@ -878,14 +878,14 @@ public class DBTest
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          Message message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
+          LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
               backend.getBackendID(), String.valueOf(failureReason));
           printMessage(message);
         }
       }
       catch (Exception e)
       {
-        Message message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
+        LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
             backend.getBackendID(), getExceptionMessage(e));
         printMessage(message);
       }
@@ -935,7 +935,7 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        Message message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
+        LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         printMessage(message);
         return 1;
@@ -943,7 +943,7 @@ public class DBTest
     }
     catch (Exception e)
     {
-      Message message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
+      LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       printMessage(message);
       return 1;
@@ -976,9 +976,9 @@ public class DBTest
       builder.appendHeading(INFO_LABEL_DBTEST_JE_RECORD_COUNT.get());
       builder.appendHeading(
           INFO_LABEL_DBTEST_INDEX_UNDEFINED_RECORD_COUNT.get());
-      builder.appendHeading(Message.raw("95%"));
-      builder.appendHeading(Message.raw("90%"));
-      builder.appendHeading(Message.raw("85%"));
+      builder.appendHeading(LocalizableMessage.raw("95%"));
+      builder.appendHeading(LocalizableMessage.raw("90%"));
+      builder.appendHeading(LocalizableMessage.raw("85%"));
 
 
       EntryContainer ec = rc.getEntryContainer(base);
@@ -1134,14 +1134,14 @@ public class DBTest
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-        Message message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
+        LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
           printMessage(message);
         }
       }
       catch (Exception e)
       {
-      Message message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
+      LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
         printMessage(message);
       }
@@ -1191,7 +1191,7 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        Message message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
+        LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         printMessage(message);
         return 1;
@@ -1199,7 +1199,7 @@ public class DBTest
     }
     catch (Exception e)
     {
-      Message message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
+      LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       printMessage(message);
       return 1;
@@ -1464,8 +1464,8 @@ public class DBTest
 
           if (!statsOnly.isPresent())
           {
-            Message keyLabel = INFO_LABEL_DBTEST_KEY.get();
-            Message dataLabel = INFO_LABEL_DBTEST_DATA.get();
+            LocalizableMessage keyLabel = INFO_LABEL_DBTEST_KEY.get();
+            LocalizableMessage dataLabel = INFO_LABEL_DBTEST_DATA.get();
 
             String formatedKey = null;
             String formatedData = null;
@@ -1483,7 +1483,7 @@ public class DBTest
                 }
                 catch(Exception e)
                 {
-                  Message message =
+                  LocalizableMessage message =
                     ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
                   printMessage(message);
                 }
@@ -1507,7 +1507,7 @@ public class DBTest
                 }
                 catch(Exception e)
                 {
-                  Message message =
+                  LocalizableMessage message =
                     ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
                   printMessage(message);
                 }
@@ -1521,7 +1521,7 @@ public class DBTest
                 }
                 catch(Exception e)
                 {
-                  Message message =
+                  LocalizableMessage message =
                     ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
                   printMessage(message);
                 }
@@ -1659,7 +1659,7 @@ public class DBTest
                 }
                 catch(Exception e)
                 {
-                  Message message =
+                  LocalizableMessage message =
                     ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
                   printMessage(message);
                 }
@@ -1733,14 +1733,14 @@ public class DBTest
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          Message message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
+          LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
               backend.getBackendID(), String.valueOf(failureReason));
           printMessage(message);
         }
       }
       catch (Exception e)
       {
-        Message message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
+        LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
             backend.getBackendID(), getExceptionMessage(e));
         printMessage(message);
       }
@@ -1776,7 +1776,7 @@ public class DBTest
    * @param msg
    *          The message.
    */
-  public final void printMessage(Message msg) {
+  public final void printMessage(LocalizableMessage msg) {
     err.println(wrapText(msg.toString(), MAX_LINE_WIDTH));
   }
 }

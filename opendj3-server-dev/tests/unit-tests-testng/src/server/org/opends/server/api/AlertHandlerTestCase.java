@@ -34,7 +34,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DummyAlertHandler;
@@ -70,7 +70,7 @@ public class AlertHandlerTestCase
   /**
    * The alert message to use for these tests.
    */
-  public static final Message ALERT_MESSAGE = Message.raw("This is the alert message");
+  public static final LocalizableMessage ALERT_MESSAGE = LocalizableMessage.raw("This is the alert message");
 
 
 

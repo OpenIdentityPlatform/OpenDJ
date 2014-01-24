@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.config;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -85,7 +85,7 @@ public final class BooleanConfigAttribute
    *                              configuration attribute require administrative
    *                              action before they will take effect.
    */
-  public BooleanConfigAttribute(String name, Message description,
+  public BooleanConfigAttribute(String name, LocalizableMessage description,
                                 boolean requiresAdminAction)
   {
     super(name, description, true, false, requiresAdminAction);
@@ -107,7 +107,7 @@ public final class BooleanConfigAttribute
    * @param  value                The value for this Boolean configuration
    *                              attribute.
    */
-  public BooleanConfigAttribute(String name, Message description,
+  public BooleanConfigAttribute(String name, LocalizableMessage description,
                                 boolean requiresAdminAction,
                                 boolean value)
   {
@@ -135,7 +135,7 @@ public final class BooleanConfigAttribute
    * @param  pendingValue         The pending value for this Boolean
    *                              configuration attribute.
    */
-  public BooleanConfigAttribute(String name, Message description,
+  public BooleanConfigAttribute(String name, LocalizableMessage description,
                                 boolean requiresAdminAction,
                                 boolean activeValue, boolean pendingValue)
   {
@@ -331,7 +331,7 @@ public final class BooleanConfigAttribute
   {
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
-      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
       throw new ConfigException(message);
     }
 
@@ -340,7 +340,7 @@ public final class BooleanConfigAttribute
     String valueString = iterator.next().toLowerCase();
     if (iterator.hasNext())
     {
-      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
       throw new ConfigException(message);
     }
 
@@ -356,7 +356,7 @@ public final class BooleanConfigAttribute
     }
     else
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(getName(), valueString);
       throw new ConfigException(message);
     }
@@ -451,7 +451,7 @@ public final class BooleanConfigAttribute
           if (pendingValueSet)
           {
             // We cannot have multiple pending values.
-            Message message =
+            LocalizableMessage message =
                 ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName());
             throw new ConfigException(message);
           }
@@ -460,7 +460,7 @@ public final class BooleanConfigAttribute
           if (a.isEmpty())
           {
             // This is illegal -- it must have a value.
-            Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+            LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
             throw new ConfigException(message);
           }
           else
@@ -485,7 +485,7 @@ public final class BooleanConfigAttribute
             else
             {
               // This is an illegal value.
-              Message message = ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(
+              LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(
                   getName(), valueString);
               throw new ConfigException(message);
             }
@@ -493,7 +493,7 @@ public final class BooleanConfigAttribute
             if (iterator.hasNext())
             {
               // This is illegal -- it must be single-valued.
-              Message message =
+              LocalizableMessage message =
                   ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
               throw new ConfigException(message);
             }
@@ -503,7 +503,7 @@ public final class BooleanConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          Message message =
+          LocalizableMessage message =
               ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName());
           throw new ConfigException(message);
         }
@@ -514,7 +514,7 @@ public final class BooleanConfigAttribute
         if (activeValueSet)
         {
           // We cannot have multiple active values.
-          Message message =
+          LocalizableMessage message =
               ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName());
           throw new ConfigException(message);
         }
@@ -523,7 +523,7 @@ public final class BooleanConfigAttribute
         if (a.isEmpty())
         {
           // This is illegal -- it must have a value.
-          Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+          LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
           throw new ConfigException(message);
         }
         else
@@ -548,7 +548,7 @@ public final class BooleanConfigAttribute
           else
           {
             // This is an illegal value.
-            Message message = ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(
+            LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(
                 getName(), valueString);
             throw new ConfigException(message);
           }
@@ -556,7 +556,7 @@ public final class BooleanConfigAttribute
           if (iterator.hasNext())
           {
             // This is illegal -- it must be single-valued.
-            Message message =
+            LocalizableMessage message =
                 ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
             throw new ConfigException(message);
           }
@@ -567,7 +567,7 @@ public final class BooleanConfigAttribute
     if (! activeValueSet)
     {
       // This is not OK.  The value set must contain an active value.
-      Message message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
       throw new ConfigException(message);
     }
 
@@ -720,14 +720,14 @@ public final class BooleanConfigAttribute
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(getName(), stringValue);
         throw new ConfigException(message);
       }
     }
     else
     {
-      Message message = ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(
+      LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(
           getName(), value.getClass().getName() + ":" +
                                        String.valueOf(value));
       throw new ConfigException(message);

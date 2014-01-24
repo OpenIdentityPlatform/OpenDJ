@@ -32,7 +32,7 @@ import java.util.List;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import static org.testng.Assert.*;
 
@@ -74,10 +74,10 @@ public class DirectoryExceptionTestCase
   @Test(dataProvider = "resultCodes")
   public void testConstructor1(ResultCode resultCode)
   {
-    Message msg = Message.raw("Test Constructor 1");
+    LocalizableMessage msg = LocalizableMessage.raw("Test Constructor 1");
 
     validateException(new DirectoryException(resultCode, msg));
-    validateException(new DirectoryException(resultCode, (Message)null));
+    validateException(new DirectoryException(resultCode, (LocalizableMessage)null));
   }
 
 
@@ -91,7 +91,7 @@ public class DirectoryExceptionTestCase
   @Test(dataProvider = "resultCodes")
   public void testConstructor2(ResultCode resultCode)
   {
-    Message   msg = Message.raw("Test Constructor 2");
+    LocalizableMessage   msg = LocalizableMessage.raw("Test Constructor 2");
     Exception e   = new Exception("Test Constructor 2 Exception");
 
     validateException(new DirectoryException(resultCode, msg, e));
@@ -112,7 +112,7 @@ public class DirectoryExceptionTestCase
   public void testConstructor3(ResultCode resultCode)
          throws Exception
   {
-    Message   msg = Message.raw("Test Constructor 3");
+    LocalizableMessage   msg = LocalizableMessage.raw("Test Constructor 3");
     DN        dn  = DN.valueOf("cn=Test Constructor 3,dc=example,dc=com");
     Exception e   = new Exception("Test Constructor 3 Exception");
 
@@ -143,7 +143,7 @@ public class DirectoryExceptionTestCase
   public void testConstructor4(ResultCode resultCode)
          throws Exception
   {
-    Message   msg     = Message.raw("Test Constructor 4");
+    LocalizableMessage   msg     = LocalizableMessage.raw("Test Constructor 4");
     DN        dn      = DN.valueOf("cn=Test Constructor 4,dc=example,dc=com");
     Exception e       = new Exception("Test Constructor 4 Exception");
     List<String> refs = new ArrayList<String>();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.admin.ads;
 
@@ -55,7 +55,7 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -406,12 +406,12 @@ public class TopologyCache
    *
    * @return a set of error messages encountered in the TopologyCache.
    */
-  public Set<Message> getErrorMessages()
+  public Set<LocalizableMessage> getErrorMessages()
   {
     Set<TopologyCacheException> exceptions =
         new HashSet<TopologyCacheException>();
     Set<ServerDescriptor> theServers = getServers();
-    Set<Message> exceptionMsgs = new LinkedHashSet<Message>();
+    Set<LocalizableMessage> exceptionMsgs = new LinkedHashSet<LocalizableMessage>();
     for (ServerDescriptor server : theServers)
     {
       TopologyCacheException e = server.getLastException();

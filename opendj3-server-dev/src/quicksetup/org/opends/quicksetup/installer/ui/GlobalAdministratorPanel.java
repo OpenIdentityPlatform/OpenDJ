@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.awt.Component;
@@ -183,7 +183,7 @@ public class GlobalAdministratorPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getInstructions()
+  protected LocalizableMessage getInstructions()
   {
     return INFO_GLOBAL_ADMINISTRATOR_PANEL_INSTRUCTIONS.get();
   }
@@ -191,7 +191,7 @@ public class GlobalAdministratorPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getTitle()
+  protected LocalizableMessage getTitle()
   {
     return INFO_GLOBAL_ADMINISTRATOR_PANEL_TITLE.get();
   }

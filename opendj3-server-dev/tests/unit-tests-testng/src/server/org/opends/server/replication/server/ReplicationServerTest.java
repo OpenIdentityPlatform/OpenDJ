@@ -150,7 +150,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
   private void debugInfo(String s)
   {
-    //ErrorLogger.logError(Message.raw(Category.SYNC, Severity.NOTICE, "** TEST ** " + s));
+    //ErrorLogger.logError(LocalizableMessage.raw("** TEST ** " + s));
     if (debugEnabled())
     {
       TRACER.debugInfo("** TEST ** " + s);
@@ -920,7 +920,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       Assertions.assertThat(repMsg).isInstanceOf(TopologyMsg.class);
 
       // Now comes the real test : check that the Replication Server
-      // answers correctly to a WindowProbeMsg Message.
+      // answers correctly to a WindowProbeMsg LocalizableMessage.
       session.publish(new WindowProbeMsg());
 
       WindowMsg windowMsg = waitForSpecificMsg(session, WindowMsg.class);

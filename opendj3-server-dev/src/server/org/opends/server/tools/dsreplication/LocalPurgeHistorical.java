@@ -33,7 +33,7 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.DN;
@@ -115,7 +115,7 @@ public class LocalPurgeHistorical
     catch (Exception e)
     {
       pointAdder.stop();
-      Message message =
+      LocalizableMessage message =
         ERR_CANNOT_LOAD_CONFIG_HANDLER_CLASS.get(
             configClass, StaticUtils.stackTraceToSingleLineString(e));
       app.println(message);
@@ -137,7 +137,7 @@ public class LocalPurgeHistorical
     catch (OpenDsException ode)
     {
       pointAdder.stop();
-      Message message = ode.getMessageObject();
+      LocalizableMessage message = ode.getMessageObject();
         ERR_CANNOT_LOAD_CONFIG_HANDLER_CLASS.get(
             configClass, StaticUtils.stackTraceToSingleLineString(ode));
       app.println(message);

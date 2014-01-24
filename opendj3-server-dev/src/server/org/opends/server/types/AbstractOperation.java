@@ -28,8 +28,8 @@ package org.opends.server.types;
 
 import java.util.*;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ControlDecoder;
 import org.opends.server.core.DirectoryServer;
@@ -152,13 +152,13 @@ public abstract class AbstractOperation
    * The error message for this operation that should be included in the log and
    * in the response to the client.
    */
-  private MessageBuilder errorMessage;
+  private LocalizableMessageBuilder errorMessage;
 
   /**
    * The real, masked error message for this operation that will not be included
    * in the response to the client, but will be logged.
    */
-  private MessageBuilder maskedErrorMessage;
+  private LocalizableMessageBuilder maskedErrorMessage;
 
   /**
    * Indicates whether this operation needs to be synchronized to other copies
@@ -213,7 +213,7 @@ public abstract class AbstractOperation
 
     resultCode                 = ResultCode.UNDEFINED;
     additionalLogItems         = null;
-    errorMessage               = new MessageBuilder();
+    errorMessage               = new LocalizableMessageBuilder();
     attachments                = new HashMap<String,Object>();
     matchedDN                  = null;
     referralURLs               = null;
@@ -230,7 +230,7 @@ public abstract class AbstractOperation
   @Override
   public void disconnectClient(DisconnectReason disconnectReason,
                                boolean sendNotification,
-                               Message message)
+                               LocalizableMessage message)
   {
     clientConnection.disconnect(disconnectReason, sendNotification, message);
   }
@@ -335,54 +335,57 @@ public abstract class AbstractOperation
 
   /** {@inheritDoc} */
   @Override
-  public final MessageBuilder getErrorMessage()
+  public final LocalizableMessageBuilder getErrorMessage()
   {
     return errorMessage;
   }
 
   /** {@inheritDoc} */
   @Override
-  public final void setErrorMessage(MessageBuilder errorMessage)
+  public final void setErrorMessage(LocalizableMessageBuilder errorMessage)
   {
     this.errorMessage = errorMessage;
   }
 
   /** {@inheritDoc} */
   @Override
-  public final void appendErrorMessage(Message message)
+  public final void appendErrorMessage(LocalizableMessage message)
   {
     if (errorMessage == null)
     {
-      errorMessage = new MessageBuilder();
+      errorMessage = new LocalizableMessageBuilder();
     }
-    else if (errorMessage.length() > 0)
+    if (message != null)
     {
-      errorMessage.append("  ");
+      if (errorMessage.length() > 0)
+      {
+        errorMessage.append("  ");
+      }
+      errorMessage.append(message);
     }
-    errorMessage.append(message);
   }
 
   /** {@inheritDoc} */
   @Override
-  public final MessageBuilder getMaskedErrorMessage()
+  public final LocalizableMessageBuilder getMaskedErrorMessage()
   {
     return maskedErrorMessage;
   }
 
   /** {@inheritDoc} */
   @Override
-  public final void setMaskedErrorMessage(MessageBuilder maskedErrorMessage)
+  public final void setMaskedErrorMessage(LocalizableMessageBuilder maskedErrorMessage)
   {
     this.maskedErrorMessage = maskedErrorMessage;
   }
 
   /** {@inheritDoc} */
   @Override
-  public final void appendMaskedErrorMessage(Message maskedMessage)
+  public final void appendMaskedErrorMessage(LocalizableMessage maskedMessage)
   {
     if (maskedErrorMessage == null)
     {
-      maskedErrorMessage = new MessageBuilder();
+      maskedErrorMessage = new LocalizableMessageBuilder();
     }
     else if (maskedErrorMessage.length() > 0)
     {
@@ -454,7 +457,10 @@ public abstract class AbstractOperation
     this.referralURLs     = directoryException.getReferralURLs();
 
     appendErrorMessage(directoryException.getMessageObject());
-    appendMaskedErrorMessage(directoryException.getMaskedMessage());
+    final LocalizableMessage maskedMessage = directoryException.getMaskedMessage();
+    if (maskedMessage != null) {
+      appendMaskedErrorMessage(maskedMessage);
+    }
   }
 
   /** {@inheritDoc} */

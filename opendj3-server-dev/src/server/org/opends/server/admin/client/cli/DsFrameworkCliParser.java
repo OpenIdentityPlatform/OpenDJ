@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.client.cli;
 
@@ -45,7 +46,7 @@ import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.SubCommand;
@@ -80,7 +81,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
    *          Indicates whether subcommand and long argument names
    *          should be treated in a case-sensitive manner.
    */
-  public DsFrameworkCliParser(String mainClassName, Message toolDescription,
+  public DsFrameworkCliParser(String mainClassName, LocalizableMessage toolDescription,
       boolean longArgumentsCaseSensitive)
   {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
@@ -222,7 +223,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
       }
       catch (NamingException e)
       {
-        Message message = ERR_ADMIN_CANNOT_CONNECT_TO_ADS.get(host);
+        LocalizableMessage message = ERR_ADMIN_CANNOT_CONNECT_TO_ADS.get(host);
         try
         {
           err.write(wrapText(message, MAX_LINE_WIDTH).getBytes());
@@ -245,7 +246,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
       }
       catch (NamingException e)
       {
-        Message message = ERR_ADMIN_CANNOT_CONNECT_TO_ADS.get(host);
+        LocalizableMessage message = ERR_ADMIN_CANNOT_CONNECT_TO_ADS.get(host);
         try
         {
           err.write(wrapText(message, MAX_LINE_WIDTH).getBytes());
@@ -267,7 +268,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
       }
       catch (NamingException e)
       {
-        Message message = ERR_ADMIN_CANNOT_CONNECT_TO_ADS.get(host);
+        LocalizableMessage message = ERR_ADMIN_CANNOT_CONNECT_TO_ADS.get(host);
         try
         {
           err.write(wrapText(message, MAX_LINE_WIDTH).getBytes());

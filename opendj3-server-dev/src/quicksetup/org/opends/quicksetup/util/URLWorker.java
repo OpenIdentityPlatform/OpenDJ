@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 import javax.swing.JFrame;
 
@@ -74,7 +75,7 @@ public class URLWorker extends BackgroundTask<Object>
     } catch (Throwable t)
     {
       // TODO: i18n
-      throw new WebBrowserException(url, Message.raw("Bug: throwable"), t);
+      throw new WebBrowserException(url, LocalizableMessage.raw("Bug: throwable"), t);
     }
     return null;
   }

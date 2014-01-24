@@ -28,7 +28,7 @@ package org.opends.server.core;
 
 import java.util.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.GlobalCfgDefn;
@@ -100,7 +100,7 @@ public class CoreConfigManager
         }
         catch (RuntimeException e)
         {
-          Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
+          LocalizableMessage message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
           throw new ConfigException(message, e);
         }
       }
@@ -355,7 +355,7 @@ public class CoreConfigManager
    */
   @Override
   public boolean isConfigurationChangeAcceptable(GlobalCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -371,7 +371,7 @@ public class CoreConfigManager
         }
         catch (RuntimeException e)
         {
-          Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
+          LocalizableMessage message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
           unacceptableReasons.add(message);
           configAcceptable = false;
         }
@@ -385,7 +385,7 @@ public class CoreConfigManager
         .getAuthenticationPolicy(defaultPasswordPolicyDN);
     if (!policy.isPasswordPolicy())
     {
-      Message message =
+      LocalizableMessage message =
         ERR_CONFIG_PWPOLICY_CANNOT_CHANGE_DEFAULT_POLICY_WRONG_TYPE
           .get(configuration.getDefaultPasswordPolicy());
       unacceptableReasons.add(message);
@@ -405,7 +405,7 @@ public class CoreConfigManager
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;
     boolean            adminActionRequired = false;
-    List<Message>      messages            = new ArrayList<Message>();
+    List<LocalizableMessage>      messages            = new ArrayList<LocalizableMessage>();
 
     applyGlobalConfiguration(configuration);
 

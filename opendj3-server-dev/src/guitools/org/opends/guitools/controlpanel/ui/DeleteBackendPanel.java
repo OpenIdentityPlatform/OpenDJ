@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -42,8 +43,8 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.DeleteBaseDNAndBackendTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 /**
  * The panel displayed when the user clicks on 'Delete Backend...' in the
@@ -57,7 +58,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_DELETE_BACKEND_TITLE.get();
   }
@@ -66,7 +67,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
    * Returns the no backend found label.
    * @return the no backend found label.
    */
-  protected Message getNoElementsFoundLabel()
+  protected LocalizableMessage getNoElementsFoundLabel()
   {
     return INFO_CTRL_PANEL_NO_BACKENDS_FOUND_LABEL.get();
   }
@@ -75,7 +76,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
    * Returns the list label.
    * @return the list label.
    */
-  protected Message getListLabel()
+  protected LocalizableMessage getListLabel()
   {
     return INFO_CTRL_PANEL_SELECT_BACKENDS_TO_DELETE.get();
   }
@@ -106,7 +107,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
    */
   public void okClicked()
   {
-    final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
     ProgressDialog progressDialog = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this), getTitle(), getInfo());
@@ -136,7 +137,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
     }
     if (errors.isEmpty())
     {
-      Message confirmationMessage = getConfirmationMessage(backendsToDelete);
+      LocalizableMessage confirmationMessage = getConfirmationMessage(backendsToDelete);
       if (displayConfirmationDialog(
           INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
           confirmationMessage))
@@ -159,10 +160,10 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
     }
   }
 
-  private Message getConfirmationMessage(
+  private LocalizableMessage getConfirmationMessage(
       Collection<BackendDescriptor> backendsToDelete)
   {
-    MessageBuilder mb = new MessageBuilder();
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     mb.append(INFO_CTRL_PANEL_CONFIRMATION_DELETE_BACKENDS_DETAILS.get());
     for (BackendDescriptor backend : backendsToDelete)
     {

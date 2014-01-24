@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -118,7 +119,7 @@ public class ErrorLogAccountStatusNotificationHandler
     logError(NOTE_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION.get(
                   notification.getNotificationType().getName(),
                   String.valueOf(notification.getUserDN()),
-                  notification.getMessage().getDescriptor().getId(),
+                  notification.getMessage().ordinal(),
                   notification.getMessage()));
   }
 
@@ -130,7 +131,7 @@ public class ErrorLogAccountStatusNotificationHandler
   @Override()
   public boolean isConfigurationAcceptable(
                       AccountStatusNotificationHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     ErrorLogAccountStatusNotificationHandlerCfg config =
          (ErrorLogAccountStatusNotificationHandlerCfg) configuration;
@@ -144,7 +145,7 @@ public class ErrorLogAccountStatusNotificationHandler
    */
   public boolean isConfigurationChangeAcceptable(
       ErrorLogAccountStatusNotificationHandlerCfg configuration,
-      List<Message> unacceptableReasons
+      List<LocalizableMessage> unacceptableReasons
       )
   {
     // Make sure that we can process the defined notification handler.
@@ -195,7 +196,7 @@ public class ErrorLogAccountStatusNotificationHandler
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     ConfigChangeResult changeResult = new ConfigChangeResult(
         resultCode, adminActionRequired, messages
         );

@@ -34,7 +34,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.TreeMap;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.WorkflowCfg;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.WorkflowElement;
@@ -200,7 +200,7 @@ public class WorkflowImpl implements Workflow, Observer
     {
       // No root workflow element? It's a configuration error.
       operation.setResultCode(ResultCode.OPERATIONS_ERROR);
-      MessageBuilder message = new MessageBuilder(
+      LocalizableMessageBuilder message = new LocalizableMessageBuilder(
         ERR_ROOT_WORKFLOW_ELEMENT_NOT_DEFINED.get(workflowID));
       operation.setErrorMessage(message);
     }

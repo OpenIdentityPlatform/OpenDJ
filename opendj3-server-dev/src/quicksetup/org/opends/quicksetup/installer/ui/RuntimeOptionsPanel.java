@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -47,7 +47,7 @@ import javax.swing.JPanel;
 
 import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.JavaArguments;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
@@ -185,7 +185,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getInstructions()
+  protected LocalizableMessage getInstructions()
   {
     return INFO_JAVA_RUNTIME_OPTIONS_PANEL_INSTRUCTIONS.get();
   }
@@ -193,7 +193,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected Message getTitle()
+  protected LocalizableMessage getTitle()
   {
     return INFO_JAVA_RUNTIME_OPTIONS_PANEL_TITLE.get();
   }
@@ -335,12 +335,12 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
 
   private void createComponents()
   {
-    warning = UIFactory.makeHtmlPane(Message.EMPTY,
+    warning = UIFactory.makeHtmlPane(LocalizableMessage.EMPTY,
         UIFactory.INSTRUCTIONS_FONT);
     warning.setOpaque(false);
 
     lServer = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        Message.EMPTY, UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+        LocalizableMessage.EMPTY, UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     bServer = UIFactory.makeJButton(INFO_JAVA_RUNTIME_CHANGE_LABEL.get(),
         INFO_JAVA_RUNTIME_CHANGE_SERVER_TOOLTIP.get());
     bServer.addActionListener(new ActionListener()
@@ -352,7 +352,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     });
 
     lImport = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        Message.EMPTY, UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+        LocalizableMessage.EMPTY, UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     bImport = UIFactory.makeJButton(INFO_JAVA_RUNTIME_CHANGE_LABEL.get(),
         INFO_JAVA_RUNTIME_CHANGE_IMPORT_TOOLTIP.get());
     bImport.addActionListener(new ActionListener()
@@ -377,7 +377,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
 
   private void updateWarningMessage(UserData uData)
   {
-    Message msg = null;
+    LocalizableMessage msg = null;
 
     DataReplicationOptions repl = uData.getReplicationOptions();
     SuffixesToReplicateOptions suf = uData.getSuffixesToReplicateOptions();

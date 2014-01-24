@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -523,13 +523,13 @@ public final class BackupInfo
         int equalPos = line.indexOf('=');
         if (equalPos < 0)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_BACKUPINFO_NO_DELIMITER.get(line, backupPath);
           throw new ConfigException(message);
         }
         else if (equalPos == 0)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_BACKUPINFO_NO_NAME.get(line, backupPath);
           throw new ConfigException(message);
         }
@@ -545,7 +545,7 @@ public final class BackupInfo
           }
           else
           {
-            Message message = ERR_BACKUPINFO_MULTIPLE_BACKUP_IDS.get(
+            LocalizableMessage message = ERR_BACKUPINFO_MULTIPLE_BACKUP_IDS.get(
                 backupPath, backupID, value);
             throw new ConfigException(message);
           }
@@ -589,7 +589,7 @@ public final class BackupInfo
         }
         else
         {
-          Message message = ERR_BACKUPINFO_UNKNOWN_PROPERTY.get(
+          LocalizableMessage message = ERR_BACKUPINFO_UNKNOWN_PROPERTY.get(
               backupPath, name, value);
           throw new ConfigException(message);
         }
@@ -606,7 +606,7 @@ public final class BackupInfo
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_BACKUPINFO_CANNOT_DECODE.get(
+      LocalizableMessage message = ERR_BACKUPINFO_CANNOT_DECODE.get(
           backupPath, getExceptionMessage(e));
       throw new ConfigException(message, e);
     }
@@ -616,13 +616,13 @@ public final class BackupInfo
     // specified.
     if (backupID == null)
     {
-      Message message = ERR_BACKUPINFO_NO_BACKUP_ID.get(backupPath);
+      LocalizableMessage message = ERR_BACKUPINFO_NO_BACKUP_ID.get(backupPath);
       throw new ConfigException(message);
     }
 
     if (backupDate == null)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_BACKUPINFO_NO_BACKUP_DATE.get(backupID, backupPath);
       throw new ConfigException(message);
     }

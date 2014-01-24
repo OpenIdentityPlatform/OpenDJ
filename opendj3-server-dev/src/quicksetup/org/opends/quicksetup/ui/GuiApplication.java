@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -36,7 +36,7 @@ import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.UserDataException;
 import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.webstart.WebStartDownloader;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import javax.swing.*;
@@ -81,7 +81,7 @@ public abstract class GuiApplication extends Application {
    * in some operating systems.
    * @return internationalized String representing the frame title
    */
-  abstract public Message getFrameTitle();
+  abstract public LocalizableMessage getFrameTitle();
 
   /**
    * Returns the initial wizard step.
@@ -124,7 +124,7 @@ public abstract class GuiApplication extends Application {
    * Returns the tab formatted.
    * @return the tab formatted.
    */
-  protected Message getTab()
+  protected LocalizableMessage getTab()
   {
     return formatter.getTab();
   }
@@ -375,7 +375,7 @@ public abstract class GuiApplication extends Application {
    * Gets the key for the close button's tool tip text.
    * @return String key of the text in the resource bundle
    */
-  public Message getCloseButtonToolTip() {
+  public LocalizableMessage getCloseButtonToolTip() {
     return INFO_CLOSE_BUTTON_TOOLTIP.get();
   }
 
@@ -383,7 +383,7 @@ public abstract class GuiApplication extends Application {
    * Gets the key for the quit button's tool tip text.
    * @return String key of the text in the resource bundle
    */
-  public Message getQuitButtonToolTip() {
+  public LocalizableMessage getQuitButtonToolTip() {
     return INFO_QUIT_BUTTON_INSTALL_TOOLTIP.get();
   }
 
@@ -391,7 +391,7 @@ public abstract class GuiApplication extends Application {
    * Gets the key for the finish button's tool tip text.
    * @return String key of the text in the resource bundle
    */
-  public Message getFinishButtonToolTip() {
+  public LocalizableMessage getFinishButtonToolTip() {
     return INFO_FINISH_BUTTON_TOOLTIP.get();
   }
 
@@ -399,7 +399,7 @@ public abstract class GuiApplication extends Application {
    * Gets the key for the finish button's label.
    * @return String key of the text in the resource bundle
    */
-  public Message getFinishButtonLabel() {
+  public LocalizableMessage getFinishButtonLabel() {
     return INFO_FINISH_BUTTON_LABEL.get();
   }
 
@@ -506,7 +506,7 @@ public abstract class GuiApplication extends Application {
       {
         lastPercentage = perc;
         int ratio = (perc * maxRatio) / 100;
-        Message summary;
+        LocalizableMessage summary;
         switch (downloadStatus)
         {
         case VALIDATING:

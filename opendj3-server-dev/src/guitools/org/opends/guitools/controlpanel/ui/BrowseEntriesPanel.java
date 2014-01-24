@@ -86,7 +86,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.LDAPEntryReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.ObjectClass;
@@ -174,7 +174,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_MANAGE_ENTRIES_TITLE.get();
   }
@@ -1067,7 +1067,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
 
   private void deleteClicked()
   {
-    ArrayList<Message> errors = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
     TreePath[] paths = treePane.getTree().getSelectionPaths();
 
     if ((paths != null) && (paths.length > 0))
@@ -1262,7 +1262,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           INFO_CTRL_PANEL_VIEW_MENU.get(),
           INFO_CTRL_PANEL_VIEW_MENU_DESCRIPTION.get());
       menu.setMnemonic(KeyEvent.VK_V);
-      Message[] labels = {
+      LocalizableMessage[] labels = {
           INFO_CTRL_PANEL_SIMPLIFIED_VIEW_MENU.get(),
           INFO_CTRL_PANEL_ATTRIBUTE_VIEW_MENU.get(),
           INFO_CTRL_PANEL_LDIF_VIEW_MENU.get()

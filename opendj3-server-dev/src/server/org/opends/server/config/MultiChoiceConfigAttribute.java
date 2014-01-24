@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.config;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -99,7 +99,7 @@ public final class MultiChoiceConfigAttribute
    *                              All values in this set should be represented
    *                              entirely in lowercase characters.
    */
-  public MultiChoiceConfigAttribute(String name, Message description,
+  public MultiChoiceConfigAttribute(String name, LocalizableMessage description,
                                     boolean isRequired, boolean isMultiValued,
                                     boolean requiresAdminAction,
                                     Set<String> allowedValues)
@@ -136,7 +136,7 @@ public final class MultiChoiceConfigAttribute
    * @param  value                The value for this string configuration
    *                              attribute.
    */
-  public MultiChoiceConfigAttribute(String name, Message description,
+  public MultiChoiceConfigAttribute(String name, LocalizableMessage description,
                                     boolean isRequired, boolean isMultiValued,
                                     boolean requiresAdminAction,
                                     Set<String> allowedValues, String value)
@@ -183,7 +183,7 @@ public final class MultiChoiceConfigAttribute
    * @param  values               The set of values for this configuration
    *                              attribute.
    */
-  public MultiChoiceConfigAttribute(String name, Message description,
+  public MultiChoiceConfigAttribute(String name, LocalizableMessage description,
                                     boolean isRequired, boolean isMultiValued,
                                     boolean requiresAdminAction,
                                     Set<String> allowedValues,
@@ -232,7 +232,7 @@ public final class MultiChoiceConfigAttribute
    * @param  pendingValues        The set of pending values for this
    *                              configuration attribute.
    */
-  public MultiChoiceConfigAttribute(String name, Message description,
+  public MultiChoiceConfigAttribute(String name, LocalizableMessage description,
                                     boolean isRequired, boolean isMultiValued,
                                     boolean requiresAdminAction,
                                     Set<String> allowedValues,
@@ -308,13 +308,13 @@ public final class MultiChoiceConfigAttribute
   {
     if ((activeValues == null) || activeValues.isEmpty())
     {
-      Message message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
       throw new ConfigException(message);
     }
 
     if (activeValues.size() > 1)
     {
-      Message message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
       throw new ConfigException(message);
     }
 
@@ -356,13 +356,13 @@ public final class MultiChoiceConfigAttribute
 
     if ((pendingValues == null) || pendingValues.isEmpty())
     {
-      Message message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
       throw new ConfigException(message);
     }
 
     if (pendingValues.size() > 1)
     {
-      Message message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
       throw new ConfigException(message);
     }
 
@@ -416,13 +416,13 @@ public final class MultiChoiceConfigAttribute
   {
     if ((value == null) || (value.length() == 0))
     {
-      Message message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
       throw new ConfigException(message);
     }
 
     if (! allowedValues.contains(value.toLowerCase()))
     {
-      Message message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(value, getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(value, getName());
       throw new ConfigException(message);
     }
 
@@ -459,7 +459,7 @@ public final class MultiChoiceConfigAttribute
     {
       if (isRequired())
       {
-        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
         throw new ConfigException(message);
       }
       else
@@ -482,7 +482,7 @@ public final class MultiChoiceConfigAttribute
     int numValues = values.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
       throw new ConfigException(message);
     }
@@ -496,14 +496,14 @@ public final class MultiChoiceConfigAttribute
     {
       if ((value == null) || (value.length() == 0))
       {
-        Message message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
         throw new ConfigException(message);
       }
 
 
       if (! allowedValues.contains(value.toLowerCase()))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(value, getName());
         throw new ConfigException(message);
       }
@@ -514,7 +514,7 @@ public final class MultiChoiceConfigAttribute
 
       if (valueSet.contains(attrValue))
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value);
         throw new ConfigException(message);
       }
@@ -672,7 +672,7 @@ public final class MultiChoiceConfigAttribute
     {
       if (isRequired())
       {
-        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
         throw new ConfigException(message);
       }
       else
@@ -685,7 +685,7 @@ public final class MultiChoiceConfigAttribute
     int numValues = valueStrings.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
       throw new ConfigException(message);
     }
@@ -697,7 +697,7 @@ public final class MultiChoiceConfigAttribute
     {
       if ((valueString == null) || (valueString.length() == 0))
       {
-        Message message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
+        LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
         if (allowFailures)
         {
           ErrorLogger.logError(message);
@@ -711,7 +711,7 @@ public final class MultiChoiceConfigAttribute
 
       if (! allowedValues.contains(valueString.toLowerCase()))
       {
-        Message message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
+        LocalizableMessage message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
                 valueString, getName());
         if (allowFailures)
         {
@@ -734,7 +734,7 @@ public final class MultiChoiceConfigAttribute
     // attribute and if so deal with it accordingly.
     if ((isRequired()) && valueSet.isEmpty())
     {
-      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
       throw new ConfigException(message);
     }
 
@@ -823,7 +823,7 @@ public final class MultiChoiceConfigAttribute
           if (pendingValues != null)
           {
             // We cannot have multiple pending value sets.
-            Message message =
+            LocalizableMessage message =
                 ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName());
             throw new ConfigException(message);
           }
@@ -834,7 +834,7 @@ public final class MultiChoiceConfigAttribute
             if (isRequired())
             {
               // This is illegal -- it must have a value.
-              Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+              LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
               throw new ConfigException(message);
             }
             else
@@ -849,7 +849,7 @@ public final class MultiChoiceConfigAttribute
             if ((numValues > 1) && (! isMultiValued()))
             {
               // This is illegal -- the attribute is single-valued.
-              Message message =
+              LocalizableMessage message =
                   ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
               throw new ConfigException(message);
             }
@@ -861,7 +861,7 @@ public final class MultiChoiceConfigAttribute
               if (! allowedValues.contains(lowerValue))
               {
                 // This is illegal -- the value is not allowed.
-                Message message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
+                LocalizableMessage message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
                     v.getValue().toString(), a.getName());
                 throw new ConfigException(message);
               }
@@ -874,7 +874,7 @@ public final class MultiChoiceConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          Message message =
+          LocalizableMessage message =
               ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName());
           throw new ConfigException(message);
         }
@@ -885,7 +885,7 @@ public final class MultiChoiceConfigAttribute
         if (activeValues!= null)
         {
           // We cannot have multiple active value sets.
-          Message message =
+          LocalizableMessage message =
               ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName());
           throw new ConfigException(message);
         }
@@ -896,7 +896,7 @@ public final class MultiChoiceConfigAttribute
           if (isRequired())
           {
             // This is illegal -- it must have a value.
-            Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+            LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
             throw new ConfigException(message);
           }
           else
@@ -911,7 +911,7 @@ public final class MultiChoiceConfigAttribute
           if ((numValues > 1) && (! isMultiValued()))
           {
             // This is illegal -- the attribute is single-valued.
-            Message message =
+            LocalizableMessage message =
                 ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
             throw new ConfigException(message);
           }
@@ -923,7 +923,7 @@ public final class MultiChoiceConfigAttribute
             if (! allowedValues.contains(lowerValue))
             {
               // This is illegal -- the value is not allowed.
-              Message message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
+              LocalizableMessage message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
                   v.getValue().toString(), a.getName());
               throw new ConfigException(message);
             }
@@ -937,7 +937,7 @@ public final class MultiChoiceConfigAttribute
     if (activeValues == null)
     {
       // This is not OK.  The value set must contain an active value.
-      Message message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
+      LocalizableMessage message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
       throw new ConfigException(message);
     }
 
@@ -1226,14 +1226,14 @@ public final class MultiChoiceConfigAttribute
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_CONFIG_ATTR_INVALID_STRING_VALUE.get(
+          LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_STRING_VALUE.get(
               getName(), String.valueOf(value), String.valueOf(e));
           throw new ConfigException(message, e);
         }
       }
       else
       {
-        Message message =
+        LocalizableMessage message =
             ERR_CONFIG_ATTR_STRING_INVALID_ARRAY_TYPE.get(
                     getName(), componentType);
         throw new ConfigException(message);
@@ -1241,7 +1241,7 @@ public final class MultiChoiceConfigAttribute
     }
     else
     {
-      Message message = ERR_CONFIG_ATTR_STRING_INVALID_TYPE.get(
+      LocalizableMessage message = ERR_CONFIG_ATTR_STRING_INVALID_TYPE.get(
           String.valueOf(value), getName(), value.getClass().getName());
       throw new ConfigException(message);
     }

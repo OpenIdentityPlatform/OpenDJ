@@ -28,7 +28,7 @@ package org.opends.server.replication.plugin;
 
 import java.util.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.*;
@@ -143,7 +143,7 @@ public final class FractionalLDIFImportPlugin
           break;
 
         default:
-          Message message =
+          LocalizableMessage message =
             ERR_PLUGIN_FRACTIONAL_LDIF_IMPORT_INVALID_PLUGIN_TYPE.get(
             t.toString());
           throw new ConfigException(message);
@@ -282,7 +282,7 @@ public final class FractionalLDIFImportPlugin
                 getStaticReplicationDomainFractionalConfig(entry);
             } catch (Exception ex)
             {
-              Message message = ERR_FRACTIONAL_COULD_NOT_RETRIEVE_CONFIG.get(
+              LocalizableMessage message = ERR_FRACTIONAL_COULD_NOT_RETRIEVE_CONFIG.get(
                 entry.toString());
               return PluginResult.ImportLDIF.stopEntryProcessing(message);
             }
@@ -363,7 +363,7 @@ public final class FractionalLDIFImportPlugin
             return PluginResult.ImportLDIF.stopEntryProcessing(null);
           }
 
-          Message message = NOTE_ERR_LDIF_IMPORT_FRACTIONAL_BAD_DATA_SET
+          LocalizableMessage message = NOTE_ERR_LDIF_IMPORT_FRACTIONAL_BAD_DATA_SET
               .get(replicatedDomainBaseDn.toString());
           return PluginResult.ImportLDIF.stopEntryProcessing(message);
         }
@@ -385,7 +385,7 @@ public final class FractionalLDIFImportPlugin
           return PluginResult.ImportLDIF.stopEntryProcessing(null);
         }
 
-        Message message = NOTE_ERR_LDIF_IMPORT_FRACTIONAL_DATA_SET_IS_FRACTIONAL
+        LocalizableMessage message = NOTE_ERR_LDIF_IMPORT_FRACTIONAL_DATA_SET_IS_FRACTIONAL
             .get(replicatedDomainBaseDn.toString());
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
       }
@@ -484,7 +484,7 @@ public final class FractionalLDIFImportPlugin
   /** {@inheritDoc} */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-    List<Message> unacceptableReasons)
+    List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -493,7 +493,7 @@ public final class FractionalLDIFImportPlugin
   @Override
   public boolean isConfigurationChangeAcceptable(
     FractionalLDIFImportPluginCfg configuration,
-    List<Message> unacceptableReasons)
+    List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }

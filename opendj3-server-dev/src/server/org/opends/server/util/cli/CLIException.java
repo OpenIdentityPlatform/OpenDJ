@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.cli;
 
 
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.UtilityMessages;
 import org.opends.server.types.IdentifiedException;
 
@@ -70,7 +71,7 @@ public class CLIException extends IdentifiedException {
    * @param message
    *          The message explaining the problem that occurred.
    */
-  public CLIException(Message message) {
+  public CLIException(LocalizableMessage message) {
     super(message);
   }
 
@@ -84,7 +85,7 @@ public class CLIException extends IdentifiedException {
    * @param cause
    *          The cause of this exception.
    */
-  public CLIException(Message message, Throwable cause) {
+  public CLIException(LocalizableMessage message, Throwable cause) {
     super(message, cause);
   }
 

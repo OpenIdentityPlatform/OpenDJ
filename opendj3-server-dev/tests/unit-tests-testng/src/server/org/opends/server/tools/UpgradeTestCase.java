@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -32,7 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.upgrade.UpgradeCli;
@@ -90,7 +90,7 @@ public class UpgradeTestCase extends ToolsTestCase
    * @param expectedMessage
    *          The expected message.
    */
-  private void assertContainsMessage(String output, Message expectedMessage)
+  private void assertContainsMessage(String output, LocalizableMessage expectedMessage)
   {
     String out = output.replaceAll("\n", " ").replaceAll("%s", " ");
     String expected = expectedMessage.toString().replaceAll("\n", " ").replaceAll("%s", " ");

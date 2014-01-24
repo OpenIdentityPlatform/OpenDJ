@@ -28,7 +28,9 @@ package org.opends.server.tasks;
 
 import java.util.List;
 
-import org.opends.messages.*;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -85,7 +87,7 @@ public class PurgeConflictsHistoricalTask extends Task
   {
     if (debugEnabled())
     {
-      System.out.println(Message.raw(Category.SYNC, Severity.NOTICE, s));
+      System.out.println(LocalizableMessage.raw(s));
       TRACER.debugInfo(s);
     }
   }
@@ -94,7 +96,7 @@ public class PurgeConflictsHistoricalTask extends Task
    * {@inheritDoc}
    */
   @Override
-  public Message getDisplayName() {
+  public LocalizableMessage getDisplayName() {
     return TaskMessages.INFO_TASK_PURGE_CONFLICTS_HIST_NAME.get();
   }
 
@@ -127,7 +129,7 @@ public class PurgeConflictsHistoricalTask extends Task
     }
     catch(DirectoryException e)
     {
-      MessageBuilder mb = new MessageBuilder();
+      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(TaskMessages.ERR_TASK_INITIALIZE_INVALID_DN.get());
       mb.append(e.getMessage());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,

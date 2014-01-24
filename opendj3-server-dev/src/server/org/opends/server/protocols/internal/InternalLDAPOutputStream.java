@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.*;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
@@ -295,7 +295,7 @@ public final class InternalLDAPOutputStream
   {
     if (closed)
     {
-      Message m = ERR_INTERNALOS_CLOSED.get();
+      LocalizableMessage m = ERR_INTERNALOS_CLOSED.get();
       throw new IOException(m.toString());
     }
 
@@ -416,7 +416,7 @@ public final class InternalLDAPOutputStream
 
 
       default:
-        Message m = ERR_INTERNALOS_INVALID_REQUEST.get(
+        LocalizableMessage m = ERR_INTERNALOS_INVALID_REQUEST.get(
                          message.getProtocolElementName());
         throw new IOException(m.toString());
     }
@@ -480,7 +480,7 @@ public final class InternalLDAPOutputStream
 
     if (request.getAuthenticationType() == AuthenticationType.SASL)
     {
-      Message m = ERR_INTERNALOS_SASL_BIND_NOT_SUPPORTED.get();
+      LocalizableMessage m = ERR_INTERNALOS_SASL_BIND_NOT_SUPPORTED.get();
       BindResponseProtocolOp bindResponse =
            new BindResponseProtocolOp(
                     LDAPResultCode.UNWILLING_TO_PERFORM, m);
@@ -612,7 +612,7 @@ public final class InternalLDAPOutputStream
          message.getExtendedRequestProtocolOp();
     if (request.getOID().equals(OID_START_TLS_REQUEST))
     {
-      Message m = ERR_INTERNALOS_STARTTLS_NOT_SUPPORTED.get();
+      LocalizableMessage m = ERR_INTERNALOS_STARTTLS_NOT_SUPPORTED.get();
       ExtendedResponseProtocolOp extendedResponse =
            new ExtendedResponseProtocolOp(
                     LDAPResultCode.UNWILLING_TO_PERFORM, m);

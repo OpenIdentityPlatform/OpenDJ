@@ -32,7 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -138,7 +138,7 @@ public class UserAttr implements KeywordBindRule {
     throws AciException {
         String[] vals=expression.split("#");
         if(vals.length != 2) {
-            Message message =
+            LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_USERATTR_EXPRESSION.get(expression);
             throw new AciException(message);
         }
@@ -153,7 +153,7 @@ public class UserAttr implements KeywordBindRule {
                 case ROLEDN: {
                   //The roledn keyword is not supported. Throw an exception with
                   //a message if it is seen in the expression.
-                  Message message =
+                  LocalizableMessage message =
                       WARN_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED.get(expression);
                   throw new AciException(message);
                 }
@@ -239,7 +239,7 @@ public class UserAttr implements KeywordBindRule {
         else if(expr.equalsIgnoreCase("groupdn")) {
              userAttrType=UserAttrType.GROUPDN;
       /*
-            Message message = WARN_ACI_SYNTAX_INVALID_USERATTR_KEYWORD.get(
+            LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_USERATTR_KEYWORD.get(
                 "The groupdn userattr" +
                     "keyword is not supported.");
             throw new AciException(message);
@@ -247,7 +247,7 @@ public class UserAttr implements KeywordBindRule {
         } else if(expr.equalsIgnoreCase("roledn")) {
             userAttrType=UserAttrType.ROLEDN;
             /*
-            Message message = WARN_ACI_SYNTAX_INVALID_USERATTR_KEYWORD.get(
+            LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_USERATTR_KEYWORD.get(
                 "The roledn userattr" +
                     "keyword is not supported.");
             throw new AciException(message);

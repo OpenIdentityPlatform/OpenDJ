@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 import java.io.IOException;
@@ -80,7 +80,7 @@ public class AccountUsableResponseControl
       if (value == null)
       {
         // The response control must always have a value.
-        Message message = ERR_ACCTUSABLERES_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_ACCTUSABLERES_NO_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -139,7 +139,7 @@ public class AccountUsableResponseControl
                 secondsBeforeUnlock);
 
           default:
-            Message message = ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE.get(
+            LocalizableMessage message = ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE.get(
                 byteToHex(reader.peekType()));
             throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
         }
@@ -155,7 +155,7 @@ public class AccountUsableResponseControl
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message =
+        LocalizableMessage message =
             ERR_ACCTUSABLERES_DECODE_ERROR.get(getExceptionMessage(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }

@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.types.operation;
 
 import java.util.List;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.types.AdditionalLogItem;
 import org.opends.server.types.Control;
 
@@ -86,7 +86,7 @@ public interface PreParseOperation
    *
    * @return  The error message for this operation.
    */
-  public MessageBuilder getErrorMessage();
+  public LocalizableMessageBuilder getErrorMessage();
 
 
 
@@ -95,7 +95,7 @@ public interface PreParseOperation
    *
    * @param  errorMessage  The error message for this operation.
    */
-  public void setErrorMessage(MessageBuilder errorMessage);
+  public void setErrorMessage(LocalizableMessageBuilder errorMessage);
 
 
 
@@ -107,7 +107,7 @@ public interface PreParseOperation
    * @param  message  The message to append to the error message
    *                  buffer.
    */
-  public void appendErrorMessage(Message message);
+  public void appendErrorMessage(LocalizableMessage message);
 
 
 

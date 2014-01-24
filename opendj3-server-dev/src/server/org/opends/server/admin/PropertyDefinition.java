@@ -37,7 +37,7 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -469,7 +469,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    *         the default locale, or <code>null</code> if there is no
    *         description.
    */
-  public final Message getDescription() {
+  public final LocalizableMessage getDescription() {
     return getDescription(Locale.getDefault());
   }
 
@@ -485,7 +485,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    *         the specified locale, or <code>null</code> if there is
    *         no description.
    */
-  public final Message getDescription(Locale locale) {
+  public final LocalizableMessage getDescription(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + propertyName + ".description";
@@ -530,7 +530,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    * @return Returns the synopsis of this property definition in the
    *         default locale.
    */
-  public final Message getSynopsis() {
+  public final LocalizableMessage getSynopsis() {
     return getSynopsis(Locale.getDefault());
   }
 
@@ -545,7 +545,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    * @return Returns the synopsis of this property definition in the
    *         specified locale.
    */
-  public final Message getSynopsis(Locale locale) {
+  public final LocalizableMessage getSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + propertyName + ".synopsis";

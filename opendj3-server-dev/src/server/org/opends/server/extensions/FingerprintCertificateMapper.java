@@ -34,7 +34,7 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import javax.security.auth.x500.X500Principal;
 import static org.opends.messages.ExtensionMessages.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateMapperCfg;
 import org.opends.server.admin.std.server.FingerprintCertificateMapperCfg;
@@ -137,7 +137,7 @@ public class FingerprintCertificateMapper
       Backend b = DirectoryServer.getBackend(baseDN);
       if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
       {
-        Message message = WARN_SATUACM_ATTR_UNINDEXED.get(
+        LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(
             configuration.dn().toString(),
             t.getNameOrOID(), b.getBackendID());
         ErrorLogger.logError(message);
@@ -178,7 +178,7 @@ public class FingerprintCertificateMapper
     // Make sure that a peer certificate was provided.
     if ((certificateChain == null) || (certificateChain.length == 0))
     {
-      Message message = ERR_FCM_NO_PEER_CERTIFICATE.get();
+      LocalizableMessage message = ERR_FCM_NO_PEER_CERTIFICATE.get();
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
@@ -196,7 +196,7 @@ public class FingerprintCertificateMapper
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_FCM_PEER_CERT_NOT_X509.get(
+      LocalizableMessage message = ERR_FCM_PEER_CERT_NOT_X509.get(
           String.valueOf(certificateChain[0].getType()));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
@@ -221,7 +221,7 @@ public class FingerprintCertificateMapper
       String peerSubject = peerCertificate.getSubjectX500Principal().getName(
                                 X500Principal.RFC2253);
 
-      Message message = ERR_FCM_CANNOT_CALCULATE_FINGERPRINT.get(
+      LocalizableMessage message = ERR_FCM_CANNOT_CALCULATE_FINGERPRINT.get(
           peerSubject, getExceptionMessage(e));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
@@ -268,7 +268,7 @@ public class FingerprintCertificateMapper
 
         case SIZE_LIMIT_EXCEEDED:
           // Multiple entries matched the filter.  This is not acceptable.
-          Message message = ERR_FCM_MULTIPLE_SEARCH_MATCHING_ENTRIES.get(
+          LocalizableMessage message = ERR_FCM_MULTIPLE_SEARCH_MATCHING_ENTRIES.get(
                         fingerprintString);
           throw new DirectoryException(
                   ResultCode.INVALID_CREDENTIALS, message);
@@ -300,7 +300,7 @@ public class FingerprintCertificateMapper
         }
         else
         {
-          Message message = ERR_FCM_MULTIPLE_MATCHING_ENTRIES.
+          LocalizableMessage message = ERR_FCM_MULTIPLE_MATCHING_ENTRIES.
               get(fingerprintString, String.valueOf(userEntry.getName()),
                   String.valueOf(entry.getName()));
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
@@ -321,7 +321,7 @@ public class FingerprintCertificateMapper
    */
   @Override()
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     FingerprintCertificateMapperCfg config =
          (FingerprintCertificateMapperCfg) configuration;
@@ -336,7 +336,7 @@ public class FingerprintCertificateMapper
   @Override
   public boolean isConfigurationChangeAcceptable(
                       FingerprintCertificateMapperCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -354,7 +354,7 @@ public class FingerprintCertificateMapper
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the algorithm that will be used to generate the fingerprint.
@@ -390,7 +390,7 @@ public class FingerprintCertificateMapper
       Backend b = DirectoryServer.getBackend(baseDN);
       if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
       {
-        Message message = WARN_SATUACM_ATTR_UNINDEXED.get(
+        LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(
             configuration.dn().toString(),
             t.getNameOrOID(), b.getBackendID());
         messages.add(message);

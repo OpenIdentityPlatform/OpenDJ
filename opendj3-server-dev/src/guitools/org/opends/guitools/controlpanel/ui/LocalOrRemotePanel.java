@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -68,7 +68,7 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.OnlineUpdateException;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataCertificateException;
@@ -79,6 +79,7 @@ import org.opends.server.monitors.VersionMonitorProvider;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.DynamicConstants;
+import org.opends.server.util.StaticUtils;
 
 /**
  * The panel that appears when the user is asked to provide authentication.
@@ -123,7 +124,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
    * {@inheritDoc}
    */
   @Override
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_LOCAL_OR_REMOTE_PANEL_TITLE.get();
   }
@@ -491,7 +492,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     setPrimaryValid(portLabel);
     setPrimaryValid(dnLabel);
     setPrimaryValid(pwdLabel);
-    final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
 
     boolean dnInvalid = false;
     boolean pwdInvalid = false;
@@ -680,7 +681,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
               }
               else
               {
-                Message msg = Utils.getThrowableMsg(
+                LocalizableMessage msg = Utils.getThrowableMsg(
                     INFO_ERROR_CONNECTING_TO_LOCAL.get(), throwable);
                 errors.add(msg);
               }
@@ -774,7 +775,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             else
             {
               ArrayList<String> stringErrors = new ArrayList<String>();
-              for (Message err : errors)
+              for (LocalizableMessage err : errors)
               {
                 stringErrors.add(err.toString());
               }
@@ -948,7 +949,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
 
   private void checkVersion(InitialLdapContext ctx) throws OpenDsException
   {
-    Message msg = null;
+    LocalizableMessage msg = null;
     try
     {
       /*
@@ -1029,12 +1030,10 @@ public class LocalOrRemotePanel extends StatusGenericPanel
       OpenDsException oe = (OpenDsException)t;
       if (oe.getMessageObject() != null)
       {
-        if (oe.getMessageObject().getDescriptor().equals
-            (ERR_INCOMPATIBLE_VERSION_IN_REMOTE_SERVER) ||
-            oe.getMessageObject().getDescriptor().equals
-            (ERR_VERSION_IN_REMOTE_SERVER_NOT_FOUND) ||
-            oe.getMessageObject().getDescriptor().equals
-            (ERR_NOT_SAME_PRODUCT_IN_REMOTE_SERVER_NOT_FOUND))
+        LocalizableMessage msg = oe.getMessageObject();
+        if (StaticUtils.hasDescriptor(msg, ERR_INCOMPATIBLE_VERSION_IN_REMOTE_SERVER) ||
+            StaticUtils.hasDescriptor(msg, ERR_VERSION_IN_REMOTE_SERVER_NOT_FOUND) ||
+            StaticUtils.hasDescriptor(msg, ERR_NOT_SAME_PRODUCT_IN_REMOTE_SERVER_NOT_FOUND))
         {
           isVersionException = true;
         }

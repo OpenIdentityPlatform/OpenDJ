@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -31,7 +31,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -324,7 +324,7 @@ public class MultimasterReplication
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
-      ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
+      ReplicationDomainCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     return LDAPReplicationDomain.isConfigurationAcceptable(
       configuration, unacceptableReasons);
@@ -694,7 +694,7 @@ public class MultimasterReplication
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
-      ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
+      ReplicationDomainCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -727,7 +727,7 @@ public class MultimasterReplication
   @Override
   public boolean isConfigurationChangeAcceptable(
       ReplicationSynchronizationProviderCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }

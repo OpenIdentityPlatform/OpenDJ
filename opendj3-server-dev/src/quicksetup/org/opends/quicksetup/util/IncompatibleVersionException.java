@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.quicksetup.util;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -42,7 +43,7 @@ public class IncompatibleVersionException extends OpenDsException
    * @param msg the error message.
    * @param rootCause the root cause.
    */
-  public IncompatibleVersionException(Message msg, Throwable rootCause)
+  public IncompatibleVersionException(LocalizableMessage msg, Throwable rootCause)
   {
     super(msg, rootCause);
   }

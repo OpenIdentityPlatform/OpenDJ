@@ -26,7 +26,7 @@
  */
 
 package org.opends.server.admin;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -241,7 +241,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
    *         there is no pattern matching defined for this string
    *         property definition).
    */
-  public Message getPatternSynopsis() {
+  public LocalizableMessage getPatternSynopsis() {
     return getPatternSynopsis(Locale.getDefault());
   }
 
@@ -259,7 +259,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
    *         there is no pattern matching defined for this string
    *         property definition).
    */
-  public Message getPatternSynopsis(Locale locale) {
+  public LocalizableMessage getPatternSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + getName()

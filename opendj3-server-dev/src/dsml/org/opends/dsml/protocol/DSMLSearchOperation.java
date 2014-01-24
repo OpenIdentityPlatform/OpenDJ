@@ -36,7 +36,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPConstants;
@@ -302,7 +302,7 @@ public class DSMLSearchOperation
     if(sf.getInitial() == null && subAnyElements.isEmpty()
             && sf.getFinal()==null)
     {
-      Message message = ERR_LDAP_FILTER_DECODE_NULL.get();
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_NULL.get();
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
     return LDAPFilter.createSubstringFilter(sf.getName(),
@@ -547,7 +547,7 @@ public class DSMLSearchOperation
       do
       {
         int resultCode = 0;
-        Message errorMessage = null;
+        LocalizableMessage errorMessage = null;
         LDAPMessage responseMessage = connection.getLDAPReader().readMessage();
         if(responseMessage == null)
         {
@@ -556,7 +556,7 @@ public class DSMLSearchOperation
           // the server , we have a reason to believe that the server doesn't
           // want to handle this request. Let us return unavailable error
           // code to the client to cover possible cases.
-          Message message = ERR_UNEXPECTED_CONNECTION_CLOSURE.get();
+          LocalizableMessage message = ERR_UNEXPECTED_CONNECTION_CLOSURE.get();
           LDAPResult result = objFactory.createLDAPResult();
           ResultCode code = ResultCodeFactory.create(objFactory,
               LDAPResultCode.UNAVAILABLE);

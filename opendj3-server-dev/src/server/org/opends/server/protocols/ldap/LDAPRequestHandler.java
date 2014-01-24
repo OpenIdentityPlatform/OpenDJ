@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -43,7 +44,7 @@ import java.util.Iterator;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
@@ -134,7 +135,7 @@ public class LDAPRequestHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_LDAP_REQHANDLER_OPEN_SELECTOR_FAILED.get(
+      LocalizableMessage message = ERR_LDAP_REQHANDLER_OPEN_SELECTOR_FAILED.get(
           handlerName, String.valueOf(e));
       throw new InitializationException(message, e);
     }
@@ -156,7 +157,7 @@ public class LDAPRequestHandler
             (ste.getMethodName().indexOf("poll") >= 0) &&
             ioe.getMessage().equalsIgnoreCase("Invalid argument"))
         {
-          Message message = ERR_LDAP_REQHANDLER_DETECTED_JVM_ISSUE_CR6322825.
+          LocalizableMessage message = ERR_LDAP_REQHANDLER_DETECTED_JVM_ISSUE_CR6322825.
               get(String.valueOf(ioe));
           throw new InitializationException(message, ioe);
         }
@@ -240,7 +241,7 @@ public class LDAPRequestHandler
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
           readyConnection.disconnect(DisconnectReason.PROTOCOL_ERROR, true,
-            Message.raw(e.toString()));
+            LocalizableMessage.raw(e.toString()));
         }
       }
 
@@ -396,7 +397,7 @@ public class LDAPRequestHandler
 
             // This should not happen, and it would have caused our reader
             // thread to die.  Log a severe error.
-            Message message = ERR_LDAP_REQHANDLER_UNEXPECTED_SELECT_EXCEPTION.
+            LocalizableMessage message = ERR_LDAP_REQHANDLER_UNEXPECTED_SELECT_EXCEPTION.
                 get(getName(), getExceptionMessage(e));
             ErrorLogger.logError(message);
           }
@@ -580,7 +581,7 @@ public class LDAPRequestHandler
    *
    * @param  reason  The human-readable reason for the shutdown.
    */
-  public void processServerShutdown(Message reason)
+  public void processServerShutdown(LocalizableMessage reason)
   {
     shutdownRequested = true;
     selector.wakeup();

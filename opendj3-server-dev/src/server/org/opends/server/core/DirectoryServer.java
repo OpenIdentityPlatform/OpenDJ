@@ -53,8 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageDescriptor;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.AdministrationDataSync;
 import org.opends.server.admin.ClassLoaderProvider;
@@ -125,7 +124,7 @@ public final class DirectoryServer
    * The message to be displayed on the command-line when the user asks for the
    * usage.
    */
-  private static Message toolDescription = INFO_DSCORE_TOOL_DESCRIPTION.get();
+  private static LocalizableMessage toolDescription = INFO_DSCORE_TOOL_DESCRIPTION.get();
 
   /**
    * Return codes used when the hidden option --checkStartability is used.
@@ -722,6 +721,9 @@ public final class DirectoryServer
    */
   public static final int DEFAULT_TIMEOUT = 200;
 
+  /** Temporary context object, to provide instance methods instead of static methods. */
+  private final DirectoryServerContext serverContext = new DirectoryServerContext();
+
   /**
    * Creates a new instance of the Directory Server.  This will allow only a
    * single instance of the server per JVM.
@@ -731,6 +733,30 @@ public final class DirectoryServer
     this(new DirectoryEnvironmentConfig());
   }
 
+  /**
+   * Temporary class to provide instance methods instead of static methods for
+   * server. Once all static methods related to context are removed from the
+   * server then DirectoryServer class can be used directly as implementation of
+   * ServerContext.
+   */
+  private class DirectoryServerContext implements ServerContext
+  {
+
+    /** {@inheritDoc} */
+    @Override
+    public String getInstanceRoot()
+    {
+      return DirectoryServer.getInstanceRoot();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String getServerRoot()
+    {
+      return DirectoryServer.getServerRoot();
+    }
+
+  }
 
 
   /**
@@ -962,7 +988,7 @@ public final class DirectoryServer
     {
       if (isRunning)
       {
-        Message message = ERR_CANNOT_BOOTSTRAP_WHILE_RUNNING.get();
+        LocalizableMessage message = ERR_CANNOT_BOOTSTRAP_WHILE_RUNNING.get();
         throw new InitializationException(message);
       }
 
@@ -1053,7 +1079,7 @@ public final class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CANNOT_CREATE_MBEAN_SERVER.get(String.valueOf(e));
+      LocalizableMessage message = ERR_CANNOT_CREATE_MBEAN_SERVER.get(String.valueOf(e));
       throw new InitializationException(message, e);
     }
   }
@@ -1090,7 +1116,7 @@ public final class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_CANNOT_LOAD_CONFIG_HANDLER_CLASS.get(
                   configClass, stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
@@ -1140,7 +1166,7 @@ public final class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_CANNOT_INSTANTIATE_CONFIG_HANDLER.get(
                   String.valueOf(configClass),
                   e.getLocalizedMessage());
@@ -1178,7 +1204,7 @@ public final class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_CANNOT_INITIALIZE_CONFIG_HANDLER.get(
                   String.valueOf(configClass),
                   String.valueOf(configFile),
@@ -1236,13 +1262,13 @@ public final class DirectoryServer
     {
       if (! isBootstrapped)
       {
-        Message message = ERR_CANNOT_START_BEFORE_BOOTSTRAP.get();
+        LocalizableMessage message = ERR_CANNOT_START_BEFORE_BOOTSTRAP.get();
         throw new InitializationException(message);
       }
 
       if (isRunning)
       {
-        Message message = ERR_CANNOT_START_WHILE_RUNNING.get();
+        LocalizableMessage message = ERR_CANNOT_START_WHILE_RUNNING.get();
         throw new InitializationException(message);
       }
 
@@ -1259,7 +1285,7 @@ public final class DirectoryServer
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
           {
-            Message message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(
+            LocalizableMessage message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(
                 lockFile, String.valueOf(failureReason));
             throw new InitializationException(message);
           }
@@ -1277,7 +1303,7 @@ public final class DirectoryServer
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          Message message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(
+          LocalizableMessage message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(
               lockFile, stackTraceToSingleLineString(e));
           throw new InitializationException(message, e);
         }
@@ -1325,7 +1351,7 @@ public final class DirectoryServer
 
 
       // Initialize the server loggers.
-      loggerConfigManager = new LoggerConfigManager();
+      loggerConfigManager = new LoggerConfigManager(serverContext);
       loggerConfigManager.initializeLoggerConfig();
 
       RuntimeInformation.logInfo();
@@ -1464,9 +1490,9 @@ public final class DirectoryServer
            pluginConfigManager.invokeStartupPlugins();
       if (! startupPluginResult.continueProcessing())
       {
-        Message message = ERR_STARTUP_PLUGIN_ERROR.
+        LocalizableMessage message = ERR_STARTUP_PLUGIN_ERROR.
             get(startupPluginResult.getErrorMessage(),
-                startupPluginResult.getErrorMessage().getDescriptor().getId());
+                startupPluginResult.getErrorMessage().ordinal());
         throw new InitializationException(message);
       }
 
@@ -1509,7 +1535,7 @@ public final class DirectoryServer
       // Indicate that the server is now running.
       isRunning = true;
 
-      Message message = NOTE_DIRECTORY_SERVER_STARTED.get();
+      LocalizableMessage message = NOTE_DIRECTORY_SERVER_STARTED.get();
       logError(message);
       sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, message);
 
@@ -1599,7 +1625,7 @@ public final class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+      LocalizableMessage message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
           get(currentFactory.getClass().getName(),
               stackTraceToSingleLineString(e));
       logError(message);
@@ -1837,7 +1863,7 @@ public final class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
+      LocalizableMessage message =
           ERR_CANNOT_INITIALIZE_CONFIG_HANDLER.get(
                   String.valueOf(configClass),
                   String.valueOf(configFile),
@@ -2039,7 +2065,7 @@ public final class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
+      LocalizableMessage message = ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
           stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
@@ -2303,7 +2329,7 @@ public final class DirectoryServer
           // rollback to auto mode is failing too!!
           // well, just log an error message and suggest the admin
           // to restart the server with the last valid config...
-          Message message = ERR_CONFIG_WORKFLOW_CANNOT_CONFIGURE_MANUAL.get();
+          LocalizableMessage message = ERR_CONFIG_WORKFLOW_CANNOT_CONFIGURE_MANUAL.get();
           logError(message);
         }
       }
@@ -2330,7 +2356,7 @@ public final class DirectoryServer
           // rollback to auto mode is failing too!!
           // well, just log an error message and suggest the admin
           // to restart the server with the last valid config...
-          Message message = ERR_CONFIG_WORKFLOW_CANNOT_CONFIGURE_AUTO.get();
+          LocalizableMessage message = ERR_CONFIG_WORKFLOW_CANNOT_CONFIGURE_AUTO.get();
           logError(message);
         }
       }
@@ -2788,7 +2814,7 @@ public final class DirectoryServer
     {
       TRACER.debugCaught(DebugLogLevel.ERROR, e);
     }
-    Message message = ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
+    LocalizableMessage message = ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
         stackTraceToSingleLineString(e));
     throw new InitializationException(message, e);
   }
@@ -4592,7 +4618,7 @@ public final class DirectoryServer
    */
   public static void sendAlertNotification(AlertGenerator generator,
                                            String alertType,
-                                           Message alertMessage)
+                                           LocalizableMessage alertMessage)
   {
     if (directoryServer.alertHandlers == null
         || directoryServer.alertHandlers.isEmpty())
@@ -4651,11 +4677,11 @@ public final class DirectoryServer
     }
 
 
-    Message message = NOTE_SENT_ALERT_NOTIFICATION.get(
+    LocalizableMessage message = NOTE_SENT_ALERT_NOTIFICATION.get(
         generator.getClassName(), alertType,
             alertMessage != null ?
-                    String.valueOf(alertMessage.getDescriptor().getId()) :
-                    String.valueOf(MessageDescriptor.NULL_ID),
+                    alertMessage.resourceName()+"-"+alertMessage.ordinal():
+                    "-1",
             alertMessage);
     logError(message);
   }
@@ -5712,7 +5738,7 @@ public final class DirectoryServer
     if (existingRootEntryDN != null
         && !existingRootEntryDN.equals(actualRootEntryDN))
     {
-      Message message = ERR_CANNOT_REGISTER_DUPLICATE_ALTERNATE_ROOT_BIND_DN.
+      LocalizableMessage message = ERR_CANNOT_REGISTER_DUPLICATE_ALTERNATE_ROOT_BIND_DN.
           get(String.valueOf(alternateRootBindDN),
               String.valueOf(existingRootEntryDN));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
@@ -6027,7 +6053,7 @@ public final class DirectoryServer
           new TreeMap<String, Backend>(directoryServer.backends);
       if (newBackends.containsKey(backendID))
       {
-        Message message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
+        LocalizableMessage message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else
@@ -6231,14 +6257,14 @@ public final class DirectoryServer
 
     synchronized (directoryServer)
     {
-      List<Message> warnings =
+      List<LocalizableMessage> warnings =
               directoryServer.baseDnRegistry.registerBaseDN(
                       baseDN, backend, isPrivate);
 
       // Since we've committed the changes we need to log any issues
       // that this registration has caused
       if (warnings != null) {
-        for (Message warning : warnings) {
+        for (LocalizableMessage warning : warnings) {
           logError(warning);
         }
       }
@@ -6280,13 +6306,13 @@ public final class DirectoryServer
 
     synchronized(directoryServer) {
 
-      List<Message> warnings =
+      List<LocalizableMessage> warnings =
               directoryServer.baseDnRegistry.deregisterBaseDN(baseDN);
 
       // Since we've committed the changes we need to log any issues
       // that this registration has caused
       if (warnings != null) {
-        for (Message error : warnings) {
+        for (LocalizableMessage error : warnings) {
           logError(error);
         }
       }
@@ -6979,7 +7005,7 @@ public final class DirectoryServer
   private void startConnectionHandlers() throws ConfigException
   {
     Set<HostPort> usedListeners = new LinkedHashSet<HostPort>();
-    Set<Message> errorMessages = new LinkedHashSet<Message>();
+    Set<LocalizableMessage> errorMessages = new LinkedHashSet<LocalizableMessage>();
     // Check that the port specified in the connection handlers is
     // available.
     for (ConnectionHandler<?> c : connectionHandlers)
@@ -6990,7 +7016,7 @@ public final class DirectoryServer
         {
           // The port was already specified: this is a configuration error,
           // log a message.
-          Message message = ERR_HOST_PORT_ALREADY_SPECIFIED.get(
+          LocalizableMessage message = ERR_HOST_PORT_ALREADY_SPECIFIED.get(
               c.getConnectionHandlerName(), listener.toString());
           logError(message);
           errorMessages.add(message);
@@ -7012,7 +7038,7 @@ public final class DirectoryServer
     // If there are no connection handlers log a message.
     if (connectionHandlers.isEmpty())
     {
-      Message message = ERR_NOT_AVAILABLE_CONNECTION_HANDLERS.get();
+      LocalizableMessage message = ERR_NOT_AVAILABLE_CONNECTION_HANDLERS.get();
       logError(message);
       throw new ConfigException(ERR_ERROR_STARTING_CONNECTION_HANDLERS.get());
     }
@@ -7067,13 +7093,13 @@ public final class DirectoryServer
         case MODIFY_DN:
           if (directoryServer.lockdownMode)
           {
-            Message message = NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get();
+            LocalizableMessage message = NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get();
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                          message);
           }
           else
           {
-            Message message = ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
+            LocalizableMessage message = ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                          message);
           }
@@ -7085,13 +7111,13 @@ public final class DirectoryServer
          {
            if (directoryServer.lockdownMode)
            {
-             Message message = NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get();
+             LocalizableMessage message = NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get();
              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                           message);
            }
            else
            {
-             Message message = ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
+             LocalizableMessage message = ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                           message);
            }
@@ -7128,7 +7154,7 @@ public final class DirectoryServer
 
           DN user = clientConnection.getAuthenticationInfo()
               .getAuthorizationDN();
-          Message message = ERR_ENQUEUE_MUST_CHANGE_PASSWORD
+          LocalizableMessage message = ERR_ENQUEUE_MUST_CHANGE_PASSWORD
               .get(user != null ? user.toString() : "anonymous");
           throw new DirectoryException(
                   ResultCode.CONSTRAINT_VIOLATION, message);
@@ -7902,7 +7928,7 @@ public final class DirectoryServer
    * @param  reason     The human-readable reason that the directory server is
    *                    shutting down.
    */
-  public static void shutDown(String className, Message reason)
+  public static void shutDown(String className, LocalizableMessage reason)
   {
     synchronized (directoryServer)
     {
@@ -7923,7 +7949,7 @@ public final class DirectoryServer
     }
 
     // Send an alert notification that the server is shutting down.
-    Message message = NOTE_SERVER_SHUTDOWN.get(className, reason);
+    LocalizableMessage message = NOTE_SERVER_SHUTDOWN.get(className, reason);
     sendAlertNotification(directoryServer, ALERT_TYPE_SERVER_SHUTDOWN,
             message);
 
@@ -8304,7 +8330,7 @@ public final class DirectoryServer
    * @param  reason     The human-readable reason that the directory server is
    *                    shutting down.
    */
-  public static void restart(String className, Message reason)
+  public static void restart(String className, LocalizableMessage reason)
   {
     restart(className, reason, directoryServer.environmentConfig);
   }
@@ -8322,7 +8348,7 @@ public final class DirectoryServer
    *                    shutting down.
    * @param  config     The environment configuration to use for the server.
    */
-  public static void restart(String className, Message reason,
+  public static void restart(String className, LocalizableMessage reason,
                              DirectoryEnvironmentConfig config)
   {
     try
@@ -8844,7 +8870,7 @@ public final class DirectoryServer
 
     if (lockdownMode)
     {
-      Message message = WARN_DIRECTORY_SERVER_ENTERING_LOCKDOWN_MODE.get();
+      LocalizableMessage message = WARN_DIRECTORY_SERVER_ENTERING_LOCKDOWN_MODE.get();
       logError(message);
 
       sendAlertNotification(directoryServer, ALERT_TYPE_ENTERING_LOCKDOWN_MODE,
@@ -8852,7 +8878,7 @@ public final class DirectoryServer
     }
     else
     {
-      Message message = NOTE_DIRECTORY_SERVER_LEAVING_LOCKDOWN_MODE.get();
+      LocalizableMessage message = NOTE_DIRECTORY_SERVER_LEAVING_LOCKDOWN_MODE.get();
       logError(message);
 
       sendAlertNotification(directoryServer, ALERT_TYPE_LEAVING_LOCKDOWN_MODE,
@@ -8867,7 +8893,7 @@ public final class DirectoryServer
    * @param msg the message to be displayed on the command-line when the user
    * asks for the usage.
    */
-  public static void setToolDescription (Message msg)
+  public static void setToolDescription (LocalizableMessage msg)
   {
     toolDescription = msg;
   }
@@ -8985,7 +9011,7 @@ public final class DirectoryServer
 
 
     // Create the command-line argument parser for use with this program.
-    Message theToolDescription = DirectoryServer.toolDescription;
+    LocalizableMessage theToolDescription = DirectoryServer.toolDescription;
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.core.DirectoryServer",
                             theToolDescription, false);
@@ -9073,7 +9099,7 @@ public final class DirectoryServer
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_DSCORE_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_DSCORE_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       System.err.println(message);
       System.exit(1);
     }
@@ -9086,7 +9112,7 @@ public final class DirectoryServer
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_DSCORE_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_DSCORE_ERROR_PARSING_ARGS.get(ae.getMessage());
       System.err.println(message);
       System.err.println(argParser.getUsage());
       System.exit(1);
@@ -9160,7 +9186,7 @@ public final class DirectoryServer
       return;
     }
     else if (noDetach.isPresent() && timeout.isPresent()) {
-      Message message = ERR_DSCORE_ERROR_NODETACH_TIMEOUT.get();
+      LocalizableMessage message = ERR_DSCORE_ERROR_NODETACH_TIMEOUT.get();
       System.err.println(message);
       System.err.println(argParser.getUsage());
       System.exit(1);
@@ -9175,7 +9201,7 @@ public final class DirectoryServer
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        Message message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
+        LocalizableMessage message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
                                     String.valueOf(failureReason));
         System.err.println(message);
         System.exit(1);
@@ -9188,7 +9214,7 @@ public final class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
+      LocalizableMessage message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
                                   stackTraceToSingleLineString(e));
       System.err.println(message);
       System.exit(1);
@@ -9362,13 +9388,13 @@ public final class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
-      Message message = ERR_DSCORE_CANNOT_BOOTSTRAP.get(ie.getMessage());
+      LocalizableMessage message = ERR_DSCORE_CANNOT_BOOTSTRAP.get(ie.getMessage());
       System.err.println(message);
       System.exit(1);
     }
     catch (Exception e)
     {
-      Message message = ERR_DSCORE_CANNOT_BOOTSTRAP.get(
+      LocalizableMessage message = ERR_DSCORE_CANNOT_BOOTSTRAP.get(
               stackTraceToSingleLineString(e));
       System.err.println(message);
       System.exit(1);
@@ -9385,7 +9411,7 @@ public final class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
-      Message message = ERR_DSCORE_CANNOT_START.get(ie.getMessage());
+      LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(ie.getMessage());
       shutDown(theDirectoryServer.getClass().getName(), message);
     }
     catch (ConfigException ce)
@@ -9395,13 +9421,13 @@ public final class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
 
-      Message message = ERR_DSCORE_CANNOT_START.get(ce.getMessage() +
+      LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(ce.getMessage() +
       (ce.getCause() != null ? " " + ce.getCause().getLocalizedMessage() : ""));
       shutDown(theDirectoryServer.getClass().getName(), message);
     }
     catch (Exception e)
     {
-      Message message = ERR_DSCORE_CANNOT_START.get(
+      LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(
               stackTraceToSingleLineString(e));
       shutDown(theDirectoryServer.getClass().getName(), message);
     }
@@ -9522,7 +9548,7 @@ public final class DirectoryServer
       else
       {
         // The server's already running.
-        Message message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
+        LocalizableMessage message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
             String.valueOf(failureReason));
         System.err.println(message);
         isServerRunning = true;
@@ -9532,7 +9558,7 @@ public final class DirectoryServer
     {
       // We'll treat this as if the server is running because we won't
       // be able to start it anyway.
-      Message message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
+      LocalizableMessage message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
           getExceptionMessage(e));
       System.err.println(message);
       isServerRunning = true;
@@ -9559,7 +9585,7 @@ public final class DirectoryServer
         {
           // Conflicting arguments
           returnValue = CHECK_ERROR;
-          Message message = ERR_DSCORE_ERROR_NODETACH_AND_WINDOW_SERVICE.get();
+          LocalizableMessage message = ERR_DSCORE_ERROR_NODETACH_AND_WINDOW_SERVICE.get();
           System.err.println(message);
 
         }

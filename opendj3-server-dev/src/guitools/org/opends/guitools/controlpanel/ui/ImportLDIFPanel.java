@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -62,7 +63,7 @@ import org.opends.guitools.controlpanel.event.BrowseActionListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.ImportLDIF;
@@ -126,7 +127,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
   /**
    * {@inheritDoc}
    */
-  public Message getTitle()
+  public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_IMPORT_LDIF_TITLE.get();
   }
@@ -577,7 +578,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     setPrimaryValid(lRejectsFile);
     setPrimaryValid(lSkipsFile);
     setPrimaryValid(lThreads);
-    final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
+    final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<LocalizableMessage>();
 
     String backendName = (String)backends.getSelectedItem();
     if (backendName == null)
@@ -822,7 +823,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     /**
      * {@inheritDoc}
      */
-    public Message getTaskDescription()
+    public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_IMPORT_TASK_DESCRIPTION.get(fileName,
           backendSet.iterator().next());
@@ -832,7 +833,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
      * {@inheritDoc}
      */
     public boolean canLaunch(Task taskToBeLaunched,
-        Collection<Message> incompatibilityReasons)
+        Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
@@ -1020,7 +1021,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
 
       for (DN baseDN : replicatedBaseDNs)
       {
-        Message msg = INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN.toString(),
+        LocalizableMessage msg = INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN.toString(),
             ConnectionUtils.getHostPort(getInfo().getDirContext()));
         getProgressDialog().appendProgressHtml(Utilities.applyFont(
             msg.toString()+"<br>", ColorAndFontConstants.progressFont));

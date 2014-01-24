@@ -42,7 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PasswordPolicyImportPluginCfg;
@@ -143,7 +143,7 @@ public final class PasswordPolicyImportPlugin
 
 
         default:
-          Message message =
+          LocalizableMessage message =
               ERR_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE.get(t.toString());
           throw new ConfigException(message);
       }
@@ -173,7 +173,7 @@ public final class PasswordPolicyImportPlugin
                   AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
         if (defaultAuthPasswordSchemes[0] == null)
         {
-          Message message = ERR_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES.get(
+          LocalizableMessage message = ERR_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES.get(
               AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
           throw new ConfigException(message);
         }
@@ -190,14 +190,14 @@ public final class PasswordPolicyImportPlugin
              DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultAuthPasswordSchemes[i] == null)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(
                    String.valueOf(schemeDN));
           throw new ConfigException(message);
         }
         else if (! defaultAuthPasswordSchemes[i].supportsAuthPasswordSyntax())
         {
-          Message message =
+          LocalizableMessage message =
               ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(
                    String.valueOf(schemeDN));
           throw new ConfigException(message);
@@ -229,7 +229,7 @@ public final class PasswordPolicyImportPlugin
                   toLowerCase(STORAGE_SCHEME_NAME_SALTED_SHA_1));
         if (defaultUserPasswordSchemes[0] == null)
         {
-          Message message = ERR_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES.get(
+          LocalizableMessage message = ERR_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES.get(
               STORAGE_SCHEME_NAME_SALTED_SHA_1);
           throw new ConfigException(message);
         }
@@ -246,7 +246,7 @@ public final class PasswordPolicyImportPlugin
              DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultUserPasswordSchemes[i] == null)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(
                    String.valueOf(schemeDN));
           throw new ConfigException(message);
@@ -372,7 +372,7 @@ policyLoop:
                 .getAuthenticationPolicy(policyDN);
             if (authPolicy == null)
             {
-              Message message = WARN_PLUGIN_PWIMPORT_NO_SUCH_POLICY.get(
+              LocalizableMessage message = WARN_PLUGIN_PWIMPORT_NO_SUCH_POLICY.get(
                   String.valueOf(entry.getName()), String.valueOf(policyDN));
               logError(message);
             }
@@ -385,7 +385,7 @@ policyLoop:
           }
           catch (DirectoryException de)
           {
-            Message message = WARN_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN.get(
+            LocalizableMessage message = WARN_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN.get(
                 String.valueOf(entry.getName()), de.getMessageObject());
             logError(message);
             break policyLoop;
@@ -433,7 +433,7 @@ policyLoop:
                       TRACER.debugCaught(DebugLogLevel.ERROR, e);
                     }
 
-                    Message message =
+                    LocalizableMessage message =
                       ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
                         .get(policy.getPasswordAttribute().getNameOrOID(),
                             String.valueOf(entry.getName()),
@@ -468,7 +468,7 @@ policyLoop:
                       TRACER.debugCaught(DebugLogLevel.ERROR, e);
                     }
 
-                    Message message =
+                    LocalizableMessage message =
                       ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
                         .get(policy.getPasswordAttribute().getNameOrOID(),
                             String.valueOf(entry.getName()),
@@ -533,7 +533,7 @@ policyLoop:
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
+              LocalizableMessage message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
                   .get(t.getNameOrOID(), String.valueOf(entry.getName()),
                       stackTraceToSingleLineString(e));
               logError(message);
@@ -591,7 +591,7 @@ policyLoop:
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
+              LocalizableMessage message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
                   .get(t.getNameOrOID(), String.valueOf(entry.getName()),
                       stackTraceToSingleLineString(e));
               logError(message);
@@ -623,7 +623,7 @@ policyLoop:
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<Message> unacceptableReasons)
+                                           List<LocalizableMessage> unacceptableReasons)
   {
     PasswordPolicyImportPluginCfg config =
          (PasswordPolicyImportPluginCfg) configuration;
@@ -637,7 +637,7 @@ policyLoop:
    */
   public boolean isConfigurationChangeAcceptable(
                       PasswordPolicyImportPluginCfg configuration,
-                      List<Message> unacceptableReasons)
+                      List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -652,7 +652,7 @@ policyLoop:
 
 
         default:
-          Message message = ERR_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE.get(
+          LocalizableMessage message = ERR_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE.get(
                   pluginType.toString());
           unacceptableReasons.add(message);
           configAcceptable = false;
@@ -673,7 +673,7 @@ policyLoop:
                 AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
       if (defaultAuthSchemes[0] == null)
       {
-        Message message = ERR_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES.get(
+        LocalizableMessage message = ERR_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES.get(
                 AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
         unacceptableReasons.add(message);
         configAcceptable = false;
@@ -690,7 +690,7 @@ policyLoop:
              DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultAuthSchemes[i] == null)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(
                    String.valueOf(schemeDN));
           unacceptableReasons.add(message);
@@ -698,7 +698,7 @@ policyLoop:
         }
         else if (! defaultAuthSchemes[i].supportsAuthPasswordSyntax())
         {
-          Message message =
+          LocalizableMessage message =
               ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(
                    String.valueOf(schemeDN));
           unacceptableReasons.add(message);
@@ -722,7 +722,7 @@ policyLoop:
                 toLowerCase(STORAGE_SCHEME_NAME_SALTED_SHA_1));
       if (defaultUserSchemes[0] == null)
       {
-        Message message = ERR_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES.get(
+        LocalizableMessage message = ERR_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES.get(
                 STORAGE_SCHEME_NAME_SALTED_SHA_1);
         unacceptableReasons.add(message);
         configAcceptable = false;
@@ -739,7 +739,7 @@ policyLoop:
              DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultUserSchemes[i] == null)
         {
-          Message message = ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(
+          LocalizableMessage message = ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(
                                  String.valueOf(schemeDN));
           unacceptableReasons.add(message);
           configAcceptable = false;
@@ -762,7 +762,7 @@ policyLoop:
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
 
     // Get the set of default password storage schemes for auth password

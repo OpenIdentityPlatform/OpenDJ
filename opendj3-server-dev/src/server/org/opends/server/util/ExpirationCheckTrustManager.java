@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -38,7 +39,7 @@ import javax.net.ssl.X509TrustManager;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.UtilityMessages.*;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -97,7 +98,7 @@ public final class ExpirationCheckTrustManager
       }
       catch (CertificateExpiredException cee)
       {
-        Message message = ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_EXPIRED.get(
+        LocalizableMessage message = ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_EXPIRED.get(
             c.getSubjectDN().getName(), String.valueOf(c.getNotAfter()));
         logError(message);
 
@@ -105,7 +106,7 @@ public final class ExpirationCheckTrustManager
       }
       catch (CertificateNotYetValidException cnyve)
       {
-        Message message = ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_NOT_YET_VALID.get(
+        LocalizableMessage message = ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_NOT_YET_VALID.get(
             c.getSubjectDN().getName(), String.valueOf(c.getNotBefore()));
         logError(message);
 
@@ -142,7 +143,7 @@ public final class ExpirationCheckTrustManager
       }
       catch (CertificateExpiredException cee)
       {
-        Message message = ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_EXPIRED.get(
+        LocalizableMessage message = ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_EXPIRED.get(
             c.getSubjectDN().getName(), String.valueOf(c.getNotAfter()));
         logError(message);
 
@@ -150,7 +151,7 @@ public final class ExpirationCheckTrustManager
       }
       catch (CertificateNotYetValidException cnyve)
       {
-        Message message = ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_NOT_YET_VALID.get(
+        LocalizableMessage message = ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_NOT_YET_VALID.get(
             c.getSubjectDN().getName(), String.valueOf(c.getNotBefore()));
         logError(message);
 

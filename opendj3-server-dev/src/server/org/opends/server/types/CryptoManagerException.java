@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.types;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This class defines an exception that is thrown in the case of
@@ -53,7 +54,7 @@ public class CryptoManagerException extends OpenDsException {
    * Creates an exception with the given message.
    * @param message the message message.
    */
-  public CryptoManagerException(Message message) {
+  public CryptoManagerException(LocalizableMessage message) {
     super(message);
    }
 
@@ -63,7 +64,7 @@ public class CryptoManagerException extends OpenDsException {
    * @param message The message message.
    * @param cause  The underlying cause.
    */
-  public CryptoManagerException(Message message, Exception cause) {
+  public CryptoManagerException(LocalizableMessage message, Exception cause) {
     super(message, cause);
   }
 }

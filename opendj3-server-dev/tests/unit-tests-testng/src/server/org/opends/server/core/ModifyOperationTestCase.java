@@ -36,7 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
@@ -2810,7 +2810,7 @@ public class ModifyOperationTestCase
         newModifyOperation(null, ByteString.valueOf(baseDN), mods);
 
     CancelRequest cancelRequest = new CancelRequest(false,
-                                                    Message.raw("testCancelBeforeStartup"));
+                                                    LocalizableMessage.raw("testCancelBeforeStartup"));
     modifyOperation.abort(cancelRequest);
     modifyOperation.run();
     assertEquals(modifyOperation.getResultCode(), ResultCode.CANCELED);
@@ -2837,7 +2837,7 @@ public class ModifyOperationTestCase
     modifyOperation.run();
 
     CancelRequest cancelRequest = new CancelRequest(false,
-                                                    Message.raw("testCancelBeforeStartup"));
+                                                    LocalizableMessage.raw("testCancelBeforeStartup"));
     CancelResult cancelResponse = modifyOperation.cancel(cancelRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(cancelResponse.getResultCode(), ResultCode.TOO_LATE);

@@ -22,16 +22,17 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.args;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
 import java.util.HashSet;
 
 import static org.opends.messages.UtilityMessages.*;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -75,7 +76,7 @@ public class MultiChoiceArgument
    *                           formatted in lowercase.
    * @param  caseSensitive     Indicates whether the set of allowed values
    *                           should be treated in a case-sensitive manner.
-   * @param  description       Message for the description of this
+   * @param  description       LocalizableMessage for the description of this
    *                           argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
@@ -83,10 +84,10 @@ public class MultiChoiceArgument
    */
   public MultiChoiceArgument(String name, Character shortIdentifier,
                              String longIdentifier, boolean isRequired,
-                             boolean needsValue, Message valuePlaceholder,
+                             boolean needsValue, LocalizableMessage valuePlaceholder,
                              HashSet<String> allowedValues,
                              boolean caseSensitive,
-                             Message description)
+                             LocalizableMessage description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false, needsValue,
@@ -129,7 +130,7 @@ public class MultiChoiceArgument
    *                           formatted in lowercase.
    * @param  caseSensitive     Indicates whether the set of allowed values
    *                           should be treated in a case-sensitive manner.
-   * @param  description       Message for the description of this
+   * @param  description       LocalizableMessage for the description of this
    *                           argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
@@ -138,10 +139,10 @@ public class MultiChoiceArgument
   public MultiChoiceArgument(String name, Character shortIdentifier,
                              String longIdentifier, boolean isRequired,
                              boolean isMultiValued, boolean needsValue,
-                             Message valuePlaceholder, String defaultValue,
+                             LocalizableMessage valuePlaceholder, String defaultValue,
                              String propertyName, HashSet<String> allowedValues,
                              boolean caseSensitive,
-                             Message description)
+                             LocalizableMessage description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
@@ -193,7 +194,7 @@ public class MultiChoiceArgument
    *          <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-                                   MessageBuilder invalidReason)
+                                   LocalizableMessageBuilder invalidReason)
   {
     if (caseSensitive)
     {

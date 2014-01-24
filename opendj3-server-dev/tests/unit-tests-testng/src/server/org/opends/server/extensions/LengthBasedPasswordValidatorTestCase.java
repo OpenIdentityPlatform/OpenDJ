@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LengthBasedPasswordValidatorCfgDefn;
@@ -374,7 +374,7 @@ public class LengthBasedPasswordValidatorTestCase
                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                DN.valueOf("cn=uid=test.user,o=test"), mods);
 
-      MessageBuilder invalidReason = new MessageBuilder();
+      LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       assertTrue(validator.passwordIsAcceptable(password,
                                                 new HashSet<ByteString>(0),
                                                 op, userEntry, invalidReason));
@@ -447,7 +447,7 @@ public class LengthBasedPasswordValidatorTestCase
                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                DN.valueOf("cn=uid=test.user,o=test"), mods);
 
-      MessageBuilder invalidReason = new MessageBuilder();
+      LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       assertEquals((buffer.length() >= 10),
                    validator.passwordIsAcceptable(password,
                                                   new HashSet<ByteString>(0),
@@ -522,7 +522,7 @@ public class LengthBasedPasswordValidatorTestCase
                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                DN.valueOf("cn=uid=test.user,o=test"), mods);
 
-      MessageBuilder invalidReason = new MessageBuilder();
+      LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       assertEquals((buffer.length() <= 10),
                    validator.passwordIsAcceptable(password,
                                                   new HashSet<ByteString>(0),
@@ -597,7 +597,7 @@ public class LengthBasedPasswordValidatorTestCase
                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                DN.valueOf("cn=uid=test.user,o=test"), mods);
 
-      MessageBuilder invalidReason = new MessageBuilder();
+      LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       assertEquals(((buffer.length() >= 6) && (buffer.length() <= 10)),
                    validator.passwordIsAcceptable(password,
                                                   new HashSet<ByteString>(0),

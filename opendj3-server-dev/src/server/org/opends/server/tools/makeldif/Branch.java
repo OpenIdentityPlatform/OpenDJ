@@ -25,7 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -117,7 +117,7 @@ public class Branch
     // Get the RDN template lines based just on the entry DN.
     Entry entry = createEntry(branchDN);
 
-    ArrayList<Message>       warnings = new ArrayList<Message>();
+    ArrayList<LocalizableMessage>       warnings = new ArrayList<LocalizableMessage>();
     ArrayList<TemplateLine> lineList = new ArrayList<TemplateLine>();
 
     for (String ocName : entry.getObjectClasses().values())
@@ -223,7 +223,7 @@ public class Branch
              templates.get(toLowerCase(subordinateTemplateNames[i]));
         if (subordinateTemplates[i] == null)
         {
-          Message message = ERR_MAKELDIF_UNDEFINED_BRANCH_SUBORDINATE.get(
+          LocalizableMessage message = ERR_MAKELDIF_UNDEFINED_BRANCH_SUBORDINATE.get(
               branchDN.toString(), subordinateTemplateNames[i]);
           throw new MakeLDIFException(message);
         }
