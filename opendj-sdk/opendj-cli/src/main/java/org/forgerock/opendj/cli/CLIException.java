@@ -78,6 +78,7 @@ public final class CLIException extends Exception implements LocalizableExceptio
         this.message = message;
     }
 
+    @Override
     public LocalizableMessage getMessageObject() {
         return message;
     }
