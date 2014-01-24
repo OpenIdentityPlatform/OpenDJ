@@ -95,6 +95,7 @@
     <module>opendj-grizzly</module>
     <module>opendj-config</module>
     <module>opendj-ldap-sdk</module>
+    <module>opendj-cli</module>
     <module>opendj-ldap-toolkit</module>
     <module>opendj-ldap-sdk-examples</module>
     <module>opendj-rest2ldap</module>
