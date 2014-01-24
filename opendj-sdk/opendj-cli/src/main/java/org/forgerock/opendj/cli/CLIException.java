@@ -36,7 +36,7 @@ import org.forgerock.i18n.LocalizableMessage;
  * For example, if input provided by the client was invalid.
  */
 @SuppressWarnings("serial")
-final class CLIException extends Exception implements LocalizableException {
+public final class CLIException extends Exception implements LocalizableException {
 
     /**
      * Adapts any exception that may have occurred whilst reading input from the
@@ -48,7 +48,7 @@ final class CLIException extends Exception implements LocalizableException {
      * @return Returns a new CLI exception describing a problem that occurred
      *         whilst reading input from the console.
      */
-    static CLIException adaptInputException(final Throwable cause) {
+    public static CLIException adaptInputException(final Throwable cause) {
         return new CLIException(ERR_CONSOLE_INPUT_ERROR.get(cause.getMessage()), cause);
     }
 
@@ -60,7 +60,7 @@ final class CLIException extends Exception implements LocalizableException {
      * @param message
      *            The message explaining the problem that occurred.
      */
-    CLIException(final LocalizableMessage message) {
+    public CLIException(final LocalizableMessage message) {
         super(message.toString());
         this.message = message;
     }
@@ -73,7 +73,7 @@ final class CLIException extends Exception implements LocalizableException {
      * @param cause
      *            The cause of this exception.
      */
-    CLIException(final LocalizableMessage message, final Throwable cause) {
+    public CLIException(final LocalizableMessage message, final Throwable cause) {
         super(message.toString(), cause);
         this.message = message;
     }
