@@ -28,6 +28,7 @@ package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
+import java.lang.reflect.Method;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -195,7 +196,6 @@ public final class AddressMask {
      *             If the rule type cannot be determined from the rule string.
      */
     private void determineRuleType(final String ruleString) {
-
         // Rule ending with '.' is invalid'
         if (ruleString.endsWith(".")) {
             throw genericDecodeError();
@@ -428,9 +428,37 @@ public final class AddressMask {
      */
     private void processIPv6(final String rule) {
         final String[] s = rule.split("/", -1);
-        InetAddress addr;
+        final String address = s[0];
+
+        // Try to avoid calling InetAddress.getByName() because it may do a reverse lookup.
+        final String ipv6Literal;
+        if (address.charAt(0) == '[' && address.charAt(address.length() - 1) == ']') {
+            // isIPv4LiteralAddress must be invoked without surrounding brackets.
+            ipv6Literal = address.substring(1, address.length() - 1);
+        } else {
+            ipv6Literal = address;
+        }
+
+        Boolean isValid;
         try {
-            addr = InetAddress.getByName(s[0]);
+            // Use reflection to avoid dependency on Sun JRE.
+            final Class<?> ipUtils = Class.forName("sun.net.util.IPAddressUtil");
+            final Method method = ipUtils.getMethod("isIPv6LiteralAddress", String.class);
+            isValid = (Boolean) method.invoke(null, ipv6Literal);
+        } catch (Exception e) {
+            /*
+             * Unable to invoke Sun private API. Assume it's ok, but accept that
+             * a DNS query may be performed if it is not valid.
+             */
+            isValid = true;
+        }
+        if (!isValid) {
+            throw genericDecodeError();
+        }
+
+        final InetAddress addr;
+        try {
+            addr = InetAddress.getByName(address);
         } catch (final UnknownHostException ex) {
             throw genericDecodeError();
         }
