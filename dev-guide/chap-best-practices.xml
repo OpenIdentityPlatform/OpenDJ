@@ -106,6 +106,20 @@
   <literal>Connections.newHeartBeatConnectionFactory()</literal> methods to
   ensure your <literal>ConnectionFactory</literal> serves connections that
   are periodically checked to detect whether they are still alive.</para>
+
+  <para>
+   When you do not use a heart beat connection factory,
+   or when you wrap an authenticated connection factory
+   with a heart beat connection factory,
+   it is possible for the first bind request to hang indefinitely.
+   Bind operations do not have control over the client side timeout
+   when you use the synchronous API.
+   In such cases you can use <literal>LDAPOptions.setTimeout()</literal>
+   when creating the <literal>LDAPConnectionFactory</literal>
+   to configure a request timeout for all operations.
+   Take care not to set the timeout so low that long operations
+   such as unindexed searches fail to complete before the timeout.
+  </para>
  </section>
  
  <section xml:id="request-what-you-need-all-at-once">
