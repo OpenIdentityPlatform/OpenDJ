@@ -1172,57 +1172,106 @@ The LDAP password modify operation was successful</screen>
  --bindPassword password
  --property global-aci</screen>
 
-   <para>To disable anonymous read access for example, use the
-   <command>dsconfig set-access-control-handler-prop</command> command.</para>
+   <para>
+    You can disable anonymous access either
+    by editing relevant <literal>global-aci</literal> properties,
+    or by using the global server configuration property,
+    <literal>reject-unauthenticated-requests</literal>.
+    Editing relevant <literal>global-aci</literal> properties
+    lets you take a fine-grained approach to limit anonymous access.
+    Setting <literal>reject-unauthenticated-requests:true</literal>
+    causes OpenDJ directory server to reject all requests
+    from clients who are not authenticated
+    except bind requests and StartTLS requests.
+   </para>
 
-   <para>First, remove the <literal>global-aci</literal> attribute value that
-   allows anonymous read access. Do not wrap the lines in the following
-   example if you use it as the basis for your script.</para>
-
-   <screen>$ dsconfig \
- set-access-control-handler-prop \
- --remove global-aci:\(targetattr!=\"userPassword\|\|authPassword\|\|changes\|\
-\|changeNumber\|\|changeType\|\|changeTime\|\|targetDN\|\|newRDN\|\
-\|newSuperior\|\|deleteOldRDN\|\|targetEntryUUID\|\|changeInitiatorsName\|\
-\|changeLogCookie\|\|includedAttributes\"\)\(version\ 3.0\;\ acl\ \"Anonymous\
-\ read\ access\"\;\ allow\ \(read,search,compare\)\
-\ userdn=\"ldap:///anyone\"\;\)\
- --hostname opendj.example.com \
- --port 4444 \
- --bindDN cn=Directory\ Manager \
- --bindPassword password \
- --trustAll \
- --no-prompt</screen>
-
-   <para>If the <literal>global-aci</literal> does not match the ACI exactly
-   then the command fails to remove the value. An alternative approach is to
-   use the <command>dsconfig</command> command interactively, adding the
-   <option>--commandFilePath</option> option. You can then use the command
-   you capture to remove the property value on other servers for example.
-   To use the <command>dsconfig</command> command this way, start the
-   command as follows.</para>
+   <para>
+    To take a fine-grained approach,
+    use the <command>dsconfig</command> command
+    to edit <literal>global-aci</literal> properties.
+    One of the most expedient ways to do this is to use the command interactively
+    on one OpenDJ directory server, capturing the output to a script with the
+    <option>--commandFilePath <replaceable>script</replaceable></option> option,
+    and then editing the script for use on other servers.
+    With this approach, you can
+    allow anonymous read access to the root DSE and to directory schemas
+    so that clients do not have to authenticate to discover server capabilities,
+    and also allow anonymous users access to some controls and extended operations.
+   </para>
 
    <screen>$ dsconfig
  --port 4444
  --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
- --commandFilePath /tmp/captured-command.sh</screen>
+ --commandFilePath /tmp/captured-global-aci-edits.sh
 
-   <para>Next, add a global ACI value that allows authenticated users to
-   perform read operations. You can use <command>dsconfig</command>
-   interactively to add the ACI value as shown below
-   <literal>(targetattr!= &#8230; userdn="ldap:///all";)</literal>.</para>
+# The dsconfig command runs interactively.
 
-   <programlisting language="ldif">global-aci: (targetattr!="userPassword||
- authPassword||changes||changeNumber||changeType||changeTime||targetDN||newRDN||
- newSuperior||deleteOldRDN||targetEntryUUID||changeInitiatorsName||
- changeLogCookie||includedAttributes")(version 3.0; acl "Authenticated users
- read access"; allow (read,search,compare) userdn="ldap:///all";)</programlisting>
+# Edit Access Control Handler, global-aci attributes replacing
+# userdn="ldap:///anyone" (anonymous) with userdn="ldap:///all" (authenticated)
+# in "Anonymous read access" and "User-Visible Operational Attributes" ACIs.
 
-   <para>Notice that these changes are made to the OpenDJ directory server
-   configuration, and so are not replicated to other servers. You must instead
-   apply the changes separately to each server.</para>
+# To make this change, you first remove the existing values,
+# then add the edited values, and finally apply the changes.
+</screen>
+
+   <para>
+    Make sure that you also set appropriate ACIs on any data that you import.
+   </para>
+
+   <para>
+    At this point, clients must authenticate to view search results for example.
+   </para>
+
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=bjensen)"
+$ ldapsearch --bindDN uid=bjensen,ou=people,dc=example,dc=com
+ --bindPassword hifalutin --port 1389 --baseDN dc=example,dc=com
+ "(uid=bjensen)" cn uid
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+uid: bjensen
+</screen>
+
+   <para>
+    You can download an example of the captured command,
+    <link xlink:href="http://opendj.forgerock.org/captured-global-aci-edits.sh"
+    >captured-global-aci-edits.sh</link>.
+   </para>
+
+   <para>
+    To reject anonymous access except bind and StartTLS requests,
+    set <literal>reject-unauthenticated-requests:true</literal>.
+   </para>
+
+   <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --trustAll
+ --no-prompt
+ --set reject-unauthenticated-requests:true</screen>
+
+   <para>
+    Once you set the property, anonymous clients trying to search for example
+    get an <literal>Unwilling to Perform</literal> response from OpenDJ.
+   </para>
+
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=bjensen)"
+SEARCH operation failed
+Result Code:  53 (Unwilling to Perform)
+Additional Information:  Rejecting the requested operation
+ because the connection has not been authenticated</screen>
+
+   <para>
+    In both cases, notice that the changes apply to
+    a single OpenDJ directory server configuration,
+    and so are not replicated to other servers.
+    You must instead apply the changes separately to each server.
+   </para>
   </example>
 
   <example xml:id="access-control-full-access">
