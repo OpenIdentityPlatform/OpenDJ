@@ -129,16 +129,16 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
      */
     public int peekLength() throws IOException {
         peekType();
-
         switch (state) {
         case ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE:
             needFirstLengthByteState(true, true);
             break;
-
         case ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES:
             needAdditionalLengthBytesState(true, true);
+            break;
+        default: // ASN1.ELEMENT_READ_STATE_NEED_VALUE_BYTES
+            break;
         }
-
         return peekLength;
     }
 
@@ -195,7 +195,6 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
                 IO_LOG.trace("Ignoring {} unused trailing bytes in ASN.1 SEQUENCE",
                         subSq.getSizeLimit() - subSq.getBytesRead());
             }
-
             subSq.skip(subSq.getSizeLimit() - subSq.getBytesRead());
         }
 

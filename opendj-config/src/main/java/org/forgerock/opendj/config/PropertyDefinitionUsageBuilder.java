@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -42,8 +43,8 @@ public final class PropertyDefinitionUsageBuilder {
     /**
      * Underlying implementation.
      */
-    private final class MyPropertyDefinitionVisitor extends PropertyDefinitionVisitor<LocalizableMessage, Void> {
-
+    private static final class MyPropertyDefinitionVisitor extends
+            PropertyDefinitionVisitor<LocalizableMessage, Void> {
         // Flag indicating whether detailed syntax information will be
         // generated.
         private final boolean isDetailed;

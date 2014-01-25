@@ -250,8 +250,10 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                             }
                         }, h));
             }
-        } catch (final Exception e) {
+        } catch (final RuntimeException e) {
             h.handleError(asResourceException(e));
+        } catch (final ResourceException e) {
+            h.handleError(e);
         }
     }
 

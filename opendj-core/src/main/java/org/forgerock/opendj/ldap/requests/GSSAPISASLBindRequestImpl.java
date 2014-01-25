@@ -27,12 +27,11 @@
 
 package org.forgerock.opendj.ldap.requests;
 
-import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
-import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static com.forgerock.opendj.util.StaticUtils.joinCollection;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_SASL_CONTEXT_CREATE_ERROR;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_SASL_PROTOCOL_ERROR;
+import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.security.PrivilegedActionException;
@@ -57,6 +56,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 
 import com.forgerock.opendj.util.StaticUtils;
 import com.sun.security.auth.callback.TextCallbackHandler;
@@ -178,7 +178,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
 
                                 final List<String> qopValues = initialBindRequest.getQOPs();
                                 if (!qopValues.isEmpty()) {
-                                    props.put(Sasl.QOP, joinCollection(qopValues, ","));
+                                    props.put(Sasl.QOP, Utils.joinAsString(",", qopValues));
                                 }
 
                                 final Boolean serverAuth = initialBindRequest.isServerAuth();

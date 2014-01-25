@@ -30,7 +30,6 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
-import static com.forgerock.opendj.util.StaticUtils.closeSilently;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -504,7 +503,7 @@ public final class LDAPModify extends ConsoleApplication {
                 return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
             }
         } finally {
-            closeSilently(reader, connection);
+            org.forgerock.util.Utils.closeSilently(reader, connection);
         }
 
         return ResultCode.SUCCESS.intValue();

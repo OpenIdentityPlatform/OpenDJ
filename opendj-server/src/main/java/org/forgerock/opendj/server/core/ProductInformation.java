@@ -26,6 +26,8 @@
 
 package org.forgerock.opendj.server.core;
 
+import static org.forgerock.util.Utils.closeSilently;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,11 +64,14 @@ public final class ProductInformation {
         }
 
         properties = new Properties();
+        final InputStream is = new BufferedInputStream(stream);
         try {
-            properties.load(new BufferedInputStream(stream));
+            properties.load(is);
         } catch (final IOException e) {
             throw new MissingResourceException("Can't load product information " + resourceName
                     + " due to IO exception: " + e.getMessage(), productName, "");
+        } finally {
+            closeSilently(is);
         }
 
         versionFull =

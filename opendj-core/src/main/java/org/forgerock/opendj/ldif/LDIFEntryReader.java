@@ -27,12 +27,7 @@
 
 package org.forgerock.opendj.ldif;
 
-import static com.forgerock.opendj.util.StaticUtils.closeSilently;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_ENTRY_EXCLUDED_BY_DN;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_ENTRY_EXCLUDED_BY_FILTER;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,8 +47,8 @@ import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.Matcher;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
-
 import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 
 /**
  * An LDIF entry reader reads attribute value records (entries) using the LDAP
@@ -108,7 +103,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
                     WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e.getMessage());
             throw new LocalizedIllegalArgumentException(message);
         } finally {
-            closeSilently(reader);
+            Utils.closeSilently(reader);
         }
     }
 

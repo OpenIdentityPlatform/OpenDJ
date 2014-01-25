@@ -27,28 +27,8 @@
 
 package org.forgerock.opendj.ldif;
 
-import static com.forgerock.opendj.util.StaticUtils.closeSilently;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_ATTRIBUTE_NAME_MISMATCH;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_BAD_CHANGE_TYPE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_BAD_MODIFICATION_TYPE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_CHANGE_EXCLUDED_BY_DN;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MALFORMED_ATTRIBUTE_NAME;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MALFORMED_CHANGE_TYPE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MALFORMED_CONTROL;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MALFORMED_DELETE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MALFORMED_DELETE_OLD_RDN;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MALFORMED_MODIFICATION_TYPE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MALFORMED_NEW_RDN;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MALFORMED_NEW_SUPERIOR;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_NO_CHANGE_TYPE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_NO_DELETE_OLD_RDN;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_NO_NEW_RDN;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_UNEXPECTED_BINARY_OPTION;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_UNKNOWN_ATTRIBUTE_TYPE;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -83,8 +63,8 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
-
 import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 
 /**
  * An LDIF change record reader reads change records using the LDAP Data
@@ -162,7 +142,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
                     WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e.getMessage());
             throw new LocalizedIllegalArgumentException(message);
         } finally {
-            closeSilently(reader);
+            Utils.closeSilently(reader);
         }
     }
 

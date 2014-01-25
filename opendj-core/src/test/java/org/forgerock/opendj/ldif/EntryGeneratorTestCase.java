@@ -45,11 +45,10 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.SdkTestCase;
 import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.util.Utils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 @SuppressWarnings("javadoc")
 public class EntryGeneratorTestCase extends SdkTestCase {
@@ -82,7 +81,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
                 System.out.println(generator.readEntry());
             }
         } finally {
-            StaticUtils.closeSilently(generator);
+            Utils.closeSilently(generator);
         }
 
     }
@@ -94,7 +93,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
             generator = new EntryGenerator();
             assertThat(generator.hasNext()).isTrue();
         } finally {
-            StaticUtils.closeSilently(generator);
+            Utils.closeSilently(generator);
         }
     }
 
@@ -106,7 +105,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
             generator = new EntryGenerator("unknown/path");
             generator.hasNext();
         } finally {
-            StaticUtils.closeSilently(generator);
+            Utils.closeSilently(generator);
         }
     }
 
@@ -120,7 +119,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
             assertThat(generator.readEntry().getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
             assertThat(generator.hasNext()).as("should have no more entries").isFalse();
         } finally {
-            StaticUtils.closeSilently(generator);
+            Utils.closeSilently(generator);
         }
     }
 
@@ -200,7 +199,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
             }
             assertThat(generator.hasNext()).as("should have no more entries").isFalse();
         } finally {
-            StaticUtils.closeSilently(generator);
+            Utils.closeSilently(generator);
         }
     }
 
@@ -219,7 +218,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
 
             checkEntryObjectClasses(topEntry, "top", "domainComponent");
         } finally {
-            StaticUtils.closeSilently(generator);
+            Utils.closeSilently(generator);
 
         }
     }
@@ -240,7 +239,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
 
             checkEntryObjectClasses(entry, "top", "organizationalUnit");
         } finally {
-            StaticUtils.closeSilently(generator);
+            Utils.closeSilently(generator);
         }
     }
 
@@ -265,7 +264,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
 
             checkEntryObjectClasses(entry, "top", "person", "organizationalPerson", "inetOrgPerson");
         } finally {
-            StaticUtils.closeSilently(generator);
+            Utils.closeSilently(generator);
         }
     }
 
@@ -363,7 +362,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
             }
             assertThat(generator.hasNext()).isFalse();
         } finally {
-            StaticUtils.closeSilently(generator);
+            Utils.closeSilently(generator);
         }
     }
 
@@ -589,7 +588,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
             assertThat(entry).isNotNull();
             assertThat(entry.getAttribute(attrName).firstValueAsString()).isEqualTo(expectedValue);
         } finally {
-            StaticUtils.closeSilently(generator);
+            Utils.closeSilently(generator);
         }
     }
 
@@ -622,7 +621,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
             assertThat(entry).isNotNull();
             assertThat(entry.getAttribute("cn").firstValueAsString()).matches("Foo <[A-Z]>\\{1\\}Bar");
         } finally {
-            StaticUtils.closeSilently(generator);
+            Utils.closeSilently(generator);
         }
     }
 }

@@ -44,8 +44,7 @@ import org.forgerock.opendj.ldif.TemplateFile.Branch;
 import org.forgerock.opendj.ldif.TemplateFile.Template;
 import org.forgerock.opendj.ldif.TemplateFile.TemplateEntry;
 import org.forgerock.opendj.ldif.TemplateFile.TemplateValue;
-
-import com.forgerock.opendj.util.StaticUtils;
+import org.forgerock.util.Utils;
 
 /**
  * Represents a tag that may be used in a template line when generating entries.
@@ -413,7 +412,7 @@ abstract class TemplateTag {
                     throw DecodeException.fatalError(message, ioe);
                 }
             } finally {
-                StaticUtils.closeSilently(dataReader);
+                Utils.closeSilently(dataReader);
             }
 
             // If there is a second argument, then it should be either
