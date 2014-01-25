@@ -110,17 +110,17 @@ public final class RewriterProxy {
     private static final class Rewriter implements RequestHandler<RequestContext> {
 
         // This example hard codes the attribute...
-        private final String clientAttributeTypeName = "fullname";
-        private final String serverAttributeTypeName = "cn";
+        private static final String CLIENT_ATTRIBUTE = "fullname";
+        private static final String SERVER_ATTRIBUTE = "cn";
 
         // ...and DN rewriting configuration.
-        private final CharSequence clientSuffix = "o=example";
-        private final CharSequence serverSuffix = "dc=example,dc=com";
+        private static final String CLIENT_SUFFIX = "o=example";
+        private static final String SERVER_SUFFIX = "dc=example,dc=com";
 
         private final AttributeDescription clientAttributeDescription = AttributeDescription
-                .valueOf(clientAttributeTypeName);
+                .valueOf(CLIENT_ATTRIBUTE);
         private final AttributeDescription serverAttributeDescription = AttributeDescription
-                .valueOf(serverAttributeTypeName);
+                .valueOf(SERVER_ATTRIBUTE);
 
         // Next request handler in the chain.
         private final RequestHandler<RequestContext> nextHandler;
@@ -222,8 +222,8 @@ public final class RewriterProxy {
         private AddRequest rewrite(final AddRequest request) {
             // Transform the client DN into a server DN.
             final AddRequest rewrittenRequest = Requests.copyOfAddRequest(request);
-            rewrittenRequest.setName(request.getName().toString().replace(clientSuffix,
-                    serverSuffix));
+            rewrittenRequest.setName(request.getName().toString().replace(CLIENT_SUFFIX,
+                    SERVER_SUFFIX));
             /*
              * Transform the client attribute names into server attribute names,
              * fullname;lang-fr ==> cn;lang-fr.
@@ -232,7 +232,7 @@ public final class RewriterProxy {
                 if (a != null) {
                     final String ad =
                             a.getAttributeDescriptionAsString().replaceFirst(
-                                    clientAttributeTypeName, serverAttributeTypeName);
+                                    CLIENT_ATTRIBUTE, SERVER_ATTRIBUTE);
                     final Attribute serverAttr =
                             Attributes.renameAttribute(a, AttributeDescription.valueOf(ad));
                     rewrittenRequest.addAttribute(serverAttr);
@@ -253,21 +253,21 @@ public final class RewriterProxy {
              * fullname;lang-fr ==> cn;lang-fr.
              */
             final String ad = request.getAttributeDescription().toString();
-            if (ad.toLowerCase().startsWith(clientAttributeTypeName.toLowerCase())) {
+            if (ad.toLowerCase().startsWith(CLIENT_ATTRIBUTE.toLowerCase())) {
                 final String serverAttrDesc =
-                        ad.replaceFirst(clientAttributeTypeName, serverAttributeTypeName);
+                        ad.replaceFirst(CLIENT_ATTRIBUTE, SERVER_ATTRIBUTE);
                 request.setAttributeDescription(AttributeDescription.valueOf(serverAttrDesc));
             }
 
             // Transform the client DN into a server DN.
             return request
-                    .setName(request.getName().toString().replace(clientSuffix, serverSuffix));
+                    .setName(request.getName().toString().replace(CLIENT_SUFFIX, SERVER_SUFFIX));
         }
 
         private DeleteRequest rewrite(final DeleteRequest request) {
             // Transform the client DN into a server DN.
             return request
-                    .setName(request.getName().toString().replace(clientSuffix, serverSuffix));
+                    .setName(request.getName().toString().replace(CLIENT_SUFFIX, SERVER_SUFFIX));
         }
 
         private <S extends ExtendedResult> ExtendedRequest<S> rewrite(
@@ -280,21 +280,21 @@ public final class RewriterProxy {
             // Transform the client DNs into server DNs.
             if (request.getNewSuperior() != null) {
                 return request.setName(
-                        request.getName().toString().replace(clientSuffix, serverSuffix))
+                        request.getName().toString().replace(CLIENT_SUFFIX, SERVER_SUFFIX))
                         .setNewSuperior(
-                                request.getNewSuperior().toString().replace(clientSuffix,
-                                        serverSuffix));
+                                request.getNewSuperior().toString().replace(CLIENT_SUFFIX,
+                                        SERVER_SUFFIX));
             } else {
-                return request.setName(request.getName().toString().replace(clientSuffix,
-                        serverSuffix));
+                return request.setName(request.getName().toString().replace(CLIENT_SUFFIX,
+                        SERVER_SUFFIX));
             }
         }
 
         private ModifyRequest rewrite(final ModifyRequest request) {
             // Transform the client DN into a server DN.
             final ModifyRequest rewrittenRequest =
-                    Requests.newModifyRequest(request.getName().toString().replace(clientSuffix,
-                            serverSuffix));
+                    Requests.newModifyRequest(request.getName().toString().replace(CLIENT_SUFFIX,
+                            SERVER_SUFFIX));
 
             /*
              * Transform the client attribute names into server attribute names,
@@ -309,7 +309,7 @@ public final class RewriterProxy {
                 if (at.equals(clientAttributeDescription.getAttributeType())) {
                     final AttributeDescription serverAttrDesc =
                             AttributeDescription.valueOf(ad.toString().replaceFirst(
-                                    clientAttributeTypeName, serverAttributeTypeName));
+                                    CLIENT_ATTRIBUTE, SERVER_ATTRIBUTE));
                     rewrittenRequest.addModification(new Modification(mod.getModificationType(),
                             Attributes.renameAttribute(a, serverAttrDesc)));
                 } else {
@@ -331,9 +331,9 @@ public final class RewriterProxy {
             final String[] a = new String[request.getAttributes().size()];
             int count = 0;
             for (final String attrName : request.getAttributes()) {
-                if (attrName.toLowerCase().startsWith(clientAttributeTypeName.toLowerCase())) {
+                if (attrName.toLowerCase().startsWith(CLIENT_ATTRIBUTE.toLowerCase())) {
                     a[count] =
-                            attrName.replaceFirst(clientAttributeTypeName, serverAttributeTypeName);
+                            attrName.replaceFirst(CLIENT_ATTRIBUTE, SERVER_ATTRIBUTE);
                 } else {
                     a[count] = attrName;
                 }
@@ -347,9 +347,9 @@ public final class RewriterProxy {
              * this implementation will not work.
              */
             return Requests.newSearchRequest(DN.valueOf(request.getName().toString().replace(
-                    clientSuffix, serverSuffix)), request.getScope(), Filter.valueOf(request
-                    .getFilter().toString().replace(clientAttributeTypeName,
-                            serverAttributeTypeName)), a);
+                    CLIENT_SUFFIX, SERVER_SUFFIX)), request.getScope(), Filter.valueOf(request
+                    .getFilter().toString().replace(CLIENT_ATTRIBUTE,
+                            SERVER_ATTRIBUTE)), a);
         }
 
         private SearchResultEntry rewrite(final SearchResultEntry entry) {
@@ -363,7 +363,7 @@ public final class RewriterProxy {
                 if (at.equals(serverAttributeDescription.getAttributeType())) {
                     final AttributeDescription clientAttrDesc =
                             AttributeDescription.valueOf(ad.toString().replaceFirst(
-                                    serverAttributeTypeName, clientAttributeTypeName));
+                                    SERVER_ATTRIBUTE, CLIENT_ATTRIBUTE));
                     attrsToAdd.add(Attributes.renameAttribute(a, clientAttrDesc));
                     attrsToRemove.add(ad);
                 }
@@ -379,7 +379,7 @@ public final class RewriterProxy {
             }
 
             // Transform the server DN suffix into a client DN suffix.
-            return entry.setName(entry.getName().toString().replace(serverSuffix, clientSuffix));
+            return entry.setName(entry.getName().toString().replace(SERVER_SUFFIX, CLIENT_SUFFIX));
 
         }
 

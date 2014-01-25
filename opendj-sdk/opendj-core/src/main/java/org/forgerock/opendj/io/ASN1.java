@@ -113,8 +113,8 @@ public final class ASN1 {
      * The ASN.1 element decoding state that indicates that the next byte read
      * should be applied to the value of the element.
      */
-    public static final int ELEMENT_READ_STATE_NEED_VALUE_BYTES = 3;
 
+    public static final int ELEMENT_READ_STATE_NEED_VALUE_BYTES = 3;
     /**
      * The byte array that will be used for ASN.1 elements with no value.
      */

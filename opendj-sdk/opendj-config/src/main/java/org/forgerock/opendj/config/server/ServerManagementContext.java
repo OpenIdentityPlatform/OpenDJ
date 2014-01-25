@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.server;
@@ -246,13 +247,7 @@ public final class ServerManagementContext {
                     }
                     return pvalues;
                 }
-            } catch (DefinitionDecodingException e) {
-                throw PropertyException.defaultBehaviorException(propDef1, e);
-            } catch (PropertyNotFoundException e) {
-                throw PropertyException.defaultBehaviorException(propDef1, e);
-            } catch (PropertyException e) {
-                throw PropertyException.defaultBehaviorException(propDef1, e);
-            } catch (ConfigException e) {
+            } catch (Exception e) {
                 throw PropertyException.defaultBehaviorException(propDef1, e);
             }
         }
@@ -262,7 +257,7 @@ public final class ServerManagementContext {
      * A definition resolver that determines the managed object definition from
      * the object classes of a ConfigEntry.
      */
-    private final class MyDefinitionResolver implements DefinitionResolver {
+    private static final class MyDefinitionResolver implements DefinitionResolver {
 
         // The config entry.
         private final Entry entry;
@@ -608,7 +603,7 @@ public final class ServerManagementContext {
         // Get the configuration entry.
         DN targetDN = DNBuilder.create(path);
         try {
-            return (getManagedObjectConfigEntry(targetDN) != null);
+            return (configRepository.getEntry(targetDN) != null);
         } catch (ConfigException e) {
             // Assume it doesn't exist.
             return false;

@@ -42,10 +42,6 @@ import com.example.opendj.server.ExamplePluginCfg;
 public class ExamplePlugin implements ConfigurationChangeListener<ExamplePluginCfg> {
     // FIXME: fill in the remainder of this class once the server plugin API is migrated.
 
-    // The current configuration.
-    @SuppressWarnings("unused")
-    private ExamplePluginCfg config;
-
     /**
      * Default constructor.
      */
@@ -60,10 +56,7 @@ public class ExamplePlugin implements ConfigurationChangeListener<ExamplePluginC
     public ConfigChangeResult applyConfigurationChange(final ExamplePluginCfg config) {
         // The new configuration has already been validated.
 
-        // Update the configuration.
-        this.config = config;
-
-        // Update was successfull, no restart required.
+        // Update was successful, no restart required.
         return new ConfigChangeResult(ResultCode.SUCCESS, false);
     }
 

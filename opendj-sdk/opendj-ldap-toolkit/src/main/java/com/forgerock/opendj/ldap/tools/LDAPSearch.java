@@ -30,7 +30,6 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
-import static com.forgerock.opendj.util.StaticUtils.closeSilently;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -945,7 +944,7 @@ public final class LDAPSearch extends ConsoleApplication {
         } catch (final ErrorResultException ere) {
             return Utils.printErrorMessage(this, ere);
         } finally {
-            closeSilently(ldifWriter, connection);
+            org.forgerock.util.Utils.closeSilently(ldifWriter, connection);
         }
 
         return 0;

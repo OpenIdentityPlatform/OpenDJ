@@ -37,8 +37,7 @@ import org.forgerock.json.resource.Router;
 import org.forgerock.opendj.rest2ldap.AuthorizationPolicy;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP.Builder;
-
-import com.forgerock.opendj.util.StaticUtils;
+import org.forgerock.util.Utils;
 
 /**
  * The connection factory provider which is used by the OpenDJ Commons REST LDAP
@@ -149,7 +148,7 @@ public final class Rest2LDAPConnectionFactoryProvider {
             throw new ServletException("Servlet configuration file '" + configFileName
                     + "' could not be read: " + e.getMessage());
         } finally {
-            StaticUtils.closeSilently(configFile);
+            Utils.closeSilently(configFile);
         }
     }
 

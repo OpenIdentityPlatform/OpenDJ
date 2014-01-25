@@ -68,8 +68,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.opendj.ldap.schema.Schema;
-
-import com.forgerock.opendj.util.StaticUtils;
+import org.forgerock.util.Utils;
 
 /**
  * This class contains common utility methods for creating and manipulating
@@ -335,7 +334,7 @@ public final class LDIF {
             // This should never happen for a String based reader.
             throw new LocalizedIllegalArgumentException(WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e.getMessage()));
         } finally {
-            StaticUtils.closeSilently(reader);
+            Utils.closeSilently(reader);
         }
         if (entries.isEmpty()) {
             throw new LocalizedIllegalArgumentException(WARN_READ_LDIF_ENTRY_NO_ENTRY_FOUND.get());

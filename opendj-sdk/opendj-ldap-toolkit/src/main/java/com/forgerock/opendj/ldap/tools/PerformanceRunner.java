@@ -48,6 +48,7 @@ import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.util.Utils;
 
 import com.forgerock.opendj.ldap.tools.AuthenticatedConnectionFactory.AuthenticatedConnection;
 import com.forgerock.opendj.util.StaticUtils;
@@ -858,7 +859,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             stopRequested = true;
             app.println(LocalizableMessage.raw(e.getResult().getDiagnosticMessage()));
         } finally {
-            StaticUtils.closeSilently(connections);
+            Utils.closeSilently(connections);
         }
 
         return 0;

@@ -26,7 +26,6 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static org.fest.assertions.Assertions.*;
-
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 import java.io.ByteArrayOutputStream;
@@ -36,8 +35,6 @@ import java.io.UnsupportedEncodingException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 @SuppressWarnings("javadoc")
 public class MakeLDIFTestCase extends ToolsTestCase {
@@ -112,7 +109,7 @@ public class MakeLDIFTestCase extends ToolsTestCase {
 
             assertThat(err.toString("UTF-8")).contains(Utils.wrapText(expectedErrOutput, Utils.MAX_LINE_WIDTH));
         } finally {
-            StaticUtils.closeSilently(outStream, errStream);
+            org.forgerock.util.Utils.closeSilently(outStream, errStream);
         }
     }
 

@@ -27,8 +27,6 @@
 
 package com.forgerock.opendj.util;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
@@ -36,10 +34,8 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.ServiceLoader;
 import java.util.TimeZone;
@@ -47,7 +43,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
@@ -56,6 +51,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ProviderNotFoundException;
 import org.forgerock.opendj.ldap.spi.Provider;
 import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,7 +123,7 @@ public final class StaticUtils {
                 @Override
                 protected ScheduledExecutorService newInstance() {
                     final ThreadFactory factory =
-                            newThreadFactory(null, "OpenDJ LDAP SDK Default Scheduler", true);
+                            Utils.newThreadFactory(null, "OpenDJ LDAP SDK Default Scheduler", true);
                     return Executors.newSingleThreadScheduledExecutor(factory);
                 }
 
@@ -1198,40 +1194,6 @@ public final class StaticUtils {
     }
 
     /**
-     * Closes the provided resources ignoring any errors which occurred.
-     *
-     * @param resources
-     *            The resources to be closed, which may be {@code null}.
-     */
-    public static void closeSilently(Closeable... resources) {
-        if (resources == null) {
-            return;
-        }
-        closeSilently(Arrays.asList(resources));
-    }
-
-    /**
-     * Closes the provided resources ignoring any errors which occurred.
-     *
-     * @param resources
-     *            The resources to be closed, which may be {@code null}.
-     */
-    public static void closeSilently(Iterable<? extends Closeable> resources) {
-        if (resources == null) {
-            return;
-        }
-        for (Closeable r : resources) {
-            try {
-                if (r != null) {
-                    r.close();
-                }
-            } catch (IOException ignored) {
-                // Ignore.
-            }
-        }
-    }
-
-    /**
      * Returns a string containing provided date formatted using the generalized
      * time syntax.
      *
@@ -1505,68 +1467,6 @@ public final class StaticUtils {
     public static boolean isKeyChar(final char c, final boolean allowCompatChars) {
         final ASCIICharProp cp = ASCIICharProp.valueOf(c);
         return cp != null ? cp.isKeyChar(allowCompatChars) : false;
-    }
-
-    /**
-     * Returns a string whose content is the string representation of the
-     * objects contained in the provided collection concatenated together using
-     * the provided separator.
-     *
-     * @param c
-     *            The collection whose elements are to be joined.
-     * @param separator
-     *            The separator string.
-     * @return A string whose content is the string representation of the
-     *         objects contained in the provided collection concatenated
-     *         together using the provided separator.
-     * @throws NullPointerException
-     *             If {@code c} or {@code separator} were {@code null}.
-     */
-    public static String joinCollection(Collection<?> c, String separator) {
-        Reject.ifNull(c, separator);
-
-        switch (c.size()) {
-        case 0:
-            return "";
-        case 1:
-            return String.valueOf(c.iterator().next());
-        default:
-            StringBuilder builder = new StringBuilder();
-            Iterator<?> i = c.iterator();
-            builder.append(i.next());
-            while (i.hasNext()) {
-                builder.append(separator);
-                builder.append(i.next());
-            }
-            return builder.toString();
-        }
-    }
-
-    /**
-     * Creates a new thread factory which will create threads using the
-     * specified thread group, naming template, and daemon status.
-     *
-     * @param group
-     *            The thread group, which may be {@code null}.
-     * @param nameTemplate
-     *            The thread name format string which may contain a "%d" format
-     *            option which will be substituted with the thread count.
-     * @param isDaemon
-     *            Indicates whether or not threads should be daemon threads.
-     * @return The new thread factory.
-     */
-    public static ThreadFactory newThreadFactory(final ThreadGroup group,
-            final String nameTemplate, final boolean isDaemon) {
-        return new ThreadFactory() {
-            private final AtomicInteger count = new AtomicInteger();
-
-            public Thread newThread(Runnable r) {
-                final String name = String.format(nameTemplate, count.getAndIncrement());
-                final Thread t = new Thread(group, r, name);
-                t.setDaemon(isDaemon);
-                return t;
-            }
-        };
     }
 
     /**

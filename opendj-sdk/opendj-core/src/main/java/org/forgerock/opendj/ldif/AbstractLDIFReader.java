@@ -433,7 +433,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                     state = stateGotLDIFLine;
                 }
                 break;
-            case appendingLDIFLine:
+            default: // appendingLDIFLine:
                 if (line == null) {
                     // We have reached the end of the LDIF source.
                     ldifLines.add(lastLineBuilder.toString());

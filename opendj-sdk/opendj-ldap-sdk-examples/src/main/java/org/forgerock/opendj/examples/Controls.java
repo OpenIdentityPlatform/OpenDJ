@@ -788,7 +788,7 @@ public final class Controls {
                 writer.flush();
             } catch (final IOException e) {
                 System.err.println(e.getMessage());
-                System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
+                return false;
             }
             return true;
         }

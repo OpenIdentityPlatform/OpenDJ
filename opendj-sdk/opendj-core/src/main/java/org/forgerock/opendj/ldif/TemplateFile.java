@@ -80,9 +80,9 @@ import org.forgerock.opendj.ldif.TemplateTag.TagResult;
 import org.forgerock.opendj.ldif.TemplateTag.UnderscoreDNTag;
 import org.forgerock.opendj.ldif.TemplateTag.UnderscoreParentDNTag;
 import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 
 import com.forgerock.opendj.util.Pair;
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * A template file allow to generate entries from a collection of constant
@@ -250,7 +250,7 @@ final class TemplateFile {
             final List<String> names = readLines(first);
             firstNames = names.toArray(new String[names.size()]);
         } finally {
-            StaticUtils.closeSilently(first);
+            Utils.closeSilently(first);
         }
 
         BufferedReader last = null;
@@ -262,7 +262,7 @@ final class TemplateFile {
             final List<String> names = readLines(last);
             lastNames = names.toArray(new String[names.size()]);
         } finally {
-            StaticUtils.closeSilently(first);
+            Utils.closeSilently(first);
         }
     }
 
@@ -371,7 +371,7 @@ final class TemplateFile {
             final String[] lines = fileLines.toArray(new String[fileLines.size()]);
             parse(lines, warnings);
         } finally {
-            StaticUtils.closeSilently(templateReader);
+            Utils.closeSilently(templateReader);
         }
     }
 
@@ -397,7 +397,7 @@ final class TemplateFile {
             final String[] lines = fileLines.toArray(new String[fileLines.size()]);
             parse(lines, warnings);
         } finally {
-            StaticUtils.closeSilently(reader);
+            Utils.closeSilently(reader);
         }
     }
 
@@ -1013,7 +1013,7 @@ final class TemplateFile {
                 }
                 break;
 
-            case PARSING_ESCAPED_CHAR:
+            default: // PARSING_ESCAPED_CHAR:
                 buffer.append(c);
                 phase = previousPhase;
                 break;
@@ -1724,12 +1724,11 @@ final class TemplateFile {
         /**
          * Returns an entry for this template.
          *
-         * @return the entry, or null if it can't be generated
+         * @return the entry
          */
         private TemplateEntry buildTemplateEntry() {
             templateFile.nextFirstAndLastNames();
             final TemplateEntry templateEntry = new TemplateEntry(this, parentDN);
-
             for (final TemplateLine line : templateLines) {
                 line.generateLine(templateEntry);
             }
@@ -1752,11 +1751,8 @@ final class TemplateFile {
                 // get the template entry
                 if (!currentEntryIsInitialized) {
                     nextEntry = buildTemplateEntry();
-                    if (nextEntry != null) {
-                        currentEntryIsInitialized = true;
-                        return true;
-                    }
-                    return false;
+                    currentEntryIsInitialized = true;
+                    return true;
                 }
                 // get the next entry from current subtemplate
                 if (nextEntry == null) {

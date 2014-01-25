@@ -22,9 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
+
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -113,12 +116,15 @@ public final class ManagedObjectDefinitionResource {
                 throw new MissingResourceException("Can't find resource " + path, baseName, "");
             }
 
+            final InputStream is = new BufferedInputStream(stream);
             p = new Properties();
             try {
-                p.load(new BufferedInputStream(stream));
+                p.load(is);
             } catch (IOException e) {
-                throw new MissingResourceException("Can't load resource " + path + " due to IO exception: "
-                    + e.getMessage(), baseName, "");
+                throw new MissingResourceException("Can't load resource " + path
+                        + " due to IO exception: " + e.getMessage(), baseName, "");
+            } finally {
+                closeSilently(is);
             }
 
             // Cache the resource.
