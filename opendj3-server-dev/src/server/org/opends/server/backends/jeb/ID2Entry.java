@@ -34,7 +34,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 
 import static org.opends.messages.JebMessages.*;
 
-import com.forgerock.opendj.util.StaticUtils;
+import static org.forgerock.util.Utils.closeSilently;
 import com.sleepycat.je.*;
 
 import org.opends.server.types.*;
@@ -177,7 +177,7 @@ public class ID2Entry extends DatabaseContainer
           compressedEntryBuffer.copyTo(decompressor);
         }
         finally {
-          StaticUtils.closeSilently(decompressor);
+          closeSilently(decompressor);
         }
 
         // Since we are used the cached buffers (ByteStringBuilders),
@@ -232,7 +232,7 @@ public class ID2Entry extends DatabaseContainer
             entryBuffer.copyTo(compressor);
           }
           finally {
-            StaticUtils.closeSilently(compressor);
+            closeSilently(compressor);
           }
 
           // Compression needed and successful.
