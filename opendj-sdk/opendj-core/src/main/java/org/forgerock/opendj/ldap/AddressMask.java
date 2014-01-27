@@ -433,13 +433,13 @@ public final class AddressMask {
         // Try to avoid calling InetAddress.getByName() because it may do a reverse lookup.
         final String ipv6Literal;
         if (address.charAt(0) == '[' && address.charAt(address.length() - 1) == ']') {
-            // isIPv4LiteralAddress must be invoked without surrounding brackets.
+            // isIPv6LiteralAddress must be invoked without surrounding brackets.
             ipv6Literal = address.substring(1, address.length() - 1);
         } else {
             ipv6Literal = address;
         }
 
-        Boolean isValid;
+        boolean isValid;
         try {
             // Use reflection to avoid dependency on Sun JRE.
             final Class<?> ipUtils = Class.forName("sun.net.util.IPAddressUtil");
