@@ -48,6 +48,7 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.EmbeddedUtils;
+import org.opends.server.util.PasswordReader;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -151,7 +152,7 @@ public class LDAPPasswordModify
     BooleanArgument   useSSL;
     BooleanArgument   useStartTLS;
     FileBasedArgument bindPWFile;
-    StringArgument    certNickname           = null;
+    StringArgument    certNickname;
     FileBasedArgument currentPWFile;
     FileBasedArgument newPWFile;
     FileBasedArgument sslKeyStorePINFile;
@@ -644,6 +645,30 @@ public class LDAPPasswordModify
     {
       dn = bindDN.getValue();
       pw = bindPW.getValue();
+      if(pw != null && pw.equals("-"))
+      {
+        // read the password from the stdin.
+        try
+        {
+          out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn));
+          char[] pwChars = PasswordReader.readPassword();
+          //As per rfc 4513(section-5.1.2) a client should avoid sending
+          //an empty password to the server.
+          while(pwChars.length==0)
+          {
+            err.println(wrapText(
+                INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
+                MAX_LINE_WIDTH));
+            out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn));
+            pwChars = PasswordReader.readPassword();
+          }
+          pw = new String(pwChars);
+        } catch(Exception ex)
+        {
+          err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+          return CLIENT_SIDE_PARAM_ERROR;
+        }
+      }
     }
     else if (bindPWFile.isPresent())
     {
