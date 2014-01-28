@@ -41,7 +41,7 @@ import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PreOperationAddOperation;
@@ -50,7 +50,6 @@ import org.opends.server.types.operation.PreOperationModifyDNOperation;
 
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.TimeThread.*;
 
 
@@ -64,10 +63,7 @@ public final class LastModPlugin
        extends DirectoryServerPlugin<LastModPluginCfg>
        implements ConfigurationChangeListener<LastModPluginCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The attribute type for the "createTimestamp" attribute.
   private final AttributeType createTimestampType;
@@ -232,10 +228,7 @@ public final class LastModPlugin
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       // This should never happen.
       return PluginResult.PreOperation.stopProcessing(
@@ -255,10 +248,7 @@ public final class LastModPlugin
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       // This should never happen.
       return PluginResult.PreOperation.stopProcessing(

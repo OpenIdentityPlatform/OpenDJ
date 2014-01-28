@@ -31,8 +31,6 @@ package org.opends.server.backends;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -48,7 +46,7 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFWriter;
@@ -66,10 +64,7 @@ import org.forgerock.util.Reject;
 public class MonitorBackend extends Backend implements
     ConfigurationChangeListener<MonitorBackendCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The set of user-defined attributes that will be included in the base
   // monitor entry.
@@ -165,10 +160,7 @@ public class MonitorBackend extends Backend implements
     }
     catch (final Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       messages.add(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
           String.valueOf(configEntryDN), stackTraceToSingleLineString(e)));
@@ -257,10 +249,7 @@ public class MonitorBackend extends Backend implements
     }
     catch (final Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       final LocalizableMessage message = ERR_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN
           .get(getExceptionMessage(e));
@@ -331,10 +320,7 @@ public class MonitorBackend extends Backend implements
     }
     catch (final Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       final LocalizableMessage message = ERR_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER
           .get(stackTraceToSingleLineString(e));
@@ -349,10 +335,7 @@ public class MonitorBackend extends Backend implements
     }
     catch (final Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       try
       {
@@ -360,10 +343,7 @@ public class MonitorBackend extends Backend implements
       }
       catch (final Exception e2)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
+        logger.traceException(e2);
       }
 
       final LocalizableMessage message = ERR_MONITOR_UNABLE_TO_EXPORT_BASE
@@ -383,10 +363,7 @@ public class MonitorBackend extends Backend implements
       }
       catch (final Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         try
         {
@@ -394,10 +371,7 @@ public class MonitorBackend extends Backend implements
         }
         catch (final Exception e2)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-          }
+          logger.traceException(e2);
         }
 
         final LocalizableMessage message = ERR_MONITOR_UNABLE_TO_EXPORT_PROVIDER_ENTRY
@@ -415,10 +389,7 @@ public class MonitorBackend extends Backend implements
     }
     catch (final Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -437,10 +408,7 @@ public class MonitorBackend extends Backend implements
     }
     catch (final Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -585,10 +553,7 @@ public class MonitorBackend extends Backend implements
     }
     catch (final Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       final LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
           baseMonitorDN.toString(), getExceptionMessage(e));

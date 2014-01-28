@@ -38,14 +38,13 @@ import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationCompareOperation;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreOperationCompareOperation;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -58,10 +57,7 @@ public class LocalBackendCompareOperation
        implements PreOperationCompareOperation, PostOperationCompareOperation,
                   PostResponseCompareOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -217,10 +213,7 @@ public class LocalBackendCompareOperation
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         setResultCodeAndMessageNoInfoDisclosure(entry, entryDN,
             de.getResultCode(), de.getMessageObject());
@@ -327,10 +320,7 @@ public class LocalBackendCompareOperation
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       setResponseData(de);
     }
@@ -376,10 +366,7 @@ public class LocalBackendCompareOperation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
     return null;
   }
@@ -413,10 +400,7 @@ public class LocalBackendCompareOperation
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             throw newDirectoryException(entry, de.getResultCode(),
                            ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(
@@ -450,10 +434,7 @@ public class LocalBackendCompareOperation
               throw de;
             }
 
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             throw newDirectoryException(entry, de.getResultCode(),
                            ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(

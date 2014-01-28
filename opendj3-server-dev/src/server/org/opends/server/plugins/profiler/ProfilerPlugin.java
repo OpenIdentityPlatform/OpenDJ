@@ -48,9 +48,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.PluginMessages.*;
 
@@ -71,10 +69,7 @@ public final class ProfilerPlugin
        extends DirectoryServerPlugin<ProfilerPluginCfg>
        implements ConfigurationChangeListener<ProfilerPluginCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The value to use for the profiler action when no action is necessary.
@@ -203,10 +198,7 @@ public final class ProfilerPlugin
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA.
               get(String.valueOf(configEntryDN), filename,
@@ -376,10 +368,7 @@ public final class ProfilerPlugin
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               messages.add(ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA.get(
                       String.valueOf(configEntryDN),

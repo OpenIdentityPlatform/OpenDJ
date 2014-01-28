@@ -33,10 +33,10 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.SetupUtils;
 
@@ -395,8 +395,7 @@ public final class Installation
 
 
 
-  static private final Logger LOG = Logger.getLogger(Installation.class
-      .getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private File rootDirectory;
 
@@ -491,12 +490,12 @@ public final class Installation
       try
       {
         BuildInformation bi = getBuildInformation();
-        LOG.log(Level.INFO, "build info for " + rootDirectory.getName() + ": "
-            + bi);
+        logger.debug(LocalizableMessage.raw("build info for " + rootDirectory.getName() + ": "
+            + bi));
       }
       catch (ApplicationException e)
       {
-        LOG.log(Level.INFO, "error determining build information", e);
+        logger.debug(LocalizableMessage.raw("error determining build information", e));
       }
     }
   }
@@ -524,12 +523,12 @@ public final class Installation
       try
       {
         BuildInformation bi = getBuildInformation();
-        LOG.log(Level.INFO, "build info for " + instanceDirectory.getName()
-            + ": " + bi);
+        logger.debug(LocalizableMessage.raw("build info for " + instanceDirectory.getName()
+            + ": " + bi));
       }
       catch (ApplicationException e)
       {
-        LOG.log(Level.INFO, "error determining build information", e);
+        logger.debug(LocalizableMessage.raw("error determining build information", e));
       }
     }
   }
@@ -1142,7 +1141,7 @@ public final class Installation
       }
       catch (InterruptedException e)
       {
-        LOG.log(Level.INFO, "interrupted trying to get build information", e);
+        logger.debug(LocalizableMessage.raw("interrupted trying to get build information", e));
       }
       catch (ExecutionException e)
       {
@@ -1215,8 +1214,8 @@ public final class Installation
       }
       catch (Exception e)
       {
-        LOG.log(Level.SEVERE, "error getting build information for "
-            + "current instance", e);
+        logger.error(LocalizableMessage.raw("error getting build information for "
+            + "current instance", e));
       }
     }
     return instanceInformation;

@@ -31,7 +31,6 @@ package org.opends.server.extensions;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.CONFIG_DIR_NAME;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -67,10 +66,9 @@ import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
@@ -84,9 +82,7 @@ public class GSSAPISASLMechanismHandler extends
     SASLMechanismHandler<GSSAPISASLMechanismHandlerCfg> implements
     ConfigurationChangeListener<GSSAPISASLMechanismHandlerCfg>, CallbackHandler
 {
-
-  // The tracer object for the debug logger.
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The DN of the configuration entry for this SASL mechanism handler.
   private DN configEntryDN;
@@ -140,20 +136,14 @@ public class GSSAPISASLMechanismHandler extends
     }
     catch (UnknownHostException unhe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, unhe);
-      }
+      logger.traceException(unhe);
       LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
           .valueOf(configEntryDN), getExceptionMessage(unhe));
       throw new InitializationException(message, unhe);
     }
     catch (IOException ioe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
-      }
+      logger.traceException(ioe);
       LocalizableMessage message = ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG
           .get(getExceptionMessage(ioe));
       throw new InitializationException(message, ioe);
@@ -280,10 +270,7 @@ public class GSSAPISASLMechanismHandler extends
     }
     catch (LoginException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -396,8 +383,8 @@ private void clearProperties() {
         saslContext = SASLContext.createSASLContext(saslProps, serverFQDN,
                                   SASL_MECHANISM_GSSAPI, identityMapper);
       } catch (SaslException ex) {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        if (logger.isTraceEnabled())
+          logger.traceException(ex);
         LocalizableMessage msg;
         GSSException gex = (GSSException) ex.getCause();
         if(gex != null) {
@@ -419,8 +406,8 @@ private void clearProperties() {
     }
     catch (LoginException ex)
     {
-      if (debugEnabled())
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      if (logger.isTraceEnabled())
+        logger.traceException(ex);
       LocalizableMessage message = ERR_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT
             .get(getExceptionMessage(ex));
       // Log a configuration error.
@@ -504,8 +491,8 @@ private void clearProperties() {
     }
     catch (UnknownHostException ex)
     {
-      if (debugEnabled())
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      if (logger.isTraceEnabled())
+        logger.traceException(ex);
       LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
           .valueOf(configEntryDN), getExceptionMessage(ex));
       unacceptableReasons.add(message);
@@ -522,8 +509,8 @@ private void clearProperties() {
     if(!keyTabFile.exists()) {
       LocalizableMessage message = ERR_SASL_GSSAPI_KEYTAB_INVALID.get(keyTabFilePath);
       unacceptableReasons.add(message);
-      if (debugEnabled())
-        TRACER.debugError(message.toString());
+      if (logger.isTraceEnabled())
+        logger.trace(message.toString());
       isAcceptable = false;
     }
 
@@ -534,8 +521,8 @@ private void clearProperties() {
     {
       LocalizableMessage message = ERR_SASLGSSAPI_KDC_REALM_NOT_DEFINED.get();
       unacceptableReasons.add(message);
-      if (debugEnabled())
-        TRACER.debugError(message.toString());
+      if (logger.isTraceEnabled())
+        logger.trace(message.toString());
       isAcceptable = false;
     }
 
@@ -560,23 +547,23 @@ private void clearProperties() {
       this.configuration = newConfiguration;
     }
     catch (InitializationException ex) {
-      if (debugEnabled())
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      if (logger.isTraceEnabled())
+        logger.traceException(ex);
       LocalizableMessage message = ex.getMessageObject();
       messages.add(message);
       clearProperties();
       resultCode = ResultCode.OTHER;
     } catch (UnknownHostException ex) {
-      if (debugEnabled())
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      if (logger.isTraceEnabled())
+        logger.traceException(ex);
         LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
           .valueOf(configEntryDN), getExceptionMessage(ex));
       messages.add(message);
       clearProperties();
       resultCode = ResultCode.OTHER;
     } catch (IOException ex) {
-      if (debugEnabled())
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      if (logger.isTraceEnabled())
+        logger.traceException(ex);
       LocalizableMessage message = ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG
         .get(getExceptionMessage(ex));
       messages.add(message);

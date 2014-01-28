@@ -31,7 +31,6 @@ package org.opends.server.backends.task;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -47,7 +46,7 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
@@ -65,10 +64,7 @@ public class TaskScheduler
        extends DirectoryThread
        implements AlertGenerator
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The fully-qualified name of this class.
@@ -576,10 +572,7 @@ public class TaskScheduler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
 
       String taskID = completedTask.getTaskID();
@@ -653,10 +646,7 @@ public class TaskScheduler
             // log error and continue.
             if (de.getResultCode() != ResultCode.ENTRY_ALREADY_EXISTS)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
 
               LocalizableMessage message =
                   ERR_TASKSCHED_ERROR_SCHEDULING_RECURRING_ITERATION.
@@ -725,10 +715,7 @@ public class TaskScheduler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     try
@@ -737,10 +724,7 @@ public class TaskScheduler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     pendingTasks.clear();
@@ -798,10 +782,7 @@ public class TaskScheduler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -817,10 +798,7 @@ public class TaskScheduler
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -1079,10 +1057,7 @@ public class TaskScheduler
         }
         catch (LDIFException le)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, le);
-          }
+          logger.traceException(le);
 
           if (le.canContinueReading())
           {
@@ -1100,10 +1075,7 @@ public class TaskScheduler
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
             }
 
             LocalizableMessage message = ERR_TASKSCHED_CANNOT_PARSE_ENTRY_FATAL.get(
@@ -1168,10 +1140,7 @@ public class TaskScheduler
             }
             catch (DirectoryException de)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
 
               LocalizableMessage message = ERR_TASKSCHED_CANNOT_SCHEDULE_TASK_FROM_ENTRY.
                   get(String.valueOf(entryDN), de.getMessageObject());
@@ -1187,10 +1156,7 @@ public class TaskScheduler
             }
             catch (DirectoryException de)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
 
               LocalizableMessage message =
                   ERR_TASKSCHED_CANNOT_SCHEDULE_RECURRING_TASK_FROM_ENTRY.
@@ -1211,10 +1177,7 @@ public class TaskScheduler
     }
     catch (IOException ioe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
-      }
+      logger.traceException(ioe);
 
       LocalizableMessage message = ERR_TASKSCHED_ERROR_READING_TASK_BACKING_FILE.get(
           String.valueOf(backingFilePath), stackTraceToSingleLineString(ioe));
@@ -1267,10 +1230,7 @@ public class TaskScheduler
     }
     catch (IOException ioe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
-      }
+      logger.traceException(ioe);
 
       LocalizableMessage message = ERR_TASKSCHED_CANNOT_CREATE_BACKING_FILE.get(
           backingFile, stackTraceToSingleLineString(ioe));
@@ -1278,10 +1238,7 @@ public class TaskScheduler
     }
     catch (LDIFException le)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, le);
-      }
+      logger.traceException(le);
 
 
       LocalizableMessage message = ERR_TASKSCHED_CANNOT_CREATE_BACKING_FILE.get(
@@ -1349,10 +1306,7 @@ public class TaskScheduler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
 
 
@@ -1367,10 +1321,7 @@ public class TaskScheduler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = WARN_TASKSCHED_CANNOT_RENAME_CURRENT_BACKING_FILE.
             get(String.valueOf(backingFilePath),
@@ -1392,10 +1343,7 @@ public class TaskScheduler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_TASKSCHED_CANNOT_RENAME_NEW_BACKING_FILE.
             get(String.valueOf(tmpFilePath), String.valueOf(backingFilePath),
@@ -1409,10 +1357,7 @@ public class TaskScheduler
     }
     catch (IOException ioe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
-      }
+      logger.traceException(ioe);
 
       LocalizableMessage message = ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(
           tmpFilePath, stackTraceToSingleLineString(ioe));
@@ -1422,10 +1367,7 @@ public class TaskScheduler
     }
     catch (LDIFException le)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, le);
-      }
+      logger.traceException(le);
 
 
       LocalizableMessage message = ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(
@@ -1436,10 +1378,7 @@ public class TaskScheduler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(
           tmpFilePath, stackTraceToSingleLineString(e));
@@ -2006,10 +1945,7 @@ public class TaskScheduler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_TASKSCHED_CANNOT_LOAD_CLASS.
           get(String.valueOf(taskClassName), ATTR_TASK_CLASS,
@@ -2026,10 +1962,7 @@ public class TaskScheduler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_TASKSCHED_CANNOT_INSTANTIATE_CLASS_AS_TASK.get(
           String.valueOf(taskClassName), Task.class.getName());
@@ -2044,10 +1977,7 @@ public class TaskScheduler
     }
     catch (InitializationException ie)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
+      logger.traceException(ie);
 
       LocalizableMessage message = ERR_TASKSCHED_CANNOT_INITIALIZE_INTERNAL.get(
           String.valueOf(taskClassName), ie.getMessage());

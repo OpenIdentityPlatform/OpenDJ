@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.admin.ads.util;
@@ -34,8 +34,9 @@ import java.security.GeneralSecurityException;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.CommunicationException;
 import javax.naming.Context;
@@ -68,8 +69,7 @@ public class ConnectionUtils
   private static final String STARTTLS_PROPERTY =
     "org.opends.connectionutils.isstarttls";
 
-  static private final Logger LOG =
-    Logger.getLogger(ConnectionUtils.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Private constructor: this class cannot be instantiated.
@@ -425,8 +425,8 @@ public class ConnectionUtils
     catch (NamingException ne)
     {
       // This is really strange.  Seems like a bug somewhere.
-      LOG.log(Level.WARNING, "Naming exception getting environment of "+ctx,
-          ne);
+      logger.warn(LocalizableMessage.raw("Naming exception getting environment of "+ctx,
+          ne));
     }
     return s;
   }
@@ -447,7 +447,7 @@ public class ConnectionUtils
     catch (Throwable t)
     {
       // This is really strange.  Seems like a bug somewhere.
-      LOG.log(Level.WARNING, "Error getting host: "+t, t);
+      logger.warn(LocalizableMessage.raw("Error getting host: "+t, t));
     }
     return s;
   }
@@ -468,7 +468,7 @@ public class ConnectionUtils
     catch (Throwable t)
     {
       // This is really strange.  Seems like a bug somewhere.
-      LOG.log(Level.WARNING, "Error getting port: "+t, t);
+      logger.warn(LocalizableMessage.raw("Error getting port: "+t, t));
     }
     return port;
   }
@@ -500,8 +500,8 @@ public class ConnectionUtils
     catch (NamingException ne)
     {
       // This is really strange.  Seems like a bug somewhere.
-      LOG.log(Level.WARNING, "Naming exception getting environment of "+ctx,
-          ne);
+      logger.warn(LocalizableMessage.raw("Naming exception getting environment of "+ctx,
+          ne));
     }
     return bindDN;
   }
@@ -521,8 +521,8 @@ public class ConnectionUtils
     catch (NamingException ne)
     {
       // This is really strange.  Seems like a bug somewhere.
-      LOG.log(Level.WARNING, "Naming exception getting environment of "+ctx,
-          ne);
+      logger.warn(LocalizableMessage.raw("Naming exception getting environment of "+ctx,
+          ne));
     }
     return bindPwd;
   }
@@ -543,7 +543,7 @@ public class ConnectionUtils
     catch (Throwable t)
     {
       // This is really strange.  Seems like a bug somewhere.
-      LOG.log(Level.WARNING, "Error getting if is SSL "+t, t);
+      logger.warn(LocalizableMessage.raw("Error getting if is SSL "+t, t));
     }
     return isSSL;
   }
@@ -565,8 +565,8 @@ public class ConnectionUtils
     catch (NamingException ne)
     {
       // This is really strange.  Seems like a bug somewhere.
-      LOG.log(Level.WARNING, "Naming exception getting environment of "+ctx,
-          ne);
+      logger.warn(LocalizableMessage.raw("Naming exception getting environment of "+ctx,
+          ne));
     }
     return isStartTLS;
   }
@@ -648,8 +648,8 @@ public class ConnectionUtils
         }
         catch(Exception ex)
         {
-          LOG.log(Level.WARNING,
-              "Unexpected error closing enumeration on cn=Config entry", ex);
+          logger.warn(LocalizableMessage.raw(
+              "Unexpected error closing enumeration on cn=Config entry", ex));
         }
       }
       connectedAsAdministrativeUser = true;

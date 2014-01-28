@@ -43,7 +43,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.schema.BooleanSyntax;
@@ -52,7 +52,6 @@ import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -69,10 +68,7 @@ public class BackupBackend
        extends Backend
        implements ConfigurationChangeListener<BackupBackendCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -150,10 +146,7 @@ public class BackupBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_BACKUP_CANNOT_DECODE_BACKUP_ROOT_DN.get(getExceptionMessage(e));
@@ -219,10 +212,7 @@ public class BackupBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
           backupBaseDN.toString(), getExceptionMessage(e));
@@ -246,10 +236,7 @@ public class BackupBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -536,10 +523,7 @@ public class BackupBackend
     }
     catch (ConfigException ce)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
+      logger.traceException(ce);
 
       LocalizableMessage message = ERR_BACKUP_INVALID_BACKUP_DIRECTORY.get(
           String.valueOf(entryDN), ce.getMessage());
@@ -547,10 +531,7 @@ public class BackupBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY.get(getExceptionMessage(e));
@@ -638,17 +619,13 @@ public class BackupBackend
       backupDirectory = BackupDirectory.readBackupDirectoryDescriptor(v
           .getValue().toString());
     } catch (ConfigException ce) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
+      logger.traceException(ce);
 
       LocalizableMessage message = ERR_BACKUP_INVALID_BACKUP_DIRECTORY.get(String
           .valueOf(entryDN), ce.getMessageObject());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY
           .get(getExceptionMessage(e));
@@ -873,10 +850,7 @@ public class BackupBackend
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             continue;
           }
@@ -915,10 +889,7 @@ public class BackupBackend
                 }
                 catch (Exception e)
                 {
-                  if (debugEnabled())
-                  {
-                    TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                  }
+                  logger.traceException(e);
 
                   continue;
                 }
@@ -972,10 +943,7 @@ public class BackupBackend
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               continue;
             }

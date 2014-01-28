@@ -40,12 +40,10 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.admin.std.server.EntryCacheCfg;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.monitors.EntryCacheMonitorProvider;
 import org.opends.server.types.Attribute;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 
 
@@ -83,10 +81,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public abstract class EntryCache
        <T extends EntryCacheCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The set of filters that define the entries that should be
   // excluded from the cache.
@@ -538,10 +533,7 @@ public abstract class EntryCache
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // This shouldn't happen, but if it does then we can't be
           // sure whether the entry should be excluded, so we will
@@ -568,10 +560,7 @@ public abstract class EntryCache
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // This shouldn't happen, but if it does, then
           // just ignore it.

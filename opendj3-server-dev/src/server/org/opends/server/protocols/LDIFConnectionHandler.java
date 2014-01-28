@@ -44,10 +44,9 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
 import org.opends.server.types.ExistingFileBehavior;
@@ -68,7 +67,6 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -88,7 +86,7 @@ public final class LDIFConnectionHandler
   /**
    * The debug log tracer for this class.
    */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -291,9 +289,9 @@ public final class LDIFConnectionHandler
           }
           else
           {
-            if (!alreadyWarn && debugEnabled())
+            if (!alreadyWarn && logger.isTraceEnabled())
             {
-              TRACER.debugInfo("LDIF connection handler directory " +
+              logger.trace("LDIF connection handler directory " +
                                dir.getAbsolutePath() +
                                " doesn't exist or isn't a directory");
               alreadyWarn = true;
@@ -313,20 +311,14 @@ public final class LDIFConnectionHandler
               }
               catch (InterruptedException ie)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-                }
+                logger.traceException(ie);
               }
             }
           }
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -346,9 +338,9 @@ public final class LDIFConnectionHandler
    */
   private void processLDIFFile(File ldifFile)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("Beginning processing on LDIF file " +
+      logger.trace("Beginning processing on LDIF file " +
                        ldifFile.getAbsolutePath());
     }
 
@@ -379,9 +371,9 @@ public final class LDIFConnectionHandler
 
     LDIFExportConfig exportConfig =
          new LDIFExportConfig(outputPath, ExistingFileBehavior.APPEND);
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("Creating applied file " + outputPath);
+      logger.trace("Creating applied file " + outputPath);
     }
 
 
@@ -399,18 +391,15 @@ public final class LDIFConnectionHandler
         try
         {
           changeRecord = reader.readChangeRecord(false);
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo("Read change record entry " +
+            logger.trace("Read change record entry " +
                              String.valueOf(changeRecord));
           }
         }
         catch (LDIFException le)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, le);
-          }
+          logger.traceException(le);
 
           errorEncountered = true;
           if (le.canContinueReading())
@@ -468,9 +457,9 @@ public final class LDIFConnectionHandler
         }
         else
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo("Result Code:  " +
+            logger.trace("Result Code:  " +
                              operation.getResultCode().toString());
           }
 
@@ -509,10 +498,7 @@ public final class LDIFConnectionHandler
     }
     catch (IOException ioe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
-      }
+      logger.traceException(ioe);
 
       fullyProcessed = false;
       LocalizableMessage m = ERR_LDIF_CONNHANDLER_IO_ERROR.get(inputPath,
@@ -560,19 +546,16 @@ public final class LDIFConnectionHandler
 
       try
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo("Renaming source file to " + renamedPath);
+          logger.trace("Renaming source file to " + renamedPath);
         }
 
         ldifFile.renameTo(new File(renamedPath));
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage m = ERR_LDIF_CONNHANDLER_CANNOT_RENAME.get(inputPath,
                          renamedPath, getExceptionMessage(e));
@@ -585,19 +568,16 @@ public final class LDIFConnectionHandler
     {
       try
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo("Deleting source file");
+          logger.trace("Deleting source file");
         }
 
         ldifFile.delete();
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage m = ERR_LDIF_CONNHANDLER_CANNOT_DELETE.get(inputPath,
                          getExceptionMessage(e));

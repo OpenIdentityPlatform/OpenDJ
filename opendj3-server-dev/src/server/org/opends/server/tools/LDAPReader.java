@@ -30,12 +30,9 @@ package org.opends.server.tools;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.LDAPException;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.RecordingInputStream;
 import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.ServerConstants;
 
 import java.io.IOException;
@@ -47,10 +44,7 @@ import java.net.Socket;
  */
 public class LDAPReader
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private Socket socket;
   private ASN1Reader asn1Reader;
@@ -91,7 +85,7 @@ public class LDAPReader
   public LDAPMessage readMessage()
        throws IOException, ASN1Exception, LDAPException
   {
-    debugInputStream.setRecordingEnabled(debugEnabled());
+    debugInputStream.setRecordingEnabled(logger.isTraceEnabled());
 
     if(!asn1Reader.hasNextElement())
     {
@@ -114,8 +108,8 @@ public class LDAPReader
       builder.append(ServerConstants.EOL);
       builder.append(bytesRead.toHexPlusAsciiString(4));
 
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, builder.toString());
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, message.toString());
+      logger.trace(builder.toString());
+      logger.trace(message.toString());
     }
 
     return message;
@@ -132,10 +126,7 @@ public class LDAPReader
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     if (socket != null)
@@ -146,10 +137,7 @@ public class LDAPReader
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }

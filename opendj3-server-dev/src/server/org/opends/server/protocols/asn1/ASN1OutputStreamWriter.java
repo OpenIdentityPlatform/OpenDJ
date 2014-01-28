@@ -35,18 +35,15 @@ import java.util.ArrayList;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.StaticUtils;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * An ASN1Writer implementation that outputs to an outputstream.
  */
 final class ASN1OutputStreamWriter implements ASN1Writer
 {
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final OutputStream rootStream;
   private final ArrayList<ByteSequenceOutputStream> streamStack;
@@ -94,9 +91,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
     {
       writeLength(1);
       out.write((byte) (intValue & 0xFF));
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
                 type, 1, intValue));
       }
@@ -107,9 +104,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
       writeLength(2);
       out.write((byte) ((intValue >> 8) & 0xFF));
       out.write((byte) (intValue & 0xFF));
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
                 type, 2, intValue));
       }
@@ -121,9 +118,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
       out.write((byte) ((intValue >> 16) & 0xFF));
       out.write((byte) ((intValue >>  8) & 0xFF));
       out.write((byte) (intValue & 0xFF));
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
                 type, 3, intValue));
       }
@@ -135,9 +132,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
       out.write((byte) ((intValue >> 16) & 0xFF));
       out.write((byte) ((intValue >>  8) & 0xFF));
       out.write((byte) (intValue & 0xFF));
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
                 type, 4, intValue));
       }
@@ -165,9 +162,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
     {
       writeLength(1);
       out.write((byte) (longValue & 0xFF));
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
                 type, 1, longValue));
       }
@@ -179,9 +176,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
       writeLength(2);
       out.write((byte) ((longValue >> 8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
                 type, 2, longValue));
       }
@@ -194,9 +191,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
       out.write((byte) ((longValue >> 16) & 0xFF));
       out.write((byte) ((longValue >>  8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
                 type, 3, longValue));
       }
@@ -210,9 +207,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
       out.write((byte) ((longValue >> 16) & 0xFF));
       out.write((byte) ((longValue >>  8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
                 type, 4, longValue));
       }
@@ -227,9 +224,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
       out.write((byte) ((longValue >> 16) & 0xFF));
       out.write((byte) ((longValue >>  8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
                 type, 5, longValue));
       }
@@ -245,9 +242,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
       out.write((byte) ((longValue >> 16) & 0xFF));
       out.write((byte) ((longValue >>  8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
                 type, 6, longValue));
       }
@@ -264,9 +261,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
       out.write((byte) ((longValue >> 16) & 0xFF));
       out.write((byte) ((longValue >>  8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
                 type, 7, longValue));
       }
@@ -282,9 +279,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
       out.write((byte) ((longValue >> 16) & 0xFF));
       out.write((byte) ((longValue >>  8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
                 type, 8, longValue));
       }
@@ -317,9 +314,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
     writeLength(1);
     out.write(booleanValue ? BOOLEAN_VALUE_TRUE : BOOLEAN_VALUE_FALSE);
 
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+      logger.trace(
           String.format("WRITE ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)",
               type, 1, String.valueOf(booleanValue)));
     }
@@ -334,9 +331,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
     out.write(type);
     writeLength(0);
 
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+      logger.trace(
           String.format("WRITE ASN.1 NULL(type=0x%x, length=%d)",
               type, 0));
     }
@@ -362,9 +359,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
     writeLength(length);
     out.write(value, offset, length);
 
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+      logger.trace(
           String.format("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)",
               type, length));
     }
@@ -397,9 +394,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
     writeLength(bytes.length);
     out.write(bytes);
 
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+      logger.trace(
           String.format("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d, " +
               "value=%s)", type, bytes.length, value));
     }
@@ -423,9 +420,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
     writeLength(value.length());
     value.copyTo(out);
 
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+      logger.trace(
           String.format("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)",
               type, value.length()));
     }
@@ -491,9 +488,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
       out = childStream;
     }
 /*
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+      logger.trace(
           String.format("WRITE ASN.1 START SEQUENCE(type=0x%x)",
               type));
     }
@@ -534,9 +531,9 @@ final class ASN1OutputStreamWriter implements ASN1Writer
     writeLength(childStream.length());
     childStream.writeTo(parentStream);
 
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+      logger.trace(
           String.format("WRITE ASN.1 END SEQUENCE(length=%d)",
               childStream.length()));
     }

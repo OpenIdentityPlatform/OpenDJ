@@ -30,8 +30,6 @@ package org.opends.server.core;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.File;
@@ -44,12 +42,11 @@ import java.util.Map.Entry;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.CompressedSchema;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 
 
@@ -61,10 +58,7 @@ import org.opends.server.types.DirectoryException;
  */
 public final class DefaultCompressedSchema extends CompressedSchema
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Synchronizes calls to save.
   private final Object saveLock = new Object();
@@ -178,10 +172,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
     }
     catch (final Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // FIXME -- Should we do something else here?
       throw new RuntimeException(e);
@@ -197,10 +188,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
       }
       catch (final Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -300,10 +288,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
       }
       catch (final Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         final LocalizableMessage message = ERR_COMPRESSEDSCHEMA_CANNOT_WRITE_UPDATED_DATA
             .get(stackTraceToSingleLineString(e));
@@ -321,10 +306,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
         }
         catch (final Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }

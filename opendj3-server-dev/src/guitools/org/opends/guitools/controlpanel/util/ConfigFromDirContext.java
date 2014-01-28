@@ -43,8 +43,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -84,8 +85,7 @@ public class ConfigFromDirContext extends ConfigReader
 {
   private static final String DATABASE_ENVIRONMENT_SUFFIX =
     " Database Environment";
-  private static final Logger LOG =
-    Logger.getLogger(ConfigFromDirContext.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private CustomSearchResult rootMonitor;
   private CustomSearchResult jvmMemoryUsage;
@@ -515,7 +515,7 @@ public class ConfigFromDirContext extends ConfigReader
     }
     for (OpenDsException oe : ex)
     {
-      LOG.log(Level.WARNING, "Error reading configuration: "+oe, oe);
+      logger.warn(LocalizableMessage.raw("Error reading configuration: "+oe, oe));
     }
     administrativeUsers = Collections.unmodifiableSet(as);
     listeners = Collections.unmodifiableSet(ls);
@@ -526,7 +526,7 @@ public class ConfigFromDirContext extends ConfigReader
     }
     catch (Throwable t)
     {
-      LOG.log(Level.WARNING, "Error reading monitoring: "+t, t);
+      logger.warn(LocalizableMessage.raw("Error reading monitoring: "+t, t));
       OnlineUpdateException oupe = new OnlineUpdateException(
           ERR_READING_CONFIG_LDAP.get(t.toString()), t);
       ex.add(oupe);
@@ -537,7 +537,7 @@ public class ConfigFromDirContext extends ConfigReader
     }
     catch (Throwable t)
     {
-      LOG.log(Level.WARNING, "Error reading task information: "+t, t);
+      logger.warn(LocalizableMessage.raw("Error reading task information: "+t, t));
       OnlineUpdateException oupe = new OnlineUpdateException(
           ERR_READING_CONFIG_LDAP.get(t.toString()), t);
       ex.add(oupe);

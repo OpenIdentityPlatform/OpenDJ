@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.monitors;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.util.LinkedList;
@@ -36,7 +36,7 @@ import java.util.List;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.types.*;
 
@@ -73,11 +73,7 @@ public class BackendMonitor
 
   // The name for this monitor.
   private String monitorName;
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Creates a new instance of this backend monitor provider that will work with
@@ -184,10 +180,7 @@ public class BackendMonitor
         }
         catch (Exception ex)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-          }
+          logger.traceException(ex);
         }
         String s = entryCount + " " + dn.toString();
         builder.add(AttributeValues.create(baseDNEntryCountType, s));

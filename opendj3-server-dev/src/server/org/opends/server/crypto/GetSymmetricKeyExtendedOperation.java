@@ -35,8 +35,7 @@ import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1Reader;
@@ -58,10 +57,7 @@ public class GetSymmetricKeyExtendedOperation
      extends ExtendedOperationHandler<
                   GetSymmetricKeyExtendedOperationHandlerCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The BER type value for the symmetric key element of the operation value.
@@ -135,9 +131,9 @@ public class GetSymmetricKeyExtendedOperation
     }
     catch (ASN1Exception ae)
     {
-      if (DebugLogger.debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
+        logger.traceException(ae);
       }
 
       LocalizableMessage message = ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(
@@ -147,9 +143,9 @@ public class GetSymmetricKeyExtendedOperation
     }
     catch (Exception e)
     {
-      if (DebugLogger.debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        logger.traceException(e);
       }
 
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);

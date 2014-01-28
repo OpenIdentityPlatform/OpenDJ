@@ -22,18 +22,15 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
 import java.io.IOException;
 
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This thread publishes a {@link HeartbeatMsg} on a given protocol session at
@@ -44,10 +41,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  */
 public class HeartbeatThread extends DirectoryThread
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -97,9 +91,9 @@ public class HeartbeatThread extends DirectoryThread
   {
     try
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Heartbeat thread is starting, interval is %d",
+        logger.trace("Heartbeat thread is starting, interval is %d",
                   heartbeatInterval);
       }
       HeartbeatMsg heartbeatMessage = new HeartbeatMsg();
@@ -107,9 +101,9 @@ public class HeartbeatThread extends DirectoryThread
       while (!shutdown)
       {
         long now = System.currentTimeMillis();
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("Heartbeat thread awoke at %d, last message " +
+          logger.trace("Heartbeat thread awoke at %d, last message " +
               "was sent at %d", now, session.getLastPublishTime());
         }
 
@@ -117,9 +111,9 @@ public class HeartbeatThread extends DirectoryThread
         {
           if (!heartbeatsDisabled)
           {
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
-              TRACER.debugVerbose("Heartbeat sent at %d", now);
+              logger.trace("Heartbeat sent at %d", now);
             }
             session.publish(heartbeatMessage);
           }
@@ -131,9 +125,9 @@ public class HeartbeatThread extends DirectoryThread
           sleepTime = heartbeatInterval;
         }
 
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("Heartbeat thread sleeping for %d", sleepTime);
+          logger.trace("Heartbeat thread sleeping for %d", sleepTime);
         }
 
         synchronized (shutdownLock)
@@ -147,10 +141,7 @@ public class HeartbeatThread extends DirectoryThread
             catch (InterruptedException e)
             {
               // Server shutdown monitor may interrupt slow threads.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
               shutdown = true;
             }
           }
@@ -159,17 +150,17 @@ public class HeartbeatThread extends DirectoryThread
     }
     catch (IOException e)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Heartbeat thread could not send a heartbeat."
+        logger.trace("Heartbeat thread could not send a heartbeat."
             + StaticUtils.stackTraceToSingleLineString(e));
       }
     }
     finally
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Heartbeat thread is exiting.");
+        logger.trace("Heartbeat thread is exiting.");
       }
     }
   }
@@ -185,14 +176,14 @@ public class HeartbeatThread extends DirectoryThread
     {
       shutdown = true;
       shutdownLock.notifyAll();
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Going to notify Heartbeat thread.");
+        logger.trace("Going to notify Heartbeat thread.");
       }
     }
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("Returning from Heartbeat shutdown.");
+      logger.trace("Returning from Heartbeat shutdown.");
     }
   }
 

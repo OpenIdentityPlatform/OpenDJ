@@ -29,8 +29,7 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 
@@ -57,7 +56,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
@@ -73,10 +71,7 @@ public class ConnectionHandlerConfigManager implements
     ConfigurationAddListener<ConnectionHandlerCfg>,
     ConfigurationDeleteListener<ConnectionHandlerCfg>,
     ConfigurationChangeListener<ConnectionHandlerCfg> {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   // The mapping between configuration entry DNs and their
@@ -127,18 +122,12 @@ public class ConnectionHandlerConfigManager implements
         // Register the connection handler with the Directory Server.
         DirectoryServer.registerConnectionHandler(connectionHandler);
       } catch (ConfigException e) {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         messages.add(e.getMessageObject());
         resultCode = DirectoryServer.getServerErrorResultCode();
       } catch (Exception e) {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
 
         messages.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
@@ -188,18 +177,12 @@ public class ConnectionHandlerConfigManager implements
           // Server.
           DirectoryServer.registerConnectionHandler(connectionHandler);
         } catch (ConfigException e) {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           messages.add(e.getMessageObject());
           resultCode = DirectoryServer.getServerErrorResultCode();
         } catch (Exception e) {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           messages.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
                   String.valueOf(configuration
@@ -417,10 +400,7 @@ public class ConnectionHandlerConfigManager implements
       theClass = pd.loadClass(className, ConnectionHandler.class);
       connectionHandler = theClass.newInstance();
     } catch (Exception e) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.
           get(String.valueOf(className), String.valueOf(config.dn()),
@@ -439,10 +419,7 @@ public class ConnectionHandlerConfigManager implements
 
       method.invoke(connectionHandler, config);
     } catch (Exception e) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.
           get(String.valueOf(className), String.valueOf(config.dn()),
@@ -478,10 +455,7 @@ public class ConnectionHandlerConfigManager implements
         connectionHandler = theClass.newInstance();
       }
     } catch (Exception e) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       unacceptableReasons.add(
               ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
@@ -508,10 +482,7 @@ public class ConnectionHandlerConfigManager implements
         return false;
       }
     } catch (Exception e) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       unacceptableReasons.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
               String.valueOf(className), String.valueOf(config.dn()),

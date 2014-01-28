@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -34,15 +34,13 @@ import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines a server handler dedicated to the remote LDAP servers
@@ -58,7 +56,7 @@ public class LightweightServerHandler
   extends MonitorProvider<MonitorProviderCfg>
 {
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final ReplicationServerHandler replServerHandler;
 
@@ -81,7 +79,7 @@ public class LightweightServerHandler
     this.replServerHandler = replServerHandler;
     this.dsInfo = dsInfo;
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
       debugInfo("()");
   }
 
@@ -109,7 +107,7 @@ public class LightweightServerHandler
    */
   public void startHandler()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
       debugInfo("start");
     DirectoryServer.deregisterMonitorProvider(this);
     DirectoryServer.registerMonitorProvider(this);
@@ -120,7 +118,7 @@ public class LightweightServerHandler
    */
   public void stopHandler()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
       debugInfo("stop");
     DirectoryServer.deregisterMonitorProvider(this);
   }
@@ -128,7 +126,7 @@ public class LightweightServerHandler
   private void debugInfo(String message)
   {
     final ReplicationServerDomain domain = replServerHandler.getDomain();
-    TRACER.debugInfo("In " + domain.getLocalRSMonitorInstanceName()
+    logger.trace("In " + domain.getLocalRSMonitorInstanceName()
         + " LWSH for remote server " + getServerId() + " connected to:"
         + replServerHandler.getMonitorInstanceName() + " " + message);
   }

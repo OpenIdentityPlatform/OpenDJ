@@ -58,14 +58,12 @@ import org.opends.server.api.DirectoryServerMBean;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
 
@@ -83,10 +81,7 @@ public class JMXAlertHandler
                   ConfigurationChangeListener<JMXAlertHandlerCfg>, DynamicMBean,
                   DirectoryServerMBean
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The fully-qualified name of this class.
@@ -156,10 +151,7 @@ public class JMXAlertHandler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_JMX_ALERT_HANDLER_CANNOT_REGISTER.get(String.valueOf(e));

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -44,13 +44,11 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.opends.server.extensions.BlindTrustManagerProvider;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.ExpirationCheckTrustManager;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 
 /**
@@ -58,10 +56,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  */
 public class SSLConnectionFactory
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   private SSLSocketFactory sslSocketFactory = null;
@@ -288,10 +283,7 @@ public class SSLConnectionFactory
 
     } catch(Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       throw new SSLConnectionException(
               ERR_TOOLS_CANNOT_LOAD_KEYSTORE_FILE.get(keyStoreFile), e);
@@ -307,10 +299,7 @@ public class SSLConnectionFactory
       return keyManagerFactory.getKeyManagers();
     } catch(Exception ke)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ke);
-      }
+      logger.traceException(ke);
 
       throw new SSLConnectionException(
               ERR_TOOLS_CANNOT_INIT_KEYMANAGER.get(keyStoreFile), ke);
@@ -382,10 +371,7 @@ public class SSLConnectionFactory
       inputStream.close();
     } catch(Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       throw new SSLConnectionException(
               ERR_TOOLS_CANNOT_LOAD_TRUSTSTORE_FILE.get(trustStoreFile), e);
@@ -401,10 +387,7 @@ public class SSLConnectionFactory
       return trustManagerFactory.getTrustManagers();
     } catch(Exception ke)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ke);
-      }
+      logger.traceException(ke);
 
       throw new SSLConnectionException(
               ERR_TOOLS_CANNOT_INIT_TRUSTMANAGER.get(trustStoreFile), ke);

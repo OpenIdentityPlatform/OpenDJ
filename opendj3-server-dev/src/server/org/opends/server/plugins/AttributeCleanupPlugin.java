@@ -29,7 +29,6 @@ package org.opends.server.plugins;
 
 
 import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.util.*;
@@ -46,8 +45,7 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
@@ -71,7 +69,7 @@ public class AttributeCleanupPlugin extends
   /**
    * Debug tracer.
    */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * A table of attributes to be renamed.
@@ -190,9 +188,9 @@ public class AttributeCleanupPlugin extends
        */
       if (modifyOperation.getRawModifications().isEmpty())
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("The AttributeCleanupPlugin has eliminated all "
+          logger.trace("The AttributeCleanupPlugin has eliminated all "
               + "modifications. The processing should be stopped.");
         }
         return PluginResult.PreParse.stopProcessing(ResultCode.SUCCESS, null);
@@ -381,9 +379,9 @@ public class AttributeCleanupPlugin extends
       final String attrName = toLowerCase(rawAttr.getAttributeType().trim());
       if (attributesToRemove.contains(attrName))
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("AttributeCleanupPlugin removing '%s'",
+          logger.trace("AttributeCleanupPlugin removing '%s'",
               rawAttr.getAttributeType());
         }
         iterator.remove();
@@ -414,9 +412,9 @@ public class AttributeCleanupPlugin extends
       final String attrName = toLowerCase(rawAttr.getAttributeType().trim());
       if (attributesToRemove.contains(attrName))
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("AttributeCleanupPlugin removing '%s'",
+          logger.trace("AttributeCleanupPlugin removing '%s'",
               rawAttr.getAttributeType());
         }
         iterator.remove();
@@ -445,9 +443,9 @@ public class AttributeCleanupPlugin extends
       final String toName = attributesToRename.get(fromName);
       if (toName != null)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("AttributeCleanupPlugin renaming '%s' to '%s'",
+          logger.trace("AttributeCleanupPlugin renaming '%s' to '%s'",
               rawAttr.getAttributeType(), toName);
         }
         rawAttr.setAttributeType(toName);
@@ -479,9 +477,9 @@ public class AttributeCleanupPlugin extends
       final String toName = attributesToRename.get(fromName);
       if (toName != null)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("AttributeCleanupPlugin renaming '%s' to '%s'",
+          logger.trace("AttributeCleanupPlugin renaming '%s' to '%s'",
               rawAttr.getAttributeType(), toName);
         }
         rawAttr.setAttributeType(toName);

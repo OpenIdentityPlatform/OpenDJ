@@ -47,7 +47,7 @@ import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -55,7 +55,6 @@ import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
@@ -70,7 +69,6 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -84,10 +82,7 @@ import static org.opends.server.util.StaticUtils.*;
      mayInvoke=true)
 public abstract class ClientConnection
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The set of authentication information for this client connection.
@@ -177,14 +172,14 @@ public abstract class ClientConnection
     networkGroup       = NetworkGroup.getDefaultNetworkGroup();
     networkGroup.addConnection(this);
     mustEvaluateNetworkGroup = true;
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
       {
         LocalizableMessage message =
                 INFO_CHANGE_NETWORK_GROUP.get(
                   getConnectionID(),
                   "null",
                   networkGroup.getID());
-        TRACER.debugMessage(DebugLogLevel.INFO, message.toString());
+        logger.trace(message.toString());
       }
 
   }
@@ -1059,7 +1054,7 @@ public abstract class ClientConnection
     if (operation == null)
     {
       result = privileges.contains(privilege);
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
         DN authDN = authenticationInfo.getAuthenticationDN();
 
@@ -1067,7 +1062,7 @@ public abstract class ClientConnection
                 .get(getConnectionID(), -1L,
                      String.valueOf(authDN),
                      privilege.getName(), result);
-        TRACER.debugMessage(DebugLogLevel.INFO, message.toString());
+        logger.trace(message.toString());
       }
     }
     else
@@ -1078,7 +1073,7 @@ public abstract class ClientConnection
            !authenticationInfo.isAuthenticated())) {
         result = privileges.contains(privilege) ||
                  DirectoryServer.isDisabled(privilege);
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
           DN authDN = authenticationInfo.getAuthenticationDN();
 
@@ -1088,7 +1083,7 @@ public abstract class ClientConnection
                     operation.getOperationID(),
                     String.valueOf(authDN),
                     privilege.getName(), result);
-          TRACER.debugMessage(DebugLogLevel.INFO, message.toString());
+          logger.trace(message.toString());
         }
       }
       else
@@ -1133,7 +1128,7 @@ public abstract class ClientConnection
   {
     HashSet<Privilege> privSet = this.privileges;
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       for (Privilege p : privileges)
       {
@@ -1177,7 +1172,7 @@ public abstract class ClientConnection
                   getConnectionID(), -1L,
                   String.valueOf(authDN),
                   buffer.toString(), result);
-        TRACER.debugMessage(DebugLogLevel.INFO,
+        logger.trace(
                 message.toString());
       }
       else
@@ -1190,7 +1185,7 @@ public abstract class ClientConnection
                   operation.getOperationID(),
                   String.valueOf(authDN),
                   buffer.toString(), result);
-        TRACER.debugMessage(DebugLogLevel.INFO, message.toString());
+        logger.trace(message.toString());
       }
 
       return result;
@@ -1709,14 +1704,14 @@ public abstract class ClientConnection
   public final void setNetworkGroup (NetworkGroup networkGroup)
   {
     if (this.networkGroup != networkGroup) {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
         LocalizableMessage message =
                 INFO_CHANGE_NETWORK_GROUP.get(
                   getConnectionID(),
                   this.networkGroup.getID(),
                   networkGroup.getID());
-        TRACER.debugMessage(DebugLogLevel.INFO, message.toString());
+        logger.trace(message.toString());
       }
 
       // If there is a change, first remove this connection

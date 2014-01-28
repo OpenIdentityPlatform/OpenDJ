@@ -32,7 +32,6 @@ import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.authorization.dseecompat.EnumEvalReason.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -49,7 +48,7 @@ import org.opends.server.backends.jeb.EntryContainer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -108,11 +107,7 @@ public final class AciHandler extends
    * the search reference access check.
    */
   private static AttributeType refAttrType;
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   static
   {
@@ -1198,10 +1193,7 @@ public final class AciHandler extends
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // FIXME -- Is there anything that we need to do here?
         continue;
@@ -1273,10 +1265,7 @@ public final class AciHandler extends
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message = INFO_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI.get(
           String.valueOf(configuration.dn()));
       throw new InitializationException(message, e);

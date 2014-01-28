@@ -36,14 +36,13 @@ import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * Virtual attribute returning the oldest change number from the changelogDB.
@@ -53,7 +52,7 @@ public class FirstChangeNumberVirtualAttributeProvider
        implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Creates a new instance of this member virtual attribute provider.
@@ -103,7 +102,7 @@ public class FirstChangeNumberVirtualAttributeProvider
       // Rather than returning 0 which is no change, return -1 to
       // indicate the error.
       value = "-1";
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      logger.traceException(e);
     }
     ByteString valueBS = ByteString.valueOf(value);
     return Collections.singleton(AttributeValues.create(valueBS, valueBS));

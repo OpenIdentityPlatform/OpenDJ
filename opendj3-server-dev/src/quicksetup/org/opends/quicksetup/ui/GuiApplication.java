@@ -44,8 +44,8 @@ import java.awt.event.WindowEvent;
 import java.security.cert.X509Certificate;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * This class represents an application with a wizard GUI that can be run in the
@@ -54,8 +54,7 @@ import java.util.logging.Logger;
  */
 public abstract class GuiApplication extends Application {
 
-  static private final Logger LOG =
-          Logger.getLogger(GuiApplication.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The currently displayed wizard step. */
   private WizardStep displayedStep;
@@ -432,25 +431,25 @@ public abstract class GuiApplication extends Application {
 
     if ((chain != null) && (authType != null) && (host != null))
     {
-      LOG.log(Level.INFO, "Accepting certificate presented by host "+host);
+      logger.debug(LocalizableMessage.raw("Accepting certificate presented by host "+host));
       getTrustManager().acceptCertificate(chain, authType, host);
     }
     else
     {
       if (chain == null)
       {
-        LOG.log(Level.WARNING,
-            "The chain is null for the UserDataCertificateException");
+        logger.warn(LocalizableMessage.raw(
+            "The chain is null for the UserDataCertificateException"));
       }
       if (authType == null)
       {
-        LOG.log(Level.WARNING,
-            "The auth type is null for the UserDataCertificateException");
+        logger.warn(LocalizableMessage.raw(
+            "The auth type is null for the UserDataCertificateException"));
       }
       if (host == null)
       {
-        LOG.log(Level.WARNING,
-            "The host is null for the UserDataCertificateException");
+        logger.warn(LocalizableMessage.raw(
+            "The host is null for the UserDataCertificateException"));
       }
     }
     if (acceptPermanently)
@@ -463,7 +462,7 @@ public abstract class GuiApplication extends Application {
         }
         catch (Throwable t)
         {
-          LOG.log(Level.WARNING, "Error accepting certificate: "+t, t);
+          logger.warn(LocalizableMessage.raw("Error accepting certificate: "+t, t));
         }
       }
     }

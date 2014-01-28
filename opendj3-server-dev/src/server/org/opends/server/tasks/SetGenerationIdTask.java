@@ -28,8 +28,6 @@ package org.opends.server.tasks;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -37,7 +35,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.*;
@@ -49,10 +47,7 @@ import org.opends.server.types.*;
  */
 public class SetGenerationIdTask extends Task
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private String  domainString            = null;
   private ReplicationDomain domain        = null;
   private Long generationId = null;
@@ -126,9 +121,9 @@ public class SetGenerationIdTask extends Task
   @Override
   protected TaskState runTask()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("setGenerationIdTask is starting on domain %s"
+      logger.trace("setGenerationIdTask is starting on domain %s"
               + domain.getBaseDNString());
     }
 
@@ -142,9 +137,9 @@ public class SetGenerationIdTask extends Task
       return TaskState.STOPPED_BY_ERROR;
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("setGenerationIdTask is ending SUCCESSFULLY");
+      logger.trace("setGenerationIdTask is ending SUCCESSFULLY");
     }
     return TaskState.COMPLETED_SUCCESSFULLY;
   }

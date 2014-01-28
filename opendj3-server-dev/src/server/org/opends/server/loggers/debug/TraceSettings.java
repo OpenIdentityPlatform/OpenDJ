@@ -92,6 +92,15 @@ public class TraceSettings
   private DebugTargetCfg currentConfig;
 
   /**
+   * Construct new trace settings with default values.
+   */
+  public TraceSettings()
+  {
+    this(DebugLogLevel.VERBOSE, null, false, false, 0, false);
+
+  }
+
+  /**
    * Construct new trace settings at the specified log level.
    *
    * @param level the log level for this setting.
@@ -254,8 +263,6 @@ public class TraceSettings
       //Touch DebugLogLevel and DebugLogCategory so they are statically
       //initialized or parse will not see all the levels/categories.
       LogLevel level = DebugLogLevel.ERROR;
-      LogCategory categoryStub = DebugLogCategory.MESSAGE;
-
       Set<LogCategory> includeCategories = null;
       boolean noArgs = false;
       boolean noRetVal = false;

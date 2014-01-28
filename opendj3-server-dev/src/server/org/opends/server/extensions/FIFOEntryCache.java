@@ -45,10 +45,10 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.CacheEntry;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -56,10 +56,8 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.Attribute;
 import org.opends.server.util.ServerConstants;
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
 
 
@@ -93,10 +91,7 @@ public class FIFOEntryCache
        extends EntryCache <FIFOEntryCacheCfg>
        implements ConfigurationChangeListener<FIFOEntryCacheCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The reference to the Java runtime used to determine the amount of memory
@@ -207,9 +202,7 @@ public class FIFOEntryCache
         dnMap.clear();
       } catch (Exception e) {
         // This should never happen.
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     } finally {
       cacheWriteLock.unlock();
@@ -331,10 +324,7 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       return;
     }
@@ -428,10 +418,7 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
     finally
     {
@@ -462,10 +449,7 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // We can't rule out the possibility of a conflict, so return false.
       return false;
@@ -552,10 +536,7 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // We can't be sure there wasn't a conflict, so return false.
       return false;
@@ -615,10 +596,7 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // This shouldn't happen, but there's not much that we can do if it does.
     }
@@ -653,10 +631,7 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // This shouldn't happen, but there's not much that we can do if it does.
     }
@@ -715,10 +690,7 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // This shouldn't happen, but there's not much that we can do if it does.
     }
@@ -758,10 +730,7 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // This shouldn't happen, but there's not much that we can do if it does.
     }
@@ -887,10 +856,7 @@ public class FIFOEntryCache
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // This shouldn't happen, but there's not much that we can do if it does.
     }
@@ -1063,9 +1029,7 @@ public class FIFOEntryCache
            new Long(maxEntries) : new Long(0))
         );
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     return attrs;

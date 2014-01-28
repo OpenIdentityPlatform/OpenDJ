@@ -37,8 +37,7 @@ import static org.opends.server.protocols.asn1.ASN1Constants.
     UNIVERSAL_INTEGER_TYPE;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -108,10 +107,7 @@ public class EntryChangeNotificationControl
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_ECN_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
@@ -135,11 +131,7 @@ public class EntryChangeNotificationControl
    */
   public static final ControlDecoder<EntryChangeNotificationControl> DECODER =
     new Decoder();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 

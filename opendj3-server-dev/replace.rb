@@ -47,33 +47,6 @@ class Replace
   SNMP_DIR = ["src/snmp/src"]
   DSML_DIR = ["src/dsml/org"]
 
-  # Replacement for messages
-  # Modify 1052 files, for a total of 2366 replacements - leaves 10274 compilation errors mostly due to generated messages
-  MESSAGES = {
-     :dirs => DSML_DIR,
-     :extensions => ["java"],
-     :stopwords => ['org/opends/messages'],
-     :replacements =>
-       [
-        /import org.opends.messages.(\bMessage(Builder)?(Descriptor)?\b|\*)(\.Arg..?)?;/,
-        'import org.forgerock.i18n.Localizable\1\4;',
-
-        /\bMessage\b/,
-        'LocalizableMessage',
-
-        /\bMessageBuilder\b/,
-        'LocalizableMessageBuilder',
-
-        /\bMessageDescriptor\b/,
-        'LocalizableMessageDescriptor',
-
-        /LocalizableMessage.raw\((\n\s+)?Category.\w+,\s+(\n\s+)?Severity.\w+,\s?/,
-        'LocalizableMessage.raw(',
-
-        /msg.getDescriptor().equals\((\w)+\)/,
-        "msg.resourceName().equals(\\1.resourceName())\n      && msg.ordinal().equals(\\1.ordinal())"
-       ]
-   }
 
   # Replacement for types
   TYPES = {
@@ -143,18 +116,18 @@ class Replace
   # Modify 454 files, for a total of 2427 replacements - leaves 72 compilation errors
   # TODO: add I18N loggers
   LOGGERS = {
-    :dirs => JAVA_DIRS,
+    :dirs => SNMP_DIR,
     :stopwords => ['src/server/org/opends/server/loggers', 'DebugLogPublisher'],
     :extensions => ["java"],
     :replacements =>
       [
         /import org.opends.server.loggers.debug.DebugTracer;/,
-        "import org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;",
+        "import org.forgerock.i18n.LocalizableMessage;\nimport org.forgerock.i18n.slf4j.LocalizedLogger;",
 
         /import java.util.logging.Logger;/,
-        "import org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;",
+        "import org.forgerock.i18n.LocalizableMessage;\nimport org.forgerock.i18n.slf4j.LocalizedLogger;",
 
-        /import java.util.logging.Level;\n/,
+        /import java.util.logging.Level;/,
         '',
 
         /import org.opends.server.types.DebugLogLevel;\n/,
@@ -164,7 +137,7 @@ class Replace
         #'',
 
         /DebugTracer TRACER = (DebugLogger.)?getTracer\(\)/,
-        "Logger debugLogger = LoggerFactory.getLogger({CLASSNAME}.class)",
+        "LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass()",
 
         /^\s*\/\*\*\n.*The tracer object for the debug logger.\n\s*\*\/$\n/,
         '',
@@ -173,40 +146,43 @@ class Replace
         '',
 
         /if \(debugEnabled\(\)\)\s*{\s* TRACER.debugCaught\(DebugLogLevel.ERROR, (\b.*\b)\);\s*\n\s*}$/,
-        'debugLogger.trace("Error", \1);',
+        'logger.traceException(\1);',
 
         /TRACER\.debugCaught\(DebugLogLevel.ERROR, (\b.*\b)\);/,
-        'debugLogger.trace("Error", \1);',
+        'logger.traceException(\1);',
 
         /TRACER.debug[^(]+\(/,
-        'debugLogger.trace(',
+        'logger.trace(',
 
-        /debugLogger.trace\(DebugLogLevel.\b\w+\b, ?/,
-        'debugLogger.trace(',
+        /logger.trace\(DebugLogLevel.\b\w+\b, ?/,
+        'logger.trace(',
 
-        /debugLogger.trace\(e\)/,
-        'debugLogger.trace("Error", e)',
+        /logger.trace\((e|de)\)/,
+        'logger.traceException(\1)',
 
         /(DebugLogger\.|\b)debugEnabled\(\)/,
-        'debugLogger.isTraceEnabled()',
+        'logger.isTraceEnabled()',
 
         /(LOG|logger).log\((Level.)?WARNING, ?/,
-        '\1.warn(',
+        'logger.warn(',
 
         /(LOG|logger).log\((Level.)?CONFIG, ?/,
-        '\1.info(',
+        'logger.info(',
 
         /(LOG|logger).log\((Level.)?INFO, ?/,
-        '\1.debug(',
+        'logger.debug(',
 
         /(LOG|logger).log\((Level.)?SEVERE, ?/,
-        '\1.error(',
+        'logger.error(',
 
         /(LOG|logger).log\((Level.)?FINE, ?/,
-        '\1.trace(',
+        'logger.trace(',
 
-        /Logger.getLogger\((\n\s+)?(\b\w+\b).class.getName\(\)\);/,
-        'LoggerFactory.getLogger(\2.class);',
+        /logger.(warn|info|error|debug)([^;]+);/,
+        'logger.\1(LocalizableMessage.raw\2);',
+
+        /(private static final|static private final) Logger LOG =[^;]+;/,
+        'private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();',
       ]
   }
 
@@ -226,7 +202,7 @@ class Replace
   }
 
   # List of replacements to run
-  REPLACEMENTS = [ MESSAGES ]
+  REPLACEMENTS = [ LOGGERS ]
   #REPLACEMENTS = [ MESSAGES, TYPES, DN_TYPES, EXCEPTIONS, LOGGERS, I18N_LOGGERS ]
 
 
@@ -294,16 +270,18 @@ class Replace
     File.open(message_file).each { |line|
       line = line.chomp
       next if line.size==0 || line[0..0]=="#" || line[0..0]==" " || line[0..0]!=line[0..0].upcase || line[0..5]=="global"
-      first, *rest = line.split "_"
-      label = rest.join "_"
+      token = line.split("=")
+      first, *rest = token[0].split "_"
       level_label = if %w(INFO DEBUG NOTICE).include?(first) then first else first.to_s + "_" + rest[0].to_s end
       level = LOG_LEVELS[level_label]
-      puts "level #{level}, line #{line}"
+      label = first + rest.join("_")
+      label = label.gsub("MILD", "").gsub("SEVERE", "").gsub("FATAL", "")
+      puts "level #{level}, label #{label}"
     }
   end
 
 end
 
 # Launch all replacements defined in the REPLACEMENTS constant
-#Replace.new.messages("src/messages/messages/admin.properties")
-Replace.new.run
+Replace.new.messages("src/messages/messages/admin.properties")
+#Replace.new.run

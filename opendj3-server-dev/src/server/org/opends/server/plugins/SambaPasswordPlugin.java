@@ -56,8 +56,7 @@ import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.extensions.PasswordModifyExtendedOperation;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
@@ -455,7 +454,7 @@ public final class SambaPasswordPlugin extends
   /**
    * Debug tracer object to log debugging information.
    */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Password Modify Extended Operation OID.
@@ -699,9 +698,9 @@ public final class SambaPasswordPlugin extends
     {
       if (authDN.equals(sambaAdminDN))
       {
-        if (DebugLogger.debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo("This operation will be skipped because"
+          logger.trace("This operation will be skipped because"
               + " it was performed by Samba admin user: " + sambaAdminDN);
         }
         return PluginResult.PostOperation.continueOperationProcessing();
@@ -715,9 +714,9 @@ public final class SambaPasswordPlugin extends
     if (dn == null)
     {
       // The attachment is missing which should never happen.
-      if (DebugLogger.debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("SambaPasswordPlugin: missing DN attachment");
+        logger.trace("SambaPasswordPlugin: missing DN attachment");
       }
       return PluginResult.PostOperation.continueOperationProcessing();
     }
@@ -726,9 +725,9 @@ public final class SambaPasswordPlugin extends
         PasswordModifyExtendedOperation.CLEAR_PWD_ATTACHMENT).toString();
     if (password == null)
     {
-      if (DebugLogger.debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("SambaPasswordPlugin: skipping syncing "
+        logger.trace("SambaPasswordPlugin: skipping syncing "
             + "pre-encoded password");
       }
       return PluginResult.PostOperation.continueOperationProcessing();
@@ -744,9 +743,9 @@ public final class SambaPasswordPlugin extends
       final Entry entry = DirectoryServer.getEntry(dn);
       if (!isSynchronizable(entry))
       {
-        if (DebugLogger.debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo("The entry is not Samba object.");
+          logger.trace("The entry is not Samba object.");
         }
         return PluginResult.PostOperation.continueOperationProcessing();
       }
@@ -780,9 +779,9 @@ public final class SambaPasswordPlugin extends
       final ModifyOperation modifyOperation = connection.processModify(dn,
           modifications, controls);
 
-      if (DebugLogger.debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo(modifyOperation.getResultCode().toString());
+        logger.trace(modifyOperation.getResultCode().toString());
       }
     }
     catch (final DirectoryException e)
@@ -792,9 +791,9 @@ public final class SambaPasswordPlugin extends
        * This should never happen as we are processing the post-operation which
        * succeeded so the entry has to exist if we have reached this point.
        */
-      if (DebugLogger.debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.WARNING, e);
+        logger.traceException(e);
       }
     }
 
@@ -831,9 +830,9 @@ public final class SambaPasswordPlugin extends
     // Skip synchronization operations.
     if (modifyOperation.isSynchronizationOperation())
     {
-      if (DebugLogger.debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Synchronization operation. Skipping.");
+        logger.trace("Synchronization operation. Skipping.");
       }
       return PluginResult.PreOperation.continueOperationProcessing();
     }
@@ -849,9 +848,9 @@ public final class SambaPasswordPlugin extends
     {
       if (authDN.equals(sambaAdminDN))
       {
-        if (DebugLogger.debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo("This operation will be skipped because"
+          logger.trace("This operation will be skipped because"
               + " it was performed by Samba admin user: " + sambaAdminDN);
         }
         return PluginResult.PreOperation.continueOperationProcessing();
@@ -864,9 +863,9 @@ public final class SambaPasswordPlugin extends
      */
     if (!isSynchronizable(modifyOperation.getCurrentEntry()))
     {
-      if (DebugLogger.debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Skipping '" + modifyOperation.getEntryDN().toString()
+        logger.trace("Skipping '" + modifyOperation.getEntryDN().toString()
             + "' because it does not have Samba object class.");
       }
       return PluginResult.PreOperation.continueOperationProcessing();
@@ -1004,9 +1003,9 @@ public final class SambaPasswordPlugin extends
     catch (final Exception e)
     {
       ERR_PLUGIN_SAMBA_SYNC_ENCODING.get(e.getMessage());
-      if (DebugLogger.debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugError(e.getMessage(), e);
+        logger.trace(e.getMessage(), e);
       }
       modifications = null;
     }
@@ -1074,9 +1073,9 @@ public final class SambaPasswordPlugin extends
     catch (final DirectoryException e)
     {
       ERR_PLUGIN_SAMBA_SYNC_MODIFICATION_PROCESSING.get(e.getMessage());
-      if (DebugLogger.debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugError(e.getMessage());
+        logger.trace(e.getMessage());
       }
     }
 

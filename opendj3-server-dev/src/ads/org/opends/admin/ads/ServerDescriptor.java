@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portion Copyright 2013 ForgeRock AS.
+ *      Portion Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.admin.ads;
@@ -34,8 +34,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
@@ -66,8 +67,7 @@ public class ServerDescriptor
 
   private static final String TRUSTSTORE_DN = "cn=ads-truststore";
 
-  private static final Logger LOG =
-    Logger.getLogger(ServerDescriptor.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Enumeration containing the different server properties that we can keep in
@@ -566,15 +566,15 @@ public class ServerDescriptor
             }
             catch (Throwable t)
             {
-              LOG.log(Level.WARNING, "Error calculating host port: "+t+" in "+
-                  adsProperties, t);
+              logger.warn(LocalizableMessage.raw("Error calculating host port: "+t+" in "+
+                  adsProperties, t));
             }
             break;
           }
           else
           {
-            LOG.log(Level.WARNING, "Value for "+portProp+" is null in "+
-                adsProperties);
+            logger.warn(LocalizableMessage.raw("Value for "+portProp+" is null in "+
+                adsProperties));
           }
         }
       }
@@ -1450,7 +1450,7 @@ public class ServerDescriptor
     catch (NameNotFoundException nnfe)
     {
       // Ignore
-      LOG.log(Level.WARNING, "Error cleaning truststore: "+nnfe, nnfe);
+      logger.warn(LocalizableMessage.raw("Error cleaning truststore: "+nnfe, nnfe));
     }
   }
 

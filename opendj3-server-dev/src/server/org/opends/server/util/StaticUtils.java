@@ -51,7 +51,7 @@ import org.opends.messages.ToolMessages;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.util.args.Argument;
@@ -59,7 +59,6 @@ import org.opends.server.util.args.ArgumentException;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -76,10 +75,7 @@ import static org.opends.server.util.ServerConstants.*;
      mayInvoke=true)
 public final class StaticUtils
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Private constructor to prevent instantiation.
@@ -123,10 +119,7 @@ public final class StaticUtils
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       try
       {
@@ -134,10 +127,7 @@ public final class StaticUtils
       }
       catch (Exception e2)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
+        logger.traceException(e2);
 
         return s.getBytes();
       }
@@ -2495,10 +2485,7 @@ public final class StaticUtils
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
 
       throw ioe;
@@ -2511,10 +2498,7 @@ public final class StaticUtils
       }
       catch(IOException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -3209,10 +3193,7 @@ public final class StaticUtils
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
           buffer.append(new String(b, i, (length - i)).toUpperCase());
         }
         break;
@@ -4600,10 +4581,7 @@ public final class StaticUtils
         }
         catch (IOException ignored)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
-          }
+          logger.traceException(ignored);
         }
       }
     }

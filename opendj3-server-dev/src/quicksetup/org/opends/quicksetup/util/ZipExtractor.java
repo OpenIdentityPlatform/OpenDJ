@@ -40,8 +40,8 @@ import java.util.zip.ZipEntry;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * Class for extracting the contents of a zip file and managing
@@ -49,8 +49,7 @@ import java.util.logging.Logger;
  */
 public class ZipExtractor {
 
-  static private final Logger LOG =
-          Logger.getLogger(ZipExtractor.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Path separator for zip file entry names on Windows and *nix. */
   static private final char ZIP_ENTRY_NAME_SEP = '/';
@@ -199,8 +198,8 @@ public class ZipExtractor {
           if (sepPos != -1) {
             name = name.substring(sepPos + 1);
           } else {
-            LOG.log(Level.WARNING,
-                    "zip entry name does not contain a path separator");
+            logger.warn(LocalizableMessage.raw(
+                    "zip entry name does not contain a path separator"));
           }
         }
         if (name != null && name.length() > 0) {
@@ -287,7 +286,7 @@ public class ZipExtractor {
         application.notifyListenersRatioChange(ratioBeforeCompleted);
       }
     }
-    LOG.log(Level.INFO, "extracting " + Utils.getPath(destination));
+    logger.debug(LocalizableMessage.raw("extracting " + Utils.getPath(destination)));
     if (Utils.insureParentsExist(destination))
     {
       if (entry.isDirectory())

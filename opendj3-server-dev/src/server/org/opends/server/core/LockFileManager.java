@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -34,11 +34,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.opends.server.api.Backend;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -49,11 +47,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LockFileManager
 {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** A map between the filenames and the lock files for exclusive locks. */
   private static Map<String, FileLock> exclusiveLocks =
@@ -122,10 +116,7 @@ public class LockFileManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         failureReason.append(
                 ERR_FILELOCKER_LOCK_SHARED_FAILED_CREATE.get(lockFile,
@@ -144,10 +135,7 @@ public class LockFileManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         failureReason.append(ERR_FILELOCKER_LOCK_SHARED_FAILED_OPEN.get(
                 lockFile, getExceptionMessage(e)));
@@ -164,10 +152,7 @@ public class LockFileManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         failureReason.append(
                 ERR_FILELOCKER_LOCK_SHARED_FAILED_LOCK.get(
@@ -245,10 +230,7 @@ public class LockFileManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         failureReason.append(
                 ERR_FILELOCKER_LOCK_EXCLUSIVE_FAILED_CREATE.get(lockFile,
                                         getExceptionMessage(e)));
@@ -266,10 +248,7 @@ public class LockFileManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         failureReason.append(ERR_FILELOCKER_LOCK_EXCLUSIVE_FAILED_OPEN.get(
                 lockFile, getExceptionMessage(e)));
@@ -286,10 +265,7 @@ public class LockFileManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         failureReason.append(
                 ERR_FILELOCKER_LOCK_EXCLUSIVE_FAILED_LOCK.get(lockFile,
@@ -350,10 +326,7 @@ public class LockFileManager
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           failureReason.append(
                   ERR_FILELOCKER_UNLOCK_EXCLUSIVE_FAILED_RELEASE.get(lockFile,
@@ -367,10 +340,7 @@ public class LockFileManager
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // Even though we couldn't close the channel for some reason, this
           // should still be OK because we released the lock above.
@@ -398,10 +368,7 @@ public class LockFileManager
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             failureReason.append(ERR_FILELOCKER_UNLOCK_SHARED_FAILED_RELEASE
                     .get(lockFile, getExceptionMessage(e)));
@@ -414,10 +381,7 @@ public class LockFileManager
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             // Even though we couldn't close the channel for some reason, this
             // should still be OK because we released the lock above.

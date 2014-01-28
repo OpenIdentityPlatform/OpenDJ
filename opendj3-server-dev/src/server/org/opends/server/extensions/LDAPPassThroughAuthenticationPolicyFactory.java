@@ -46,8 +46,7 @@ import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.*;
@@ -62,7 +61,6 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -116,10 +114,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             catch (final DirectoryException e)
             {
               // Ignore this error and try the next factory.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
               lastException = e;
             }
           }
@@ -163,10 +158,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           }
           catch (final DirectoryException e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
             handleDirectoryException(e);
           }
         }
@@ -190,10 +182,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           }
           catch (final DirectoryException e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
             handleDirectoryException(e);
           }
         }
@@ -231,10 +220,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             catch (final DirectoryException de)
             {
               // Ignore this error and try the next factory.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
             }
           }
           incrementNextIndex();
@@ -305,10 +291,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         }
         catch (final DirectoryException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
           lastException = e;
           isAvailable = false; // publishes lastException
           throw e;
@@ -393,10 +376,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           }
           catch (final DirectoryException e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
       }
@@ -934,10 +914,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         }
         catch (final IOException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
 
         // Close all IO resources.
@@ -950,10 +927,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         }
         catch (final IOException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
 
         try
@@ -962,10 +936,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         }
         catch (final IOException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
 
@@ -1438,50 +1409,35 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       }
       catch (final UnknownHostException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
             ERR_LDAP_PTA_CONNECT_UNKNOWN_HOST.get(host, port,
                 String.valueOf(cfg.dn()), host), e);
       }
       catch (final ConnectException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
             ERR_LDAP_PTA_CONNECT_ERROR.get(host, port,
                 String.valueOf(cfg.dn()), port), e);
       }
       catch (final SocketTimeoutException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
             ERR_LDAP_PTA_CONNECT_TIMEOUT.get(host, port,
                 String.valueOf(cfg.dn())), e);
       }
       catch (final SSLException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
             ERR_LDAP_PTA_CONNECT_SSL_ERROR.get(host, port,
                 String.valueOf(cfg.dn()), e.getMessage()), e);
       }
       catch (final Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
             ERR_LDAP_PTA_CONNECT_OTHER_ERROR.get(host, port,
                 String.valueOf(cfg.dn()), e.getMessage()), e);
@@ -1684,9 +1640,9 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               // prevent the bind from succeeded since we are only updating
               // cache data. However, the performance of the server may be
               // impacted, so log a debug warning message.
-              if (debugEnabled())
+              if (logger.isTraceEnabled())
               {
-                TRACER.debugWarning(
+                logger.trace(
                     "An error occurred while trying to update the LDAP PTA "
                         + "cached password for user %s: %s", userEntry.getName()
                         .toString(), String.valueOf(internalModify
@@ -1963,10 +1919,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                   catch (DirectoryException e)
                   {
                     // Fall-through and give up immediately.
-                    if (debugEnabled())
-                    {
-                      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                    }
+                    logger.traceException(e);
                   }
 
                   break foundCachedPasswordTime;
@@ -2029,10 +1982,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         catch (DirectoryException e)
         {
           // Unable to decode the cached password, so give up.
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
 
         return false;
@@ -2271,7 +2221,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
   // Debug tracer for this class.
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Attribute list for searches requesting no attributes.

@@ -26,7 +26,6 @@
 package org.opends.server.loggers;
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.net.InetAddress;
@@ -38,6 +37,7 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -51,7 +51,6 @@ import org.opends.server.api.Group;
 import org.opends.server.authorization.dseecompat.PatternDN;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.ldap.ByteString;
@@ -297,12 +296,8 @@ public abstract class AbstractTextAccessLogPublisher
       if (requestMatched == null)
       {
         // This should not happen.
-        if (debugEnabled())
-        {
-          TRACER.debugWarning(
-              "Operation attachment %s not found while logging response",
+        logger.trace("Operation attachment %s not found while logging response",
               attachmentName);
-        }
         requestMatched = isRequestLoggable(operation);
       }
 
@@ -665,10 +660,7 @@ public abstract class AbstractTextAccessLogPublisher
           }
           catch (final DirectoryException e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+             logger.traceException(e);
           }
         }
       }
@@ -687,10 +679,7 @@ public abstract class AbstractTextAccessLogPublisher
           }
           catch (final DirectoryException e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
       }
@@ -1169,7 +1158,7 @@ public abstract class AbstractTextAccessLogPublisher
   /**
    * The tracer object for the debug logger.
    */
-  protected static final DebugTracer TRACER = getTracer();
+  protected static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private AccessLogPublisherCfg cfg = null;
   private Filter filter = null;
   private final ChangeListener changeListener = new ChangeListener();

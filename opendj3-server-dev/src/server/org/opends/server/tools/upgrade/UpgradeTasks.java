@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 
 package org.opends.server.tools.upgrade;
@@ -40,14 +40,14 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 
 import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.ClientException;
 import org.opends.server.tools.RebuildIndex;
 import org.opends.server.util.BuildVersion;
@@ -66,8 +66,7 @@ public final class UpgradeTasks
   /**
    * Logger for the upgrade.
    */
-  static private final Logger LOG = Logger
-      .getLogger(UpgradeCli.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The indexes list to rebuild are united here.
@@ -138,7 +137,7 @@ public final class UpgradeTasks
       public void perform(final UpgradeContext context) throws ClientException
       {
         final LocalizableMessage msg = INFO_UPGRADE_TASK_REPLACE_SCHEMA_FILE.get(fileName);
-        LOG.log(Level.INFO, msg.toString());
+        logger.debug(LocalizableMessage.raw(msg.toString()));
 
         final ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, msg, 0);
@@ -183,7 +182,7 @@ public final class UpgradeTasks
       public void perform(final UpgradeContext context) throws ClientException
       {
         final LocalizableMessage msg = INFO_UPGRADE_TASK_ADD_CONFIG_FILE.get(fileName);
-        LOG.log(Level.INFO, msg.toString());
+        logger.debug(msg);
 
         final ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, msg, 0);
@@ -279,7 +278,7 @@ public final class UpgradeTasks
       @Override
       public void perform(final UpgradeContext context) throws ClientException
       {
-        LOG.log(Level.INFO, summary.toString());
+        logger.debug(summary);
 
         final ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, summary, 20);
@@ -338,7 +337,7 @@ public final class UpgradeTasks
       @Override
       public void perform(final UpgradeContext context) throws ClientException
       {
-        LOG.log(Level.INFO, summary.toString());
+        logger.debug(summary);
 
         final ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, summary, 20);
@@ -450,7 +449,7 @@ public final class UpgradeTasks
               }
               catch (ClientException e)
               {
-                LOG.log(Level.SEVERE, e.getMessage());
+                logger.error(LocalizableMessage.raw(e.getMessage()));
                 isOk = false;
               }
             }
@@ -620,7 +619,7 @@ public final class UpgradeTasks
         // Startup message.
         ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, message, 25);
-        LOG.log(Level.INFO, message.toString());
+        logger.debug(message);
         context.notifyProgress(pnc);
 
         // Sets the arguments like the rebuild index command line.
@@ -646,8 +645,8 @@ public final class UpgradeTasks
           final String[] commandLineArgs =
               args.toArray(new String[args.size()]);
           // Displays info about command line args for log only.
-          LOG.log(Level.INFO, INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS.get(
-              Arrays.toString(commandLineArgs)).toString());
+          logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS.get(
+              Arrays.toString(commandLineArgs)));
 
           /*
            * The rebuild-index process just display a status ok / fails. The
@@ -660,8 +659,7 @@ public final class UpgradeTasks
 
           if (result == 0)
           {
-            LOG.log(Level.INFO, INFO_UPGRADE_REBUILD_INDEX_ENDS.get()
-                .toString());
+            logger.debug(INFO_UPGRADE_REBUILD_INDEX_ENDS.get());
             context.notifyProgress(pnc.setProgress(100));
           }
           else
@@ -674,9 +672,9 @@ public final class UpgradeTasks
         else
         {
           final LocalizableMessage msg = INFO_UPGRADE_REBUILD_INDEX_NO_BACKEND_FOUND.get();
-          LOG.log(Level.INFO, msg.toString());
-          LOG.log(Level.INFO, INFO_UPGRADE_REBUILD_INDEX_DECLINED.get(
-              Arrays.toString(indexesListToRebuild.toArray())).toString());
+          logger.debug(msg);
+          logger.debug(INFO_UPGRADE_REBUILD_INDEX_DECLINED.get(
+              Arrays.toString(indexesListToRebuild.toArray())));
           context.notifyProgress(pnc.setProgress(100));
         }
       }
@@ -700,7 +698,7 @@ public final class UpgradeTasks
       public void perform(final UpgradeContext context) throws ClientException
       {
         final LocalizableMessage msg = INFO_UPGRADE_TASK_REFRESH_UPGRADE_DIRECTORY.get();
-        LOG.log(Level.INFO, msg.toString());
+        logger.debug(msg);
 
         final ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, msg, 20);
@@ -755,7 +753,7 @@ public final class UpgradeTasks
             if (oldSnmpConfig.exists())
             {
               context.notifyProgress(pnc.setProgress(20));
-              LOG.log(Level.INFO, summary.toString());
+              logger.debug(LocalizableMessage.raw(summary.toString()));
 
               final File snmpConfig =
                   new File(UpgradeUtils.configSnmpSecurityDirectory,
@@ -846,27 +844,26 @@ public final class UpgradeTasks
   {
     if (changeCount != 0)
     {
-      LOG.log(Level.INFO, INFO_UPGRADE_CHANGE_DONE_IN_SPECIFIC_FILE.get(
-          fileName, String.valueOf(changeCount)).toString());
+      logger.debug(INFO_UPGRADE_CHANGE_DONE_IN_SPECIFIC_FILE.get(
+          fileName, String.valueOf(changeCount)));
     }
     else
     {
-      LOG.log(Level.INFO, INFO_UPGRADE_NO_CHANGE_DONE_IN_SPECIFIC_FILE.get(
-          fileName).toString());
+      logger.debug(INFO_UPGRADE_NO_CHANGE_DONE_IN_SPECIFIC_FILE.get(fileName));
     }
   }
 
   private static void displayTaskLogInformation(final String summary,
       final String filter, final String... ldif)
   {
-    LOG.log(Level.INFO, summary);
+    logger.debug(LocalizableMessage.raw(summary));
     if (filter != null)
     {
-      LOG.log(Level.INFO, filter);
+      logger.debug(LocalizableMessage.raw(filter));
     }
     if (ldif != null)
     {
-      LOG.log(Level.INFO, Arrays.asList(ldif).toString());
+      logger.debug(LocalizableMessage.raw(Arrays.asList(ldif).toString()));
     }
   }
 
@@ -876,7 +873,7 @@ public final class UpgradeTasks
   {
     countErrors++;
     context.notifyProgress(pnc.setProgress(-100));
-    LOG.log(Level.SEVERE, message.toString());
+    logger.error(LocalizableMessage.raw(message.toString()));
     if (!context.isIgnoreErrorsMode())
     {
       throw new ClientException(EXIT_CODE_ERROR, message);

@@ -37,11 +37,10 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -54,7 +53,7 @@ public class PasswordExpirationTimeVirtualAttributeProvider
   /**
    * Debug tracer to log debugging information.
    */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Default constructor.
@@ -148,9 +147,9 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     {
       ErrorLogger.logError(de.getMessageObject());
 
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugError("Failed to retrieve password " +
+        logger.trace("Failed to retrieve password " +
               "policy for user %s: %s",
               entry.getName().toString(),
               stackTraceToSingleLineString(de));
@@ -161,9 +160,9 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     {
       // No authentication policy: debug log this as an error since all
       // entries should have at least the default password policy.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugError("No applicable password policy for user %s", entry
+        logger.trace("No applicable password policy for user %s", entry
             .getName().toString());
       }
     }
@@ -180,9 +179,9 @@ public class PasswordExpirationTimeVirtualAttributeProvider
       {
         ErrorLogger.logError(de.getMessageObject());
 
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugError("Failed to retrieve password " +
+          logger.trace("Failed to retrieve password " +
                 "policy state for user %s: %s",
                 entry.getName().toString(),
                 stackTraceToSingleLineString(de));
@@ -195,9 +194,9 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     else
     {
       // Not a password policy, could be PTA, etc.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("Authentication policy %s found for user %s is "
+        logger.trace("Authentication policy %s found for user %s is "
             + "not a password policy", policy.getDN().toString(), entry
             .getName().toString());
       }

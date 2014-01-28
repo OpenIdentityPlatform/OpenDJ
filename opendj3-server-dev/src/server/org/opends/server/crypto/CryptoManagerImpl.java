@@ -63,8 +63,7 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.ModifyOperation;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.util.StaticUtils.*;
 import org.forgerock.util.Reject;
 import org.opends.server.util.SelectableCertificateKeyManager;
@@ -111,10 +110,7 @@ import org.forgerock.opendj.ldap.ByteString;
 public class CryptoManagerImpl
         implements ConfigurationChangeListener<CryptoManagerCfg>, CryptoManager
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Various schema element references.
   private static AttributeType attrKeyID;
@@ -269,9 +265,7 @@ public class CryptoManagerImpl
              DN.valueOf("cn=Servers"));
       }
       catch (DirectoryException ex) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        logger.traceException(ex);
         throw new InitializationException(ex.getMessageObject());
       }
 
@@ -315,9 +309,7 @@ public class CryptoManagerImpl
         MessageDigest.getInstance(requestedDigestAlgorithm);
       }
       catch (Exception ex) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        logger.traceException(ex);
         unacceptableReasons.add(
              ERR_CRYPTOMGR_CANNOT_GET_REQUESTED_DIGEST.get(
                   requestedDigestAlgorithm, getExceptionMessage(ex)));
@@ -347,9 +339,7 @@ public class CryptoManagerImpl
                   requestedCipherTransformationKeyLengthBits);
         }
         catch (Exception ex) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-          }
+          logger.traceException(ex);
           unacceptableReasons.add(
              ERR_CRYPTOMGR_CANNOT_GET_REQUESTED_ENCRYPTION_CIPHER.get(
                      requestedCipherTransformation, getExceptionMessage(ex)));
@@ -373,9 +363,7 @@ public class CryptoManagerImpl
              requestedMACAlgorithmKeyLengthBits);
       }
       catch (Exception ex) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        logger.traceException(ex);
         unacceptableReasons.add(
                 ERR_CRYPTOMGR_CANNOT_GET_REQUESTED_MAC_ENGINE.get(
                         requestedMACAlgorithm, getExceptionMessage(ex)));
@@ -421,9 +409,7 @@ public class CryptoManagerImpl
                   keyID, certificate, macKey);
         }
         catch (Exception ex) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-          }
+          logger.traceException(ex);
           unacceptableReasons.add(
                   ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_KEY_WRAPPING_CIPHER.get(
                           getExceptionMessage(ex)));
@@ -568,9 +554,7 @@ public class CryptoManagerImpl
       }
     }
     catch (DirectoryException ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
             ERR_CRYPTOMGR_FAILED_TO_RETRIEVE_INSTANCE_CERTIFICATE.get(
                     entryDN.toString(), getExceptionMessage(ex)), ex);
@@ -625,9 +609,7 @@ public class CryptoManagerImpl
       md = MessageDigest.getInstance(mdAlgorithmName);
     }
     catch (NoSuchAlgorithmException ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
           ERR_CRYPTOMGR_FAILED_TO_COMPUTE_INSTANCE_KEY_IDENTIFIER.get(
                   getExceptionMessage(ex)), ex);
@@ -710,9 +692,7 @@ public class CryptoManagerImpl
         }
       }
     } catch (DirectoryException ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
               ERR_CRYPTOMGR_FAILED_TO_PUBLISH_INSTANCE_KEY_ENTRY.get(
                       getExceptionMessage(ex)), ex);
@@ -777,9 +757,7 @@ public class CryptoManagerImpl
       }
     }
     catch (DirectoryException ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
             ERR_CRYPTOMGR_FAILED_TO_RETRIEVE_ADS_TRUSTSTORE_CERTS.get(
                     instanceKeysDN.toString(),
@@ -879,9 +857,7 @@ public class CryptoManagerImpl
       wrappedKeyElement = StaticUtils.bytesToHexNoSpace(wrappedKey);
     }
     catch (GeneralSecurityException ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
            ERR_CRYPTOMGR_FAILED_TO_ENCODE_SYMMETRIC_KEY_ATTRIBUTE.get(
                    getExceptionMessage(ex)), ex);
@@ -942,9 +918,7 @@ public class CryptoManagerImpl
               = StaticUtils.hexStringToByteArray(elements[3]);
     }
     catch (ParseException ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
               ERR_CRYPTOMGR_DECODE_SYMMETRIC_KEY_ATTRIBUTE_SYNTAX.get(
                       symmetricKeyAttribute, fieldName,
@@ -965,9 +939,7 @@ public class CryptoManagerImpl
     }
     catch (IdentifiedException ex) {
       // ConfigException, DirectoryException
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
           ERR_CRYPTOMGR_DECODE_SYMMETRIC_KEY_ATTRIBUTE_NO_PRIVATE.get(
                   getExceptionMessage(ex)), ex);
@@ -982,9 +954,7 @@ public class CryptoManagerImpl
       secretKey = (SecretKey)unwrapper.unwrap(wrappedKeyCipherTextElement,
               wrappedKeyAlgorithmElement, Cipher.SECRET_KEY);
     } catch(GeneralSecurityException ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
             ERR_CRYPTOMGR_DECODE_SYMMETRIC_KEY_ATTRIBUTE_DECIPHER.get(
                     getExceptionMessage(ex)), ex);
@@ -1238,9 +1208,7 @@ public class CryptoManagerImpl
     }
     catch (DirectoryException ex)
     {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_OTHER.get(
                       entry.getName().toString(), ex.getMessage()), ex);
@@ -1344,9 +1312,7 @@ public class CryptoManagerImpl
     }
     catch (DirectoryException ex)
     {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_OTHER.get(
                       entry.getName().toString(), ex.getMessage()), ex);
@@ -1405,9 +1371,7 @@ public class CryptoManagerImpl
         fValue = UUID.fromString(keyEntryID);
       }
       catch (IllegalArgumentException ex) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        logger.traceException(ex);
         throw new CryptoManagerException(
                 ERR_CRYPTOMGR_INVALID_KEY_IDENTIFIER_SYNTAX.get(
                         keyEntryID, getExceptionMessage(ex)), ex);
@@ -2163,9 +2127,7 @@ public class CryptoManagerImpl
     }
     catch (GeneralSecurityException ex) {
       // NoSuchAlgorithmException, NoSuchPaddingException
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
            ERR_CRYPTOMGR_GET_CIPHER_INVALID_CIPHER_TRANSFORMATION.get(
                    keyEntry.getType(), getExceptionMessage(ex)), ex);
@@ -2190,9 +2152,7 @@ public class CryptoManagerImpl
     }
     catch (GeneralSecurityException ex) {
       // InvalidKeyException, InvalidAlgorithmParameterException
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
               ERR_CRYPTOMGR_GET_CIPHER_CANNOT_INITIALIZE.get(
                       getExceptionMessage(ex)), ex);
@@ -2594,9 +2554,7 @@ public class CryptoManagerImpl
       mac = Mac.getInstance(keyEntry.getType());
     }
     catch (NoSuchAlgorithmException ex){
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
               ERR_CRYPTOMGR_GET_MAC_ENGINE_INVALID_MAC_ALGORITHM.get(
                       keyEntry.getType(), getExceptionMessage(ex)),
@@ -2607,9 +2565,7 @@ public class CryptoManagerImpl
       mac.init(keyEntry.getSecretKey());
     }
     catch (InvalidKeyException ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
            ERR_CRYPTOMGR_GET_MAC_ENGINE_CANNOT_INITIALIZE.get(
                    getExceptionMessage(ex)), ex);
@@ -2821,9 +2777,7 @@ public class CryptoManagerImpl
       }
     }
     catch (IOException ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
              ERR_CRYPTOMGR_GET_CIPHER_STREAM_PROLOGUE_WRITE_ERROR.get(
                      getExceptionMessage(ex)), ex);
@@ -2846,9 +2800,7 @@ public class CryptoManagerImpl
     }
     catch (Exception ex) {
       // IndexOutOfBoundsException, ArrayStoreException, ...
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
               ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_PROLOGUE_VERSION.get(
                       ex.getMessage()), ex);
@@ -2873,9 +2825,7 @@ public class CryptoManagerImpl
     }
     catch (Exception ex) {
       // IndexOutOfBoundsException, ArrayStoreException, ...
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new CryptoManagerException(
            ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_KEY_IDENTIFIER.get(
                    ex.getMessage()), ex);
@@ -2896,9 +2846,7 @@ public class CryptoManagerImpl
       }
       catch (Exception ex) {
         // IndexOutOfBoundsException, ArrayStoreException, ...
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        logger.traceException(ex);
         throw new CryptoManagerException(
                ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_IV.get(), ex);
       }
@@ -3062,10 +3010,7 @@ public class CryptoManagerImpl
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
            ERR_CRYPTOMGR_SSL_CONTEXT_CANNOT_INITIALIZE.get(

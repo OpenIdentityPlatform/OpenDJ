@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -31,11 +31,10 @@ import java.net.SocketException;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.ECLUpdateMsg;
 import org.opends.server.replication.protocol.Session;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
@@ -43,7 +42,6 @@ import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -52,10 +50,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class ECLServerWriter extends ServerWriter
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final Session session;
   private final ECLServerHandler handler;
@@ -203,7 +198,7 @@ public class ECLServerWriter extends ServerWriter
       }
       catch(DirectoryException de)
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        logger.traceException(de);
       }
 
       if (update == null)
@@ -248,8 +243,8 @@ public class ECLServerWriter extends ServerWriter
    */
   private void publish(ECLUpdateMsg msg) throws IOException
   {
-    if (debugEnabled())
-      TRACER.debugInfo(getName() + " publishes msg=[" + msg + "]");
+    if (logger.isTraceEnabled())
+      logger.trace(getName() + " publishes msg=[" + msg + "]");
 
     if (session != null)
     {

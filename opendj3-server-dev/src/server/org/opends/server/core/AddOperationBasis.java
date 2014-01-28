@@ -29,7 +29,6 @@ package org.opends.server.core;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
@@ -40,8 +39,7 @@ import java.util.Map;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
@@ -58,11 +56,7 @@ public class AddOperationBasis
        extends AbstractOperation
        implements PreParseAddOperation, AddOperation, PostResponseAddOperation
 {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The set of response controls to send to the client. */
   private ArrayList<Control> responseControls;
@@ -239,10 +233,7 @@ public class AddOperationBasis
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       setResultCode(de.getResultCode());
       appendErrorMessage(de.getMessageObject());
@@ -692,10 +683,7 @@ public class AddOperationBasis
     }
     catch(CanceledOperationException coe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, coe);
-      }
+      logger.traceException(coe);
 
       setResultCode(ResultCode.CANCELED);
       cancelResult = new CancelResult(ResultCode.CANCELED, null);

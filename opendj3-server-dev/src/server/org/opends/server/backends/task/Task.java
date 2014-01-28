@@ -30,7 +30,6 @@ package org.opends.server.backends.task;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -52,7 +51,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.EMailMessage;
 import org.opends.server.util.StaticUtils;
@@ -67,10 +66,7 @@ import org.opends.server.util.TimeThread;
 public abstract class Task
        implements Comparable<Task>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -251,10 +247,7 @@ public abstract class Task
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_TASK_CANNOT_PARSE_SCHEDULED_START_TIME.get(timeString, taskDN);
@@ -285,10 +278,7 @@ public abstract class Task
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_TASK_CANNOT_PARSE_ACTUAL_START_TIME.get(timeString, taskDN);
@@ -319,10 +309,7 @@ public abstract class Task
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_TASK_CANNOT_PARSE_COMPLETION_TIME.get(timeString, taskDN);
@@ -1194,10 +1181,7 @@ public abstract class Task
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       taskState = TaskState.STOPPED_BY_ERROR;
 

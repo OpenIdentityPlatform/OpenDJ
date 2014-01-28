@@ -39,8 +39,7 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.AttributeTypeSyntax;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.util.ServerConstants.*;
 import static org.forgerock.util.Reject.*;
 
@@ -70,10 +69,7 @@ public final class AttributeType
        extends CommonSchemaElements
        implements SchemaFileElement, Comparable<AttributeType>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The approximate matching rule for this attribute type.
   private final ApproximateMatchingRule approximateMatchingRule;
@@ -300,10 +296,7 @@ public final class AttributeType
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         defStr = definition;
       }

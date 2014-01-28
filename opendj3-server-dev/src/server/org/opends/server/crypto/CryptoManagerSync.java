@@ -30,9 +30,8 @@ package org.opends.server.crypto;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.ChangeNotificationListener;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseAddOperation;
@@ -56,7 +55,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.AddOperation;
 import static org.opends.messages.CoreMessages.*;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.admin.ads.ADSContext;
 
 import java.util.LinkedHashSet;
@@ -76,7 +74,7 @@ public class CryptoManagerSync
   /**
    * The debug log tracer for this object.
    */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -229,10 +227,7 @@ public class CryptoManagerSync
       }
       catch (DirectoryException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_TRUSTSTORESYNC_EXCEPTION.get(
              stackTraceToSingleLineString(e));

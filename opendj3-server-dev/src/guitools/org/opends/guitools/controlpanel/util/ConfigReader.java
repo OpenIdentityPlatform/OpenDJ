@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -35,8 +36,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
@@ -60,8 +62,7 @@ import org.opends.server.types.Schema;
  */
 public abstract class ConfigReader
 {
-  private static final Logger LOG =
-    Logger.getLogger(ConfigReader.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   /**
    * The class used to read the configuration from a file.
    */
@@ -106,7 +107,7 @@ public abstract class ConfigReader
       environmentSettingException = new OfflineUpdateException(
           ERR_CTRL_PANEL_SETTING_ENVIRONMENT.get(t.getMessage().toString()), t);
     }
-    LOG.log(Level.INFO, "Environment initialized.");
+    logger.debug(LocalizableMessage.raw("Environment initialized."));
   }
 
   /**

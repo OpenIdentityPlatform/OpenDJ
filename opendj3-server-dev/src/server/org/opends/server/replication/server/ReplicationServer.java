@@ -44,7 +44,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
@@ -58,7 +58,6 @@ import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -102,11 +101,7 @@ public final class ReplicationServer
   private DN backendConfigEntryDN;
   /** ID of the backend. */
   private static final String backendId = "replicationChanges";
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static String eclWorkflowID =
     "External Changelog Workflow ID";
@@ -270,10 +265,7 @@ public final class ReplicationServer
         // shutdown or changing the port number process.
         // Just log debug information and loop.
         // Do not log the message during shutdown.
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         if (!shutdown) {
           LocalizableMessage message =
             ERR_EXCEPTION_LISTENING.get(e.getLocalizedMessage());
@@ -369,8 +361,8 @@ public final class ReplicationServer
   {
     boolean sslEncryption = replSessionSecurity.isSslEncryption();
 
-    if (debugEnabled())
-      TRACER.debugInfo("RS " + getMonitorInstanceName() + " connects to "
+    if (logger.isTraceEnabled())
+      logger.trace("RS " + getMonitorInstanceName() + " connects to "
           + remoteServerAddress);
 
     Socket socket = new Socket();
@@ -388,8 +380,8 @@ public final class ReplicationServer
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      if (logger.isTraceEnabled())
+        logger.traceException(e);
       close(session);
       close(socket);
     }
@@ -411,14 +403,14 @@ public final class ReplicationServer
       listenSocket.bind(new InetSocketAddress(getReplicationPort()));
 
       // creates working threads: we must first connect, then start to listen.
-      if (debugEnabled())
-        TRACER.debugInfo("RS " +getMonitorInstanceName()+
+      if (logger.isTraceEnabled())
+        logger.trace("RS " +getMonitorInstanceName()+
             " creates connect thread");
       connectThread = new ReplicationServerConnectThread(this);
       connectThread.start();
 
-      if (debugEnabled())
-        TRACER.debugInfo("RS " +getMonitorInstanceName()+
+      if (logger.isTraceEnabled())
+        logger.trace("RS " +getMonitorInstanceName()+
             " creates listen thread");
 
       listenThread = new ReplicationServerListenThread(this);
@@ -433,8 +425,8 @@ public final class ReplicationServer
       }
       eclwe = new ECLWorkflowElement(this);
 
-      if (debugEnabled())
-        TRACER.debugInfo("RS " +getMonitorInstanceName()+
+      if (logger.isTraceEnabled())
+        logger.trace("RS " +getMonitorInstanceName()+
             " successfully initialized");
     } catch (UnknownHostException e)
     {
@@ -705,9 +697,9 @@ public final class ReplicationServer
     }
     catch (ChangelogException ignored)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
+        logger.traceException(ignored);
       }
     }
 
@@ -791,8 +783,8 @@ public final class ReplicationServer
       }
       catch (ChangelogException e)
       {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        if (logger.isTraceEnabled())
+          logger.traceException(e);
         resultCode = ResultCode.OPERATIONS_ERROR;
       }
     }
@@ -817,14 +809,14 @@ public final class ReplicationServer
       }
       catch (IOException e)
       {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        if (logger.isTraceEnabled())
+          logger.traceException(e);
         logError(ERR_COULD_NOT_CLOSE_THE_SOCKET.get(e.toString()));
       }
       catch (InterruptedException e)
       {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        if (logger.isTraceEnabled())
+          logger.traceException(e);
         logError(ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e.toString()));
       }
     }
@@ -1024,8 +1016,8 @@ public final class ReplicationServer
    */
   public void remove()
   {
-    if (debugEnabled())
-      TRACER.debugInfo("RS " + getMonitorInstanceName() + " starts removing");
+    if (logger.isTraceEnabled())
+      logger.trace("RS " + getMonitorInstanceName() + " starts removing");
 
     shutdown();
     removeBackend();
@@ -1125,8 +1117,8 @@ public final class ReplicationServer
   @Override
   public void processExportBegin(Backend backend, LDIFExportConfig config)
   {
-    if (debugEnabled())
-      TRACER.debugInfo("RS " + getMonitorInstanceName() + " Export starts");
+    if (logger.isTraceEnabled())
+      logger.trace("RS " + getMonitorInstanceName() + " Export starts");
     if (backend.getBackendID().equals(backendId))
     {
       // Retrieves the backend related to this replicationServerDomain
@@ -1328,7 +1320,7 @@ public final class ReplicationServer
         eligibleCSN = domainEligibleCSN;
       }
 
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
         final String dates = domainEligibleCSN == null ?
             "" : new Date(domainEligibleCSN.getTime()).toString();
@@ -1342,8 +1334,8 @@ public final class ReplicationServer
       eligibleCSN = new CSN(TimeThread.getTime(), 0, 0);
     }
 
-    if (debugEnabled()) {
-      TRACER.debugInfo("In " + this + " getEligibleCSN() ends with " +
+    if (logger.isTraceEnabled()) {
+      logger.trace("In " + this + " getEligibleCSN() ends with " +
         " the following domainEligibleCSN for each domain :" + debugLog +
         " thus CrossDomainEligibleCSN=" + eligibleCSN +
         "  ts=" + new Date(eligibleCSN.getTime()));

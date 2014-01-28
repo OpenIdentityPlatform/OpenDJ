@@ -28,8 +28,6 @@ package org.opends.server.admin.server;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -59,10 +57,9 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.StaticUtils;
 
@@ -194,11 +191,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
       return null;
     }
   }
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Cached managed object between accept/apply call-backs.
   private ServerManagedObject<? extends S> cachedManagedObject;
@@ -352,9 +345,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
           try {
             handler.performPostModify(cachedManagedObject);
           } catch (ConfigException e) {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
       }
@@ -477,9 +468,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
       }
     } catch (ConfigException e) {
       // The dependent entry could not be retrieved.
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = AdminMessages.ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
           String.valueOf(dn), StaticUtils.getExceptionMessage(e));

@@ -29,8 +29,6 @@ package org.opends.server.core.networkgroups;
 
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,10 +42,9 @@ import org.opends.server.admin.std.server.NetworkGroupCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.StaticUtils;
@@ -67,10 +64,7 @@ public class NetworkGroupConfigManager implements
     ConfigurationDeleteListener<NetworkGroupCfg>
 
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // A mapping between the DNs of the config entries and the associated
   // network groups.
@@ -113,20 +107,14 @@ public class NetworkGroupConfigManager implements
       }
       catch (InitializationException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         messages.add(e.getMessageObject());
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
       catch (ConfigException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         messages.add(e.getMessageObject());
         resultCode = DirectoryServer.getServerErrorResultCode();
@@ -169,20 +157,14 @@ public class NetworkGroupConfigManager implements
       }
       catch (InitializationException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         messages.add(e.getMessageObject());
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
       catch (ConfigException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         messages.add(e.getMessageObject());
         resultCode = DirectoryServer.getServerErrorResultCode();

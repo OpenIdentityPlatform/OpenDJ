@@ -27,7 +27,6 @@
 package org.opends.server.admin;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.AdminMessages.*;
 import java.io.File;
 import java.io.FileWriter;
@@ -64,8 +63,7 @@ import org.opends.server.util.SetupUtils;
 import org.opends.server.admin.std.server.TrustManagerProviderCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
 
@@ -90,9 +88,7 @@ public final class AdministrationConnector implements
 
   // Friendly name of the administration connector
   private static final String FRIENDLY_NAME = "Administration Connector";
-
-  // The tracer object for the debug logger.
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private LDAPConnectionHandler adminConnectionHandler;
 
@@ -751,10 +747,7 @@ public final class AdministrationConnector implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message = ERR_ADMIN_CERTIFICATE_GENERATION.get(e.getMessage());
       logError(message);
       throw new InitializationException(message);

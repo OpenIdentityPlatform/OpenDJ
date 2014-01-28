@@ -27,7 +27,6 @@
 package org.opends.server.loggers;
 
 import static org.opends.messages.LoggerMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
@@ -36,12 +35,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FreeDiskSpaceLogRetentionPolicyCfg;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 
@@ -53,10 +51,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     RetentionPolicy<FreeDiskSpaceLogRetentionPolicyCfg>,
     ConfigurationChangeListener<FreeDiskSpaceLogRetentionPolicyCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private long freeDiskSpace = 0;
   private FreeDiskSpaceLogRetentionPolicyCfg config;
@@ -135,10 +130,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message =
           ERR_LOGGER_ERROR_OBTAINING_FREE_SPACE.get(files[0].toString(),
               stackTraceToSingleLineString(e));
@@ -146,11 +138,8 @@ public class FreeDiskSpaceRetentionPolicy implements
                                    message, e);
     }
 
-    if(debugEnabled())
-    {
-      TRACER.debugInfo("Current free disk space: %d, Required: %d", freeSpace,
+    logger.trace("Current free disk space: %d, Required: %d", freeSpace,
           freeDiskSpace);
-    }
 
     if (freeSpace > freeDiskSpace)
     {

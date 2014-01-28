@@ -63,7 +63,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
@@ -73,8 +73,6 @@ import org.opends.server.types.operation.PostOperationDeleteOperation;
 
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -98,10 +96,7 @@ public class ReferentialIntegrityPlugin
         implements ConfigurationChangeListener<ReferentialIntegrityPluginCfg>,
                    ServerShutdownListener
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -1103,9 +1098,7 @@ public class ReferentialIntegrityPlugin
         } catch(InterruptedException e) {
           continue;
         } catch(Exception e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
         processLog();
       }

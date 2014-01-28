@@ -62,7 +62,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.tools.LDIFModify;
 import org.opends.server.types.*;
@@ -78,7 +78,6 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -90,10 +89,7 @@ public class ConfigFileHandler
        extends ConfigHandler
        implements AlertGenerator
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -237,19 +233,13 @@ public class ConfigFileHandler
     }
     catch (InitializationException ie)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
+      logger.traceException(ie);
 
       throw ie;
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_VERIFY_EXISTENCE.get(
                              f.getAbsolutePath(), String.valueOf(e));
@@ -313,10 +303,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES.get(
           changesFile.getAbsolutePath(), String.valueOf(e));
@@ -337,10 +324,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_OPEN_FOR_READ.get(
                              f.getAbsolutePath(), String.valueOf(e));
@@ -356,10 +340,7 @@ public class ConfigFileHandler
     }
     catch (LDIFException le)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, le);
-      }
+      logger.traceException(le);
 
       close(reader);
 
@@ -369,10 +350,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       close(reader);
 
@@ -407,20 +385,14 @@ public class ConfigFileHandler
     }
     catch (InitializationException ie)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
+      logger.traceException(ie);
 
       close(reader);
       throw ie;
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       close(reader);
 
@@ -449,10 +421,7 @@ public class ConfigFileHandler
       }
       catch (LDIFException le)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, le);
-        }
+        logger.traceException(le);
 
         close(reader);
 
@@ -463,10 +432,7 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         close(reader);
 
@@ -535,10 +501,7 @@ public class ConfigFileHandler
       catch (Exception e)
       {
         // This should not happen.
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         close(reader);
 
@@ -585,19 +548,13 @@ public class ConfigFileHandler
       }
       catch (InitializationException ie)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-        }
+        logger.traceException(ie);
 
         throw ie;
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(ENV_VAR_INSTALL_ROOT);
@@ -670,10 +627,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_CANNOT_REGISTER_AS_PRIVATE_SUFFIX.get(
           String.valueOf(configRootEntry.getDN()), getExceptionMessage(e));
@@ -935,10 +889,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -1263,10 +1214,7 @@ public class ConfigFileHandler
       }
       catch (ConfigException ce)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-        }
+        logger.traceException(ce);
 
         LocalizableMessage message = ERR_CONFIG_FILE_ADD_FAILED.
             get(String.valueOf(entryDN), String.valueOf(parentDN),
@@ -1423,10 +1371,7 @@ public class ConfigFileHandler
       }
       catch (ConfigException ce)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-        }
+        logger.traceException(ce);
 
         LocalizableMessage message = ERR_CONFIG_FILE_DELETE_FAILED.
             get(String.valueOf(entryDN), String.valueOf(parentEntry.getDN()),
@@ -1882,10 +1827,7 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_CONFIG_MANUAL_CHANGES_LOST.get(
             configFile, stackTraceToSingleLineString(e));
@@ -1909,10 +1851,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG.get(
           String.valueOf(tempConfig), stackTraceToSingleLineString(e));
@@ -1933,10 +1872,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_FILE_WRITE_CANNOT_RENAME_NEW_CONFIG.
           get(String.valueOf(tempConfig), String.valueOf(configFile),
@@ -1995,10 +1931,7 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR.
             get(archiveDirectory.getAbsolutePath(),
@@ -2034,10 +1967,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE.get(
           stackTraceToSingleLineString(e));
@@ -2067,10 +1997,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE.get(
           stackTraceToSingleLineString(e));
@@ -2170,10 +2097,7 @@ public class ConfigFileHandler
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           logError(ERR_STARTOK_CANNOT_WRITE.get(configFile, tempFilePath,
                                                 getExceptionMessage(e)));
@@ -2182,10 +2106,7 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         logError(ERR_STARTOK_CANNOT_OPEN_FOR_WRITING.get(tempFilePath,
                       getExceptionMessage(e)));
@@ -2198,10 +2119,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       logError(ERR_STARTOK_CANNOT_OPEN_FOR_READING.get(configFile,
                                                        getExceptionMessage(e)));
@@ -2224,10 +2142,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     File startOKFile = new File(startOKFilePath);
@@ -2240,10 +2155,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
 
@@ -2253,10 +2165,7 @@ public class ConfigFileHandler
       tempFile.renameTo(startOKFile);
     } catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       logError(ERR_STARTOK_CANNOT_RENAME.get(tempFilePath, startOKFilePath,
                                              getExceptionMessage(e)));
@@ -2274,10 +2183,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -2350,10 +2256,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_LDIF_WRITE_ERROR.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -2366,10 +2269,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_FILE_CLOSE_ERROR.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -2401,10 +2301,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_FILE_WRITE_ERROR.get(
           configEntry.getDN().toString(), String.valueOf(e));
@@ -2520,10 +2417,7 @@ public class ConfigFileHandler
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_CONFIG_BACKUP_CANNOT_GET_MAC.get(
               macKeyID, stackTraceToSingleLineString(e));
@@ -2544,10 +2438,7 @@ public class ConfigFileHandler
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_CONFIG_BACKUP_CANNOT_GET_DIGEST.get(
               digestAlgorithm, stackTraceToSingleLineString(e));
@@ -2596,10 +2487,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
           get(String.valueOf(filename), backupDirectory.getPath(),
@@ -2620,10 +2508,7 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_CONFIG_BACKUP_CANNOT_GET_CIPHER.get(
             stackTraceToSingleLineString(e));
@@ -2663,10 +2548,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       message = ERR_CONFIG_BACKUP_CANNOT_DETERMINE_CONFIG_FILE_LOCATION.
           get(getExceptionMessage(e));
@@ -2714,10 +2596,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       StaticUtils.close(inputStream, zipStream);
 
@@ -2772,10 +2651,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       StaticUtils.close(inputStream, zipStream);
 
@@ -2794,10 +2670,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       message = ERR_CONFIG_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(
           filename, backupDirectory.getPath(), getExceptionMessage(e));
@@ -2837,10 +2710,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       message = ERR_CONFIG_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
           backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
@@ -3499,10 +3369,7 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 }

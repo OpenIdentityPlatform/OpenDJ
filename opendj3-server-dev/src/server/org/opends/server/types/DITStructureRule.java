@@ -37,8 +37,7 @@ import java.util.Set;
 
 import org.opends.server.schema.DITStructureRuleSyntax;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.util.ServerConstants.*;
 import static org.forgerock.util.Reject.*;
 
@@ -56,10 +55,7 @@ import static org.forgerock.util.Reject.*;
 public final class DITStructureRule
        implements SchemaFileElement
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Indicates whether this DIT structure rule is declared "obsolete".
   private final boolean isObsolete;
@@ -138,10 +134,7 @@ public final class DITStructureRule
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         defStr = definition;
       }

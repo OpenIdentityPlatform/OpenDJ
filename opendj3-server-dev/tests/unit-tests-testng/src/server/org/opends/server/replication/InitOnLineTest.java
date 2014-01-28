@@ -29,14 +29,12 @@ package org.opends.server.replication;
 import java.util.*;
 
 import org.assertj.core.api.Assertions;
-import org.opends.messages.Category;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.ServerStatus;
@@ -58,7 +56,6 @@ import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.backends.task.TaskState.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -88,7 +85,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * The tracer object for the debug logger
    */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static final int WINDOW_SIZE = 10;
 
   private Entry taskInitFromS2;
@@ -118,9 +115,9 @@ public class InitOnLineTest extends ReplicationTestCase
   private void log(String s)
   {
     logError(LocalizableMessage.raw("InitOnLineTests/" + s));
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(s);
+      logger.trace(s);
     }
   }
 
@@ -133,7 +130,7 @@ public class InitOnLineTest extends ReplicationTestCase
   {
     super.setUp();
 
-    log("Setup: debugEnabled:" + debugEnabled());
+    log("Setup: debugEnabled:" + logger.isTraceEnabled());
 
     // This test suite depends on having the schema available.
     baseDN = DN.valueOf(EXAMPLE_DN);
@@ -751,7 +748,7 @@ public class InitOnLineTest extends ReplicationTestCase
   public void initializeTargetImport() throws Exception
   {
     String testCase = "initializeTargetImport";
-    log("Starting " + testCase + " debugEnabled:" + debugEnabled());
+    log("Starting " + testCase + " debugEnabled:" + logger.isTraceEnabled());
     try
     {
       replServer1 = createReplicationServer(replServer1ID, testCase);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock, AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -38,8 +38,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -86,8 +87,7 @@ import org.opends.server.types.OpenDsException;
  */
 public class ConfigFromFile extends ConfigReader
 {
-  private static final Logger LOG =
-    Logger.getLogger(ConfigFromFile.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Creates a new instance of this config file handler.  No initialization
@@ -369,7 +369,7 @@ public class ConfigFromFile extends ConfigReader
     }
     catch (final Throwable t)
     {
-      LOG.log(Level.WARNING, "Error reading configuration: "+t, t);
+      logger.warn(LocalizableMessage.raw("Error reading configuration: "+t, t));
       OfflineUpdateException oue = new OfflineUpdateException(
           ERR_READING_CONFIG_LDAP.get(t.getMessage().toString()), t);
       ex.add(oue);
@@ -385,7 +385,7 @@ public class ConfigFromFile extends ConfigReader
 
     for (OpenDsException oe : ex)
     {
-      LOG.log(Level.WARNING, "Error reading configuration: "+oe, oe);
+      logger.warn(LocalizableMessage.raw("Error reading configuration: "+oe, oe));
     }
     exceptions = Collections.unmodifiableList(ex);
     administrativeUsers = Collections.unmodifiableSet(as);

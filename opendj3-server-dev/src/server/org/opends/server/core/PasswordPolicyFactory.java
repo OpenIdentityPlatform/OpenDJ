@@ -30,8 +30,6 @@ package org.opends.server.core;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
@@ -47,7 +45,7 @@ import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn.*;
 import org.opends.server.admin.std.server.PasswordPolicyCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -65,10 +63,7 @@ import org.forgerock.opendj.ldap.ByteString;
 public final class PasswordPolicyFactory implements
     AuthenticationPolicyFactory<PasswordPolicyCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -78,10 +73,7 @@ public final class PasswordPolicyFactory implements
   private static final class PasswordPolicyImpl extends PasswordPolicy
       implements ConfigurationChangeListener<PasswordPolicyCfg>
   {
-    /**
-     * The tracer object for the debug logger.
-     */
-    private static final DebugTracer TRACER = getTracer();
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     // Current configuration.
     private PasswordPolicyCfg configuration;
@@ -374,10 +366,7 @@ public final class PasswordPolicyFactory implements
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CHANGE_BY_TIME
             .get(String.valueOf(configEntryDN), getExceptionMessage(e));
@@ -395,10 +384,7 @@ public final class PasswordPolicyFactory implements
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT.get(
               String.valueOf(configEntryDN), String.valueOf(formatString));
@@ -420,10 +406,7 @@ public final class PasswordPolicyFactory implements
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             LocalizableMessage message =
               ERR_PWPOLICY_INVALID_PREVIOUS_LAST_LOGIN_TIME_FORMAT
@@ -1224,20 +1207,14 @@ public final class PasswordPolicyFactory implements
     }
     catch (final ConfigException ce)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
+      logger.traceException(ce);
 
       unacceptableReasons.add(ce.getMessageObject());
       return false;
     }
     catch (final InitializationException ie)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
+      logger.traceException(ie);
 
       unacceptableReasons.add(ie.getMessageObject());
       return false;

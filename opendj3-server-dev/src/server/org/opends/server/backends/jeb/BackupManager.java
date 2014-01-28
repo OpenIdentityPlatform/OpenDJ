@@ -54,8 +54,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.opends.server.types.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -67,10 +66,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class BackupManager
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The common prefix for archive files.
@@ -168,10 +164,7 @@ public class BackupManager
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_MAC.get(
               macKeyID, stackTraceToSingleLineString(e));
@@ -191,10 +184,7 @@ public class BackupManager
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_DIGEST.get(
               digestAlgorithm, stackTraceToSingleLineString(e));
@@ -288,10 +278,7 @@ public class BackupManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
           get(String.valueOf(archiveFilename), backupDir.getPath(),
@@ -311,10 +298,7 @@ public class BackupManager
       }
       catch (CryptoManagerException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
                 stackTraceToSingleLineString(e));
@@ -357,10 +341,7 @@ public class BackupManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       message = ERR_JEB_BACKUP_CANNOT_LIST_LOG_FILES.get(
           backendDir.getAbsolutePath(), stackTraceToSingleLineString(e));
@@ -379,10 +360,7 @@ public class BackupManager
       }
       catch (IOException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         message = ERR_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE.get(
             ZIPENTRY_EMPTY_PLACEHOLDER, stackTraceToSingleLineString(e));
         throw new DirectoryException(
@@ -435,10 +413,7 @@ public class BackupManager
           }
           catch (IOException e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
             message = ERR_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE.get(
                 zipEntryName, stackTraceToSingleLineString(e));
             throw new DirectoryException(
@@ -468,20 +443,14 @@ public class BackupManager
           }
           catch (FileNotFoundException e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             // A log file has been deleted by the cleaner since we started.
             deletedFiles = true;
           }
           catch (IOException e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
             message = ERR_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE.get(
                 logFile.getName(), stackTraceToSingleLineString(e));
             throw new DirectoryException(
@@ -509,10 +478,7 @@ public class BackupManager
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             message = ERR_JEB_BACKUP_CANNOT_LIST_LOG_FILES.get(
                 backendDir.getAbsolutePath(), stackTraceToSingleLineString(e));
@@ -544,10 +510,7 @@ public class BackupManager
     // to close the zipStream is clumsy. Needs cleanup and best practice.
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       try
       {
@@ -563,10 +526,7 @@ public class BackupManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       message = ERR_JEB_BACKUP_CANNOT_CLOSE_ZIP_STREAM.
           get(archiveFilename, backupDir.getPath(),
@@ -608,10 +568,7 @@ public class BackupManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       message = ERR_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
           backupDir.getDescriptorPath(), stackTraceToSingleLineString(e));
@@ -665,10 +622,7 @@ public class BackupManager
     }
     catch (IOException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
           backupInfo.getBackupID(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -685,10 +639,7 @@ public class BackupManager
       }
       catch (IOException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
             dependent.getBackupID(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -703,10 +654,7 @@ public class BackupManager
     }
     catch (IOException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
           backupInfo.getBackupID(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -761,10 +709,7 @@ public class BackupManager
     }
     catch (ConfigException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessageObject());
     }
@@ -775,10 +720,7 @@ public class BackupManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
           backupDir.getDescriptorPath(), stackTraceToSingleLineString(e));
@@ -856,10 +798,7 @@ public class BackupManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_MAC.get(
             macKeyID, stackTraceToSingleLineString(e));
@@ -879,10 +818,7 @@ public class BackupManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_DIGEST.get(
             digestAlgorithm, stackTraceToSingleLineString(e));
@@ -902,10 +838,7 @@ public class BackupManager
       }
       catch (CryptoManagerException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
             stackTraceToSingleLineString(e));
@@ -1228,10 +1161,7 @@ public class BackupManager
       }
       catch (CryptoManagerException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
                 stackTraceToSingleLineString(e));

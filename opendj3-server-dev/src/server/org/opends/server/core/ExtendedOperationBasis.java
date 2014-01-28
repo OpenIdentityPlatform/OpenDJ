@@ -28,7 +28,6 @@ package org.opends.server.core;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
@@ -38,8 +37,7 @@ import java.util.List;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostOperationExtendedOperation;
@@ -59,10 +57,7 @@ public class ExtendedOperationBasis
                   PostOperationExtendedOperation,
                   PostResponseExtendedOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The value for the request associated with this extended operation. */
   private ByteString requestValue;
@@ -431,10 +426,7 @@ public class ExtendedOperationBasis
     }
     catch(CanceledOperationException coe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, coe);
-      }
+      logger.traceException(coe);
 
       setResultCode(ResultCode.CANCELED);
       cancelResult = new CancelResult(ResultCode.CANCELED, null);

@@ -44,8 +44,7 @@ import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.forgerock.util.Reject;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -65,10 +64,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class MatchedValuesFilter
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -758,10 +754,7 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message =
               ERR_MVFILTER_CANNOT_DECODE_AVA.get(getExceptionMessage(e));
@@ -822,10 +815,7 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message =
               ERR_MVFILTER_CANNOT_DECODE_SUBSTRINGS.get(getExceptionMessage(e));
@@ -845,10 +835,7 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_MVFILTER_CANNOT_DECODE_PRESENT_TYPE.get(
               getExceptionMessage(e));
@@ -887,10 +874,7 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_MVFILTER_CANNOT_DECODE_EXTENSIBLE_MATCH.get(
               getExceptionMessage(e));
@@ -1031,10 +1015,7 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -1093,10 +1074,7 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           normalizedSubAny = null;
         }
@@ -1140,10 +1118,7 @@ public class MatchedValuesFilter
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -1335,10 +1310,7 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             return false;
           }
@@ -1365,10 +1337,7 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             return false;
           }
@@ -1393,10 +1362,7 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             return false;
           }
@@ -1421,10 +1387,7 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             return false;
           }
@@ -1456,10 +1419,7 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             return false;
           }
@@ -1494,10 +1454,7 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             return false;
           }
@@ -1517,10 +1474,7 @@ public class MatchedValuesFilter
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             return false;
           }

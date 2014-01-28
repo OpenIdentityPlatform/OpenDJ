@@ -34,14 +34,13 @@ import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.util.Reject.*;
@@ -98,10 +97,7 @@ public class ProxiedAuthV2Control
         if (!lowerAuthZIDStr.startsWith("dn:") &&
             !lowerAuthZIDStr.startsWith("u:"))
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message =
               ERR_PROXYAUTH2_INVALID_AUTHZID.get(lowerAuthZIDStr);
@@ -126,11 +122,7 @@ public class ProxiedAuthV2Control
    */
   public static final ControlDecoder<ProxiedAuthV2Control> DECODER =
     new Decoder();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 

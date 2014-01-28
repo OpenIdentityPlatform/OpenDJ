@@ -44,8 +44,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.ConfigMessages.*;
 /**
@@ -69,10 +68,7 @@ import static org.opends.messages.ConfigMessages.*;
 public final class IntegerWithUnitConfigAttribute
        extends ConfigAttribute
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -574,10 +570,7 @@ public final class IntegerWithUnitConfigAttribute
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
           String.valueOf(value), getName(), String.valueOf(e));
@@ -695,10 +688,7 @@ public final class IntegerWithUnitConfigAttribute
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       rejectReason.append(ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
               lowerValue, getName(), String.valueOf(e)));

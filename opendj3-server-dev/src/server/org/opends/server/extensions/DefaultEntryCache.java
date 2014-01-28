@@ -41,16 +41,13 @@ import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines the default entry cache which acts as an arbiter for
@@ -65,10 +62,7 @@ public class DefaultEntryCache
        implements ConfigurationChangeListener<EntryCacheCfg>,
        BackendInitializationListener
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   // The entry cache order array reflects all currently configured and
@@ -395,9 +389,7 @@ public class DefaultEntryCache
         null
         );
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     return attrs;

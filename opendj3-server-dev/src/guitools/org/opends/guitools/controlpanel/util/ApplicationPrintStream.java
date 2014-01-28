@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -29,8 +30,9 @@ package org.opends.guitools.controlpanel.util;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.guitools.controlpanel.event.PrintStreamListener;
 
@@ -42,8 +44,7 @@ public class ApplicationPrintStream extends PrintStream
 {
   private ArrayList<PrintStreamListener> listeners =
     new ArrayList<PrintStreamListener>();
-  private static final Logger LOG =
-    Logger.getLogger(ApplicationPrintStream.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private boolean notifyListeners = true;
 
@@ -63,7 +64,7 @@ public class ApplicationPrintStream extends PrintStream
   public void println(String msg)
   {
     notifyListenersNewLine(msg);
-    LOG.log(Level.INFO, msg);
+    logger.debug(LocalizableMessage.raw(msg));
   }
 
   /**

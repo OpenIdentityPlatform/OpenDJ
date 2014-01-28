@@ -49,10 +49,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.RDN;
 
 import static org.opends.messages.BackendMessages.*;
@@ -70,10 +68,7 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class RecurringTask
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -304,10 +299,7 @@ public class RecurringTask
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_RECURRINGTASK_CANNOT_LOAD_CLASS.
           get(String.valueOf(taskClassName), ATTR_TASK_CLASS,
@@ -324,10 +316,7 @@ public class RecurringTask
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_RECURRINGTASK_CANNOT_INSTANTIATE_CLASS_AS_TASK.get(
           String.valueOf(taskClassName), Task.class.getName());
@@ -344,10 +333,7 @@ public class RecurringTask
     }
     catch (InitializationException ie)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
+      logger.traceException(ie);
 
       LocalizableMessage message = ERR_RECURRINGTASK_CANNOT_INITIALIZE_INTERNAL.get(
           String.valueOf(taskClassName), ie.getMessage());
@@ -425,10 +411,7 @@ public class RecurringTask
     try {
       nextTaskDate = getNextIteration(calendar);
     } catch (IllegalArgumentException e) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
         ERR_RECURRINGTASK_INVALID_TOKENS_COMBO.get(
@@ -468,10 +451,7 @@ public class RecurringTask
       nextTask.initializeTask();
     } catch (Exception e) {
       // Should not happen, debug log it otherwise.
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     return nextTask;

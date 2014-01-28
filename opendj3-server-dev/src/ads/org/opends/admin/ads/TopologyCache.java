@@ -39,8 +39,9 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
@@ -55,7 +56,6 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -80,8 +80,7 @@ public class TopologyCache
       new LinkedHashSet<PreferredConnection>();
   private final TopologyCacheFilter filter = new TopologyCacheFilter();
   private final static int MULTITHREAD_TIMEOUT = 90 * 1000;
-  private static final Logger LOG =
-      Logger.getLogger(TopologyCache.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Constructor of the TopologyCache.
@@ -138,8 +137,8 @@ public class TopologyCache
         ServerDescriptor descriptor = loader.getServerDescriptor();
         for (ReplicaDescriptor replica : descriptor.getReplicas())
         {
-          LOG.log(Level.INFO, "Handling replica with dn: "
-              + replica.getSuffix().getDN());
+          logger.debug(LocalizableMessage.raw("Handling replica with dn: "
+              + replica.getSuffix().getDN()));
 
           boolean suffixFound = false;
           LdapName dn = new LdapName(replica.getSuffix().getDN());
@@ -363,7 +362,7 @@ public class TopologyCache
       }
       catch (InterruptedException ie)
       {
-        LOG.log(Level.INFO, ie + " caught and ignored", ie);
+        logger.debug(LocalizableMessage.raw(ie + " caught and ignored", ie));
       }
       if (t.isAlive())
       {
@@ -372,7 +371,7 @@ public class TopologyCache
     }
     Date endDate = new Date();
     long workingTime = endDate.getTime() - startDate.getTime();
-    LOG.log(Level.INFO, "Loading ended at " + workingTime + " ms");
+    logger.debug(LocalizableMessage.raw("Loading ended at " + workingTime + " ms"));
   }
 
   /**
@@ -503,8 +502,8 @@ public class TopologyCache
         }
         catch (Throwable t)
         {
-          LOG.log(Level.WARNING, "Unexpected error reading replica ID: " + t,
-              t);
+          logger.warn(LocalizableMessage.raw("Unexpected error reading replica ID: " + t,
+              t));
         }
 
         for (ReplicaDescriptor replica : candidateReplicas)
@@ -524,8 +523,8 @@ public class TopologyCache
               }
               catch (Throwable t)
               {
-                LOG.log(Level.WARNING,
-                    "Unexpected error reading age of oldest change: " + t, t);
+                logger.warn(LocalizableMessage.raw(
+                    "Unexpected error reading age of oldest change: " + t, t));
               }
             }
             s = ConnectionUtils.getFirstValue(sr, "missing-changes");
@@ -537,8 +536,8 @@ public class TopologyCache
               }
               catch (Throwable t)
               {
-                LOG.log(Level.WARNING,
-                    "Unexpected error reading missing changes: " + t, t);
+                logger.warn(LocalizableMessage.raw(
+                    "Unexpected error reading missing changes: " + t, t));
               }
             }
             updatedReplicas.add(replica);
@@ -559,8 +558,8 @@ public class TopologyCache
         }
         catch (Throwable t)
         {
-          LOG.log(Level.WARNING,
-              "Unexpected error closing enumeration on monitor entries" + t, t);
+          logger.warn(LocalizableMessage.raw(
+              "Unexpected error closing enumeration on monitor entries" + t, t));
         }
       }
       if (ctx != null)

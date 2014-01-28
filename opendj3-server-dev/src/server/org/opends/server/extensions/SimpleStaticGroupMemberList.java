@@ -41,9 +41,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.forgerock.util.Reject.*;
 
@@ -57,10 +55,7 @@ import static org.forgerock.util.Reject.*;
 public class SimpleStaticGroupMemberList
        extends MemberList
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -125,10 +120,7 @@ public class SimpleStaticGroupMemberList
       catch (DirectoryException de)
       {
         // Should not happen
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
         LocalizableMessage message = ERR_STATICMEMBERS_CANNOT_DECODE_DN.
             get(String.valueOf(dn), String.valueOf(groupDN),
                 String.valueOf(de.getMessageObject()));
@@ -166,10 +158,7 @@ public class SimpleStaticGroupMemberList
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         LocalizableMessage message = ERR_STATICMEMBERS_CANNOT_GET_ENTRY.
             get(String.valueOf(memberDN), String.valueOf(groupDN),

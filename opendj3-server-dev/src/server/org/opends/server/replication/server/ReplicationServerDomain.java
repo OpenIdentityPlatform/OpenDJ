@@ -40,7 +40,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
@@ -49,7 +49,6 @@ import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -135,7 +134,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   private volatile boolean generationIdSavedStatus = false;
 
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The needed info for each received assured update message we are waiting
@@ -322,7 +321,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
          */
         if (isDifferentGenerationId(rsHandler.getGenerationId()))
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
             debug("update " + update.getCSN()
                 + " will not be sent to replication server "
@@ -363,7 +362,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS
           || dsStatus == ServerStatus.FULL_UPDATE_STATUS)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
           if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS)
           {
@@ -811,7 +810,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           // update message came from
           AckMsg finalAck = expectedAcksInfo.createAck(true);
           ServerHandler origServer = expectedAcksInfo.getRequesterServer();
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
             debug("sending timeout for assured update with CSN " + csn
                 + " to serverId=" + origServer.getServerId());
@@ -952,7 +951,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public void stopServer(ServerHandler sHandler, boolean shutdown)
   {
     // TODO JNR merge with stopServer(MessageHandler)
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       debug("stopServer() on the server handler " + sHandler);
     }
@@ -988,7 +987,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         // Stop useless monitoring publisher if no more RS or DS in domain
         if ( (connectedDSs.size() + connectedRSs.size() )== 1)
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
             debug("remote server " + sHandler
                 + " is the last RS/DS to be stopped:"
@@ -1006,7 +1005,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           // shutdown the status analyzer
           if (connectedDSs.size() == 1)
           {
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
               debug("remote server " + sHandler
                   + " is the last DS to be stopped: stopping status analyzer");
@@ -1067,7 +1066,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public void stopServer(MessageHandler mHandler)
   {
     // TODO JNR merge with stopServer(ServerHandler, boolean)
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       debug("stopServer() on the message handler " + mHandler);
     }
@@ -1143,7 +1142,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   private void resetGenerationIdIfPossible()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       debug("mayResetGenerationId generationIdSavedStatus="
           + generationIdSavedStatus);
@@ -1159,7 +1158,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       {
         if (generationId != rsHandler.getGenerationId())
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
             debug("mayResetGenerationId skip RS " + rsHandler
                 + " that has different genId");
@@ -1169,7 +1168,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         {
           ldapServersConnectedInTheTopology = true;
 
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
             debug("mayResetGenerationId RS " + rsHandler
                 + " has ldap servers connected to it"
@@ -1183,7 +1182,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     {
       ldapServersConnectedInTheTopology = true;
 
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
         debug("has ldap servers connected to it - will not reset generationId");
       }
@@ -1924,7 +1923,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public void resetGenerationId(ServerHandler senderHandler,
     ResetGenerationIdMsg genIdMsg)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       debug("Receiving ResetGenerationIdMsg from "
           + senderHandler.getServerId() + ":\n" + genIdMsg);
@@ -1954,7 +1953,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       else
       {
         // Order to take a gen id we already have, just ignore
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
           debug("Reset generation id requested but generationId was already "
               + this.generationId + ":\n" + genIdMsg);
@@ -2026,7 +2025,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public void processNewStatus(DataServerHandler senderHandler,
     ChangeStatusMsg csMsg)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       debug("receiving ChangeStatusMsg from " + senderHandler.getServerId()
           + ":\n" + csMsg);
@@ -2102,9 +2101,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       // to have the analyzer thread taking the domain lock only when the
       // status of a DS has to be changed. See more comments in run method of
       // StatusAnalyzer.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Status analyzer for domain " + baseDN
+        logger.trace("Status analyzer for domain " + baseDN
             + " has been interrupted when"
             + " trying to acquire domain lock for changing the status of DS "
             + dsHandler.getServerId());
@@ -2198,7 +2197,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public boolean isDegradedDueToGenerationId(int serverId)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       debug("isDegraded serverId=" + serverId + " given local generation Id="
           + this.generationId);
@@ -2214,7 +2213,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       debug("Compute degradation of serverId=" + serverId
           + " LS server generation Id=" + sHandler.getGenerationId());
@@ -2235,7 +2234,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       ReplicationServerHandler rsHandler, boolean allowResetGenId)
       throws IOException, DirectoryException
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       debug("receiving TopologyMsg from serverId=" + rsHandler.getServerId()
           + ":\n" + topoMsg);
@@ -2562,7 +2561,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       final int serverId = lastAliveCSN.getServerId();
       if (!isServerConnected(serverId))
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
           debug("serverId=" + serverId
               + " is not considered for eligibility ... potentially down");
@@ -2576,7 +2575,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       debug("getEligibleCSN() returns result =" + eligibleCSN);
     }
@@ -2643,7 +2642,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           }
           catch (IOException e)
           {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            logger.traceException(e);
             logError(ERR_CHANGELOG_ERROR_SENDING_MSG
                 .get("Replication Server "
                     + localReplicationServer.getReplicationPort() + " "
@@ -2784,7 +2783,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   private void debug(String message)
   {
-    TRACER.debugInfo("In ReplicationServerDomain serverId="
+    logger.trace("In ReplicationServerDomain serverId="
         + localReplicationServer.getServerId() + " for baseDN=" + baseDN
         + " and port=" + localReplicationServer.getReplicationPort()
         + ": " + message);

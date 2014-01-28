@@ -42,7 +42,7 @@ import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
 import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.loggers.debug.TraceSettings;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
@@ -51,13 +51,11 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -70,10 +68,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LDAPConnection
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The hostname to connect to.
   private String hostName = null;
@@ -189,8 +184,7 @@ public class LDAPConnection
     if(connectionOptions.isVerbose())
     {
       ConsoleDebugLogPublisher publisher = new ConsoleDebugLogPublisher(err);
-      publisher.addTraceSettings(null,
-          new TraceSettings(DebugLogLevel.VERBOSE));
+      publisher.addTraceSettings(null, new TraceSettings());
       DebugLogger.addDebugLogPublisher(publisher);
     }
 
@@ -208,10 +202,7 @@ public class LDAPConnection
       }
       catch (Exception ex)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        logger.traceException(ex);
         throw new LDAPConnectionException(LocalizableMessage.raw(ex.getMessage()), ex);
       }
 
@@ -229,18 +220,12 @@ public class LDAPConnection
         msg = ldapReader.readMessage();
       }catch (LDAPException ex1)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex1);
-        }
+        logger.traceException(ex1);
         throw new LDAPConnectionException(LocalizableMessage.raw(ex1.getMessage()), ex1
             .getResultCode(), null, ex1);
       } catch (Exception ex1)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex1);
-        }
+        logger.traceException(ex1);
         throw new LDAPConnectionException(LocalizableMessage.raw(ex1.getMessage()), ex1);
       }
       ExtendedResponseProtocolOp res = msg.getExtendedResponseProtocolOp();
@@ -275,10 +260,7 @@ public class LDAPConnection
       throw e;
     } catch(Exception ex2)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex2);
-      }
+      logger.traceException(ex2);
       throw new LDAPConnectionException(LocalizableMessage.raw(ex2.getMessage()), ex2);
     }
 
@@ -294,10 +276,7 @@ public class LDAPConnection
       }
     } catch(IOException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       // It doesn't matter too much if this throws, so ignore it.
     }
 
@@ -471,10 +450,7 @@ public class LDAPConnection
       }
     } catch(ClientException ce)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
+      logger.traceException(ce);
       throw new LDAPConnectionException(ce.getMessageObject(), ce.getExitCode(),
                                         null, ce);
     } catch (LDAPException le) {
@@ -490,10 +466,7 @@ public class LDAPConnection
           .getCause());
     } catch(Exception ex)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new LDAPConnectionException(
               LocalizableMessage.raw(ex.getLocalizedMessage()),ex);
     }
@@ -508,10 +481,7 @@ public class LDAPConnection
         catch (SocketException e)
         {
           e.printStackTrace();
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -562,10 +532,7 @@ public class LDAPConnection
     {
       // if we get there, something went awfully wrong while creatng one socket,
       // no need to continue the for loop.
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new LDAPConnectionException(LocalizableMessage.raw(ex.getMessage()), ex);
     }
     if (ce != null)
@@ -622,10 +589,7 @@ public class LDAPConnection
     {
       // if we get there, something went awfully wrong while creatng one socket,
       // no need to continue the for loop.
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       throw new LDAPConnectionException(LocalizableMessage.raw(ex.getMessage()), ex);
     }
     if (ce != null)

@@ -22,15 +22,15 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
 import com.sleepycat.je.*;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 
 /**
  * This class is a wrapper around the JE database object and provides basic
@@ -38,10 +38,7 @@ import org.opends.server.types.DebugLogLevel;
  */
 public abstract class DatabaseContainer
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The database entryContainer.
@@ -104,9 +101,9 @@ public abstract class DatabaseContainer
       try
       {
         database = env.openDatabase(txn, name, dbConfig);
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("JE database %s opened. txnid=%d",
+          logger.trace("JE database %s opened. txnid=%d",
                               database.getDatabaseName(),
                               txn.getId());
         }
@@ -121,9 +118,9 @@ public abstract class DatabaseContainer
     else
     {
       database = env.openDatabase(null, name, dbConfig);
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("JE database %s opened. txnid=none",
+        logger.trace("JE database %s opened. txnid=none",
                             database.getDatabaseName());
       }
     }
@@ -153,9 +150,9 @@ public abstract class DatabaseContainer
     database.close();
     database = null;
 
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugInfo("Closed database %s", name);
+      logger.trace("Closed database %s", name);
     }
   }
 
@@ -173,10 +170,9 @@ public abstract class DatabaseContainer
       throws DatabaseException
   {
     OperationStatus status = database.put(txn, key, data);
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status, database,
-                           txn, key, data);
+      logger.trace(messageToLog(status, database, txn, key, data));
     }
     return status;
   }
@@ -198,10 +194,9 @@ public abstract class DatabaseContainer
       throws DatabaseException
   {
     OperationStatus status = database.get(txn, key, data, lockMode);
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key,
-                           data);
+      logger.trace(messageToLog(status, database, txn, key, data));
     }
     return status;
   }
@@ -220,10 +215,9 @@ public abstract class DatabaseContainer
       throws DatabaseException
   {
     OperationStatus status = database.putNoOverwrite(txn, key, data);
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key,
-                           data);
+      logger.trace(messageToLog(status, database, txn, key, data));
     }
     return status;
   }
@@ -241,10 +235,9 @@ public abstract class DatabaseContainer
       throws DatabaseException
   {
     OperationStatus status = database.delete(txn, key);
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn,
-                           key, null);
+      logger.trace(messageToLog(status, database, txn, key, null));
     }
     return status;
   }
@@ -289,10 +282,9 @@ public abstract class DatabaseContainer
   public long getRecordCount() throws DatabaseException
   {
     long count = database.count();
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, OperationStatus.SUCCESS,
-                    database, null, null, null);
+      logger.trace(messageToLog(OperationStatus.SUCCESS, database, null, null, null));
     }
     return count;
   }
@@ -339,4 +331,61 @@ public abstract class DatabaseContainer
   {
     this.name = name;
   }
+
+  /** Returns the message to log given the provided information. */
+  private String messageToLog(OperationStatus status, Database database,
+      Transaction txn, DatabaseEntry key, DatabaseEntry data)
+  {
+    StringBuilder builder = new StringBuilder();
+    builder.append(" (");
+    builder.append(status.toString());
+    builder.append(")");
+    builder.append(" db=");
+    try
+    {
+      builder.append(database.getDatabaseName());
+    }
+    catch (DatabaseException de)
+    {
+      builder.append(de.toString());
+    }
+    if (txn != null)
+    {
+      builder.append(" txnid=");
+      try
+      {
+        builder.append(txn.getId());
+      }
+      catch (DatabaseException de)
+      {
+        builder.append(de.toString());
+      }
+    }
+    else
+    {
+      builder.append(" txnid=none");
+    }
+
+    builder.append(ServerConstants.EOL);
+    if (key != null)
+    {
+      builder.append("key:");
+      builder.append(ServerConstants.EOL);
+      StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+    }
+
+    // If the operation was successful we log the same common information
+    // plus the data
+    if (status == OperationStatus.SUCCESS && data != null)
+    {
+      builder.append("data(len=");
+      builder.append(data.getSize());
+      builder.append("):");
+      builder.append(ServerConstants.EOL);
+      StaticUtils.byteArrayToHexPlusAscii(builder, data.getData(), 4);
+    }
+    return builder.toString();
+  }
+
+
 }

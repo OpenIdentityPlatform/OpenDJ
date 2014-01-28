@@ -37,8 +37,7 @@ import static org.opends.server.util.StaticUtils.isHexDigit;
 import static org.opends.server.util.StaticUtils.hexStringToByteArray;
 import org.forgerock.util.Reject;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,10 +66,7 @@ import java.util.List;
  */
 public class PatternDN
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * If the pattern did not include any Multiple-Whole-RDN wildcards, then
@@ -1203,10 +1199,7 @@ public class PatternDN
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(
             dnString, String.valueOf(e));
@@ -1447,10 +1440,7 @@ public class PatternDN
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(
           dnString, String.valueOf(e));

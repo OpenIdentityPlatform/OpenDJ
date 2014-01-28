@@ -27,9 +27,7 @@
 package org.opends.server.backends.jeb;
 import org.forgerock.i18n.LocalizableMessage;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.JebMessages.*;
 
 import java.io.File;
@@ -40,10 +38,7 @@ import java.io.FilenameFilter;
  */
 public class EnvManager
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -97,10 +92,7 @@ public class EnvManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         LocalizableMessage message = ERR_JEB_CREATE_FAIL.get(e.getMessage());
         throw new JebException(message, e);
       }
@@ -140,10 +132,7 @@ public class EnvManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
       throw new JebException(message, e);
     }

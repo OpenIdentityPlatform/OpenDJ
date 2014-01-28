@@ -38,8 +38,8 @@ import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -58,7 +58,7 @@ public class UIFactory
 
   private static String parentPackagePath;
 
-  private static final Logger LOG = Logger.getLogger(UIFactory.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Specifies the horizontal insets between buttons.
@@ -760,7 +760,7 @@ public class UIFactory
       catch (Throwable t)
       {
         // This might occur when we do not get the display
-        LOG.log(Level.WARNING, "Error updating UIManager: "+t, t);
+        logger.warn(LocalizableMessage.raw("Error updating UIManager: "+t, t));
       }
       initializeLookAndFeel();
       initialized = true;

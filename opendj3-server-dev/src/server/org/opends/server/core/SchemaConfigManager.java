@@ -35,7 +35,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.*;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
@@ -44,7 +44,6 @@ import org.opends.server.util.StaticUtils;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -60,10 +59,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class SchemaConfigManager
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The schema that has been parsed from the server configuration. */
   private Schema schema;
@@ -262,19 +258,13 @@ public class SchemaConfigManager
     }
     catch (InitializationException ie)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
+      logger.traceException(ie);
 
       throw ie;
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(
           schemaInstanceDirPath, getExceptionMessage(e));
@@ -376,10 +366,7 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_OPEN_FILE.get(
               schemaFile, schemaDirPath, getExceptionMessage(e));
@@ -411,10 +398,7 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY.get(
               schemaFile, schemaDirPath, getExceptionMessage(e));
@@ -444,10 +428,7 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = WARN_CONFIG_SCHEMA_UNPARSEABLE_EXTRA_DATA_IN_FILE.get(
           schemaFile, schemaDirPath, getExceptionMessage(e));
@@ -511,10 +492,7 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       ldapSyntax = new LDAPSyntaxDescriptionSyntax();
       ldapSyntax.initializeSyntax(null);
@@ -549,10 +527,7 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       attrTypeSyntax = new AttributeTypeSyntax();
       attrTypeSyntax.initializeSyntax(null);
@@ -587,10 +562,7 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       ocSyntax = new ObjectClassSyntax();
       ocSyntax.initializeSyntax(null);
@@ -625,10 +597,7 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       nfSyntax = new NameFormSyntax();
       nfSyntax.initializeSyntax(null);
@@ -663,10 +632,7 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       dcrSyntax = new DITContentRuleSyntax();
       dcrSyntax.initializeSyntax(null);
@@ -702,10 +668,7 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       dsrSyntax = new DITStructureRuleSyntax();
       dsrSyntax.initializeSyntax(null);
@@ -741,10 +704,7 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       mruSyntax = new MatchingRuleUseSyntax();
       mruSyntax.initializeSyntax(null);
@@ -798,10 +758,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
                     schemaFile,
@@ -819,10 +776,7 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
                     schemaFile,
@@ -849,10 +803,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_LDAP_SYNTAX.get(
                 schemaFile, de.getMessageObject());
@@ -865,10 +816,7 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
             }
           }
         }
@@ -898,10 +846,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
                     schemaFile, de.getMessageObject());
@@ -918,10 +863,7 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
                     schemaFile, v.getValue().toString() + ":  " +
@@ -946,10 +888,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE.get(
                 schemaFile, de.getMessageObject());
@@ -962,10 +901,7 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
             }
           }
         }
@@ -995,10 +931,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
                     schemaFile,
@@ -1016,10 +949,7 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
                     schemaFile,
@@ -1045,10 +975,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_OC.get(
                 schemaFile, de.getMessageObject());
@@ -1061,10 +988,7 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
             }
           }
         }
@@ -1093,10 +1017,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
                     schemaFile, de.getMessageObject());
@@ -1112,10 +1033,7 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
                     schemaFile,  v.getValue().toString() + ":  " +
@@ -1141,10 +1059,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_NAME_FORM.get(
                 schemaFile, de.getMessageObject());
@@ -1157,10 +1072,7 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
             }
           }
         }
@@ -1190,10 +1102,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
                     schemaFile, de.getMessageObject());
@@ -1210,10 +1119,7 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
                     schemaFile,v.getValue().toString() + ":  " +
@@ -1239,10 +1145,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_DCR.get(
                 schemaFile, de.getMessageObject());
@@ -1255,10 +1158,7 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
             }
           }
         }
@@ -1288,10 +1188,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
                     schemaFile, de.getMessageObject());
@@ -1308,10 +1205,7 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
                     schemaFile, v.getValue().toString() + ":  " +
@@ -1337,10 +1231,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_DSR.get(
                 schemaFile, de.getMessageObject());
@@ -1353,10 +1244,7 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
             }
           }
         }
@@ -1386,10 +1274,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
                     schemaFile, de.getMessageObject());
@@ -1406,10 +1291,7 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
                     schemaFile,
@@ -1436,10 +1318,7 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_MRU.get(
                 schemaFile, de.getMessageObject());
@@ -1452,10 +1331,7 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
             }
           }
         }

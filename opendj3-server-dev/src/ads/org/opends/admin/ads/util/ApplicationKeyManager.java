@@ -23,6 +23,7 @@
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.admin.ads.util;
@@ -36,8 +37,9 @@ import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -61,8 +63,7 @@ import org.opends.server.util.Platform;
  */
 public class ApplicationKeyManager implements X509KeyManager
 {
-  static private final Logger LOG =
-    Logger.getLogger(ApplicationKeyManager.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The default keyManager.
@@ -145,25 +146,25 @@ public class ApplicationKeyManager implements X509KeyManager
       {
         // Nothing to do. Maybe we should avoid this and be strict, but we are
         // in a best effor mode.
-        LOG.log(Level.WARNING, "Error with the algorithm", e);
+        logger.warn(LocalizableMessage.raw("Error with the algorithm", e));
       }
       catch (KeyStoreException e)
       {
         // Nothing to do. Maybe we should avoid this and be strict, but we are
         // in a best effor mode..
-        LOG.log(Level.WARNING, "Error with the keystore", e);
+        logger.warn(LocalizableMessage.raw("Error with the keystore", e));
       }
       catch (UnrecoverableKeyException e)
       {
         // Nothing to do. Maybe we should avoid this and be strict, but we are
         // in a best effor mode.
-        LOG.log(Level.WARNING, "Error with the key", e);
+        logger.warn(LocalizableMessage.raw("Error with the key", e));
       }
       catch (NoSuchProviderException e)
       {
         // Nothing to do. Maybe we should avoid this and be strict, but we are
         // in a best effor mode.
-        LOG.log(Level.WARNING, "Error with the provider", e);
+        logger.warn(LocalizableMessage.raw("Error with the provider", e));
       }
     }
   }

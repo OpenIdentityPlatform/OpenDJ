@@ -47,7 +47,6 @@ import org.opends.server.types.AttributeValues;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -56,8 +55,7 @@ import org.opends.server.types.MembershipException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.VirtualAttributeRule;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -70,10 +68,7 @@ public class MemberVirtualAttributeProvider
        extends VirtualAttributeProvider<MemberVirtualAttributeCfg>
        implements ConfigurationChangeListener<MemberVirtualAttributeCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The current configuration for this member virtual attribute.
   private MemberVirtualAttributeCfg currentConfig;
@@ -163,10 +158,7 @@ public class MemberVirtualAttributeProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     return Collections.unmodifiableSet(values);
@@ -212,10 +204,7 @@ public class MemberVirtualAttributeProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     return false;
@@ -243,10 +232,7 @@ public class MemberVirtualAttributeProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     return false;

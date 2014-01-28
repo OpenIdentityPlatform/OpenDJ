@@ -32,11 +32,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines a data structure that combines an address and port number,
@@ -55,7 +54,7 @@ public final class HostPort
 {
 
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Constant that represents the local host. */
   private static final String LOCALHOST = "localhost";
@@ -152,7 +151,7 @@ public final class HostPort
       catch (SocketException e)
       {
         // Ignore and keep the old set.
-        TRACER.debugCaught(DebugLogLevel.WARNING, e);
+        logger.traceException(e);
       }
       localAddressesTimeStamp = currentTimeStamp; // Publishes.
     }

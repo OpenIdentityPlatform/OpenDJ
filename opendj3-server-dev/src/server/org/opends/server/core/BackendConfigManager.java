@@ -45,8 +45,7 @@ import org.opends.server.config.ConfigConstants;
 
 import org.opends.server.types.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ConfigMessages.*;
 
 import static org.opends.server.util.StaticUtils.*;
@@ -71,10 +70,7 @@ public class BackendConfigManager implements
      ConfigurationAddListener<BackendCfg>,
      ConfigurationDeleteListener<BackendCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -131,10 +127,7 @@ public class BackendConfigManager implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_CONFIG_BACKEND_CANNOT_GET_CONFIG_BASE.get(getExceptionMessage(e));
@@ -197,10 +190,7 @@ public class BackendConfigManager implements
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.
               get(String.valueOf(className), String.valueOf(backendDN),
@@ -260,10 +250,7 @@ public class BackendConfigManager implements
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
               backendID, stackTraceToSingleLineString(e));
@@ -280,10 +267,7 @@ public class BackendConfigManager implements
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.
               get(String.valueOf(className), String.valueOf(backendDN),
@@ -304,10 +288,7 @@ public class BackendConfigManager implements
           }
           catch (Exception e2)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-            }
+            logger.traceException(e2);
 
             message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.
                 get(backendID, stackTraceToSingleLineString(e2));
@@ -334,10 +315,7 @@ public class BackendConfigManager implements
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(
               backendID, getExceptionMessage(e));
@@ -413,10 +391,7 @@ public class BackendConfigManager implements
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           unacceptableReason.add(de.getMessageObject());
           return false;
@@ -431,10 +406,7 @@ public class BackendConfigManager implements
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           unacceptableReason.add(de.getMessageObject());
           return false;
@@ -468,10 +440,7 @@ public class BackendConfigManager implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
 
       unacceptableReason.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
@@ -551,10 +520,7 @@ public class BackendConfigManager implements
           }
           catch (Exception e2)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-            }
+            logger.traceException(e2);
 
             LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.
                 get(backend.getBackendID(), stackTraceToSingleLineString(e2));
@@ -573,10 +539,7 @@ public class BackendConfigManager implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
 
       messages.add(ERR_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE.get(
@@ -662,10 +625,7 @@ public class BackendConfigManager implements
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
 
           messages.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
@@ -728,10 +688,7 @@ public class BackendConfigManager implements
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
             backendID, stackTraceToSingleLineString(e));
@@ -752,10 +709,7 @@ public class BackendConfigManager implements
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         messages.add(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
                 String.valueOf(className), String.valueOf(backendDN),
@@ -776,10 +730,7 @@ public class BackendConfigManager implements
         }
         catch (Exception e2)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-          }
+          logger.traceException(e2);
 
           LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
               backendID, stackTraceToSingleLineString(e2));
@@ -807,10 +758,7 @@ public class BackendConfigManager implements
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(
                 backendID, getExceptionMessage(e));
@@ -887,10 +835,7 @@ public class BackendConfigManager implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       unacceptableReason.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
               String.valueOf(className),
@@ -1018,10 +963,7 @@ public class BackendConfigManager implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       messages.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
               String.valueOf(className),
@@ -1060,10 +1002,7 @@ public class BackendConfigManager implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
           backendID, stackTraceToSingleLineString(e));
@@ -1085,10 +1024,7 @@ public class BackendConfigManager implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       messages.add(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
               String.valueOf(className),
@@ -1110,10 +1046,7 @@ public class BackendConfigManager implements
       }
       catch (Exception e2)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
+        logger.traceException(e2);
 
         LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
             backendID, stackTraceToSingleLineString(e2));
@@ -1141,10 +1074,7 @@ public class BackendConfigManager implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(
               backendID, getExceptionMessage(e));
@@ -1236,10 +1166,7 @@ public class BackendConfigManager implements
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
 
       for (BackendInitializationListener listener :
@@ -1266,10 +1193,7 @@ public class BackendConfigManager implements
       }
       catch (Exception e2)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
+        logger.traceException(e2);
 
         LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
             backend.getBackendID(), stackTraceToSingleLineString(e2));

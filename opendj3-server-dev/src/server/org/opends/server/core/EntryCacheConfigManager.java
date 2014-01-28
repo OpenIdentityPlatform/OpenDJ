@@ -50,9 +50,8 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.meta.EntryCacheCfgDefn;
 import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -64,7 +63,6 @@ import org.opends.server.extensions.DefaultEntryCache;
 import org.opends.server.monitors.EntryCacheMonitorProvider;
 import org.opends.server.types.DN;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -83,10 +81,7 @@ public class EntryCacheConfigManager
           ConfigurationAddListener    <EntryCacheCfg>,
           ConfigurationDeleteListener <EntryCacheCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The default entry cache.
   private DefaultEntryCache _defaultEntryCache = null;
@@ -132,10 +127,7 @@ public class EntryCacheConfigManager
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_ENTRYCACHE_CANNOT_INSTALL_DEFAULT_CACHE.get(
           stackTraceToSingleLineString(e));
@@ -179,10 +171,7 @@ public class EntryCacheConfigManager
       DN configEntryDN = DN.valueOf(ConfigConstants.DN_ENTRY_CACHE_BASE);
       entryCacheBase   = DirectoryServer.getConfigEntry(configEntryDN);
     } catch (Exception e) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       logError(WARN_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY.get());
       return;
@@ -679,9 +668,7 @@ public class EntryCacheConfigManager
     }
     catch (Exception e)
     {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       if (!initialize) {
         if (e instanceof InitializationException) {

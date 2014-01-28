@@ -29,7 +29,6 @@ package org.opends.server.admin;
 
 
 import static org.opends.messages.AdminMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.forgerock.util.Reject.*;
 
 import java.util.Collection;
@@ -61,10 +60,9 @@ import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.StaticUtils;
 
@@ -311,9 +309,7 @@ public final class AggregationPropertyDefinition
         }
       } catch (ConfigException e) {
         // The condition could not be evaluated.
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo
             .getManagedObjectDefinition().getUserFriendlyName(), String
@@ -810,13 +806,7 @@ public final class AggregationPropertyDefinition
       return instances;
     }
   }
-
-
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 

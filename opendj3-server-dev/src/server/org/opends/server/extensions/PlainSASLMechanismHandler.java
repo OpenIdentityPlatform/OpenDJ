@@ -30,7 +30,6 @@ package org.opends.server.extensions;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -48,7 +47,7 @@ import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -71,10 +70,7 @@ public class PlainSASLMechanismHandler
        implements ConfigurationChangeListener<
                        PlainSASLMechanismHandlerCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The identity mapper that will be used to map ID strings to user entries.*/
   private IdentityMapper<?> identityMapper;
@@ -217,10 +213,7 @@ public class PlainSASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -262,10 +255,7 @@ public class PlainSASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -294,10 +284,7 @@ public class PlainSASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -340,10 +327,7 @@ public class PlainSASLMechanismHandler
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -397,10 +381,7 @@ public class PlainSASLMechanismHandler
             }
             catch (DirectoryException de)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
 
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -446,10 +427,7 @@ public class PlainSASLMechanismHandler
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -511,10 +489,7 @@ public class PlainSASLMechanismHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 

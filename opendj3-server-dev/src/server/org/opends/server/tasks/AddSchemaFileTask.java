@@ -41,11 +41,10 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -56,10 +55,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class AddSchemaFileTask
        extends Task
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The list of files to be added to the server schema. */
   TreeSet<String> filesToAdd;
@@ -133,10 +129,7 @@ public class AddSchemaFileTask
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE.get(
               filename, schemaInstanceDirectory,
@@ -162,10 +155,7 @@ public class AddSchemaFileTask
       }
       catch (ConfigException ce)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-        }
+        logger.traceException(ce);
 
         LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(
             String.valueOf(schemaFile), ce.getMessage());
@@ -174,10 +164,7 @@ public class AddSchemaFileTask
       }
       catch (InitializationException ie)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-        }
+        logger.traceException(ie);
 
         LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(
             String.valueOf(schemaFile), ie.getMessage());
@@ -248,10 +235,7 @@ public class AddSchemaFileTask
         }
         catch (ConfigException ce)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-          }
+          logger.traceException(ce);
 
           LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.
               get(String.valueOf(schemaFile), ce.getMessage());
@@ -260,10 +244,7 @@ public class AddSchemaFileTask
         }
         catch (InitializationException ie)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-          }
+          logger.traceException(ie);
 
           LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.
               get(String.valueOf(schemaFile), ie.getMessage());
@@ -283,10 +264,7 @@ public class AddSchemaFileTask
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             LocalizableMessage message =
                 ERR_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER.

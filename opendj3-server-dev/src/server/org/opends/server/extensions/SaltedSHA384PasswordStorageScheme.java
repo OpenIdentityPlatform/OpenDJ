@@ -38,7 +38,7 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -46,7 +46,6 @@ import org.opends.server.util.Base64;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -65,10 +64,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class SaltedSHA384PasswordStorageScheme
        extends PasswordStorageScheme<SaltedSHA384PasswordStorageSchemeCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The fully-qualified name of this class.
@@ -127,10 +123,7 @@ public class SaltedSHA384PasswordStorageScheme
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
           MESSAGE_DIGEST_ALGORITHM_SHA_384, String.valueOf(e));
@@ -184,10 +177,7 @@ public class SaltedSHA384PasswordStorageScheme
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
@@ -246,10 +236,7 @@ public class SaltedSHA384PasswordStorageScheme
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
@@ -308,10 +295,7 @@ public class SaltedSHA384PasswordStorageScheme
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
           storedPassword.toString(), String.valueOf(e));
@@ -337,10 +321,7 @@ public class SaltedSHA384PasswordStorageScheme
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         return false;
       }
@@ -407,10 +388,7 @@ public class SaltedSHA384PasswordStorageScheme
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
@@ -453,10 +431,7 @@ public class SaltedSHA384PasswordStorageScheme
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       return false;
     }

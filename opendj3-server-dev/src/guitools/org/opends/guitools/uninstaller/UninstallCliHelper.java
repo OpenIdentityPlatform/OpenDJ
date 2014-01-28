@@ -65,8 +65,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -89,8 +89,7 @@ import javax.net.ssl.TrustManager;
  */
 public class UninstallCliHelper extends ConsoleApplication {
 
-  static private final Logger LOG =
-          Logger.getLogger(UninstallCliHelper.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private UninstallerArgumentParser parser;
 
@@ -180,14 +179,14 @@ public class UninstallCliHelper extends ConsoleApplication {
         outsideDbs = config.getOutsideDbs();
       } catch (IOException ioe) {
         outsideDbs = Collections.emptySet();
-        LOG.log(Level.INFO, "error determining outside databases", ioe);
+        logger.debug(LocalizableMessage.raw("error determining outside databases", ioe));
       }
 
       try {
         outsideLogs = config.getOutsideLogs();
       } catch (IOException ioe) {
         outsideLogs = Collections.emptySet();
-        LOG.log(Level.INFO, "error determining outside logs", ioe);
+        logger.debug(LocalizableMessage.raw("error determining outside logs", ioe));
       }
 
       boolean somethingSpecifiedToDelete =
@@ -245,7 +244,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       }
       catch (Throwable t)
       {
-        LOG.log(Level.SEVERE, "Could not create UninstallData: "+t, t);
+        logger.error(LocalizableMessage.raw("Could not create UninstallData: "+t, t));
         userData.setReplicationServer(
             referencedHostName+":8989");
       }
@@ -259,8 +258,8 @@ public class UninstallCliHelper extends ConsoleApplication {
 
       if (adminConnectorUrl == null)
       {
-        LOG.log(Level.WARNING,
-        "Error retrieving a valid LDAP URL in conf file.");
+        logger.warn(LocalizableMessage.raw(
+        "Error retrieving a valid LDAP URL in conf file."));
         if (!parser.isInteractive())
         {
           LocalizableMessage msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
@@ -282,7 +281,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
       if (isCanceled && !userData.isForceOnError())
       {
-        LOG.log(Level.INFO, "User cancelled uninstall.");
+        logger.debug(LocalizableMessage.raw("User cancelled uninstall."));
         userData = null;
       }
 
@@ -293,7 +292,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     catch (Throwable t)
     {
-      LOG.log(Level.WARNING, "Exception: "+t, t);
+      logger.warn(LocalizableMessage.raw("Exception: "+t, t));
       if (t instanceof UserDataException)
       {
         throw (UserDataException)t;
@@ -307,7 +306,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         throw new IllegalStateException("Unexpected error: "+t, t);
       }
     }
-    LOG.log(Level.INFO, "Successfully created user data");
+    logger.debug(LocalizableMessage.raw("Successfully created user data"));
     return userData;
   }
 
@@ -373,7 +372,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     catch (CLIException ce)
     {
-      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+      logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       throw new UserDataException(null, ce.getMessageObject(), ce);
     }
 
@@ -425,7 +424,7 @@ public class UninstallCliHelper extends ConsoleApplication {
             ((i == 7) && (outsideLogs.size() == 0));
             if (!ignore)
             {
-              answers[i] = askConfirmation(msgs[i], true, LOG);
+              answers[i] = askConfirmation(msgs[i], true, logger);
             }
             else
             {
@@ -535,16 +534,16 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     catch (Throwable t)
     {
-      LOG.log(Level.WARNING, "Error processing task: "+t, t);
+      logger.warn(LocalizableMessage.raw("Error processing task: "+t, t));
       throw new UserDataException(Step.CONFIRM_UNINSTALL,
           Utils.getThrowableMsg(INFO_BUG_MSG.get(), t));
     }
-    LOG.log(Level.INFO, "interactive: "+interactive);
-    LOG.log(Level.INFO, "forceOnError: "+forceOnError);
-    LOG.log(Level.INFO, "conf.isADS(): "+conf.isADS());
-    LOG.log(Level.INFO, "conf.isReplicationServer(): "+
-        conf.isReplicationServer());
-    LOG.log(Level.INFO, "conf.isServerRunning(): "+conf.isServerRunning());
+    logger.debug(LocalizableMessage.raw("interactive: "+interactive));
+    logger.debug(LocalizableMessage.raw("forceOnError: "+forceOnError));
+    logger.debug(LocalizableMessage.raw("conf.isADS(): "+conf.isADS()));
+    logger.debug(LocalizableMessage.raw("conf.isReplicationServer(): "+
+        conf.isReplicationServer()));
+    logger.debug(LocalizableMessage.raw("conf.isServerRunning(): "+conf.isServerRunning()));
     if (conf.isADS() && conf.isReplicationServer())
     {
       if (conf.isServerRunning())
@@ -591,8 +590,8 @@ public class UninstallCliHelper extends ConsoleApplication {
           boolean errorWithRemote =
             !updateUserUninstallDataWithRemoteServers(userData);
           cancelled = errorWithRemote && !parser.isForceOnError();
-          LOG.log(Level.INFO, "Non interactive mode.  errorWithRemote: "+
-              errorWithRemote);
+          logger.debug(LocalizableMessage.raw("Non interactive mode.  errorWithRemote: "+
+              errorWithRemote));
         }
       }
       else
@@ -671,8 +670,8 @@ public class UninstallCliHelper extends ConsoleApplication {
         /* During all the confirmations, the server might be stopped. */
         userData.setStopServer(
             Installation.getLocal().getStatus().isServerRunning());
-        LOG.log(Level.INFO, "Must stop the server after confirmations? "+
-            userData.getStopServer());
+        logger.debug(LocalizableMessage.raw("Must stop the server after confirmations? "+
+            userData.getStopServer()));
       }
     }
     else
@@ -693,8 +692,8 @@ public class UninstallCliHelper extends ConsoleApplication {
             /* During all the confirmations, the server might be stopped. */
             userData.setStopServer(
                 Installation.getLocal().getStatus().isServerRunning());
-            LOG.log(Level.INFO, "Must stop the server after confirmations? "+
-                userData.getStopServer());
+            logger.debug(LocalizableMessage.raw("Must stop the server after confirmations? "+
+                userData.getStopServer()));
           }
         }
         catch (CLIException ce)
@@ -720,7 +719,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         }
       }
     }
-    LOG.log(Level.INFO, "cancelled: "+cancelled);
+    logger.debug(LocalizableMessage.raw("cancelled: "+cancelled));
     return cancelled;
   }
 
@@ -732,7 +731,7 @@ public class UninstallCliHelper extends ConsoleApplication {
    */
   private boolean confirmToStopServer() throws CLIException
   {
-    return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_STOP.get(), true, LOG);
+    return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_STOP.get(), true, logger);
   }
 
   /**
@@ -744,7 +743,7 @@ public class UninstallCliHelper extends ConsoleApplication {
   private boolean confirmDeleteFiles() throws CLIException
   {
     return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_DELETE_FILES.get(), true,
-        LOG);
+        logger);
   }
 
   /**
@@ -756,7 +755,7 @@ public class UninstallCliHelper extends ConsoleApplication {
   private boolean confirmToUpdateRemote() throws CLIException
   {
     return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE.get(), true,
-        LOG);
+        logger);
   }
 
   /**
@@ -768,7 +767,7 @@ public class UninstallCliHelper extends ConsoleApplication {
   private boolean confirmToUpdateRemoteAndStart() throws CLIException
   {
     return askConfirmation(
-        INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE_AND_START.get(), true, LOG);
+        INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE_AND_START.get(), true, logger);
   }
 
   /**
@@ -780,7 +779,7 @@ public class UninstallCliHelper extends ConsoleApplication {
   private boolean promptToProvideAuthenticationAgain() throws CLIException
   {
     return askConfirmation(
-        INFO_UNINSTALL_CONFIRM_PROVIDE_AUTHENTICATION_AGAIN.get(), true, LOG);
+        INFO_UNINSTALL_CONFIRM_PROVIDE_AUTHENTICATION_AGAIN.get(), true, logger);
   }
 
   /**
@@ -859,8 +858,8 @@ public class UninstallCliHelper extends ConsoleApplication {
         String adminConnectorUrl = info.getAdminConnectorURL();
         if (adminConnectorUrl == null)
         {
-          LOG.log(Level.WARNING,
-         "Error retrieving a valid Administration Connector URL in conf file.");
+          logger.warn(LocalizableMessage.raw(
+         "Error retrieving a valid Administration Connector URL in conf file."));
           LocalizableMessage msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
             throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
                 null);
@@ -875,7 +874,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         }
         catch (Throwable t)
         {
-          LOG.log(Level.SEVERE, "Error parsing url: "+adminConnectorUrl);
+          logger.error(LocalizableMessage.raw("Error parsing url: "+adminConnectorUrl));
         }
         LDAPManagementContextFactory factory =
           new LDAPManagementContextFactory(alwaysSSL);
@@ -888,8 +887,8 @@ public class UninstallCliHelper extends ConsoleApplication {
 
         if (adminConnectorUrl == null)
         {
-          LOG.log(Level.WARNING,
-         "Error retrieving a valid Administration Connector URL in conf file.");
+          logger.warn(LocalizableMessage.raw(
+         "Error retrieving a valid Administration Connector URL in conf file."));
           LocalizableMessage msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
           throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
               null);
@@ -916,7 +915,7 @@ public class UninstallCliHelper extends ConsoleApplication {
           }
           catch (Throwable t)
           {
-            LOG.log(Level.INFO, "Error closing connection: "+t, t);
+            logger.debug(LocalizableMessage.raw("Error closing connection: "+t, t));
           }
         }
       }
@@ -956,7 +955,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       }
       catch (Throwable t)
       {
-        LOG.log(Level.SEVERE, "Could not create UninstallData: "+t, t);
+        logger.error(LocalizableMessage.raw("Could not create UninstallData: "+t, t));
       }
     }
     userData.setUpdateRemoteReplication(accepted);
@@ -973,14 +972,14 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     catch (CLIException ce)
     {
-      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+      logger.warn(LocalizableMessage.raw("Error reading input: %s", ce), ce);
     }
     return s;
   }
 
   private boolean startServer(boolean supressOutput)
   {
-    LOG.log(Level.INFO, "startServer, supressOutput: "+supressOutput);
+    logger.debug(LocalizableMessage.raw("startServer, supressOutput: "+supressOutput));
     boolean serverStarted = false;
     Application application = new Application()
     {
@@ -1112,12 +1111,12 @@ public class UninstallCliHelper extends ConsoleApplication {
         printlnProgress();
       }
       serverStarted = Installation.getLocal().getStatus().isServerRunning();
-      LOG.log(Level.INFO, "server started successfully. serverStarted: "+
-          serverStarted);
+      logger.debug(LocalizableMessage.raw("server started successfully. serverStarted: "+
+          serverStarted));
     }
     catch (ApplicationException ae)
     {
-      LOG.log(Level.WARNING, "ApplicationException: "+ae, ae);
+      logger.warn(LocalizableMessage.raw("ApplicationException: "+ae, ae));
       if (!supressOutput)
       {
         printErrorMessage(ae.getMessageObject());
@@ -1125,7 +1124,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     catch (Throwable t)
     {
-      LOG.log(Level.SEVERE, "Unexpected error: "+t, t);
+      logger.error(LocalizableMessage.raw("Unexpected error: "+t, t));
       throw new IllegalStateException("Unexpected error: "+t, t);
     }
     return serverStarted;
@@ -1158,7 +1157,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
     LocalizableMessage exceptionMsg = null;
 
-    LOG.log(Level.INFO, "Updating user data with remote servers.");
+    logger.debug(LocalizableMessage.raw("Updating user data with remote servers."));
 
     InitialLdapContext ctx = null;
     try
@@ -1181,7 +1180,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       }
       catch (Throwable t)
       {
-        LOG.log(Level.SEVERE, "Error parsing url: "+adminConnectorUrl);
+        logger.error(LocalizableMessage.raw("Error parsing url: "+adminConnectorUrl));
       }
       ctx = createAdministrativeContext(host, port, useSSL, useStartTLS, dn,
           pwd, getConnectTimeout(),
@@ -1197,7 +1196,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         forceTrustManagerInitialization();
         updateTrustManager(userData, ci);
       }
-      LOG.log(Level.INFO, "Reloading topology");
+      logger.debug(LocalizableMessage.raw("Reloading topology"));
       TopologyCache cache = new TopologyCache(adsContext,
           userData.getTrustManager(), getConnectTimeout());
       cache.getFilter().setSearchMonitoringInformation(false);
@@ -1209,7 +1208,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     catch (NamingException ne)
     {
-      LOG.log(Level.WARNING, "Error connecting to server: "+ne, ne);
+      logger.warn(LocalizableMessage.raw("Error connecting to server: "+ne, ne));
       if (Utils.isCertificateException(ne))
       {
         String details = ne.getMessage() != null ?
@@ -1224,7 +1223,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       }
     } catch (TopologyCacheException te)
     {
-      LOG.log(Level.WARNING, "Error connecting to server: "+te, te);
+      logger.warn(LocalizableMessage.raw("Error connecting to server: "+te, te));
       exceptionMsg = Utils.getMessage(te);
 
     } catch (ApplicationException ae)
@@ -1233,7 +1232,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
     } catch (Throwable t)
     {
-      LOG.log(Level.WARNING, "Error connecting to server: "+t, t);
+      logger.warn(LocalizableMessage.raw("Error connecting to server: "+t, t));
       exceptionMsg = Utils.getThrowableMsg(INFO_BUG_MSG.get(), t);
     }
     finally
@@ -1246,7 +1245,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         }
         catch (Throwable t)
         {
-          LOG.log(Level.INFO, "Error closing connection: "+t, t);
+          logger.debug(LocalizableMessage.raw("Error closing connection: "+t, t));
         }
       }
     }
@@ -1282,7 +1281,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         {
           accepted = askConfirmation(
               ERR_UNINSTALL_NOT_UPDATE_REMOTE_PROMPT.get(),
-              false, LOG);
+              false, logger);
         }
         catch (CLIException ce)
         {
@@ -1291,7 +1290,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       }
     }
     userData.setUpdateRemoteReplication(accepted);
-    LOG.log(Level.INFO, "accepted: "+accepted);
+    logger.debug(LocalizableMessage.raw("accepted: "+accepted));
     return accepted;
   }
 
@@ -1316,7 +1315,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     boolean reloadTopologyCache = false;
     boolean interactive = parser.isInteractive();
 
-    LOG.log(Level.INFO, "Handle topology cache.");
+    logger.debug(LocalizableMessage.raw("Handle topology cache."));
 
     Set<TopologyCacheException> exceptions =
       new HashSet<TopologyCacheException>();
@@ -1339,7 +1338,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     /* Check the exceptions and see if we throw them or not. */
     for (TopologyCacheException e : exceptions)
     {
-      LOG.log(Level.INFO, "Analyzing exception: "+e, e);
+      logger.debug(LocalizableMessage.raw("Analyzing exception: "+e, e));
       if (stopProcessing)
       {
         break;
@@ -1359,7 +1358,7 @@ public class UninstallCliHelper extends ConsoleApplication {
           {
             println();
             if (ci.promptForCertificateConfirmation(e.getCause(),
-                e.getTrustManager(), e.getLdapUrl(), true, LOG))
+                e.getTrustManager(), e.getLdapUrl(), true, logger))
             {
               stopProcessing = true;
               reloadTopologyCache = true;
@@ -1396,7 +1395,7 @@ public class UninstallCliHelper extends ConsoleApplication {
           returnValue = askConfirmation(
             ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
                 Utils.getMessageFromCollection(exceptionMsgs,
-                  Constants.LINE_SEPARATOR).toString()), true, LOG);
+                  Constants.LINE_SEPARATOR).toString()), true, logger);
         }
         catch (CLIException ce)
         {
@@ -1414,7 +1413,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     else
     {
-      LOG.log(Level.INFO, "exceptionMsgs: "+exceptionMsgs);
+      logger.debug(LocalizableMessage.raw("exceptionMsgs: "+exceptionMsgs));
       if (exceptionMsgs.size() > 0)
       {
         if (parser.isForceOnError())
@@ -1445,7 +1444,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         returnValue = true;
       }
     }
-    LOG.log(Level.INFO, "Return value: "+returnValue);
+    logger.debug(LocalizableMessage.raw("Return value: "+returnValue));
     return returnValue;
   }
 
@@ -1550,7 +1549,7 @@ public class UninstallCliHelper extends ConsoleApplication {
      }
      catch (ArgumentException ae)
      {
-       LOG.log(Level.WARNING, "Error initializing trust store: "+ae, ae);
+       logger.warn(LocalizableMessage.raw("Error initializing trust store: "+ae, ae));
      }
      forceNonInteractive = false;
    }
@@ -1558,7 +1557,7 @@ public class UninstallCliHelper extends ConsoleApplication {
    private void printErrorMessage(LocalizableMessage msg)
    {
      super.println(msg);
-     LOG.log(Level.WARNING, msg.toString());
+     logger.warn(LocalizableMessage.raw(msg.toString()));
    }
 
    /**

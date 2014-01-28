@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.*;
 import java.io.File;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.ConfigChangeResult;
@@ -45,8 +44,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.InitializationException;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -60,10 +58,7 @@ import static org.opends.messages.ConfigMessages.*;
 public class RootContainer
      implements ConfigurationChangeListener<LocalDBBackendCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -217,9 +212,9 @@ public class RootContainer
     env = new Environment(backendDirectory,
                           envConfig);
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("JE (%s) environment opened with the following " +
+      logger.trace("JE (%s) environment opened with the following " +
           "config: %n%s", JEVersion.CURRENT_VERSION.toString(),
                           env.getConfig().toString());
 
@@ -236,9 +231,9 @@ public class RootContainer
       // after garbage collection and decrease as new objects are created.
       long heapFreeSize = Runtime.getRuntime().freeMemory();
 
-      TRACER.debugInfo("Current size of heap: %d bytes", heapSize);
-      TRACER.debugInfo("Max size of heap: %d bytes", heapMaxSize);
-      TRACER.debugInfo("Free memory in heap: %d bytes", heapFreeSize);
+      logger.trace("Current size of heap: %d bytes", heapSize);
+      logger.trace("Max size of heap: %d bytes", heapMaxSize);
+      logger.trace("Free memory in heap: %d bytes", heapFreeSize);
     }
 
     compressedSchema = new JECompressedSchema(env);
@@ -434,9 +429,9 @@ public class RootContainer
           preloadConfig.setMaxMillisecs(timeRemaining);
           PreloadStats preloadStats = db.preload(preloadConfig);
 
-          if(debugEnabled())
+          if(logger.isTraceEnabled())
           {
-            TRACER.debugInfo("file=" + db.getName() +
+            logger.trace("file=" + db.getName() +
                       " LNs=" + preloadStats.getNLNsLoaded());
           }
 
@@ -484,10 +479,7 @@ public class RootContainer
       }
       catch (DatabaseException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
           ERR_JEB_CACHE_PRELOAD.get(backend.getBackendID(),
@@ -805,8 +797,8 @@ public class RootContainer
                 adminActionRequired = true;
                 messages.add(INFO_CONFIG_JE_PROPERTY_REQUIRES_RESTART.get(
                         jePropertyName));
-                if(debugEnabled()) {
-                  TRACER.debugInfo("The change to the following property " +
+                if(logger.isTraceEnabled()) {
+                  logger.trace("The change to the following property " +
                     "will take effect when the component is restarted: " +
                     jePropertyName);
                 }
@@ -838,9 +830,9 @@ public class RootContainer
                 messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART
                     .get(param.getName()));
               }
-              if(debugEnabled())
+              if(logger.isTraceEnabled())
               {
-                TRACER.debugInfo("The change to the following property will " +
+                logger.trace("The change to the following property will " +
                     "take effect when the backend is restarted: " +
                     param.getName());
               }
@@ -852,9 +844,9 @@ public class RootContainer
         // properties that are mutable at runtime.
         env.setMutableConfig(newEnvConfig);
 
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo(env.getConfig().toString());
+          logger.trace(env.getConfig().toString());
         }
       }
 

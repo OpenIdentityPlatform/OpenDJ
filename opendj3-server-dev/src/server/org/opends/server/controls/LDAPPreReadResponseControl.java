@@ -35,8 +35,7 @@ import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -81,10 +80,7 @@ public class LDAPPreReadResponseControl
       }
       catch (LDAPException le)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, le);
-        }
+        logger.traceException(le);
 
         LocalizableMessage message =
             ERR_PREREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());
@@ -107,11 +103,7 @@ public class LDAPPreReadResponseControl
    */
   public static final ControlDecoder<LDAPPreReadResponseControl> DECODER =
     new Decoder();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 

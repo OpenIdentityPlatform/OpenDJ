@@ -38,8 +38,8 @@ import org.opends.quicksetup.util.Utils;
 
 import java.io.PrintStream;
 import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * Responsible for providing initial evaluation of command line arguments
@@ -47,7 +47,7 @@ import java.util.logging.Logger;
  */
 public abstract class Launcher {
 
-  static private final Logger LOG = Logger.getLogger(Launcher.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Arguments with which this launcher was invoked. */
   protected String[] args;
@@ -212,7 +212,7 @@ public abstract class Launcher {
         {
           if (QuickSetupLog.isInitialized())
           {
-            LOG.log(Level.WARNING, "Error launching GUI: "+t);
+            logger.warn(LocalizableMessage.raw("Error launching GUI: "+t));
             StringBuilder buf = new StringBuilder();
             while (t != null)
             {
@@ -227,7 +227,7 @@ public abstract class Launcher {
                 buf.append("Root cause:\n");
               }
             }
-            LOG.log(Level.WARNING, buf.toString());
+            logger.warn(LocalizableMessage.raw(buf.toString()));
           }
         }
       }

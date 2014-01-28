@@ -35,7 +35,7 @@ import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -43,7 +43,6 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.*;
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -61,11 +60,8 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
 {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  protected static final DebugTracer TRACER = getTracer();
+  /** The logger of this class. */
+  protected static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   /**
    * UpdateMsg queue.
    */
@@ -306,7 +302,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           }
           catch (ChangelogException e)
           {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            logger.traceException(e);
           }
           finally
           {

@@ -33,9 +33,7 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -70,10 +68,7 @@ import java.io.File;
  */
 public class RestoreTask extends Task
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -313,10 +308,7 @@ public class RestoreTask extends Task
     }
     catch (ConfigException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message = ERR_RESTOREDB_NO_BACKENDS_FOR_DN.get(
           String.valueOf(backupDirectory), configEntryDN.toString());
       logError(message);
@@ -354,10 +346,7 @@ public class RestoreTask extends Task
         TaskUtils.disableBackend(backendID);
       } catch (DirectoryException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         logError(e.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;
@@ -420,10 +409,7 @@ public class RestoreTask extends Task
           backend = DirectoryServer.getBackend(backendID);
         } catch (DirectoryException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           logError(e.getMessageObject());
           errorsEncountered = true;

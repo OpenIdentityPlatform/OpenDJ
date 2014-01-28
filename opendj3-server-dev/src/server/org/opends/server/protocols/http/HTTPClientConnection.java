@@ -28,8 +28,6 @@ package org.opends.server.protocols.http;
 import static org.forgerock.opendj.adapter.server2x.Converters.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -59,7 +57,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.loggers.HTTPRequestInfo;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
@@ -75,7 +73,6 @@ import org.opends.server.protocols.ldap.SearchResultReferenceProtocolOp;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.IntermediateResponse;
@@ -128,7 +125,7 @@ final class HTTPClientConnection extends ClientConnection implements
   }
 
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Official servlet property giving access to the SSF (Security Strength
@@ -723,10 +720,7 @@ final class HTTPClientConnection extends ClientConnection implements
       catch (IllegalArgumentException ignored)
       {
         // We cannot do much about it. Just log it.
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
-        }
+        logger.traceException(ignored);
       }
     }
     return 0;
@@ -755,10 +749,7 @@ final class HTTPClientConnection extends ClientConnection implements
           }
           catch (Exception e)
           { // make sure all operations are cancelled, no matter what
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
 
@@ -766,10 +757,7 @@ final class HTTPClientConnection extends ClientConnection implements
       }
       catch (Exception e)
       { // TODO JNR should I keep this catch?
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }

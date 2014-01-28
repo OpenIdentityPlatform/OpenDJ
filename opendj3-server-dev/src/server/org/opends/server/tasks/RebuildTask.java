@@ -37,7 +37,6 @@ import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -52,8 +51,7 @@ import org.opends.server.api.Backend;
 
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -67,10 +65,7 @@ import java.util.ArrayList;
  */
 public class RebuildTask extends Task
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   String baseDN = null;
   ArrayList<String> indexes = null;
@@ -233,10 +228,7 @@ public class RebuildTask extends Task
       }
       catch (DirectoryException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         logError(e.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;
@@ -300,20 +292,14 @@ public class RebuildTask extends Task
       // The backend needs to be re-enabled at the end of the process.
       LocalizableMessage message =
           ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage());
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       logError(message);
       isBackendNeedToBeEnabled = true;
       returnCode = TaskState.STOPPED_BY_ERROR;
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage());
@@ -358,10 +344,7 @@ public class RebuildTask extends Task
       }
       catch (DirectoryException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         logError(e.getMessageObject());
         returnCode = TaskState.STOPPED_BY_ERROR;

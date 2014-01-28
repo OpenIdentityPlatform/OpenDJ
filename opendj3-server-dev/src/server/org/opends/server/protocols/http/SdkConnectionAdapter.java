@@ -27,8 +27,6 @@ package org.opends.server.protocols.http;
 
 import static org.forgerock.opendj.adapter.server2x.Converters.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -79,7 +77,7 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.core.UnbindOperation;
 import org.opends.server.core.UnbindOperationBasis;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.AbandonRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
@@ -94,7 +92,6 @@ import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.types.AuthenticationInfo;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Operation;
 
@@ -109,7 +106,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 {
 
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The HTTP client connection being "adapted". */
   private final HTTPClientConnection clientConnection;
@@ -173,10 +170,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       clientConnection.removeOperationInProgress(operation.getMessageID());
       // TODO JNR add error message??
       futureResult.handleErrorResult(ErrorResultException.newErrorResult(

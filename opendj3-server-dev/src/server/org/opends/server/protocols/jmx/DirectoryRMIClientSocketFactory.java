@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import java.io.IOException;
 
@@ -55,10 +54,7 @@ import javax.net.ssl.SSLSocketFactory;
 public class DirectoryRMIClientSocketFactory implements
     RMIClientSocketFactory, Serializable
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -291,9 +287,9 @@ public class DirectoryRMIClientSocketFactory implements
   {
     if (sslSocketFactory == null)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("sslSocketFactory is null, get a new one");
+        logger.trace("sslSocketFactory is null, get a new one");
       }
 
       // socket factory not yet initialized
@@ -316,10 +312,7 @@ public class DirectoryRMIClientSocketFactory implements
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
           tms = null;
         }
 
@@ -346,10 +339,7 @@ public class DirectoryRMIClientSocketFactory implements
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         throw new IOException("Unable to initialize SSL context : "
             + e.getMessage());
       }

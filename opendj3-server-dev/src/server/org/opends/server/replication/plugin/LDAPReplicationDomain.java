@@ -49,7 +49,7 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.Task;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
@@ -75,7 +75,6 @@ import org.opends.server.workflowelement.localbackend.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.service.ReplicationMonitor.*;
@@ -166,11 +165,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * supposed to have when it was marked as conflicting.
    */
   public static final String DS_SYNC_CONFLICT = "ds-sync-conflict";
-
- /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The update to replay message queue where the listener thread is going to
@@ -639,8 +634,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private boolean isBackendFractionalConfigConsistent()
   {
     // Read config stored in domain root entry
-    if (debugEnabled())
-      TRACER.debugInfo(
+    if (logger.isTraceEnabled())
+      logger.trace(
           "Attempt to read the potential fractional config in domain root "
               + "entry " + getBaseDNString());
 
@@ -2523,9 +2518,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       // A failure occurred after the change had been removed from the pending
       // changes table.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo(
+        logger.trace(
             "LDAPReplicationDomain.updateError: Unable to find remote "
                 + "pending change for CSN %s", csn);
       }
@@ -3321,8 +3316,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     long genId = exportBackend(null, true);
 
-    if (debugEnabled())
-      TRACER.debugInfo("Computed generationId: generationId=" + genId);
+    if (logger.isTraceEnabled())
+      logger.trace("Computed generationId: generationId=" + genId);
 
     return genId;
   }
@@ -3402,8 +3397,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   private long loadGenerationId() throws DirectoryException
   {
-    if (debugEnabled())
-      TRACER.debugInfo("Attempt to read generation ID from DB "
+    if (logger.isTraceEnabled())
+      logger.trace("Attempt to read generation ID from DB "
           + getBaseDNString());
 
     /*
@@ -3480,15 +3475,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       aGenerationId = computeGenerationId();
       saveGenerationId(aGenerationId);
 
-      if (debugEnabled())
-        TRACER.debugInfo("Generation ID created for domain baseDN="
+      if (logger.isTraceEnabled())
+        logger.trace("Generation ID created for domain baseDN="
             + getBaseDNString() + " generationId=" + aGenerationId);
     }
     else
     {
       generationIdSavedStatus = true;
-      if (debugEnabled())
-        TRACER.debugInfo("Generation ID successfully read from domain baseDN="
+      if (logger.isTraceEnabled())
+        logger.trace("Generation ID successfully read from domain baseDN="
             + getBaseDNString() + " generationId=" + aGenerationId);
     }
     return aGenerationId;
@@ -4052,7 +4047,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch(Exception e)
     {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      logger.traceException(e);
       logError(ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(
           stackTraceToSingleLineString(e)));
     }
@@ -4450,9 +4445,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          * causing a recovery of all changes since the current committed server
          * state. See OPENDJ-1115.
          */
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo(
+          logger.trace(
                   "LDAPReplicationDomain.processUpdate: ignoring "
                   + "duplicate change %s", msg.getCSN());
         }
@@ -5127,7 +5122,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public void purgeConflictsHistorical(PurgeConflictsHistoricalTask task,
       long endDate) throws DirectoryException
   {
-     TRACER.debugInfo("[PURGE] purgeConflictsHistorical "
+     logger.trace("[PURGE] purgeConflictsHistorical "
          + "on domain: " + getBaseDNString()
          + "endDate:" + new Date(endDate)
          + "lastCSNPurgedFromHist: "

@@ -37,8 +37,7 @@ import java.lang.reflect.Method;
 
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.UtilityMessages.*;
 
 
@@ -59,10 +58,7 @@ import static org.opends.messages.UtilityMessages.*;
      mayInvoke=true)
 public class FilePermission
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -268,16 +264,16 @@ public class FilePermission
     }
     catch (NoSuchMethodException e)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.INFO, e);
+        logger.traceException(e);
       }
     }
     catch (ClassNotFoundException e)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.INFO, e);
+        logger.traceException(e);
       }
     }
     finally
@@ -684,10 +680,7 @@ public class FilePermission
    }
    catch (Exception e)
    {
-     if (debugEnabled())
-     {
-       TRACER.debugCaught(DebugLogLevel.ERROR, e);
-     }
+     logger.traceException(e);
    }
    return false;
  }
@@ -745,10 +738,7 @@ public class FilePermission
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         exceptionThrown = true;
       }
     }
@@ -778,10 +768,7 @@ public class FilePermission
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       exceptionThrown = true;
     }
 
@@ -809,10 +796,7 @@ public class FilePermission
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         exceptionThrown = true;
       }
     }
@@ -834,10 +818,7 @@ public class FilePermission
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       exceptionThrown = true;
     }
 
@@ -866,10 +847,7 @@ public class FilePermission
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         exceptionThrown = true;
       }
     }
@@ -899,10 +877,7 @@ public class FilePermission
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       exceptionThrown = true;
     }
 

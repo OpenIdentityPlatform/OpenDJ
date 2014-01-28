@@ -31,9 +31,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.assertj.core.api.Assertions;
-import org.opends.messages.Category;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;

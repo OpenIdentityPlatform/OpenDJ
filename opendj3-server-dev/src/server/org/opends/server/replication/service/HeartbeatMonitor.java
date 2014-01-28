@@ -22,18 +22,15 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.replication.service;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.protocol.Session;
-import org.opends.server.types.DebugLogLevel;
 
 import org.opends.server.api.DirectoryThread;
 
@@ -43,10 +40,7 @@ import org.opends.server.api.DirectoryThread;
  */
 final class HeartbeatMonitor extends DirectoryThread
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -123,9 +117,9 @@ final class HeartbeatMonitor extends DirectoryThread
   @Override
   public void run()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(this + " is starting, expected interval is " +
+      logger.trace(this + " is starting, expected interval is " +
                 heartbeatInterval);
     }
 
@@ -171,10 +165,7 @@ final class HeartbeatMonitor extends DirectoryThread
             catch (InterruptedException e)
             {
               // Server shutdown monitor may interrupt slow threads.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
               shutdown = true;
             }
           }
@@ -183,9 +174,9 @@ final class HeartbeatMonitor extends DirectoryThread
     }
     finally
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Heartbeat monitor is exiting");
+        logger.trace("Heartbeat monitor is exiting");
       }
       session.close();
     }

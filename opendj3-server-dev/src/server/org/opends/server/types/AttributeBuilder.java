@@ -28,7 +28,6 @@ package org.opends.server.types;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.AbstractSet;
@@ -47,7 +46,7 @@ import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Reject;
 
 
@@ -116,11 +115,7 @@ public final class AttributeBuilder
   private static abstract class RealAttribute
     extends AbstractAttribute
   {
-
-    /**
-     * The tracer object for the debug logger.
-     */
-    private static final DebugTracer TRACER = getTracer();
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     // The attribute type for this attribute.
     private final AttributeType attributeType;
@@ -177,10 +172,7 @@ public final class AttributeBuilder
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // We couldn't normalize the provided value. We should return
         // "undefined".
@@ -200,10 +192,7 @@ public final class AttributeBuilder
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // We couldn't normalize one of the attribute values. If we
           // can't find a definite match, then we should return
@@ -284,10 +273,7 @@ public final class AttributeBuilder
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // We couldn't normalize the provided value. We should return
         // "undefined".
@@ -310,10 +296,7 @@ public final class AttributeBuilder
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // We couldn't normalize one of the attribute values. If we
           // can't find a definite match, then we should return
@@ -371,10 +354,7 @@ public final class AttributeBuilder
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // We couldn't normalize the provided value. We should return
         // "undefined".
@@ -396,10 +376,7 @@ public final class AttributeBuilder
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // We couldn't normalize one of the attribute values. If we
           // can't find a definite match, then we should return
@@ -442,10 +419,7 @@ public final class AttributeBuilder
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // The substring couldn't be normalized. We have to return
           // "undefined".
@@ -470,10 +444,7 @@ public final class AttributeBuilder
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             // The substring couldn't be normalized. We have to return
             // "undefined".
@@ -496,10 +467,7 @@ public final class AttributeBuilder
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // The substring couldn't be normalized. We have to return
           // "undefined".
@@ -524,10 +492,7 @@ public final class AttributeBuilder
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // The value couldn't be normalized. If we can't find a
           // definite match, then we should return "undefined".

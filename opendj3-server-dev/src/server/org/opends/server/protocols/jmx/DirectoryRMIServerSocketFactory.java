@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -49,10 +49,7 @@ import javax.net.ssl.SSLSocketFactory;
 public class DirectoryRMIServerSocketFactory implements
     RMIServerSocketFactory
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    *  The SSL socket factory associated with the connector.
@@ -122,9 +119,9 @@ public class DirectoryRMIServerSocketFactory implements
       public Socket accept() throws IOException
       {
         Socket socket = super.accept();
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("host/port: %s/%d",
+          logger.trace("host/port: %s/%d",
                        socket.getInetAddress().getHostName(), socket.getPort());
         }
         SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(

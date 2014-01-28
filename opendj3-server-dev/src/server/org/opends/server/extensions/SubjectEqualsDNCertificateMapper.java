@@ -39,10 +39,9 @@ import org.opends.server.admin.std.server.SubjectEqualsDNCertificateMapperCfg;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -53,10 +52,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class SubjectEqualsDNCertificateMapper
        extends CertificateMapper<SubjectEqualsDNCertificateMapperCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Creates a new instance of this certificate mapper.  Note that all actual
@@ -123,10 +119,7 @@ public class SubjectEqualsDNCertificateMapper
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_SEDCM_PEER_CERT_NOT_X509.get(
           String.valueOf(certificateChain[0].getType()));
@@ -143,10 +136,7 @@ public class SubjectEqualsDNCertificateMapper
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_SEDCM_CANNOT_DECODE_SUBJECT_AS_DN.get(
           String.valueOf(peerPrincipal), getExceptionMessage(e));
@@ -172,10 +162,7 @@ public class SubjectEqualsDNCertificateMapper
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       LocalizableMessage message = ERR_SEDCM_CANNOT_GET_ENTRY.get(
           String.valueOf(subjectDN), de.getMessageObject());
@@ -184,10 +171,7 @@ public class SubjectEqualsDNCertificateMapper
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_SEDCM_CANNOT_GET_ENTRY.get(
           String.valueOf(subjectDN), getExceptionMessage(e));

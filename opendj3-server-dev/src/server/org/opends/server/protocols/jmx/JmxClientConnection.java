@@ -39,14 +39,13 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.*;
 import org.opends.server.core.*;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 
 /**
@@ -57,10 +56,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public class JmxClientConnection
        extends ClientConnection implements NotificationListener
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The message ID counter to use for jmx connections. */
   private AtomicInteger nextMessageID;
@@ -979,10 +975,7 @@ public class JmxClientConnection
    catch (Exception e)
     {
       // TODO print a message ?
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     // Call postDisconnectPlugins
@@ -995,10 +988,7 @@ public class JmxClientConnection
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 

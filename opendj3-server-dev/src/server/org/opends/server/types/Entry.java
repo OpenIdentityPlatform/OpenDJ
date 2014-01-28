@@ -45,7 +45,7 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SubentryManager;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.SubEntry.CollectiveConflictBehavior;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
@@ -54,7 +54,6 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -86,10 +85,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class Entry
        implements ProtocolElement
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The set of operational attributes for this entry. */
   private Map<AttributeType,List<Attribute>> operationalAttributes;
@@ -301,10 +297,7 @@ public class Entry
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         lowerName = toLowerCase(v.getValue().toString());
       }
@@ -1490,10 +1483,7 @@ public class Entry
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           ocName = toLowerCase(v.getValue().toString());
         }
@@ -2394,10 +2384,7 @@ public class Entry
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               LocalizableMessage message =
                    ERR_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR.get(
@@ -2489,10 +2476,7 @@ public class Entry
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               LocalizableMessage message =
                    ERR_ENTRY_SCHEMA_COULD_NOT_CHECK_PARENT_DSR.get(
@@ -2861,9 +2845,9 @@ public class Entry
     {
       // This should not happen
       // The server doesn't have this objectclass defined.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugWarning(
+        logger.trace(
             "No %s objectclass is defined in the server schema.",
             objectClassName);
       }
@@ -2880,9 +2864,9 @@ public class Entry
     {
       // This should not happen
       // The server doesn't have this attribute type defined.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugWarning(
+        logger.trace(
             "No %s attribute type is defined in the server schema.",
             attrTypeName);
       }
@@ -2929,9 +2913,9 @@ public class Entry
     {
       // This should not happen -- The server doesn't have a ref
       // attribute type defined.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugWarning(
+        logger.trace(
             "No %s attribute type is defined in the server schema.",
                      ATTR_REFERRAL_URL);
       }
@@ -2997,9 +2981,9 @@ public class Entry
     {
       // This should not happen -- The server doesn't have an
       // aliasedObjectName attribute type defined.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugWarning(
+        logger.trace(
             "No %s attribute type is defined in the server schema.",
                      ATTR_ALIAS_DN);
       }
@@ -3061,9 +3045,9 @@ public class Entry
     {
       // This should not happen
       // The server doesn't have this object class defined.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugWarning(
+        logger.trace(
             "No %s objectclass is defined in the server schema.",
             objectClassLowerCase);
       }
@@ -3283,10 +3267,7 @@ public class Entry
             }
             catch (DirectoryException de)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
             }
           }
           else if (subEntry.isInheritedFromRDNCollective() &&
@@ -3315,10 +3296,7 @@ public class Entry
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
               }
             }
             else
@@ -3808,10 +3786,7 @@ public class Entry
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_ENTRY_DECODE_EXCEPTION.get(getExceptionMessage(e));
@@ -4128,9 +4103,9 @@ public class Entry
     {
       if (! exportConfig.includeEntry(this))
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo(
+          logger.trace(
               "Skipping entry %s because of the export " +
                   "configuration.", String.valueOf(dn));
         }
@@ -4139,10 +4114,7 @@ public class Entry
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_EXPORT.
@@ -4198,9 +4170,9 @@ public class Entry
     }
     else
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose(
+        logger.trace(
             "Skipping objectclasses for entry %s because of " +
             "the export configuration.", String.valueOf(dn));
       }
@@ -4220,9 +4192,9 @@ public class Entry
     }
     else
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose(
+        logger.trace(
             "Skipping all operational attributes for entry %s " +
             "because of the export configuration.",
             String.valueOf(dn));
@@ -4301,9 +4273,9 @@ public class Entry
       }
       else
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("Skipping %s attribute %s for entry %s "
+          logger.trace("Skipping %s attribute %s for entry %s "
               + "because of the export configuration.", attributeType, attrType
               .getNameOrOID(), String.valueOf(dn));
         }
@@ -4736,10 +4708,7 @@ public class Entry
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           lowerName = toLowerCase(v.getValue().toString());
         }

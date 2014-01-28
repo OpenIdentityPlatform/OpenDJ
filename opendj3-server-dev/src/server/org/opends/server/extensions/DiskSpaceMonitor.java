@@ -33,13 +33,10 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import static org.opends.messages.CoreMessages.
     ERR_DISK_SPACE_MONITOR_UPDATE_FAILED;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,10 +55,7 @@ import java.util.concurrent.*;
 public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
     implements Runnable
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private volatile File directory;
   private volatile long lowThreshold;
@@ -244,9 +238,9 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
     {
       long lastFreeSpace = directory.getUsableSpace();
 
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Free space for %s: %d, " +
+        logger.trace("Free space for %s: %d, " +
             "low threshold: %d, full threshold: %d, state: %d",
             directory.getPath(), lastFreeSpace, lowThreshold, fullThreshold,
             lastState);
@@ -256,9 +250,9 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
       {
         if(lastState < 2)
         {
-          if(debugEnabled())
+          if(logger.isTraceEnabled())
           {
-            TRACER.debugInfo("State change: %d -> %d", lastState, 2);
+            logger.trace("State change: %d -> %d", lastState, 2);
           }
 
           lastState = 2;
@@ -272,9 +266,9 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
       {
         if(lastState < 1)
         {
-          if(debugEnabled())
+          if(logger.isTraceEnabled())
           {
-            TRACER.debugInfo("State change: %d -> %d", lastState, 1);
+            logger.trace("State change: %d -> %d", lastState, 1);
           }
           lastState = 1;
           if(handler != null)
@@ -285,9 +279,9 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
       }
       else if(lastState != 0)
       {
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
-          TRACER.debugInfo("State change: %d -> %d", lastState, 0);
+          logger.trace("State change: %d -> %d", lastState, 0);
         }
         lastState = 0;
         if(handler != null)
@@ -301,7 +295,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
       ErrorLogger.logError(ERR_DISK_SPACE_MONITOR_UPDATE_FAILED.get(
           directory.getPath(), e.toString()));
 
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      logger.traceException(e);
     }
   }
 }

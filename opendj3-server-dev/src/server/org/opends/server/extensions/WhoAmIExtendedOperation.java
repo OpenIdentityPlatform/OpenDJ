@@ -36,11 +36,10 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -50,10 +49,7 @@ import static org.opends.server.util.ServerConstants.*;
 public class WhoAmIExtendedOperation
        extends ExtendedOperationHandler<WhoAmIExtendedOperationHandlerCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Create an instance of this "Who Am I?" extended operation.  All
@@ -119,10 +115,7 @@ public class WhoAmIExtendedOperation
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       operation.setResultCode(de.getResultCode());
       operation.appendErrorMessage(de.getMessageObject());

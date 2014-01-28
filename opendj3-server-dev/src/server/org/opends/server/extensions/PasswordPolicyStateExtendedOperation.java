@@ -39,7 +39,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
@@ -51,7 +51,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -124,10 +123,7 @@ public class PasswordPolicyStateExtendedOperation
        extends ExtendedOperationHandler<
                     PasswordPolicyStateExtendedOperationHandlerCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /** The enumerated value for the getPasswordPolicyDN operation. */
@@ -289,10 +285,7 @@ public class PasswordPolicyStateExtendedOperation
     catch (Exception e)
     {
       // This should never happen.
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
 
@@ -350,10 +343,7 @@ public class PasswordPolicyStateExtendedOperation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_PWPSTATE_EXTOP_DECODE_FAILURE.get(getExceptionMessage(e));
@@ -371,10 +361,7 @@ public class PasswordPolicyStateExtendedOperation
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       operation.setResponseData(de);
       return;
@@ -414,10 +401,7 @@ public class PasswordPolicyStateExtendedOperation
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       operation.setResponseData(de);
       return;
@@ -521,10 +505,7 @@ public class PasswordPolicyStateExtendedOperation
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           operation.setResponseData(de);
           return;
@@ -533,10 +514,7 @@ public class PasswordPolicyStateExtendedOperation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_PWPSTATE_EXTOP_INVALID_OP_ENCODING.get(
           e.getLocalizedMessage());

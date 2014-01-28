@@ -38,12 +38,10 @@ import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.loggers.RetentionPolicy;
 import org.opends.server.config.ConfigException;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ConfigMessages.*;
 
 import static org.opends.server.util.StaticUtils.*;
@@ -64,10 +62,7 @@ public class LogRetentionPolicyConfigManager implements
     ConfigurationDeleteListener<LogRetentionPolicyCfg>,
     ConfigurationChangeListener<LogRetentionPolicyCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -138,17 +133,11 @@ public class LogRetentionPolicyConfigManager implements
       DirectoryServer.registerRetentionPolicy(config.dn(), RetentionPolicy);
     }
     catch (ConfigException e) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       messages.add(e.getMessageObject());
       resultCode = DirectoryServer.getServerErrorResultCode();
     } catch (Exception e) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       messages.add(ERR_CONFIG_RETENTION_POLICY_CANNOT_CREATE_POLICY.get(
               String.valueOf(config.dn().toString()),

@@ -27,14 +27,12 @@
 package org.opends.server.replication.protocol;
 import org.forgerock.i18n.LocalizableMessage;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * This message is part of the replication protocol.
@@ -44,7 +42,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 public class ErrorMsg extends RoutableMsg
 {
   // The tracer object for the debug logger
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Specifies the messageID built from the error that was detected
   private String msgID;
@@ -71,8 +69,8 @@ public class ErrorMsg extends RoutableMsg
     this.details = details;
     this.creationTime = System.currentTimeMillis();
 
-    if (debugEnabled())
-      TRACER.debugInfo(" Creating error message" + this.toString()
+    if (logger.isTraceEnabled())
+      logger.trace(" Creating error message" + this.toString()
           + " " + stackTraceToSingleLineString(new Exception("trace")));
   }
 
@@ -89,8 +87,8 @@ public class ErrorMsg extends RoutableMsg
     this.details = details;
     this.creationTime = System.currentTimeMillis();
 
-    if (debugEnabled())
-      TRACER.debugInfo(this.toString());
+    if (logger.isTraceEnabled())
+      logger.trace(this.toString());
   }
 
   /**

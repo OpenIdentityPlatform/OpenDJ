@@ -43,7 +43,7 @@ import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.api.plugin.PluginResult.PreOperation;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.controls.SubentriesControl;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
@@ -63,7 +63,6 @@ import org.opends.server.workflowelement.localbackend.
             LocalBackendSearchOperation;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -83,10 +82,7 @@ import static org.opends.server.config.ConfigConstants.*;
 public class SubentryManager extends InternalDirectoryServerPlugin
         implements BackendInitializationListener
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // A mapping between the DNs and applicable subentries.
   private HashMap<DN,List<SubEntry>> dn2SubEntry;
@@ -331,10 +327,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     for (DN baseDN : backend.getBaseDNs())
@@ -348,10 +341,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // FIXME -- Is there anything that we need to do here?
         continue;
@@ -372,10 +362,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // FIXME -- Is there anything that we need to do here?
         continue;
@@ -399,19 +386,13 @@ public class SubentryManager extends InternalDirectoryServerPlugin
               }
               catch (Exception e)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                }
+                logger.traceException(e);
               }
             }
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             // FIXME -- Handle this.
             continue;
@@ -671,10 +652,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
               }
               catch (Exception e)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                }
+                logger.traceException(e);
               }
             }
           }
@@ -709,10 +687,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
               }
               catch (Exception e)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                }
+                logger.traceException(e);
               }
             }
           }
@@ -750,19 +725,13 @@ public class SubentryManager extends InternalDirectoryServerPlugin
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
             }
           }
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // FIXME -- Handle this.
         }
@@ -793,10 +762,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
       }
@@ -828,10 +794,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // FIXME -- Handle this.
         }
@@ -850,10 +813,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
       }
@@ -893,10 +853,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         catch (Exception e)
         {
           // Shouldnt happen.
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
 
         // Notify change listeners.
@@ -910,10 +867,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
       }
@@ -953,10 +907,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           return PluginResult.PreOperation.stopProcessing(
                   de.getResultCode(), de.getMessageObject());
@@ -1008,10 +959,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             return PluginResult.PreOperation.stopProcessing(
                     de.getResultCode(), de.getMessageObject());
@@ -1059,10 +1007,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           return PluginResult.PreOperation.stopProcessing(
                   de.getResultCode(), de.getMessageObject());
@@ -1124,10 +1069,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         catch (Exception e)
         {
           // Shouldnt happen.
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
         for (SubentryChangeListener changeListener :
                 changeListeners)
@@ -1139,10 +1081,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             return PluginResult.PreOperation.stopProcessing(
                     de.getResultCode(), de.getMessageObject());

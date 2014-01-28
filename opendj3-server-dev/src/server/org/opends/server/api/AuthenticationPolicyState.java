@@ -31,8 +31,6 @@ package org.opends.server.api;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.OP_ATTR_ACCOUNT_DISABLED;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
@@ -40,7 +38,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -54,10 +52,7 @@ import org.forgerock.opendj.ldap.ByteString;
  */
 public abstract class AuthenticationPolicyState
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -130,9 +125,9 @@ public abstract class AuthenticationPolicyState
         if (valueString.equals("true") || valueString.equals("yes")
             || valueString.equals("on") || valueString.equals("1"))
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo("Attribute %s resolves to true for user entry "
+            logger.trace("Attribute %s resolves to true for user entry "
                 + "%s", attributeType.getNameOrOID(),
                 entry.getName().toString());
           }
@@ -143,9 +138,9 @@ public abstract class AuthenticationPolicyState
         if (valueString.equals("false") || valueString.equals("no")
             || valueString.equals("off") || valueString.equals("0"))
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo("Attribute %s resolves to false for user "
+            logger.trace("Attribute %s resolves to false for user "
                 + "entry %s", attributeType.getNameOrOID(), entry.getName()
                 .toString());
           }
@@ -153,9 +148,9 @@ public abstract class AuthenticationPolicyState
           return ConditionResult.FALSE;
         }
 
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugError("Unable to resolve value %s for attribute %s "
+          logger.trace("Unable to resolve value %s for attribute %s "
               + "in user entry %s as a Boolean.", valueString,
               attributeType.getNameOrOID(), entry.getName().toString());
         }
@@ -168,9 +163,9 @@ public abstract class AuthenticationPolicyState
       }
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("Returning %s because attribute %s does not exist "
+      logger.trace("Returning %s because attribute %s does not exist "
           + "in user entry %s", ConditionResult.UNDEFINED.toString(),
           attributeType.getNameOrOID(), entry.getName().toString());
     }
@@ -218,11 +213,11 @@ public abstract class AuthenticationPolicyState
         }
         catch (final Exception e)
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            logger.traceException(e);
 
-            TRACER.debugWarning("Unable to decode value %s for attribute %s "
+            logger.trace("Unable to decode value %s for attribute %s "
                 + "in user entry %s: %s", v.getValue().toString(),
                 attributeType.getNameOrOID(), entry.getName().toString(),
                 stackTraceToSingleLineString(e));
@@ -240,9 +235,9 @@ public abstract class AuthenticationPolicyState
 
     if (timeValue == -1)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Returning -1 because attribute %s does not "
+        logger.trace("Returning -1 because attribute %s does not "
             + "exist in user entry %s", attributeType.getNameOrOID(), entry
             .getName().toString());
       }
@@ -324,15 +319,12 @@ public abstract class AuthenticationPolicyState
     }
     catch (final Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       isDisabled = ConditionResult.TRUE;
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugWarning("User %s is considered administratively "
+        logger.trace("User %s is considered administratively "
             + "disabled because an error occurred while "
             + "attempting to make the determination: %s.", userEntry.getName()
             .toString(), stackTraceToSingleLineString(e));
@@ -344,18 +336,18 @@ public abstract class AuthenticationPolicyState
     if (isDisabled == ConditionResult.UNDEFINED)
     {
       isDisabled = ConditionResult.FALSE;
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("User %s is not administratively disabled since "
+        logger.trace("User %s is not administratively disabled since "
             + "the attribute \"%s\" is not present in the entry.", userEntry
             .getName().toString(), OP_ATTR_ACCOUNT_DISABLED);
       }
       return false;
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("User %s %s administratively disabled.", userEntry
+      logger.trace("User %s %s administratively disabled.", userEntry
           .getName().toString(), ((isDisabled == ConditionResult.TRUE) ? " is"
           : " is not"));
     }

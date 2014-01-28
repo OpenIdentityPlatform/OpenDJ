@@ -44,8 +44,9 @@ import java.io.Reader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
@@ -59,7 +60,6 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.OpendsCertificateException;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
@@ -749,7 +749,7 @@ public abstract class ConsoleApplication
    *          the Logger to be used to log the error message.
    * @return The string value read from the user.
    */
-  public String readInput(LocalizableMessage prompt, String defaultValue, Logger logger)
+  public String readInput(LocalizableMessage prompt, String defaultValue, LocalizedLogger logger)
   {
     String s = defaultValue;
     try
@@ -758,7 +758,7 @@ public abstract class ConsoleApplication
     }
     catch (CLIException ce)
     {
-      logger.log(Level.WARNING, "Error reading input: " + ce, ce);
+      logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
     }
     return s;
   }
@@ -798,7 +798,7 @@ public abstract class ConsoleApplication
    *          the Logger to be used to log the error message.
    * @return Returns the password.
    */
-  protected final String readPassword(LocalizableMessage prompt, Logger logger)
+  protected final String readPassword(LocalizableMessage prompt, LocalizedLogger logger)
   {
     String pwd = null;
     try
@@ -807,7 +807,7 @@ public abstract class ConsoleApplication
     }
     catch (CLIException ce)
     {
-      logger.log(Level.WARNING, "Error reading input: " + ce, ce);
+      logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
     }
     return pwd;
   }
@@ -897,7 +897,7 @@ public abstract class ConsoleApplication
    *          the logger where the errors will be written.
    * @return the port value provided by the user.
    */
-  protected int askPort(LocalizableMessage prompt, int defaultValue, Logger logger)
+  protected int askPort(LocalizableMessage prompt, int defaultValue, LocalizedLogger logger)
   {
     int port = -1;
     while (port == -1)
@@ -909,7 +909,7 @@ public abstract class ConsoleApplication
       catch (CLIException ce)
       {
         port = -1;
-        logger.log(Level.WARNING, "Error reading input: " + ce, ce);
+        logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
       }
     }
     return port;
@@ -1002,7 +1002,7 @@ public abstract class ConsoleApplication
    *           of tries (ConsoleApplication.CONFIRMATION_MAX_TRIES)
    */
   protected final boolean askConfirmation(LocalizableMessage prompt, boolean defaultValue,
-      Logger logger) throws CLIException
+      LocalizedLogger logger) throws CLIException
   {
     boolean v = defaultValue;
 
@@ -1026,7 +1026,7 @@ public abstract class ConsoleApplication
         {
           throw ce;
         }
-        logger.log(Level.WARNING, "Error reading input: " + ce, ce);
+        logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
         //      Try again...
         println();
       }
@@ -1346,7 +1346,7 @@ public abstract class ConsoleApplication
    *          the Logger to be used to log the error message.
    * @return the Global Administrator UID as provided by the user.
    */
-  protected String askForAdministratorUID(String defaultValue, Logger logger)
+  protected String askForAdministratorUID(String defaultValue, LocalizedLogger logger)
   {
     String s = defaultValue;
     try
@@ -1355,7 +1355,7 @@ public abstract class ConsoleApplication
     }
     catch (CLIException ce)
     {
-      logger.log(Level.WARNING, "Error reading input: " + ce, ce);
+      logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
     }
     return s;
   }
@@ -1367,7 +1367,7 @@ public abstract class ConsoleApplication
    *          the Logger to be used to log the error message.
    * @return the Global Administrator password as provided by the user.
    */
-  protected String askForAdministratorPwd(Logger logger)
+  protected String askForAdministratorPwd(LocalizedLogger logger)
   {
     String pwd = readPassword(INFO_ADMINISTRATOR_PWD_PROMPT.get(), logger);
     return pwd;
@@ -1399,7 +1399,7 @@ public abstract class ConsoleApplication
    *          the logger where the errors will be written.
    * @return the value provided by the user.
    */
-  protected int askInteger(LocalizableMessage prompt, int defaultValue, Logger logger)
+  protected int askInteger(LocalizableMessage prompt, int defaultValue, LocalizedLogger logger)
   {
     int newInt = -1;
     while (newInt == -1)
@@ -1411,7 +1411,7 @@ public abstract class ConsoleApplication
       catch (CLIException ce)
       {
         newInt = -1;
-        logger.log(Level.WARNING, "Error reading input: " + ce, ce);
+        logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
       }
     }
     return newInt;

@@ -78,7 +78,7 @@ import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.*;
 import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
@@ -102,10 +102,7 @@ import org.opends.server.workflowelement.localbackend.*;
 public final class DirectoryServer
        implements AlertGenerator
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The singleton Directory Server instance.
@@ -1061,9 +1058,9 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugCaught(DebugLogLevel.WARNING, e);
+          logger.traceException(e);
         }
 
         directoryServer.mBeanServer =
@@ -1074,10 +1071,7 @@ public final class DirectoryServer
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CANNOT_CREATE_MBEAN_SERVER.get(String.valueOf(e));
       throw new InitializationException(message, e);
@@ -1111,10 +1105,7 @@ public final class DirectoryServer
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_CANNOT_LOAD_CONFIG_HANDLER_CLASS.get(
@@ -1161,10 +1152,7 @@ public final class DirectoryServer
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_CANNOT_INSTANTIATE_CONFIG_HANDLER.get(
@@ -1190,19 +1178,13 @@ public final class DirectoryServer
     }
     catch (InitializationException ie)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
+      logger.traceException(ie);
 
       throw ie;
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_CANNOT_INITIALIZE_CONFIG_HANDLER.get(
@@ -1251,10 +1233,7 @@ public final class DirectoryServer
     }
     catch (InitializationException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw new InitializationException(e.getMessageObject());
     }
 
@@ -1298,10 +1277,7 @@ public final class DirectoryServer
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(
               lockFile, stackTraceToSingleLineString(e));
@@ -1506,10 +1482,7 @@ public final class DirectoryServer
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
 
@@ -1620,10 +1593,7 @@ public final class DirectoryServer
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
           get(currentFactory.getClass().getName(),
@@ -1666,10 +1636,7 @@ public final class DirectoryServer
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       logError(ERR_CANNOT_BOOTSTRAP_SYNTAX.get(syntax.getClass().getName(),
           stackTraceToSingleLineString(e)));
@@ -1837,10 +1804,7 @@ public final class DirectoryServer
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     try
@@ -1849,19 +1813,13 @@ public final class DirectoryServer
     }
     catch (InitializationException ie)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
+      logger.traceException(ie);
 
       throw ie;
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_CANNOT_INITIALIZE_CONFIG_HANDLER.get(
@@ -2060,10 +2018,7 @@ public final class DirectoryServer
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
           stackTraceToSingleLineString(e));
@@ -2472,10 +2427,7 @@ public final class DirectoryServer
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       throw new InitializationException(de.getMessageObject());
     }
@@ -2677,10 +2629,7 @@ public final class DirectoryServer
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       throw new InitializationException(de.getMessageObject());
     }
@@ -2810,10 +2759,7 @@ public final class DirectoryServer
          ServerManagementContext.getInstance().getRootConfiguration();
     rootDSECfg = root.getRootDSEBackend();
   }  catch (Exception e) {
-    if (debugEnabled())
-    {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-    }
+    logger.traceException(e);
     LocalizableMessage message = ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
         stackTraceToSingleLineString(e));
     throw new InitializationException(message, e);
@@ -3774,10 +3720,7 @@ public final class DirectoryServer
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
 
@@ -3799,10 +3742,7 @@ public final class DirectoryServer
         catch (Exception e)
         {
           // This should never happen.
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -4636,10 +4576,7 @@ public final class DirectoryServer
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -5367,10 +5304,7 @@ public final class DirectoryServer
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -5404,10 +5338,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -7580,10 +7511,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -7609,10 +7537,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -7663,10 +7588,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -7692,10 +7614,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -7747,10 +7666,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -7776,10 +7692,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -7831,10 +7744,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -7860,10 +7770,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -7970,10 +7877,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
     directoryServer.connectionHandlers.clear();
@@ -8024,10 +7928,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -8054,10 +7955,7 @@ public final class DirectoryServer
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
       }
@@ -8074,10 +7972,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -8092,10 +7987,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -8146,10 +8038,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -8186,10 +8075,7 @@ public final class DirectoryServer
         }
         catch (Exception e2)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-          }
+          logger.traceException(e2);
 
           message = WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK.
               get(backend.getBackendID(), stackTraceToSingleLineString(e2));
@@ -8199,10 +8085,7 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -8224,9 +8107,7 @@ public final class DirectoryServer
             logError(message);
         }
     } catch (Exception e) {
-        if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
     }
 
     // Deregister all workflows.
@@ -8921,10 +8802,7 @@ public final class DirectoryServer
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // This could theoretically happen if an alert needs to be sent before the
       // configuration is initialized.  In that case, just return an empty DN.
@@ -9209,10 +9087,7 @@ public final class DirectoryServer
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
                                   stackTraceToSingleLineString(e));
@@ -9383,10 +9258,7 @@ public final class DirectoryServer
     }
     catch (InitializationException ie)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
+      logger.traceException(ie);
 
       LocalizableMessage message = ERR_DSCORE_CANNOT_BOOTSTRAP.get(ie.getMessage());
       System.err.println(message);
@@ -9406,20 +9278,14 @@ public final class DirectoryServer
     }
     catch (InitializationException ie)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
+      logger.traceException(ie);
 
       LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(ie.getMessage());
       shutDown(theDirectoryServer.getClass().getName(), message);
     }
     catch (ConfigException ce)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
+      logger.traceException(ce);
 
       LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(ce.getMessage() +
       (ce.getCause() != null ? " " + ce.getCause().getLocalizedMessage() : ""));

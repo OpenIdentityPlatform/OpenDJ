@@ -36,10 +36,8 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.ApproximateMatchingRule;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
@@ -73,10 +71,7 @@ import org.opends.server.util.StaticUtils;
 public class AttributeIndex
     implements ConfigurationChangeListener<LocalDBIndexCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -1018,10 +1013,7 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       return new EntryIDSet();
     }
   }
@@ -1171,10 +1163,7 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       return new EntryIDSet();
     }
   }
@@ -1258,10 +1247,7 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       return new EntryIDSet();
     }
   }
@@ -1445,10 +1431,7 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       return new EntryIDSet();
     }
   }
@@ -1489,10 +1472,7 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       return new EntryIDSet();
     }
   }
@@ -1619,10 +1599,7 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       return new EntryIDSet();
     }
   }
@@ -2705,10 +2682,7 @@ public class AttributeIndex
       }
       catch (DirectoryException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         return IndexQuery.createNullIndexQuery().evaluate(null);
       }
     }
@@ -2776,10 +2750,7 @@ public class AttributeIndex
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       return IndexQuery.createNullIndexQuery().evaluate(null);
     }
   }

@@ -52,8 +52,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
@@ -64,8 +64,7 @@ import javax.naming.ldap.InitialLdapContext;
  */
 public abstract class Application implements ProgressNotifier, Runnable {
 
-  static private final Logger LOG =
-          Logger.getLogger(Application.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Represents current install state. */
   protected CurrentInstallStatus installStatus;
@@ -106,15 +105,15 @@ public abstract class Application implements ProgressNotifier, Runnable {
         appClass = Class.forName(appClassName);
         app = (GuiApplication) appClass.newInstance();
       } catch (ClassNotFoundException e) {
-        LOG.log(Level.INFO, "error creating quicksetup application", e);
+        logger.debug(LocalizableMessage.raw("error creating quicksetup application", e));
         String msg = "Application class " + appClass + " not found";
         throw new RuntimeException(msg, e);
       } catch (IllegalAccessException e) {
-        LOG.log(Level.INFO, "error creating quicksetup application", e);
+        logger.debug(LocalizableMessage.raw("error creating quicksetup application", e));
         String msg = "Could not access class " + appClass;
         throw new RuntimeException(msg, e);
       } catch (InstantiationException e) {
-        LOG.log(Level.INFO, "error creating quicksetup application", e);
+        logger.debug(LocalizableMessage.raw("error creating quicksetup application", e));
         String msg = "Error instantiating class " + appClass;
         throw new RuntimeException(msg, e);
       } catch (ClassCastException e) {
@@ -533,7 +532,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
         }
         catch (Throwable t)
         {
-          LOG.log(Level.WARNING, "Error retrieving UI key store: "+t, t);
+          logger.warn(LocalizableMessage.raw("Error retrieving UI key store: "+t, t));
           trustManager = new ApplicationTrustManager(null);
         }
       }
@@ -837,7 +836,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
       notifyListeners(mb.toMessage());
       applicationPrintStreamReceived(msg);
-      LOG.log(Level.INFO, msg);
+      logger.debug(LocalizableMessage.raw(msg));
       isFirstLine = false;
     }
 

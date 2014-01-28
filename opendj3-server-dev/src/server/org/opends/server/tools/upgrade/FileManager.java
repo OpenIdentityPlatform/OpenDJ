@@ -41,8 +41,8 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 
 
 
@@ -83,8 +83,7 @@ class FileManager
   /**
    * Upgrade's Log.
    */
-  static private final Logger LOG = Logger
-      .getLogger(UpgradeCli.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -187,8 +186,8 @@ class FileManager
     }
     else
     {
-      LOG.log(Level.INFO, new StringBuilder("File '").append(file.toString())
-          .append("' does not exist").toString());
+      logger.debug(LocalizableMessage.raw(new StringBuilder("File '").append(file.toString())
+          .append("' does not exist").toString()));
     }
   }
 
@@ -373,7 +372,7 @@ class FileManager
           {
             final LocalizableMessage message = LocalizableMessage.raw("Copying file '%s' to '%s'",
                 objectFile.getAbsolutePath(), destination.getAbsolutePath());
-            LOG.log(Level.INFO, message.toString());
+            logger.debug(LocalizableMessage.raw(message.toString()));
             FileInputStream fis = null;
             FileOutputStream fos = null;
             try
@@ -417,7 +416,7 @@ class FileManager
           {
             final LocalizableMessage errMsg = INFO_ERROR_COPYING_FILE.get(
                 objectFile.getAbsolutePath(), destination.getAbsolutePath());
-            LOG.log(Level.SEVERE, errMsg.toString());
+            logger.error(LocalizableMessage.raw(errMsg.toString()));
             throw new IOException(errMsg.toString());
           }
         }
@@ -427,7 +426,7 @@ class FileManager
               "Ignoring file '%s' since '%s' already exists",
               objectFile.getAbsolutePath(), destination.getAbsolutePath());
 
-          LOG.log(Level.INFO, message.toString());
+          logger.debug(LocalizableMessage.raw(message.toString()));
         }
       }
     }
@@ -547,8 +546,8 @@ class FileManager
       File file = getObjectFile();
       boolean isFile = file.isFile();
 
-      LOG.log(Level.INFO, "deleting " + (isFile ? " file " : " directory ")
-          + file.getAbsolutePath());
+      logger.debug(LocalizableMessage.raw("deleting " + (isFile ? " file " : " directory ")
+          + file.getAbsolutePath()));
 
       boolean delete = false;
       /*

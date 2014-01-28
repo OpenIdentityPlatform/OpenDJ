@@ -41,7 +41,6 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 
 /**
@@ -257,10 +256,7 @@ public class ReplicationServerHandler extends ServerHandler
     }
     catch (IOException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
           String.valueOf(getReplicationServerId()),
           session.getReadableRemoteAddress());
@@ -268,18 +264,12 @@ public class ReplicationServerHandler extends ServerHandler
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       abortStart(e.getMessageObject());
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       abortStart(LocalizableMessage.raw(e.getLocalizedMessage()));
     }
     finally
@@ -354,9 +344,9 @@ public class ReplicationServerHandler extends ServerHandler
         // then it's ok and nothing else to do
         if (generationId == localGenerationId)
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo("In " + replicationServer.getMonitorInstanceName()
+            logger.trace("In " + replicationServer.getMonitorInstanceName()
                 + " " + this + " RS V1 with serverID=" + serverId
                 + " is connected with the right generation ID");
           }
@@ -392,10 +382,7 @@ public class ReplicationServerHandler extends ServerHandler
     }
     catch (IOException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
           Integer.toString(inReplServerStartMsg.getServerId()),
           Integer.toString(replicationServer.getServerId()));
@@ -403,18 +390,12 @@ public class ReplicationServerHandler extends ServerHandler
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       abortStart(e.getMessageObject());
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       abortStart(LocalizableMessage.raw(e.getLocalizedMessage()));
     }
     finally
@@ -475,9 +456,9 @@ public class ReplicationServerHandler extends ServerHandler
     */
     if (generationId == localGenerationId)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("In " + replicationServer.getMonitorInstanceName()
+        logger.trace("In " + replicationServer.getMonitorInstanceName()
             + " RS with serverID=" + serverId
             + " is connected with the right generation ID, same as local ="
             + generationId);

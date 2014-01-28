@@ -29,8 +29,6 @@ package org.opends.server.types;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -39,7 +37,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -322,7 +320,7 @@ public final class ByteStringBuilder implements ByteSequence
   }
 
   // Used for tracing exceptions.
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The buffer where data is stored.
   private byte[] buffer;
@@ -711,10 +709,7 @@ public final class ByteStringBuilder implements ByteSequence
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
           return append(s.getBytes());
         }
       }
@@ -928,9 +923,9 @@ public final class ByteStringBuilder implements ByteSequence
 
     if (compressedSize != -1)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Compression %d/%d%n", compressedSize,
+        logger.trace("Compression %d/%d%n", compressedSize,
             length);
       }
 

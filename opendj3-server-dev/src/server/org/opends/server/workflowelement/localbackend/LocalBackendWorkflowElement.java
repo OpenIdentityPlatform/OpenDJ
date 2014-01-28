@@ -46,13 +46,12 @@ import org.opends.server.controls.LDAPPostReadResponseControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.LeafWorkflowElement;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines a local backend workflow element; e-g an entity that
@@ -62,10 +61,7 @@ public class LocalBackendWorkflowElement extends
     LeafWorkflowElement<LocalBackendWorkflowElementCfg>
     implements ConfigurationChangeListener<LocalBackendWorkflowElementCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** the backend associated with the local workflow element. */
   private Backend backend;
@@ -502,10 +498,7 @@ public class LocalBackendWorkflowElement extends
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       operation.setResponseData(de);
       // At this point it is impossible to tell whether the matchedDN can be

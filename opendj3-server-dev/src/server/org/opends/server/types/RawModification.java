@@ -28,7 +28,6 @@ package org.opends.server.types;
 
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 
@@ -36,7 +35,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPModification;
@@ -55,10 +54,7 @@ import org.opends.server.protocols.ldap.LDAPModification;
      mayInvoke=true)
 public abstract class RawModification
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Creates a new raw modification with the provided type and
@@ -254,10 +250,7 @@ public abstract class RawModification
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_MODIFICATION_DECODE_SEQUENCE.get(
           String.valueOf(e));
@@ -296,10 +289,7 @@ public abstract class RawModification
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_MODIFICATION_DECODE_MOD_TYPE.get(
           String.valueOf(e));
@@ -314,10 +304,7 @@ public abstract class RawModification
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_LDAP_MODIFICATION_DECODE_ATTR.get(String.valueOf(e));
@@ -330,10 +317,7 @@ public abstract class RawModification
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_MODIFICATION_DECODE_SEQUENCE.get(
           String.valueOf(e));

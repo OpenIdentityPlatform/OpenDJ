@@ -43,10 +43,9 @@ import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -61,10 +60,7 @@ public class VirtualAttributeConfigManager
                   ConfigurationAddListener<VirtualAttributeCfg>,
                   ConfigurationDeleteListener<VirtualAttributeCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * A mapping between the DNs of the config entries and the associated virtual
@@ -219,10 +215,7 @@ public class VirtualAttributeConfigManager
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         LocalizableMessage message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
                 filterString,

@@ -37,10 +37,9 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -52,10 +51,7 @@ public class PasswordPolicySubentryVirtualAttributeProvider
         extends VirtualAttributeProvider<
         PasswordPolicySubentryVirtualAttributeCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Creates a new instance of this pwdPolicySubentry
@@ -95,9 +91,9 @@ public class PasswordPolicySubentryVirtualAttributeProvider
         // retrieve password policy, log this.
         ErrorLogger.logError(de.getMessageObject());
 
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugError("Failed to retrieve password " +
+          logger.trace("Failed to retrieve password " +
                 "policy for user %s: %s",
                 entry.getName().toString(),
                 stackTraceToSingleLineString(de));
@@ -108,9 +104,9 @@ public class PasswordPolicySubentryVirtualAttributeProvider
       {
         // No authentication policy: debug log this as an error since all
         // entries should have at least the default password policy.
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugError("No applicable password policy for user %s", entry
+          logger.trace("No applicable password policy for user %s", entry
               .getName().toString());
         }
       }
@@ -126,9 +122,9 @@ public class PasswordPolicySubentryVirtualAttributeProvider
       else
       {
         // Not a password policy, could be PTA, etc.
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("Authentication policy %s found for user %s is "
+          logger.trace("Authentication policy %s found for user %s is "
               + "not a password policy", policy.getDN().toString(), entry
               .getName().toString());
         }

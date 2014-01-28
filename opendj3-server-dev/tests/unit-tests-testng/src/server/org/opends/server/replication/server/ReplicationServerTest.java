@@ -38,7 +38,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.replication.ReplicationTestCase;
@@ -64,7 +64,6 @@ import org.testng.annotations.Test;
 import static java.util.Collections.*;
 
 import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.types.SearchScope.*;
@@ -79,7 +78,7 @@ import static org.testng.Assert.*;
 public class ReplicationServerTest extends ReplicationTestCase
 {
   /** The tracer object for the debug logger */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private DN TEST_ROOT_DN;
   private DN EXAMPLE_DN;
   /** The replicationServer that will be used in this test. */
@@ -151,9 +150,9 @@ public class ReplicationServerTest extends ReplicationTestCase
   private void debugInfo(String s)
   {
     //ErrorLogger.logError(LocalizableMessage.raw("** TEST ** " + s));
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("** TEST ** " + s);
+      logger.trace("** TEST ** " + s);
     }
   }
 

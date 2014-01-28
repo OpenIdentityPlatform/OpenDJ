@@ -30,12 +30,10 @@ import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -45,10 +43,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class TaskThread extends DirectoryThread
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -145,10 +140,7 @@ public class TaskThread extends DirectoryThread
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -180,10 +172,7 @@ public class TaskThread extends DirectoryThread
         }
         catch (InterruptedException ie)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-          }
+          logger.traceException(ie);
         }
 
         continue;
@@ -209,10 +198,7 @@ public class TaskThread extends DirectoryThread
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         Task task = getAssociatedTask();
 

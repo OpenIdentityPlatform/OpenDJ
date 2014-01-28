@@ -25,23 +25,21 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
-import org.forgerock.i18n.LocalizableMessage;
-import static org.opends.messages.LoggerMessages.ERR_LOGGER_ERROR_LISTING_FILES;
-
-import org.opends.server.admin.std.server.SizeLimitLogRetentionPolicyCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.core.DirectoryServer;
-
+import static org.opends.messages.LoggerMessages.*;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ArrayList;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.SizeLimitLogRetentionPolicyCfg;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
 
 /**
  * This class implements a retention policy based on the amount of
@@ -51,10 +49,8 @@ public class SizeBasedRetentionPolicy implements
     RetentionPolicy<SizeLimitLogRetentionPolicyCfg>,
     ConfigurationChangeListener<SizeLimitLogRetentionPolicyCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static final File[] EMPTY_FILE_LIST = new File[0];
 
   private long size = 0;
@@ -124,10 +120,7 @@ public class SizeBasedRetentionPolicy implements
       totalLength += file.length();
     }
 
-    if(debugEnabled())
-    {
-      TRACER.debugInfo("Total size of files: %d, Max: %d", totalLength, size);
-    }
+    logger.trace("Total size of files: %d, Max: %d", totalLength, size);
 
     if (totalLength <= size)
     {

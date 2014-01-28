@@ -35,11 +35,10 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines the set of methods and structures that must be
@@ -57,10 +56,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public abstract class VirtualAttributeProvider
        <T extends VirtualAttributeCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Initializes this virtual attribute based on the information in
@@ -298,10 +294,7 @@ public abstract class VirtualAttributeProvider
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // The substring couldn't be normalized.  We have to return
         // "undefined".
@@ -328,10 +321,7 @@ public abstract class VirtualAttributeProvider
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // The substring couldn't be normalized.  We have to return
           // "undefined".
@@ -355,10 +345,7 @@ public abstract class VirtualAttributeProvider
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // The substring couldn't be normalized.  We have to return
         // "undefined".
@@ -383,10 +370,7 @@ public abstract class VirtualAttributeProvider
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // The value couldn't be normalized.  If we can't find a
         // definite match, then we should return "undefined".
@@ -434,10 +418,7 @@ public abstract class VirtualAttributeProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // We couldn't normalize the provided value.  We should return
       // "undefined".
@@ -459,10 +440,7 @@ public abstract class VirtualAttributeProvider
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // We couldn't normalize one of the attribute values.  If we
         // can't find a definite match, then we should return
@@ -511,10 +489,7 @@ public abstract class VirtualAttributeProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // We couldn't normalize the provided value.  We should return
       // "undefined".
@@ -536,10 +511,7 @@ public abstract class VirtualAttributeProvider
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // We couldn't normalize one of the attribute values.  If we
         // can't find a definite match, then we should return
@@ -588,10 +560,7 @@ public abstract class VirtualAttributeProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // We couldn't normalize the provided value.  We should return
       // "undefined".
@@ -611,10 +580,7 @@ public abstract class VirtualAttributeProvider
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // We couldn't normalize one of the attribute values.  If we
         // can't find a definite match, then we should return

@@ -22,13 +22,12 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.*;
@@ -45,7 +44,7 @@ import java.util.zip.DataFormatException;
 import javax.net.ssl.SSLSocket;
 
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.StaticUtils;
 
 
@@ -55,10 +54,7 @@ import org.opends.server.util.StaticUtils;
  */
 public final class Session extends DirectoryThread implements Closeable
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final Socket plainSocket;
   private final SSLSocket secureSocket;
@@ -132,9 +128,9 @@ public final class Session extends DirectoryThread implements Closeable
   {
     super("Replication Session from "+ socket.getLocalSocketAddress() +
         " to " + socket.getRemoteSocketAddress());
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(
+      logger.trace(
           "Creating Session from %s to %s in %s",
           socket.getLocalSocketAddress(),
           socket.getRemoteSocketAddress(),
@@ -185,11 +181,11 @@ public final class Session extends DirectoryThread implements Closeable
     }
 
     // Perform close outside of critical section.
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       if (localSessionError == null)
       {
-        TRACER.debugInfo(
+        logger.trace(
             "Closing Session from %s to %s in %s",
             plainSocket.getLocalSocketAddress(),
             plainSocket.getRemoteSocketAddress(),
@@ -197,7 +193,7 @@ public final class Session extends DirectoryThread implements Closeable
       }
       else
       {
-        TRACER.debugInfo(
+        logger.trace(
             "Aborting Session from %s to %s in %s due to the "
                 + "following error: %s",
             plainSocket.getLocalSocketAddress(),
@@ -576,9 +572,9 @@ public final class Session extends DirectoryThread implements Closeable
   {
     isRunning.set(true);
     latch.countDown();
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(this.getName() + " starting.");
+      logger.trace(this.getName() + " starting.");
     }
     boolean needClosing = false;
     while (!closeInitiated)
@@ -607,9 +603,9 @@ public final class Session extends DirectoryThread implements Closeable
     {
       close();
     }
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(this.getName() + " stopped.");
+      logger.trace(this.getName() + " stopped.");
     }
   }
 

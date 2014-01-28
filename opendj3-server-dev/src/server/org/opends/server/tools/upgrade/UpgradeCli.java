@@ -29,8 +29,6 @@ import static org.opends.messages.ToolMessages.*;
 
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.StaticUtils.filterExitCode;
-import static java.util.logging.Level.INFO;
-import static java.util.logging.Level.SEVERE;
 import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_ERROR;
 import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_SUCCESS;
@@ -40,8 +38,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -49,7 +48,6 @@ import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.ServerConstants;
@@ -70,8 +68,7 @@ public final class UpgradeCli extends ConsoleApplication implements
   /**
    * Upgrade's logger.
    */
-  static private final Logger LOG = Logger
-      .getLogger(UpgradeCli.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The command-line argument parser.
   private final SubCommandArgumentParser parser;
@@ -404,28 +401,28 @@ public final class UpgradeCli extends ConsoleApplication implements
         {
         case TITLE_CALLBACK:
           println(Style.TITLE, LocalizableMessage.raw(fnc.getMessage()), 0);
-          LOG.log(INFO, fnc.getMessage());
+          logger.debug(LocalizableMessage.raw(fnc.getMessage()));
           break;
         case SUBTITLE_CALLBACK:
           println(Style.SUBTITLE, LocalizableMessage.raw(fnc.getMessage()),
               4);
-          LOG.log(INFO, fnc.getMessage());
+          logger.debug(LocalizableMessage.raw(fnc.getMessage()));
           break;
         case NOTICE_CALLBACK:
           println(Style.NOTICE, LocalizableMessage.raw(fnc.getMessage()), 1);
-          LOG.log(INFO, fnc.getMessage());
+          logger.debug(LocalizableMessage.raw(fnc.getMessage()));
           break;
         case ERROR_CALLBACK:
           println(Style.ERROR, LocalizableMessage.raw(fnc.getMessage()), 1);
-          LOG.log(Level.SEVERE, fnc.getMessage());
+          logger.error(LocalizableMessage.raw(fnc.getMessage()));
           break;
         case WARNING:
           println(Style.WARNING, LocalizableMessage.raw(fnc.getMessage()), 2);
-          LOG.log(Level.WARNING, fnc.getMessage());
+          logger.warn(LocalizableMessage.raw(fnc.getMessage()));
           break;
         default:
-          LOG.log(SEVERE, "Unsupported message type: "
-            + fnc.getMessage());
+          logger.error(LocalizableMessage.raw("Unsupported message type: "
+            + fnc.getMessage()));
           throw new IOException("Unsupported message type: ");
         }
       }
@@ -434,11 +431,11 @@ public final class UpgradeCli extends ConsoleApplication implements
         // Usual output text.
         final TextOutputCallback toc = (TextOutputCallback) c;
         if(toc.getMessageType() == TextOutputCallback.INFORMATION) {
-          LOG.log(INFO, toc.getMessage());
+          logger.debug(LocalizableMessage.raw(toc.getMessage()));
           printlnProgress(LocalizableMessage.raw(toc.getMessage()));
         } else {
-          LOG.log(SEVERE, "Unsupported message type: "
-            + toc.getMessage());
+          logger.error(LocalizableMessage.raw("Unsupported message type: "
+            + toc.getMessage()));
           throw new IOException("Unsupported message type: ");
         }
       }
@@ -485,7 +482,7 @@ public final class UpgradeCli extends ConsoleApplication implements
         }
         prompt.append(")");
 
-        LOG.log(INFO, cc.getPrompt());
+        logger.debug(LocalizableMessage.raw(cc.getPrompt()));
 
         // Displays the output and
         // while it hasn't a valid response, question is repeated.
@@ -502,7 +499,7 @@ public final class UpgradeCli extends ConsoleApplication implements
             }
             catch (CLIException e)
             {
-              LOG.log(SEVERE, e.getMessage());
+              logger.error(LocalizableMessage.raw(e.getMessage()));
               break;
             }
 
@@ -531,7 +528,7 @@ public final class UpgradeCli extends ConsoleApplication implements
               cc.setSelectedIndex(ConfirmationCallback.CANCEL);
               break;
             }
-            LOG.log(INFO, value);
+            logger.debug(LocalizableMessage.raw(value));
           }
         }
         else // Non interactive mode :
@@ -548,12 +545,12 @@ public final class UpgradeCli extends ConsoleApplication implements
           // Displays the prompt
           prompt.append(" ").append(getDefaultOption(cc.getSelectedIndex()));
           println(Style.SUBTITLE, LocalizableMessage.raw(prompt), 0);
-          LOG.log(INFO, getDefaultOption(cc.getSelectedIndex()));
+          logger.debug(LocalizableMessage.raw(getDefaultOption(cc.getSelectedIndex())));
         }
       }
       else
       {
-        LOG.log(SEVERE, "Unrecognized Callback");
+        logger.error(LocalizableMessage.raw("Unrecognized Callback"));
         throw new UnsupportedCallbackException(c, "Unrecognized Callback");
       }
     }

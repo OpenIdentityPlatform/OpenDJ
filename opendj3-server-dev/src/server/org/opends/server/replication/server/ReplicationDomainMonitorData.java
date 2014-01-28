@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -31,12 +31,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines the Monitor Data that are consolidated across a
@@ -44,10 +42,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  */
 class ReplicationDomainMonitorData
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    *
@@ -171,7 +166,7 @@ class ReplicationDomainMonitorData
 
           int missingChangesLsiLsj = CSN.diffSeqNum(lsjMaxCSN, lsiLastCSN);
 
-          if (debugEnabled()) {
+          if (logger.isTraceEnabled()) {
             mds += "+ diff(" + lsjMaxCSN + "-"
                 + lsiLastCSN + ")=" + missingChangesLsiLsj;
           }
@@ -190,7 +185,7 @@ class ReplicationDomainMonitorData
           if (lsjServerId.equals(lsiServerId) && missingChangesLsiLsj <= 50)
           {
             missingChangesLsiLsj = 0;
-            if (debugEnabled()) {
+            if (logger.isTraceEnabled()) {
               mds +=
                   " (diff replaced by 0 as for server id " + lsiServerId + ")";
             }
@@ -199,7 +194,7 @@ class ReplicationDomainMonitorData
           lsiMissingChanges += missingChangesLsiLsj;
         }
       }
-      if (debugEnabled()) {
+      if (logger.isTraceEnabled()) {
         mds += "=" + lsiMissingChanges;
       }
       this.missingChanges.put(lsiServerId, lsiMissingChanges);
@@ -224,22 +219,22 @@ class ReplicationDomainMonitorData
 
           int missingChangesLsiLsj = CSN.diffSeqNum(lsjMaxCSN, lsiLastCSN);
 
-          if (debugEnabled()) {
+          if (logger.isTraceEnabled()) {
             mds += "+ diff(" + lsjMaxCSN + "-"
                 + lsiLastCSN + ")=" + missingChangesLsiLsj;
           }
           lsiMissingChanges += missingChangesLsiLsj;
         }
       }
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
         mds += "=" + lsiMissingChanges;
       }
       this.missingChangesRS.put(lsiServerId, lsiMissingChanges);
 
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo(
+        logger.trace(
           "Complete monitor data : Missing changes ("+ lsiServerId +")=" + mds);
       }
     }

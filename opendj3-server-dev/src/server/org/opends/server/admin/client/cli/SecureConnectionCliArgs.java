@@ -28,8 +28,6 @@
 package org.opends.server.admin.client.cli;
 
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import org.forgerock.i18n.LocalizableMessage;
@@ -50,8 +48,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.net.ssl.KeyManager;
 
@@ -67,8 +65,6 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.TrustManagerProviderCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.args.Argument;
@@ -186,22 +182,13 @@ public final class SecureConnectionCliArgs
   private ApplicationTrustManager trustManager;
 
   private boolean configurationInitialized = false;
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * End Of Line.
    */
   public static String EOL = System.getProperty("line.separator");
 
-  /**
-   * The Logger.
-   */
-  static private final Logger LOG =
-    Logger.getLogger(SecureConnectionCliArgs.class.getName());
 
   // Defines if the CLI always use the SSL connection type.
   private boolean alwaysSSL = false;
@@ -321,10 +308,7 @@ public final class SecureConnectionCliArgs
           bindPasswordValue = new String(pwChars);
         } catch(Exception ex)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-          }
+          logger.traceException(ex);
           try
           {
             err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
@@ -356,10 +340,7 @@ public final class SecureConnectionCliArgs
         }
         catch (Exception ex)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-          }
+          logger.traceException(ex);
           try
           {
             err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
@@ -852,28 +833,28 @@ public final class SecureConnectionCliArgs
             // Nothing to do: if this occurs we will systematically refuse the
             // certificates.  Maybe we should avoid this and be strict, but we
             // are in a best effort mode.
-            LOG.log(Level.WARNING, "Error with the truststore", e);
+            logger.warn(LocalizableMessage.raw("Error with the truststore"), e);
           }
           catch (NoSuchAlgorithmException e)
           {
             // Nothing to do: if this occurs we will systematically refuse the
             // certificates.  Maybe we should avoid this and be strict, but we
             // are in a best effort mode.
-            LOG.log(Level.WARNING, "Error with the truststore", e);
+            logger.warn(LocalizableMessage.raw("Error with the truststore"), e);
           }
           catch (CertificateException e)
           {
             // Nothing to do: if this occurs we will systematically refuse the
             // certificates.  Maybe we should avoid this and be strict, but we
             // are in a best effort mode.
-            LOG.log(Level.WARNING, "Error with the truststore", e);
+            logger.warn(LocalizableMessage.raw("Error with the truststore"), e);
           }
           catch (IOException e)
           {
             // Nothing to do: if this occurs we will systematically refuse the
             // certificates.  Maybe we should avoid this and be strict, but we
             // are in a best effort mode.
-            LOG.log(Level.WARNING, "Error with the truststore", e);
+            logger.warn(LocalizableMessage.raw("Error with the truststore"), e);
           }
           finally
           {
@@ -930,7 +911,7 @@ public final class SecureConnectionCliArgs
         // the
         // certificates. Maybe we should avoid this and be strict, but
         // we are in a best effort mode.
-        LOG.log(Level.WARNING, "Error with the keystore", e);
+        logger.warn(LocalizableMessage.raw("Error with the keystore"), e);
       }
       catch (NoSuchAlgorithmException e)
       {
@@ -939,7 +920,7 @@ public final class SecureConnectionCliArgs
         // certificates. Maybe we should avoid this and be strict, but
         // we are
         // in a best effort mode.
-        LOG.log(Level.WARNING, "Error with the keystore", e);
+        logger.warn(LocalizableMessage.raw("Error with the keystore"), e);
       }
       catch (CertificateException e)
       {
@@ -948,7 +929,7 @@ public final class SecureConnectionCliArgs
         // certificates. Maybe we should avoid this and be strict, but
         // we are
         // in a best effort mode.
-        LOG.log(Level.WARNING, "Error with the keystore", e);
+        logger.warn(LocalizableMessage.raw("Error with the keystore"), e);
       }
       catch (IOException e)
       {
@@ -957,7 +938,7 @@ public final class SecureConnectionCliArgs
         // certificates. Maybe we should avoid this and be strict, but
         // we are
         // in a best effort mode.
-        LOG.log(Level.WARNING, "Error with the keystore", e);
+        logger.warn(LocalizableMessage.raw("Error with the keystore"), e);
       }
       finally
       {

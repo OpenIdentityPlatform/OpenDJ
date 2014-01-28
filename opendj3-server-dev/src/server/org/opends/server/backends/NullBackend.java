@@ -44,12 +44,11 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -67,7 +66,6 @@ import org.opends.server.util.LDIFWriter;
 import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -103,10 +101,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class NullBackend extends Backend
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -200,10 +195,7 @@ public class NullBackend extends Backend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
             dn.toString(), getExceptionMessage(e));
@@ -227,10 +219,7 @@ public class NullBackend extends Backend
     try {
       DirectoryServer.registerObjectClass(nulOC, false);
     } catch (DirectoryException de) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
       throw new InitializationException(de.getMessageObject());
     }
     objectClasses.put(nulOC, nulOCName);
@@ -258,10 +247,7 @@ public class NullBackend extends Backend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -443,9 +429,7 @@ public class NullBackend extends Backend
     try {
       ldifWriter = new LDIFWriter(exportConfig);
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = LocalizableMessage.raw(e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -455,9 +439,7 @@ public class NullBackend extends Backend
     try {
       ldifWriter.close();
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 

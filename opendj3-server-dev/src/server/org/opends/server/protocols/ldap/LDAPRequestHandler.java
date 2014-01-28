@@ -30,7 +30,6 @@ package org.opends.server.protocols.ldap;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.AccessLogger.logConnect;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
@@ -49,10 +48,9 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1ByteChannelReader;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPException;
@@ -69,10 +67,7 @@ public class LDAPRequestHandler
        extends DirectoryThread
        implements ServerShutdownListener
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Indicates whether the Directory Server is in the process of shutting down.
   private volatile boolean shutdownRequested = false;
@@ -130,10 +125,7 @@ public class LDAPRequestHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_REQHANDLER_OPEN_SELECTOR_FAILED.get(
           handlerName, String.valueOf(e));
@@ -218,28 +210,19 @@ public class LDAPRequestHandler
         }
         catch (ASN1Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
           readyConnection.disconnect(DisconnectReason.PROTOCOL_ERROR, true,
             e.getMessageObject());
         }
         catch (LDAPException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
           readyConnection.disconnect(DisconnectReason.PROTOCOL_ERROR, true,
             e.getMessageObject());
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
           readyConnection.disconnect(DisconnectReason.PROTOCOL_ERROR, true,
             LocalizableMessage.raw(e.toString()));
         }
@@ -270,10 +253,7 @@ public class LDAPRequestHandler
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             c.disconnect(DisconnectReason.SERVER_ERROR, true,
                 ERR_LDAP_REQHANDLER_CANNOT_REGISTER.get(handlerName,
@@ -295,10 +275,7 @@ public class LDAPRequestHandler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // FIXME -- Should we do something else with this?
       }
@@ -339,10 +316,7 @@ public class LDAPRequestHandler
                 }
                 catch (Exception e)
                 {
-                  if (debugEnabled())
-                  {
-                    TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                  }
+                  logger.traceException(e);
 
                   // Some other error occurred while we were trying to read data
                   // from the client.
@@ -354,10 +328,7 @@ public class LDAPRequestHandler
               }
               catch (Exception e)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                }
+                logger.traceException(e);
 
                 // We got some other kind of error.  If nothing else, cancel the
                 // key, but if the client connection is available then
@@ -378,10 +349,7 @@ public class LDAPRequestHandler
           }
           catch (CancelledKeyException cke)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, cke);
-            }
+            logger.traceException(cke);
 
             // This could happen if a connection was closed between the time
             // that select returned and the time that we try to access the
@@ -390,10 +358,7 @@ public class LDAPRequestHandler
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             // This should not happen, and it would have caused our reader
             // thread to die.  Log a severe error.
@@ -427,10 +392,7 @@ public class LDAPRequestHandler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
 
       try
@@ -439,10 +401,7 @@ public class LDAPRequestHandler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
 
       try
@@ -452,10 +411,7 @@ public class LDAPRequestHandler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -471,10 +427,7 @@ public class LDAPRequestHandler
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }

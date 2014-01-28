@@ -32,11 +32,9 @@ import org.forgerock.opendj.ldap.ByteString;
 
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -141,11 +139,7 @@ public final class AttributeValues
   private static final class DelayedNormalizationValue implements
       AttributeValue
   {
-
-    /**
-     * The tracer object for the debug logger.
-     */
-    private static final DebugTracer TRACER = getTracer();
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     private final AttributeType attributeType;
 
@@ -224,10 +218,7 @@ public final class AttributeValues
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           return value.equals(attrValue.getValue());
         }
@@ -253,10 +244,7 @@ public final class AttributeValues
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         valueToHash = value;
       }
@@ -311,11 +299,7 @@ public final class AttributeValues
   private static final class PreNormalizedValue
       implements AttributeValue
   {
-
-    /**
-     * The tracer object for the debug logger.
-     */
-    private static final DebugTracer TRACER = getTracer();
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     private final ByteString value;
 
@@ -375,10 +359,7 @@ public final class AttributeValues
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           return value.equals(attrValue.getValue());
         }

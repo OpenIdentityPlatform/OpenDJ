@@ -40,8 +40,7 @@ import java.util.TimeZone;
 import org.opends.server.config.ConfigException;
 import org.opends.server.util.Base64;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -59,10 +58,7 @@ import static org.opends.server.util.StaticUtils.*;
      mayInvoke=true)
 public final class BackupInfo
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -601,10 +597,7 @@ public final class BackupInfo
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_BACKUPINFO_CANNOT_DECODE.get(
           backupPath, getExceptionMessage(e));

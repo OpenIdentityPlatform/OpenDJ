@@ -22,16 +22,14 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.StatusMachineEvent;
-import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.common.ServerStatus.*;
 import static org.opends.server.replication.common.StatusMachineEvent.*;
 
@@ -49,11 +47,7 @@ public class StatusAnalyzer extends DirectoryThread
 {
 
   private volatile boolean shutdown = false;
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final ReplicationServerDomain replicationServerDomain;
   private volatile int degradedStatusThreshold = -1;
@@ -90,9 +84,9 @@ public class StatusAnalyzer extends DirectoryThread
   @Override
   public void run()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(
+      logger.trace(
           getMessage("Directory server status analyzer starting."));
     }
 
@@ -109,10 +103,7 @@ public class StatusAnalyzer extends DirectoryThread
           catch (InterruptedException e)
           {
             // Server shutdown monitor may interrupt slow threads.
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
             shutdown = true;
             break;
           }
@@ -127,9 +118,9 @@ public class StatusAnalyzer extends DirectoryThread
       {
         // Get number of pending changes for this server
         int nChanges = serverHandler.getRcvMsgQueueSize();
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo(getMessage("Status analyzer: DS "
+          logger.trace(getMessage("Status analyzer: DS "
               + serverHandler.getServerId() + " has " + nChanges
               + " message(s) in writer queue."));
         }
@@ -166,7 +157,7 @@ public class StatusAnalyzer extends DirectoryThread
     }
 
     done = true;
-    TRACER.debugInfo(getMessage("Status analyzer is terminated."));
+    logger.trace(getMessage("Status analyzer is terminated."));
   }
 
   private String getMessage(String message)
@@ -182,7 +173,7 @@ public class StatusAnalyzer extends DirectoryThread
     if (replicationServerDomain.changeStatus(serverHandler, event))
     {
       // Finish job and let thread die
-      TRACER.debugInfo(
+      logger.trace(
           getMessage("Status analyzer has been interrupted and will die."));
       return true;
     }
@@ -199,9 +190,9 @@ public class StatusAnalyzer extends DirectoryThread
       shutdown = true;
       shutdownLock.notifyAll();
 
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo(getMessage("Shutting down status analyzer."));
+        logger.trace(getMessage("Shutting down status analyzer."));
       }
     }
   }
@@ -222,7 +213,7 @@ public class StatusAnalyzer extends DirectoryThread
         n++;
         if (n >= FACTOR)
         {
-          TRACER.debugInfo(getMessage("Interrupting status analyzer."));
+          logger.trace(getMessage("Interrupting status analyzer."));
           interrupt();
         }
       }
@@ -238,9 +229,9 @@ public class StatusAnalyzer extends DirectoryThread
    */
   public void setDegradedStatusThreshold(int degradedStatusThreshold)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(getMessage(
+      logger.trace(getMessage(
           "Directory server status analyzer changing threshold value to "
               + degradedStatusThreshold));
     }

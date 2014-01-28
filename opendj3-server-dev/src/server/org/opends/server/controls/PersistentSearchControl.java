@@ -34,8 +34,7 @@ import java.io.IOException;
 import org.opends.server.protocols.asn1.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.
     UNIVERSAL_OCTET_STRING_TYPE;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
@@ -92,10 +91,7 @@ public class PersistentSearchControl
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_PSEARCH_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
@@ -119,11 +115,7 @@ public class PersistentSearchControl
    */
   public static final ControlDecoder<PersistentSearchControl> DECODER =
     new Decoder();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 

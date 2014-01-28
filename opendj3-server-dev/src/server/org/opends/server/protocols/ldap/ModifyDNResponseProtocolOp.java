@@ -35,8 +35,7 @@ import java.io.IOException;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.types.DN;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -50,10 +49,7 @@ import static org.opends.server.util.ServerConstants.*;
 public class ModifyDNResponseProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The matched DN for this response.
   private DN matchedDN;

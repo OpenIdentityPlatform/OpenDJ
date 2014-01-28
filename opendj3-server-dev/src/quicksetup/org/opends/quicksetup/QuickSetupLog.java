@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.quicksetup;
@@ -30,9 +30,9 @@ package org.opends.quicksetup;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.FileHandler;
-import java.util.logging.SimpleFormatter;
 import java.util.logging.Logger;
-import java.util.logging.Level;
+import java.util.logging.SimpleFormatter;
+
 import java.util.Date;
 import java.text.DateFormat;
 
@@ -59,7 +59,7 @@ public class QuickSetupLog {
       logger.addHandler(fileHandler);
       disableConsoleLogging();
       logger = Logger.getLogger("org.opends.quicksetup");
-      logger.log(Level.INFO, getInitialLogRecord());
+      logger.info(getInitialLogRecord());
     }
   }
 

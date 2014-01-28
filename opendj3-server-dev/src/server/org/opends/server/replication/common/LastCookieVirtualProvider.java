@@ -36,7 +36,7 @@ import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
@@ -45,7 +45,6 @@ import org.opends.server.util.ServerConstants;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class implements a virtual attribute provider in the root-dse entry
@@ -56,11 +55,7 @@ public class LastCookieVirtualProvider
    extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
    implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Creates a new instance of this member virtual attribute provider.
@@ -112,7 +107,7 @@ public class LastCookieVirtualProvider
     }
     catch (Exception e)
     {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      logger.traceException(e);
     }
     return Collections.emptySet();
   }

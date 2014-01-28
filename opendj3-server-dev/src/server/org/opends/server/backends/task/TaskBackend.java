@@ -48,7 +48,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
 import org.forgerock.util.Reject;
@@ -56,7 +56,6 @@ import org.forgerock.util.Reject;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -71,10 +70,7 @@ public class TaskBackend
        extends Backend
        implements ConfigurationChangeListener<TaskBackendCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -180,10 +176,7 @@ public class TaskBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // This should never happen.
         LocalizableMessage message = ERR_TASKBE_CANNOT_DECODE_RECURRING_TASK_BASE_DN.get(
@@ -199,10 +192,7 @@ public class TaskBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // This should never happen.
         LocalizableMessage message = ERR_TASKBE_CANNOT_DECODE_SCHEDULED_TASK_BASE_DN.get(
@@ -268,10 +258,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
           taskRootDN.toString(), getExceptionMessage(e));
@@ -296,10 +283,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     try
@@ -312,10 +296,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     try
@@ -324,10 +305,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -1152,10 +1130,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(
           stackTraceToSingleLineString(e));
@@ -1197,10 +1172,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
     finally
     {
@@ -1210,10 +1182,7 @@ public class TaskBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
       try
       {
@@ -1221,10 +1190,7 @@ public class TaskBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -1325,10 +1291,7 @@ public class TaskBackend
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_GET_MAC.get(
               macKeyID, stackTraceToSingleLineString(e));
@@ -1348,10 +1311,7 @@ public class TaskBackend
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_GET_DIGEST.get(
               digestAlgorithm, stackTraceToSingleLineString(e));
@@ -1400,10 +1360,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
           get(String.valueOf(filename), backupDirectory.getPath(),
@@ -1424,10 +1381,7 @@ public class TaskBackend
       }
       catch (CryptoManagerException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_GET_CIPHER.get(
                 stackTraceToSingleLineString(e));
@@ -1495,9 +1449,7 @@ public class TaskBackend
       zipStream.closeEntry();
       inputStream.close();
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       try {
         inputStream.close();
@@ -1524,10 +1476,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       message = ERR_TASKS_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(
           filename, backupDirectory.getPath(), stackTraceToSingleLineString(e));
@@ -1567,10 +1516,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       message = ERR_TASKS_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
           backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
@@ -1610,10 +1556,7 @@ public class TaskBackend
     }
     catch (ConfigException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessageObject());
     }
@@ -1624,10 +1567,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
         backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
@@ -2069,10 +2009,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       unacceptableReasons.add(ERR_TASKBE_ERROR_GETTING_BACKING_FILE.get(
               getExceptionMessage(e)));
@@ -2140,10 +2077,7 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       messages.add(ERR_TASKBE_ERROR_GETTING_BACKING_FILE.get(
               getExceptionMessage(e)));

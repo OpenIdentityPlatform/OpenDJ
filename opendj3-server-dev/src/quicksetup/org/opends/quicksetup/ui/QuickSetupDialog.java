@@ -30,8 +30,9 @@ package org.opends.quicksetup.ui;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.HashSet;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -44,7 +45,6 @@ import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.ProgressDescriptor;
-import org.forgerock.i18n.LocalizableMessage;
 /**
  * This class represents the dialog used by quicksetup applications.
  *
@@ -58,8 +58,7 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 public class QuickSetupDialog
 {
-  static private final Logger LOG =
-          Logger.getLogger(QuickSetupDialog.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private JFrame frame;
 
@@ -424,8 +423,8 @@ public class QuickSetupDialog
     if (button != null) {
       button.requestFocusInWindow();
     } else {
-      LOG.log(Level.INFO, "Focus requested for unknown button '" +
-              buttonName + "'");
+      logger.debug(LocalizableMessage.raw("Focus requested for unknown button '" +
+              buttonName + "'"));
     }
   }
 

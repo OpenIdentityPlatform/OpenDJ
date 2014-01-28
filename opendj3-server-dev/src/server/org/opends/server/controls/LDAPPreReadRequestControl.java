@@ -41,8 +41,7 @@ import static org.opends.server.plugins.LDAPADListPlugin.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -88,10 +87,7 @@ public class LDAPPreReadRequestControl extends Control
       }
       catch (Exception ae)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-        }
+        logger.traceException(ae);
 
         LocalizableMessage message = ERR_PREREADREQ_CANNOT_DECODE_VALUE.get(ae
             .getMessage());
@@ -117,11 +113,7 @@ public class LDAPPreReadRequestControl extends Control
    */
   public static final ControlDecoder<LDAPPreReadRequestControl> DECODER =
       new Decoder();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The set of raw attributes to return in the entry.
   private Set<String> rawAttributes;

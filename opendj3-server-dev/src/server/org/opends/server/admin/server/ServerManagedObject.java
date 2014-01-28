@@ -30,7 +30,6 @@ package org.opends.server.admin.server;
 
 
 import static org.opends.messages.AdminMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Collections;
@@ -58,9 +57,8 @@ import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 
 
 
@@ -73,11 +71,7 @@ import org.opends.server.types.DebugLogLevel;
  */
 public final class ServerManagedObject<S extends Configuration> implements
     PropertyProvider {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The configuration entry associated with this server managed
   // object (null if root).
@@ -956,9 +950,7 @@ public final class ServerManagedObject<S extends Configuration> implements
         try {
           handler.performPostAdd(this);
         } catch (ConfigException e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -1243,9 +1235,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       }
     } catch (ConfigException e) {
       // Ignore the exception since this implies deregistration.
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -1275,9 +1265,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       }
     } catch (ConfigException e) {
       // Ignore the exception since this implies deregistration.
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -1313,9 +1301,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       }
     } catch (ConfigException e) {
       // Ignore the exception since this implies deregistration.
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -1345,9 +1331,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       }
     } catch (ConfigException e) {
       // Ignore the exception since this implies deregistration.
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -1361,9 +1345,7 @@ public final class ServerManagedObject<S extends Configuration> implements
     try {
       configEntry = DirectoryServer.getConfigEntry(dn);
     } catch (ConfigException e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_ADMIN_CANNOT_GET_LISTENER_BASE.get(
           String.valueOf(dn), stackTraceToSingleLineString(e));

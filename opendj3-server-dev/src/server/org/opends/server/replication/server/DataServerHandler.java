@@ -35,7 +35,6 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.common.ServerStatus.*;
 import static org.opends.server.replication.common.StatusMachine.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
@@ -131,9 +130,9 @@ public class DataServerHandler extends ServerHandler
 
     if (status != ServerStatus.BAD_GEN_ID_STATUS)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("In RS " + replicationServer.getServerId()
+        logger.trace("In RS " + replicationServer.getServerId()
             + ", DS " + getServerId() + " for baseDN=" + getBaseDNString()
             + " has already generation id " + newGenId
             + " so no ChangeStatusMsg sent to him.");
@@ -145,9 +144,9 @@ public class DataServerHandler extends ServerHandler
     // Close connection with him to force his reconnection: DS will
     // reconnect in NORMAL_STATUS or DEGRADED_STATUS.
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("In RS " + replicationServer.getServerId()
+      logger.trace("In RS " + replicationServer.getServerId()
           + ", closing connection to DS " + getServerId() + " for baseDN="
           + getBaseDNString() + " to force reconnection as new local"
           + " generationId and remote one match and DS is in bad gen id: "
@@ -214,9 +213,9 @@ public class DataServerHandler extends ServerHandler
     // Send message requesting to change the DS status
     ChangeStatusMsg csMsg = new ChangeStatusMsg(newStatus, INVALID_STATUS);
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("In RS " + replicationServer.getServerId()
+      logger.trace("In RS " + replicationServer.getServerId()
           + " Sending change status " + origin + " to " + getServerId()
           + " for baseDN=" + getBaseDNString() + ":\n" + csMsg);
     }

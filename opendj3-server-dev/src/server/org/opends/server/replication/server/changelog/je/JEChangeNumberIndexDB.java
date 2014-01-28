@@ -37,7 +37,7 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
@@ -48,7 +48,6 @@ import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
 import org.opends.server.types.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -63,10 +62,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static int NO_KEY = 0;
 
   private DraftCNDB db;
@@ -173,8 +169,8 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
     db.addRecord(newRecord);
     newestChangeNumber = changeNumber;
 
-    if (debugEnabled())
-      TRACER.debugInfo("In JEChangeNumberIndexDB.add, added: " + newRecord);
+    if (logger.isTraceEnabled())
+      logger.trace("In JEChangeNumberIndexDB.add, added: " + newRecord);
     return changeNumber;
   }
 
@@ -414,8 +410,8 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
                         record.getPreviousCookie());
             csnVector = csnStartStates.get(record.getBaseDN());
 
-            if (debugEnabled())
-              TRACER.debugInfo("JEChangeNumberIndexDB:clear() - ChangeVector:"
+            if (logger.isTraceEnabled())
+              logger.trace("JEChangeNumberIndexDB:clear() - ChangeVector:"
                   + csnVector + " -- StartState:" + oldestState);
           }
           catch(Exception e)
@@ -431,8 +427,8 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
                     && !csnVector.cover(oldestState)))
           {
             cursor.delete();
-            if (debugEnabled())
-              TRACER.debugInfo("JEChangeNumberIndexDB:clear() - deleted " + csn
+            if (logger.isTraceEnabled())
+              logger.trace("JEChangeNumberIndexDB:clear() - deleted " + csn
                   + "Not covering startState");
             continue;
           }
@@ -502,8 +498,8 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
       }
       catch (ChangelogException e)
       {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.WARNING, e);
+        if (logger.isTraceEnabled())
+          logger.traceException(e);
       }
       return 0;
     }

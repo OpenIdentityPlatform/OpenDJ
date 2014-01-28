@@ -50,9 +50,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ExtensionMessages.*;
 
 import static org.opends.server.util.StaticUtils.*;
@@ -68,10 +66,7 @@ public class PKCS11KeyManagerProvider
     extends KeyManagerProvider<PKCS11KeyManagerProviderCfg>
     implements ConfigurationChangeListener<PKCS11KeyManagerProviderCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -171,10 +166,7 @@ public class PKCS11KeyManagerProvider
         pinStr = br.readLine();
         br.close();
       } catch (IOException ioe) {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
-        }
+        logger.traceException(ioe);
 
         LocalizableMessage message = ERR_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ.
             get(String.valueOf(fileName), String.valueOf(configEntryDN),
@@ -228,10 +220,7 @@ public class PKCS11KeyManagerProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_PKCS11_KEYMANAGER_CANNOT_LOAD.get(getExceptionMessage(e));
@@ -250,10 +239,7 @@ public class PKCS11KeyManagerProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_PKCS11_KEYMANAGER_CANNOT_CREATE_FACTORY.get(
           getExceptionMessage(e));

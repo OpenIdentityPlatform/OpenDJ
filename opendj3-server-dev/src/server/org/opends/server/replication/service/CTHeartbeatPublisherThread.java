@@ -22,22 +22,19 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
 import java.io.IOException;
 
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
 import org.opends.server.replication.protocol.Session;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This thread publishes a {@link ChangeTimeHeartbeatMsg} on a given protocol
@@ -48,10 +45,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  */
 public class CTHeartbeatPublisherThread extends DirectoryThread
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The session on which heartbeats are to be sent.
@@ -95,9 +89,9 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
   {
     try
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo(getName() + " is starting, interval is %d",
+        logger.trace(getName() + " is starting, interval is %d",
                   heartbeatInterval);
       }
 
@@ -129,10 +123,7 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
             catch (InterruptedException e)
             {
               // Server shutdown monitor may interrupt slow threads.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
               shutdown = true;
             }
           }
@@ -141,17 +132,17 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
     }
     catch (IOException e)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo(getName() + " could not send a heartbeat: "
+        logger.trace(getName() + " could not send a heartbeat: "
             + StaticUtils.stackTraceToSingleLineString(e));
       }
     }
     finally
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo(getName() + " is exiting.");
+        logger.trace(getName() + " is exiting.");
       }
     }
   }

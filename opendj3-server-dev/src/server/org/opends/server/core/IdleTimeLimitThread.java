@@ -33,11 +33,8 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DisconnectReason;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.CoreMessages.*;
@@ -57,7 +54,7 @@ public class IdleTimeLimitThread
   /**
    * The debug log tracer for this object.
    */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -106,10 +103,7 @@ public class IdleTimeLimitThread
             catch (InterruptedException e)
             {
               // Server shutdown monitor may interrupt slow threads.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
               shutdownRequested = true;
               break;
             }
@@ -129,9 +123,9 @@ public class IdleTimeLimitThread
               {
                 if (idleTime >= idleTimeLimit)
                 {
-                  if (debugEnabled())
+                  if (logger.isTraceEnabled())
                   {
-                    TRACER.debugInfo("Terminating client connection " +
+                    logger.trace("Terminating client connection " +
                                      c.getConnectionID() +
                                      " due to the idle time limit");
                   }
@@ -143,10 +137,7 @@ public class IdleTimeLimitThread
                   }
                   catch (Exception e)
                   {
-                    if (debugEnabled())
-                    {
-                      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                    }
+                    logger.traceException(e);
 
                     LocalizableMessage message = ERR_IDLETIME_DISCONNECT_ERROR.get(
                             c.getConnectionID(),
@@ -170,10 +161,7 @@ public class IdleTimeLimitThread
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_IDLETIME_UNEXPECTED_ERROR.get(stackTraceToSingleLineString(e));

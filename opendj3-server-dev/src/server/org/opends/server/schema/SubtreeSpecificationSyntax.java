@@ -26,9 +26,7 @@
  */
 package org.opends.server.schema;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -54,10 +52,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 public final class SubtreeSpecificationSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
@@ -256,10 +251,7 @@ public final class SubtreeSpecificationSyntax
 
       return true;
     } catch (DirectoryException e) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       invalidReason.append(e.getMessageObject());
       return false;

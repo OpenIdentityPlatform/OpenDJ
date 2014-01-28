@@ -55,10 +55,8 @@ import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import org.opends.server.controls.SubtreeDeleteControl;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -72,10 +70,7 @@ import static org.opends.server.tools.ToolConstants.*;
  */
 public class LDAPDelete
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The fully-qualified name of this class.
@@ -196,10 +191,7 @@ public class LDAPDelete
         responseMessage = connection.getLDAPReader().readMessage();
       } catch(ASN1Exception ae)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-        }
+        logger.traceException(ae);
         if (!deleteOptions.continueOnError())
         {
           String msg = LDAPToolUtils.getMessageForConnectionException(ae);
@@ -609,10 +601,7 @@ public class LDAPDelete
       portNumber = port.getIntValue();
     } catch(ArgumentException ae)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
+      logger.traceException(ae);
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -630,10 +619,7 @@ public class LDAPDelete
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
+      logger.traceException(ae);
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -664,10 +650,7 @@ public class LDAPDelete
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        logger.traceException(ex);
         err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
@@ -834,10 +817,7 @@ public class LDAPDelete
       }
     } catch(LDAPException le)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, le);
-      }
+      logger.traceException(le);
       LDAPToolUtils.printErrorMessage(err, le.getMessageObject(),
                                       le.getResultCode(),
                                       le.getErrorMessage(),
@@ -846,10 +826,7 @@ public class LDAPDelete
       return code;
     } catch(LDAPConnectionException lce)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, lce);
-      }
+      logger.traceException(lce);
       LDAPToolUtils.printErrorMessage(err, lce.getMessageObject(),
                                       lce.getResultCode(),
                                       lce.getErrorMessage(),
@@ -858,10 +835,7 @@ public class LDAPDelete
       return code;
     } catch(Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
       return 1;
     } finally

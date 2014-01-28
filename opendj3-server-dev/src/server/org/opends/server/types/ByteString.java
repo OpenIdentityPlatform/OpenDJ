@@ -27,13 +27,12 @@
 package org.opends.server.types;
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.StaticUtils;
 
 
@@ -48,7 +47,7 @@ public final class ByteString implements ByteSequence
   private static final ByteString EMPTY = wrap(new byte[0]);
 
   // Used for tracing exceptions.
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -340,10 +339,7 @@ public final class ByteString implements ByteSequence
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       stringValue = new String(b, offset, length);
     }

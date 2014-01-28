@@ -36,8 +36,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.ldap.InitialLdapContext;
 
@@ -65,7 +66,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.CoreMessages;
 import org.opends.messages.JebMessages;
 import org.opends.messages.ReplicationMessages;
-import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.server.tools.ConfigureDS;
@@ -94,8 +94,7 @@ import org.opends.server.util.StaticUtils;
  * are not necessarily loaded when we create this class.
  */
 public class InstallerHelper {
-  private static final Logger LOG = Logger.getLogger(
-      InstallerHelper.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final int MAX_ID_VALUE = Short.MAX_VALUE;
 
@@ -147,7 +146,7 @@ public class InstallerHelper {
 
     String[] allArgs = new String[argList.size()];
     argList.toArray(allArgs);
-    LOG.log(Level.INFO, "import-ldif arg list: "+argList);
+    logger.debug(LocalizableMessage.raw("import-ldif arg list: "+argList));
     ProcessBuilder pb = new ProcessBuilder(allArgs);
     Map<String, String> env = pb.environment();
     env.remove(SetupUtils.OPENDJ_JAVA_HOME);
@@ -165,7 +164,7 @@ public class InstallerHelper {
         @Override
         public void processLine(String line)
         {
-          LOG.log(Level.WARNING, "import-ldif error log: "+line);
+          logger.warn(LocalizableMessage.raw("import-ldif error log: "+line));
           application.notifyListeners(LocalizableMessage.raw(line));
           application.notifyListeners(application.getLineBreak());
         }
@@ -177,7 +176,7 @@ public class InstallerHelper {
         @Override
         public void processLine(String line)
         {
-          LOG.log(Level.INFO, "import-ldif out log: "+line);
+          logger.debug(LocalizableMessage.raw("import-ldif out log: "+line));
           application.notifyListeners(LocalizableMessage.raw(line));
           application.notifyListeners(application.getLineBreak());
         }
@@ -194,7 +193,7 @@ public class InstallerHelper {
         }
         catch (Throwable t)
         {
-          LOG.log(Level.WARNING, "Error closing error stream: "+t, t);
+          logger.warn(LocalizableMessage.raw("Error closing error stream: "+t, t));
         }
         try
         {
@@ -202,7 +201,7 @@ public class InstallerHelper {
         }
         catch (Throwable t)
         {
-          LOG.log(Level.WARNING, "Error closing output stream: "+t, t);
+          logger.warn(LocalizableMessage.raw("Error closing output stream: "+t, t));
         }
       }
     }
@@ -1185,8 +1184,8 @@ public class InstallerHelper {
       returnValue !=
         JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode())
     {
-      LOG.log(Level.WARNING, "Error creating java home scripts, error code: "+
-          returnValue);
+      logger.warn(LocalizableMessage.raw("Error creating java home scripts, error code: "+
+          returnValue));
       throw new IOException(
           ERR_ERROR_CREATING_JAVA_HOME_SCRIPTS.get(returnValue).toString());
     }

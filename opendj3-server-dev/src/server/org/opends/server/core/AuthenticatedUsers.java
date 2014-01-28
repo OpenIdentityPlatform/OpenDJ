@@ -37,10 +37,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.DITCacheMap;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
@@ -48,7 +47,6 @@ import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class provides a data structure which maps an authenticated user DN to
@@ -63,10 +61,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public class AuthenticatedUsers
        implements ChangeNotificationListener
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The mapping between authenticated user DNs and the associated client
   // connection objects.
@@ -330,10 +325,7 @@ public class AuthenticatedUsers
             catch (Exception e)
             {
               // Shouldnt happen.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
             }
           }
           if (authZDN == null)
@@ -352,10 +344,7 @@ public class AuthenticatedUsers
             catch (Exception e)
             {
               // Shouldnt happen.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
             }
           }
           if ((newAuthNDN != null) && (authNDN != null) &&

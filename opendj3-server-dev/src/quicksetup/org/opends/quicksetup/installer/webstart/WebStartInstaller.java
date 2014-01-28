@@ -35,8 +35,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.LicenseFile;
@@ -51,7 +52,6 @@ import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.server.util.SetupUtils;
 
-import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -87,8 +87,7 @@ public class WebStartInstaller extends Installer {
   private final Map<ProgressStep, LocalizableMessage> hmSummary =
       new HashMap<ProgressStep, LocalizableMessage>();
 
-  private static final Logger LOG =
-    Logger.getLogger(WebStartInstaller.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * WebStartInstaller constructor.
@@ -144,7 +143,7 @@ public class WebStartInstaller extends Installer {
       }
       catch (Throwable t)
       {
-        LOG.log(Level.INFO, "Error closing zip input stream: "+t, t);
+        logger.debug(LocalizableMessage.raw("Error closing zip input stream: "+t, t));
       }
 
       checkAbort();
@@ -294,7 +293,7 @@ public class WebStartInstaller extends Installer {
               notifyListeners(getFormattedDoneWithLineBreak());
             }
           } catch (Throwable t) {
-            LOG.log(Level.INFO, "error stopping server", t);
+            logger.debug(LocalizableMessage.raw("error stopping server", t));
           }
         }
         notifyListeners(getLineBreak());
@@ -302,7 +301,7 @@ public class WebStartInstaller extends Installer {
         setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
         LocalizableMessage html = getFormattedError(ex, true);
         notifyListeners(html);
-        LOG.log(Level.SEVERE, "Error installing.", ex);
+        logger.error(LocalizableMessage.raw("Error installing.", ex));
         notifyListeners(getLineBreak());
         notifyListenersOfLogAfterError();
       }
@@ -315,7 +314,7 @@ public class WebStartInstaller extends Installer {
         try {
           new ServerController(installation).stopServer(true);
         } catch (Throwable t2) {
-          LOG.log(Level.INFO, "error stopping server", t2);
+          logger.debug(LocalizableMessage.raw("error stopping server", t2));
         }
       }
       notifyListeners(getLineBreak());
@@ -326,7 +325,7 @@ public class WebStartInstaller extends Installer {
           Utils.getThrowableMsg(INFO_BUG_MSG.get(), t), t);
       LocalizableMessage msg = getFormattedError(ex, true);
       notifyListeners(msg);
-      LOG.log(Level.SEVERE, "Error installing.", t);
+      logger.error(LocalizableMessage.raw("Error installing.", t));
       notifyListeners(getLineBreak());
       notifyListenersOfLogAfterError();
     }
@@ -576,7 +575,7 @@ public class WebStartInstaller extends Installer {
         try {
           new ServerController(installation).stopServer(true);
         } catch (ApplicationException e) {
-          LOG.log(Level.INFO, "error stopping server", e);
+          logger.debug(LocalizableMessage.raw("error stopping server", e));
         }
       }
 
@@ -586,7 +585,7 @@ public class WebStartInstaller extends Installer {
         fm.deleteRecursively(installation.getRootDirectory(), null,
             FileManager.DeletionPolicy.DELETE_ON_EXIT_IF_UNSUCCESSFUL);
       } catch (ApplicationException e) {
-        LOG.log(Level.INFO, "error deleting files", e);
+        logger.debug(LocalizableMessage.raw("error deleting files", e));
       }
     }
     else
@@ -608,7 +607,7 @@ public class WebStartInstaller extends Installer {
           fm.deleteRecursively(serverRoot, null,
               FileManager.DeletionPolicy.DELETE_ON_EXIT_IF_UNSUCCESSFUL);
         } catch (ApplicationException e) {
-          LOG.log(Level.INFO, "error deleting files", e);
+          logger.debug(LocalizableMessage.raw("error deleting files", e));
         }
       }
     }

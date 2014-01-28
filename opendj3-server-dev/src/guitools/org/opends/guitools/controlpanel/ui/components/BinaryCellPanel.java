@@ -34,8 +34,9 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.text.ParseException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -49,7 +50,6 @@ import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A simple panel used in the LDAP entry viewers to display a binary value.
@@ -74,8 +74,7 @@ public class BinaryCellPanel extends JPanel
 
   private final static int THUMBNAIL_HEIGHT = 50;
 
-  private static final Logger LOG =
-    Logger.getLogger(BinaryCellPanel.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Default constructor.
@@ -246,7 +245,7 @@ public class BinaryCellPanel extends JPanel
       }
       catch (ParseException pe)
       {
-        LOG.log(Level.WARNING, "Error decoding base 64 value: "+pe, pe);
+        logger.warn(LocalizableMessage.raw("Error decoding base 64 value: "+pe, pe));
         Utilities.setWarningLabel(label, ERR_LOADING_IMAGE.get());
       }
     }

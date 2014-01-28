@@ -37,8 +37,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -54,7 +55,6 @@ import org.opends.guitools.controlpanel.event.BrowseActionListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.Schema;
 
 /**
@@ -83,8 +83,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
   private final static int MAX_IMAGE_HEIGHT = 300;
   private final static int MAX_BASE64_TO_DISPLAY = 3 * 1024;
 
-  private static final Logger LOG =
-    Logger.getLogger(BinaryAttributeEditorPanel.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Default constructor.
@@ -189,7 +188,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
         packParentDialog();
         if (t != null)
         {
-          LOG.log(Level.WARNING, "Error reading binary contents: "+t, t);
+          logger.warn(LocalizableMessage.raw("Error reading binary contents: "+t, t));
         }
       }
     };
