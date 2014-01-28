@@ -194,8 +194,15 @@
               "replicationDomainSuffix" : replDomainSuffix,
             }
           </call>
-          <if expr="len(STAXResult) == 3 and STAXResult[1].find('Bad generation id') != -1">
-            <call function="'testPassed'"/>
+          <if expr="STAXResult[1] != None">
+            <sequence>
+              <if expr="len(STAXResult) == 3 and STAXResult[1].find('Bad generation id') != -1">
+                <call function="'testPassed'"/>
+                <else>
+                  <call function="'testFailed'"/>
+                </else>
+              </if>
+            </sequence>
             <else>
               <call function="'testFailed'"/>
             </else>
@@ -277,8 +284,15 @@
               "replicationDomainSuffix" : replDomainSuffix,
             }
           </call>
-          <if expr="len(STAXResult) == 3 and STAXResult[1].find('Bad generation id') != -1">
-            <call function="'testPassed'"/>
+          <if expr="STAXResult[1] != None">
+            <sequence>
+              <if expr="len(STAXResult) == 3 and STAXResult[1].find('Bad generation id') != -1">
+                <call function="'testPassed'"/>
+                <else>
+                  <call function="'testFailed'"/>
+                </else>
+              </if>
+            </sequence>
             <else>
               <call function="'testFailed'"/>
             </else>
@@ -488,45 +502,52 @@
               "replicationDomainSuffix" : replDomainSuffix,
             }
           </call>
-          <if expr="len(STAXResult) == 3 and STAXResult[1].find('Bad generation id') != -1">
+          <if expr="STAXResult[1] != None">
             <sequence>
-              <call function="'testFailed'"/>
-              <break/>
+              <if expr="len(STAXResult) == 3 and STAXResult[1].find('Bad generation id') != -1">
+                <sequence>
+                  <call function="'testFailed'"/>
+                  <break/>
+                </sequence>
+                <else>
+                  <sequence>
+                  <!-- Check some data was imported into Directory Server -->
+                    <call function="'checkImport'">
+                      { 'location'            : Pservers[0].getHostname(),
+                        'dsPath'              : '%s/%s' % (Pservers[0].getDir(),OPENDSNAME),
+                        'dsHost'              : Pservers[0].getHostname(),
+                        'dsAdminPort'         : Pservers[0].getAdminPort(),
+                        'dsPort'              : Pservers[0].getPort(),
+                        'dsDn'                : Pservers[0].getRootDn(),
+                        'dsPswd'              : Pservers[0].getRootPwd(),
+                        'startDS'             : 'no',
+                        'expectedEntries'     : ['uid=user.0,ou=masterOnlineImport,o=example',
+                                                 'uid=user.2,ou=masterOnlineImport,o=example',
+                                                 'uid=user.4,ou=masterOnlineImport,o=example'
+                                                ],
+                      }
+                    </call>
+                    <call function="'checkImport'">
+                      { 'location'            : Pservers[1].getHostname(),
+                        'dsPath'              : '%s/%s' % (Pservers[1].getDir(),OPENDSNAME),
+                        'dsHost'              : Pservers[1].getHostname(),
+                        'dsAdminPort'         : Pservers[1].getAdminPort(),
+                        'dsPort'              : Pservers[1].getPort(),
+                        'dsDn'                : Pservers[1].getRootDn(),
+                        'dsPswd'              : Pservers[1].getRootPwd(),
+                        'startDS'             : 'no',
+                        'expectedEntries'     : ['uid=user.0,ou=masterOnlineImport,o=example',
+                                                 'uid=user.2,ou=masterOnlineImport,o=example',
+                                                 'uid=user.4,ou=masterOnlineImport,o=example'
+                                                ],
+                      }
+                    </call>
+                   </sequence>
+                </else>
+              </if>
             </sequence>
             <else>
-              <sequence>
-              <!-- Check some data was imported into Directory Server -->
-                <call function="'checkImport'">
-                  { 'location'            : Pservers[0].getHostname(),
-                    'dsPath'              : '%s/%s' % (Pservers[0].getDir(),OPENDSNAME),
-                    'dsHost'              : Pservers[0].getHostname(),
-                    'dsAdminPort'         : Pservers[0].getAdminPort(),
-                    'dsPort'              : Pservers[0].getPort(),
-                    'dsDn'                : Pservers[0].getRootDn(),
-                    'dsPswd'              : Pservers[0].getRootPwd(),
-                    'startDS'             : 'no',
-                    'expectedEntries'     : ['uid=user.0,ou=masterOnlineImport,o=example',
-                                             'uid=user.2,ou=masterOnlineImport,o=example',
-                                             'uid=user.4,ou=masterOnlineImport,o=example'
-                                            ],
-                  }
-                </call>
-                <call function="'checkImport'">
-                  { 'location'            : Pservers[1].getHostname(),
-                    'dsPath'              : '%s/%s' % (Pservers[1].getDir(),OPENDSNAME),
-                    'dsHost'              : Pservers[1].getHostname(),
-                    'dsAdminPort'         : Pservers[1].getAdminPort(),
-                    'dsPort'              : Pservers[1].getPort(),
-                    'dsDn'                : Pservers[1].getRootDn(),
-                    'dsPswd'              : Pservers[1].getRootPwd(),
-                    'startDS'             : 'no',
-                    'expectedEntries'     : ['uid=user.0,ou=masterOnlineImport,o=example',
-                                             'uid=user.2,ou=masterOnlineImport,o=example',
-                                             'uid=user.4,ou=masterOnlineImport,o=example'
-                                            ],
-                  }
-                </call>
-               </sequence>
+              <call function="'testFailed'"/>
             </else>
           </if>
           <call function="'ldapsearchVerifyFrac'">
