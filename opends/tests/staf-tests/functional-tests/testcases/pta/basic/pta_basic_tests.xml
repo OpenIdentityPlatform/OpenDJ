@@ -1141,7 +1141,7 @@
             <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
               <!-- Unix -->
               <script>
-                ttl = 10
+                ttl = 30
               </script>
               <else>
                 <!-- Windows -->
