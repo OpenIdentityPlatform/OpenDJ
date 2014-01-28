@@ -259,12 +259,12 @@ public class ServerReader extends DirectoryThread
     }
     catch (Exception e)
     {
-      logException(e);
       /*
        * The remote server has sent an unknown message,
        * close the connection.
        */
-      errMessage = NOTE_READER_EXCEPTION.get(handler.toString());
+      errMessage = NOTE_READER_EXCEPTION.get(
+          handler.toString(), stackTraceToSingleLineString(e));
       logError(errMessage);
     }
     finally
