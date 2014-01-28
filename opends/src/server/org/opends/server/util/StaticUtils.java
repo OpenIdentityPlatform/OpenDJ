@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -1687,19 +1687,11 @@ public final class StaticUtils
         t = t.getCause();
       }
 
-      String message = t.getMessage();
-      if ((message == null) || (message.length() == 0))
+      buffer.append(t.getClass().getSimpleName());
+      final String message = t.getMessage();
+      if (message != null && message.length() != 0)
       {
-        String className = t.getClass().getName();
-        try
-        {
-          className = className.substring(className.lastIndexOf('.') + 1);
-        } catch (Exception e) { /* ignored */ }
-        buffer.append(className);
-      }
-      else
-      {
-        buffer.append(message);
+        buffer.append(": ").append(message);
       }
 
       int i=0;
