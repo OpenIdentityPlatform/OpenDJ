@@ -36,8 +36,7 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.AccountUsableResponseControl;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -49,7 +48,6 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -65,10 +63,7 @@ public class SearchOperationBasis
                   SearchReferenceSearchOperation,
                   SearchOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Indicates whether a search result done response has been sent to the
@@ -362,10 +357,7 @@ public class SearchOperationBasis
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       setResultCode(de.getResultCode());
       appendErrorMessage(de.getMessageObject());
@@ -510,10 +502,7 @@ public class SearchOperationBasis
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       setResultCode(de.getResultCode());
       appendErrorMessage(de.getMessageObject());
@@ -687,10 +676,7 @@ public class SearchOperationBasis
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -827,10 +813,7 @@ public class SearchOperationBasis
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         setResponseData(de);
         return false;
@@ -917,10 +900,7 @@ public class SearchOperationBasis
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         setResponseData(de);
         return false;
@@ -1302,10 +1282,7 @@ public class SearchOperationBasis
     }
     catch(CanceledOperationException coe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, coe);
-      }
+      logger.traceException(coe);
 
       setResultCode(ResultCode.CANCELED);
       cancelResult = new CancelResult(ResultCode.CANCELED, null);
@@ -1403,9 +1380,9 @@ public class SearchOperationBasis
     // raised long before this method is invoked.
     if (depth >= MAX_NESTED_FILTER_DEPTH)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugError("Exceeded maximum filter depth");
+        logger.trace("Exceeded maximum filter depth");
       }
       return false;
     }

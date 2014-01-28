@@ -27,7 +27,6 @@
 package org.opends.server.extensions;
 
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -51,7 +50,7 @@ import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPClientConnection;
 import org.opends.server.types.*;
@@ -66,9 +65,7 @@ import org.forgerock.opendj.ldap.ByteString;
 public class SASLContext implements CallbackHandler,
     PrivilegedExceptionAction<Boolean>
 {
-
-  // The tracer object for the debug logger.
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -238,10 +235,7 @@ public class SASLContext implements CallbackHandler,
       }
       catch (final SaslException ex)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        logger.traceException(ex);
         final GSSException gex = (GSSException) ex.getCause();
 
         final LocalizableMessage msg;
@@ -308,10 +302,7 @@ public class SASLContext implements CallbackHandler,
     }
     catch (final SaslException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(mechanism,
           getExceptionMessage(e));
@@ -335,10 +326,7 @@ public class SASLContext implements CallbackHandler,
     }
     catch (final SaslException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -395,10 +383,7 @@ public class SASLContext implements CallbackHandler,
     }
     catch (final SaslException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(mechanism,
           getExceptionMessage(e));
@@ -429,10 +414,7 @@ public class SASLContext implements CallbackHandler,
     }
     catch (final SaslException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(mechanism,
           getExceptionMessage(e));
       handleError(msg);
@@ -459,10 +441,7 @@ public class SASLContext implements CallbackHandler,
       }
       catch (NumberFormatException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -491,10 +470,7 @@ public class SASLContext implements CallbackHandler,
       }
       catch (NumberFormatException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -581,10 +557,7 @@ public class SASLContext implements CallbackHandler,
     }
     catch (final PrivilegedActionException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(mechanism,
           getExceptionMessage(e));
       handleError(msg);
@@ -671,10 +644,7 @@ public class SASLContext implements CallbackHandler,
       }
       catch (final DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
         setCallbackMsg(ERR_SASL_CANNOT_MAP_AUTHENTRY.get(authid,
             de.getMessage()));
         callback.setAuthorized(false);
@@ -731,10 +701,7 @@ public class SASLContext implements CallbackHandler,
     }
     catch (final DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       setCallbackMsg(ERR_SASL_AUTHZID_INVALID_DN.get(responseAuthzID,
           e.getMessageObject()));
       callback.setAuthorized(false);
@@ -767,10 +734,7 @@ public class SASLContext implements CallbackHandler,
         }
         catch (final DirectoryException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
           setCallbackMsg(ERR_SASL_AUTHZID_CANNOT_GET_ENTRY.get(
               String.valueOf(authzDN), e.getMessageObject()));
           callback.setAuthorized(false);
@@ -833,10 +797,7 @@ public class SASLContext implements CallbackHandler,
       }
       catch (final DirectoryException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         setCallbackMsg(ERR_SASL_AUTHZID_NO_MAPPED_ENTRY.get(authzid));
         callback.setAuthorized(false);
         return;
@@ -916,10 +877,7 @@ public class SASLContext implements CallbackHandler,
     }
     catch (final DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       setCallbackMsg(ERR_SASL_CANNOT_GET_ENTRY_BY_DN.get(
           String.valueOf(userDN), SASL_MECHANISM_DIGEST_MD5,
           e.getMessageObject()));
@@ -1097,10 +1055,7 @@ public class SASLContext implements CallbackHandler,
       }
       catch (final DirectoryException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         setCallbackMsg(ERR_SASL_CANNOT_DECODE_USERNAME_AS_DN.get(mechanism,
             userName, e.getMessageObject()));
         return;
@@ -1140,10 +1095,7 @@ public class SASLContext implements CallbackHandler,
       }
       catch (final DirectoryException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         setCallbackMsg(ERR_SASLDIGESTMD5_CANNOT_MAP_USERNAME.get(
             String.valueOf(userName), e.getMessageObject()));
       }
@@ -1200,10 +1152,7 @@ public class SASLContext implements CallbackHandler,
     }
     catch (final Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       setCallbackMsg(ERR_SASL_CANNOT_GET_REVERSIBLE_PASSWORDS.get(
           String.valueOf(authEntry.getName()), mechanism, String.valueOf(e)));
       return;

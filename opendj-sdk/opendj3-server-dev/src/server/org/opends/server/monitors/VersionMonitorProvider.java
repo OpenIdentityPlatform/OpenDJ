@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.monitors;
 
 
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.ArrayList;
 
@@ -35,7 +34,7 @@ import org.opends.server.admin.std.server.VersionMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.DynamicConstants;
 
@@ -48,10 +47,7 @@ import org.opends.server.util.DynamicConstants;
 public class VersionMonitorProvider
        extends MonitorProvider<VersionMonitorProviderCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The name of the attribute used to provide the product name.

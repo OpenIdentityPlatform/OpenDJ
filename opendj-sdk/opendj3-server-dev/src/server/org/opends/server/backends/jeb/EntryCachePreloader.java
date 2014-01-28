@@ -47,13 +47,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ExtensionMessages.*;
 
@@ -77,10 +75,7 @@ import static org.opends.messages.ExtensionMessages.*;
  */
 class EntryCachePreloader
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * BackendImpl object.
@@ -247,9 +242,7 @@ class EntryCachePreloader
         jeb.getBackendID(), processedEntries.get());
       logError(message);
     } catch (InterruptedException ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+      logger.traceException(ex);
       // Interrupt the collector.
       collector.interrupt();
       // Interrupt all preload threads.
@@ -300,9 +293,7 @@ class EntryCachePreloader
             DirectoryServer.getEntryCache().putEntry(entry, jeb, entryID);
             processedEntries.getAndIncrement();
           } catch (Exception ex) {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-            }
+            logger.traceException(ex);
             LocalizableMessage message = ERR_CACHE_PRELOAD_ENTRY_FAILED.get(
               entry.getName().toNormalizedString(),
               (ex.getCause() != null ? ex.getCause().getMessage() :
@@ -362,9 +353,7 @@ class EntryCachePreloader
                 try {
                   cursor.close();
                 } catch (DatabaseException de) {
-                  if (debugEnabled()) {
-                    TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                  }
+                  logger.traceException(de);
                 }
                 status = OperationStatus.SUCCESS;
                 cursor = null;
@@ -378,9 +367,7 @@ class EntryCachePreloader
           } catch (InterruptedException e) {
             return;
           } catch (Exception e) {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
       } finally {
@@ -389,9 +376,7 @@ class EntryCachePreloader
           try {
             cursor.close();
           } catch (DatabaseException de) {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
           }
         }
       }

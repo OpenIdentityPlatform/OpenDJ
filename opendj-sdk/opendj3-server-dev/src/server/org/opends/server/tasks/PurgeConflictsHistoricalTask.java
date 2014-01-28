@@ -33,7 +33,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.*;
@@ -41,7 +41,6 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -55,10 +54,7 @@ public class PurgeConflictsHistoricalTask extends Task
    * seconds.
    */
   public static final int DEFAULT_MAX_DURATION = 60 * 60;
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private String domainString;
   private LDAPReplicationDomain domain;
@@ -85,10 +81,10 @@ public class PurgeConflictsHistoricalTask extends Task
 
   private static final void debugInfo(String s)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       System.out.println(LocalizableMessage.raw(s));
-      TRACER.debugInfo(s);
+      logger.trace(s);
     }
   }
 
@@ -165,7 +161,7 @@ public class PurgeConflictsHistoricalTask extends Task
   protected TaskState runTask()
   {
     Boolean purgeCompletedInTime = false;
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       debugInfo("[PURGE] PurgeConflictsHistoricalTask is starting "
           + "on domain: " + domain.getBaseDNString()
@@ -220,7 +216,7 @@ public class PurgeConflictsHistoricalTask extends Task
       }
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       debugInfo("[PURGE] PurgeConflictsHistoricalTask is ending " +
             "with state:" + initState.toString() +

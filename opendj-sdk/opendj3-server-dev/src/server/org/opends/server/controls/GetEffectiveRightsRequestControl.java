@@ -36,8 +36,7 @@ import static org.opends.server.protocols.asn1.ASN1Constants.
 import static org.opends.server.util.ServerConstants.OID_GET_EFFECTIVE_RIGHTS;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -128,9 +127,7 @@ public class GetEffectiveRightsRequestControl extends Control
           }
           reader.readEndSequence();
         } catch (ASN1Exception e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message =
               INFO_GETEFFECTIVERIGHTS_DECODE_ERROR.get(e.getMessage());
@@ -154,11 +151,7 @@ public class GetEffectiveRightsRequestControl extends Control
    */
   public static final ControlDecoder<GetEffectiveRightsRequestControl> DECODER =
     new Decoder();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   //The DN representing the authzId. May be null.
   private DN authzDN=null;

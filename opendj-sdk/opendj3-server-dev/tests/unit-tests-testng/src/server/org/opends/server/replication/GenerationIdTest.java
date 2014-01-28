@@ -31,13 +31,11 @@ import java.net.SocketTimeoutException;
 import java.util.*;
 
 import org.assertj.core.api.Assertions;
-import org.opends.messages.Category;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.ServerStatus;
@@ -56,7 +54,6 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -73,7 +70,7 @@ import static org.testng.Assert.*;
 public class GenerationIdTest extends ReplicationTestCase
 {
   /** The tracer object for the debug logger */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final String baseDnStr = TEST_ROOT_DN_STRING;
   private static final String testName = "generationIdTest";
@@ -142,9 +139,9 @@ public class GenerationIdTest extends ReplicationTestCase
   private void debugInfo(String s)
   {
     logError(LocalizableMessage.raw("** TEST **" + s));
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("** TEST **" + s);
+      logger.trace("** TEST **" + s);
     }
   }
 
@@ -581,7 +578,7 @@ public class GenerationIdTest extends ReplicationTestCase
   public void testSingleRS() throws Exception
   {
     String testCase = "testSingleRS";
-    debugInfo("Starting "+ testCase + " debugEnabled:" + debugEnabled());
+    debugInfo("Starting "+ testCase + " debugEnabled:" + logger.isTraceEnabled());
 
     debugInfo(testCase + " Clearing DS1 backend");
     // Special test were we want to test with an empty backend. So free it
@@ -1058,7 +1055,7 @@ public class GenerationIdTest extends ReplicationTestCase
   public void testServerStop() throws Exception
   {
     String testCase = "testServerStop";
-    debugInfo("Starting "+ testCase + " debugEnabled:" + debugEnabled());
+    debugInfo("Starting "+ testCase + " debugEnabled:" + logger.isTraceEnabled());
 
     debugInfo(testCase + " Clearing DS1 backend");
     // Special test were we want to test with an empty backend. So free it
@@ -1099,7 +1096,7 @@ public class GenerationIdTest extends ReplicationTestCase
   public void testLoop() throws Exception
   {
     String testCase = "testLoop";
-    debugInfo("Starting "+ testCase + " debugEnabled:" + debugEnabled());
+    debugInfo("Starting "+ testCase + " debugEnabled:" + logger.isTraceEnabled());
     long rsGenId;
 
     // Special test were we want to test with an empty backend. So free it

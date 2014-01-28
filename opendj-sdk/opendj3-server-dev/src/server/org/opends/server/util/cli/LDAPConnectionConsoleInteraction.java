@@ -59,8 +59,8 @@ import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * Supports interacting with a user through the command line to
@@ -1765,7 +1765,7 @@ public class LDAPConnectionConsoleInteraction {
   */
  public boolean promptForCertificateConfirmation(Throwable t,
      ApplicationTrustManager usedTrustManager, String usedUrl,
-     boolean displayErrorMessage, Logger logger)
+     boolean displayErrorMessage, LocalizedLogger logger)
  {
    boolean returnValue = false;
    ApplicationTrustManager.Cause cause;
@@ -1779,7 +1779,7 @@ public class LDAPConnectionConsoleInteraction {
    }
    if (logger != null)
    {
-     logger.log(Level.INFO, "Certificate exception cause: "+cause);
+     logger.debug(LocalizableMessage.raw("Certificate exception cause: "+cause));
    }
    UserDataCertificateException.Type excType = null;
    if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
@@ -1812,7 +1812,7 @@ public class LDAPConnectionConsoleInteraction {
      {
        if (logger != null)
        {
-         logger.log(Level.WARNING, "Error parsing ldap url of ldap url.", t1);
+         logger.warn(LocalizableMessage.raw("Error parsing ldap url of ldap url.", t1));
        }
        h = INFO_NOT_AVAILABLE_LABEL.get().toString();
        p = -1;
@@ -1850,18 +1850,18 @@ public class LDAPConnectionConsoleInteraction {
      {
        if (chain == null)
        {
-         logger.log(Level.WARNING,
-         "The chain is null for the UserDataCertificateException");
+         logger.warn(LocalizableMessage.raw(
+         "The chain is null for the UserDataCertificateException"));
        }
        if (authType == null)
        {
-         logger.log(Level.WARNING,
-         "The auth type is null for the UserDataCertificateException");
+         logger.warn(LocalizableMessage.raw(
+         "The auth type is null for the UserDataCertificateException"));
        }
        if (host == null)
        {
-         logger.log(Level.WARNING,
-         "The host is null for the UserDataCertificateException");
+         logger.warn(LocalizableMessage.raw(
+         "The host is null for the UserDataCertificateException"));
        }
      }
      if (chain != null)

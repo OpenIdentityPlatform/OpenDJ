@@ -34,8 +34,8 @@ import org.opends.quicksetup.*;
 
 
 import java.io.*;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 
 /**
  * Utility class for use by applications containing methods for managing
@@ -68,8 +68,7 @@ public class FileManager {
 
   }
 
-  static private final Logger LOG =
-          Logger.getLogger(FileManager.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private Application application = null;
 
@@ -387,7 +386,7 @@ public class FileManager {
         application.notifyListeners(application.getFormattedWarning(
                 INFO_FILE_DOES_NOT_EXIST.get(String.valueOf(file))));
       }
-      LOG.log(Level.INFO, "file '" + file.toString() + "' does not exist");
+      logger.debug(LocalizableMessage.raw("file '" + file.toString() + "' does not exist"));
     }
   }
 
@@ -490,9 +489,9 @@ public class FileManager {
                               objectFile.getAbsolutePath(),
                               destination.getAbsolutePath())));
             }
-            LOG.log(Level.INFO, "copying file '" +
+            logger.debug(LocalizableMessage.raw("copying file '" +
                     objectFile.getAbsolutePath() + "' to '" +
-                    destination.getAbsolutePath() + "'");
+                    destination.getAbsolutePath() + "'"));
             FileInputStream fis = null;
             FileOutputStream fos = null;
             try {
@@ -552,9 +551,9 @@ public class FileManager {
                     errMsg, null);
           }
         } else {
-          LOG.log(Level.INFO, "Ignoring file '" +
+          logger.debug(LocalizableMessage.raw("Ignoring file '" +
                   objectFile.getAbsolutePath() + "' since '" +
-                  destination.getAbsolutePath() + "' already exists");
+                  destination.getAbsolutePath() + "' already exists"));
           if ((application != null) && application.isVerbose()) {
             application.notifyListeners(
                     INFO_INFO_IGNORING_FILE.get(
@@ -611,9 +610,9 @@ public class FileManager {
                           file.getAbsolutePath())));
         }
       }
-      LOG.log(Level.INFO, "deleting " +
+      logger.debug(LocalizableMessage.raw("deleting " +
               (isFile ? " file " : " directory ") +
-              file.getAbsolutePath());
+              file.getAbsolutePath()));
 
       boolean delete = false;
       /*

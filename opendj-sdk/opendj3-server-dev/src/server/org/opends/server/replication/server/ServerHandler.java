@@ -45,7 +45,6 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines a server handler  :
@@ -72,8 +71,8 @@ public abstract class ServerHandler extends MessageHandler
   {
     if (providedMsg != null)
     {
-      if (debugEnabled())
-        TRACER.debugInfo("In " +
+      if (logger.isTraceEnabled())
+        logger.trace("In " +
           ((handler != null) ? handler.toString() : "Replication Server") +
           " closing session with err=" + providedMsg);
       logError(providedMsg);
@@ -364,9 +363,9 @@ public abstract class ServerHandler extends MessageHandler
   public void send(ReplicationMsg msg) throws IOException
   {
     // avoid logging anything for unit tests that include a null domain.
-    if (debugEnabled() && replicationServerDomain != null)
+    if (logger.isTraceEnabled() && replicationServerDomain != null)
     {
-      TRACER.debugInfo("In "
+      logger.trace("In "
           + replicationServerDomain.getLocalRSMonitorInstanceName() + " "
           + this + " publishes message:\n" + msg);
     }
@@ -848,8 +847,8 @@ public abstract class ServerHandler extends MessageHandler
    */
   public void process(RoutableMsg msg)
   {
-    if (debugEnabled())
-      TRACER.debugInfo("In "
+    if (logger.isTraceEnabled())
+      logger.trace("In "
           + replicationServerDomain.getLocalRSMonitorInstanceName() + " "
           + this + " processes routable msg received:" + msg);
     replicationServerDomain.process(msg, this);
@@ -862,8 +861,8 @@ public abstract class ServerHandler extends MessageHandler
    */
   public void process(ChangeTimeHeartbeatMsg msg)
   {
-    if (debugEnabled())
-      TRACER.debugInfo("In "
+    if (logger.isTraceEnabled())
+      logger.trace("In "
           + replicationServerDomain.getLocalRSMonitorInstanceName() + " "
           + this + " processes received msg:\n" + msg);
     replicationServerDomain.processChangeTimeHeartbeatMsg(this, msg);
@@ -989,8 +988,8 @@ public abstract class ServerHandler extends MessageHandler
     {
       // don't try anymore to join and return.
     }
-    if (debugEnabled())
-      TRACER.debugInfo("SH.shutdowned(" + this + ")");
+    if (logger.isTraceEnabled())
+      logger.trace("SH.shutdowned(" + this + ")");
   }
 
   /**
@@ -1065,9 +1064,9 @@ public abstract class ServerHandler extends MessageHandler
       StartMsg inStartMsg,
       StartMsg outStartMsg)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("In " + this.replicationServer.getMonitorInstanceName()
+      logger.trace("In " + this.replicationServer.getMonitorInstanceName()
           + ", " + getClass().getSimpleName() + " " + this + ":"
           + "\nSH START HANDSHAKE RECEIVED:\n" + inStartMsg
           + "\nAND REPLIED:\n" + outStartMsg);
@@ -1083,9 +1082,9 @@ public abstract class ServerHandler extends MessageHandler
       StartMsg outStartMsg,
       StartMsg inStartMsg)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("In " + this.replicationServer.getMonitorInstanceName()
+      logger.trace("In " + this.replicationServer.getMonitorInstanceName()
           + ", " + getClass().getSimpleName() + " " + this + ":"
           + "\nSH START HANDSHAKE SENT:\n" + outStartMsg + "\nAND RECEIVED:\n"
           + inStartMsg);
@@ -1101,9 +1100,9 @@ public abstract class ServerHandler extends MessageHandler
       TopologyMsg inTopoMsg,
       TopologyMsg outTopoMsg)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("In " + this.replicationServer.getMonitorInstanceName()
+      logger.trace("In " + this.replicationServer.getMonitorInstanceName()
           + ", " + getClass().getSimpleName() + " " + this + ":"
           + "\nSH TOPO HANDSHAKE RECEIVED:\n" + inTopoMsg + "\nAND REPLIED:\n"
           + outTopoMsg);
@@ -1119,9 +1118,9 @@ public abstract class ServerHandler extends MessageHandler
       TopologyMsg outTopoMsg,
       TopologyMsg inTopoMsg)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("In " + this.replicationServer.getMonitorInstanceName()
+      logger.trace("In " + this.replicationServer.getMonitorInstanceName()
           + ", " + getClass().getSimpleName() + " " + this + ":"
           + "\nSH TOPO HANDSHAKE SENT:\n" + outTopoMsg + "\nAND RECEIVED:\n"
           + inTopoMsg);
@@ -1137,9 +1136,9 @@ public abstract class ServerHandler extends MessageHandler
       StartSessionMsg inStartSessionMsg,
       TopologyMsg outTopoMsg)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("In " + this.replicationServer.getMonitorInstanceName()
+      logger.trace("In " + this.replicationServer.getMonitorInstanceName()
           + ", " + getClass().getSimpleName() + " " + this + " :"
           + "\nSH SESSION HANDSHAKE RECEIVED:\n" + inStartSessionMsg
           + "\nAND REPLIED:\n" + outTopoMsg);
@@ -1151,9 +1150,9 @@ public abstract class ServerHandler extends MessageHandler
    */
   protected void logStopReceived()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("In " + this.replicationServer.getMonitorInstanceName()
+      logger.trace("In " + this.replicationServer.getMonitorInstanceName()
           + ", " + getClass().getSimpleName() + " " + this + " :"
           + "\nSH SESSION HANDSHAKE RECEIVED A STOP MESSAGE");
     }
@@ -1166,9 +1165,9 @@ public abstract class ServerHandler extends MessageHandler
   protected void logStartECLSessionHandshake(
       StartECLSessionMsg inStartECLSessionMsg)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("In " + this.replicationServer.getMonitorInstanceName()
+      logger.trace("In " + this.replicationServer.getMonitorInstanceName()
           + ", " + getClass().getSimpleName() + " " + this + " :"
           + "\nSH SESSION HANDSHAKE RECEIVED:\n" + inStartECLSessionMsg);
     }

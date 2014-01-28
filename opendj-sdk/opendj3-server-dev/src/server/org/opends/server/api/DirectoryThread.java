@@ -35,13 +35,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -160,13 +158,7 @@ public class DirectoryThread extends Thread
     }
 
   }
-
-
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The directory thread group that all directory threads will be a
@@ -252,10 +244,7 @@ public class DirectoryThread extends Thread
         // shutdown.
         return;
       }
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_UNCAUGHT_THREAD_EXCEPTION.get(
           t.getName(), stackTraceToSingleLineString(e));

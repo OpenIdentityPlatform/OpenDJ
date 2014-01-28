@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -32,9 +32,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * This class defines a Directory Server component that can keep track
@@ -49,10 +47,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
      mayInvoke=true)
 public final class LockManager
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The default setting for the use of fair ordering locks.
@@ -136,26 +131,23 @@ public final class LockManager
           ReentrantReadWriteLock lock = oldTable.get(dn);
           if (lock.isWriteLocked())
           {
-            TRACER.debugWarning("Found stale write lock on " +
+            logger.trace("Found stale write lock on " +
                                 dn.toString());
           }
           else if (lock.getReadLockCount() > 0)
           {
-            TRACER.debugWarning("Found stale read lock on " +
+            logger.trace("Found stale read lock on " +
                                 dn.toString());
           }
           else
           {
-            TRACER.debugWarning("Found stale unheld lock on " +
+            logger.trace("Found stale unheld lock on " +
                                 dn.toString());
           }
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
 

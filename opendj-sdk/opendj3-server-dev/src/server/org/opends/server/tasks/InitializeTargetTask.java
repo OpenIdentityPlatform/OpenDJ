@@ -33,13 +33,12 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -48,10 +47,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class InitializeTargetTask extends Task
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Config properties
   private String domainString;
@@ -117,8 +113,8 @@ public class InitializeTargetTask extends Task
   @Override
   protected TaskState runTask()
   {
-    if (debugEnabled())
-      TRACER.debugInfo("[IE] InitializeTargetTask is starting on domain: "
+    if (logger.isTraceEnabled())
+      logger.trace("[IE] InitializeTargetTask is starting on domain: "
           + domain.getBaseDNString());
 
     try
@@ -127,10 +123,7 @@ public class InitializeTargetTask extends Task
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // This log will go to the task log message
       LocalizableMessage message = ERR_TASK_EXECUTE_FAILED.get(

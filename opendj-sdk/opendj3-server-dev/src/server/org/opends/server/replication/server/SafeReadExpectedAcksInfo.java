@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -30,12 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.AckMsg;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class holds every info needed about the expected acks for a received
@@ -45,10 +43,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  */
 public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Did some servers go in timeout when the matching update was sent ?. */
   private boolean hasTimeout = false;
@@ -167,8 +162,8 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
     if (ackReceived)
     {
       // Sanity check: this should never happen
-      if (debugEnabled())
-        TRACER.debugInfo("Received unexpected ack from server id: "
+      if (logger.isTraceEnabled())
+        logger.trace("Received unexpected ack from server id: "
           + ackingServerId + " ack message: " + ackMsg);
         return false;
     } else

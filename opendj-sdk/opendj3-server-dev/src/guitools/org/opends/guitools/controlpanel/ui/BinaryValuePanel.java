@@ -31,8 +31,9 @@ import static org.opends.messages.AdminToolMessages.*;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.swing.Box;
 import javax.swing.JLabel;
@@ -41,7 +42,6 @@ import javax.swing.JTextField;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.Schema;
 
 /**
@@ -58,8 +58,7 @@ public class BinaryValuePanel extends StatusGenericPanel
   private JLabel lImage = Utilities.createDefaultLabel();
   private byte[] lastBytes;
 
-  private static final Logger LOG =
-    Logger.getLogger(BinaryValuePanel.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Default constructor.
@@ -124,7 +123,7 @@ public class BinaryValuePanel extends StatusGenericPanel
         packParentDialog();
         if (t != null)
         {
-          LOG.log(Level.WARNING, "Error reading binary contents: "+t, t);
+          logger.warn(LocalizableMessage.raw("Error reading binary contents: "+t, t));
         }
       }
     };

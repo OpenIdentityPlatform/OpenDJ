@@ -33,13 +33,11 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.opends.messages.Category;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.ServerStatus;
@@ -58,7 +56,6 @@ import org.testng.annotations.Test;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.testng.Assert.*;
 
 /**
@@ -90,7 +87,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private CSNGenerator gen;
 
   /** The tracer object for the debug logger */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Number of seconds before generating an error if some conditions not met */
   private static final int TIMEOUT = 10000;
@@ -127,9 +124,9 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
   private void debugInfo(String s) {
     logError(LocalizableMessage.raw(s));
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("** TEST **" + s);
+      logger.trace("** TEST **" + s);
     }
   }
 

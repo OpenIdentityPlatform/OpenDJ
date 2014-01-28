@@ -50,8 +50,9 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
@@ -96,7 +97,6 @@ import org.opends.guitools.controlpanel.ui.components.TreePanel;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
@@ -198,8 +198,7 @@ implements BackendPopulatedListener
       "organizationalUnit"
   };
 
-  private static final Logger LOG =
-    Logger.getLogger(AbstractBrowseEntriesPanel.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Default constructor.
@@ -979,8 +978,8 @@ implements BackendPopulatedListener
               {
                 // The suffix node exists but is not a suffix node.
                 // Simply log a message.
-                LOG.log(Level.WARNING, "Suffix: "+dn+
-                    " added as a non suffix node. Exception: "+iae, iae);
+                logger.warn(LocalizableMessage.raw("Suffix: "+dn+
+                    " added as a non suffix node. Exception: "+iae, iae));
               }
             }
           }
@@ -1518,8 +1517,8 @@ implements BackendPopulatedListener
                   {
                     // The suffix node exists but is not a suffix node.
                     // Simply log a message.
-                    LOG.log(Level.WARNING, "Suffix: "+dn+
-                        " added as a non suffix node. Exception: "+iae, iae);
+                    logger.warn(LocalizableMessage.raw("Suffix: "+dn+
+                        " added as a non suffix node. Exception: "+iae, iae));
                   }
                 }
               }
@@ -1609,7 +1608,7 @@ implements BackendPopulatedListener
         ApplicationTrustManager.Cause cause =
           getInfo().getTrustManager().getLastRefusedCause();
 
-        LOG.log(Level.INFO, "Certificate exception cause: "+cause);
+        logger.debug(LocalizableMessage.raw("Certificate exception cause: "+cause));
         UserDataCertificateException.Type excType = null;
         if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
         {
@@ -1633,8 +1632,8 @@ implements BackendPopulatedListener
           }
           catch (Throwable t)
           {
-            LOG.log(Level.WARNING,
-                "Error parsing ldap url of ldap url.", t);
+            logger.warn(LocalizableMessage.raw(
+                "Error parsing ldap url of ldap url.", t));
             h = INFO_NOT_AVAILABLE_LABEL.get().toString();
             p = -1;
           }
@@ -1723,7 +1722,7 @@ implements BackendPopulatedListener
 
       if ((chain != null) && (authType != null) && (host != null))
       {
-        LOG.log(Level.INFO, "Accepting certificate presented by host "+host);
+        logger.debug(LocalizableMessage.raw("Accepting certificate presented by host "+host));
         getInfo().getTrustManager().acceptCertificate(chain, authType, host);
         createdUserDataCtx = createUserDataDirContext(bindDN, bindPassword);
       }
@@ -1731,18 +1730,18 @@ implements BackendPopulatedListener
       {
         if (chain == null)
         {
-          LOG.log(Level.WARNING,
-              "The chain is null for the UserDataCertificateException");
+          logger.warn(LocalizableMessage.raw(
+              "The chain is null for the UserDataCertificateException"));
         }
         if (authType == null)
         {
-          LOG.log(Level.WARNING,
-              "The auth type is null for the UserDataCertificateException");
+          logger.warn(LocalizableMessage.raw(
+              "The auth type is null for the UserDataCertificateException"));
         }
         if (host == null)
         {
-          LOG.log(Level.WARNING,
-              "The host is null for the UserDataCertificateException");
+          logger.warn(LocalizableMessage.raw(
+              "The host is null for the UserDataCertificateException"));
         }
       }
     }
@@ -1758,7 +1757,7 @@ implements BackendPopulatedListener
         }
         catch (Throwable t)
         {
-          LOG.log(Level.WARNING, "Error accepting certificate: "+t, t);
+          logger.warn(LocalizableMessage.raw("Error accepting certificate: "+t, t));
         }
       }
     }

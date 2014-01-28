@@ -52,9 +52,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ExtensionMessages.*;
 
 import static org.opends.server.util.StaticUtils.*;
@@ -69,10 +67,7 @@ public class FileBasedKeyManagerProvider
        extends KeyManagerProvider<FileBasedKeyManagerProviderCfg>
        implements ConfigurationChangeListener<FileBasedKeyManagerProviderCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -129,10 +124,7 @@ public class FileBasedKeyManagerProvider
         throw new InitializationException(message);
       }
     } catch (SecurityException e) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(
           String.valueOf(configEntryDN), getExceptionMessage(e));
@@ -146,10 +138,7 @@ public class FileBasedKeyManagerProvider
         KeyStore.getInstance(configuration.getKeyStoreType());
         keyStoreType = configuration.getKeyStoreType();
       } catch (KeyStoreException kse) {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, kse);
-        }
+        logger.traceException(kse);
 
         LocalizableMessage message = ERR_FILE_KEYMANAGER_INVALID_TYPE.
             get(String.valueOf(configuration.getKeyStoreType()),
@@ -269,10 +258,7 @@ public class FileBasedKeyManagerProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_FILE_KEYMANAGER_CANNOT_LOAD.get(
           keyStoreFile, getExceptionMessage(e));
@@ -291,10 +277,7 @@ public class FileBasedKeyManagerProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_FILE_KEYMANAGER_CANNOT_CREATE_FACTORY.get(
           keyStoreFile, getExceptionMessage(e));
@@ -344,10 +327,7 @@ public class FileBasedKeyManagerProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       unacceptableReasons.add(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(
               String.valueOf(cfgEntryDN),
@@ -364,10 +344,7 @@ public class FileBasedKeyManagerProvider
       }
       catch (KeyStoreException kse)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, kse);
-        }
+        logger.traceException(kse);
 
         unacceptableReasons.add(ERR_FILE_KEYMANAGER_INVALID_TYPE.get(
                 String.valueOf(configuration.getKeyStoreType()),
@@ -504,10 +481,7 @@ public class FileBasedKeyManagerProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       resultCode = DirectoryServer.getServerErrorResultCode();
 
@@ -527,10 +501,7 @@ public class FileBasedKeyManagerProvider
       }
       catch (KeyStoreException kse)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, kse);
-        }
+        logger.traceException(kse);
 
         resultCode = DirectoryServer.getServerErrorResultCode();
 

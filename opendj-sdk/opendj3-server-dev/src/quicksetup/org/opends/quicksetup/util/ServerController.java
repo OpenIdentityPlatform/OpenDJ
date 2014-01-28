@@ -44,8 +44,8 @@ import javax.naming.ldap.InitialLdapContext;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -55,8 +55,7 @@ import java.io.IOException;
  */
 public class ServerController {
 
-  static private final Logger LOG =
-          Logger.getLogger(ServerController.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private Application application;
 
@@ -145,7 +144,7 @@ public class ServerController {
         mb.append(application.getLineBreak());
         application.notifyListeners(mb.toMessage());
       }
-      LOG.log(Level.INFO, "stopping server");
+      logger.debug(LocalizableMessage.raw("stopping server"));
 
       ArrayList<String> argList = new ArrayList<String>();
       argList.add(Utils.getScriptPath(
@@ -167,19 +166,19 @@ public class ServerController {
       env.remove(SetupUtils.OPENDJ_JAVA_ARGS);
       env.remove("CLASSPATH");
 
-      LOG.log(Level.INFO, "Before calling stop-ds.  Is server running? "+
-          installation.getStatus().isServerRunning());
+      logger.debug(LocalizableMessage.raw("Before calling stop-ds.  Is server running? "+
+          installation.getStatus().isServerRunning()));
 
       int stopTries = 3;
       while (stopTries > 0)
       {
         stopTries --;
-        LOG.log(Level.INFO, "Launching stop command, stopTries left: "+
-            stopTries);
+        logger.debug(LocalizableMessage.raw("Launching stop command, stopTries left: "+
+            stopTries));
 
         try
         {
-          LOG.log(Level.INFO, "Launching stop command, argList: "+argList);
+          logger.debug(LocalizableMessage.raw("Launching stop command, argList: "+argList));
           Process process = pb.start();
 
           BufferedReader err =
@@ -211,7 +210,7 @@ public class ServerController {
               boolean stopped = false;
 
               for (int i = 0; i < nTries && !stopped; i++) {
-                LOG.log(Level.FINE, "waiting for server to stop");
+                logger.trace("waiting for server to stop");
                 try {
                   Thread.sleep(5000);
                 }
@@ -220,8 +219,8 @@ public class ServerController {
                   // do nothing
                 }
                 stopped = !installation.getStatus().isServerRunning();
-                LOG.log(Level.INFO,
-                    "After calling stop-ds.  Is server running? "+!stopped);
+                logger.debug(LocalizableMessage.raw(
+                    "After calling stop-ds.  Is server running? "+!stopped));
 
                 if (!stopped) {
                   if (application != null) {
@@ -250,7 +249,7 @@ public class ServerController {
               mb.append(application.getLineBreak());
               application.notifyListeners(mb.toMessage());
             }
-            LOG.log(Level.INFO, "server already stopped");
+            logger.debug(LocalizableMessage.raw("server already stopped"));
             break;
           } else if (returnValue != 0) {
             if (stopTries <= 0)
@@ -270,7 +269,7 @@ public class ServerController {
               application.notifyListeners(application.getFormattedLog(
                   INFO_PROGRESS_SERVER_STOPPED.get()));
             }
-            LOG.log(Level.INFO, "server stopped");
+            logger.debug(LocalizableMessage.raw("server stopped"));
             break;
           }
 
@@ -341,7 +340,7 @@ public class ServerController {
         mb.append(application.getLineBreak());
         application.notifyListeners(mb.toMessage());
       }
-      LOG.log(Level.INFO, "starting server");
+      logger.debug(LocalizableMessage.raw("starting server"));
 
       ArrayList<String> argList = new ArrayList<String>();
       argList.add(Utils.getScriptPath(
@@ -376,7 +375,7 @@ public class ServerController {
 
         int returnValue = process.waitFor();
 
-        LOG.log(Level.INFO, "start-ds return value: "+returnValue);
+        logger.debug(LocalizableMessage.raw("start-ds return value: "+returnValue));
 
         if (returnValue != 0)
         {
@@ -386,15 +385,15 @@ public class ServerController {
         }
         if (outputReader.isFinished())
         {
-          LOG.log(Level.INFO, "Output reader finished.");
+          logger.debug(LocalizableMessage.raw("Output reader finished."));
         }
         if (errReader.isFinished())
         {
-          LOG.log(Level.INFO, "Error reader finished.");
+          logger.debug(LocalizableMessage.raw("Error reader finished."));
         }
         if (!outputReader.startedIdFound() && !errReader.startedIdFound())
         {
-          LOG.log(Level.WARNING, "Started ID could not be found");
+          logger.warn(LocalizableMessage.raw("Started ID could not be found"));
         }
 
         // Check if something wrong occurred reading the starting of the server
@@ -488,7 +487,7 @@ public class ServerController {
             }
             catch (NamingException ne)
             {
-              LOG.log(Level.WARNING, "Could not connect to server: "+ne, ne);
+              logger.warn(LocalizableMessage.raw("Could not connect to server: "+ne, ne));
             }
             finally
             {
@@ -605,7 +604,7 @@ public class ServerController {
                 application.notifyListeners(buf.toMessage());
                 isFirstLine = false;
               }
-              LOG.log(Level.INFO, "server: " + line);
+              logger.debug(LocalizableMessage.raw("server: " + line));
               line = reader.readLine();
             }
           } catch (Throwable t) {
@@ -613,7 +612,7 @@ public class ServerController {
               LocalizableMessage errorMsg = getThrowableMsg(errorTag, t);
               application.notifyListeners(errorMsg);
             }
-            LOG.log(Level.INFO, "error reading server messages",t);
+            logger.debug(LocalizableMessage.raw("error reading server messages",t));
           }
         }
       });
@@ -695,7 +694,7 @@ public class ServerController {
                 application.notifyListeners(buf.toMessage());
                 isFirstLine = false;
               }
-              LOG.log(Level.INFO, "server: " + line);
+              logger.debug(LocalizableMessage.raw("server: " + line));
               if (line.toLowerCase().contains("=" + startedId))
               {
                 isFinished = true;
@@ -705,7 +704,7 @@ public class ServerController {
             }
           } catch (Throwable t)
           {
-            LOG.log(Level.WARNING, "Error reading output: "+t, t);
+            logger.warn(LocalizableMessage.raw("Error reading output: "+t, t));
             ex = new ApplicationException(
                 ReturnCode.START_ERROR,
                 getThrowableMsg(errorTag, t), t);

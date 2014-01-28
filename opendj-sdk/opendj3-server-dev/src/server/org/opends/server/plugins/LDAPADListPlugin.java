@@ -47,8 +47,7 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PreParseSearchOperation;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.PluginMessages.*;
 
 import static org.opends.server.types.DirectoryConfig.getObjectClass;
@@ -68,10 +67,7 @@ public final class LDAPADListPlugin
        implements ConfigurationChangeListener<
                        LDAPAttributeDescriptionListPluginCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -111,17 +107,17 @@ public final class LDAPADListPlugin
           final ObjectClass oc = getObjectClass(lowerName, false);
           if (oc == null)
           {
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
-              TRACER.debugWarning("Cannot replace unknown objectclass %s",
+              logger.trace("Cannot replace unknown objectclass %s",
                                   lowerName);
             }
           }
           else
           {
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
-              TRACER.debugInfo("Replacing objectclass %s", lowerName);
+              logger.trace("Replacing objectclass %s", lowerName);
             }
 
             for (final AttributeType at : oc.getRequiredAttributeChain())

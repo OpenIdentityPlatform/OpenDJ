@@ -44,8 +44,9 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
@@ -66,7 +67,6 @@ import javax.swing.event.HyperlinkListener;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -105,8 +105,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
   private String explanationWithHideDetails;
   private String explanationWithShowDetails;
 
-  private static final Logger LOG = Logger.getLogger(
-      CertificateDialog.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Constructor of the certificate dialog.
@@ -630,10 +629,10 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
       msg = LocalizableMessage.raw(sb);
     }
     catch (NoSuchAlgorithmException nsae) {
-      LOG.log(Level.WARNING, "SHA1 algorithm not supported: "+nsae, nsae);
+      logger.warn(LocalizableMessage.raw("SHA1 algorithm not supported: "+nsae, nsae));
     }
     catch (CertificateEncodingException cee) {
-      LOG.log(Level.WARNING, "Certificate encoding exception: "+cee, cee);
+      logger.warn(LocalizableMessage.raw("Certificate encoding exception: "+cee, cee));
     }
     return msg;
   }
@@ -662,10 +661,10 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
       msg = LocalizableMessage.raw(sb);
     }
     catch (NoSuchAlgorithmException nsae) {
-      LOG.log(Level.WARNING, "MD5 algorithm not supported: "+nsae, nsae);
+      logger.warn(LocalizableMessage.raw("MD5 algorithm not supported: "+nsae, nsae));
     }
     catch (CertificateEncodingException cee) {
-      LOG.log(Level.WARNING, "Certificate encoding exception: "+cee, cee);
+      logger.warn(LocalizableMessage.raw("Certificate encoding exception: "+cee, cee));
     }
     return msg;
   }
@@ -703,8 +702,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     }
     catch (Throwable t)
     {
-      LOG.log(Level.WARNING, "Error parsing subject dn: "+
-          cert.getSubjectX500Principal(), t);
+      logger.warn(LocalizableMessage.raw("Error parsing subject dn: "+
+          cert.getSubjectX500Principal(), t));
     }
     return name;
   }

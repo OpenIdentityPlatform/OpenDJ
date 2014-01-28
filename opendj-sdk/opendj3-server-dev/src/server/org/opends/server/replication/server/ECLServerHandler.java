@@ -43,7 +43,6 @@ import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.replication.protocol.StartECLSessionMsg
 .ECLRequestType.*;
@@ -206,7 +205,7 @@ public final class ECLServerHandler extends ServerHandler
      */
     private void computeNextEligibleMessageForDomain(String opId)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
         debugInfo(opId, "ctxt=" + this);
 
       assert(nextMsg == null);
@@ -219,7 +218,7 @@ public final class ECLServerHandler extends ServerHandler
         {
           final boolean hasBecomeEligible = isEligible(nextNonEligibleMsg);
 
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
             debugInfo(opId, "stored nonEligibleMsg " + nextNonEligibleMsg
                 + " has now become eligible regarding the eligibleCSN ("
                 + eligibleCSN + " ): " + hasBecomeEligible);
@@ -240,13 +239,13 @@ public final class ECLServerHandler extends ServerHandler
             return;
           }
 
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
             debugInfo(opId, "got new message : [newMsg=" + newMsg + "] "
                 + dumpState());
 
           final boolean isEligible = isEligible(newMsg);
 
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
             debugInfo(opId, "newMsg isEligible=" + isEligible + " since "
                 + "newMsg=[" + toString(newMsg.getCSN()) + "] eligibleCSN=["
                 + toString(eligibleCSN) + "] " + dumpState());
@@ -263,7 +262,7 @@ public final class ECLServerHandler extends ServerHandler
       }
       catch(Exception e)
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        logger.traceException(e);
       }
     }
 
@@ -300,7 +299,7 @@ public final class ECLServerHandler extends ServerHandler
 
     private void debugInfo(String opId, String message)
     {
-      TRACER.debugInfo("In ECLServerHandler, for baseDN="
+      logger.trace("In ECLServerHandler, for baseDN="
           + mh.getBaseDNString() + " getNextEligibleMessageForDomain(" + opId
           + ") " + message);
     }
@@ -554,13 +553,13 @@ public final class ECLServerHandler extends ServerHandler
     }
     catch(DirectoryException de)
     {
-      TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      logger.traceException(de);
       releaseCursor();
       throw de;
     }
     catch(Exception e)
     {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      logger.traceException(e);
       releaseCursor();
       throw new DirectoryException(
           ResultCode.OPERATIONS_ERROR,
@@ -711,7 +710,7 @@ public final class ECLServerHandler extends ServerHandler
     }
     catch(Exception e)
     {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      logger.traceException(e);
       // FIXME:ECL do not publish internal exception plumb to the client
       throw new DirectoryException(
           ResultCode.OPERATIONS_ERROR,
@@ -719,8 +718,8 @@ public final class ECLServerHandler extends ServerHandler
               e),
               e);
     }
-    if (debugEnabled())
-      TRACER.debugInfo("initializeChangelogDomainCtxts() ends with "
+    if (logger.isTraceEnabled())
+      logger.trace("initializeChangelogDomainCtxts() ends with "
           + dumpState());
   }
 
@@ -911,8 +910,8 @@ public final class ECLServerHandler extends ServerHandler
   @Override
   public void shutdown()
   {
-    if (debugEnabled())
-      TRACER.debugInfo(this + " shutdown()");
+    if (logger.isTraceEnabled())
+      logger.trace(this + " shutdown()");
     releaseCursor();
     for (DomainContext domainCtxt : domainCtxts) {
       if (!domainCtxt.unRegisterHandler()) {
@@ -1025,7 +1024,7 @@ public final class ECLServerHandler extends ServerHandler
     }
     catch(Exception e)
     {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      logger.traceException(e);
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
           ERR_INVALID_COOKIE_SYNTAX.get(cookie));
     }
@@ -1066,8 +1065,8 @@ public final class ECLServerHandler extends ServerHandler
 
     registerIntoDomain();
 
-    if (debugEnabled())
-      TRACER.debugInfo(getClass().getCanonicalName() + " " + getOperationId()
+    if (logger.isTraceEnabled())
+      logger.trace(getClass().getCanonicalName() + " " + getOperationId()
           + " initialized: " + " " + dumpState() + " " + " "
           + domaimCtxtsToString(""));
   }
@@ -1142,7 +1141,7 @@ public final class ECLServerHandler extends ServerHandler
     }
     catch(DirectoryException de)
     {
-      TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      logger.traceException(de);
     }
     return null;
   }
@@ -1154,8 +1153,8 @@ public final class ECLServerHandler extends ServerHandler
    */
   public ECLUpdateMsg getNextECLUpdate() throws DirectoryException
   {
-    if (debugEnabled())
-      TRACER.debugInfo("In cn=changelog" + this +
+    if (logger.isTraceEnabled())
+      logger.trace("In cn=changelog" + this +
           " getNextECLUpdate starts: " + dumpState());
 
     ECLUpdateMsg oldestChange = null;
@@ -1226,8 +1225,8 @@ public final class ECLServerHandler extends ServerHandler
 
       if (searchPhase == PERSISTENT_PHASE)
       {
-        if (debugEnabled())
-          TRACER.debugInfo(domaimCtxtsToString(
+        if (logger.isTraceEnabled())
+          logger.trace(domaimCtxtsToString(
               "In getNextECLUpdate (persistent): "
                   + "looking for the generalized oldest change"));
 
@@ -1246,7 +1245,7 @@ public final class ECLServerHandler extends ServerHandler
     }
     catch(Exception e)
     {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      logger.traceException(e);
       throw new DirectoryException(
           ResultCode.OPERATIONS_ERROR,
           LocalizableMessage.raw("Exception raised: "),
@@ -1256,14 +1255,14 @@ public final class ECLServerHandler extends ServerHandler
     if (oldestChange != null)
     {
       final CSN csn = oldestChange.getUpdateMsg().getCSN();
-      if (debugEnabled())
-        TRACER.debugInfo("getNextECLUpdate updates previousCookie:" + csn);
+      if (logger.isTraceEnabled())
+        logger.trace("getNextECLUpdate updates previousCookie:" + csn);
 
       previousCookie.update(oldestChange.getBaseDN(), csn);
       oldestChange.setCookie(previousCookie);
 
-      if (debugEnabled())
-        TRACER.debugInfo("getNextECLUpdate returns result oldestChange="
+      if (logger.isTraceEnabled())
+        logger.trace("getNextECLUpdate returns result oldestChange="
             + oldestChange);
     }
     return oldestChange;
@@ -1318,8 +1317,8 @@ public final class ECLServerHandler extends ServerHandler
       final CSN csnFromCNIndexDB = currentRecord.getCSN();
       final DN baseDNFromCNIndexDB = currentRecord.getBaseDN();
 
-      if (debugEnabled())
-        TRACER.debugInfo("assignChangeNumber() comparing the replicaDB's and"
+      if (logger.isTraceEnabled())
+        logger.trace("assignChangeNumber() comparing the replicaDB's and"
             + " CNIndexDB's baseDNs :" + baseDNFromReplicaDB + "?="
             + baseDNFromCNIndexDB + " timestamps:" + asDate(csnFromReplicaDB)
             + " ?older" + asDate(csnFromCNIndexDB));
@@ -1329,8 +1328,8 @@ public final class ECLServerHandler extends ServerHandler
       {
         // We matched the ReplicaDB change with a record in the CNIndexDB
         // => set the changeNumber in memory and return the change to the client
-        if (debugEnabled())
-          TRACER.debugInfo("assignChangeNumber() assigning changeNumber="
+        if (logger.isTraceEnabled())
+          logger.trace("assignChangeNumber() assigning changeNumber="
               + currentRecord.getChangeNumber() + " to change="
               + replicaDBChange);
 
@@ -1347,8 +1346,8 @@ public final class ECLServerHandler extends ServerHandler
         // the change from the replicaDB is older
         // it should have been stored lately
         // let's continue to traverse the replicaDBs
-        if (debugEnabled())
-          TRACER.debugInfo("assignChangeNumber() will skip " + csnFromReplicaDB
+        if (logger.isTraceEnabled())
+          logger.trace("assignChangeNumber() will skip " + csnFromReplicaDB
               + " and read next change from the regular changelog.");
         return false; // TO BE CHECKED
       }
@@ -1360,24 +1359,21 @@ public final class ECLServerHandler extends ServerHandler
       try
       {
         // keep traversing the CNIndexDB searching for the replicaDB change
-        if (debugEnabled())
-          TRACER.debugInfo("assignChangeNumber() will skip " + csnFromCNIndexDB
+        if (logger.isTraceEnabled())
+          logger.trace("assignChangeNumber() will skip " + csnFromCNIndexDB
               + " and read next change from the CNIndexDB.");
 
         isEndOfCNIndexDBReached = !cnIndexDBCursor.next();
 
-        if (debugEnabled())
-          TRACER.debugInfo("assignChangeNumber() has skipped to changeNumber="
+        if (logger.isTraceEnabled())
+          logger.trace("assignChangeNumber() has skipped to changeNumber="
               + currentRecord.getChangeNumber() + " csn="
               + currentRecord.getCSN() + " End of CNIndexDB ?"
               + isEndOfCNIndexDBReached);
       }
       catch (ChangelogException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         // FIXME There is an opportunity for an infinite loop here if the DB
         // continuously throws ChangelogExceptions
       }
@@ -1404,8 +1400,8 @@ public final class ECLServerHandler extends ServerHandler
   {
     // starvation of changelog messages
     // all domain have been unactived means are covered
-    if (debugEnabled())
-      TRACER.debugInfo("In cn=changelog" + "," + this + " closeInitPhase(): "
+    if (logger.isTraceEnabled())
+      logger.trace("In cn=changelog" + "," + this + " closeInitPhase(): "
           + dumpState());
 
     // go to persistent phase if one
@@ -1454,8 +1450,8 @@ public final class ECLServerHandler extends ServerHandler
       }
     }
 
-    if (debugEnabled())
-      TRACER.debugInfo("In cn=changelog," + this
+    if (logger.isTraceEnabled())
+      logger.trace("In cn=changelog," + this
           + " findDomainCtxtWithOldestChange() returns "
           + ((oldestCtxt != null) ? oldestCtxt.nextMsg : "-1"));
 

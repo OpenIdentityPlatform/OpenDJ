@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.protocols.jmx;
 
@@ -47,9 +47,7 @@ import org.opends.server.config.JMXMBean;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.NullKeyManagerProvider;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.server.util.SelectableCertificateKeyManager;
 
@@ -70,10 +68,7 @@ import org.opends.server.util.SelectableCertificateKeyManager;
  */
 public class RmiConnector
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -181,18 +176,15 @@ public class RmiConnector
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       throw new RuntimeException("Error while starting the RMI module : "
           + e.getMessage());
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugVerbose("RMI module started");
+      logger.trace("RMI module started");
     }
   }
 
@@ -210,9 +202,9 @@ public class RmiConnector
 
     //
     // create our local RMI registry if it does not exist already
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugVerbose("start or reach an RMI registry on port %d",
+      logger.trace("start or reach an RMI registry on port %d",
                           registryPort);
     }
     try
@@ -229,9 +221,9 @@ public class RmiConnector
     {
       //
       // is the registry already created ?
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugWarning("cannot create the RMI registry -> already done ?");
+        logger.trace("cannot create the RMI registry -> already done ?");
       }
       try
       {
@@ -246,15 +238,15 @@ public class RmiConnector
       }
       catch (Exception e)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
           //
           // no 'valid' registry found on the specified port
-          TRACER.debugError("exception thrown while pinging the RMI registry");
+          logger.trace("exception thrown while pinging the RMI registry");
 
           //
           // throw the original exception
-          TRACER.debugCaught(DebugLogLevel.ERROR, re);
+          logger.traceException(re);
         }
         throw re;
       }
@@ -262,9 +254,9 @@ public class RmiConnector
       //
       // here the registry is ok even though
       // it was not created by this call
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugWarning("RMI was registry already started");
+        logger.trace("RMI was registry already started");
       }
     }
   }
@@ -296,9 +288,9 @@ public class RmiConnector
       DirectoryRMIServerSocketFactory rmiServerSockeyFactory = null;
       if (jmxConnectionHandler.isUseSSL())
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("SSL connection");
+          logger.trace("SSL connection");
         }
 
         // ---------------------
@@ -355,17 +347,17 @@ public class RmiConnector
       }
       else
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("UNSECURE CONNECTION");
+          logger.trace("UNSECURE CONNECTION");
         }
       }
 
       //
       // specify the rmi JMX authenticator to be used
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("Add RmiAuthenticator into JMX map");
+        logger.trace("Add RmiAuthenticator into JMX map");
       }
       rmiAuthenticator = new RmiAuthenticator(jmxConnectionHandler);
 
@@ -381,9 +373,9 @@ public class RmiConnector
 
       //
       // Create and start the connector
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("Create and start the JMX RMI connector");
+        logger.trace("Create and start the JMX RMI connector");
       }
       OpendsRMIJRMPServerImpl opendsRmiConnectorServer =
           new OpendsRMIJRMPServerImpl(jmxConnectionHandler.getRmiPort(),
@@ -399,18 +391,15 @@ public class RmiConnector
       mbs.registerMBean(jmxRmiConnectorNoClientCertificate, name);
       rmiVersion = opendsRmiConnectorServer.getVersion();
 
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("JMX RMI connector Started");
+        logger.trace("JMX RMI connector Started");
       }
 
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw e;
     }
 
@@ -438,7 +427,7 @@ public class RmiConnector
     }
     catch (Exception e)
     {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      logger.traceException(e);
     }
 
     jmxRmiConnectorNoClientCertificate = null;
@@ -469,10 +458,7 @@ public class RmiConnector
     catch (Exception e)
     {
       // TODO Log an error message
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     if (stopRegistry)
@@ -487,10 +473,7 @@ public class RmiConnector
       catch (IOException e)
       {
         // TODO Log an error message
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
       registry = null;
     }

@@ -45,7 +45,7 @@ import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -59,7 +59,6 @@ import org.opends.server.types.DirectoryException;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.schema.StringPrepProfile.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -72,10 +71,7 @@ import static org.opends.messages.SchemaMessages.*;
 public class LDAPSyntaxDescriptionSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -618,10 +614,7 @@ public class LDAPSyntaxDescriptionSyntax
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       invalidReason.append(de.getMessageObject());
       return false;

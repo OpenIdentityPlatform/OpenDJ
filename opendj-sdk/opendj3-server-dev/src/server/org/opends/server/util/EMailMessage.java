@@ -51,8 +51,7 @@ import javax.mail.internet.MimeMultipart;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -60,7 +59,6 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -78,10 +76,7 @@ import static org.opends.server.util.StaticUtils.*;
      mayInvoke=true)
 public final class EMailMessage
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   // The addresses of the recipients to whom this message should be sent.
@@ -398,10 +393,7 @@ public final class EMailMessage
       }
       catch (MessagingException me)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, me);
-        }
+        logger.traceException(me);
 
         LocalizableMessage msg = ERR_EMAILMSG_INVALID_SENDER_ADDRESS.get(
             String.valueOf(sender), me.getMessage());
@@ -423,10 +415,7 @@ public final class EMailMessage
         }
         catch (MessagingException me)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, me);
-          }
+          logger.traceException(me);
 
           LocalizableMessage msg = ERR_EMAILMSG_INVALID_RECIPIENT_ADDRESS.get(
               String.valueOf(recipient), me.getMessage());
@@ -473,10 +462,7 @@ public final class EMailMessage
       }
       catch (SendFailedException sfe)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, sfe);
-        }
+        logger.traceException(sfe);
 
         // We'll ignore this and hope that another server is available.  If not,
         // then at least save the exception so that we can throw it if all else

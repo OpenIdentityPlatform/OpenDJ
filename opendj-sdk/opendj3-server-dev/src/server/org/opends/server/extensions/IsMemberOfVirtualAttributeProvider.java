@@ -33,10 +33,9 @@ import org.opends.server.api.Group;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -47,10 +46,7 @@ import static org.opends.server.util.ServerConstants.*;
 public class IsMemberOfVirtualAttributeProvider
        extends VirtualAttributeProvider<IsMemberOfVirtualAttributeCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Creates a new instance of this entryDN virtual attribute provider.
@@ -104,10 +100,7 @@ public class IsMemberOfVirtualAttributeProvider
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -134,10 +127,7 @@ public class IsMemberOfVirtualAttributeProvider
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -157,10 +147,7 @@ public class IsMemberOfVirtualAttributeProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       return false;
     }
@@ -321,10 +308,7 @@ public class IsMemberOfVirtualAttributeProvider
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -372,10 +356,7 @@ public class IsMemberOfVirtualAttributeProvider
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
         break;

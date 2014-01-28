@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -31,9 +32,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * This class implements a post rotation action that compresses
@@ -41,10 +40,8 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class GZIPAction implements PostRotationAction
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   private File originalFile;
@@ -120,10 +117,7 @@ public class GZIPAction implements PostRotationAction
       return true;
     } catch(IOException ioe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
-      }
+      logger.traceException(ioe);
       if (inputStreamOpen)
       {
         try
@@ -132,10 +126,7 @@ public class GZIPAction implements PostRotationAction
         }
         catch (Exception fe)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, fe);
-          }
+         logger.traceException(fe);
           // Cannot do much. Ignore.
         }
       }
@@ -147,10 +138,7 @@ public class GZIPAction implements PostRotationAction
         }
         catch (Exception ge)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ge);
-          }
+          logger.traceException(ge);
           // Cannot do much. Ignore.
         }
       }

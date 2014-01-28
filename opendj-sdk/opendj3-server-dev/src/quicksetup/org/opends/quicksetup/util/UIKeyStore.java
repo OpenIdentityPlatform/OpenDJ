@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -38,8 +38,9 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * Class used to get the KeyStore that the graphical utilities use.
@@ -49,8 +50,7 @@ public class UIKeyStore extends KeyStore
 {
   private static KeyStore keyStore = null;
 
-  private static final Logger LOG = Logger.getLogger(
-      UIKeyStore.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * This should never be called.
@@ -80,22 +80,22 @@ public class UIKeyStore extends KeyStore
       File f = new File(keyStorePath);
       if (!f.exists())
       {
-        LOG.log(Level.INFO, "Path "+keyStorePath+ " does not exist");
+        logger.debug(LocalizableMessage.raw("Path "+keyStorePath+ " does not exist"));
         keyStorePath = null;
       }
       else if (f.isDirectory())
       {
-        LOG.log(Level.SEVERE, "Path "+keyStorePath+ " is a directory");
+        logger.error(LocalizableMessage.raw("Path "+keyStorePath+ " is a directory"));
         keyStorePath = null;
       }
       else if (!f.canRead())
       {
-        LOG.log(Level.SEVERE, "Path "+keyStorePath+ " is not readable");
+        logger.error(LocalizableMessage.raw("Path "+keyStorePath+ " is not readable"));
         keyStorePath = null;
       }
       else if (!f.canWrite())
       {
-        LOG.log(Level.SEVERE, "Path "+keyStorePath+ " is not writable");
+        logger.error(LocalizableMessage.raw("Path "+keyStorePath+ " is not writable"));
         keyStorePath = null;
       }
 
@@ -109,7 +109,7 @@ public class UIKeyStore extends KeyStore
         }
         catch (Throwable t)
         {
-          LOG.log(Level.SEVERE, "Error reading key store on "+keyStorePath, t);
+          logger.error(LocalizableMessage.raw("Error reading key store on "+keyStorePath, t));
           keyStore.load(null, null);
         }
         fos.close();
@@ -137,7 +137,7 @@ public class UIKeyStore extends KeyStore
       throws IOException,KeyStoreException, CertificateException,
       NoSuchAlgorithmException
   {
-    LOG.log(Level.INFO, "Accepting certificate chain.");
+    logger.debug(LocalizableMessage.raw("Accepting certificate chain."));
     KeyStore k = getInstance();
     for (X509Certificate aChain : chain) {
       if (!containsCertificate(aChain, k)) {
@@ -183,17 +183,17 @@ public class UIKeyStore extends KeyStore
     File f = new File(adminTrustStorePath);
     if (!f.exists())
     {
-      LOG.log(Level.INFO, "Path "+adminTrustStorePath+ " does not exist");
+      logger.debug(LocalizableMessage.raw("Path "+adminTrustStorePath+ " does not exist"));
       adminTrustStorePath = null;
     }
     else if (f.isDirectory())
     {
-      LOG.log(Level.SEVERE, "Path "+adminTrustStorePath+ " is a directory");
+      logger.error(LocalizableMessage.raw("Path "+adminTrustStorePath+ " is a directory"));
       adminTrustStorePath = null;
     }
     else if (!f.canRead())
     {
-      LOG.log(Level.SEVERE, "Path "+adminTrustStorePath+ " is not readable");
+      logger.error(LocalizableMessage.raw("Path "+adminTrustStorePath+ " is not readable"));
       adminTrustStorePath = null;
     }
 
@@ -223,8 +223,8 @@ public class UIKeyStore extends KeyStore
       }
       catch (Throwable t)
       {
-        LOG.log(Level.SEVERE, "Error reading admin key store on "+
-            adminTrustStorePath, t);
+        logger.error(LocalizableMessage.raw("Error reading admin key store on "+
+            adminTrustStorePath, t));
       }
       finally
       {
@@ -237,8 +237,8 @@ public class UIKeyStore extends KeyStore
         }
         catch (Throwable t)
         {
-          LOG.log(Level.SEVERE, "Error closing admin key store on "+
-              adminTrustStorePath, t);
+          logger.error(LocalizableMessage.raw("Error closing admin key store on "+
+              adminTrustStorePath, t));
         }
       }
     }

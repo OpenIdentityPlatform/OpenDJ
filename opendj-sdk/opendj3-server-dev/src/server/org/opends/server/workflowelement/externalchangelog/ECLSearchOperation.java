@@ -35,7 +35,7 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.plugin.MultimasterReplication;
@@ -53,7 +53,6 @@ import org.opends.server.util.ServerConstants;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.StartECLSessionMsg
 .ECLRequestType.*;
 import static org.opends.server.replication.protocol.StartECLSessionMsg
@@ -71,10 +70,7 @@ public class ECLSearchOperation
        implements PreOperationSearchOperation, PostOperationSearchOperation,
                   SearchEntrySearchOperation, SearchReferenceSearchOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The set of supported controls for this WE. */
   private static final Set<String> CHANGELOG_SUPPORTED_CONTROLS =
@@ -246,8 +242,8 @@ public class ECLSearchOperation
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        if (logger.isTraceEnabled())
+          logger.traceException(de);
         setResponseData(de);
         break searchProcessing;
       }
@@ -259,8 +255,8 @@ public class ECLSearchOperation
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        if (logger.isTraceEnabled())
+          logger.traceException(de);
         setResponseData(de);
         break searchProcessing;
       }
@@ -301,8 +297,8 @@ public class ECLSearchOperation
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        if (logger.isTraceEnabled())
+          logger.traceException(de);
 
         setResponseData(de);
 
@@ -325,8 +321,8 @@ public class ECLSearchOperation
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        if (logger.isTraceEnabled())
+          logger.traceException(e);
 
         setResultCode(DirectoryServer.getServerErrorResultCode());
         appendErrorMessage(ERR_SEARCH_BACKEND_EXCEPTION.get(
@@ -421,10 +417,7 @@ public class ECLSearchOperation
             }
             catch (DirectoryException de)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
 
               throw new DirectoryException(de.getResultCode(),
                   ERR_SEARCH_CANNOT_GET_ENTRY_FOR_ASSERTION.get(
@@ -450,10 +443,7 @@ public class ECLSearchOperation
               throw de;
             }
 
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                 ERR_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER.get(
@@ -581,9 +571,9 @@ public class ECLSearchOperation
   private void processSearch(StartECLSessionMsg startECLSessionMsg)
       throws DirectoryException, CanceledOperationException
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(" processSearch toString=[" + toString() + "] opid=["
+      logger.trace(" processSearch toString=[" + toString() + "] opid=["
           + startECLSessionMsg.getOperationId() + "]");
     }
 
@@ -755,7 +745,7 @@ public class ECLSearchOperation
       catch (Exception e)
       {
         // Unable to decode the message - log an error.
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        logger.traceException(e);
 
         logError(LocalizableMessage.raw("An exception was encountered while try to encode a "
                 + "replication add message for entry \""
@@ -813,7 +803,7 @@ public class ECLSearchOperation
       catch (Exception e)
       {
         // Unable to decode the message - log an error.
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        logger.traceException(e);
 
         logError(LocalizableMessage.raw("An exception was encountered while try to encode a "
                 + "replication modify message for entry \""
@@ -1070,8 +1060,8 @@ public class ECLSearchOperation
   @Override
   public CancelResult cancel(CancelRequest cancelRequest)
   {
-    if (debugEnabled())
-      TRACER.debugInfo(this + " cancel() " + eclServerHandler);
+    if (logger.isTraceEnabled())
+      logger.trace(this + " cancel() " + eclServerHandler);
     shutdownECLServerHandler();
     return super.cancel(cancelRequest);
   }
@@ -1080,8 +1070,8 @@ public class ECLSearchOperation
   @Override
   public void abort(CancelRequest cancelRequest)
   {
-    if (debugEnabled())
-      TRACER.debugInfo(this + " abort() " + eclServerHandler);
+    if (logger.isTraceEnabled())
+      logger.trace(this + " abort() " + eclServerHandler);
     shutdownECLServerHandler();
   }
 

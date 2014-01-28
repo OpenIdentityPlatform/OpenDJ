@@ -33,11 +33,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
@@ -100,8 +100,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   IntegerArgument   connectTimeoutArg = null;
   BooleanArgument   acceptLicense;
 
-  private static final Logger LOG = Logger.getLogger(
-      InstallDSArgumentParser.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The default constructor for this class.
@@ -439,7 +438,7 @@ public class InstallDSArgumentParser extends ArgumentParser
     }
     catch (ArgumentException ae)
     {
-      LOG.log(Level.SEVERE, "Error parsing arguments: "+ae, ae);
+      logger.error(LocalizableMessage.raw("Error parsing arguments: "+ae, ae));
       errorMessages.add(ae.getMessageObject());
     }
 
@@ -583,8 +582,8 @@ public class InstallDSArgumentParser extends ArgumentParser
     }
     catch (ArgumentException ae)
     {
-      LOG.log(Level.SEVERE, "Unexpected error.  "+
-          "Assuming that it is caused by a previous parsing issue: "+ae, ae);
+      logger.error(LocalizableMessage.raw("Unexpected error.  "+
+          "Assuming that it is caused by a previous parsing issue: "+ae, ae));
     }
   }
 

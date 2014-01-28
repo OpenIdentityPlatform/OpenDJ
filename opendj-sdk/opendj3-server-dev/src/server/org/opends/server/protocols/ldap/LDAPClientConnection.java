@@ -33,7 +33,6 @@ import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -64,7 +63,7 @@ import org.opends.server.extensions.ConnectionSecurityProvider;
 import org.opends.server.extensions.RedirectingByteChannel;
 import org.opends.server.extensions.TLSByteChannel;
 import org.opends.server.extensions.TLSCapableConnection;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1ByteChannelReader;
 import org.opends.server.protocols.asn1.ASN1Reader;
@@ -121,10 +120,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       {
         // In general, we don't care about any exception that might be
         // thrown here.
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
 
       try
@@ -135,10 +131,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       {
         // In general, we don't care about any exception that might be
         // thrown here.
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -311,7 +304,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
 
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Thread local ASN1Writer and buffer.
@@ -996,9 +989,9 @@ public final class LDAPClientConnection extends ClientConnection implements
       message.write(holder.writer);
       holder.buffer.copyTo(saslChannel);
 
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
           message.toString());
       }
 
@@ -1009,10 +1002,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // FIXME -- Log a message or something
       disconnect(DisconnectReason.SERVER_ERROR, false, null);
@@ -1157,10 +1147,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       {
         // NYI -- Log a message indicating that we couldn't send the
         // notice of disconnection.
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -1183,10 +1170,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -1279,10 +1263,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       operationsInProgress.remove(messageID);
       lastCompletionTime.set(TimeThread.getTime());
@@ -1291,10 +1272,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
         WARN_LDAP_CLIENT_CANNOT_ENQUEUE.get(getExceptionMessage(e));
@@ -1416,10 +1394,7 @@ public final class LDAPClientConnection extends ClientConnection implements
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
 
@@ -1438,10 +1413,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -1490,10 +1462,7 @@ public final class LDAPClientConnection extends ClientConnection implements
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
             }
           }
 
@@ -1514,10 +1483,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -1544,10 +1510,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -1622,10 +1585,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       if (asn1Reader.hasRemainingData() || (e instanceof SSLException))
       {
@@ -1764,10 +1724,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage msg =
           ERR_LDAP_DISCONNECT_DUE_TO_PROCESSING_FAILURE.get(message
@@ -1820,10 +1777,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       // Don't send an error response since abandon operations
       // don't have a response.
@@ -1877,10 +1831,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       AddResponseProtocolOp responseOp =
           new AddResponseProtocolOp(de.getResultCode().getIntValue(),
@@ -2002,10 +1953,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       BindResponseProtocolOp responseOp =
           new BindResponseProtocolOp(de.getResultCode().getIntValue(),
@@ -2076,10 +2024,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       CompareResponseProtocolOp responseOp =
           new CompareResponseProtocolOp(de.getResultCode()
@@ -2139,10 +2084,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       DeleteResponseProtocolOp responseOp =
           new DeleteResponseProtocolOp(
@@ -2207,10 +2149,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       ExtendedResponseProtocolOp responseOp =
           new ExtendedResponseProtocolOp(de.getResultCode()
@@ -2270,10 +2209,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       ModifyResponseProtocolOp responseOp =
           new ModifyResponseProtocolOp(
@@ -2335,10 +2271,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       ModifyDNResponseProtocolOp responseOp =
           new ModifyDNResponseProtocolOp(de.getResultCode()
@@ -2401,10 +2334,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       SearchResultDoneProtocolOp responseOp =
           new SearchResultDoneProtocolOp(de.getResultCode()
@@ -2563,10 +2493,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
       unavailableReason.append(ERR_LDAP_TLS_CANNOT_CREATE_TLS_PROVIDER
           .get(stackTraceToSingleLineString(de)));
       return false;

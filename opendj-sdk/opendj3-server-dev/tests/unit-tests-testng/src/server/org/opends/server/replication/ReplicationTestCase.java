@@ -30,9 +30,7 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 
 import org.assertj.core.api.Assertions;
-import org.opends.messages.Category;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.messages.Severity;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
@@ -41,7 +39,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.ServerState;
@@ -61,7 +59,6 @@ import org.testng.annotations.Test;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.DirectoryStringSyntax.*;
 import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.types.SearchScope.*;
@@ -76,7 +73,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 {
 
   /** The tracer object for the debug logger */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * This is the generation id matching the memory test backend with its initial
@@ -252,7 +249,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     {
       if (rb.isConnected())
       {
-        TRACER.debugInfo("checkConnection: connection of broker "
+        logger.trace("checkConnection: connection of broker "
           + rb.getServerId() + " to RS " + rb.getRsGroupId()
           + " obtained after " + nSec + " seconds.");
         return;
@@ -701,7 +698,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected void addTask(Entry taskEntry, ResultCode expectedResult,
       LocalizableMessage errorMessage) throws Exception
   {
-    TRACER.debugInfo("AddTask/" + taskEntry);
+    logger.trace("AddTask/" + taskEntry);
 
     // Change config of DS to launch the total update task
     AddOperation addOperation = connection.processAdd(taskEntry);
@@ -715,7 +712,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     {
       Assertions.assertThat(addOperation.getErrorMessage().toString())
           .startsWith(errorMessage.toString());
-      TRACER.debugInfo("Create config task: <"
+      logger.trace("Create config task: <"
           + errorMessage.resourceName() + "-" + errorMessage.ordinal()
           + addOperation.getErrorMessage() + ">");
     }
@@ -727,7 +724,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     // Entry will be removed at the end of the test
     entriesToCleanup.add(taskEntry.getName());
 
-    TRACER.debugInfo("AddedTask/" + taskEntry.getName());
+    logger.trace("AddedTask/" + taskEntry.getName());
   }
 
   protected void waitTaskState(Entry taskEntry, TaskState expectedTaskState,
@@ -771,10 +768,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
     if (logMessages.size() != 0)
     {
-      TRACER.debugInfo(logMessages.get(0));
+      logger.trace(logMessages.get(0));
       if (expectedMessage != null)
       {
-        TRACER.debugInfo(expectedMessage.toString());
+        logger.trace(expectedMessage.toString());
         assertTrue(logMessages.get(0).indexOf(expectedMessage.toString()) > 0);
       }
     }
@@ -804,12 +801,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       AddOperation addOp = connection.processAdd(entry);
       if (addOp.getResultCode() != ResultCode.SUCCESS)
       {
-        TRACER.debugInfo("Failed to add entry " + entry.getName()
+        logger.trace("Failed to add entry " + entry.getName()
             + "Result code = : " + addOp.getResultCode());
       }
       else
       {
-        TRACER.debugInfo(entry.getName() + " added " + addOp.getResultCode());
+        logger.trace(entry.getName() + " added " + addOp.getResultCode());
       }
     }
   }
@@ -923,7 +920,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         // Ok, got it, let's return the expected message
         return (T) replMsg;
       }
-      TRACER.debugInfo("waitForSpecificMsg received : " + replMsg);
+      logger.trace("waitForSpecificMsg received : " + replMsg);
       msgs.add(replMsg);
       timedOut = (System.currentTimeMillis() - startTime) > timeOut;
     }

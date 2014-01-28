@@ -30,7 +30,6 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -51,9 +50,8 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -71,10 +69,7 @@ public final class AccessControlConfigManager
        implements AlertGenerator ,
                   ConfigurationChangeListener<AccessControlHandlerCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Fully qualified class name.
   private static final String CLASS_NAME =
@@ -310,9 +305,7 @@ public final class AccessControlConfigManager
         }
       }
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message = ERR_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER.
               get(handlerClassName, String.valueOf(config.dn().toString()),
                       stackTraceToSingleLineString(e));

@@ -22,25 +22,22 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
-import org.opends.server.util.TimeThread;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-
 import java.io.File;
 import java.io.FilenameFilter;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.util.TimeThread;
 
 /**
  * A file name policy that names files suffixed by the time it was created.
  */
 public class TimeStampNaming implements FileNamingPolicy
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private File file;
   private TimeStampNamingFilter filter;
@@ -154,7 +151,7 @@ public class TimeStampNaming implements FileNamingPolicy
 
     if(files == null)
     {
-      TRACER.debugError("Unable to list files named by policy " +
+      logger.trace("Unable to list files named by policy " +
           "with initial file %s in directory %s", file, directory);
     }
 

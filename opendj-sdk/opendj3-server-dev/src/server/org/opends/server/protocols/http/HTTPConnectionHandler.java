@@ -35,6 +35,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -67,7 +70,6 @@ import org.glassfish.grizzly.servlet.WebappContext;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.utils.Charsets;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.HTTPConnectionHandlerCfg;
@@ -77,7 +79,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.NullKeyManagerProvider;
 import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.loggers.HTTPAccessLogger;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.monitors.ClientConnectionMonitorProvider;
 import org.opends.server.types.*;
 import org.opends.server.util.SelectableCertificateKeyManager;
@@ -86,7 +87,6 @@ import org.opends.server.util.StaticUtils;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -102,7 +102,7 @@ public class HTTPConnectionHandler extends
 {
 
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Default friendly name for this connection handler. */
   private static final String DEFAULT_FRIENDLY_NAME = "HTTP Connection Handler";
@@ -230,10 +230,7 @@ public class HTTPConnectionHandler extends
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       messages.add(e.getMessageObject());
       return new ConfigChangeResult(e.getResultCode(), adminActionRequired,
           messages);
@@ -495,10 +492,7 @@ public class HTTPConnectionHandler extends
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw new InitializationException(e.getMessageObject());
     }
 
@@ -563,10 +557,7 @@ public class HTTPConnectionHandler extends
         }
         catch (DirectoryException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           unacceptableReasons.add(e.getMessageObject());
           return false;
@@ -607,10 +598,7 @@ public class HTTPConnectionHandler extends
       }
       catch (IOException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         return ERR_CONNHANDLER_CANNOT_BIND.get("HTTP", String
             .valueOf(configEntryDN), a.getHostAddress(), listenPort,
             getExceptionMessage(e));
@@ -736,10 +724,7 @@ public class HTTPConnectionHandler extends
         cleanUpHttpServer();
 
         // error + alert about the horked config
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         logError(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(friendlyName,
             String.valueOf(currentConfig.dn()), getExceptionMessage(e)));
@@ -787,9 +772,9 @@ public class HTTPConnectionHandler extends
     // register servlet as default servlet and also able to serve REST requests
     createAndRegisterServlet("OpenDJ Rest2LDAP servlet", "", "/*");
 
-    TRACER.debugInfo("Starting HTTP server...");
+    logger.trace("Starting HTTP server...");
     this.httpServer.start();
-    TRACER.debugInfo("HTTP server started");
+    logger.trace("HTTP server started");
     logError(NOTE_CONNHANDLER_STARTED_LISTENING.get(handlerName));
   }
 
@@ -944,10 +929,10 @@ public class HTTPConnectionHandler extends
   {
     if (this.httpServer != null)
     {
-      TRACER.debugInfo("Stopping HTTP server...");
+      logger.trace("Stopping HTTP server...");
       this.httpServer.shutdownNow();
       cleanUpHttpServer();
-      TRACER.debugInfo("HTTP server stopped");
+      logger.trace("HTTP server stopped");
       logError(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
     }
   }
@@ -1020,10 +1005,7 @@ public class HTTPConnectionHandler extends
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       ResultCode resCode = DirectoryServer.getServerErrorResultCode();
       LocalizableMessage message =
           ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE.get(getExceptionMessage(e));

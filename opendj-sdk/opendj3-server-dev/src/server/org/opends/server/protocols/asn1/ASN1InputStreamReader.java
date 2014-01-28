@@ -27,7 +27,6 @@
 package org.opends.server.protocols.asn1;
 
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 
 import java.io.IOException;
@@ -35,10 +34,9 @@ import java.io.InputStream;
 import java.util.LinkedList;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.SizeLimitInputStream;
 
 /**
@@ -47,7 +45,7 @@ import org.opends.server.util.SizeLimitInputStream;
 final class ASN1InputStreamReader implements ASN1Reader
 {
 
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private int state = ELEMENT_READ_STATE_NEED_TYPE;
   private byte peekType = 0;
@@ -401,9 +399,9 @@ final class ASN1InputStreamReader implements ASN1Reader
         throw new ASN1Exception(message);
       }
 
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("READ ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)",
                 peekType, peekLength, String.valueOf(readByte != 0x00)));
       }
@@ -496,9 +494,9 @@ final class ASN1InputStreamReader implements ASN1Reader
           intValue = (intValue << 8) | (readByte & 0xFF);
         }
 
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
-          TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+          logger.trace(
               String.format("READ ASN.1 INTEGER(type=0x%x, length=%d, " +
                   "value=%d)", peekType, peekLength, intValue));
         }
@@ -531,9 +529,9 @@ final class ASN1InputStreamReader implements ASN1Reader
       throw new ASN1Exception(message);
     }
 
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+      logger.trace(
           String.format("READ ASN.1 NULL(type=0x%x, length=%d)",
               peekType, peekLength));
     }
@@ -573,9 +571,9 @@ final class ASN1InputStreamReader implements ASN1Reader
         bytesNeeded -= bytesRead;
       }
 
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("READ ASN.1 OCTETSTRING(type=0x%x, length=%d)",
                 peekType, peekLength));
       }
@@ -653,17 +651,14 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       str = new String(buffer, 0, peekLength);
     }
 
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+      logger.trace(
           String.format("READ ASN.1 OCTETSTRING(type=0x%x, length=%d, " +
               "value=%s)", peekType, peekLength, str));
     }
@@ -702,9 +697,9 @@ final class ASN1InputStreamReader implements ASN1Reader
         bytesNeeded -= bytesRead;
       }
 
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+        logger.trace(
             String.format("READ ASN.1 OCTETSTRING(type=0x%x, length=%d)",
                 peekType, peekLength));
       }
@@ -730,9 +725,9 @@ final class ASN1InputStreamReader implements ASN1Reader
     SizeLimitInputStream subStream =
         new SizeLimitInputStream(in, peekLength);
 
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
+      logger.trace(
           String.format("READ ASN.1 SEQUENCE(type=0x%x, length=%d)",
               peekType, peekLength));
     }
@@ -779,9 +774,9 @@ final class ASN1InputStreamReader implements ASN1Reader
     SizeLimitInputStream subSq = (SizeLimitInputStream)in;
     if(subSq.getSizeLimit() - subSq.getBytesRead() > 0)
     {
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugWarning("Ignoring %d unused trailing bytes in " +
+        logger.trace("Ignoring %d unused trailing bytes in " +
             "ASN.1 SEQUENCE", subSq.getSizeLimit() - subSq.getBytesRead());
       }
 

@@ -46,7 +46,7 @@ import org.opends.server.admin.std.server.
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationProperty;
 import org.opends.server.types.AccountStatusNotificationType;
@@ -54,7 +54,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -62,7 +61,6 @@ import org.opends.server.util.EMailMessage;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -101,10 +99,7 @@ public class SMTPAccountStatusNotificationHandler
        implements ConfigurationChangeListener
                        <SMTPAccountStatusNotificationHandlerCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -214,9 +209,9 @@ public class SMTPAccountStatusNotificationHandler
       }
 
       map.put(t, s.substring(colonPos+1).trim());
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Subject for notification type " + t.getName() +
+        logger.trace("Subject for notification type " + t.getName() +
                          ":  " + map.get(t));
       }
     }
@@ -289,9 +284,9 @@ public class SMTPAccountStatusNotificationHandler
       }
 
       map.put(t, parseTemplateFile(f));
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Decoded template elment list for type " +
+        logger.trace("Decoded template elment list for type " +
                          t.getName());
       }
     }
@@ -332,9 +327,9 @@ public class SMTPAccountStatusNotificationHandler
           break;
         }
 
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo("Read message template line " + line);
+          logger.trace("Read message template line " + line);
         }
 
         lineNumber++;
@@ -344,9 +339,9 @@ public class SMTPAccountStatusNotificationHandler
           int delimPos = line.indexOf("%%", startPos);
           if (delimPos < 0)
           {
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
-              TRACER.debugInfo("No more tokens -- adding text " +
+              logger.trace("No more tokens -- adding text " +
                                line.substring(startPos));
             }
 
@@ -358,9 +353,9 @@ public class SMTPAccountStatusNotificationHandler
           {
             if (delimPos > startPos)
             {
-              if (debugEnabled())
+              if (logger.isTraceEnabled())
               {
-                TRACER.debugInfo("Adding text before token " +
+                logger.trace("Adding text before token " +
                                  line.substring(startPos));
               }
 
@@ -382,9 +377,9 @@ public class SMTPAccountStatusNotificationHandler
               String lowerTokenStr = toLowerCase(tokenStr);
               if (lowerTokenStr.equals("notification-type"))
               {
-                if (debugEnabled())
+                if (logger.isTraceEnabled())
                 {
-                  TRACER.debugInfo("Found a notification type token " +
+                  logger.trace("Found a notification type token " +
                                    tokenStr);
                 }
 
@@ -393,9 +388,9 @@ public class SMTPAccountStatusNotificationHandler
               }
               else if (lowerTokenStr.equals("notification-message"))
               {
-                if (debugEnabled())
+                if (logger.isTraceEnabled())
                 {
-                  TRACER.debugInfo("Found a notification message token " +
+                  logger.trace("Found a notification message token " +
                                    tokenStr);
                 }
 
@@ -404,9 +399,9 @@ public class SMTPAccountStatusNotificationHandler
               }
               else if (lowerTokenStr.equals("notification-user-dn"))
               {
-                if (debugEnabled())
+                if (logger.isTraceEnabled())
                 {
-                  TRACER.debugInfo("Found a notification user DN token " +
+                  logger.trace("Found a notification user DN token " +
                                    tokenStr);
                 }
 
@@ -426,9 +421,9 @@ public class SMTPAccountStatusNotificationHandler
                 }
                 else
                 {
-                  if (debugEnabled())
+                  if (logger.isTraceEnabled())
                   {
-                    TRACER.debugInfo("Found a user attribute token for  " +
+                    logger.trace("Found a user attribute token for  " +
                                      attrType.getNameOrOID() + " -- " +
                                      tokenStr);
                   }
@@ -451,9 +446,9 @@ public class SMTPAccountStatusNotificationHandler
                 }
                 else
                 {
-                  if (debugEnabled())
+                  if (logger.isTraceEnabled())
                   {
-                    TRACER.debugInfo("Found a notification property token " +
+                    logger.trace("Found a notification property token " +
                                      "for " + propertyName + " -- " + tokenStr);
                   }
 
@@ -483,10 +478,7 @@ public class SMTPAccountStatusNotificationHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       throw new ConfigException(ERR_SMTP_ASNH_TEMPLATE_CANNOT_PARSE.get(
                                      f.getAbsolutePath(),
@@ -541,9 +533,9 @@ public class SMTPAccountStatusNotificationHandler
          templates.get(notificationType);
     if (templateElements == null)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("No message template for notification type " +
+        logger.trace("No message template for notification type " +
                          notificationType.getName());
       }
 
@@ -569,9 +561,9 @@ public class SMTPAccountStatusNotificationHandler
           {
             for (AttributeValue v : a)
             {
-              if (debugEnabled())
+              if (logger.isTraceEnabled())
               {
-                TRACER.debugInfo("Adding end user recipient " +
+                logger.trace("Adding end user recipient " +
                                  v.getValue().toString() + " from attr " +
                                  a.getNameWithOptions());
               }
@@ -588,9 +580,9 @@ public class SMTPAccountStatusNotificationHandler
         {
           // There are no recipients at all, so there's no point in generating
           // the message.  Return without doing anything.
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo("No end user recipients, and no explicit " +
+            logger.trace("No end user recipients, and no explicit " +
                              "recipients");
           }
 
@@ -603,9 +595,9 @@ public class SMTPAccountStatusNotificationHandler
             // We can't send the message to the end user, and the handler is
             // configured to not send only to administrators, so we shouln't
             // do anything.
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
-              TRACER.debugInfo("No end user recipients, and shouldn't send " +
+              logger.trace("No end user recipients, and shouldn't send " +
                                "without end user recipients");
             }
 
@@ -619,11 +611,11 @@ public class SMTPAccountStatusNotificationHandler
     // Next, add any explicitly-defined recipients.
     if (recipientAddrs != null)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
         for (String s : recipientAddrs)
         {
-          TRACER.debugInfo("Adding explicit recipient " + s);
+          logger.trace("Adding explicit recipient " + s);
         }
       }
 
@@ -638,14 +630,14 @@ public class SMTPAccountStatusNotificationHandler
     {
       subject = INFO_SMTP_ASNH_DEFAULT_SUBJECT.get().toString();
 
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Using default subject of " + subject);
+        logger.trace("Using default subject of " + subject);
       }
     }
-    else if (debugEnabled())
+    else if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("Using per-type subject of " + subject);
+      logger.trace("Using per-type subject of " + subject);
     }
 
 
@@ -662,9 +654,9 @@ public class SMTPAccountStatusNotificationHandler
     EMailMessage message = new EMailMessage(config.getSenderAddress(),
                                             recipients, subject);
     message.setBody(messageBody);
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("Set message body of " + messageBody.toString());
+      logger.trace("Set message body of " + messageBody.toString());
     }
 
 
@@ -672,17 +664,14 @@ public class SMTPAccountStatusNotificationHandler
     {
       message.send();
 
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Successfully sent the message");
+        logger.trace("Successfully sent the message");
       }
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       logError(ERR_SMTP_ASNH_CANNOT_SEND_MESSAGE.get(notificationType.getName(),
                     notification.getUserDN().toString(),
@@ -731,10 +720,7 @@ public class SMTPAccountStatusNotificationHandler
     }
     catch (ConfigException ce)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
+      logger.traceException(ce);
 
       unacceptableReasons.add(ce.getMessageObject());
       configAcceptable = false;
@@ -746,10 +732,7 @@ public class SMTPAccountStatusNotificationHandler
     }
     catch (ConfigException ce)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
+      logger.traceException(ce);
 
       unacceptableReasons.add(ce.getMessageObject());
       configAcceptable = false;
@@ -781,10 +764,7 @@ public class SMTPAccountStatusNotificationHandler
     }
     catch (ConfigException ce)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
+      logger.traceException(ce);
 
       LinkedList<LocalizableMessage> messageList = new LinkedList<LocalizableMessage>();
       messageList.add(ce.getMessageObject());

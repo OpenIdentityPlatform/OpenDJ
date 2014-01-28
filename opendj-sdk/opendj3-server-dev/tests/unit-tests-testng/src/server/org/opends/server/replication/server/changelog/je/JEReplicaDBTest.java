@@ -32,7 +32,7 @@ import java.io.IOException;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -47,7 +47,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.testng.Assert.*;
 
 /**
@@ -57,7 +56,7 @@ import static org.testng.Assert.*;
 public class JEReplicaDBTest extends ReplicationTestCase
 {
   /** The tracer object for the debug logger */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private DN TEST_ROOT_DN;
 
   /**
@@ -66,9 +65,9 @@ public class JEReplicaDBTest extends ReplicationTestCase
    */
   private void debugInfo(String tn, String s)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("** TEST " + tn + " ** " + s);
+      logger.trace("** TEST " + tn + " ** " + s);
     }
   }
 

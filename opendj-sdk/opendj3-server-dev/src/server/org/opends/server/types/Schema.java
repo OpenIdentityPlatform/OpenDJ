@@ -50,14 +50,13 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.CaseIgnoreEqualityMatchingRule;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -87,10 +86,7 @@ import static org.opends.server.util.StaticUtils.*;
      mayInvoke=true)
 public final class Schema
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -3513,10 +3509,7 @@ public final class Schema
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // This is definitely not ideal, but it's not the end of the
       // world.  The worst that should happen is that the schema

@@ -32,14 +32,12 @@ import java.util.Map;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.CancelRequest;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Operation;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -51,10 +49,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class ParallelWorkerThread
        extends DirectoryThread
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Indicates whether the Directory Server is shutting down and this thread
@@ -169,13 +164,13 @@ public class ParallelWorkerThread
       }
       catch (Throwable t)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugWarning(
+          logger.trace(
             "Uncaught exception in worker thread while processing " +
                 "operation %s: %s", String.valueOf(operation), t);
 
-          TRACER.debugCaught(DebugLogLevel.ERROR, t);
+          logger.traceException(t);
         }
 
         try
@@ -191,13 +186,13 @@ public class ParallelWorkerThread
         }
         catch (Throwable t2)
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugWarning(
+            logger.trace(
               "Exception in worker thread while trying to log a " +
                   "message about an uncaught exception %s: %s", t, t2);
 
-            TRACER.debugCaught(DebugLogLevel.ERROR, t2);
+            logger.traceException(t2);
           }
         }
 
@@ -213,10 +208,7 @@ public class ParallelWorkerThread
         }
         catch (Throwable t2)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, t2);
-          }
+          logger.traceException(t2);
         }
       }
     }
@@ -234,9 +226,9 @@ public class ParallelWorkerThread
     }
 
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(getName() + " exiting.");
+      logger.trace(getName() + " exiting.");
     }
   }
 
@@ -248,9 +240,9 @@ public class ParallelWorkerThread
    */
   public void shutDown()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(getName() + " being signaled to shut down.");
+      logger.trace(getName() + " being signaled to shut down.");
     }
 
     // Set a flag that indicates that the thread should stop running.
@@ -267,12 +259,12 @@ public class ParallelWorkerThread
       }
       catch (Exception e)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugWarning(
+          logger.trace(
             "Caught an exception while trying to interrupt the worker " +
                 "thread waiting for work: %s", e);
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          logger.traceException(e);
         }
       }
     }
@@ -286,12 +278,12 @@ public class ParallelWorkerThread
       }
       catch (Exception e)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugWarning(
+          logger.trace(
             "Caught an exception while trying to abandon the " +
                 "operation in progress for the worker thread: %s", e);
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          logger.traceException(e);
         }
       }
     }

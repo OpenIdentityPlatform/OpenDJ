@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
@@ -50,7 +50,6 @@ import static com.sleepycat.je.OperationStatus.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -67,7 +66,7 @@ public class ReplicationDbEnv
   private static final String GENERATION_ID_TAG = "GENID";
   private static final String FIELD_SEPARATOR = " ";
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Initialize this class.
@@ -210,7 +209,7 @@ public class ReplicationDbEnv
       {
         final String stringData = toString(data.getData());
 
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
           debug("read (" + GENERATION_ID_TAG + " generationId baseDN) OR "
               + "(serverId baseDN): " + stringData);
 
@@ -220,7 +219,7 @@ public class ReplicationDbEnv
           long generationId = toLong(str[1]);
           DN baseDN = DN.valueOf(str[2]);
 
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
             debug("has read baseDN=" + baseDN + " generationId=" +generationId);
 
           result.setDomainGenerationId(baseDN, generationId);
@@ -230,7 +229,7 @@ public class ReplicationDbEnv
           int serverId = toInt(str[0]);
           DN baseDN = DN.valueOf(str[1]);
 
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
             debug("has read: baseDN=" + baseDN + " serverId=" + serverId);
 
           result.addServerIdToDomain(serverId, baseDN);
@@ -331,7 +330,7 @@ public class ReplicationDbEnv
   public Database getOrAddDb(int serverId, DN baseDN, long generationId)
       throws ChangelogException
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
       debug("ReplicationDbEnv.getOrAddDb(" + serverId + ", " + baseDN + ", "
           + generationId + ")");
     try
@@ -382,7 +381,7 @@ public class ReplicationDbEnv
       try
       {
         data.setData(toBytes(dataString));
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
           debug("putting record in the changelogstate Db key=[" + keyString
               + "] value=[" + dataString + "]");
         changelogStateDb.put(txn, key, data);
@@ -499,7 +498,7 @@ public class ReplicationDbEnv
   private void deleteFromChangelogStateDB(String keyString,
       String methodInvocation) throws ChangelogException
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
       debug(methodInvocation + " starting");
 
     try
@@ -513,7 +512,7 @@ public class ReplicationDbEnv
         {
           changelogStateDb.delete(txn, key);
           txn.commit(Durability.COMMIT_WRITE_NO_SYNC);
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
             debug(methodInvocation + " succeeded");
         }
         catch (RuntimeException dbe)
@@ -525,7 +524,7 @@ public class ReplicationDbEnv
       }
       else
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
           debug(methodInvocation + " failed: key=[ " + keyString
               + "] not found");
       }
@@ -617,7 +616,7 @@ public class ReplicationDbEnv
 
   private void debug(String message)
   {
-    TRACER.debugInfo("In " + replicationServer.getMonitorInstanceName() + ", "
+    logger.trace("In " + replicationServer.getMonitorInstanceName() + ", "
         + message);
   }
 

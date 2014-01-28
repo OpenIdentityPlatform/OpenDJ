@@ -52,7 +52,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordStorageSchemeConfigManager;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
@@ -63,7 +63,6 @@ import org.opends.server.util.args.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -79,11 +78,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class EncodePassword
 {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -891,9 +886,7 @@ public class EncodePassword
       DN configEntryDN = DN.valueOf(ConfigConstants.DN_BACKEND_BASE);
       backendRoot   = DirectoryServer.getConfigEntry(configEntryDN);
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_GET_CONFIG_BASE.get(
           getExceptionMessage(e));
       throw new ConfigException(message, e);
@@ -915,9 +908,7 @@ public class EncodePassword
             backendClass = DirectoryServer.loadClass(className);
             backend = (Backend) backendClass.newInstance();
           } catch (Exception e) {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
             LocalizableMessage message =
               ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
                   String.valueOf(className),
@@ -932,10 +923,7 @@ public class EncodePassword
             backend.configureBackend(backendCfg);
             backend.initializeBackend();
           } catch (Exception e) {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
             LocalizableMessage message =
               ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
                   String.valueOf(className),
@@ -947,9 +935,7 @@ public class EncodePassword
             DirectoryServer.registerBackend(backend);
           } catch (Exception e)
           {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
             LocalizableMessage message =
               WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(
                   backendCfg.getBackendId(),

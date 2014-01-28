@@ -33,7 +33,7 @@ import org.opends.server.admin.std.server.AESPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -43,7 +43,6 @@ import java.util.Arrays;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -57,10 +56,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class AESPasswordStorageScheme
        extends PasswordStorageScheme<AESPasswordStorageSchemeCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -125,10 +121,7 @@ public class AESPasswordStorageScheme
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage m = ERR_PWSCHEME_CANNOT_ENCRYPT.get(STORAGE_SCHEME_NAME_AES,
                                                   getExceptionMessage(e));
@@ -167,10 +160,7 @@ public class AESPasswordStorageScheme
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage m = ERR_PWSCHEME_CANNOT_ENCRYPT.get(STORAGE_SCHEME_NAME_AES,
                                                   getExceptionMessage(e));
@@ -204,10 +194,7 @@ public class AESPasswordStorageScheme
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       return false;
     }
@@ -241,10 +228,7 @@ public class AESPasswordStorageScheme
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage m = ERR_PWSCHEME_CANNOT_DECRYPT.get(STORAGE_SCHEME_NAME_AES,
                                                   getExceptionMessage(e));

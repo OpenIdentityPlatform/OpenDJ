@@ -41,7 +41,7 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.jeb.BackupManager;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.CSN;
@@ -63,7 +63,6 @@ import static org.opends.messages.JebMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.types.FilterType.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -84,11 +83,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class ReplicationBackend extends Backend
 {
   private static final String CHANGE_NUMBER = "replicationChangeNumber";
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final String BASE_DN = "dc=replicationchanges";
 
@@ -186,10 +181,7 @@ public class ReplicationBackend extends Backend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
             dn.toString(), getExceptionMessage(e));
@@ -228,10 +220,7 @@ public class ReplicationBackend extends Backend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -472,10 +461,7 @@ public class ReplicationBackend extends Backend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
         ERR_BACKEND_CANNOT_CREATE_LDIF_WRITER.get(String.valueOf(e));
@@ -586,7 +572,7 @@ public class ReplicationBackend extends Backend
       }
 
       final ServerState serverState = domain.getLatestServerState();
-      TRACER.debugInfo("State=" + serverState);
+      logger.trace("State=" + serverState);
       Attribute stateAttr = Attributes.create("state", serverState.toString());
       Attribute genidAttr = Attributes.create("generation-id",
           "" + domain.getGenerationId() + domain.getBaseDN());
@@ -604,10 +590,7 @@ public class ReplicationBackend extends Backend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         logError(ERR_BACKEND_EXPORT_ENTRY.get(dnString, String.valueOf(e)));
       }
     }
@@ -877,10 +860,7 @@ public class ReplicationBackend extends Backend
     catch (Exception e)
     {
       this.skippedCount++;
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       final String dnStr = (dn != null) ? dn.toNormalizedString() : "Unknown";
 

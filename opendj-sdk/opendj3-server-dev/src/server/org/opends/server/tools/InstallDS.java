@@ -40,12 +40,12 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.security.KeyStoreException;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.ldap.LdapName;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.QuickSetupMessages;
 import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.ApplicationException;
@@ -232,10 +232,7 @@ public class InstallDS extends ConsoleApplication
 
   private Boolean lastResetStartServer = null;
 
-  /**
-   * The Logger.
-   */
-  static private final Logger LOG = Logger.getLogger(InstallDS.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The argument parser. */
   private InstallDSArgumentParser argParser;
@@ -363,8 +360,8 @@ public class InstallDS extends ConsoleApplication
       }
       catch (Throwable t)
       {
-        LOG.log(Level.WARNING, "Error while trying to update the contents of "+
-            "the set-java-home file in test only mode: "+t, t);
+        logger.warn(LocalizableMessage.raw("Error while trying to update the contents of "+
+            "the set-java-home file in test only mode: "+t, t));
       }
       // Test that we are running a compatible java 1.6 version.
       try
@@ -511,7 +508,7 @@ public class InstallDS extends ConsoleApplication
           userApproved = true;
           break;
         case CANCEL:
-          LOG.log(Level.INFO, "User cancelled setup.");
+          logger.debug(LocalizableMessage.raw("User cancelled setup."));
           return ErrorReturnCode.ERROR_USER_CANCELLED.getReturnCode();
         case PRINT_EQUIVALENT_COMMAND_LINE:
           printEquivalentCommandLine(uData);
@@ -526,7 +523,7 @@ public class InstallDS extends ConsoleApplication
           }
           catch (Throwable t)
           {
-            LOG.log(Level.WARNING, "Error resetting arg parser: "+t, t);
+            logger.warn(LocalizableMessage.raw("Error resetting arg parser: "+t, t));
           }
           userApproved = false;
         }
@@ -609,7 +606,7 @@ public class InstallDS extends ConsoleApplication
         }
         catch (CLIException ce)
         {
-          LOG.log(Level.SEVERE, "Unexpected error: "+ce, ce);
+          logger.error(LocalizableMessage.raw("Unexpected error: "+ce, ce));
           throw new InitializationException(LocalizableMessage.EMPTY, null);
         }
       }
@@ -977,7 +974,7 @@ public class InstallDS extends ConsoleApplication
 
       while (pwd1 == null)
       {
-        pwd1 = readPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get(), LOG);
+        pwd1 = readPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get(), logger);
         if ((pwd1 == null) || "".equals(pwd1))
         {
           pwd1 = null;
@@ -987,7 +984,7 @@ public class InstallDS extends ConsoleApplication
         }
       }
       String pwd2 =
-        readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get(), LOG);
+        readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get(), logger);
 
       if (pwd1.equals(pwd2))
       {
@@ -1046,7 +1043,7 @@ public class InstallDS extends ConsoleApplication
         }
         catch (CLIException ce)
         {
-          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+          logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
       }
       else
@@ -1168,7 +1165,7 @@ public class InstallDS extends ConsoleApplication
             catch (CLIException ce)
             {
               portNumber = -1;
-              LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+              logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
             }
           }
           prompted = true;
@@ -1242,7 +1239,7 @@ public class InstallDS extends ConsoleApplication
       catch (CLIException ce)
       {
         prompt = true;
-        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+        logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       }
     }
     NewSuffixOptions dataOptions;
@@ -1305,7 +1302,7 @@ public class InstallDS extends ConsoleApplication
         }
         catch (CLIException ce)
         {
-          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+          logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
       }
       String rejectedFile = argParser.rejectedImportFileArg.getValue();
@@ -1324,7 +1321,7 @@ public class InstallDS extends ConsoleApplication
           }
           catch (CLIException ce)
           {
-            LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+            logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
           }
         }
       }
@@ -1344,7 +1341,7 @@ public class InstallDS extends ConsoleApplication
           }
           catch (CLIException ce)
           {
-            LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+            logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
           }
         }
       }
@@ -1447,7 +1444,7 @@ public class InstallDS extends ConsoleApplication
       catch (CLIException ce)
       {
         populateType = POPULATE_TYPE_BASE_ONLY;
-        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+        logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       }
 
       if (populateType == POPULATE_TYPE_IMPORT_FROM_LDIF)
@@ -1473,7 +1470,7 @@ public class InstallDS extends ConsoleApplication
           }
           catch (CLIException ce)
           {
-            LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+            logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
           }
         }
         String rejectedFile = argParser.rejectedImportFileArg.getValue();
@@ -1492,7 +1489,7 @@ public class InstallDS extends ConsoleApplication
             }
             catch (CLIException ce)
             {
-              LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+              logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
             }
           }
         }
@@ -1511,7 +1508,7 @@ public class InstallDS extends ConsoleApplication
             }
             catch (CLIException ce)
             {
-              LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+              logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
             }
           }
         }
@@ -1598,7 +1595,7 @@ public class InstallDS extends ConsoleApplication
       }
       catch (CLIException ce)
       {
-        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+        logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       }
     }
     else
@@ -1621,7 +1618,7 @@ public class InstallDS extends ConsoleApplication
       }
       catch (CLIException ce)
       {
-        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+        logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       }
     }
     else
@@ -1740,7 +1737,7 @@ public class InstallDS extends ConsoleApplication
         }
         catch (CLIException ce)
         {
-          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+          logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
           certType = SELF_SIGNED;
         }
         if (certType == SELF_SIGNED)
@@ -1813,7 +1810,7 @@ public class InstallDS extends ConsoleApplication
         }
         catch (CLIException ce)
         {
-          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+          logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
       }
     }
@@ -1842,7 +1839,7 @@ public class InstallDS extends ConsoleApplication
       }
       catch (CLIException ce)
       {
-        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+        logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         startServer = true;
       }
     }
@@ -2099,7 +2096,7 @@ public class InstallDS extends ConsoleApplication
           catch (CLIException ce)
           {
             path = "";
-            LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+            logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
           }
 
           prompted = true;
@@ -2134,7 +2131,7 @@ public class InstallDS extends ConsoleApplication
                     String.valueOf(LIMIT_KEYSTORE_PASSWORD_PROMPT)));
           }
           pwd = readPassword(
-                INFO_INSTALLDS_PROMPT_KEYSTORE_PASSWORD.get(), LOG);
+                INFO_INSTALLDS_PROMPT_KEYSTORE_PASSWORD.get(), logger);
           nPasswordPrompts ++;
         }
       }
@@ -2310,7 +2307,7 @@ public class InstallDS extends ConsoleApplication
       catch (CLIException ce)
       {
         s = "";
-        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+        logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       }
       if (s.equals(""))
       {
@@ -2383,7 +2380,7 @@ public class InstallDS extends ConsoleApplication
         }
         catch (CLIException ce)
         {
-          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+          logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
       }
     }
@@ -2546,7 +2543,7 @@ public class InstallDS extends ConsoleApplication
     catch (CLIException ce)
     {
       returnValue = ConfirmCode.CANCEL;
-      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+      logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
     }
     return returnValue;
   }
@@ -2612,7 +2609,7 @@ public class InstallDS extends ConsoleApplication
     }
     catch (Throwable t)
     {
-      LOG.log(Level.WARNING, "Error resetting arguments: "+t, t);
+      logger.warn(LocalizableMessage.raw("Error resetting arguments: "+t, t));
     }
   }
 
@@ -2635,7 +2632,7 @@ public class InstallDS extends ConsoleApplication
         }
         catch (CLIException ce)
         {
-          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+          logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
       }
     }

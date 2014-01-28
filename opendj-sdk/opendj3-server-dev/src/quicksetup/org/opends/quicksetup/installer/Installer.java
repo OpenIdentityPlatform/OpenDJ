@@ -33,8 +33,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.*;
 import javax.naming.directory.*;
@@ -46,7 +47,6 @@ import org.opends.admin.ads.*;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.event.ButtonActionListener;
@@ -101,7 +101,7 @@ public abstract class Installer extends GuiApplication {
   // Constants used to do checks
   private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
 
-  private static final Logger LOG = Logger.getLogger(Installer.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The minimum integer value that can be used for a port.
@@ -232,7 +232,7 @@ public abstract class Installer extends GuiApplication {
           }
           catch (Throwable t)
           {
-            LOG.log(Level.WARNING, "Error getting connect timeout: "+t, t);
+            logger.warn(LocalizableMessage.raw("Error getting connect timeout: "+t, t));
           }
         }
         break;
@@ -789,7 +789,7 @@ public abstract class Installer extends GuiApplication {
       try {
         new InstallerHelper().disableWindowsService();
       } catch (ApplicationException ae) {
-        LOG.log(Level.INFO, "Error disabling Windows service", ae);
+        logger.debug(LocalizableMessage.raw("Error disabling Windows service", ae));
       }
     }
 
@@ -1000,7 +1000,7 @@ public abstract class Installer extends GuiApplication {
       }
       nextPassword = "-w".equals(s);
     }
-    LOG.log(Level.INFO, "configure DS cmd: "+cmd);
+    logger.debug(LocalizableMessage.raw("configure DS cmd: "+cmd));
     final InstallerHelper helper = new InstallerHelper();
     setNotifyListeners(false);
     InvokeThread thread = new InvokeThread()
@@ -1199,7 +1199,7 @@ public abstract class Installer extends GuiApplication {
     }
     catch (Throwable t)
     {
-      LOG.log(Level.SEVERE, "Error configuring certificate: "+t, t);
+      logger.error(LocalizableMessage.raw("Error configuring certificate: "+t, t));
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg(INFO_ERROR_CONFIGURING_CERTIFICATE.get(),
@@ -1959,8 +1959,8 @@ public abstract class Installer extends GuiApplication {
           {
             replicationPort = Constants.DEFAULT_REPLICATION_PORT;
             enableSecureReplication = false;
-            LOG.log(Level.WARNING, "Could not find replication port for: "+
-                getHostPort(server));
+            logger.warn(LocalizableMessage.raw("Could not find replication port for: "+
+                getHostPort(server)));
           }
         }
         Set<String> dns = new HashSet<String>();
@@ -1994,8 +1994,8 @@ public abstract class Installer extends GuiApplication {
           }
           else
           {
-            LOG.log(Level.WARNING, "Could not find replication server for: "+
-                dn);
+            logger.warn(LocalizableMessage.raw("Could not find replication server for: "+
+                dn));
           }
         }
 
@@ -2198,7 +2198,7 @@ public abstract class Installer extends GuiApplication {
     }
     catch (IOException ioe)
     {
-      LOG.log(Level.WARNING, "Error writing host name file: "+ioe, ioe);
+      logger.warn(LocalizableMessage.raw("Error writing host name file: "+ioe, ioe));
     }
     finally
     {
@@ -2232,7 +2232,7 @@ public abstract class Installer extends GuiApplication {
       InstallerHelper helper = new InstallerHelper();
       helper.writeSetOpenDSJavaHome(getUserData(), getInstallationPath());
     } catch (Exception e) {
-      LOG.log(Level.WARNING, "Error writing OpenDJ Java Home file: "+e, e);
+      logger.warn(LocalizableMessage.raw("Error writing OpenDJ Java Home file: "+e, e));
     }
   }
 
@@ -2512,17 +2512,17 @@ public abstract class Installer extends GuiApplication {
         {
           try
           {
-            LOG.log(Level.INFO, "Calling initializeSuffix with base DN: "+dn);
-            LOG.log(Level.INFO, "Try number: "+(6 - nTries));
-            LOG.log(Level.INFO, "replicationId of source replica: "+
-                replicationId);
+            logger.debug(LocalizableMessage.raw("Calling initializeSuffix with base DN: "+dn));
+            logger.debug(LocalizableMessage.raw("Try number: "+(6 - nTries)));
+            logger.debug(LocalizableMessage.raw("replicationId of source replica: "+
+                replicationId));
             initializeSuffix(ctx, replicationId, dn, !isADS && !isSchema,
                 hostPort);
             initDone = true;
           }
           catch (PeerNotFoundException pnfe)
           {
-            LOG.log(Level.INFO, "Peer could not be found");
+            logger.debug(LocalizableMessage.raw("Peer could not be found"));
             if (nTries == 1)
             {
               throw new ApplicationException(
@@ -2650,8 +2650,8 @@ public abstract class Installer extends GuiApplication {
       if (0 == adsContext.registerOrUpdateServer(server.getAdsProperties())) {
         if (isRemoteServer) registeredNewServerOnRemote = true;
       } else {
-        LOG.log(Level.WARNING, "Server was already registered. Updating " +
-                "server registration.");
+        logger.warn(LocalizableMessage.raw("Server was already registered. Updating " +
+                "server registration."));
       }
       if (isRemoteServer)
       {
@@ -3582,7 +3582,7 @@ public abstract class Installer extends GuiApplication {
               {
                 cause = e.getTrustManager().getLastRefusedCause();
               }
-              LOG.log(Level.INFO, "Certificate exception cause: "+cause);
+              logger.debug(LocalizableMessage.raw("Certificate exception cause: "+cause));
               if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
               {
                 excType = UserDataCertificateException.Type.NOT_TRUSTED;
@@ -3608,8 +3608,8 @@ public abstract class Installer extends GuiApplication {
                 }
                 catch (Throwable t)
                 {
-                  LOG.log(Level.WARNING,
-                      "Error parsing ldap url of TopologyCacheException.", t);
+                  logger.warn(LocalizableMessage.raw(
+                      "Error parsing ldap url of TopologyCacheException.", t));
                   h = INFO_NOT_AVAILABLE_LABEL.get().toString();
                   p = -1;
                 }
@@ -3645,13 +3645,13 @@ public abstract class Installer extends GuiApplication {
     }
     catch (Throwable t)
     {
-      LOG.log(Level.INFO, "Error connecting to remote server.", t);
+      logger.debug(LocalizableMessage.raw("Error connecting to remote server.", t));
       if (isCertificateException(t))
       {
         UserDataCertificateException.Type excType;
         ApplicationTrustManager.Cause cause =
           trustManager.getLastRefusedCause();
-        LOG.log(Level.INFO, "Certificate exception cause: "+cause);
+        logger.debug(LocalizableMessage.raw("Certificate exception cause: "+cause));
         if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
         {
           excType = UserDataCertificateException.Type.NOT_TRUSTED;
@@ -4418,16 +4418,16 @@ public abstract class Installer extends GuiApplication {
       {
         DirContext dirCtx = ctx.createSubcontext(dn, attrs);
         taskCreated = true;
-        LOG.log(Level.INFO, "created task entry: "+attrs);
+        logger.debug(LocalizableMessage.raw("created task entry: "+attrs));
         dirCtx.close();
       }
       catch (NameAlreadyBoundException x)
       {
-        LOG.log(Level.WARNING, "A task with dn: "+dn+" already existed.");
+        logger.warn(LocalizableMessage.raw("A task with dn: "+dn+" already existed."));
       }
       catch (NamingException ne)
       {
-        LOG.log(Level.SEVERE, "Error creating task "+attrs, ne);
+        logger.error(LocalizableMessage.raw("Error creating task "+attrs, ne));
         throw new ApplicationException(
             ReturnCode.APPLICATION_ERROR,
                 getThrowableMsg(INFO_ERROR_LAUNCHING_INITIALIZATION.get(
@@ -4556,7 +4556,7 @@ public abstract class Installer extends GuiApplication {
           if (((currentTime - minRefreshPeriod) > lastTimeMsgLogged))
           {
             lastTimeMsgLogged = currentTime;
-            LOG.log(Level.INFO, "Progress msg: "+msg);
+            logger.debug(LocalizableMessage.raw("Progress msg: "+msg));
           }
           if (displayProgress)
           {
@@ -4576,7 +4576,7 @@ public abstract class Installer extends GuiApplication {
         {
           if (!logMsg.equals(lastLogMsg))
           {
-            LOG.log(Level.INFO, logMsg);
+            logger.debug(LocalizableMessage.raw(logMsg));
             lastLogMsg = logMsg;
           }
         }
@@ -4587,7 +4587,7 @@ public abstract class Installer extends GuiApplication {
         {
           isOver = true;
           LocalizableMessage errorMsg;
-          LOG.log(Level.INFO, "Last task entry: "+sr);
+          logger.debug(LocalizableMessage.raw("Last task entry: "+sr));
           if (displayProgress && (msg != null) && !msg.equals(lastDisplayedMsg))
           {
             notifyListeners(getFormattedProgress(msg));
@@ -4607,7 +4607,7 @@ public abstract class Installer extends GuiApplication {
                     sourceServerDisplay);
           }
 
-          LOG.log(Level.WARNING, "Processed errorMsg: "+errorMsg);
+          logger.warn(LocalizableMessage.raw("Processed errorMsg: "+errorMsg));
           if (helper.isCompletedWithErrors(state))
           {
             if (displayProgress)
@@ -4624,20 +4624,20 @@ public abstract class Installer extends GuiApplication {
             if ((lastLogMsg == null) ||
                 helper.isPeersNotFoundError(lastLogMsg))
             {
-              LOG.log(Level.WARNING, "Throwing peer not found error.  "+
-                  "Last Log Msg: "+lastLogMsg);
+              logger.warn(LocalizableMessage.raw("Throwing peer not found error.  "+
+                  "Last Log Msg: "+lastLogMsg));
               // Assume that this is a peer not found error.
               throw new PeerNotFoundException(errorMsg);
             }
             else
             {
-              LOG.log(Level.SEVERE, "Throwing ApplicationException.");
+              logger.error(LocalizableMessage.raw("Throwing ApplicationException."));
               throw ae;
             }
           }
           else if (displayProgress)
           {
-            LOG.log(Level.INFO, "Initialization completed successfully.");
+            logger.debug(LocalizableMessage.raw("Initialization completed successfully."));
             notifyListeners(getFormattedProgress(
                 INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get()));
             notifyListeners(getLineBreak());
@@ -4647,7 +4647,7 @@ public abstract class Installer extends GuiApplication {
       catch (NameNotFoundException x)
       {
         isOver = true;
-        LOG.log(Level.INFO, "Initialization entry not found.");
+        logger.debug(LocalizableMessage.raw("Initialization entry not found."));
         if (displayProgress)
         {
           notifyListeners(getFormattedProgress(
@@ -4727,7 +4727,7 @@ public abstract class Installer extends GuiApplication {
       {
         DirContext dirCtx = ctx.createSubcontext(dn, attrs);
         taskCreated = true;
-        LOG.log(Level.INFO, "created task entry: "+attrs);
+        logger.debug(LocalizableMessage.raw("created task entry: "+attrs));
         dirCtx.close();
       }
       catch (NameAlreadyBoundException x)
@@ -4735,7 +4735,7 @@ public abstract class Installer extends GuiApplication {
       }
       catch (NamingException ne)
       {
-        LOG.log(Level.SEVERE, "Error creating task "+attrs, ne);
+        logger.error(LocalizableMessage.raw("Error creating task "+attrs, ne));
         throw new ApplicationException(
             ReturnCode.APPLICATION_ERROR,
                 getThrowableMsg(INFO_ERROR_LAUNCHING_INITIALIZATION.get(
@@ -4779,7 +4779,7 @@ public abstract class Installer extends GuiApplication {
         {
           if (!logMsg.equals(lastLogMsg))
           {
-            LOG.log(Level.INFO, logMsg);
+            logger.debug(LocalizableMessage.raw(logMsg));
             lastLogMsg = logMsg;
           }
         }
@@ -4804,13 +4804,13 @@ public abstract class Installer extends GuiApplication {
 
           if (helper.isCompletedWithErrors(state))
           {
-            LOG.log(Level.WARNING, "Completed with error: "+errorMsg);
+            logger.warn(LocalizableMessage.raw("Completed with error: "+errorMsg));
             notifyListeners(getFormattedWarning(errorMsg));
           }
           else if (!helper.isSuccessful(state) ||
               helper.isStoppedByError(state))
           {
-            LOG.log(Level.WARNING, "Error: "+errorMsg);
+            logger.warn(LocalizableMessage.raw("Error: "+errorMsg));
             throw new ApplicationException(
                 ReturnCode.APPLICATION_ERROR, errorMsg,
                 null);
@@ -4856,7 +4856,7 @@ public abstract class Installer extends GuiApplication {
           }
           catch (Throwable t)
           {
-            LOG.log(Level.WARNING, "Error cancelling thread: "+t, t);
+            logger.warn(LocalizableMessage.raw("Error cancelling thread: "+t, t));
           }
         }
         else if (thread.getException() != null)
@@ -4879,12 +4879,12 @@ public abstract class Installer extends GuiApplication {
     }
     catch (ApplicationException e)
     {
-      LOG.log(Level.SEVERE, "Error: "+e, e);
+      logger.error(LocalizableMessage.raw("Error: "+e, e));
       throw e;
     }
     catch (Throwable t)
     {
-      LOG.log(Level.SEVERE, "Error: "+t, t);
+      logger.error(LocalizableMessage.raw("Error: "+t, t));
       throw new ApplicationException(ReturnCode.BUG,
           Utils.getThrowableMsg(INFO_BUG_MSG.get(), t), t);
     }

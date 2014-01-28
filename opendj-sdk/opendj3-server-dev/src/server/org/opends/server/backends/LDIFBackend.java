@@ -39,14 +39,13 @@ import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
 import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -61,10 +60,7 @@ public class LDIFBackend
        extends Backend
        implements ConfigurationChangeListener<LDIFBackendCfg>, AlertGenerator
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -141,10 +137,7 @@ public class LDIFBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
             dn.toString(), getExceptionMessage(e));
@@ -172,9 +165,9 @@ public class LDIFBackend
     if (! ldifFile.exists())
     {
       // This is fine.  We will just start with an empty backend.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("LDIF backend starting empty because LDIF file " +
+        logger.trace("LDIF backend starting empty because LDIF file " +
                          ldifFilePath + " does not exist");
       }
 
@@ -224,10 +217,7 @@ public class LDIFBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage m = ERR_LDIF_BACKEND_ERROR_CREATING_FILE.get(
                        tempFile.getAbsolutePath(),
@@ -248,10 +238,7 @@ public class LDIFBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         StaticUtils.close(writer);
 
@@ -280,10 +267,7 @@ public class LDIFBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     try
@@ -295,10 +279,7 @@ public class LDIFBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     try
@@ -307,10 +288,7 @@ public class LDIFBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage m = ERR_LDIF_BACKEND_ERROR_RENAMING_FILE.get(
                        tempFile.getAbsolutePath(),
@@ -345,10 +323,7 @@ public class LDIFBackend
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -899,9 +874,9 @@ public class LDIFBackend
     if (oldEntry == null)
     {
       // This should never happen.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugWarning("Subtree rename encountered entry DN " +
+        logger.trace("Subtree rename encountered entry DN " +
                             entryDN + " for nonexistent entry.");
       }
       return;
@@ -1045,10 +1020,7 @@ public class LDIFBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage m = ERR_LDIF_BACKEND_CANNOT_CREATE_LDIF_WRITER.get(
                          stackTraceToSingleLineString(e));

@@ -34,12 +34,11 @@ import org.forgerock.i18n.LocalizableMessage;
 import java.util.ArrayList;
 import java.io.IOException;
 
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.LDAPFilter;
 
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -58,10 +57,7 @@ import static org.opends.server.util.StaticUtils.*;
      mayInvoke=true)
 public abstract class RawFilter
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Creates a new LDAP filter from the provided filter string.
@@ -523,9 +519,9 @@ public abstract class RawFilter
         stream.writeEndSequence();
         return;
       default:
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugError("Invalid search filter type: %s",
+          logger.trace("Invalid search filter type: %s",
                             filterType);
         }
     }
@@ -625,9 +621,9 @@ public abstract class RawFilter
         break;
       default:
         // This should never happen.
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugError("Invalid filter type %x for a " +
+          logger.trace("Invalid filter type %x for a " +
               "compound filter", type);
         }
         filterType = null;
@@ -652,10 +648,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_FILTER_DECODE_COMPOUND_COMPONENTS.
           get(String.valueOf(e));
@@ -694,10 +687,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_LDAP_FILTER_DECODE_NOT_COMPONENT.get(String.valueOf(e));
@@ -754,9 +744,9 @@ public abstract class RawFilter
         break;
       default:
         // This should never happen.
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugError("Invalid filter type %x for a " +
+          logger.trace("Invalid filter type %x for a " +
               "type-and-value filter", type);
         }
         filterType = null;
@@ -768,10 +758,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_LDAP_FILTER_DECODE_TV_SEQUENCE.get(String.valueOf(e));
@@ -785,10 +772,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_LDAP_FILTER_DECODE_TV_TYPE.get(String.valueOf(e));
@@ -803,10 +787,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_LDAP_FILTER_DECODE_TV_VALUE.get(String.valueOf(e));
@@ -819,10 +800,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_LDAP_FILTER_DECODE_TV_SEQUENCE.get(String.valueOf(e));
@@ -856,10 +834,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE.get(
           String.valueOf(e));
@@ -874,10 +849,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_TYPE.get(
           String.valueOf(e));
@@ -890,10 +862,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS.get(
           String.valueOf(e));
@@ -941,10 +910,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_VALUES.get(
           String.valueOf(e));
@@ -957,10 +923,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS.get(
           String.valueOf(e));
@@ -973,10 +936,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE.get(
           String.valueOf(e));
@@ -1012,10 +972,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_LDAP_FILTER_DECODE_PRESENCE_TYPE.get(String.valueOf(e));
@@ -1049,10 +1006,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE.
           get(String.valueOf(e));
@@ -1084,10 +1038,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_ELEMENTS.
           get(String.valueOf(e));
@@ -1100,10 +1051,7 @@ public abstract class RawFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE.
           get(String.valueOf(e));

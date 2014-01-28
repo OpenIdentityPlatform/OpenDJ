@@ -22,16 +22,13 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
-import org.opends.server.types.DebugLogLevel;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class allows to iterate through the changes received from a given
@@ -40,7 +37,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public class JEChangeNumberIndexDBCursor implements
     DBCursor<ChangeNumberIndexRecord>
 {
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private DraftCNDBCursor draftCNDbCursor;
 
   /**
@@ -70,7 +67,7 @@ public class JEChangeNumberIndexDBCursor implements
     }
     catch (Exception e)
     {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      logger.traceException(e);
       return null;
     }
   }

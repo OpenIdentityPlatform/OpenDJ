@@ -30,8 +30,6 @@ import static com.sleepycat.je.EnvironmentConfig.*;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -54,7 +52,7 @@ import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DiskSpaceMonitor;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.LDIFReader;
@@ -70,10 +68,7 @@ import com.sleepycat.util.PackedInteger;
  */
 public final class Importer implements DiskSpaceMonitorHandler
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final int TIMER_INTERVAL = 10000;
   private static final int KB = 1024;
@@ -3324,10 +3319,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         LocalizableMessage message = ERR_JEB_IMPORT_LDIF_REBUILD_INDEX_TASK_ERR.get(
           stackTraceToSingleLineString(e));
         logError(message);

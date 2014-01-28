@@ -47,14 +47,13 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -71,10 +70,7 @@ public class PluginConfigManager
                   ConfigurationDeleteListener<PluginCfg>,
                   ConfigurationChangeListener<PluginCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Arrays for holding the plugins of each type.
   private DirectoryServerPlugin[] startupPlugins;
@@ -509,10 +505,7 @@ public class PluginConfigManager
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
 
@@ -1462,10 +1455,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_STARTUP_PLUGIN_EXCEPTION.get(
                 String.valueOf(p.getPluginEntryDN()),
@@ -1520,10 +1510,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_SHUTDOWN_PLUGIN_EXCEPTION.
             get(String.valueOf(p.getPluginEntryDN()),
@@ -1556,10 +1543,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_CONNECT_PLUGIN_EXCEPTION.
             get(String.valueOf(p.getPluginEntryDN()),
@@ -1630,10 +1614,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage msg = ERR_PLUGIN_POST_DISCONNECT_PLUGIN_EXCEPTION.
             get(String.valueOf(p.getPluginEntryDN()),
@@ -1693,10 +1674,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_LDIF_IMPORT_PLUGIN_EXCEPTION.
             get(String.valueOf(p.getPluginEntryDN()),
@@ -1793,10 +1771,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_LDIF_EXPORT_PLUGIN_EXCEPTION.
             get(String.valueOf(p.getPluginEntryDN()),
@@ -1889,10 +1864,7 @@ public class PluginConfigManager
   private PluginResult.PreParse handlePreParseException(
       Exception e, PreParseOperation operation, DirectoryServerPlugin plugin)
   {
-    if (debugEnabled())
-    {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-    }
+    logger.traceException(e);
 
     LocalizableMessage message =
         ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.get(operation.getOperationType()
@@ -2691,10 +2663,7 @@ public class PluginConfigManager
       int i, DirectoryServerPlugin[] plugins, PreOperationOperation operation,
       DirectoryServerPlugin plugin)
   {
-    if (debugEnabled())
-    {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-    }
+    logger.traceException(e);
 
     LocalizableMessage message =
         ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.get(operation
@@ -3018,10 +2987,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(abandonOperation.getOperationType().getOperationName(),
@@ -3106,10 +3072,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(addOperation.getOperationType().getOperationName(),
@@ -3192,10 +3155,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(bindOperation.getOperationType().getOperationName(),
@@ -3279,10 +3239,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(compareOperation.getOperationType().getOperationName(),
@@ -3367,10 +3324,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(deleteOperation.getOperationType().getOperationName(),
@@ -3455,10 +3409,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(extendedOperation.getOperationType().getOperationName(),
@@ -3543,10 +3494,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(modifyOperation.getOperationType().getOperationName(),
@@ -3630,10 +3578,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(modifyDNOperation.getOperationType().getOperationName(),
@@ -3718,10 +3663,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(searchOperation.getOperationType().getOperationName(),
@@ -3806,10 +3748,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(unbindOperation.getOperationType().getOperationName(),
@@ -3885,10 +3824,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(addOperation.getOperationType().getOperationName(),
@@ -3952,10 +3888,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(bindOperation.getOperationType().getOperationName(),
@@ -4020,10 +3953,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(compareOperation.getOperationType().getOperationName(),
@@ -4089,10 +4019,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(deleteOperation.getOperationType().getOperationName(),
@@ -4157,10 +4084,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(extendedOperation.getOperationType().getOperationName(),
@@ -4226,10 +4150,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(modifyOperation.getOperationType().getOperationName(),
@@ -4295,10 +4216,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(modifyDNOperation.getOperationType().getOperationName(),
@@ -4364,10 +4282,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(searchOperation.getOperationType().getOperationName(),
@@ -4423,10 +4338,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
             get(addOperation.getOperationType().getOperationName(),
@@ -4458,10 +4370,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
             get(deleteOperation.getOperationType().getOperationName(),
@@ -4494,10 +4403,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
             get(modifyOperation.getOperationType().getOperationName(),
@@ -4530,10 +4436,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
             get(modifyDNOperation.getOperationType().getOperationName(),
@@ -4578,10 +4481,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_SEARCH_ENTRY_PLUGIN_EXCEPTION.
             get(String.valueOf(p.getPluginEntryDN()),
@@ -4656,10 +4556,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_SEARCH_REFERENCE_PLUGIN_EXCEPTION.
             get(String.valueOf(p.getPluginEntryDN()),
@@ -4740,10 +4637,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_EXCEPTION.get(
@@ -4816,10 +4710,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_PLUGIN_SUBORDINATE_DELETE_PLUGIN_EXCEPTION.get(
@@ -4887,10 +4778,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_EXCEPTION.
             get(String.valueOf(p.getPluginEntryDN()),

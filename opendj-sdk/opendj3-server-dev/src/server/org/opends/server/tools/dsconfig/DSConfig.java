@@ -31,7 +31,6 @@ package org.opends.server.tools.dsconfig;
 import java.io.BufferedReader;
 import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
 import static org.opends.server.util.ServerConstants.PROPERTY_SCRIPT_NAME;
@@ -68,9 +67,8 @@ import org.opends.server.admin.Tag;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.tools.ClientException;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
@@ -289,11 +287,7 @@ public final class DSConfig extends ConsoleApplication {
    * customization.
    */
   public static final String GENERIC_TYPE = "generic";
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // This CLI is always using the administration connector with SSL
   private static final boolean alwaysSSL = true;
@@ -1031,9 +1025,7 @@ public final class DSConfig extends ConsoleApplication {
 
       return 1;
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       println(LocalizableMessage.raw(StaticUtils.stackTraceToString(e)));
       return 1;
     }

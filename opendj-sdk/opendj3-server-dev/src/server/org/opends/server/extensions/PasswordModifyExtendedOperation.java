@@ -46,7 +46,7 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
@@ -59,7 +59,6 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -110,11 +109,7 @@ public class PasswordModifyExtendedOperation
     CLEAR_PWD_ATTACHMENT = PREFIX + ".CLEAR_PWD";
     ENCODED_PWD_ATTACHMENT = PREFIX + ".ENCODED_PWD";
   }
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The current configuration state. */
   private PasswordModifyExtendedOperationHandlerCfg currentConfig;
@@ -170,10 +165,7 @@ public class PasswordModifyExtendedOperation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message = ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(
           String.valueOf(config.dn()), getExceptionMessage(e));
       throw new InitializationException(message, e);
@@ -268,10 +260,7 @@ public class PasswordModifyExtendedOperation
       }
       catch (Exception ae)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-        }
+        logger.traceException(ae);
 
         operation.setResultCode(ResultCode.PROTOCOL_ERROR);
         operation.appendErrorMessage(ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST
@@ -336,10 +325,7 @@ public class PasswordModifyExtendedOperation
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             operation.setResultCode(ResultCode.INVALID_DN_SYNTAX);
             operation.appendErrorMessage(
@@ -378,10 +364,7 @@ public class PasswordModifyExtendedOperation
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             //Encountered an exception while resolving identity.
             operation.setResultCode(de.getResultCode());
@@ -402,10 +385,7 @@ public class PasswordModifyExtendedOperation
           }
           catch (DirectoryException ignored)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
-            }
+            logger.traceException(ignored);
           }
 
           if (userDN != null && !userDN.isRootDN()) {
@@ -423,10 +403,7 @@ public class PasswordModifyExtendedOperation
             }
             catch (DirectoryException ignored)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
-              }
+              logger.traceException(ignored);
             }
           }
 
@@ -462,10 +439,7 @@ public class PasswordModifyExtendedOperation
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         operation.setResultCode(DirectoryServer.getServerErrorResultCode());
         operation.appendErrorMessage(
@@ -707,10 +681,7 @@ public class PasswordModifyExtendedOperation
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           operation.setResultCode(de.getResultCode());
           operation.appendErrorMessage(
@@ -826,10 +797,7 @@ public class PasswordModifyExtendedOperation
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           operation.setResultCode(de.getResultCode());
           operation.appendErrorMessage(
@@ -881,10 +849,7 @@ public class PasswordModifyExtendedOperation
             }
             catch (DirectoryException de)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
 
               // We couldn't decode the provided password value, so remove it
               // from the user's entry.
@@ -920,10 +885,7 @@ public class PasswordModifyExtendedOperation
             }
             catch (DirectoryException de)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
 
               // We couldn't decode the provided password value, so remove it
               // from the user's entry.
@@ -1063,7 +1025,7 @@ public class PasswordModifyExtendedOperation
         }
         catch (IOException e)
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          logger.traceException(e);
         }
 
         operation.setResponseValue(builder.toByteString());
@@ -1185,10 +1147,7 @@ public class PasswordModifyExtendedOperation
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       operation.setResultCode(de.getResultCode());
       operation.appendErrorMessage(de.getMessageObject());
@@ -1215,10 +1174,7 @@ public class PasswordModifyExtendedOperation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
     return null;
   }
@@ -1273,10 +1229,7 @@ public class PasswordModifyExtendedOperation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(
               String.valueOf(config.dn()),
@@ -1333,10 +1286,7 @@ public class PasswordModifyExtendedOperation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       resultCode = DirectoryServer.getServerErrorResultCode();
 

@@ -42,11 +42,11 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import java.io.IOException;
+
 import static org.opends.messages.AdminToolMessages.*;
 
 /**
@@ -57,8 +57,7 @@ import static org.opends.messages.AdminToolMessages.*;
  */
 public class ConfirmUninstallPanel extends QuickSetupStepPanel
 {
-  private static final Logger LOG =
-          Logger.getLogger(ConfirmUninstallPanel.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final long serialVersionUID = 81730510134697056L;
 
@@ -224,13 +223,13 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     try {
       outsideDbs = config.getOutsideDbs();
     } catch (IOException ioe) {
-      LOG.log(Level.INFO, "Unable to determin outside databases", ioe);
+      logger.debug(LocalizableMessage.raw("Unable to determin outside databases", ioe));
     }
 
     try {
       outsideLogs = config.getOutsideLogs();
     } catch (IOException ioe) {
-      LOG.log(Level.INFO, "Unable to determin outside logs", ioe);
+      logger.debug(LocalizableMessage.raw("Unable to determin outside logs", ioe));
     }
 
 

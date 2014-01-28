@@ -43,8 +43,7 @@ import java.util.*;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.JebMessages.*;
 
 /**
@@ -52,10 +51,7 @@ import static org.opends.messages.JebMessages.*;
  */
 public class ExportJob
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -217,11 +213,11 @@ public class ExportJob
         }
         catch (Exception e)
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            logger.traceException(e);
 
-            TRACER.debugError("Malformed id2entry ID %s.%n",
+            logger.trace("Malformed id2entry ID %s.%n",
                             StaticUtils.bytesToHex(key.getData()));
           }
           skippedCount++;
@@ -242,11 +238,11 @@ public class ExportJob
         }
         catch (Exception e)
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            logger.traceException(e);
 
-            TRACER.debugError("Malformed id2entry record for ID %d:%n%s%n",
+            logger.trace("Malformed id2entry record for ID %d:%n%s%n",
                        entryID.longValue(),
                        StaticUtils.bytesToHex(data.getData()));
           }

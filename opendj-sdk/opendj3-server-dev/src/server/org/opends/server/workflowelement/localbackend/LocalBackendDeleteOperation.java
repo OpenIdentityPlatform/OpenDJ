@@ -28,7 +28,6 @@ package org.opends.server.workflowelement.localbackend;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -46,7 +45,7 @@ import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
@@ -63,10 +62,7 @@ public class LocalBackendDeleteOperation
                   PostResponseDeleteOperation,
                   PostSynchronizationDeleteOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -207,10 +203,7 @@ public class LocalBackendDeleteOperation
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               LocalizableMessage message =
                   ERR_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER
@@ -375,10 +368,7 @@ public class LocalBackendDeleteOperation
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       setResponseData(de);
     }
@@ -426,10 +416,7 @@ public class LocalBackendDeleteOperation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
     return null;
   }
@@ -462,10 +449,7 @@ public class LocalBackendDeleteOperation
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             throw newDirectoryException(entry, de.getResultCode(),
                            ERR_DELETE_CANNOT_PROCESS_ASSERTION_FILTER.get(
@@ -498,10 +482,7 @@ public class LocalBackendDeleteOperation
               throw de;
             }
 
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             throw newDirectoryException(entry, de.getResultCode(),
                            ERR_DELETE_CANNOT_PROCESS_ASSERTION_FILTER.get(
@@ -607,9 +588,7 @@ public class LocalBackendDeleteOperation
                   return false;
               }
           } catch (DirectoryException de) {
-              if (debugEnabled()) {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
               logError(ERR_DELETE_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
                       getConnectionID(), getOperationID(),
                       getExceptionMessage(de)));
@@ -629,10 +608,7 @@ public class LocalBackendDeleteOperation
           try {
               provider.doPostOperation(this);
           } catch (DirectoryException de) {
-              if (debugEnabled())
-              {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
               logError(ERR_DELETE_SYNCH_POSTOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
@@ -660,10 +636,7 @@ public class LocalBackendDeleteOperation
                   return false;
               }
           } catch (DirectoryException de) {
-              if (debugEnabled())
-              {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
               logError(ERR_DELETE_SYNCH_PREOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);

@@ -27,7 +27,6 @@
 package org.opends.server.tools;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -42,7 +41,7 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -67,10 +66,7 @@ import com.sleepycat.je.*;
  */
 public class DBTest
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The error stream which this application should use. */
   private final PrintStream err;
@@ -383,9 +379,7 @@ public class DBTest
     }
     catch (InitializationException e)
     {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       printMessage(e.getMessageObject());
       return 1;
     }
@@ -562,9 +556,7 @@ public class DBTest
         return 0;
       }
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       printMessage(LocalizableMessage.raw(StaticUtils.stackTraceToString(e)));
       return 1;
     }

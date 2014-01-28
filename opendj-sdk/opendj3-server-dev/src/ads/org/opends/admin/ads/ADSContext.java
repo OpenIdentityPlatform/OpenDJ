@@ -38,8 +38,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.CompositeName;
 import javax.naming.InvalidNameException;
@@ -63,7 +64,6 @@ import javax.naming.ldap.Control;
 import javax.naming.ldap.LdapContext;
 
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.schema.SchemaConstants;
@@ -74,8 +74,7 @@ import org.opends.server.schema.SchemaConstants;
  */
 public class ADSContext
 {
-  private static final Logger LOG =
-    Logger.getLogger(ADSContext.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Enumeration containing the different server properties syntaxes
@@ -876,13 +875,13 @@ public class ADSContext
             }
             if (!found)
             {
-              LOG.log(Level.WARNING, "Could not find public key for "+
-                  properties);
+              logger.warn(LocalizableMessage.raw("Could not find public key for "+
+                  properties));
             }
           }
           catch (NameNotFoundException x)
           {
-            LOG.log(Level.WARNING, "Could not find public key for "+properties);
+            logger.warn(LocalizableMessage.raw("Could not find public key for "+properties));
           }
           finally
           {
@@ -1272,9 +1271,9 @@ public class ADSContext
         }
         catch (Exception ex)
         {
-          LOG.log(Level.WARNING,
+          logger.warn(LocalizableMessage.raw(
               "Error while closing LDAP connection after removing admin data",
-              ex);
+              ex));
         }
       }
       // Recreate the container entries:
@@ -2223,7 +2222,7 @@ public class ADSContext
     }
     catch (InvalidNameException x)
     {
-      LOG.log(Level.SEVERE, "Error parsing dn "+dn, x);
+      logger.error(LocalizableMessage.raw("Error parsing dn "+dn, x));
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
@@ -2250,7 +2249,7 @@ public class ADSContext
     }
     catch (InvalidNameException x)
     {
-      LOG.log(Level.SEVERE, "Error parsing rdn "+rdnName, x);
+      logger.error(LocalizableMessage.raw("Error parsing rdn "+rdnName, x));
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
@@ -2577,8 +2576,8 @@ public class ADSContext
         }
         catch (Exception ex)
         {
-          LOG.log(Level.WARNING,
-              "Unexpected error closing enumeration on ADS key pairs", ex);
+          logger.warn(LocalizableMessage.raw(
+              "Unexpected error closing enumeration on ADS key pairs", ex));
         }
       }
     }

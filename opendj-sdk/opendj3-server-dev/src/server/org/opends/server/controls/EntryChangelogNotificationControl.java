@@ -27,8 +27,6 @@
 package org.opends.server.controls;
 import static org.opends.messages.ProtocolMessages.ERR_ECLN_CANNOT_DECODE_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_ECLN_NO_CONTROL_VALUE;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
@@ -36,13 +34,12 @@ import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 
@@ -56,8 +53,7 @@ import org.opends.server.types.ResultCode;
 public class EntryChangelogNotificationControl
        extends Control
        {
-  // The tracer object for the debug logger.
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The cookie value - payload of this control.
   private String cookie;
@@ -91,10 +87,7 @@ public class EntryChangelogNotificationControl
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
           ERR_ECLN_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));

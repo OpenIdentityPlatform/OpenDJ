@@ -20,17 +20,14 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Transaction;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * Utility class for JE.
@@ -39,7 +36,7 @@ public final class JEUtils
 {
 
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private JEUtils()
   {
@@ -67,7 +64,7 @@ public final class JEUtils
       catch (DatabaseException ignored)
       {
         // Ignored because code is already throwing an exception
-        TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
+        logger.traceException(ignored);
       }
     }
   }

@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.loggers.ErrorLogger.*;
 
 import com.sleepycat.je.*;
@@ -47,10 +46,7 @@ import java.util.*;
  */
 public class Index extends DatabaseContainer
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The indexer object to construct index keys from LDAP attribute values.
@@ -452,11 +448,11 @@ public class Index extends DatabaseContainer
         }
         entryLimitExceededCount++;
 
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          TRACER.debugInfo("Index entry exceeded in index %s. " +
+          logger.trace("Index entry exceeded in index %s. " +
               "Limit: %d. ID list size: %d.\nKey:%s",
               name, indexEntryLimit, entryIDList.size(),
               builder.toString());
@@ -505,11 +501,11 @@ public class Index extends DatabaseContainer
 
       if(status != OperationStatus.SUCCESS)
       {
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          TRACER.debugError(
+          logger.trace(
                   "The expected key does not exist in the index %s.\nKey:%s ",
                   name, builder.toString());
         }
@@ -561,11 +557,11 @@ public class Index extends DatabaseContainer
       {
         if(deletedIDs != null && !rebuildRunning && trusted)
         {
-          if(debugEnabled())
+          if(logger.isTraceEnabled())
           {
             StringBuilder builder = new StringBuilder();
             StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-            TRACER.debugError(
+            logger.trace(
                   "The expected key does not exist in the index %s.\nKey:%s ",
                   name, builder.toString());
           }
@@ -632,11 +628,11 @@ public class Index extends DatabaseContainer
             }
             entryLimitExceededCount++;
 
-            if(debugEnabled())
+            if(logger.isTraceEnabled())
             {
               StringBuilder builder = new StringBuilder();
               StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-              TRACER.debugInfo("Index entry exceeded in index %s. " +
+              logger.trace("Index entry exceeded in index %s. " +
                   "Limit: %d. ID list size: %d.\nKey:%s",
                   name, indexEntryLimit, idCountDelta + addedIDs.size(),
                   builder.toString());
@@ -684,11 +680,11 @@ public class Index extends DatabaseContainer
     {
       if(deletedIDs != null && !rebuildRunning && trusted)
       {
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          TRACER.debugError(
+          logger.trace(
                 "The expected key does not exist in the index %s.\nKey:%s",
                 name, builder.toString());
         }
@@ -790,11 +786,11 @@ public class Index extends DatabaseContainer
         // will probably not be rebuilt.
         if(trusted && !rebuildRunning)
         {
-          if(debugEnabled())
+          if(logger.isTraceEnabled())
           {
             StringBuilder builder = new StringBuilder();
             StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-            TRACER.debugError(
+            logger.trace(
                   "The expected key does not exist in the index %s.\nKey:%s",
                   name, builder.toString());
           }
@@ -839,11 +835,11 @@ public class Index extends DatabaseContainer
       // probably already removed.
       if (!entryIDList.remove(entryID) && !rebuildRunning && trusted)
       {
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          TRACER.debugError("The expected entry ID does not exist in " +
+          logger.trace("The expected entry ID does not exist in " +
                 "the entry ID list for index %s.\nKey:%s",
                 name, builder.toString());
         }
@@ -874,11 +870,11 @@ public class Index extends DatabaseContainer
       // will probably not be rebuilt.
       if(trusted && !rebuildRunning)
       {
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          TRACER.debugError(
+          logger.trace(
                 "The expected key does not exist in the index %s.\nKey:%s",
                 name, builder.toString());
         }
@@ -1010,10 +1006,7 @@ public class Index extends DatabaseContainer
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       return new EntryIDSet();
     }
   }
@@ -1165,10 +1158,7 @@ public class Index extends DatabaseContainer
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       return new EntryIDSet();
     }
   }

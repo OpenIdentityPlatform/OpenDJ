@@ -39,10 +39,9 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.messages.CoreMessages;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ProtocolMessages.*;
 
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 
@@ -54,10 +53,7 @@ import org.forgerock.opendj.ldap.ByteString;
  */
 public class RmiAuthenticator implements JMXAuthenticator
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
     /**
@@ -141,27 +137,27 @@ public class RmiAuthenticator implements JMXAuthenticator
     // client
     if (authcID == null)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("User name is Null");
+        logger.trace("User name is Null");
       }
       SecurityException se = new SecurityException();
       throw se;
     }
     if (password == null)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("User password is Null ");
+        logger.trace("User password is Null ");
       }
 
       SecurityException se = new SecurityException();
       throw se;
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugVerbose("UserName = %s", authcID);
+      logger.trace("UserName = %s", authcID);
     }
 
     //
@@ -177,10 +173,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       SecurityException se = new SecurityException(e.getMessage());
       throw se;
     }
@@ -199,9 +192,9 @@ public class RmiAuthenticator implements JMXAuthenticator
           pluginResult.sendDisconnectNotification(),
           pluginResult.getErrorMessage());
 
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("Disconnect result from post connect plugins: " +
+        logger.trace("Disconnect result from post connect plugins: " +
             "%s: %s ", pluginResult.getDisconnectReason(),
             pluginResult.getErrorMessage());
       }
@@ -278,9 +271,9 @@ public class RmiAuthenticator implements JMXAuthenticator
     bindOp.run();
     if (bindOp.getResultCode() == ResultCode.SUCCESS)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("User is authenticated");
+        logger.trace("User is authenticated");
       }
 
       authInfo = bindOp.getAuthenticationInfo();

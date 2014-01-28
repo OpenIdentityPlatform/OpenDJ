@@ -22,13 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.workflowelement.externalchangelog;
 
 
-
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +36,7 @@ import org.opends.server.admin.std.server.WorkflowElementCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.DirectoryException;
@@ -55,10 +53,7 @@ import org.opends.server.workflowelement.LeafWorkflowElement;
 public class ECLWorkflowElement extends
     LeafWorkflowElement<WorkflowElementCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    *The set of persistent searches registered with this work flow element.

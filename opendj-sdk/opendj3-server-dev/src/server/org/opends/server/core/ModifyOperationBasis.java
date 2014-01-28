@@ -28,16 +28,13 @@ package org.opends.server.core;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -56,11 +53,7 @@ public class ModifyOperationBasis
        PreParseModifyOperation,
        PostResponseModifyOperation
 {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The raw, unprocessed entry DN as included by the client request. */
   private ByteString rawEntryDN;
@@ -187,10 +180,7 @@ public class ModifyOperationBasis
         entryDN = DN.decode(rawEntryDN);
       }
       catch (DirectoryException de) {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         setResultCode(de.getResultCode());
         appendErrorMessage(de.getMessageObject());
@@ -274,10 +264,7 @@ public class ModifyOperationBasis
       }
       catch (LDAPException le)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, le);
-        }
+        logger.traceException(le);
         setResultCode(ResultCode.valueOf(le.getResultCode()));
         appendErrorMessage(le.getMessageObject());
         modifications = null;
@@ -454,10 +441,7 @@ public class ModifyOperationBasis
     }
     catch(CanceledOperationException coe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, coe);
-      }
+      logger.traceException(coe);
 
       setResultCode(ResultCode.CANCELED);
       cancelResult = new CancelResult(ResultCode.CANCELED, null);

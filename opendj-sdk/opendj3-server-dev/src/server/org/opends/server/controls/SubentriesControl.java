@@ -30,13 +30,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import java.io.IOException;
 
 import org.opends.server.protocols.asn1.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.
     UNIVERSAL_OCTET_STRING_TYPE;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -74,10 +73,7 @@ public class SubentriesControl
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_SUBENTRIES_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
@@ -99,11 +95,7 @@ public class SubentriesControl
    */
   public static final ControlDecoder<SubentriesControl> DECODER =
     new Decoder();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The visibility from the control value.
   private boolean visibility = false;

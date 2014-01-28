@@ -34,8 +34,8 @@ import static org.opends.messages.QuickSetupMessages.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.quicksetup.util.Utils;
 
@@ -51,8 +51,7 @@ import org.opends.quicksetup.util.Utils;
 
 public class CurrentInstallStatus
 {
-  static private final Logger LOG =
-          Logger.getLogger(CurrentInstallStatus.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private boolean isInstalled;
 
@@ -177,7 +176,7 @@ public class CurrentInstallStatus
       port = Installation.getLocal().getCurrentConfiguration().
               getPort();
     } catch (IOException ioe) {
-      LOG.log(Level.INFO, "Failed to get port", ioe);
+      logger.debug(LocalizableMessage.raw("Failed to get port", ioe));
     }
     return port;
   }

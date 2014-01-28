@@ -34,15 +34,13 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.opends.messages.Category;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.DSInfo;
@@ -62,7 +60,6 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.testng.Assert.*;
 
 /**
@@ -86,15 +83,15 @@ public class StateMachineTest extends ReplicationTestCase
   private ReplicationBroker ds3;
   private ReplicationServer rs1;
   /** The tracer object for the debug logger */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private int initWindow = 100;
 
   private void debugInfo(String s)
   {
     logError(LocalizableMessage.raw(s));
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("** TEST **" + s);
+      logger.trace("** TEST **" + s);
     }
   }
 

@@ -34,8 +34,7 @@ import javax.management.MBeanParameterInfo;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.config.ConfigAttribute;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -50,10 +49,7 @@ import org.opends.server.loggers.debug.DebugTracer;
      mayInvoke=true)
 public class InvokableMethod
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -322,19 +318,13 @@ public class InvokableMethod
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       throw new MBeanException(de, de.getMessage());
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       throw new MBeanException(e);
     }

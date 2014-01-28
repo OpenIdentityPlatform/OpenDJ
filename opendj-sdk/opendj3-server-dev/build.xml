@@ -785,7 +785,7 @@ Please:
           <include name="build-tools.jar" />
         </fileset>
       	<fileset dir="${lib.dir}/compile">
-      	  <include name="i18n-core.jar" />
+      	  <include name="*.jar" />
       	</fileset>
         <pathelement path="${classes.dir}"/>
       </classpath>
@@ -804,7 +804,7 @@ Please:
       <include name="**/org/opends/server/types/OpenDsException.java"/>
       <classpath>
       	<fileset dir="${lib.dir}/compile">
-      	    <include name="i18n-core.jar" />
+      		<include name="*.jar" />
       	</fileset>
       </classpath>
     </javac>
@@ -814,7 +814,7 @@ Please:
           <include name="build-tools.jar" />
         </fileset>
       	<fileset dir="${lib.dir}/compile">
-      	    <include name="i18n-core.jar" />
+      		<include name="*.jar" />
       	</fileset>
         <pathelement path="${classes.dir}"/>
       </classpath>

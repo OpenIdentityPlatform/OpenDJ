@@ -39,12 +39,10 @@ import org.opends.server.core.DirectoryServer;
 
 
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.forgerock.opendj.ldap.ByteSequence;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -58,10 +56,7 @@ import org.opends.server.authorization.dseecompat.AciException;
 public class AciSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
@@ -228,10 +223,7 @@ public class AciSyntax
     }
     catch (AciException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       logError(e.getMessageObject());
       invalidReason.append(e.getMessageObject());

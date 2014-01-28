@@ -48,10 +48,7 @@ import org.opends.server.util.TimeThread;
  */
 public abstract class AuthenticationPolicy
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final LocalizedLogger logger = LocalizedLogger.getLocalizedLogger(AuthenticationPolicy.class);
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Returns the authentication policy for the user provided user. The following
@@ -135,7 +132,7 @@ public abstract class AuthenticationPolicy
               String.valueOf(subentryDN));
           if (useDefaultOnError)
           {
-            //logger.error(message);
+            logger.error(message);
             return DirectoryServer.getDefaultPasswordPolicy();
           }
           else

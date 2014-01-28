@@ -28,8 +28,6 @@ package org.opends.server.tasks;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -37,7 +35,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.*;
 
@@ -48,10 +46,7 @@ import org.opends.server.types.*;
  */
 public class InitializeTask extends Task
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private String domainString;
   private int  source;
@@ -133,9 +128,9 @@ public class InitializeTask extends Task
   @Override
   protected TaskState runTask()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("[IE] InitializeTask is starting on domain: %s "
+      logger.trace("[IE] InitializeTask is starting on domain: %s "
           + " from source:%d", domain.getBaseDNString(), source);
     }
     initState = getTaskState();
@@ -173,9 +168,9 @@ public class InitializeTask extends Task
       initState = TaskState.STOPPED_BY_ERROR;
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("[IE] InitializeTask is ending with state:%s",
+      logger.trace("[IE] InitializeTask is ending with state:%s",
           initState.toString());
     }
     return initState;

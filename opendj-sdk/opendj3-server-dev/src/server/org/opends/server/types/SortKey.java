@@ -28,8 +28,7 @@ package org.opends.server.types;
 
 import org.opends.server.api.OrderingMatchingRule;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -48,10 +47,7 @@ import org.opends.server.loggers.debug.DebugTracer;
      mayInvoke=true)
 public final class SortKey
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The attribute type for this sort key.
   private AttributeType attributeType;
@@ -198,10 +194,7 @@ public final class SortKey
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         return 0;
       }
@@ -225,10 +218,7 @@ public final class SortKey
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         return 0;
       }

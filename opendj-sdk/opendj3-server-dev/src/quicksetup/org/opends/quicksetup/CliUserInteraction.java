@@ -41,16 +41,15 @@ import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.cli.MenuResult;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * Supports user interactions for a command line driven application.
  */
 public class CliUserInteraction extends ConsoleApplication
         implements UserInteraction {
-  static private final Logger LOG =
-    Logger.getLogger(CliUserInteraction.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final boolean isInteractive;
   private final boolean isForceOnError;
@@ -142,7 +141,7 @@ public class CliUserInteraction extends ConsoleApplication
       catch (CLIException ce)
       {
         respInt = defInt;
-        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+        logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       }
       if (fineDetails != null && respInt == options.length + 1) {
         println();

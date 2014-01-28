@@ -28,8 +28,6 @@ package org.opends.server.admin.server;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -48,11 +46,10 @@ import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.ResultCode;
 
 
@@ -67,11 +64,7 @@ import org.opends.server.types.ResultCode;
  */
 final class ConfigAddListenerAdaptor<S extends Configuration> extends
     AbstractConfigListenerAdaptor implements ConfigAddListener {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Cached managed object between accept/apply callbacks.
   private ServerManagedObject<? extends S> cachedManagedObject;
@@ -196,9 +189,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
           try {
             handler.performPostAdd(cachedManagedObject);
           } catch (ConfigException e) {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
       }

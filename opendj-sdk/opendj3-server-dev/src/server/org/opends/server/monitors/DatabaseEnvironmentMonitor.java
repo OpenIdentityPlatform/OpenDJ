@@ -28,8 +28,6 @@ package org.opends.server.monitors;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,7 +42,7 @@ import org.opends.server.backends.jeb.Index;
 import org.opends.server.backends.jeb.RootContainer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentStats;
@@ -62,10 +60,7 @@ import org.opends.server.util.TimeThread;
 public class DatabaseEnvironmentMonitor
        extends MonitorProvider<MonitorProviderCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Represents the statistical information kept for each search filter.
@@ -205,10 +200,7 @@ public class DatabaseEnvironmentMonitor
 
           } catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
       }
@@ -236,10 +228,7 @@ public class DatabaseEnvironmentMonitor
           rootContainer.getEnvironmentTransactionStats(statsConfig);
     } catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       return null;
     }
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -34,8 +35,9 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
@@ -114,8 +116,7 @@ public class ControlPanelInfo
   private LinkedHashSet<IndexModifiedListener> indexListeners =
     new LinkedHashSet<IndexModifiedListener>();
 
-  private static final Logger LOG =
-    Logger.getLogger(ControlPanelInfo.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static ControlPanelInfo instance;
 
@@ -143,7 +144,7 @@ public class ControlPanelInfo
       }
       catch (Throwable t)
       {
-        LOG.log(Level.WARNING, "Error retrieving UI key store: "+t, t);
+        logger.warn(LocalizableMessage.raw("Error retrieving UI key store: "+t, t));
         instance.setTrustManager(new ApplicationTrustManager(null));
       }
     }

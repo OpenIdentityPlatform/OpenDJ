@@ -45,8 +45,7 @@ import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ExtensionMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
@@ -61,10 +60,7 @@ public class DictionaryPasswordValidator
        extends PasswordValidator<DictionaryPasswordValidatorCfg>
        implements ConfigurationChangeListener<DictionaryPasswordValidatorCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The current configuration for this password validator.
   private DictionaryPasswordValidatorCfg currentConfig;
@@ -223,10 +219,7 @@ public class DictionaryPasswordValidator
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_DICTIONARY_VALIDATOR_CANNOT_READ_FILE.get(
           configuration.getDictionaryFile(), String.valueOf(e));

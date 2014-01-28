@@ -41,7 +41,7 @@ import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.api.plugin.PluginResult.PreOperation;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.schema.SchemaConstants;
@@ -49,7 +49,6 @@ import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
 
 import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -70,7 +69,7 @@ public class UniqueAttributePlugin
   /**
    * The debug log tracer that will be used for this plugin.
    */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -334,10 +333,7 @@ public class UniqueAttributePlugin
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       LocalizableMessage message =
           ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR.get(
@@ -572,10 +568,7 @@ public class UniqueAttributePlugin
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       LocalizableMessage message = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR_SYNC.get(
                             operation.getConnectionID(),

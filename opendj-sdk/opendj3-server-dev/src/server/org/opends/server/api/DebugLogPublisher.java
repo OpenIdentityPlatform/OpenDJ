@@ -31,11 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.Transaction;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
 import org.opends.server.loggers.debug.TraceSettings;
@@ -375,50 +370,5 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
                                    String sourceLocation,
                                    String msg,
                                    Throwable ex, StackTraceElement[] stackTrace);
-
-
-
-  /**
-   * Log an JE database access in a method.
-   * @param  settings        The current trace settings in effect.
-   * @param  signature       The method signature.
-   * @param  sourceLocation  The location of the method in the source.
-   * @param  status          The status of the JE operation.
-   * @param  database        The database handle.
-   * @param  txn             The transaction handle (may be
-   *                         {@code null}).
-   * @param  key             The key to dump.
-   * @param  data            The data to dump.
-   * @param  stackTrace      The stack trace at the time the access
-   *                         occurred or null if its not available.
-   */
-  public abstract void traceJEAccess(TraceSettings settings,
-                                     String signature,
-                                     String sourceLocation,
-                                     OperationStatus status,
-                                     Database database,
-                                     Transaction txn,
-                                     DatabaseEntry key,
-                                     DatabaseEntry data,
-                                     StackTraceElement[] stackTrace);
-
-
-
-  /**
-   * Log a protocol element in a method.
-   * @param  settings        The current trace settings in effect.
-   * @param  signature       The method signature.
-   * @param  sourceLocation  The location of the method in the source.
-   * @param  decodedForm     The string representation of the protocol
-   *                         element.
-   * @param  stackTrace      The stack trace at the time the protocol
-   *                         element is logged or null if its not
-   *                         available.
-   */
-  public abstract void traceProtocolElement(TraceSettings settings,
-                                            String signature,
-                                            String sourceLocation,
-                                            String decodedForm,
-                                            StackTraceElement[] stackTrace);
 
 }

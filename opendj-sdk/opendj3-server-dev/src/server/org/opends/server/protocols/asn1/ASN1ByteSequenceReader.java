@@ -36,16 +36,14 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * An ASN.1 reader that reads from a {@link ByteSequenceReader}.
  */
 final class ASN1ByteSequenceReader implements ASN1Reader
 {
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private int state = ELEMENT_READ_STATE_NEED_TYPE;
   private byte peekType = 0;
@@ -488,9 +486,9 @@ final class ASN1ByteSequenceReader implements ASN1Reader
       throw new ASN1Exception(message);
     }
 
-    if(reader.remaining() > 0 && debugEnabled())
+    if(reader.remaining() > 0 && logger.isTraceEnabled())
     {
-      TRACER.debugWarning("Ignoring %d unused trailing bytes in " +
+      logger.trace("Ignoring %d unused trailing bytes in " +
           "ASN.1 SEQUENCE", reader.remaining());
     }
 

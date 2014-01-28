@@ -219,7 +219,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     catch (Throwable t)
     {
       entry = null;
-      LOG.log(Level.WARNING, "Unexpected error: "+t, t);
+      logger.warn(LocalizableMessage.raw("Unexpected error: "+t, t));
     }
     */
     LDAPEntryChangedEvent ev = new LDAPEntryChangedEvent(this, entry);

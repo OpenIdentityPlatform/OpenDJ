@@ -29,7 +29,6 @@ package org.opends.server.schema;
 
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -38,10 +37,9 @@ import java.util.Collections;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.ServerConstants;
@@ -59,10 +57,7 @@ import org.opends.server.util.ServerConstants;
 class IntegerFirstComponentEqualityMatchingRule
        extends EqualityMatchingRule
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -218,10 +213,7 @@ class IntegerFirstComponentEqualityMatchingRule
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       return false;
     }
@@ -279,10 +271,7 @@ class IntegerFirstComponentEqualityMatchingRule
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_NO_INITIAL_PARENTHESIS.get(
             String.valueOf(valueString));
@@ -331,10 +320,7 @@ class IntegerFirstComponentEqualityMatchingRule
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(
           String.valueOf(valueString));

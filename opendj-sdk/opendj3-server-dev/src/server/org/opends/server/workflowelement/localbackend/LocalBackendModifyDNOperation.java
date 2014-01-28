@@ -39,7 +39,7 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
@@ -48,7 +48,6 @@ import org.opends.server.types.operation.PreOperationModifyDNOperation;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -63,10 +62,7 @@ public class LocalBackendModifyDNOperation
              PostResponseModifyDNOperation,
              PostSynchronizationModifyDNOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -239,10 +235,7 @@ public class LocalBackendModifyDNOperation
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               LocalizableMessage message =
                   ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER
@@ -359,10 +352,7 @@ public class LocalBackendModifyDNOperation
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         setResultCodeAndMessageNoInfoDisclosure(null, newDN,
             DirectoryServer.getServerErrorResultCode(),
@@ -515,10 +505,7 @@ public class LocalBackendModifyDNOperation
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       setResponseData(de);
       return;
@@ -570,10 +557,7 @@ public class LocalBackendModifyDNOperation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
     return null;
   }
@@ -608,10 +592,7 @@ public class LocalBackendModifyDNOperation
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             throw newDirectoryException(currentEntry, de.getResultCode(),
                 ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(
@@ -646,10 +627,7 @@ public class LocalBackendModifyDNOperation
               throw de;
             }
 
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             throw newDirectoryException(currentEntry, de.getResultCode(),
                 ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(
@@ -946,9 +924,7 @@ public class LocalBackendModifyDNOperation
                   return false;
               }
           } catch (DirectoryException de) {
-              if (debugEnabled()) {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
               logError(ERR_MODDN_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
                       getConnectionID(), getOperationID(),
                       getExceptionMessage(de)));
@@ -980,9 +956,7 @@ public class LocalBackendModifyDNOperation
                   return false;
               }
           } catch (DirectoryException de) {
-              if (debugEnabled()) {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
               logError(ERR_MODDN_SYNCH_PREOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
@@ -1002,9 +976,7 @@ public class LocalBackendModifyDNOperation
           try {
               provider.doPostOperation(this);
           } catch (DirectoryException de) {
-              if (debugEnabled()) {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
               logError(ERR_MODDN_SYNCH_POSTOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);

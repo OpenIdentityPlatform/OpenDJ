@@ -44,8 +44,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -72,7 +73,6 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.renderer.TaskCellRenderer;
 import org.opends.guitools.controlpanel.util.ConfigFromFile;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
@@ -129,8 +129,7 @@ public class ManageTasksPanel extends StatusGenericPanel
   private JTextArea logs;
   private JLabel noLogsLabel;
 
-  private static final Logger LOG =
-    Logger.getLogger(ManageTasksPanel.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Default constructor.
@@ -568,7 +567,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       }
       catch (Throwable t)
       {
-        LOG.log(Level.SEVERE, "Error getting entry '"+csr.getDN()+"': "+t, t);
+        logger.error(LocalizableMessage.raw("Error getting entry '"+csr.getDN()+"': "+t, t));
       }
     }
     return list;
@@ -635,7 +634,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       }
       catch (Throwable t)
       {
-        LOG.log(Level.SEVERE, "Error getting entry '"+csr.getDN()+"': "+t, t);
+        logger.error(LocalizableMessage.raw("Error getting entry '"+csr.getDN()+"': "+t, t));
       }
     }
     return list;

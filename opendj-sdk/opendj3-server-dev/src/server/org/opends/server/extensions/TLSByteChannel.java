@@ -22,13 +22,11 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
 
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -46,8 +44,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -447,7 +444,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
   }
 
   private static final ByteBuffer EMPTY_BUFFER = ByteBuffer.allocate(0);
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final ByteChannelImpl pimpl = new ByteChannelImpl();
   private final ByteChannel channel;
@@ -520,10 +517,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
     }
     catch (final SSLPeerUnverifiedException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       return new Certificate[0];
     }
   }

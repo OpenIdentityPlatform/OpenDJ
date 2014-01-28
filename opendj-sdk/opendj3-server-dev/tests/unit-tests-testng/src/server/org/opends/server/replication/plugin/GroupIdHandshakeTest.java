@@ -30,11 +30,9 @@ import java.io.IOException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.messages.Category;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
@@ -44,7 +42,6 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.testng.Assert.*;
 
 /**
@@ -68,14 +65,14 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
   private ReplicationServer rs3 = null;
 
   // The tracer object for the debug logger
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private void debugInfo(String s)
   {
     logError(LocalizableMessage.raw(s));
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("** TEST **" + s);
+      logger.trace("** TEST **" + s);
     }
   }
 

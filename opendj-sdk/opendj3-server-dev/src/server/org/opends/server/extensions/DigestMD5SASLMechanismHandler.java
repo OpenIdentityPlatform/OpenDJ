@@ -31,8 +31,11 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import javax.security.sasl.*;
+
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.DigestMD5SASLMechanismHandlerCfgDefn.*;
 import org.opends.server.admin.std.server.DigestMD5SASLMechanismHandlerCfg;
@@ -43,13 +46,11 @@ import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.*;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
-import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -64,8 +65,7 @@ public class DigestMD5SASLMechanismHandler
       extends SASLMechanismHandler<DigestMD5SASLMechanismHandlerCfg>
       implements ConfigurationChangeListener<DigestMD5SASLMechanismHandlerCfg> {
 
-  //The tracer object for the debug logger.
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The current configuration for this SASL mechanism handler.
   private DigestMD5SASLMechanismHandlerCfg configuration;
@@ -126,9 +126,7 @@ public class DigestMD5SASLMechanismHandler
          DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_DIGEST_MD5,
                   this);
       } catch (UnknownHostException unhe) {
-          if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, unhe);
-          }
+          logger.traceException(unhe);
           LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(
                   String.valueOf(configEntryDN), getExceptionMessage(unhe));
           throw new InitializationException(message, unhe);
@@ -166,9 +164,7 @@ public class DigestMD5SASLMechanismHandler
             saslContext = SASLContext.createSASLContext(saslProps, serverFQDN,
                             SASL_MECHANISM_DIGEST_MD5, identityMapper);
           } catch (SaslException ex) {
-              if (debugEnabled()) {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-              }
+              logger.traceException(ex);
               LocalizableMessage msg =
                   ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_DIGEST_MD5,
                                                     getExceptionMessage(ex));
@@ -259,9 +255,7 @@ public class DigestMD5SASLMechanismHandler
           }
           this.configuration  = configuration;
       } catch (UnknownHostException unhe) {
-          if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, unhe);
-          }
+          logger.traceException(unhe);
           resultCode = ResultCode.OPERATIONS_ERROR;
           messages.add(ERR_SASL_CANNOT_GET_SERVER_FQDN.get(
                   String.valueOf(configEntryDN), getExceptionMessage(unhe)));

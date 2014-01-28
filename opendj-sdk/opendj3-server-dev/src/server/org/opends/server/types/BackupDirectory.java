@@ -41,8 +41,7 @@ import java.util.LinkedList;
 
 import org.opends.server.config.ConfigException;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -62,10 +61,7 @@ import static org.opends.server.util.StaticUtils.*;
      mayInvoke=true)
 public final class BackupDirectory
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -330,10 +326,7 @@ public final class BackupDirectory
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_CREATE_DIRECTORY.
             get(path, getExceptionMessage(e));
@@ -402,10 +395,7 @@ public final class BackupDirectory
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message =
               ERR_BACKUPDIRECTORY_CANNOT_DELETE_SAVED_DESCRIPTOR.
@@ -421,10 +411,7 @@ public final class BackupDirectory
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_BACKUPDIRECTORY_CANNOT_RENAME_CURRENT_DESCRIPTOR.
@@ -443,10 +430,7 @@ public final class BackupDirectory
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
         ERR_BACKUPDIRECTORY_CANNOT_RENAME_NEW_DESCRIPTOR.

@@ -41,8 +41,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
@@ -59,7 +60,6 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.ManagementContext;
@@ -162,7 +162,7 @@ class StatusCli extends ConsoleApplication
   /**
    * The Logger.
    */
-  static private final Logger LOG = Logger.getLogger(StatusCli.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The argument parser. */
   private StatusCliArgumentParser argParser;
@@ -336,7 +336,7 @@ class StatusCli extends ConsoleApplication
             URI uri = new URI(ldapUrl);
             port = uri.getPort();
           } catch (Throwable t) {
-            LOG.log(Level.SEVERE, "Error parsing url: " + ldapUrl);
+            logger.error(LocalizableMessage.raw("Error parsing url: " + ldapUrl));
           }
           secureArgsList.hostNameArg.setPresent(true);
           secureArgsList.portArg.setPresent(true);

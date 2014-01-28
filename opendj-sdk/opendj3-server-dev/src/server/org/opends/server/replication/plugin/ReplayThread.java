@@ -28,7 +28,6 @@ package org.opends.server.replication.plugin;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.concurrent.BlockingQueue;
@@ -37,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 
 /**
@@ -49,10 +48,7 @@ import org.opends.server.replication.protocol.LDAPUpdateMsg;
  */
 public class ReplayThread extends DirectoryThread
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final BlockingQueue<UpdateToReplay> updateToReplayQueue;
   private AtomicBoolean shutdown = new AtomicBoolean(false);
@@ -83,9 +79,9 @@ public class ReplayThread extends DirectoryThread
   @Override
   public void run()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("Replication Replay thread starting.");
+      logger.trace("Replication Replay thread starting.");
     }
 
     while (!shutdown.get())
@@ -115,9 +111,9 @@ public class ReplayThread extends DirectoryThread
         logError(message);
       }
     }
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("Replication Replay thread stopping.");
+      logger.trace("Replication Replay thread stopping.");
     }
   }
 }

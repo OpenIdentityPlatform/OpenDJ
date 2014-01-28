@@ -33,7 +33,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationSearchOperation;
 import org.opends.server.types.operation.PreOperationSearchOperation;
@@ -41,7 +41,6 @@ import org.opends.server.types.operation.SearchEntrySearchOperation;
 import org.opends.server.types.operation.SearchReferenceSearchOperation;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -54,10 +53,7 @@ public class LocalBackendSearchOperation
        implements PreOperationSearchOperation, PostOperationSearchOperation,
                   SearchEntrySearchOperation, SearchReferenceSearchOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -179,10 +175,7 @@ public class LocalBackendSearchOperation
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       setResponseData(de);
       return;
@@ -279,9 +272,9 @@ public class LocalBackendSearchOperation
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.VERBOSE, de);
+        logger.traceException(de);
       }
 
       setResponseData(de);
@@ -306,10 +299,7 @@ public class LocalBackendSearchOperation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       setResultCode(DirectoryServer.getServerErrorResultCode());
       appendErrorMessage(ERR_SEARCH_BACKEND_EXCEPTION
@@ -354,10 +344,7 @@ public class LocalBackendSearchOperation
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             throw new DirectoryException(de.getResultCode(),
                            ERR_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER.get(
@@ -371,10 +358,7 @@ public class LocalBackendSearchOperation
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             throw new DirectoryException(de.getResultCode(),
                            ERR_SEARCH_CANNOT_GET_ENTRY_FOR_ASSERTION.get(
@@ -411,10 +395,7 @@ public class LocalBackendSearchOperation
               throw de;
             }
 
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             throw new DirectoryException(de.getResultCode(),
                            ERR_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER.get(

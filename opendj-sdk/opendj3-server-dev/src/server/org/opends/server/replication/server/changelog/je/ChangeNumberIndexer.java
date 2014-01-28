@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
@@ -48,7 +48,6 @@ import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.util.Pair;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -60,7 +59,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class ChangeNumberIndexer extends DirectoryThread
 {
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * If this is true, then the {@link #run()} method must clear its state.
@@ -518,7 +517,7 @@ public class ChangeNumberIndexer extends DirectoryThread
       // LocalizableMessage logged here gives corrective information to the administrator.
       LocalizableMessage msg = ERR_CHANGE_NUMBER_INDEXER_UNEXPECTED_EXCEPTION.get(
           getClass().getSimpleName(), stackTraceToSingleLineString(e));
-      TRACER.debugError(msg.toString());
+      logger.trace(msg.toString());
       throw e;
     }
     catch (Exception e)
@@ -529,7 +528,7 @@ public class ChangeNumberIndexer extends DirectoryThread
       // LocalizableMessage logged here gives corrective information to the administrator.
       LocalizableMessage msg = ERR_CHANGE_NUMBER_INDEXER_UNEXPECTED_EXCEPTION.get(
           getClass().getSimpleName(), stackTraceToSingleLineString(e));
-      TRACER.debugError(msg.toString());
+      logger.trace(msg.toString());
       throw new RuntimeException(e);
     }
     finally

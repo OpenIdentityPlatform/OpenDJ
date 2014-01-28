@@ -28,7 +28,6 @@ package org.opends.server.protocols.ldap;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -61,7 +60,7 @@ import org.opends.server.core.WorkQueueStrategy;
 import org.opends.server.extensions.NullKeyManagerProvider;
 import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.extensions.TLSByteChannel;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.monitors.ClientConnectionMonitorProvider;
 import org.opends.server.types.*;
 import org.opends.server.util.SelectableCertificateKeyManager;
@@ -110,13 +109,7 @@ public final class LDAPConnectionHandler extends
 
     }
   }
-
-
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Default friendly name for the LDAP connection handler.
@@ -350,10 +343,7 @@ public final class LDAPConnectionHandler extends
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       messages.add(e.getMessageObject());
       return new ConfigChangeResult(e.getResultCode(), adminActionRequired,
           messages);
@@ -416,10 +406,7 @@ public final class LDAPConnectionHandler extends
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     for (LDAPRequestHandler requestHandler : requestHandlers)
@@ -692,10 +679,7 @@ public final class LDAPConnectionHandler extends
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_CONNHANDLER_OPEN_SELECTOR_FAILED.get(
           String.valueOf(config.dn()), stackTraceToSingleLineString(e));
@@ -716,10 +700,7 @@ public final class LDAPConnectionHandler extends
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw new InitializationException(e.getMessageObject());
     }
 
@@ -841,10 +822,7 @@ public final class LDAPConnectionHandler extends
         }
         catch (DirectoryException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           unacceptableReasons.add(e.getMessageObject());
           return false;
@@ -885,10 +863,7 @@ public final class LDAPConnectionHandler extends
       }
       catch (IOException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         return ERR_CONNHANDLER_CANNOT_BIND.get("LDAP", String
             .valueOf(configEntryDN), a.getHostAddress(), listenPort,
             getExceptionMessage(e));
@@ -1052,10 +1027,7 @@ public final class LDAPConnectionHandler extends
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             logError(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(friendlyName,
                 String.valueOf(currentConfig.dn()), getExceptionMessage(e)));
@@ -1096,10 +1068,7 @@ public final class LDAPConnectionHandler extends
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // This is very bad because we failed outside the loop. The
         // only thing we can do here is log a message, send an alert,
@@ -1151,11 +1120,11 @@ public final class LDAPConnectionHandler extends
       }
 
       if (selectorState == 0 && enabled && (!shutdownRequested)
-          && debugEnabled())
+          && logger.isTraceEnabled())
       {
         // Selected keys was non empty but select() returned 0.
         // Log warning and hope it blocks on the next select() call.
-        TRACER.debugWarning("Selector.select() returned 0. "
+        logger.trace("Selector.select() returned 0. "
             + "Selected Keys: %d, Interest Ops: %d, Ready Ops: %d ",
             selector.selectedKeys().size(), key.interestOps(),
             key.readyOps());
@@ -1189,10 +1158,7 @@ public final class LDAPConnectionHandler extends
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         logError(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED.get(
             String.valueOf(currentConfig.dn()), a.getHostAddress(),
@@ -1285,10 +1251,7 @@ public final class LDAPConnectionHandler extends
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(clientConnection
@@ -1349,10 +1312,7 @@ public final class LDAPConnectionHandler extends
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
 
         try
@@ -1361,19 +1321,13 @@ public final class LDAPConnectionHandler extends
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -1450,10 +1404,7 @@ public final class LDAPConnectionHandler extends
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       ResultCode resCode = DirectoryServer.getServerErrorResultCode();
       LocalizableMessage message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
           .get(getExceptionMessage(e));
@@ -1503,10 +1454,7 @@ public final class LDAPConnectionHandler extends
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       ResultCode resCode = DirectoryServer.getServerErrorResultCode();
       LocalizableMessage message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
           .get(getExceptionMessage(e));

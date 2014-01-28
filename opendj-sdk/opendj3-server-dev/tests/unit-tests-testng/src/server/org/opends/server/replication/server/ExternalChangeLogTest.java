@@ -43,7 +43,7 @@ import org.opends.server.controls.ExternalChangelogRequestControl;
 import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.controls.PersistentSearchControl;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.*;
@@ -74,7 +74,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.controls.PersistentSearchChangeType.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -91,7 +90,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private static final int SERVER_ID_2 = 1202;
 
   /** The tracer object for the debug logger */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The replicationServer that will be used in this test. */
   private ReplicationServer replicationServer;
@@ -1977,9 +1976,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    */
   private void debugInfo(String testName, String message)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo("** TEST " + testName + " ** " + message);
+      logger.trace("** TEST " + testName + " ** " + message);
     }
   }
 

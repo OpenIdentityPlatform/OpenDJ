@@ -31,9 +31,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.server.changelog.api.*;
-import org.opends.server.types.DebugLogLevel;
 
 import com.sleepycat.je.*;
 
@@ -42,7 +41,6 @@ import static com.sleepycat.je.OperationStatus.*;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -52,7 +50,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class DraftCNDB
 {
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private Database db;
   private ReplicationDbEnv dbenv;
@@ -251,7 +249,7 @@ public class DraftCNDB
     }
     catch (DatabaseException e)
     {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      logger.traceException(e);
     }
     finally
     {
@@ -442,13 +440,13 @@ public class DraftCNDB
       }
       catch (DatabaseException e)
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        logger.traceException(e);
         JEUtils.abort(localTxn);
         throw new ChangelogException(e);
       }
       catch (ChangelogException e)
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        logger.traceException(e);
         JEUtils.abort(localTxn);
         throw e;
       }

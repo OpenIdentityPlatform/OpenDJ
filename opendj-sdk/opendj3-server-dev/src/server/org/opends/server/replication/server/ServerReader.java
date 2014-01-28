@@ -30,13 +30,12 @@ import java.net.SocketException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.common.ServerStatus.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -52,11 +51,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class ServerReader extends DirectoryThread
 {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private final Session session;
   private final ServerHandler handler;
 
@@ -84,9 +79,9 @@ public class ServerReader extends DirectoryThread
   public void run()
   {
     LocalizableMessage errMessage = null;
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(getName() + " starting");
+      logger.trace(getName() + " starting");
     }
     /*
      * wait on input stream
@@ -101,8 +96,8 @@ public class ServerReader extends DirectoryThread
         {
           ReplicationMsg msg = session.receive();
 
-          if (debugEnabled())
-            TRACER.debugInfo("In " + getName() + " receives " + msg);
+          if (logger.isTraceEnabled())
+            logger.trace("In " + getName() + " receives " + msg);
 
           if (msg instanceof AckMsg)
           {
@@ -217,9 +212,9 @@ public class ServerReader extends DirectoryThread
           {
             // Peer server is properly disconnecting: go out of here to
             // properly close the server handler going to finally block.
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
-              TRACER.debugInfo(handler
+              logger.trace(handler
                   + " has properly disconnected from this replication server "
                   + handler.getReplicationServerId());
             }
@@ -273,23 +268,23 @@ public class ServerReader extends DirectoryThread
        * The thread only exits the loop above if some error condition happen.
        * Attempt to close the socket and stop the server handler.
        */
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("In " + getName() + " closing the session");
+        logger.trace("In " + getName() + " closing the session");
       }
       session.close();
       handler.doStop();
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo(getName() + " stopped: " + errMessage);
+        logger.trace(getName() + " stopped: " + errMessage);
       }
     }
   }
 
   private void logException(Exception e)
   {
-    if (debugEnabled())
-      TRACER.debugInfo(
+    if (logger.isTraceEnabled())
+      logger.trace(
           "In " + getName() + " " + stackTraceToSingleLineString(e));
   }
 }

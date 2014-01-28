@@ -44,14 +44,12 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.meta.ExtendedOperationHandlerCfgDefn;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ConfigMessages.*;
 
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -70,10 +68,7 @@ public class ExtendedOperationConfigManager implements
      ConfigurationAddListener<ExtendedOperationHandlerCfg>,
      ConfigurationDeleteListener<ExtendedOperationHandlerCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -208,18 +203,12 @@ public class ExtendedOperationConfigManager implements
           handlers.put(dn, handler);
 
         } catch (ConfigException e) {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           messages.add(e.getMessageObject());
           resultCode = DirectoryServer.getServerErrorResultCode();
         } catch (Exception e) {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           messages.add(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
                   String.valueOf(configuration.getJavaClass()),
@@ -294,20 +283,14 @@ public class ExtendedOperationConfigManager implements
       }
       catch (ConfigException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         messages.add(e.getMessageObject());
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         messages.add(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
                 String.valueOf(configuration.getJavaClass()),
@@ -362,10 +345,7 @@ public class ExtendedOperationConfigManager implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_EXTOP_INVALID_CLASS.
           get(String.valueOf(className), String.valueOf(config.dn()),
@@ -412,10 +392,7 @@ public class ExtendedOperationConfigManager implements
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       unacceptableReasons.add(ERR_CONFIG_EXTOP_INVALID_CLASS.get(className,
                               String.valueOf(config.dn()),

@@ -28,8 +28,7 @@ package org.opends.server.admin.server;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigDeleteListener;
@@ -38,7 +37,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.ResultCode;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
@@ -50,11 +48,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * "delayed" add or delete listener.
  */
 final class DelayedConfigAddListener implements ConfigAddListener {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The name of the parent entry.
   private final DN parent;
@@ -137,9 +131,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
           myEntry.deregisterAddListener(this);
         }
       } catch (ConfigException e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // Ignore this error as it implies that this listener has
         // already been deregistered.

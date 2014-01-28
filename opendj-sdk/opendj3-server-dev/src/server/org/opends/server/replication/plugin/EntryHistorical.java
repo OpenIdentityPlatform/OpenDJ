@@ -30,7 +30,7 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.types.*;
@@ -41,7 +41,6 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -78,11 +77,7 @@ public class EntryHistorical
    * Name of the entryuuid attribute.
    */
   public static final String ENTRYUUID_ATTRIBUTE_NAME = "entryuuid";
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The delay to purge the historical information.
@@ -924,9 +919,9 @@ public class EntryHistorical
     // an entryUUID attribute may not be present and this causes severe side
     // effects for replication which requires the attribute to always be
     // present.
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugWarning(
+      logger.trace(
           "Replication requires an entryUUID attribute in order "
               + "to perform conflict resolution, but none was "
               + "found in entry \"%s\": generating virtual entryUUID instead",

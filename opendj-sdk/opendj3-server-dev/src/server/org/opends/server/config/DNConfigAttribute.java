@@ -43,8 +43,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.ConfigMessages.*;
 /**
@@ -59,10 +58,7 @@ import static org.opends.messages.ConfigMessages.*;
 public final class DNConfigAttribute
        extends ConfigAttribute
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -577,10 +573,7 @@ public final class DNConfigAttribute
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       rejectReason.append(ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
               value.getValue().toString(), getName(),
@@ -667,10 +660,7 @@ public final class DNConfigAttribute
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
                 valueString, getName(),
@@ -841,10 +831,7 @@ public final class DNConfigAttribute
               }
               catch (Exception e)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                }
+                logger.traceException(e);
 
                 LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
                     v.getValue().toString(), getName(), String.valueOf(e));
@@ -911,10 +898,7 @@ public final class DNConfigAttribute
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
                   v.getValue().toString(), getName(), String.valueOf(e));
@@ -1204,10 +1188,7 @@ public final class DNConfigAttribute
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
             (String) value, getName(), String.valueOf(e));
@@ -1248,10 +1229,7 @@ public final class DNConfigAttribute
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
                   valueStr, getName(), String.valueOf(e));
@@ -1265,19 +1243,13 @@ public final class DNConfigAttribute
         }
         catch (ConfigException ce)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-          }
+          logger.traceException(ce);
 
           throw ce;
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_DN_VALUE.get(
               getName(), String.valueOf(value), String.valueOf(e));

@@ -36,7 +36,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.AddChangeRecordEntry;
@@ -47,7 +47,6 @@ import org.opends.server.util.ModifyDNChangeRecordEntry;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -63,10 +62,7 @@ import static org.opends.server.util.StaticUtils.*;
 public final class InternalClientConnection
        extends ClientConnection
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The protocol version string that will be used for internal bind
@@ -194,10 +190,7 @@ public final class InternalClientConnection
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       logError(ERR_INTERNAL_CANNOT_DECODE_DN.get(
           fullDNString, getExceptionMessage(de)));

@@ -55,8 +55,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.SearchControls;
@@ -94,7 +95,6 @@ import org.opends.guitools.controlpanel.ui.components.AddRemovePanel;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
@@ -147,8 +147,7 @@ implements ConfigChangeListener
   private static final String MAIN_PANEL = "mainPanel";
   private static final String MESSAGE_PANEL = "messagePanel";
 
-  private static final Logger LOG =
-    Logger.getLogger(StatusGenericPanel.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The error pane.
@@ -1786,7 +1785,7 @@ implements ConfigChangeListener
 
           if (t != null)
           {
-            LOG.log(Level.WARNING, "Error occurred running task: "+t, t);
+            logger.warn(LocalizableMessage.raw("Error occurred running task: "+t, t));
             if ((task.getReturnCode() != null) &&
                 (errorDetailCode != null))
             {

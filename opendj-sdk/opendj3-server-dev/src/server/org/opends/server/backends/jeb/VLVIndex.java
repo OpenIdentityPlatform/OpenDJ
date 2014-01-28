@@ -28,7 +28,7 @@ package org.opends.server.backends.jeb;
 import org.forgerock.i18n.LocalizableMessage;
 
 import com.sleepycat.je.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -47,7 +47,6 @@ import static org.opends.messages.JebMessages.
     ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER;
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.util.StaticUtils;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import org.opends.server.api.OrderingMatchingRule;
@@ -73,10 +72,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class VLVIndex extends DatabaseContainer
     implements ConfigurationChangeListener<LocalDBVLVIndexCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The comparator for vlvIndex keys.
@@ -672,22 +668,22 @@ public class VLVIndex extends DatabaseContainer
       if(status != OperationStatus.SUCCESS)
       {
         // There are no records in the database
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("No sort values set exist in VLV vlvIndex %s. " +
+          logger.trace("No sort values set exist in VLV vlvIndex %s. " +
               "Creating unbound set.", config.getName());
         }
         sortValuesSet = new SortValuesSet(this);
       }
       else
       {
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
           StringBuilder searchKeyHex = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(), 4);
           StringBuilder foundKeyHex = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
-          TRACER.debugVerbose("Retrieved a sort values set in VLV vlvIndex " +
+          logger.trace("Retrieved a sort values set in VLV vlvIndex " +
               "%s\nSearch Key:%s\nFound Key:%s\n",
                               config.getName(),
                               searchKeyHex,
@@ -759,9 +755,9 @@ public class VLVIndex extends DatabaseContainer
     if(status != OperationStatus.SUCCESS)
     {
       // There are no records in the database
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("No sort values set exist in VLV vlvIndex %s. " +
+        logger.trace("No sort values set exist in VLV vlvIndex %s. " +
             "Creating unbound set.", config.getName());
       }
       sortValuesSet = new SortValuesSet(this);
@@ -769,13 +765,13 @@ public class VLVIndex extends DatabaseContainer
     }
     else
     {
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
         StringBuilder searchKeyHex = new StringBuilder();
         StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(), 4);
         StringBuilder foundKeyHex = new StringBuilder();
         StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
-        TRACER.debugVerbose("Retrieved a sort values set in VLV vlvIndex " +
+        logger.trace("Retrieved a sort values set in VLV vlvIndex " +
             "%s\nSearch Key:%s\nFound Key:%s\n",
                             config.getName(),
                             searchKeyHex,
@@ -803,9 +799,9 @@ public class VLVIndex extends DatabaseContainer
       data.setData(after);
       put(txn, key, data);
 
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
-        TRACER.debugInfo("SortValuesSet with key %s has reached" +
+        logger.trace("SortValuesSet with key %s has reached" +
             " the entry size of %d. Spliting into two sets with " +
             " keys %s and %s.", splitSortValuesSet.getKeySortValues(),
                                 newSize, sortValuesSet.getKeySortValues(),
@@ -852,13 +848,13 @@ public class VLVIndex extends DatabaseContainer
 
     if(status == OperationStatus.SUCCESS)
     {
-      if(debugEnabled())
+      if(logger.isTraceEnabled())
       {
         StringBuilder searchKeyHex = new StringBuilder();
         StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(), 4);
         StringBuilder foundKeyHex = new StringBuilder();
         StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
-        TRACER.debugVerbose("Retrieved a sort values set in VLV vlvIndex " +
+        logger.trace("Retrieved a sort values set in VLV vlvIndex " +
             "%s\nSearch Key:%s\nFound Key:%s\n",
                             config.getName(),
                             searchKeyHex,
@@ -980,9 +976,9 @@ public class VLVIndex extends DatabaseContainer
       if(status != OperationStatus.SUCCESS)
       {
         // There are no records in the database
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("No sort values set exist in VLV vlvIndex %s. " +
+          logger.trace("No sort values set exist in VLV vlvIndex %s. " +
               "Creating unbound set.", config.getName());
         }
         sortValuesSet = new SortValuesSet(this);
@@ -990,13 +986,13 @@ public class VLVIndex extends DatabaseContainer
       }
       else
       {
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
           StringBuilder searchKeyHex = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(), 4);
           StringBuilder foundKeyHex = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
-          TRACER.debugVerbose("Retrieved a sort values set in VLV vlvIndex " +
+          logger.trace("Retrieved a sort values set in VLV vlvIndex " +
               "%s\nSearch Key:%s\nFound Key:%s\n",
               config.getName(),
               searchKeyHex,
@@ -1084,9 +1080,9 @@ public class VLVIndex extends DatabaseContainer
         data.setData(after);
         put(txn, key, data);
 
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
-          TRACER.debugInfo("SortValuesSet with key %s has reached" +
+          logger.trace("SortValuesSet with key %s has reached" +
               " the entry size of %d. Spliting into two sets with " +
               " keys %s and %s.", splitSortValuesSet.getKeySortValues(),
               newSize, sortValuesSet.getKeySortValues(),
@@ -1232,7 +1228,7 @@ public class VLVIndex extends DatabaseContainer
           status = cursor.getFirst(key, data,lockMode);
           while(status == OperationStatus.SUCCESS)
           {
-            if(debugEnabled())
+            if(logger.isTraceEnabled())
             {
               StringBuilder searchKeyHex = new StringBuilder();
               StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(),
@@ -1240,7 +1236,7 @@ public class VLVIndex extends DatabaseContainer
               StringBuilder foundKeyHex = new StringBuilder();
               StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(),
                                                   4);
-              TRACER.debugVerbose("Retrieved a sort values set in VLV " +
+              logger.trace("Retrieved a sort values set in VLV " +
                   "vlvIndex %s\nSearch Key:%s\nFound Key:%s\n",
                                   config.getName(),
                                   searchKeyHex,
@@ -1307,7 +1303,7 @@ public class VLVIndex extends DatabaseContainer
           status = cursor.getSearchKeyRange(key, data, lockMode);
           if(status == OperationStatus.SUCCESS)
           {
-            if(debugEnabled())
+            if(logger.isTraceEnabled())
             {
               StringBuilder searchKeyHex = new StringBuilder();
               StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(),
@@ -1315,7 +1311,7 @@ public class VLVIndex extends DatabaseContainer
               StringBuilder foundKeyHex = new StringBuilder();
               StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(),
                                                   4);
-              TRACER.debugVerbose("Retrieved a sort values set in VLV " +
+              logger.trace("Retrieved a sort values set in VLV " +
                   "vlvIndex %s\nSearch Key:%s\nFound Key:%s\n",
                                   config.getName(),
                                   searchKeyHex,
@@ -1451,13 +1447,13 @@ public class VLVIndex extends DatabaseContainer
         status = cursor.getFirst(key, data, lockMode);
         while(status == OperationStatus.SUCCESS)
         {
-          if(debugEnabled())
+          if(logger.isTraceEnabled())
           {
             StringBuilder searchKeyHex = new StringBuilder();
             StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(), 4);
             StringBuilder foundKeyHex = new StringBuilder();
             StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
-            TRACER.debugVerbose("Retrieved a sort values set in VLV vlvIndex " +
+            logger.trace("Retrieved a sort values set in VLV vlvIndex " +
                 "%s\nSearch Key:%s\nFound Key:%s\n",
                                 config.getName(),
                                 searchKeyHex,

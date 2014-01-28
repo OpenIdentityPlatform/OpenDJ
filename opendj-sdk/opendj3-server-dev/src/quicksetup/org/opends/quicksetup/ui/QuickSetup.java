@@ -47,8 +47,8 @@ import javax.swing.*;
 import java.awt.Cursor;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import java.util.logging.Handler;
 import java.util.Map;
 
@@ -75,8 +75,7 @@ import java.util.Map;
 public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 {
 
-  static private final Logger LOG =
-          Logger.getLogger(QuickSetup.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private GuiApplication application;
 
@@ -492,13 +491,14 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   public void quit()
   {
-    LOG.log(Level.INFO, "quitting application");
+    logger.debug(LocalizableMessage.raw("quitting application"));
     flushLogs();
     System.exit(0);
   }
 
   private void flushLogs() {
-    Handler[] handlers = LOG.getHandlers();
+    java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(logger.getName());
+    Handler[] handlers = julLogger.getHandlers();
     if (handlers != null) {
       for (Handler h : handlers) {
         h.flush();
@@ -728,7 +728,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       {
         if (!(throwable instanceof UserDataException))
         {
-          LOG.log(Level.WARNING, "Unhandled exception.", throwable);
+          logger.warn(LocalizableMessage.raw("Unhandled exception.", throwable));
         }
         else
         {

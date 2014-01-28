@@ -28,16 +28,13 @@ package org.opends.server.core;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
@@ -54,10 +51,7 @@ public class DeleteOperationBasis
                   DeleteOperation,
                   PostResponseDeleteOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The raw, unprocessed entry DN as included in the client request. */
   private ByteString rawEntryDN;
@@ -167,10 +161,7 @@ public class DeleteOperationBasis
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       setResultCode(de.getResultCode());
       appendErrorMessage(de.getMessageObject());
@@ -334,10 +325,7 @@ public class DeleteOperationBasis
     }
     catch(CanceledOperationException coe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, coe);
-      }
+      logger.traceException(coe);
 
       setResultCode(ResultCode.CANCELED);
       cancelResult = new CancelResult(ResultCode.CANCELED, null);

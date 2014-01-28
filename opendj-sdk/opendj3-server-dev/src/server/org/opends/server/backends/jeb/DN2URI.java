@@ -32,7 +32,7 @@ import com.sleepycat.je.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 
@@ -40,7 +40,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import static org.opends.server.util.ServerConstants.ATTR_REFERRAL_URL;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.JebMessages.
      NOTE_JEB_REFERRAL_RESULT_MESSAGE;
 /**
@@ -53,10 +52,7 @@ import static org.opends.messages.JebMessages.
  */
 public class DN2URI extends DatabaseContainer
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The key comparator used for the DN database.
@@ -262,10 +258,7 @@ public class DN2URI extends DatabaseContainer
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       return ConditionResult.UNDEFINED;
     }
@@ -496,10 +489,7 @@ public class DN2URI extends DatabaseContainer
       }
       catch (DirectoryException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         // Return the non-LDAP URI as is.
       }
 
@@ -578,17 +568,11 @@ public class DN2URI extends DatabaseContainer
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
     catch (UnsupportedEncodingException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -720,10 +704,7 @@ public class DN2URI extends DatabaseContainer
             }
             catch (DirectoryException e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
               // Return the non-LDAP URI as is.
             }
 
@@ -745,17 +726,11 @@ public class DN2URI extends DatabaseContainer
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
     catch (UnsupportedEncodingException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     return true;

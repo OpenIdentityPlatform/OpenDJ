@@ -36,11 +36,10 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class implements a virtual attribute provider that is meant to serve the
@@ -49,10 +48,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public class HasSubordinatesVirtualAttributeProvider
        extends VirtualAttributeProvider<HasSubordinatesVirtualAttributeCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Creates a new instance of this HasSubordinates virtual attribute provider.
@@ -92,10 +88,7 @@ public class HasSubordinatesVirtualAttributeProvider
     }
     catch(DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
     }
 
     return Collections.emptySet();
@@ -114,10 +107,7 @@ public class HasSubordinatesVirtualAttributeProvider
     }
     catch(DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       return false;
     }
@@ -140,10 +130,7 @@ public class HasSubordinatesVirtualAttributeProvider
     }
     catch(DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       return false;
     }

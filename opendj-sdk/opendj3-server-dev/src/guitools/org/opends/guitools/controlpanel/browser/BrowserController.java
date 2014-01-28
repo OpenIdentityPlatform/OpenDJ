@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -36,8 +37,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
@@ -137,8 +139,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
   private String filter;
 
-  private static final Logger LOG =
-    Logger.getLogger(BrowserController.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Constructor of the BrowserController.
@@ -1585,7 +1586,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         }
         catch(Throwable t)
         {
-          LOG.log(Level.SEVERE, "Error calling refreshTaskDidProgress: "+t, t);
+          logger.error(LocalizableMessage.raw("Error calling refreshTaskDidProgress: "+t, t));
         }
       }
     };
@@ -1787,8 +1788,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     if (node.getError() != null) {
       if (node.getError().getException() != null)
       {
-        LOG.log(Level.SEVERE, "node has error: "+node.getError().getException(),
-            node.getError().getException());
+        logger.error(LocalizableMessage.raw("node has error: "+node.getError().getException(),
+            node.getError().getException()));
       }
       modifiers |= IconPool.MODIFIER_ERROR;
     }

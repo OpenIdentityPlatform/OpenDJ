@@ -29,12 +29,10 @@ package org.opends.server.replication;
 import java.io.File;
 import java.util.UUID;
 
-import org.opends.messages.Category;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
@@ -43,7 +41,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.testng.Assert.*;
 
 /**
@@ -53,14 +50,14 @@ import static org.testng.Assert.*;
 public class ReSyncTest extends ReplicationTestCase
 {
   /** The tracer object for the debug logger */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private void debugInfo(String s)
   {
     logError(LocalizableMessage.raw(s));
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(s);
+      logger.trace(s);
     }
   }
 

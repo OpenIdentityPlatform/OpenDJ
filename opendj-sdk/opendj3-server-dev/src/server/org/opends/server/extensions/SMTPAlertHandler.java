@@ -39,14 +39,12 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.EMailMessage;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.ExtensionMessages.*;
 
@@ -62,10 +60,7 @@ public class SMTPAlertHandler
        implements AlertHandler<SMTPAlertHandlerCfg>,
                   ConfigurationChangeListener<SMTPAlertHandlerCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -175,10 +170,7 @@ public class SMTPAlertHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage msg = WARN_SMTPALERTHANDLER_ERROR_SENDING_MESSAGE.get(
           alertType, alertMessage, e.getLocalizedMessage());

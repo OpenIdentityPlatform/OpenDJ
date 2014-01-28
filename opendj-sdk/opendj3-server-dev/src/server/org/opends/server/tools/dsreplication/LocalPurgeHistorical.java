@@ -30,10 +30,10 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.CoreMessages.*;
 
 import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.DN;
@@ -55,8 +55,7 @@ import org.opends.server.util.cli.PointAdder;
  */
 public class LocalPurgeHistorical
 {
-  private static final Logger LOG =
-    Logger.getLogger(LocalPurgeHistorical.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final PurgeHistoricalUserData uData;
   private final ConsoleApplication app;
@@ -119,8 +118,8 @@ public class LocalPurgeHistorical
         ERR_CANNOT_LOAD_CONFIG_HANDLER_CLASS.get(
             configClass, StaticUtils.stackTraceToSingleLineString(e));
       app.println(message);
-      LOG.log(Level.SEVERE, "Error loading configuration class "+configClass+
-          ": "+e, e);
+      logger.error(LocalizableMessage.raw("Error loading configuration class "+configClass+
+          ": "+e, e));
       return ReplicationCliReturnCode.ERROR_LOCAL_PURGE_HISTORICAL_CLASS_LOAD;
     }
 
@@ -141,8 +140,8 @@ public class LocalPurgeHistorical
         ERR_CANNOT_LOAD_CONFIG_HANDLER_CLASS.get(
             configClass, StaticUtils.stackTraceToSingleLineString(ode));
       app.println(message);
-      LOG.log(Level.SEVERE, "Error starting server with file "+configFile+
-          ": "+ode, ode);
+      logger.error(LocalizableMessage.raw("Error starting server with file "+configFile+
+          ": "+ode, ode));
       return ReplicationCliReturnCode.ERROR_LOCAL_PURGE_HISTORICAL_SERVER_START;
     }
     pointAdder.stop();
@@ -188,7 +187,7 @@ public class LocalPurgeHistorical
 
   private ReplicationCliReturnCode handleGenericExecuting(OpenDsException ode)
   {
-    LOG.log(Level.SEVERE, "Error executing purge historical: "+ode, ode);
+    logger.error(LocalizableMessage.raw("Error executing purge historical: "+ode, ode));
     app.println();
     app.println(ERR_REPLICATION_PURGE_HISTORICAL_EXECUTING.get(
         ode.getMessageObject()));

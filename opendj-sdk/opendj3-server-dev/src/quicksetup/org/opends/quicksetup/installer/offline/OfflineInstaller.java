@@ -37,8 +37,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.security.KeyStoreException;
 
 import org.opends.quicksetup.ApplicationException;
@@ -80,8 +80,7 @@ public class OfflineInstaller extends Installer
 
   private ApplicationException runError;
 
-  private static final Logger LOG =
-    Logger.getLogger(OfflineInstaller.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Actually performs the install in this thread.  The thread is blocked.
@@ -228,7 +227,7 @@ public class OfflineInstaller extends Installer
 
     } catch (ApplicationException ex)
     {
-      LOG.log(Level.SEVERE, "Caught exception: "+ex, ex);
+      logger.error(LocalizableMessage.raw("Caught exception: "+ex, ex));
       if (ReturnCode.CANCELED.equals(ex.getType())) {
         uninstall();
         setCurrentProgressStep(InstallProgressStep.FINISHED_CANCELED);
@@ -249,7 +248,7 @@ public class OfflineInstaller extends Installer
               notifyListeners(getFormattedDoneWithLineBreak());
             }
           } catch (Throwable t) {
-            LOG.log(Level.INFO, "error stopping server", t);
+            logger.debug(LocalizableMessage.raw("error stopping server", t));
           }
         }
         notifyListeners(getLineBreak());
@@ -257,7 +256,7 @@ public class OfflineInstaller extends Installer
         setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
         LocalizableMessage html = getFormattedError(ex, true);
         notifyListeners(html);
-        LOG.log(Level.SEVERE, "Error installing.", ex);
+        logger.error(LocalizableMessage.raw("Error installing.", ex));
         notifyListeners(getLineBreak());
         notifyListenersOfLogAfterError();
       }
@@ -280,7 +279,7 @@ public class OfflineInstaller extends Installer
             notifyListeners(getFormattedDoneWithLineBreak());
           }
         } catch (Throwable t2) {
-          LOG.log(Level.INFO, "error stopping server", t2);
+          logger.debug(LocalizableMessage.raw("error stopping server", t2));
         }
       }
       notifyListeners(getLineBreak());
@@ -291,7 +290,7 @@ public class OfflineInstaller extends Installer
           Utils.getThrowableMsg(INFO_BUG_MSG.get(), t), t);
       LocalizableMessage msg = getFormattedError(ex, true);
       notifyListeners(msg);
-      LOG.log(Level.SEVERE, "Error installing.", t);
+      logger.error(LocalizableMessage.raw("Error installing.", t));
       notifyListeners(getLineBreak());
       notifyListenersOfLogAfterError();
       runError = ex;
@@ -363,7 +362,7 @@ public class OfflineInstaller extends Installer
           notifyListeners(getFormattedDoneWithLineBreak());
         }
       } catch (ApplicationException e) {
-        LOG.log(Level.INFO, "error stopping server", e);
+        logger.debug(LocalizableMessage.raw("error stopping server", e));
       }
     }
 
@@ -377,7 +376,7 @@ public class OfflineInstaller extends Installer
       fm.rename(newConfig, installation.getCurrentConfigurationFile());
 
     } catch (ApplicationException ae) {
-      LOG.log(Level.INFO, "failed to restore base configuration", ae);
+      logger.debug(LocalizableMessage.raw("failed to restore base configuration", ae));
     }
 
     // Cleanup SSL if necessary
@@ -392,7 +391,7 @@ public class OfflineInstaller extends Installer
         try {
           cm.removeCertificate(SELF_SIGNED_CERT_ALIAS);
         } catch (KeyStoreException e) {
-          LOG.log(Level.INFO, "Error deleting self signed certification", e);
+          logger.debug(LocalizableMessage.raw("Error deleting self signed certification", e));
         }
       }
 
@@ -402,7 +401,7 @@ public class OfflineInstaller extends Installer
         try {
           fm.delete(keystore);
         } catch (ApplicationException e) {
-          LOG.log(Level.INFO, "Failed to delete keystore", e);
+          logger.debug(LocalizableMessage.raw("Failed to delete keystore", e));
         }
       }
 
@@ -412,7 +411,7 @@ public class OfflineInstaller extends Installer
         try {
           fm.delete(keystorePin);
         } catch (ApplicationException e) {
-          LOG.log(Level.INFO, "Failed to delete keystore.pin", e);
+          logger.debug(LocalizableMessage.raw("Failed to delete keystore.pin", e));
         }
       }
 
@@ -422,7 +421,7 @@ public class OfflineInstaller extends Installer
         try {
           fm.delete(truststore);
         } catch (ApplicationException e) {
-          LOG.log(Level.INFO, "Failed to delete truststore", e);
+          logger.debug(LocalizableMessage.raw("Failed to delete truststore", e));
         }
       }
     }
@@ -431,7 +430,7 @@ public class OfflineInstaller extends Installer
     try {
       fm.deleteChildren(installation.getDatabasesDirectory());
     } catch (ApplicationException e) {
-      LOG.log(Level.INFO, "Error deleting databases", e);
+      logger.debug(LocalizableMessage.raw("Error deleting databases", e));
     }
 
     if (!isVerbose())

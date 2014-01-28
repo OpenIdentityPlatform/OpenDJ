@@ -27,8 +27,7 @@
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.OID_PAGED_RESULTS_CONTROL;
 
@@ -81,10 +80,7 @@ public class PagedResultsControl extends Control
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));
@@ -98,10 +94,7 @@ public class PagedResultsControl extends Control
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(String.valueOf(e));
@@ -115,10 +108,7 @@ public class PagedResultsControl extends Control
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE.get(String.valueOf(e));
@@ -131,10 +121,7 @@ public class PagedResultsControl extends Control
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));
@@ -156,11 +143,7 @@ public class PagedResultsControl extends Control
    */
   public static final  ControlDecoder<PagedResultsControl> DECODER =
     new Decoder();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 

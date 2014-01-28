@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.EmbeddedUtils;
@@ -52,7 +52,6 @@ import org.opends.server.util.args.StringArgument;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -66,10 +65,7 @@ import static org.opends.server.tools.ToolConstants.*;
  */
 public class LDAPSearch
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The fully-qualified name of this class.
@@ -279,10 +275,7 @@ public class LDAPSearch
                     }
                     catch (Exception e)
                     {
-                      if (debugEnabled())
-                      {
-                        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                      }
+                      logger.traceException(e);
                     }
                   }
                 }
@@ -405,10 +398,7 @@ public class LDAPSearch
 
         } catch(ASN1Exception ae)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-          }
+          logger.traceException(ae);
           throw new IOException(ae.getMessage());
         }
       }
@@ -1133,10 +1123,7 @@ public class LDAPSearch
           filters.add(LDAPFilter.decode(filterString));
         } catch (LDAPException le)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, le);
-          }
+          logger.traceException(le);
           err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
           return CLIENT_SIDE_PARAM_ERROR;
         }
@@ -1193,10 +1180,7 @@ public class LDAPSearch
       portNumber = port.getIntValue();
     } catch(ArgumentException ae)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
+      logger.traceException(ae);
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -1215,10 +1199,7 @@ public class LDAPSearch
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
+      logger.traceException(ae);
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -1258,10 +1239,7 @@ public class LDAPSearch
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        logger.traceException(ex);
         err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
@@ -1677,10 +1655,7 @@ public class LDAPSearch
         }
       } catch(Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
@@ -1849,10 +1824,7 @@ public class LDAPSearch
       }
       else
       {
-      if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, le);
-        }
+      logger.traceException(le);
 
         LDAPToolUtils.printErrorMessage(err, le.getMessageObject(), code,
             le.getErrorMessage(), le.getMatchedDN());
@@ -1860,10 +1832,7 @@ public class LDAPSearch
       return code;
     } catch(LDAPConnectionException lce)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, lce);
-      }
+      logger.traceException(lce);
       LDAPToolUtils.printErrorMessage(err,
                                       lce.getMessageObject(),
                                       lce.getResultCode(),
@@ -1873,10 +1842,7 @@ public class LDAPSearch
       return code;
     } catch(Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
       return 1;
     } finally

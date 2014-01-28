@@ -36,7 +36,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import javax.security.auth.x500.X500Principal;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -48,14 +47,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.GSERException;
 import org.opends.server.protocols.asn1.GSERParser;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.StaticUtils;
@@ -87,13 +85,7 @@ class CertificateExactMatchingRule
    * The GSER identifier for the rdnSequence IdentifiedChoiceValue.
    */
   private static final String GSER_ID_RDNSEQUENCE = "rdnSequence";
-
-
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -203,9 +195,9 @@ class CertificateExactMatchingRule
     {
       // There seems to be a problem while parsing the certificate.
       LocalizableMessage message = WARN_CERTIFICATE_MATCH_PARSE_ERROR.get(ce.getMessage());
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-         TRACER.debugWarning(message.toString());
+         logger.trace(message.toString());
       }
 
       // return the raw bytes as a fall back
@@ -220,10 +212,7 @@ class CertificateExactMatchingRule
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // We couldn't normalize the DN for some reason.  If we're supposed to use
       // strict syntax enforcement, then throw an exception.  Otherwise, log a
@@ -278,10 +267,7 @@ class CertificateExactMatchingRule
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       // Assume the assertion value is a certificate and parse issuer and serial
       // number. If the value is not even a certificate then the raw bytes will
       // be returned.
@@ -363,10 +349,7 @@ class CertificateExactMatchingRule
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // We couldn't normalize the DN for some reason.  If we're supposed to use
       // strict syntax enforcement, then throw an exception.  Otherwise, log a

@@ -29,7 +29,6 @@ package org.opends.server.workflowelement.localbackend;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -44,7 +43,7 @@ import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
@@ -65,10 +64,7 @@ public class LocalBackendModifyOperation
                   PostResponseModifyOperation,
                   PostSynchronizationModifyOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The backend in which the target entry exists.
@@ -366,10 +362,7 @@ public class LocalBackendModifyOperation
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               LocalizableMessage message = ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER
                   .get(getExceptionMessage(e));
@@ -619,10 +612,7 @@ public class LocalBackendModifyOperation
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       setResponseData(de);
     }
@@ -669,10 +659,7 @@ public class LocalBackendModifyOperation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
     return null;
   }
@@ -707,10 +694,7 @@ public class LocalBackendModifyOperation
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             throw newDirectoryException(currentEntry, de.getResultCode(),
                            ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(
@@ -744,10 +728,7 @@ public class LocalBackendModifyOperation
               throw de;
             }
 
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             throw newDirectoryException(currentEntry, de.getResultCode(),
                            ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(
@@ -1516,10 +1497,7 @@ public class LocalBackendModifyOperation
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         lowerName = toLowerCase(v.getValue().toString());
       }
@@ -1753,10 +1731,7 @@ public class LocalBackendModifyOperation
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
           ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(String
@@ -1785,10 +1760,7 @@ public class LocalBackendModifyOperation
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         throw new DirectoryException(
             ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -2090,9 +2062,7 @@ public class LocalBackendModifyOperation
                   return false;
               }
           } catch (DirectoryException de) {
-              if (debugEnabled()) {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
               logError(ERR_MODIFY_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
                       getConnectionID(), getOperationID(),
                       getExceptionMessage(de)));
@@ -2122,9 +2092,7 @@ public class LocalBackendModifyOperation
                   return false;
               }
           } catch (DirectoryException de) {
-              if (debugEnabled()) {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
               logError(ERR_MODIFY_SYNCH_PREOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
@@ -2143,9 +2111,7 @@ public class LocalBackendModifyOperation
           try {
               provider.doPostOperation(this);
           } catch (DirectoryException de) {
-              if (debugEnabled()) {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
+              logger.traceException(de);
               logError(ERR_MODIFY_SYNCH_POSTOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);

@@ -31,13 +31,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.util.Base64;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -49,10 +48,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class AddRequestProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The set of attributes for this add request. */
   private List<RawAttribute> attributes;

@@ -29,8 +29,6 @@ package org.opends.server.core;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,8 +36,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PreParseBindOperation;
@@ -59,10 +56,7 @@ public class BindOperationBasis
              extends AbstractOperation
              implements BindOperation, PreParseBindOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The credentials used for SASL authentication. */
   private ByteString saslCredentials;
@@ -381,10 +375,7 @@ public class BindOperationBasis
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       setResultCode(ResultCode.INVALID_CREDENTIALS);
       setAuthFailureReason(de.getMessageObject());
@@ -741,10 +732,7 @@ public class BindOperationBasis
     catch(CanceledOperationException coe)
     {
       // This shouldn't happen for bind operations. Just cancel anyways
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, coe);
-      }
+      logger.traceException(coe);
 
       setResultCode(ResultCode.CANCELED);
 

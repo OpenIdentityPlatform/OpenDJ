@@ -51,7 +51,7 @@ import org.opends.server.backends.jeb.importLDIF.Importer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.extensions.DiskSpaceMonitor;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.RuntimeInformation;
 import org.forgerock.util.Reject;
@@ -66,7 +66,6 @@ import static com.sleepycat.je.EnvironmentConfig.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -79,10 +78,7 @@ public class BackendImpl
     implements ConfigurationChangeListener<LocalDBBackendCfg>, AlertGenerator,
     DiskSpaceMonitorHandler
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -199,10 +195,7 @@ public class BackendImpl
       }
       catch (InterruptedException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -242,19 +235,13 @@ public class BackendImpl
 
         return cis.getChecksum().getValue();
       } catch (Exception e) {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       } finally {
         if (fis != null) {
           try {
             fis.close();
           } catch (Exception e) {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
       }
@@ -306,10 +293,7 @@ public class BackendImpl
     }
     catch(DatabaseException databaseException)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, databaseException);
-      }
+      logger.traceException(databaseException);
       LocalizableMessage message =
           WARN_JEB_GET_ENTRY_COUNT_FAILED.get(databaseException.getMessage());
       throw new InitializationException(
@@ -324,10 +308,7 @@ public class BackendImpl
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
             String.valueOf(dn), String.valueOf(e));
@@ -371,10 +352,7 @@ public class BackendImpl
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -394,10 +372,7 @@ public class BackendImpl
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message = ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage());
       logError(message);
     }
@@ -469,10 +444,7 @@ public class BackendImpl
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       return false;
     }
@@ -547,10 +519,7 @@ public class BackendImpl
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -617,10 +586,7 @@ public class BackendImpl
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -658,10 +624,7 @@ public class BackendImpl
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -703,10 +666,7 @@ public class BackendImpl
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -745,10 +705,7 @@ public class BackendImpl
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -790,10 +747,7 @@ public class BackendImpl
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -843,10 +797,7 @@ public class BackendImpl
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -884,10 +835,7 @@ public class BackendImpl
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw createDirectoryException(e);
     }
     finally
@@ -919,20 +867,14 @@ public class BackendImpl
     }
     catch (IOException ioe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
-      }
+      logger.traceException(ioe);
       LocalizableMessage message = ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
     catch (DatabaseException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
       throw createDirectoryException(de);
     }
     catch (IdentifiedException e)
@@ -941,10 +883,7 @@ public class BackendImpl
       {
         throw (DirectoryException) e;
       }
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessageObject());
     }
@@ -1003,10 +942,7 @@ public class BackendImpl
     }
     catch (ExecutionException execEx)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, execEx);
-      }
+      logger.traceException(execEx);
       if (execEx.getCause() instanceof DirectoryException)
       {
         throw ((DirectoryException) execEx.getCause());
@@ -1020,38 +956,26 @@ public class BackendImpl
     }
     catch (InterruptedException intEx)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, intEx);
-      }
+      logger.traceException(intEx);
       LocalizableMessage message = ERR_INTERRUPTED_ERROR.get(intEx.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
     catch (JebException je)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, je);
-      }
+      logger.traceException(je);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    je.getMessageObject());
     }
     catch (InitializationException ie)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
+      logger.traceException(ie);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    ie.getMessageObject());
     }
     catch (ConfigException ce)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
+      logger.traceException(ce);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    ce.getMessageObject());
     }
@@ -1073,18 +997,15 @@ public class BackendImpl
         }
 
         // Sync the environment to disk.
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
           LocalizableMessage message = NOTE_JEB_IMPORT_CLOSING_DATABASE.get();
-          TRACER.debugInfo(message.toString());
+          logger.trace(message.toString());
         }
       }
       catch (DatabaseException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
       }
     }
   }
@@ -1136,18 +1057,12 @@ public class BackendImpl
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw createDirectoryException(e);
     }
     catch (JebException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessageObject());
     }
@@ -1210,48 +1125,33 @@ public class BackendImpl
     }
     catch (ExecutionException execEx)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, execEx);
-      }
+      logger.traceException(execEx);
       LocalizableMessage message = ERR_EXECUTION_ERROR.get(execEx.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
     catch (InterruptedException intEx)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, intEx);
-      }
+      logger.traceException(intEx);
       LocalizableMessage message = ERR_INTERRUPTED_ERROR.get(intEx.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
     catch (ConfigException ce)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
+      logger.traceException(ce);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               ce.getMessageObject());
     }
     catch (JebException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               e.getMessageObject());
     }
     catch (InitializationException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw new InitializationException(e.getMessageObject());
     }
     finally
@@ -1275,10 +1175,7 @@ public class BackendImpl
       }
       catch (DatabaseException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -1408,10 +1305,7 @@ public class BackendImpl
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               resultCode = DirectoryServer.getServerErrorResultCode();
 
@@ -1563,9 +1457,7 @@ public class BackendImpl
       return rc;
     }
     catch (DatabaseException e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message = ERR_JEB_OPEN_ENV_FAIL.get(e.getMessage());
       throw new InitializationException(message, e);
     }

@@ -31,7 +31,6 @@ package org.opends.server.core;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.*;
@@ -42,7 +41,7 @@ import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 
 
@@ -58,10 +57,7 @@ import org.opends.server.types.*;
  */
 public final class SubentryPasswordPolicy extends PasswordPolicy
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Password Policy Subentry draft attributes.
   private static final String PWD_OC_POLICY = "pwdpolicy";
@@ -142,10 +138,9 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     {
       // This should not happen -- The server doesn't
       // have a pwdPolicy objectclass defined.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER
-            .debugWarning("No %s objectclass is defined in the server schema.",
+        logger.trace("No %s objectclass is defined in the server schema.",
                 PWD_OC_POLICY);
       }
       for (String ocName : objectClasses.values())

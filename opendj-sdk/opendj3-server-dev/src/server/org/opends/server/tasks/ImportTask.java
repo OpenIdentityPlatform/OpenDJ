@@ -30,10 +30,8 @@ import org.opends.messages.TaskMessages;
 
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.tools.makeldif.TemplateFile;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
@@ -72,10 +70,7 @@ import java.util.Random;
  */
 public class ImportTask extends Task
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -971,10 +966,7 @@ public class ImportTask extends Task
     }
     catch (DirectoryException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       logError(e.getMessageObject());
       return TaskState.STOPPED_BY_ERROR;
@@ -998,10 +990,7 @@ public class ImportTask extends Task
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), getExceptionMessage(e));
@@ -1017,10 +1006,7 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         DirectoryServer.notifyImportEnded(backend, importConfig, false);
         LocalizableMessage message = null;
@@ -1040,10 +1026,7 @@ public class ImportTask extends Task
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         DirectoryServer.notifyImportEnded(backend, importConfig, false);
         LocalizableMessage message =
@@ -1068,10 +1051,7 @@ public class ImportTask extends Task
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
               backend.getBackendID(), getExceptionMessage(e));
@@ -1094,10 +1074,7 @@ public class ImportTask extends Task
       }
       catch (DirectoryException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         logError(e.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;

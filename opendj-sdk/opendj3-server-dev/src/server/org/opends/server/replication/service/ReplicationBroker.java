@@ -46,18 +46,16 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.HostPort;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.replication.server.ReplicationServer.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -152,11 +150,7 @@ public class ReplicationBroker
     }
 
   }
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private volatile boolean shutdown = false;
   private final Object startStopLock = new Object();
   private volatile ReplicationDomainCfg config;
@@ -862,7 +856,7 @@ public class ReplicationBroker
        * Connect to each replication server and get their ServerState then find
        * out which one is the best to connect to.
        */
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
         debugInfo("phase 1 : will perform PhaseOneH with each RS in order to "
             + "elect the preferred one");
 
@@ -880,7 +874,7 @@ public class ReplicationBroker
             replicationServerInfos, serverId, getGroupId(), getGenerationID());
 
         // Best found, now initialize connection to this one (handshake phase 1)
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
           debugInfo("phase 2 : will perform PhaseOneH with the preferred RS="
               + evals.getBestRS());
 
@@ -1086,7 +1080,7 @@ public class ReplicationBroker
       */
 
       int nChanges = ServerState.diffChanges(rsState, state);
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
         debugInfo("computed " + nChanges + " changes late.");
       }
@@ -1167,7 +1161,7 @@ public class ReplicationBroker
       // Read the ReplServerStartMsg or ReplServerStartDSMsg that should
       // come back.
       ReplicationMsg msg = newSession.receive();
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
         debugInfo("RB HANDSHAKE SENT:\n" + serverStartMsg + "\nAND RECEIVED:\n"
             + msg);
@@ -1243,9 +1237,9 @@ public class ReplicationBroker
           logError(errorMessage);
         }
 
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo(errorMessage.toString());
+          logger.trace(errorMessage.toString());
         }
       }
     }
@@ -1271,7 +1265,7 @@ public class ReplicationBroker
       rs.session.publish(startECLSessionMsg);
 
       // FIXME ECL In the handshake phase two, should RS send back a topo msg ?
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
         debugInfo("RB HANDSHAKE SENT:\n" + startECLSessionMsg);
       }
@@ -1323,7 +1317,7 @@ public class ReplicationBroker
       // Read the TopologyMsg that should come back.
       final TopologyMsg topologyMsg = (TopologyMsg) session.receive();
 
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
         debugInfo("RB HANDSHAKE SENT:\n" + startSessionMsg
             + "\nAND RECEIVED:\n" + topologyMsg);
@@ -2320,7 +2314,7 @@ public class ReplicationBroker
       }
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
       debugInfo("end restart : connected=" + rs.isConnected() + " with RS("
           + rs.getServerId() + ") genId=" + generationID);
@@ -2380,7 +2374,7 @@ public class ReplicationBroker
         fix the problem when we finally connect.
         */
 
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
           debugInfo("publish(): Publishing a message is not possible due to"
               + " existing connection error.");
@@ -2486,7 +2480,7 @@ public class ReplicationBroker
           } catch (InterruptedException e1)
           {
             // ignore
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
               debugInfo("publish(): Interrupted exception raised : "
                   + e.getLocalizedMessage());
@@ -2496,7 +2490,7 @@ public class ReplicationBroker
       } catch (InterruptedException e)
       {
         // just loop.
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
           debugInfo("publish(): Interrupted exception raised."
               + e.getLocalizedMessage());
@@ -2679,7 +2673,7 @@ public class ReplicationBroker
                       evals.getEvaluation(bestRsServerId).toString());
                 }
                 logError(message);
-                if (debugEnabled())
+                if (logger.isTraceEnabled())
                   debugInfo("best replication servers evaluation results: "
                       + evals);
                 reStart(true);
@@ -2701,10 +2695,7 @@ public class ReplicationBroker
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         if (!shutdown)
         {
@@ -2793,7 +2784,7 @@ public class ReplicationBroker
    */
   public void stop()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
       debugInfo("is stopping and will close the connection to RS("
           + getRsServerId() + ")");
 
@@ -3044,7 +3035,7 @@ public class ReplicationBroker
    */
   private void receiveTopo(TopologyMsg topoMsg, int rsServerId)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
       debugInfo("receive TopologyMsg=" + topoMsg);
 
     // Store new DS list
@@ -3113,7 +3104,7 @@ public class ReplicationBroker
     }
     else
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
         debugInfo("is not configured to send CSN heartbeat interval");
     }
   }
@@ -3233,7 +3224,7 @@ public class ReplicationBroker
 
   private void debugInfo(String message)
   {
-    TRACER.debugInfo(getClass().getSimpleName() + " for baseDN=" + getBaseDN()
+    logger.trace(getClass().getSimpleName() + " for baseDN=" + getBaseDN()
         + " and serverId=" + getServerId() + " " + message);
   }
 }

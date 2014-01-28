@@ -22,16 +22,16 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.util;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.FileHandler;
-import java.util.logging.SimpleFormatter;
 import java.util.logging.Logger;
-import java.util.logging.Level;
+import java.util.logging.SimpleFormatter;
+
 import java.util.Date;
 import java.text.DateFormat;
 
@@ -68,7 +68,7 @@ public class ControlPanelLog
         logger.addHandler(fileHandler);
       }
       Logger logger = Logger.getLogger(packages[0]);
-      logger.log(Level.INFO, getInitialLogRecord());
+      logger.info(getInitialLogRecord());
     }
   }
 
@@ -86,7 +86,7 @@ public class ControlPanelLog
       logger.setUseParentHandlers(false); // disable logging to console
     }
     logger.addHandler(fileHandler);
-    logger.log(Level.INFO, getInitialLogRecord());
+    logger.info(getInitialLogRecord());
   }
 
   /**

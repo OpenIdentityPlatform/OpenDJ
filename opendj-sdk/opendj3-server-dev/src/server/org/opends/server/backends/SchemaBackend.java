@@ -72,7 +72,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
@@ -93,7 +93,6 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -109,10 +108,7 @@ public class SchemaBackend
      extends Backend
      implements ConfigurationChangeListener<SchemaBackendCfg>, AlertGenerator
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -398,9 +394,7 @@ public class SchemaBackend
       try {
         DirectoryServer.registerBaseDN(baseDN, this, true);
       } catch (Exception e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
             baseDN.toString(), getExceptionMessage(e));
@@ -511,10 +505,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES.get(
           getExceptionMessage(e));
@@ -544,10 +535,7 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -1168,10 +1156,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
                     v.getValue().toString(), de.getMessageObject());
@@ -1194,10 +1179,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
                     get(v.getValue().toString(), de.getMessageObject());
@@ -1220,10 +1202,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
                     v.getValue().toString(), de.getMessageObject());
@@ -1246,10 +1225,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
                     v.getValue().toString(), de.getMessageObject());
@@ -1272,10 +1248,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
                     v.getValue().toString(), de.getMessageObject());
@@ -1298,10 +1271,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
                     v.getValue().toString(), de.getMessageObject());
@@ -1324,10 +1294,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message =
                     ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
@@ -1370,10 +1337,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
                     v.getValue().toString(), de.getMessageObject());
@@ -1397,10 +1361,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
                     get(v.getValue().toString(), de.getMessageObject());
@@ -1423,10 +1384,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
                     v.getValue().toString(), de.getMessageObject());
@@ -1449,10 +1407,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
                     v.getValue().toString(), de.getMessageObject());
@@ -1476,10 +1431,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
                     v.getValue().toString(), de.getMessageObject());
@@ -1503,10 +1455,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
                     v.getValue().toString(), de.getMessageObject());
@@ -1530,10 +1479,7 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
+                logger.traceException(de);
 
                 LocalizableMessage message =
                     ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
@@ -1644,19 +1590,13 @@ public class SchemaBackend
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       throw de;
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA.get(getExceptionMessage(e));
@@ -1901,10 +1841,7 @@ public class SchemaBackend
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
               v.getValue().toString(), de.getMessageObject());
@@ -2231,10 +2168,7 @@ public class SchemaBackend
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.get(
               v.getValue().toString(), de.getMessageObject());
@@ -2536,10 +2470,7 @@ public class SchemaBackend
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
               v.getValue().toString(), de.getMessageObject());
@@ -3082,10 +3013,7 @@ public class SchemaBackend
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
               v.getValue().toString(), de.getMessageObject());
@@ -3928,10 +3856,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       boolean allCleaned = true;
       for (File f : origFileList)
@@ -3948,10 +3873,7 @@ public class SchemaBackend
         }
         catch (Exception e2)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-          }
+          logger.traceException(e2);
 
           allCleaned = false;
         }
@@ -3993,10 +3915,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       for (File f : installedFileList)
       {
@@ -4009,10 +3928,7 @@ public class SchemaBackend
         }
         catch (Exception e2)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-          }
+          logger.traceException(e2);
         }
       }
 
@@ -4034,10 +3950,7 @@ public class SchemaBackend
         }
         catch (Exception e2)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-          }
+          logger.traceException(e2);
 
           allRestored = false;
         }
@@ -4079,10 +3992,7 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -4097,10 +4007,7 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -4143,10 +4050,7 @@ public class SchemaBackend
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
 
@@ -4184,10 +4088,7 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -4314,10 +4215,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_SCHEMA_UNABLE_TO_CREATE_LDIF_WRITER.get(
           stackTraceToSingleLineString(e));
@@ -4334,10 +4232,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_SCHEMA_UNABLE_TO_EXPORT_BASE.get(stackTraceToSingleLineString(e));
@@ -4352,10 +4247,7 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -4481,10 +4373,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       attrTypeSyntax = new AttributeTypeSyntax();
     }
@@ -4601,10 +4490,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       ocSyntax = new ObjectClassSyntax();
     }
@@ -4789,10 +4675,7 @@ public class SchemaBackend
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_SCHEMA_BACKUP_CANNOT_GET_MAC.get(
               macKeyID, stackTraceToSingleLineString(e));
@@ -4813,10 +4696,7 @@ public class SchemaBackend
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_SCHEMA_BACKUP_CANNOT_GET_DIGEST.get(
               digestAlgorithm, stackTraceToSingleLineString(e));
@@ -4865,10 +4745,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_SCHEMA_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
           get(String.valueOf(filename), backupDirectory.getPath(),
@@ -4889,10 +4766,7 @@ public class SchemaBackend
       }
       catch (CryptoManagerException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_SCHEMA_BACKUP_CANNOT_GET_CIPHER.get(
                 stackTraceToSingleLineString(e));
@@ -4944,10 +4818,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       try
       {
@@ -4977,10 +4848,7 @@ public class SchemaBackend
     catch (Exception e)
     {
       // Can't locate or list Instance schema directory
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-    }
+      logger.traceException(e);
 
       message = ERR_SCHEMA_BACKUP_CANNOT_LIST_SCHEMA_FILES.get(
           schemaInstanceDirPath, stackTraceToSingleLineString(e));
@@ -5053,10 +4921,7 @@ public class SchemaBackend
           inputStream.close();
         } catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
            try
           {
@@ -5091,10 +4956,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       message = ERR_SCHEMA_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(
           filename, backupDirectory.getPath(), stackTraceToSingleLineString(e));
@@ -5134,10 +4996,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       message = ERR_SCHEMA_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
           backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
@@ -5177,10 +5036,7 @@ public class SchemaBackend
     }
     catch (ConfigException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessageObject());
     }
@@ -5191,10 +5047,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
         backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
@@ -5738,10 +5591,7 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
 
       messages.add(ERR_SCHEMA_CANNOT_DETERMINE_BASE_DN.get(
@@ -5787,10 +5637,7 @@ public class SchemaBackend
     }
     catch (ConfigException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       messages.add(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
               String.valueOf(configEntryDN),
@@ -5829,10 +5676,7 @@ public class SchemaBackend
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           messages.add(ERR_SCHEMA_CANNOT_DEREGISTER_BASE_DN.get(
                   String.valueOf(dn),
@@ -5851,10 +5695,7 @@ public class SchemaBackend
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           messages.add(ERR_SCHEMA_CANNOT_REGISTER_BASE_DN.get(
                   String.valueOf(dn),

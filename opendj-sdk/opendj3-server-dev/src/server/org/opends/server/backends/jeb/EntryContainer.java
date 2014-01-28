@@ -29,7 +29,6 @@ package org.opends.server.backends.jeb;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import com.sleepycat.je.*;
@@ -53,7 +52,7 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -68,10 +67,7 @@ import org.opends.server.util.StaticUtils;
 public class EntryContainer
 implements ConfigurationChangeListener<LocalDBBackendCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -599,10 +595,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     }
     catch (DatabaseException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
       close();
       throw de;
     }
@@ -1264,10 +1257,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         String str = pageRequest.getCookie().toHexString();
         LocalizableMessage msg = ERR_JEB_INVALID_PAGED_RESULTS_COOKIE.get(str);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1396,10 +1386,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     if (pageRequest != null)
@@ -1457,10 +1444,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         String str = pageRequest.getCookie().toHexString();
         LocalizableMessage msg = ERR_JEB_INVALID_PAGED_RESULTS_COOKIE.get(str);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1508,10 +1492,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
             continue;
           }
         }
@@ -2169,10 +2150,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     }
     catch (DatabaseException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     return false;
@@ -2464,9 +2442,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           // and added back into the attribute indexes.
           newApexID = rootContainer.getNextEntryID();
 
-          if(debugEnabled())
+          if(logger.isTraceEnabled())
           {
-            TRACER.debugInfo("Move of target entry requires renumbering" +
+            logger.trace("Move of target entry requires renumbering" +
                 "all entries in the subtree. " +
                 "Old DN: %s " +
                 "New DN: %s " +
@@ -2551,9 +2529,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           {
             newID = rootContainer.getNextEntryID();
 
-            if(debugEnabled())
+            if(logger.isTraceEnabled())
             {
-              TRACER.debugInfo("Move of subordinate entry requires " +
+              logger.trace("Move of subordinate entry requires " +
                   "renumbering. " +
                   "Old DN: %s " +
                   "New DN: %s " +
@@ -3249,9 +3227,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     Transaction parentTxn = null;
     TransactionConfig txnConfig = null;
     Transaction txn = env.beginTransaction(parentTxn, txnConfig);
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugVerbose("beginTransaction", "begin txnid=" + txn.getId());
+      logger.trace("beginTransaction", "begin txnid=" + txn.getId());
     }
     return txn;
   }
@@ -3269,9 +3247,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     if (txn != null)
     {
       txn.commit();
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("commit txnid=%d", txn.getId());
+        logger.trace("commit txnid=%d", txn.getId());
       }
     }
   }
@@ -3289,9 +3267,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     if (txn != null)
     {
       txn.abort();
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("abort txnid=%d", txn.getId());
+        logger.trace("abort txnid=%d", txn.getId());
       }
     }
   }
@@ -3751,10 +3729,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       }
       catch(Exception de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         // This is mainly used during the unit tests, so it's not essential.
         try
@@ -3766,10 +3741,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
         }
       }
     }
@@ -3812,9 +3784,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     {
       database.open();
     }
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugVerbose("Cleared the database %s", database.getName());
+      logger.trace("Cleared the database %s", database.getName());
     }
   }
 
@@ -3922,10 +3894,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     // The base entry must exist for a successful result.

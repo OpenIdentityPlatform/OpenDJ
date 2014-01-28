@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -41,11 +41,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.types.DebugLogLevel;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class provides an application-wide timing service. It provides
@@ -159,10 +156,7 @@ public final class TimeThread
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -193,7 +187,7 @@ public final class TimeThread
   private static TimeThread INSTANCE = new TimeThread();
 
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 

@@ -31,7 +31,6 @@ package org.opends.server.core.networkgroups;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.util.Reject.*;
 
@@ -65,12 +64,11 @@ import org.opends.server.core.RootDseWorkflowTopology;
 import org.opends.server.core.Workflow;
 import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.WorkflowTopologyNode;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -302,11 +300,7 @@ public class NetworkGroup
 
   // A lock to protect concurrent access to the registeredNetworkGroups.
   private static Object registeredNetworkGroupsLock = new Object();
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -761,10 +755,7 @@ public class NetworkGroup
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       unacceptableReasons
           .add(ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(
@@ -1625,10 +1616,7 @@ public class NetworkGroup
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(String
@@ -1668,10 +1656,7 @@ public class NetworkGroup
         }
       }
 
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(String

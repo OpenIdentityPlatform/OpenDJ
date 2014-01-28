@@ -27,7 +27,6 @@
 package org.opends.server.types;
 
 import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.*;
@@ -38,7 +37,7 @@ import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * This class defines a data structure for holding configuration
@@ -52,10 +51,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 public final class LDIFExportConfig extends OperationConfig
   implements Closeable
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Indicates whether the data should be compressed as it is written. */
   private boolean compressData;
@@ -944,10 +940,7 @@ public final class LDIFExportConfig extends OperationConfig
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }

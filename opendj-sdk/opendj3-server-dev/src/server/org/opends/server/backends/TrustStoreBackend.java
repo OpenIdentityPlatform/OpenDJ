@@ -30,7 +30,6 @@ package org.opends.server.backends;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -74,7 +73,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.CertificateManager;
@@ -91,10 +90,7 @@ public class TrustStoreBackend
      extends Backend
        implements ConfigurationChangeListener<TrustStoreBackendCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -197,10 +193,7 @@ public class TrustStoreBackend
     }
     catch (KeyStoreException kse)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, kse);
-      }
+      logger.traceException(kse);
 
       LocalizableMessage message = ERR_TRUSTSTORE_INVALID_TYPE.
           get(String.valueOf(trustStoreType), String.valueOf(configEntryDN),
@@ -383,10 +376,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
           String.valueOf(baseDN), String.valueOf(e));
@@ -410,10 +400,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -448,10 +435,7 @@ public class TrustStoreBackend
     }
     catch (KeyStoreException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     return numEntries;
@@ -574,9 +558,9 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.VERBOSE, e);
+        logger.traceException(e);
       }
 
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_RETRIEVE_CERT.get(
@@ -749,10 +733,7 @@ public class TrustStoreBackend
       }
       catch (KeyStoreException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
 
       if (aliases == null)
@@ -776,9 +757,9 @@ public class TrustStoreBackend
           }
           catch (Exception e)
           {
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
-              TRACER.debugCaught(DebugLogLevel.VERBOSE, e);
+              logger.traceException(e);
             }
 
             continue;
@@ -1018,10 +999,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       unacceptableReasons.add(ERR_TRUSTSTORE_CANNOT_DETERMINE_FILE.get(
               String.valueOf(cfgEntryDN),
@@ -1040,10 +1018,7 @@ public class TrustStoreBackend
       }
       catch (KeyStoreException kse)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, kse);
-        }
+        logger.traceException(kse);
 
         LocalizableMessage message = ERR_TRUSTSTORE_INVALID_TYPE.get(
                 String.valueOf(storeType),
@@ -1175,10 +1150,7 @@ public class TrustStoreBackend
     }
     catch (KeyStoreException kse)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, kse);
-      }
+      logger.traceException(kse);
 
       messages.add(ERR_TRUSTSTORE_INVALID_TYPE.get(
               String.valueOf(newTrustStoreType),
@@ -1378,10 +1350,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
           trustStoreFile, getExceptionMessage(e));
@@ -1411,10 +1380,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_CREATE_FACTORY.get(
           trustStoreFile, getExceptionMessage(e));
@@ -1449,10 +1415,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
           trustStoreFile, getExceptionMessage(e));
@@ -1489,10 +1452,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_CREATE_FACTORY.get(
           trustStoreFile, getExceptionMessage(e));
@@ -1528,10 +1488,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
           trustStoreFile, getExceptionMessage(e));
@@ -1556,10 +1513,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_TRUSTSTORE_ERROR_READING_KEY.get(
            alias, trustStoreFile, getExceptionMessage(e));

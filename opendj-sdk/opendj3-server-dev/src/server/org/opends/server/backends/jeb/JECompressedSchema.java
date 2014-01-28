@@ -29,9 +29,6 @@ package org.opends.server.backends.jeb;
 
 
 import static org.opends.messages.JebMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -40,13 +37,12 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
@@ -79,11 +75,7 @@ public final class JECompressedSchema extends CompressedSchema
    * definitions.
    */
   private static final String DB_NAME_OC = "compressed_object_classes";
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The compressed attribute description schema database.
   private Database adDatabase;
@@ -292,10 +284,7 @@ public final class JECompressedSchema extends CompressedSchema
     }
     catch (final ASN1Exception ae)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
+      logger.traceException(ae);
 
       final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(ae
           .getMessage());
@@ -334,10 +323,7 @@ public final class JECompressedSchema extends CompressedSchema
     }
     catch (final ASN1Exception ae)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
+      logger.traceException(ae);
 
       final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_DECODE_AD_TOKEN.get(ae
           .getMessage());

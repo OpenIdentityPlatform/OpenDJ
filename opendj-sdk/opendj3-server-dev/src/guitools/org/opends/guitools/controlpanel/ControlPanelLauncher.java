@@ -34,14 +34,14 @@ import static org.opends.server.util.StaticUtils.wrapText;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.swing.SwingUtilities;
 
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.messages.AdminToolMessages;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.InitializationException;
@@ -67,8 +67,7 @@ public class ControlPanelLauncher
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";
 
-  static private final Logger LOG =
-    Logger.getLogger(ControlPanelLauncher.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Main method invoked by the control-panel script.
@@ -182,7 +181,7 @@ public class ControlPanelLauncher
           }
           catch (Throwable t)
           {
-            LOG.log(Level.WARNING, "Error setting look and feel: "+t, t);
+            logger.warn(LocalizableMessage.raw("Error setting look and feel: "+t, t));
           }
 
           ControlPanelSplashScreen.main(args);
@@ -192,7 +191,7 @@ public class ControlPanelLauncher
         {
           if (ControlPanelLog.isInitialized())
           {
-            LOG.log(Level.WARNING, "Error launching GUI: "+t);
+            logger.warn(LocalizableMessage.raw("Error launching GUI: "+t));
             StringBuilder buf = new StringBuilder();
             while (t != null)
             {
@@ -207,7 +206,7 @@ public class ControlPanelLauncher
                 buf.append("Root cause:\n");
               }
             }
-            LOG.log(Level.WARNING, buf.toString());
+            logger.warn(LocalizableMessage.raw(buf.toString()));
           }
         }
       }
@@ -305,8 +304,7 @@ class ControlPanelSplashScreen extends org.opends.quicksetup.SplashScreen
 
   private static ControlPanel controlPanel;
 
-  private static final Logger LOG =
-    Logger.getLogger(ControlPanelLauncher.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The main method for this class.
@@ -335,7 +333,7 @@ class ControlPanelSplashScreen extends org.opends.quicksetup.SplashScreen
     {
       if (ControlPanelLog.isInitialized())
       {
-        LOG.log(Level.SEVERE, "Error launching GUI: "+t, t);
+        logger.error(LocalizableMessage.raw("Error launching GUI: "+t, t));
       }
       InternalError error =
         new InternalError("Failed to invoke initialize method");
@@ -357,12 +355,12 @@ class ControlPanelSplashScreen extends org.opends.quicksetup.SplashScreen
       {
         try
         {
-          LOG.log(Level.INFO, "going to call createAndDisplayGUI.");
+          logger.debug(LocalizableMessage.raw("going to call createAndDisplayGUI."));
           controlPanel.createAndDisplayGUI();
-          LOG.log(Level.INFO, "called createAndDisplayGUI.");
+          logger.debug(LocalizableMessage.raw("called createAndDisplayGUI."));
         } catch (Throwable t)
         {
-          LOG.log(Level.SEVERE, "Error displaying GUI: "+t, t);
+          logger.error(LocalizableMessage.raw("Error displaying GUI: "+t, t));
           InternalError error =
             new InternalError("Failed to invoke display method");
           error.initCause(t);
@@ -382,8 +380,8 @@ class ControlPanelSplashScreen extends org.opends.quicksetup.SplashScreen
       }
       catch (Throwable t)
       {
-        LOG.log(Level.SEVERE, "Error calling SwingUtilities.invokeAndWait: "+t,
-            t);
+        logger.error(LocalizableMessage.raw("Error calling SwingUtilities.invokeAndWait: "+t,
+            t));
         InternalError error =
           new InternalError(
               "Failed to invoke SwingUtilities.invokeAndWait method");

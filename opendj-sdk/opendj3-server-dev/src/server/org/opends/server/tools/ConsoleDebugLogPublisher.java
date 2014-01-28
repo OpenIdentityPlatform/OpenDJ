@@ -42,9 +42,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
-
-import com.sleepycat.je.*;
 
 /**
  * The debug log publisher implementation that writes debug messages in a
@@ -136,102 +133,6 @@ public class ConsoleDebugLogPublisher extends
               .getStackDepth(), settings.isIncludeCause());
     }
     publish(category, message.toString(), stack);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void traceJEAccess(TraceSettings settings,
-                            String signature,
-                            String sourceLocation,
-                            OperationStatus status,
-                            Database database,
-                            Transaction txn, DatabaseEntry key,
-                            DatabaseEntry data, StackTraceElement[] stackTrace)
-  {
-    LogCategory category = DebugLogCategory.MESSAGE;
-
-    // Build the string that is common to category DATABASE_ACCESS.
-    StringBuilder builder = new StringBuilder();
-    builder.append(" (");
-    builder.append(status.toString());
-    builder.append(")");
-    builder.append(" db=");
-    try
-    {
-      builder.append(database.getDatabaseName());
-    }
-    catch(DatabaseException de)
-    {
-      builder.append(de.toString());
-    }
-    if (txn != null)
-    {
-      builder.append(" txnid=");
-      try
-      {
-        builder.append(txn.getId());
-      }
-      catch(DatabaseException de)
-      {
-        builder.append(de.toString());
-      }
-    }
-    else
-    {
-      builder.append(" txnid=none");
-    }
-
-    builder.append(ServerConstants.EOL);
-    if(key != null)
-    {
-      builder.append("key:");
-      builder.append(ServerConstants.EOL);
-      StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-    }
-
-    // If the operation was successful we log the same common information
-    // plus the data
-    if (status == OperationStatus.SUCCESS && data != null)
-    {
-
-      builder.append("data(len=");
-      builder.append(data.getSize());
-      builder.append("):");
-      builder.append(ServerConstants.EOL);
-      StaticUtils.byteArrayToHexPlusAscii(builder, data.getData(), 4);
-
-    }
-
-    String stack = null;
-    if(stackTrace != null)
-    {
-      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
-                                                      settings.getStackDepth());
-    }
-    publish(category, builder.toString(), stack);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void traceProtocolElement(TraceSettings settings,
-                                   String signature,
-                                   String sourceLocation,
-                                   String decodedForm,
-                                   StackTraceElement[] stackTrace)
-  {
-    LogCategory category = DebugLogCategory.MESSAGE;
-
-    String stack = null;
-    if(stackTrace != null)
-    {
-      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
-                                                      settings.getStackDepth());
-    }
-    publish(category, decodedForm, stack);
   }
 
   /**

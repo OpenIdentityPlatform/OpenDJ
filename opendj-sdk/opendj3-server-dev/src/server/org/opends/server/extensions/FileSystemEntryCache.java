@@ -68,13 +68,12 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.backends.jeb.ConfigurableEnvironment;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.ServerConstants;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.ExtensionMessages.*;
@@ -113,10 +112,7 @@ import static org.opends.messages.ConfigMessages.*;
 public class FileSystemEntryCache
         extends EntryCache <FileSystemEntryCacheCfg>
         implements ConfigurationChangeListener <FileSystemEntryCacheCfg> {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Permissions for cache db environment.
   private static final FilePermission CACHE_HOME_PERMISSIONS =
@@ -267,9 +263,7 @@ public class FileSystemEntryCache
     try {
       checkAndSetupCacheHome(cacheHome);
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // Not having any home directory for the cache db environment is a
       // fatal error as we are unable to continue any further without it.
@@ -383,9 +377,7 @@ public class FileSystemEntryCache
           logError(message);
 
         } catch (CacheIndexNotFoundException e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // Log an error message.
           logError(NOTE_FSCACHE_INDEX_NOT_FOUND.get());
@@ -393,9 +385,7 @@ public class FileSystemEntryCache
           // Clear the entry cache.
           clear();
         } catch (CacheIndexImpairedException e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // Log an error message.
           logError(ERR_FSCACHE_INDEX_IMPAIRED.get());
@@ -403,9 +393,7 @@ public class FileSystemEntryCache
           // Clear the entry cache.
           clear();
         } catch (Exception e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // Log an error message.
           logError(ERR_FSCACHE_CANNOT_LOAD_PERSISTENT_DATA.get());
@@ -418,9 +406,7 @@ public class FileSystemEntryCache
       // If we got here it means we have failed to have a proper backend
       // for this entry cache and there is absolutely no point going any
       // farther from here.
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_FSCACHE_CANNOT_INITIALIZE.get(
@@ -469,9 +455,7 @@ public class FileSystemEntryCache
             throw new Exception();
           }
         } catch (Exception e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // Log an error message.
           logError(ERR_FSCACHE_CANNOT_STORE_PERSISTENT_DATA.get());
@@ -507,9 +491,7 @@ public class FileSystemEntryCache
           entryCacheEnv.close();
         }
       } catch (Exception e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         // That is ok, JE verification and repair on startup should take care of
         // this so if there are any unrecoverable errors during next startup
@@ -624,9 +606,7 @@ public class FileSystemEntryCache
       putEntryToDB(entry.getName().toNormalizedString(),
         backend, entryID, buffer);
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -654,9 +634,7 @@ public class FileSystemEntryCache
       return putEntryToDB(entry.getName().toNormalizedString(),
         backend, entryID, buffer);
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       // We can't rule out the possibility of a conflict, so return false.
       return false;
     }
@@ -695,9 +673,7 @@ public class FileSystemEntryCache
       entryCacheDB.delete(null,
         new DatabaseEntry(entryDN.toNormalizedString().getBytes("UTF-8")));
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     } finally {
       cacheWriteLock.unlock();
     }
@@ -736,9 +712,7 @@ public class FileSystemEntryCache
               classCatalog, FileSystemEntryCacheIndex.class);
         }
       } catch (Exception e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     } finally {
       cacheWriteLock.unlock();
@@ -789,9 +763,7 @@ public class FileSystemEntryCache
         // This backend is empty now, remove it from the backend map.
         entryCacheIndex.backendMap.remove(backend.getBackendID());
       } catch (Exception e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     } finally {
       cacheWriteLock.unlock();
@@ -823,10 +795,7 @@ public class FileSystemEntryCache
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       // This shouldn't happen, but there's not much that we can do if it does.
     }
     finally
@@ -874,9 +843,7 @@ public class FileSystemEntryCache
               new DatabaseEntry(
               entryDN.toNormalizedString().getBytes("UTF-8")));
           } catch (Exception e) {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
           }
         }
 
@@ -931,9 +898,7 @@ public class FileSystemEntryCache
         // Free some main memory/space.
         entryCacheEnv.cleanLog();
       } catch (Exception e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -1092,9 +1057,7 @@ public class FileSystemEntryCache
           newJECachePercent :
           EnvironmentConfig.DEFAULT.getCachePercent()));
       } catch (Exception e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         errorHandler.reportError(
           ERR_FSCACHE_CANNOT_SET_JE_MEMORY_PCT.get(),
           false,
@@ -1104,9 +1067,7 @@ public class FileSystemEntryCache
       try {
         newMutableEnvConfig.setCacheSize(newJECacheSize);
       } catch (Exception e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         errorHandler.reportError(
           ERR_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE.get(),
           false,
@@ -1118,9 +1079,7 @@ public class FileSystemEntryCache
         newEnvConfig = ConfigurableEnvironment.setJEProperties(
           newEnvConfig, newJEProperties, configAttrMap);
       } catch (Exception e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         errorHandler.reportError(
           ERR_FSCACHE_CANNOT_SET_JE_PROPERTIES.get(e.getMessage()),
           false, DirectoryServer.getServerErrorResultCode());
@@ -1166,8 +1125,8 @@ public class FileSystemEntryCache
                     jePropertyName);
                   errorHandler.reportError(message, true, ResultCode.SUCCESS,
                     true);
-                  if (debugEnabled()) {
-                    TRACER.debugInfo("The change to the following property " +
+                  if (logger.isTraceEnabled()) {
+                    logger.trace("The change to the following property " +
                       "will take effect when the component is restarted: " +
                       jePropertyName);
                   }
@@ -1210,9 +1169,7 @@ public class FileSystemEntryCache
             entryCacheEnv.setMutableConfig(newMutableEnvConfig);
             entryCacheEnv.evictMemory();
         } catch (Exception e) {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
             errorHandler.reportError(
               ERR_FSCACHE_CANNOT_SET_JE_MEMORY_PCT.get(),
               false,
@@ -1226,9 +1183,7 @@ public class FileSystemEntryCache
             entryCacheEnv.setMutableConfig(newMutableEnvConfig);
             entryCacheEnv.evictMemory();
         } catch (Exception e) {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
             errorHandler.reportError(
               ERR_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE.get(),
               false,
@@ -1243,9 +1198,7 @@ public class FileSystemEntryCache
           // properties that are mutable at runtime.
           entryCacheEnv.setMutableConfig(newEnvConfig);
         } catch (Exception e) {
-          if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+          logger.traceException(e);
             errorHandler.reportError(
               ERR_FSCACHE_CANNOT_SET_JE_PROPERTIES.get(e.getMessage()),
               false,
@@ -1295,9 +1248,7 @@ public class FileSystemEntryCache
            new Long(maxEntries.longValue()) : new Long(0))
         );
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
     return attrs;
@@ -1340,9 +1291,7 @@ public class FileSystemEntryCache
         throw new Exception();
       }
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // Log an error message.
       logError(ERR_FSCACHE_CANNOT_RETRIEVE_ENTRY.get());
@@ -1427,9 +1376,7 @@ public class FileSystemEntryCache
       // the entry due to memory constraints.
       return true;
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // Log an error message.
       logError(
@@ -1604,9 +1551,7 @@ public class FileSystemEntryCache
         // Remove the the eldest entry from the database.
         entryCacheDB.delete(null, cacheEntryKey);
       } catch (Exception e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       } finally {
         cacheWriteLock.unlock();
       }

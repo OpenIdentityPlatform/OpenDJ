@@ -28,7 +28,6 @@ package org.opends.server.types;
 
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.forgerock.util.Reject.*;
 
@@ -37,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -55,10 +54,7 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
      mayInvoke=true)
 public abstract class RawAttribute
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -243,10 +239,7 @@ public abstract class RawAttribute
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_LDAP_ATTRIBUTE_DECODE_SEQUENCE.get(String.valueOf(e));
@@ -261,10 +254,7 @@ public abstract class RawAttribute
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_LDAP_ATTRIBUTE_DECODE_TYPE.get(String.valueOf(e));
@@ -285,10 +275,7 @@ public abstract class RawAttribute
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_LDAP_ATTRIBUTE_DECODE_VALUES.get(String.valueOf(e));
@@ -301,10 +288,7 @@ public abstract class RawAttribute
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_LDAP_ATTRIBUTE_DECODE_SEQUENCE.get(String.valueOf(e));

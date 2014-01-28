@@ -22,20 +22,22 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
 
 import java.io.BufferedReader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
    * This class is used to read an input stream and process ouput.
  */
 abstract public class OutputReader {
 
-  static private Logger LOG = Logger.getLogger(OutputReader.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Called whenever new input is read from the reader.
@@ -57,7 +59,7 @@ abstract public class OutputReader {
             processLine(line);
           }
         } catch (Throwable t) {
-          LOG.log(Level.INFO, "error reading output", t);
+          logger.debug(LocalizableMessage.raw("error reading output"), t);
         }
       }
     });

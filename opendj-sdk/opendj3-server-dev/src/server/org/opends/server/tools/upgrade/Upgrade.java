@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 
 package org.opends.server.tools.upgrade;
@@ -39,12 +39,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.security.auth.callback.ConfirmationCallback;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.BuildVersion;
@@ -59,8 +59,7 @@ public final class Upgrade
   /**
    * Upgrade's logger.
    */
-  private final static Logger LOG = Logger
-      .getLogger(UpgradeCli.class.getName());
+  private final static LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Upgrade supports version from 2.4.5.
@@ -473,7 +472,7 @@ public final class Upgrade
       context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS.get(UpgradeUtils
           .getInstallationPath()
           + File.separator + UpgradeLog.UPGRADELOGNAME), NOTICE_CALLBACK);
-      LOG.log(Level.CONFIG, INFO_UPGRADE_PROCESS_END.get().toString());
+      logger.info(LocalizableMessage.raw(INFO_UPGRADE_PROCESS_END.get().toString()));
     }
   }
 

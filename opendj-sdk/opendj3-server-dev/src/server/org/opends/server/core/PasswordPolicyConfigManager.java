@@ -30,8 +30,6 @@ package org.opends.server.core;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.lang.reflect.InvocationTargetException;
@@ -52,7 +50,7 @@ import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.AuthenticationPolicyFactory;
 import org.opends.server.api.SubentryChangeListener;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 
 
@@ -67,10 +65,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     ConfigurationAddListener<AuthenticationPolicyCfg>,
     ConfigurationDeleteListener<AuthenticationPolicyCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -377,9 +372,9 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       }
       catch (Exception e)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugError("Could not create password policy subentry "
+          logger.trace("Could not create password policy subentry "
               + "DN %s: %s", entry.getName().toString(),
               stackTraceToSingleLineString(e));
         }
@@ -423,9 +418,9 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       }
       catch (Exception e)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugError("Could not create password policy subentry "
+          logger.trace("Could not create password policy subentry "
               + "DN %s: %s", newEntry.getName().toString(),
               stackTraceToSingleLineString(e));
         }
@@ -456,9 +451,9 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       }
       catch (Exception e)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugError("Could not create password policy subentry "
+          logger.trace("Could not create password policy subentry "
               + "DN %s: %s", newEntry.getName().toString(),
               stackTraceToSingleLineString(e));
         }
@@ -502,10 +497,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
           String.valueOf(policyConfiguration.dn()),
@@ -542,10 +534,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
         }
       }
 
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
           String.valueOf(policyConfiguration.dn()),
@@ -603,10 +592,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       unacceptableReasons.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
           String.valueOf(policyConfiguration.dn()),

@@ -59,7 +59,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.WorkflowTopologyNode;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFWriter;
 import org.forgerock.util.Reject;
@@ -68,7 +68,6 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.
      ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -91,10 +90,7 @@ public class RootDSEBackend
        extends Backend
        implements ConfigurationChangeListener<RootDSEBackendCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -250,10 +246,7 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
           stackTraceToSingleLineString(e));
@@ -1204,19 +1197,13 @@ public class RootDSEBackend
         }
         catch (DirectoryException de)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
 
           throw de;
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_ROOTDSE_UNEXPECTED_SEARCH_FAILURE.
               get(searchOperation.getConnectionID(),
@@ -1292,10 +1279,7 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER.get(
           stackTraceToSingleLineString(e));
@@ -1312,10 +1296,7 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_ROOTDSE_UNABLE_TO_EXPORT_DSE.get(stackTraceToSingleLineString(e));
@@ -1330,10 +1311,7 @@ public class RootDSEBackend
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -1494,10 +1472,7 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
               stackTraceToSingleLineString(e));
@@ -1559,10 +1534,7 @@ public class RootDSEBackend
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
               stackTraceToSingleLineString(e));
@@ -1611,10 +1583,7 @@ public class RootDSEBackend
     }
     catch (ConfigException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       messages.add(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
               String.valueOf(configEntryDN),

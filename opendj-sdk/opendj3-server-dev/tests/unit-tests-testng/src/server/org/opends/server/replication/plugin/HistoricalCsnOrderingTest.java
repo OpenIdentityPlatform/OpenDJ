@@ -33,9 +33,7 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.assertj.core.api.Assertions;
-import org.opends.messages.Category;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.config.ConfigException;

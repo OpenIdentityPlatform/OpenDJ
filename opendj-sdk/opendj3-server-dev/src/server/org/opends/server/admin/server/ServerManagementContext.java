@@ -31,7 +31,6 @@ package org.opends.server.admin.server;
 
 import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.admin.PropertyException.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
@@ -77,11 +76,10 @@ import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 
 
@@ -401,11 +399,7 @@ public final class ServerManagementContext {
     new ServerManagedObject<RootCfg>(
       ManagedObjectPath.emptyPath(), RootCfgDefn.getInstance(), Collections
           .<PropertyDefinition<?>, SortedSet<?>> emptyMap(), null);
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -944,9 +938,7 @@ public final class ServerManagementContext {
     try {
       configEntry = DirectoryServer.getConfigEntry(dn);
     } catch (ConfigException e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
           String.valueOf(dn), stackTraceToSingleLineString(e));

@@ -23,7 +23,7 @@
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.admin.ads.util;
@@ -35,8 +35,9 @@ import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
@@ -77,8 +78,7 @@ public class ApplicationTrustManager implements X509TrustManager
      */
     HOST_NAME_MISMATCH
   }
-  static private final Logger LOG =
-    Logger.getLogger(ApplicationTrustManager.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private X509TrustManager trustManager;
   private String lastRefusedAuthType;
@@ -168,15 +168,15 @@ public class ApplicationTrustManager implements X509TrustManager
         }
         catch (NoSuchProviderException e)
         {
-          LOG.log(Level.WARNING, "Error with the provider: "+provider, e);
+          logger.warn(LocalizableMessage.raw("Error with the provider: "+provider, e));
         }
         catch (NoSuchAlgorithmException e)
         {
-          LOG.log(Level.WARNING, "Error with the algorithm: "+algo, e);
+          logger.warn(LocalizableMessage.raw("Error with the algorithm: "+algo, e));
         }
         catch (KeyStoreException e)
         {
-          LOG.log(Level.WARNING, "Error with the keystore", e);
+          logger.warn(LocalizableMessage.raw("Error with the keystore", e));
         }
       }
   }
@@ -422,8 +422,8 @@ public class ApplicationTrustManager implements X509TrustManager
         matches = hostMatch(value, host);
         if (!matches)
         {
-          LOG.log(Level.WARNING, "Subject DN RDN value is: "+value+
-              " and does not match host value: "+host);
+          logger.warn(LocalizableMessage.raw("Subject DN RDN value is: "+value+
+              " and does not match host value: "+host));
           // Try with the accepted hosts names
           for (int i =0; i<acceptedHosts.size() && !matches; i++)
           {
@@ -441,8 +441,8 @@ public class ApplicationTrustManager implements X509TrustManager
       }
       catch (Throwable t)
       {
-        LOG.log(Level.WARNING, "Error parsing subject dn: "+
-            chain[0].getSubjectX500Principal(), t);
+        logger.warn(LocalizableMessage.raw("Error parsing subject dn: "+
+            chain[0].getSubjectX500Principal(), t));
       }
 
       if (!matches)

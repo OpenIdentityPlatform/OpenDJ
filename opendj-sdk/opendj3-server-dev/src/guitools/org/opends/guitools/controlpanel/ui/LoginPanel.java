@@ -36,8 +36,9 @@ import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
@@ -51,7 +52,6 @@ import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
@@ -71,8 +71,7 @@ public class LoginPanel extends StatusGenericPanel
   private JLabel dnLabel;
   private String usedUrl;
 
-  private static final Logger LOG =
-    Logger.getLogger(LoginPanel.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Default constructor.
@@ -285,14 +284,14 @@ public class LoginPanel extends StatusGenericPanel
           boolean handleCertificateException = false;
           if (throwable != null)
           {
-            LOG.log(Level.INFO, "Error connecting: " + throwable, throwable);
+            logger.debug(LocalizableMessage.raw("Error connecting: " + throwable, throwable));
 
             if (Utils.isCertificateException(throwable))
             {
               ApplicationTrustManager.Cause cause =
                 getInfo().getTrustManager().getLastRefusedCause();
 
-              LOG.log(Level.INFO, "Certificate exception cause: "+cause);
+              logger.debug(LocalizableMessage.raw("Certificate exception cause: "+cause));
               UserDataCertificateException.Type excType = null;
               if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
               {
@@ -322,8 +321,8 @@ public class LoginPanel extends StatusGenericPanel
                 }
                 catch (Throwable t)
                 {
-                  LOG.log(Level.WARNING,
-                      "Error parsing ldap url of ldap url.", t);
+                  logger.warn(LocalizableMessage.raw(
+                      "Error parsing ldap url of ldap url.", t));
                   h = INFO_NOT_AVAILABLE_LABEL.get().toString();
                   p = -1;
                 }
@@ -443,7 +442,7 @@ public class LoginPanel extends StatusGenericPanel
 
       if ((chain != null) && (authType != null) && (host != null))
       {
-        LOG.log(Level.INFO, "Accepting certificate presented by host "+host);
+        logger.debug(LocalizableMessage.raw("Accepting certificate presented by host "+host));
         getInfo().getTrustManager().acceptCertificate(chain, authType, host);
         /* Simulate a click on the OK by calling in the okClicked method. */
         SwingUtilities.invokeLater(new Runnable()
@@ -458,18 +457,18 @@ public class LoginPanel extends StatusGenericPanel
       {
         if (chain == null)
         {
-          LOG.log(Level.WARNING,
-              "The chain is null for the UserDataCertificateException");
+          logger.warn(LocalizableMessage.raw(
+              "The chain is null for the UserDataCertificateException"));
         }
         if (authType == null)
         {
-          LOG.log(Level.WARNING,
-              "The auth type is null for the UserDataCertificateException");
+          logger.warn(LocalizableMessage.raw(
+              "The auth type is null for the UserDataCertificateException"));
         }
         if (host == null)
         {
-          LOG.log(Level.WARNING,
-              "The host is null for the UserDataCertificateException");
+          logger.warn(LocalizableMessage.raw(
+              "The host is null for the UserDataCertificateException"));
         }
       }
     }
@@ -485,7 +484,7 @@ public class LoginPanel extends StatusGenericPanel
         }
         catch (Throwable t)
         {
-          LOG.log(Level.WARNING, "Error accepting certificate: "+t, t);
+          logger.warn(LocalizableMessage.raw("Error accepting certificate: "+t, t));
         }
       }
     }

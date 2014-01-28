@@ -40,10 +40,8 @@ import org.opends.server.types.DN;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.loggers.ErrorLogger.*;
-import org.opends.server.types.DebugLogLevel;
 import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -59,10 +57,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class NameAndOptionalUIDSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -250,10 +245,7 @@ public class NameAndOptionalUIDSyntax
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // We couldn't normalize the DN for some reason.  The value cannot be
       // acceptable.

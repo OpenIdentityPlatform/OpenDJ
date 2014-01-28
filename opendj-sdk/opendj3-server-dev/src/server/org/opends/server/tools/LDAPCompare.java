@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.LDAPAssertionRequestControl;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
@@ -60,7 +60,6 @@ import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -73,10 +72,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LDAPCompare
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The fully-qualified name of this class.
@@ -255,10 +251,7 @@ public class LDAPCompare
         responseMessage = connection.getLDAPReader().readMessage();
       } catch(ASN1Exception ae)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-        }
+        logger.traceException(ae);
         if (!compareOptions.continueOnError())
         {
           String message = LDAPToolUtils.getMessageForConnectionException(ae);
@@ -761,10 +754,7 @@ public class LDAPCompare
         }
         catch (ParseException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           err.println(wrapText(
                   INFO_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE.get(),
@@ -803,10 +793,7 @@ public class LDAPCompare
       portNumber = port.getIntValue();
     } catch (ArgumentException ae)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
+      logger.traceException(ae);
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -824,10 +811,7 @@ public class LDAPCompare
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
+      logger.traceException(ae);
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -859,10 +843,7 @@ public class LDAPCompare
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        logger.traceException(ex);
         err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
@@ -1033,10 +1014,7 @@ public class LDAPCompare
         }
         catch (Throwable t)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, t);
-          }
+          logger.traceException(t);
           String details = t.getMessage();
           if (details == null)
           {
@@ -1067,10 +1045,7 @@ public class LDAPCompare
       return SUCCESS;
     } catch(LDAPException le)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, le);
-      }
+      logger.traceException(le);
       LDAPToolUtils.printErrorMessage(
               err, le.getMessageObject(),
               le.getResultCode(),
@@ -1080,10 +1055,7 @@ public class LDAPCompare
       return code;
     } catch(LDAPConnectionException lce)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, lce);
-      }
+      logger.traceException(lce);
       LDAPToolUtils.printErrorMessage(err,
                                       lce.getMessageObject(),
                                       lce.getResultCode(),
@@ -1093,10 +1065,7 @@ public class LDAPCompare
       return code;
     } catch(Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
       return OPERATIONS_ERROR;
     } finally

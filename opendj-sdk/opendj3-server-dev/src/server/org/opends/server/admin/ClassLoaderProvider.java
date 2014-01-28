@@ -31,7 +31,6 @@ package org.opends.server.admin;
 import static org.opends.messages.AdminMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.ServerConstants.EOL;
 
@@ -60,8 +59,7 @@ import java.util.jar.Manifest;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.InitializationException;
 import org.forgerock.util.Reject;
 
@@ -83,11 +81,7 @@ import org.forgerock.util.Reject;
  * class loader as it can change at run-time.
  */
 public final class ClassLoaderProvider {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Private URLClassLoader implementation. This is only required so
@@ -414,9 +408,7 @@ public final class ClassLoaderProvider {
       try {
         loader.addJarFile(extension);
       } catch (Exception e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_ADMIN_CANNOT_OPEN_JAR_FILE.
             get(extension.getName(), extension.getParent(),
@@ -600,14 +592,10 @@ public final class ClassLoaderProvider {
       // Add and initialize the extensions.
       addExtension(extensionsPath.listFiles(filter));
     } catch (InitializationException e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       throw e;
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_ADMIN_EXTENSIONS_CANNOT_LIST_FILES.get(
           String.valueOf(extensionsPath), stackTraceToSingleLineString(e));
@@ -638,9 +626,7 @@ public final class ClassLoaderProvider {
     try {
       loadDefinitionClasses(is);
     } catch (InitializationException e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(CORE_MANIFEST,
           stackTraceToSingleLineString(e));
@@ -670,9 +656,7 @@ public final class ClassLoaderProvider {
       try {
         is = jarFile.getInputStream(entry);
       } catch (Exception e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.get(
             EXTENSION_MANIFEST, jarFile.getName(),
@@ -683,9 +667,7 @@ public final class ClassLoaderProvider {
       try {
         loadDefinitionClasses(is);
       } catch (InitializationException e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile
             .getName(), EXTENSION_MANIFEST, stackTraceToSingleLineString(e));
@@ -749,7 +731,7 @@ public final class ClassLoaderProvider {
         continue;
       }
 
-      TRACER.debugMessage(DebugLogLevel.INFO, "Loading class " + className);
+      logger.trace("Loading class " + className);
 
       // Load the class and get an instance of it if it is a definition.
       Class<?> theClass;
@@ -815,9 +797,7 @@ public final class ClassLoaderProvider {
       // Load the extension jar file.
       jarFile = new JarFile(jar);
     } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_ADMIN_CANNOT_OPEN_JAR_FILE.get(
           jar.getName(), jar.getParent(), stackTraceToSingleLineString(e));

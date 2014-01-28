@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 
 package org.opends.server.tools.upgrade;
@@ -75,7 +75,7 @@ class UpgradeLog
     }
     catch (IOException e)
     {
-      logger.log(Level.SEVERE, e.getMessage());
+      logger.severe(e.getMessage());
     }
     fileHandler.setFormatter(new Formatter()
     {
@@ -103,10 +103,10 @@ class UpgradeLog
 
     logger.setUseParentHandlers(false);
     // Log Config info.
-    logger.log(Level.CONFIG, "**** Upgrade of OpenDJ started ****");
-    logger.log(Level.CONFIG, RuntimeMessages.NOTE_INSTALL_DIRECTORY.get(
+    logger.info("**** Upgrade of OpenDJ started ****");
+    logger.info(RuntimeMessages.NOTE_INSTALL_DIRECTORY.get(
         UpgradeUtils.getInstallationPath()).toString());
-    logger.log(Level.CONFIG, RuntimeMessages.NOTE_INSTANCE_DIRECTORY.get(
+    logger.info(RuntimeMessages.NOTE_INSTANCE_DIRECTORY.get(
         UpgradeUtils.getInstancePath()).toString());
   }
 

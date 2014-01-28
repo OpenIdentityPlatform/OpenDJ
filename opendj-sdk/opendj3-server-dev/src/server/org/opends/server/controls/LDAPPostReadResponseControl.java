@@ -34,8 +34,7 @@ import static org.opends.server.protocols.asn1.ASN1Constants.
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -80,10 +79,7 @@ public class LDAPPostReadResponseControl
       }
       catch (LDAPException le)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, le);
-        }
+        logger.traceException(le);
 
         LocalizableMessage message =
             ERR_POSTREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());
@@ -106,13 +102,7 @@ public class LDAPPostReadResponseControl
    */
   public static final ControlDecoder<LDAPPostReadResponseControl> DECODER =
     new Decoder();
-
-
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 

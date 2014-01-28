@@ -45,8 +45,9 @@ import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.AuthenticationException;
 import javax.naming.CommunicationException;
@@ -67,7 +68,6 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.opends.quicksetup.*;
@@ -86,8 +86,7 @@ import org.opends.server.util.StaticUtils;
  */
 public class Utils
 {
-  private static final Logger LOG =
-          Logger.getLogger(Utils.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final int BUFFER_SIZE = 1024;
 
@@ -149,8 +148,8 @@ public class Utils
       String installPath)
   {
     boolean supported = false;
-    LOG.log(Level.INFO, "Checking if options "+option+
-        " are supported with java home: "+javaHome);
+    logger.debug(LocalizableMessage.raw("Checking if options "+option+
+        " are supported with java home: "+javaHome));
     try
     {
       List<String> args = new ArrayList<String>();
@@ -181,13 +180,13 @@ public class Utils
         env.put("DO_NOT_PAUSE", "true");
       }
       final Process process = pb.start();
-      LOG.log(Level.INFO, "launching "+args+ " with env: "+env);
+      logger.debug(LocalizableMessage.raw("launching "+args+ " with env: "+env));
       InputStream is = process.getInputStream();
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line;
       boolean errorDetected = false;
       while (null != (line = reader.readLine())) {
-        LOG.log(Level.INFO, "The output: "+line);
+        logger.debug(LocalizableMessage.raw("The output: "+line));
         if (line.contains("ERROR:  The detected Java version"))
         {
           if (Utils.isWindows())
@@ -220,13 +219,13 @@ public class Utils
       }
       process.waitFor();
       int returnCode = process.exitValue();
-      LOG.log(Level.INFO, "returnCode: "+returnCode);
+      logger.debug(LocalizableMessage.raw("returnCode: "+returnCode));
       supported = returnCode == 0 && !errorDetected;
-      LOG.log(Level.INFO, "supported: "+supported);
+      logger.debug(LocalizableMessage.raw("supported: "+supported));
     }
     catch (Throwable t)
     {
-      LOG.log(Level.WARNING, "Error testing option "+option+" on "+javaHome, t);
+      logger.warn(LocalizableMessage.raw("Error testing option "+option+" on "+javaHome, t));
     }
     return supported;
   }
@@ -789,7 +788,7 @@ public class Utils
     }
     else
     {
-      LOG.log(Level.WARNING, "Unexpected error: "+te, te);
+      logger.warn(LocalizableMessage.raw("Unexpected error: "+te, te));
       // This is unexpected.
       if (te.getCause() != null)
       {
@@ -1517,7 +1516,7 @@ public class Utils
     }
     catch (Throwable t)
     {
-      LOG.log(Level.WARNING, "Error retrieving server current time: "+t, t);
+      logger.warn(LocalizableMessage.raw("Error retrieving server current time: "+t, t));
     }
     return time;
   }
@@ -1597,7 +1596,7 @@ public class Utils
       }
       catch (Throwable t)
       {
-        LOG.log(Level.WARNING, "Failing checking host names: "+t, t);
+        logger.warn(LocalizableMessage.raw("Failing checking host names: "+t, t));
       }
     }
     else
@@ -2554,8 +2553,7 @@ public class Utils
  *
  */
 class EmptyPrintStream extends PrintStream {
-  private static final Logger LOG =
-    Logger.getLogger(EmptyPrintStream.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Default constructor.
@@ -2572,6 +2570,6 @@ class EmptyPrintStream extends PrintStream {
   @Override
   public void println(String msg)
   {
-    LOG.log(Level.INFO, "EmptyStream msg: "+msg);
+    logger.debug(LocalizableMessage.raw("EmptyStream msg: "+msg));
   }
 }

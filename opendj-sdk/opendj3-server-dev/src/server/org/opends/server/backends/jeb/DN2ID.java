@@ -29,8 +29,7 @@ package org.opends.server.backends.jeb;
 import com.sleepycat.je.*;
 
 import org.opends.server.types.DN;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import java.util.Comparator;
 
@@ -41,10 +40,7 @@ import java.util.Comparator;
  */
 public class DN2ID extends DatabaseContainer
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The key comparator used for the DN database.

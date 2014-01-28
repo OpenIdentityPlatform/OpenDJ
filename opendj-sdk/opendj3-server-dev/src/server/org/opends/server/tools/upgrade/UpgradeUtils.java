@@ -21,15 +21,16 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools.upgrade;
 
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.AddRequest;
@@ -63,11 +64,7 @@ import static org.opends.server.tools.upgrade.Installation.*;
 final class UpgradeUtils
 {
 
-  /**
-   * Logger for the upgrade.
-   */
-  private final static Logger LOG = Logger
-      .getLogger(UpgradeCli.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The config folder of the current instance. */
   static final File configDirectory = new File(getInstancePath(),
@@ -422,7 +419,7 @@ final class UpgradeUtils
     }
     catch (Exception ex)
     {
-      LOG.log(Level.SEVERE, ex.getMessage());
+      logger.error(LocalizableMessage.raw(ex.getMessage()));
     }
     finally
     {
@@ -496,20 +493,20 @@ final class UpgradeUtils
                     changeType, lines));
             entry = Entries.modifyEntryPermissive(entry, mr.getModifications());
             changeCount++;
-            LOG.log(Level.INFO,
+            logger.debug(LocalizableMessage.raw(
                 String.format("The following entry has been modified : %s",
-                    entry.getName()));
+                    entry.getName())));
           }
           catch (Exception ex)
           {
-            LOG.log(Level.SEVERE, ex.getMessage());
+            logger.error(LocalizableMessage.raw(ex.getMessage()));
           }
         }
         if (dn != null // This is an ADD
             && entry.getName().equals(DN.valueOf(dn)))
         {
-          LOG.log(Level.INFO, String.format("Entry %s found", entry.getName()
-              .toString()));
+          logger.debug(LocalizableMessage.raw(String.format("Entry %s found", entry.getName()
+              .toString())));
           alreadyExist = true;
         }
         writer.writeEntry(entry);
@@ -520,8 +517,8 @@ final class UpgradeUtils
       {
         final AddRequest ar = Requests.newAddRequest(lines);
         writer.writeEntry(ar);
-        LOG.log(Level.INFO, String.format("Entry successfully added %s in %s",
-            dn, original.getAbsolutePath()));
+        logger.debug(LocalizableMessage.raw(String.format("Entry successfully added %s in %s",
+            dn, original.getAbsolutePath())));
         changeCount++;
       }
     }
@@ -543,7 +540,7 @@ final class UpgradeUtils
     }
     catch (IOException e)
     {
-      LOG.log(Level.SEVERE, e.getMessage());
+      logger.error(LocalizableMessage.raw(e.getMessage()));
       deleteRecursively(original);
       throw e;
     }
@@ -614,8 +611,8 @@ final class UpgradeUtils
           destinationSchemaEntry.getAttribute("attributeTypes").add(
               attributeType);
           changeCount++;
-          LOG.log(Level.INFO, String.format("Added %s", attributeType
-              .toString()));
+          logger.debug(LocalizableMessage.raw(String.format("Added %s", attributeType
+              .toString())));
         }
       }
 
@@ -627,8 +624,8 @@ final class UpgradeUtils
               getSchemaElement(templateSchemaEntry, "objectClasses", oc);
           destinationSchemaEntry.getAttribute("objectClasses").add(objectClass);
           changeCount++;
-          LOG.log(Level.INFO,
-              String.format("Added %s", objectClass.toString()));
+          logger.debug(LocalizableMessage.raw(
+              String.format("Added %s", objectClass.toString())));
         }
       }
 
@@ -658,7 +655,7 @@ final class UpgradeUtils
     }
     catch (IOException e)
     {
-      LOG.log(Level.SEVERE, e.getMessage());
+      logger.error(LocalizableMessage.raw(e.getMessage()));
       deleteRecursively(copy);
       throw e;
     }
@@ -770,8 +767,8 @@ final class UpgradeUtils
             new SchemaConfigManager.SchemaFileFilter();
         for (final File f : folder.listFiles(filter))
         {
-          LOG.log(Level.INFO, String.format("Processing %s", f
-              .getAbsolutePath()));
+          logger.debug(LocalizableMessage.raw(String.format("Processing %s", f
+              .getAbsolutePath())));
           reader = new LDIFEntryReader(new FileInputStream(f));
           try
           {
@@ -804,28 +801,28 @@ final class UpgradeUtils
         File parentDirectory = destination.getParentFile();
         if (!parentDirectory.exists())
         {
-          LOG.log(Level.INFO, String.format("Parent file of %s doesn't exist",
-              destination.getPath()));
+          logger.debug(LocalizableMessage.raw(String.format("Parent file of %s doesn't exist",
+              destination.getPath())));
 
           parentDirectory.mkdirs();
 
-          LOG.log(Level.INFO, String.format("Parent directory %s created.",
-              parentDirectory.getPath()));
+          logger.debug(LocalizableMessage.raw(String.format("Parent directory %s created.",
+              parentDirectory.getPath())));
         }
         if (!destination.exists())
         {
           destination.createNewFile();
         }
 
-        LOG.log(Level.INFO, String.format("Writing entries in %s.", destination
-            .getAbsolutePath()));
+        logger.debug(LocalizableMessage.raw(String.format("Writing entries in %s.", destination
+            .getAbsolutePath())));
 
         writer = new LDIFEntryWriter(new FileOutputStream(destination));
         writer.writeEntry(theNewSchemaEntry);
 
-        LOG.log(Level.INFO, String.format(
+        logger.debug(LocalizableMessage.raw(String.format(
             "%s created and completed successfully.", destination
-                .getAbsolutePath()));
+                .getAbsolutePath())));
       }
     }
     finally

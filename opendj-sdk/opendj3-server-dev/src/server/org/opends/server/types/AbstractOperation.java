@@ -33,13 +33,11 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ControlDecoder;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.operation.PostResponseOperation;
 import org.opends.server.types.operation.PreParseOperation;
 import org.forgerock.util.Reject;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines a generic operation that may be processed by the
@@ -59,10 +57,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public abstract class AbstractOperation
        implements Operation, PreParseOperation, PostResponseOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The set of response controls that will always be returned for
@@ -610,10 +605,7 @@ public abstract class AbstractOperation
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
 
@@ -794,10 +786,7 @@ public abstract class AbstractOperation
         catch (Exception e)
         {
           // Should not happen.
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }

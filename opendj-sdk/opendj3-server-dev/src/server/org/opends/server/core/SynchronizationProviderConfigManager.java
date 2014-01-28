@@ -29,8 +29,7 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ConfigMessages.*;
 
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -52,7 +51,6 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
@@ -70,10 +68,7 @@ public class SynchronizationProviderConfigManager
        ConfigurationAddListener<SynchronizationProviderCfg>,
        ConfigurationDeleteListener<SynchronizationProviderCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -197,19 +192,16 @@ public class SynchronizationProviderConfigManager
         }
         catch (ConfigException e)
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            logger.traceException(e);
             messages.add(e.getMessageObject());
             resultCode = DirectoryServer.getServerErrorResultCode();
           }
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           messages.add(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
                   String.valueOf(configuration.getJavaClass()),
@@ -304,19 +296,16 @@ public class SynchronizationProviderConfigManager
       }
       catch (ConfigException e)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          logger.traceException(e);
           messages.add(e.getMessageObject());
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         messages.add(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
                 String.valueOf(configuration.getJavaClass()),

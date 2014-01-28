@@ -29,7 +29,6 @@ package org.opends.server.authorization.dseecompat;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.net.InetAddress;
@@ -39,18 +38,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * This class implements the dns bind rule keyword.
  */
 public class DNS implements KeywordBindRule {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /** List of patterns to match against. */
     private List<String> patterns = null;
@@ -150,10 +144,7 @@ public class DNS implements KeywordBindRule {
               }
               catch (Exception e)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                }
+                logger.traceException(e);
 
                 LocalizableMessage message = WARN_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME.
                     get(hn, expr, getExceptionMessage(e));

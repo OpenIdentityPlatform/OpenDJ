@@ -28,8 +28,6 @@ package org.opends.server.core;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -37,11 +35,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.server.controls.EntryChangeNotificationControl;
 import org.opends.server.controls.PersistentSearchChangeType;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
@@ -102,11 +99,7 @@ public final class PersistentSearch
      */
     void persistentSearchCancelled(PersistentSearch psearch);
   }
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -133,10 +126,7 @@ public final class PersistentSearch
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -306,7 +296,7 @@ public final class PersistentSearch
     // Make sure that the entry matches the target filter.
     try
     {
-      TRACER.debugInfo(this + " " + entry + " +filter="
+      logger.trace(this + " " + entry + " +filter="
           + filter.matchesEntry(entry));
 
       if (!filter.matchesEntry(entry))
@@ -316,10 +306,7 @@ public final class PersistentSearch
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       // FIXME -- Do we need to do anything here?
 
@@ -347,10 +334,7 @@ public final class PersistentSearch
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       cancel();
 
@@ -360,10 +344,7 @@ public final class PersistentSearch
       }
       catch (Exception e2)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
+        logger.traceException(e2);
       }
     }
   }
@@ -430,10 +411,7 @@ public final class PersistentSearch
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       // FIXME -- Do we need to do anything here?
 
@@ -461,10 +439,7 @@ public final class PersistentSearch
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       cancel();
 
@@ -474,10 +449,7 @@ public final class PersistentSearch
       }
       catch (Exception e2)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
+        logger.traceException(e2);
       }
     }
   }
@@ -563,10 +535,7 @@ public final class PersistentSearch
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       // FIXME -- Do we need to do anything here?
 
@@ -594,10 +563,7 @@ public final class PersistentSearch
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       cancel();
 
@@ -607,10 +573,7 @@ public final class PersistentSearch
       }
       catch (Exception e2)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
+        logger.traceException(e2);
       }
     }
   }
@@ -701,10 +664,7 @@ public final class PersistentSearch
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       // FIXME -- Do we need to do anything here?
 
@@ -732,10 +692,7 @@ public final class PersistentSearch
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       cancel();
 
@@ -745,10 +702,7 @@ public final class PersistentSearch
       }
       catch (Exception e2)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
+        logger.traceException(e2);
       }
     }
   }

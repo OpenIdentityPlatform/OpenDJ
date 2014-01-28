@@ -28,7 +28,6 @@ package org.opends.server.util;
 
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.util.Reject.*;
 
@@ -46,7 +45,7 @@ import org.opends.server.backends.jeb.importLDIF.Importer;
 import org.opends.server.backends.jeb.importLDIF.Suffix;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.*;
@@ -66,10 +65,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
      mayInvoke=true)
 public final class LDIFReader implements Closeable
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The reader that will be used to read the data. */
   private BufferedReader reader;
@@ -271,9 +267,9 @@ public final class LDIFReader implements Closeable
         }
         else if (!importConfig.includeEntry(entryDN))
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo("Skipping entry %s because the DN isn't" +
+            logger.trace("Skipping entry %s because the DN isn't" +
                     "one that should be included based on the include and " +
                     "exclude branches.", entryDN);
           }
@@ -286,9 +282,9 @@ public final class LDIFReader implements Closeable
         suffix = Importer.getMatchSuffix(entryDN, map);
         if(suffix == null)
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo("Skipping entry %s because the DN isn't" +
+            logger.trace("Skipping entry %s because the DN isn't" +
                     "one that should be included based on a suffix match" +
                     "check." ,entryDN);
           }
@@ -317,9 +313,9 @@ public final class LDIFReader implements Closeable
       }
       catch (LDIFException e)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo("Skipping entry %s because reading" +
+          logger.trace("Skipping entry %s because reading" +
                   "its attributes failed.", entryDN);
         }
         LocalizableMessage message = ERR_LDIF_READ_ATTR_SKIP.get(String.valueOf(entryDN),
@@ -337,15 +333,15 @@ public final class LDIFReader implements Closeable
           toAttributesMap(operationalAttrBuilders);
       Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
                                operationalAttributes);
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, entry.toString());
+      logger.trace(entry.toString());
 
       try
       {
         if (! importConfig.includeEntry(entry))
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo("Skipping entry %s because the DN is not one " +
+            logger.trace("Skipping entry %s because the DN is not one " +
                 "that should be included based on the include and exclude " +
                 "filters.", entryDN);
           }
@@ -357,10 +353,7 @@ public final class LDIFReader implements Closeable
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         suffix.removePending(entryDN);
         LocalizableMessage message = ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.
             get(String.valueOf(entry.getName()), lastEntryLineNumber,
@@ -499,9 +492,9 @@ public final class LDIFReader implements Closeable
       }
       else if (!importConfig.includeEntry(entryDN))
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo("Skipping entry %s because the DN is not one that " +
+          logger.trace("Skipping entry %s because the DN is not one that " +
               "should be included based on the include and exclude branches.",
                     entryDN);
         }
@@ -536,15 +529,15 @@ public final class LDIFReader implements Closeable
           toAttributesMap(operationalAttrBuilders);
       Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
                                operationalAttributes);
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, entry.toString());
+      logger.trace(entry.toString());
 
       try
       {
         if (! importConfig.includeEntry(entry))
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo("Skipping entry %s because the DN is not one " +
+            logger.trace("Skipping entry %s because the DN is not one " +
                 "that should be included based on the include and exclude " +
                 "filters.", entryDN);
           }
@@ -555,10 +548,7 @@ public final class LDIFReader implements Closeable
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.
             get(String.valueOf(entry.getName()), lastEntryLineNumber,
@@ -903,9 +893,9 @@ public final class LDIFReader implements Closeable
     {
       // The value did not have a valid base64-encoding.
       final String stackTrace = StaticUtils.stackTraceToSingleLineString(e);
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo(
+        logger.trace(
             "Base64 decode failed for dn '%s', exception stacktrace: %s",
             encodedStr, stackTrace);
       }
@@ -926,9 +916,9 @@ public final class LDIFReader implements Closeable
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("DN decode failed for: ", dnString);
+        logger.trace("DN decode failed for: ", dnString);
       }
 
       LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
@@ -940,9 +930,9 @@ public final class LDIFReader implements Closeable
     }
     catch (Exception e)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("DN decode failed for: ", dnString);
+        logger.trace("DN decode failed for: ", dnString);
       }
       LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
               lastEntryLineNumber, line.toString(),
@@ -1067,9 +1057,9 @@ public final class LDIFReader implements Closeable
     {
       if (! importConfig.includeObjectClasses())
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("Skipping objectclass %s for entry %s due to " +
+          logger.trace("Skipping objectclass %s for entry %s due to " +
               "the import configuration.", value, entryDN);
         }
         return;
@@ -1105,9 +1095,9 @@ public final class LDIFReader implements Closeable
 
       if (! importConfig.includeAttribute(attrType))
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose("Skipping attribute %s for entry %s due to the " +
+          logger.trace("Skipping attribute %s for entry %s due to the " +
               "import configuration.", attrName, entryDN);
         }
         return;
@@ -1313,10 +1303,7 @@ public final class LDIFReader implements Closeable
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }
@@ -1348,8 +1335,8 @@ public final class LDIFReader implements Closeable
         }
         rejectWriter.newLine();
       } catch (IOException ex) {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        if (logger.isTraceEnabled())
+          logger.traceException(ex);
       }
     }
   }
@@ -1497,19 +1484,13 @@ public final class LDIFReader implements Closeable
       newRDN = RDN.decode(rdnStr);
     } catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
       LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
           lineNumber, line.toString(), de.getMessageObject());
       throw new LDIFException(message, lineNumber, true);
     } catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       LocalizableMessage message =
           ERR_LDIF_INVALID_DN.get(lineNumber, line.toString(), e.getMessage());
       throw new LDIFException(message, lineNumber, true);
@@ -1555,19 +1536,13 @@ public final class LDIFReader implements Closeable
         newSuperiorDN = DN.valueOf(dnStr);
       } catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
         LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
             lineNumber, line.toString(), de.getMessageObject());
         throw new LDIFException(message, lineNumber, true);
       } catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
             lineNumber, line.toString(), e.getMessage());
         throw new LDIFException(message, lineNumber, true);
@@ -1826,10 +1801,7 @@ public final class LDIFReader implements Closeable
         catch (Exception e)
         {
           // The value did not have a valid base64-encoding.
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_LDIF_COULD_NOT_BASE64_DECODE_ATTR.get(
                   String.valueOf(entryDN),
@@ -1853,10 +1825,7 @@ public final class LDIFReader implements Closeable
         catch (Exception e)
         {
           // The URL was malformed or had an invalid protocol.
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_LDIF_INVALID_URL.get(String.valueOf(entryDN),
                                       lastEntryLineNumber,
@@ -1880,10 +1849,7 @@ public final class LDIFReader implements Closeable
         catch (Exception e)
         {
           // We were unable to read the contents of that URL for some reason.
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_LDIF_URL_IO_ERROR.get(String.valueOf(entryDN),
                                       lastEntryLineNumber,
@@ -1975,10 +1941,7 @@ public final class LDIFReader implements Closeable
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }

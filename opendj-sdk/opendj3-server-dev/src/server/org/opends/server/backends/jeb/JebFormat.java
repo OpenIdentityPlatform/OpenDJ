@@ -26,8 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DN;
 import org.opends.server.types.RDN;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -42,10 +41,7 @@ import java.util.Iterator;
  */
 public class JebFormat
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**

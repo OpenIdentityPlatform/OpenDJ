@@ -45,8 +45,7 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -65,10 +64,7 @@ import static org.opends.server.util.ServerConstants.*;
      mayInvoke=true)
 public final class SearchFilter
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The attribute type for this filter.
   private final AttributeType attributeType;
@@ -631,19 +627,13 @@ public final class SearchFilter
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       throw de;
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_SEARCH_FILTER_UNCAUGHT_EXCEPTION.get(
           filterString, String.valueOf(e));
@@ -2394,9 +2384,9 @@ public final class SearchFilter
       // "undefined" in RFC 2251, but is considered one of the
       // TRUE/FALSE filters in RFC 4526, in which case we should
       // always return true.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Returning TRUE for LDAP TRUE " +
+        logger.trace("Returning TRUE for LDAP TRUE " +
             "filter (&)");
       }
       return ConditionResult.TRUE;
@@ -2426,18 +2416,18 @@ public final class SearchFilter
           case TRUE:
             break;
           case FALSE:
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
-              TRACER.debugVerbose(
+              logger.trace(
                   "Returning FALSE for AND component %s in " +
                   "filter %s for entry %s",
                            f, completeFilter, entry.getName());
             }
             return result;
           case UNDEFINED:
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
-              TRACER.debugInfo(
+              logger.trace(
              "Undefined result for AND component %s in filter " +
              "%s for entry %s", f, completeFilter, entry.getName());
             }
@@ -2457,9 +2447,9 @@ public final class SearchFilter
 
       // If we have gotten here, then all the components must have
       // matched.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose(
+        logger.trace(
             "Returning TRUE for AND component %s in filter %s " +
             "for entry %s", this, completeFilter, entry.getName());
       }
@@ -2511,9 +2501,9 @@ public final class SearchFilter
       // "undefined" in RFC 2251, but is considered one of the
       // TRUE/FALSE filters in RFC 4526, in which case we should
       // always return false.
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo("Returning FALSE for LDAP FALSE " +
+        logger.trace("Returning FALSE for LDAP FALSE " +
             "filter (|)");
       }
       return ConditionResult.FALSE;
@@ -2540,9 +2530,9 @@ public final class SearchFilter
                                depth+1))
         {
           case TRUE:
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
-              TRACER.debugVerbose(
+              logger.trace(
                 "Returning TRUE for OR component %s in filter " +
                 "%s for entry %s",
                 f, completeFilter, entry.getName());
@@ -2551,9 +2541,9 @@ public final class SearchFilter
           case FALSE:
             break;
           case UNDEFINED:
-            if (debugEnabled())
+            if (logger.isTraceEnabled())
             {
-              TRACER.debugInfo(
+              logger.trace(
               "Undefined result for OR component %s in filter " +
               "%s for entry %s",
               f, completeFilter, entry.getName());
@@ -2574,9 +2564,9 @@ public final class SearchFilter
       }
 
 
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose(
+        logger.trace(
             "Returning %s for OR component %s in filter %s for " +
             "entry %s", result, this, completeFilter,
                         entry.getName());
@@ -2642,27 +2632,27 @@ public final class SearchFilter
       switch (result)
       {
         case TRUE:
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugVerbose(
+            logger.trace(
                "Returning FALSE for NOT component %s in filter " +
                "%s for entry %s",
                notComponent, completeFilter, entry.getName());
           }
           return ConditionResult.FALSE;
         case FALSE:
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugVerbose(
+            logger.trace(
                 "Returning TRUE for NOT component %s in filter " +
                 "%s for entry %s",
                 notComponent, completeFilter, entry.getName());
           }
           return ConditionResult.TRUE;
         case UNDEFINED:
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo(
+            logger.trace(
               "Undefined result for NOT component %s in filter " +
               "%s for entry %s",
               notComponent, completeFilter, entry.getName());
@@ -2729,9 +2719,9 @@ public final class SearchFilter
                                                attributeOptions);
     if ((attrs == null) || (attrs.isEmpty()))
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose(
+        logger.trace(
             "Returning FALSE for equality component %s in " +
             "filter %s because entry %s didn't have attribute " +
             "type %s",
@@ -2745,9 +2735,9 @@ public final class SearchFilter
     MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
     if (matchingRule == null)
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo(
+        logger.trace(
          "Attribute type %s does not have an equality matching " +
          "rule -- returning undefined.",
          attributeType.getNameOrOID());
@@ -2764,10 +2754,7 @@ public final class SearchFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // We can't normalize the assertion value, so the result must be
       // undefined.
@@ -2784,9 +2771,9 @@ public final class SearchFilter
     {
       if (a.contains(dummyAttributeValue))
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugVerbose(
+          logger.trace(
             "Returning TRUE for equality component %s in " +
             "filter %s for entry %s", this, completeFilter, entry.getName());
         }
@@ -2794,9 +2781,9 @@ public final class SearchFilter
       }
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugVerbose(
+      logger.trace(
           "Returning FALSE for equality component %s in filter " +
           "%s because entry %s didn't have attribute type " +
           "%s with value %s",
@@ -2859,9 +2846,9 @@ public final class SearchFilter
          entry.getAttribute(attributeType, attributeOptions);
     if ((attrs == null) || (attrs.isEmpty()))
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose(
+        logger.trace(
             "Returning FALSE for substring component %s in " +
             "filter %s because entry %s didn't have attribute " +
             "type %s",
@@ -2881,9 +2868,9 @@ public final class SearchFilter
                                  subFinalElement))
       {
         case TRUE:
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugVerbose(
+            logger.trace(
                 "Returning TRUE for substring component %s in " +
                 "filter %s for entry %s",
                          this, completeFilter, entry.getName());
@@ -2892,9 +2879,9 @@ public final class SearchFilter
         case FALSE:
           break;
         case UNDEFINED:
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugVerbose(
+            logger.trace(
                 "Undefined result encountered for substring " +
                 "component %s in filter %s for entry %s",
                          this, completeFilter, entry.getName());
@@ -2905,9 +2892,9 @@ public final class SearchFilter
       }
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugVerbose(
+      logger.trace(
           "Returning %s for substring component %s in filter " +
           "%s for entry %s",
           result, this, completeFilter, entry.getName());
@@ -2964,9 +2951,9 @@ public final class SearchFilter
          entry.getAttribute(attributeType, attributeOptions);
     if ((attrs == null) || (attrs.isEmpty()))
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose("Returning FALSE for " +
+        logger.trace("Returning FALSE for " +
             "greater-or-equal component %s in filter %s " +
             "because entry %s didn't have attribute type %s",
                      this, completeFilter, entry.getName(),
@@ -2983,9 +2970,9 @@ public final class SearchFilter
       switch (a.greaterThanOrEqualTo(assertionValue))
       {
         case TRUE:
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugVerbose(
+            logger.trace(
                 "Returning TRUE for greater-or-equal component " +
                 "%s in filter %s for entry %s",
                          this, completeFilter, entry.getName());
@@ -2994,9 +2981,9 @@ public final class SearchFilter
         case FALSE:
           break;
         case UNDEFINED:
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugVerbose(
+            logger.trace(
                 "Undefined result encountered for " +
                 "greater-or-equal component %s in filter %s " +
                 "for entry %s", this, completeFilter,
@@ -3008,9 +2995,9 @@ public final class SearchFilter
       }
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugVerbose(
+      logger.trace(
           "Returning %s for greater-or-equal component %s in " +
           "filter %s for entry %s",
                    result, this, completeFilter, entry.getName());
@@ -3067,9 +3054,9 @@ public final class SearchFilter
          entry.getAttribute(attributeType, attributeOptions);
     if ((attrs == null) || (attrs.isEmpty()))
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose(
+        logger.trace(
             "Returning FALSE for less-or-equal component %s in " +
             "filter %s because entry %s didn't have attribute " +
             "type %s", this, completeFilter, entry.getName(),
@@ -3086,9 +3073,9 @@ public final class SearchFilter
       switch (a.lessThanOrEqualTo(assertionValue))
       {
         case TRUE:
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugVerbose(
+            logger.trace(
                 "Returning TRUE for less-or-equal component %s " +
                 "in filter %s for entry %s",
                          this, completeFilter, entry.getName());
@@ -3097,9 +3084,9 @@ public final class SearchFilter
         case FALSE:
           break;
         case UNDEFINED:
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugVerbose(
+            logger.trace(
                 "Undefined result encountered for " +
                     "less-or-equal component %s in filter %s " +
                     "for entry %s",
@@ -3111,9 +3098,9 @@ public final class SearchFilter
       }
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugVerbose(
+      logger.trace(
           "Returning %s for less-or-equal component %s in " +
           "filter %s for entry %s",
                    result, this, completeFilter, entry.getName());
@@ -3158,9 +3145,9 @@ public final class SearchFilter
     // If so, then it's a match.  If not, then it's not a match.
     if (entry.hasAttribute(attributeType, attributeOptions))
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose(
+        logger.trace(
             "Returning TRUE for presence component %s in " +
             "filter %s for entry %s",
             this, completeFilter, entry.getName());
@@ -3169,9 +3156,9 @@ public final class SearchFilter
     }
     else
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose(
+        logger.trace(
             "Returning FALSE for presence component %s in " +
             "filter %s for entry %s",
             this, completeFilter, entry.getName());
@@ -3229,9 +3216,9 @@ public final class SearchFilter
          entry.getAttribute(attributeType, attributeOptions);
     if ((attrs == null) || (attrs.isEmpty()))
     {
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugVerbose(
+        logger.trace(
             "Returning FALSE for approximate component %s in " +
             "filter %s because entry %s didn't have attribute " +
             "type %s", this, completeFilter, entry.getName(),
@@ -3248,9 +3235,9 @@ public final class SearchFilter
       switch (a.approximatelyEqualTo(assertionValue))
       {
         case TRUE:
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugVerbose(
+            logger.trace(
                "Returning TRUE for approximate component %s in " +
                "filter %s for entry %s",
                this, completeFilter, entry.getName());
@@ -3259,9 +3246,9 @@ public final class SearchFilter
         case FALSE:
           break;
         case UNDEFINED:
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugVerbose(
+            logger.trace(
                 "Undefined result encountered for approximate " +
                 "component %s in filter %s for entry %s",
                          this, completeFilter, entry.getName());
@@ -3272,9 +3259,9 @@ public final class SearchFilter
       }
     }
 
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugVerbose(
+      logger.trace(
           "Returning %s for approximate component %s in filter " +
           "%s for entry %s",
           result, this, completeFilter, entry.getName());
@@ -3330,9 +3317,9 @@ public final class SearchFilter
                 toLowerCase(matchingRuleID));
       if (matchingRule == null)
       {
-        if (debugEnabled())
+        if (logger.isTraceEnabled())
         {
-          TRACER.debugInfo(
+          logger.trace(
               "Unknown matching rule %s defined in extensibleMatch " +
               "component of filter %s -- returning undefined.",
                     matchingRuleID, this);
@@ -3356,9 +3343,9 @@ public final class SearchFilter
         matchingRule = attributeType.getEqualityMatchingRule();
         if (matchingRule == null)
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo(
+            logger.trace(
              "Attribute type %s does not have an equality matching " +
              "rule -- returning undefined.",
              attributeType.getNameOrOID());
@@ -3380,9 +3367,9 @@ public final class SearchFilter
       {
         if (! mru.appliesToAttribute(attributeType))
         {
-          if (debugEnabled())
+          if (logger.isTraceEnabled())
           {
-            TRACER.debugInfo(
+            logger.trace(
                 "Attribute type %s is not allowed for use with " +
                 "matching rule %s because of matching rule use " +
                 "definition %s", attributeType.getNameOrOID(),
@@ -3404,10 +3391,7 @@ public final class SearchFilter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // We can't normalize the assertion value, so the result must be
       // undefined.
@@ -3455,10 +3439,7 @@ public final class SearchFilter
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               // We couldn't normalize one of the values.  If we don't
               // find a definite match, then we should return
@@ -3503,10 +3484,7 @@ public final class SearchFilter
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               // We couldn't normalize one of the values.  If we don't
               // find a definite match, then we should return
@@ -3545,10 +3523,7 @@ public final class SearchFilter
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // We couldn't normalize one of the values.  If we don't
           // find a definite match, then we should return undefined.
@@ -3593,10 +3568,7 @@ public final class SearchFilter
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               // We couldn't normalize one of the values.  If we don't
               // find a definite match, then we should return
@@ -3655,10 +3627,7 @@ public final class SearchFilter
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             // We couldn't normalize one of the values.  If we don't
             // find a definite match, then we should return undefined.

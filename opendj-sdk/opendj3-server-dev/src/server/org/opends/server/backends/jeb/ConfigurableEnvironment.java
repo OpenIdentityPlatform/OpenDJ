@@ -34,6 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.PropertyDefinition;
@@ -41,9 +42,6 @@ import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
-
 import com.sleepycat.je.Durability;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.dbi.MemoryBudget;
@@ -54,17 +52,13 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class maps JE properties to configuration attributes.
  */
 public class ConfigurableEnvironment
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The name of the attribute which configures the database cache size as a
@@ -374,10 +368,7 @@ public class ConfigurableEnvironment
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
       return "";
     }
   }
@@ -409,10 +400,7 @@ public class ConfigurableEnvironment
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 
@@ -596,9 +584,7 @@ public class ConfigurableEnvironment
           // Add this property to unique set.
           uniqueJEProperties.add(jePropertyName);
         } catch(IllegalArgumentException e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
           LocalizableMessage message =
             ERR_CONFIG_JE_PROPERTY_INVALID.get(
             jeEntry, e.getMessage());

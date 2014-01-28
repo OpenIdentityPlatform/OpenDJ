@@ -49,7 +49,7 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -60,7 +60,6 @@ import org.opends.server.workflowelement.localbackend.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -82,10 +81,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
                   ConfigurationDeleteListener<GroupImplementationCfg>,
                   BackendInitializationListener
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -600,10 +596,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         continue;
       }
 
@@ -619,10 +612,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
           continue;
         }
 
@@ -642,10 +632,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
 
           // FIXME -- Is there anything that we need to do here?
           continue;
@@ -664,10 +651,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
             }
             catch (DirectoryException e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
               // Nothing specific to do, as it's already logged.
             }
           }
@@ -862,10 +846,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
         {
           // Should not happen but if it does all we
           // can do here is debug log it and continue.
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          logger.traceException(de);
           continue;
         }
         group.setGroupDN(groupDN);
@@ -1035,10 +1016,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
       }
       catch (DirectoryException e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }

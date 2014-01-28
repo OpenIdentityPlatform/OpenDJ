@@ -22,17 +22,15 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
 import java.util.ArrayList;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.config.ConfigEntry;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 
 /**
  * This thread is spawned off at the time of file rotation to
@@ -41,11 +39,7 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class RotationActionThread extends DirectoryThread
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private ArrayList<ActionType> actions;
   private String filename;
@@ -96,8 +90,7 @@ public class RotationActionThread extends DirectoryThread
             //action = new SignatureAction(filename, alias);
             break;
           case ENCRYPT:
-            String encFile = filename + ".enc";
-            //String certAlias =
+          //String certAlias =
             //  RotationConfigUtil.getCertificateAlias(configEntry);
             // FIXME - make the encryption algorithm configurable.
             //action = new EncryptAction(filename, encFile, false, certAlias,
@@ -118,10 +111,7 @@ public class RotationActionThread extends DirectoryThread
       }
     } catch(Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
   }
 

@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.types.Attribute;
@@ -44,10 +43,7 @@ import java.util.*;
  */
 public class OrderingIndexer extends Indexer
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -179,10 +175,7 @@ public class OrderingIndexer extends Indexer
         }
         catch (DirectoryException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -228,10 +221,7 @@ public class OrderingIndexer extends Indexer
         }
         catch (DirectoryException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }

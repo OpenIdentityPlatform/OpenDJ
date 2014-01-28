@@ -31,8 +31,6 @@ package org.opends.server.extensions;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -46,11 +44,10 @@ import org.opends.server.admin.std.server.ParallelWorkQueueCfg;
 import org.opends.server.api.WorkQueue;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.monitors.ParallelWorkQueueMonitor;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
@@ -66,10 +63,7 @@ public class ParallelWorkQueue
        extends WorkQueue<ParallelWorkQueueCfg>
        implements ConfigurationChangeListener<ParallelWorkQueueCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -174,10 +168,7 @@ public class ParallelWorkQueue
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR.get(
           String.valueOf(ParallelWorkQueueMonitor.class), String.valueOf(e));
@@ -214,10 +205,7 @@ public class ParallelWorkQueue
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         logError(WARN_QUEUE_UNABLE_TO_CANCEL.get(
             String.valueOf(o), String.valueOf(e)));
@@ -234,10 +222,7 @@ public class ParallelWorkQueue
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         logError(WARN_QUEUE_UNABLE_TO_NOTIFY_THREAD.get(
             t.getName(), String.valueOf(e)));
@@ -362,10 +347,7 @@ public class ParallelWorkQueue
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }
@@ -423,10 +405,7 @@ public class ParallelWorkQueue
               }
               catch (Exception e)
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                }
+                logger.traceException(e);
               }
             }
           }
@@ -439,10 +418,7 @@ public class ParallelWorkQueue
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // This should not happen.  The only recourse we have is to log a message
       // and try again.
@@ -556,10 +532,7 @@ public class ParallelWorkQueue
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          logger.traceException(e);
         }
       }
     }

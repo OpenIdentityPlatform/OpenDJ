@@ -44,8 +44,7 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
@@ -63,10 +62,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class MatchingRuleUseSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -217,10 +213,7 @@ public class MatchingRuleUseSyntax
     }
     catch (DirectoryException de)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
+      logger.traceException(de);
 
       invalidReason.append(de.getMessageObject());
       return false;

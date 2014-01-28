@@ -30,10 +30,7 @@ package org.opends.server.tools;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.RecordingOutputStream;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.ServerConstants;
@@ -48,10 +45,7 @@ import java.io.BufferedOutputStream;
  */
 public class LDAPWriter
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   Socket socket;
   ASN1Writer asn1Writer;
@@ -88,9 +82,9 @@ public class LDAPWriter
   public void writeMessage(LDAPMessage message)
        throws IOException
   {
-    if(debugEnabled())
+    if(logger.isTraceEnabled())
     {
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, message.toString());
+      logger.trace(message.toString());
       debugOutputStream.setRecordingEnabled(true);
     }
 
@@ -109,7 +103,7 @@ public class LDAPWriter
       builder.append(ServerConstants.EOL);
       builder.append(bytesRead.toHexPlusAsciiString(4));
 
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, builder.toString());
+      logger.trace(builder.toString());
     }
   }
 
@@ -124,10 +118,7 @@ public class LDAPWriter
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
 
@@ -139,10 +130,7 @@ public class LDAPWriter
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
     }
   }

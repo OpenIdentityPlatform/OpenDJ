@@ -50,16 +50,14 @@ import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.util.Base64;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -187,7 +185,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
   static final String HTTP_BASIC_AUTH_HEADER = "Authorization";
 
   /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The connection handler that created this servlet filter. */
   private final HTTPConnectionHandler connectionHandler;
@@ -352,10 +350,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     ResourceException ex = Rest2LDAP.asResourceException(e);
     try
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       sendErrorReponse(ctx.response, ctx.prettyPrint, ex);
 
@@ -503,10 +498,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     catch (IOException ignore)
     {
       // nothing else we can do in this case
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ignore);
-      }
+      logger.traceException(ignore);
     }
   }
 

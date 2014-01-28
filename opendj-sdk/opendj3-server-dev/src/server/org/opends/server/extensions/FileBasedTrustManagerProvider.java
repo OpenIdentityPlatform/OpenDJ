@@ -54,9 +54,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.ExpirationCheckTrustManager;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ExtensionMessages.*;
 
 import static org.opends.server.util.StaticUtils.*;
@@ -71,10 +69,7 @@ public class FileBasedTrustManagerProvider
        extends TrustManagerProvider<FileBasedTrustManagerProviderCfg>
        implements ConfigurationChangeListener<FileBasedTrustManagerProviderCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -148,10 +143,7 @@ public class FileBasedTrustManagerProvider
     }
     catch (KeyStoreException kse)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, kse);
-      }
+      logger.traceException(kse);
 
       LocalizableMessage message = ERR_FILE_TRUSTMANAGER_INVALID_TYPE.
           get(String.valueOf(trustStoreType), String.valueOf(configEntryDN),
@@ -299,10 +291,7 @@ public class FileBasedTrustManagerProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_FILE_TRUSTMANAGER_CANNOT_LOAD.get(
           trustStoreFile, getExceptionMessage(e));
@@ -328,10 +317,7 @@ public class FileBasedTrustManagerProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_FILE_TRUSTMANAGER_CANNOT_CREATE_FACTORY.get(
           trustStoreFile, getExceptionMessage(e));
@@ -383,10 +369,7 @@ public class FileBasedTrustManagerProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE.get(
               String.valueOf(cfgEntryDN),
@@ -405,10 +388,7 @@ public class FileBasedTrustManagerProvider
       }
       catch (KeyStoreException kse)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, kse);
-        }
+        logger.traceException(kse);
 
         LocalizableMessage message = ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(
                 String.valueOf(storeType),
@@ -545,10 +525,7 @@ public class FileBasedTrustManagerProvider
     }
     catch (KeyStoreException kse)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, kse);
-      }
+      logger.traceException(kse);
 
       messages.add(ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(
               String.valueOf(newTrustStoreType),

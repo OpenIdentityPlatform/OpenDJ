@@ -55,7 +55,7 @@ import org.opends.server.api.DirectoryServerMBean;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.jmx.Credential;
@@ -65,7 +65,6 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -84,10 +83,7 @@ import static org.opends.server.util.StaticUtils.*;
 public final class JMXMBean
        implements DynamicMBean, DirectoryServerMBean
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The fully-qualified name of this class.
@@ -162,10 +158,7 @@ public final class JMXMBean
           nameStr = MBEAN_BASE_DOMAIN + ":" + "Name=rootDSE" + typeStr;
       } catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
           LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN.get(
               configEntryDN.toString(), String.valueOf(e));
@@ -206,20 +199,14 @@ public final class JMXMBean
                   }
                 } catch(Exception e)
                 {
-                  if (debugEnabled())
-                  {
-                    TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                  }
+                  logger.traceException(e);
                 }
 
                 mBeanServer.registerMBean(this, objectName);
 
             } catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
                 e.printStackTrace();
 
                 LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN.get(
@@ -495,10 +482,7 @@ public final class JMXMBean
     }
     catch (LDAPException e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
           get(String.valueOf(attributeName), String.valueOf(configEntryDN),
@@ -538,10 +522,7 @@ public final class JMXMBean
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
           String.valueOf(configEntryDN), attributeName);
@@ -640,10 +621,7 @@ public final class JMXMBean
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
 
       // It's possible that this is a monitor attribute rather than a
@@ -753,19 +731,13 @@ monitorLoop:
           }
           catch (MBeanException me)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, me);
-            }
+            logger.traceException(me);
 
             throw me;
           }
           catch (Exception e)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+            logger.traceException(e);
 
             throw new MBeanException(e);
           }

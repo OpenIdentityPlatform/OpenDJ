@@ -45,11 +45,10 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -71,10 +70,7 @@ public class CRAMMD5SASLMechanismHandler
        implements ConfigurationChangeListener<
                        CramMD5SASLMechanismHandlerCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // An array filled with the inner pad byte.
   private byte[] iPad;
@@ -134,10 +130,7 @@ public class CRAMMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message =
           ERR_SASLCRAMMD5_CANNOT_GET_MESSAGE_DIGEST.get(getExceptionMessage(e));
@@ -278,10 +271,7 @@ public class CRAMMD5SASLMechanismHandler
     }
     catch (ParseException pe)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, pe);
-      }
+      logger.traceException(pe);
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -307,10 +297,7 @@ public class CRAMMD5SASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -352,10 +339,7 @@ public class CRAMMD5SASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -383,10 +367,7 @@ public class CRAMMD5SASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 

@@ -22,17 +22,15 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
 import java.io.IOException;
 
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.protocol.MonitorMsg;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This thread regularly publishes monitoring information:
@@ -45,11 +43,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  */
 public class MonitoringPublisher extends DirectoryThread
 {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The replication domain we send monitoring for. */
   private final ReplicationServerDomain domain;
@@ -83,9 +77,9 @@ public class MonitoringPublisher extends DirectoryThread
   @Override
   public void run()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(getMessage("Monitoring publisher starting."));
+      logger.trace(getMessage("Monitoring publisher starting."));
     }
 
     try
@@ -127,11 +121,11 @@ public class MonitoringPublisher extends DirectoryThread
     }
     catch (InterruptedException e)
     {
-      TRACER.debugInfo(getMessage(
+      logger.trace(getMessage(
           "Monitoring publisher has been interrupted while sleeping."));
     }
 
-    TRACER.debugInfo(getMessage("Monitoring publisher is terminated."));
+    logger.trace(getMessage("Monitoring publisher is terminated."));
   }
 
 
@@ -146,9 +140,9 @@ public class MonitoringPublisher extends DirectoryThread
     {
       shutdownLock.notifyAll();
     }
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(getMessage("Shutting down monitoring publisher."));
+      logger.trace(getMessage("Shutting down monitoring publisher."));
     }
   }
 
@@ -175,9 +169,9 @@ public class MonitoringPublisher extends DirectoryThread
    */
   public void setPeriod(long period)
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(getMessage(
+      logger.trace(getMessage(
           "Monitoring publisher changing period value to " + period));
     }
 

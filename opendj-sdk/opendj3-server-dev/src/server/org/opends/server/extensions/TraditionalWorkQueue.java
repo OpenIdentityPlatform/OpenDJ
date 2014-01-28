@@ -31,8 +31,6 @@ package org.opends.server.extensions;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -48,11 +46,10 @@ import org.opends.server.admin.std.server.TraditionalWorkQueueCfg;
 import org.opends.server.api.WorkQueue;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.monitors.TraditionalWorkQueueMonitor;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
@@ -67,10 +64,7 @@ import org.opends.server.types.ResultCode;
 public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     implements ConfigurationChangeListener<TraditionalWorkQueueCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The maximum number of times to retry getting the next operation from the
@@ -218,10 +212,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message = ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR.get(
             String.valueOf(TraditionalWorkQueueMonitor.class),
@@ -273,10 +264,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         logError(WARN_QUEUE_UNABLE_TO_CANCEL.get(String.valueOf(o),
             String.valueOf(e)));
@@ -292,10 +280,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         logError(WARN_QUEUE_UNABLE_TO_NOTIFY_THREAD.get(t.getName(),
             String.valueOf(e)));
@@ -540,10 +525,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // This should not happen. The only recourse we have is to log a message
       // and try again.
@@ -724,10 +706,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
       }
       finally
       {

@@ -31,8 +31,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.jnlp.DownloadService;
 import javax.jnlp.DownloadServiceListener;
@@ -60,8 +60,7 @@ import static org.opends.messages.QuickSetupMessages.*;
  * ProgressStep.DOWNLOADING step.
  */
 public class WebStartDownloader implements DownloadServiceListener {
-  static private final Logger LOG =
-    Logger.getLogger(WebStartDownloader.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private ApplicationException ex;
 
@@ -250,8 +249,8 @@ public class WebStartDownloader implements DownloadServiceListener {
           (DownloadService) ServiceManager.lookup(Utils.JNLP_SERVICE_NAME);
     } catch (UnavailableServiceException e)
     {
-      LOG.log(Level.SEVERE, "Could not find service: "+
-          Utils.JNLP_SERVICE_NAME, e);
+      logger.error(LocalizableMessage.raw("Could not find service: "+
+          Utils.JNLP_SERVICE_NAME, e));
       String setupFile;
       if (Utils.isWindows())
       {

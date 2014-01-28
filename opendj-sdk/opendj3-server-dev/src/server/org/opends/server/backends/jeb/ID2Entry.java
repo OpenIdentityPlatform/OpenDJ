@@ -28,9 +28,7 @@ package org.opends.server.backends.jeb;
 import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.server.core.DirectoryServer.getMaxInternalBufferSize;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.JebMessages.*;
 
@@ -60,10 +58,7 @@ import java.util.zip.InflaterOutputStream;
  */
 public class ID2Entry extends DatabaseContainer
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Parameters for compression and encryption.
@@ -250,9 +245,9 @@ public class ID2Entry extends DatabaseContainer
       catch(IOException ioe)
       {
         // TODO: This should never happen with byte buffer.
-        if(debugEnabled())
+        if(logger.isTraceEnabled())
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
+          logger.traceException(ioe);
         }
       }
     }

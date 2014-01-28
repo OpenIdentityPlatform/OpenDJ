@@ -36,7 +36,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -44,14 +44,12 @@ import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.util.Pair;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -60,7 +58,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 {
   /** The tracer object for the debug logger. */
-  protected static final DebugTracer TRACER = getTracer();
+  protected static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * This map contains the List of updates received from each LDAP server.
@@ -161,8 +159,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      if (logger.isTraceEnabled())
+        logger.traceException(e);
 
       final LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(e.getLocalizedMessage());
@@ -322,8 +320,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
     catch (ChangelogException e)
     {
-      if (debugEnabled())
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      if (logger.isTraceEnabled())
+        logger.traceException(e);
 
       logError(ERR_COULD_NOT_READ_DB.get(this.dbDirectory.getAbsolutePath(),
           e.getLocalizedMessage()));
@@ -467,8 +465,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
           {
             firstException = e;
           }
-          else if (debugEnabled())
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          else if (logger.isTraceEnabled())
+            logger.traceException(e);
         }
 
         cnIndexDB = null;
@@ -589,8 +587,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
           {
             firstException = e;
           }
-          else if (debugEnabled())
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          else if (logger.isTraceEnabled())
+            logger.traceException(e);
         }
       }
     }
@@ -606,8 +604,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       {
         firstException = e;
       }
-      else if (debugEnabled())
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      else if (logger.isTraceEnabled())
+        logger.traceException(e);
     }
 
     if (firstException != null)
@@ -704,8 +702,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
         }
         catch (Exception e)
         {
-          if (debugEnabled())
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          if (logger.isTraceEnabled())
+            logger.traceException(e);
           logError(ERR_CHANGENUMBER_DATABASE.get(e.getLocalizedMessage()));
         }
       }

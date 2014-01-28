@@ -42,8 +42,9 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -67,7 +68,6 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.renderer.BackupTableCellRenderer;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
 import org.opends.server.types.OpenDsException;
@@ -144,8 +144,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
 
   private BackupTableCellRenderer renderer;
 
-  private static final Logger LOG =
-    Logger.getLogger(BackupListPanel.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Default constructor.
@@ -404,7 +403,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
                 if (!children[i].getName().equals("tasks") &&
                     (firstThrowable != null))
                 {
-                  LOG.log(Level.WARNING, "Error searching backup: "+t2, t2);
+                  logger.warn(LocalizableMessage.raw("Error searching backup: "+t2, t2));
                 }
               }
             }

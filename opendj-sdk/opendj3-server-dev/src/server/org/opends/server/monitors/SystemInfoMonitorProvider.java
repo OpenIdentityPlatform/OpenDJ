@@ -22,13 +22,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.monitors;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.lang.management.ManagementFactory;
@@ -47,7 +46,7 @@ import org.opends.server.admin.std.server.SystemInfoMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 
 
@@ -59,10 +58,7 @@ import org.opends.server.types.*;
 public class SystemInfoMonitorProvider
        extends MonitorProvider<SystemInfoMonitorProviderCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -143,10 +139,7 @@ public class SystemInfoMonitorProvider
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
     }
 
 

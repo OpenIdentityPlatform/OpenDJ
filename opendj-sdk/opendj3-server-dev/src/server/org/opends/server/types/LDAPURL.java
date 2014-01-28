@@ -33,10 +33,9 @@ import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -54,10 +53,7 @@ import static org.opends.server.util.StaticUtils.*;
      mayInvoke=true)
 public final class LDAPURL
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The default scheme that will be used if none is provided.
@@ -829,10 +825,7 @@ public final class LDAPURL
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       // This should never happen.
       LocalizableMessage message = ERR_LDAPURL_CANNOT_CREATE_UTF8_STRING.get(
@@ -1343,10 +1336,7 @@ public final class LDAPURL
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       if (rawBaseDN == null)
       {
@@ -1381,10 +1371,7 @@ public final class LDAPURL
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       if (rawFilter == null)
       {
@@ -1480,10 +1467,7 @@ outerExtLoop:
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       if (rawBaseDN != null)
       {
@@ -1504,10 +1488,7 @@ outerExtLoop:
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       if (rawFilter != null)
       {

@@ -76,8 +76,8 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.awt.event.WindowEvent;
 
 import javax.naming.Context;
@@ -111,8 +111,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
   private UninstallCliHelper cliHelper = new UninstallCliHelper();
 
-  private static final Logger LOG =
-    Logger.getLogger(Uninstaller.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private LoginDialog loginDialog;
   private ProgressDialog startProgressDlg;
@@ -141,8 +140,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
     catch (Throwable t)
     {
-      LOG.log(Level.WARNING, "Error enabling admin framework class loader: "+t,
-          t);
+      logger.warn(LocalizableMessage.raw("Error enabling admin framework class loader: "+t,
+          t));
     }
 
     // Switch off class name validation in client.
@@ -151,7 +150,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     // Switch off attribute type name validation in client.
     AttributeTypePropertyDefinition.setCheckSchema(false);
 
-    LOG.log(Level.INFO, "Uninstaller is created.");
+    logger.debug(LocalizableMessage.raw("Uninstaller is created."));
   }
   /**
    * {@inheritDoc}
@@ -434,7 +433,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           catch (UserDataException uude) {
             throw uude;
           } catch (Throwable t) {
-            LOG.log(Level.WARNING, "Error processing task: "+t, t);
+            logger.warn(LocalizableMessage.raw("Error processing task: "+t, t));
             throw new UserDataException(Step.CONFIRM_UNINSTALL,
                     getThrowableMsg(INFO_BUG_MSG.get(), t));
           }
@@ -451,8 +450,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             }
             else
             {
-              LOG.log(Level.WARNING, "Error processing task: "+throwable,
-                  throwable);
+              logger.warn(LocalizableMessage.raw("Error processing task: "+throwable,
+                  throwable));
               qs.displayError(LocalizableMessage.raw(throwable.toString()),
                       INFO_ERROR_TITLE.get());
             }
@@ -793,7 +792,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   public void run() {
     runStarted = true;
-    LOG.log(Level.INFO, "run of the Uninstaller started");
+    logger.debug(LocalizableMessage.raw("run of the Uninstaller started"));
 
     initMaps();
     PrintStream origErr = System.err;
@@ -808,8 +807,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
       boolean displaySeparator = false;
 
-      LOG.log(Level.INFO, "Update remote replication? "+
-          getUninstallUserData().getUpdateRemoteReplication());
+      logger.debug(LocalizableMessage.raw("Update remote replication? "+
+          getUninstallUserData().getUpdateRemoteReplication()));
       if (getUninstallUserData().getUpdateRemoteReplication())
       {
         status = UninstallProgressStep.UNCONFIGURING_REPLICATION;
@@ -817,7 +816,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         displaySeparator = true;
       }
 
-      LOG.log(Level.INFO, "Stop server? "+getUserData().getStopServer());
+      logger.debug(LocalizableMessage.raw("Stop server? "+getUserData().getStopServer()));
       if (getUserData().getStopServer()) {
         status = UninstallProgressStep.STOPPING_SERVER;
         if (displaySeparator && isVerbose()) {
@@ -841,8 +840,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         }
         displaySeparator = true;
       }
-      LOG.log(Level.INFO, "Is Windows Service Enabled? "+
-          isWindowsServiceEnabled());
+      logger.debug(LocalizableMessage.raw("Is Windows Service Enabled? "+
+          isWindowsServiceEnabled()));
       if (isWindowsServiceEnabled()) {
         status = UninstallProgressStep.DISABLING_WINDOWS_SERVICE;
         if (displaySeparator && isVerbose()) {
@@ -961,14 +960,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
 
     } catch (ApplicationException ex) {
-      LOG.log(Level.SEVERE, "Error: "+ex, ex);
+      logger.error(LocalizableMessage.raw("Error: "+ex, ex));
       ue = ex;
       status = UninstallProgressStep.FINISHED_WITH_ERROR;
       LocalizableMessage msg = getFormattedError(ex, true);
       notifyListeners(msg);
     }
     catch (Throwable t) {
-      LOG.log(Level.SEVERE, "Error: "+t, t);
+      logger.error(LocalizableMessage.raw("Error: "+t, t));
       ue = new ApplicationException(
               ReturnCode.BUG,
               getThrowableMsg(INFO_BUG_MSG.get(), t), t);
@@ -1472,7 +1471,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
                 !equalsOrDescendant(file, parent);
       }
 
-      LOG.log(Level.INFO, "accept for :"+file+" is: "+accept);
+      logger.debug(LocalizableMessage.raw("accept for :"+file+" is: "+accept));
       return accept;
     }
   }
@@ -1617,7 +1616,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
       catch (NamingException ne)
       {
-        LOG.log(Level.WARNING, "Could not find local server: "+ne, ne);
+        logger.warn(LocalizableMessage.raw("Could not find local server: "+ne, ne));
         getUninstallUserData().setLocalServerUrl("ldap://localhost:389");
       }
       getUninstallUserData().setReplicationServer(
@@ -1629,7 +1628,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       {
         public TopologyCache processBackgroundTask() throws Throwable
         {
-          LOG.log(Level.INFO, "Loading Topology Cache in askForAuthentication");
+          logger.debug(LocalizableMessage.raw("Loading Topology Cache in askForAuthentication"));
           ADSContext adsContext = new ADSContext(ctx);
           TopologyCache cache = new TopologyCache(adsContext,
               getTrustManager(), getConnectTimeout());
@@ -1642,7 +1641,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           qs.getDialog().workerFinished();
           if (throwable != null)
           {
-            LOG.log(Level.WARNING, "Throwable: "+throwable, throwable);
+            logger.warn(LocalizableMessage.raw("Throwable: "+throwable, throwable));
             if (throwable instanceof TopologyCacheException)
             {
               qs.displayError(
@@ -1656,7 +1655,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
                   getThrowableMsg(INFO_BUG_MSG.get(), throwable),
                   INFO_ERROR_TITLE.get());
             }
-            LOG.log(Level.INFO, "Error was displayed");
+            logger.debug(LocalizableMessage.raw("Error was displayed"));
           }
           else
           {
@@ -1694,7 +1693,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   private void handleTopologyCache(QuickSetup qs, TopologyCache cache)
   {
-    LOG.log(Level.INFO, "Handling TopologyCache");
+    logger.debug(LocalizableMessage.raw("Handling TopologyCache"));
     boolean stopProcessing = false;
     Set<TopologyCacheException> exceptions =
       new HashSet<TopologyCacheException>();
@@ -1716,7 +1715,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     /* Check the exceptions and see if we throw them or not. */
     for (TopologyCacheException e : exceptions)
     {
-      LOG.log(Level.INFO, "Analyzing exception: "+e, e);
+      logger.debug(LocalizableMessage.raw("Analyzing exception: "+e, e));
       if (stopProcessing)
       {
         break;
@@ -1738,7 +1737,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           {
             cause = e.getTrustManager().getLastRefusedCause();
           }
-          LOG.log(Level.INFO, "Certificate exception cause: "+cause);
+          logger.debug(LocalizableMessage.raw("Certificate exception cause: "+cause));
           if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
           {
             excType = UserDataCertificateException.Type.NOT_TRUSTED;
@@ -1763,8 +1762,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             }
             catch (Throwable t)
             {
-              LOG.log(Level.WARNING,
-                  "Error parsing ldap url of TopologyCacheException.", t);
+              logger.warn(LocalizableMessage.raw(
+                  "Error parsing ldap url of TopologyCacheException.", t));
               h = INFO_NOT_AVAILABLE_LABEL.get().toString();
               p = -1;
             }
@@ -1827,14 +1826,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
       if ((chain != null) && (authType != null) && (host != null))
       {
-        LOG.log(Level.INFO, "Accepting certificate presented by host "+host);
+        logger.debug(LocalizableMessage.raw("Accepting certificate presented by host "+host));
         getTrustManager().acceptCertificate(chain, authType, host);
         BackgroundTask<TopologyCache> worker =
           new BackgroundTask<TopologyCache>()
         {
           public TopologyCache processBackgroundTask() throws Throwable
           {
-            LOG.log(Level.INFO, "Reloading topology");
+            logger.debug(LocalizableMessage.raw("Reloading topology"));
             cache.getFilter().setSearchMonitoringInformation(false);
             cache.reloadTopology();
             return cache;
@@ -1870,18 +1869,18 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       {
         if (chain == null)
         {
-          LOG.log(Level.WARNING,
-              "The chain is null for the UserDataCertificateException");
+          logger.warn(LocalizableMessage.raw(
+              "The chain is null for the UserDataCertificateException"));
         }
         if (authType == null)
         {
-          LOG.log(Level.WARNING,
-              "The auth type is null for the UserDataCertificateException");
+          logger.warn(LocalizableMessage.raw(
+              "The auth type is null for the UserDataCertificateException"));
         }
         if (host == null)
         {
-          LOG.log(Level.WARNING,
-              "The host is null for the UserDataCertificateException");
+          logger.warn(LocalizableMessage.raw(
+              "The host is null for the UserDataCertificateException"));
         }
       }
     }
@@ -1897,7 +1896,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         }
         catch (Throwable t)
         {
-          LOG.log(Level.WARNING, "Error accepting certificate: "+t, t);
+          logger.warn(LocalizableMessage.raw("Error accepting certificate: "+t, t));
         }
       }
     }
@@ -1925,8 +1924,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
     if (serverADSProperties == null)
     {
-      LOG.log(Level.WARNING, "The server ADS properties for the server to "+
-          "uninstall could not be found.");
+      logger.warn(LocalizableMessage.raw("The server ADS properties for the server to "+
+          "uninstall could not be found."));
     }
 
     for (ServerDescriptor server : servers)
@@ -2003,11 +2002,11 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
     if (!hasReferences)
     {
-      LOG.log(Level.INFO, "No references in: "+ server.getHostPort(true));
+      logger.debug(LocalizableMessage.raw("No references in: "+ server.getHostPort(true)));
     }
     if (hasReferences)
     {
-      LOG.log(Level.INFO, "Updating references in: "+ server.getHostPort(true));
+      logger.debug(LocalizableMessage.raw("Updating references in: "+ server.getHostPort(true)));
       notifyListeners(getFormattedWithPoints(
           INFO_PROGRESS_REMOVING_REFERENCES.get(server.getHostPort(true))));
       InitialLdapContext ctx = null;
@@ -2029,8 +2028,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       catch (ApplicationException ae)
       {
         errorOnRemoteOccurred = true;
-        LOG.log(Level.INFO, "Error updating replication references in: "+
-            server.getHostPort(true), ae);
+        logger.debug(LocalizableMessage.raw("Error updating replication references in: "+
+            server.getHostPort(true), ae));
 
         if (!getUninstallUserData().isForceOnError())
         {
@@ -2111,8 +2110,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           }
           if (replServer != null)
           {
-            LOG.log(Level.INFO, "Updating references in replication server on "+
-                serverDisplay+".");
+            logger.debug(LocalizableMessage.raw("Updating references in replication server on "+
+                serverDisplay+"."));
             replServers.remove(replServer);
             if (replServers.size() > 0)
             {
@@ -2149,8 +2148,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             }
             if (replServer != null)
             {
-              LOG.log(Level.INFO, "Updating references in domain " +
-                  domain.getBaseDN()+" on " + serverDisplay + ".");
+              logger.debug(LocalizableMessage.raw("Updating references in domain " +
+                  domain.getBaseDN()+" on " + serverDisplay + "."));
               replServers.remove(replServer);
               if (replServers.size() > 0)
               {
@@ -2170,14 +2169,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     catch (ManagedObjectNotFoundException monfe)
     {
       // It does not exist.
-      LOG.log(Level.INFO, "No synchronization found on "+ serverDisplay+".",
-          monfe);
+      logger.debug(LocalizableMessage.raw("No synchronization found on "+ serverDisplay+".",
+          monfe));
     }
     catch (Throwable t)
     {
-      LOG.log(Level.WARNING,
+      logger.warn(LocalizableMessage.raw(
           "Error removing references in replication server on "+
-          serverDisplay+": "+t, t);
+          serverDisplay+": "+t, t));
       LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
               serverDisplay, t.toString());
       throw new ApplicationException(
@@ -2190,9 +2189,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     {
       if (adsContext.hasAdminData() && (serverADSProperties != null))
       {
-        LOG.log(Level.INFO, "Unregistering server on ADS of server "+
+        logger.debug(LocalizableMessage.raw("Unregistering server on ADS of server "+
             ConnectionUtils.getHostPort(ctx)+".  Properties: "+
-            serverADSProperties);
+            serverADSProperties));
         adsContext.unregisterServer(serverADSProperties);
       }
     }
@@ -2272,7 +2271,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
       catch (Throwable t)
       {
-        LOG.log(Level.WARNING, "Failing checking the port: "+t, t);
+        logger.warn(LocalizableMessage.raw("Failing checking the port: "+t, t));
       }
     }
     else
@@ -2306,7 +2305,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
       catch (Throwable t)
       {
-        LOG.log(Level.WARNING, "Failing checking host names: "+t, t);
+        logger.warn(LocalizableMessage.raw("Failing checking host names: "+t, t));
       }
       isServerToUninstall = hostNameEquals;
     }

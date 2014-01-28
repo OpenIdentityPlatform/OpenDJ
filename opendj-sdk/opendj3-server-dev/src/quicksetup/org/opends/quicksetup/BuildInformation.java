@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.quicksetup;
@@ -38,8 +38,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.io.InputStream;
@@ -54,8 +55,7 @@ import java.io.OutputStream;
  */
 public class BuildInformation implements Comparable<BuildInformation> {
 
-  static private final Logger LOG =
-          Logger.getLogger(BuildInformation.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Reads build information for a particular installation by reading the
@@ -107,7 +107,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
               }
               catch (Throwable t)
               {
-                LOG.log(Level.WARNING, "Error writing to process: "+t, t);
+                logger.warn(LocalizableMessage.raw("Error writing to process: "+t, t));
               }
             }
           }

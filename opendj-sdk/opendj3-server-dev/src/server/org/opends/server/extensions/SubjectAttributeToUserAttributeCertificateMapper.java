@@ -44,9 +44,7 @@ import org.opends.server.api.CertificateMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
@@ -68,10 +66,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
        implements ConfigurationChangeListener<
                   SubjectAttributeToUserAttributeCertificateMapperCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The DN of the configuration entry for this certificate mapper.
   private DN configEntryDN;
@@ -240,10 +235,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_SATUACM_PEER_CERT_NOT_X509.get(
           String.valueOf(certificateChain[0].getType()));

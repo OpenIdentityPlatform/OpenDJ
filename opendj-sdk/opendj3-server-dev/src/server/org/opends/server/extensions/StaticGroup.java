@@ -42,7 +42,7 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
@@ -51,7 +51,6 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Attributes;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
@@ -67,7 +66,6 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.forgerock.util.Reject.*;
@@ -86,10 +84,7 @@ import static org.forgerock.util.Reject.*;
 public class StaticGroup
        extends Group<StaticGroupImplementationCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The attribute type used to hold the membership list for this group.
   private AttributeType memberAttributeType;
@@ -253,10 +248,7 @@ public class StaticGroup
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
+            logger.traceException(de);
 
             LocalizableMessage message = ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN.
                 get(v.getValue().toString(),

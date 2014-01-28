@@ -36,11 +36,10 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.util.Reject.*;
 
@@ -63,13 +62,7 @@ public final class DN implements Comparable<DN>, Serializable
  *        ensure continued interoperability with third-party
  *        applications that rely on that functionality.
  */
-
-
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * A singleton instance of the null DN (a DN with no components).
@@ -2174,10 +2167,7 @@ public final class DN implements Comparable<DN>, Serializable
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
@@ -2397,10 +2387,7 @@ public final class DN implements Comparable<DN>, Serializable
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
 
         LocalizableMessage message =
             ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
@@ -2643,10 +2630,7 @@ public final class DN implements Comparable<DN>, Serializable
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
           get(dnString, String.valueOf(e));
@@ -2693,10 +2677,7 @@ public final class DN implements Comparable<DN>, Serializable
       // return false on an exception than to perform the checks to
       // see if it meets the appropriate
       // conditions.
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
       return false;
     }

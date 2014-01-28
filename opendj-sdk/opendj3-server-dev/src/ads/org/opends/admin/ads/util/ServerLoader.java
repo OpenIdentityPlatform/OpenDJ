@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.opends.admin.ads.util;
@@ -30,8 +30,9 @@ package org.opends.admin.ads.util;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.AuthenticationException;
 import javax.naming.NamingException;
@@ -69,8 +70,7 @@ public class ServerLoader extends Thread
   private final LinkedHashSet<PreferredConnection> preferredLDAPURLs;
   private TopologyCacheFilter filter;
 
-  private static final Logger LOG =
-    Logger.getLogger(ServerLoader.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Constructor.
@@ -150,7 +150,7 @@ public class ServerLoader extends Thread
           TopologyCacheException.Type.TIMEOUT,
           new TimeLimitExceededException("Timeout reading server: "+ldapUrl),
           trustManager, ldapUrl);
-      LOG.log(Level.WARNING, "Timeout reading server: "+ldapUrl);
+      logger.warn(LocalizableMessage.raw("Timeout reading server: "+ldapUrl));
     }
     super.interrupt();
   }
@@ -171,8 +171,8 @@ public class ServerLoader extends Thread
     }
     catch (NoPermissionException npe)
     {
-      LOG.log(Level.WARNING,
-          "Permissions error reading server: "+getLastLdapUrl(), npe);
+      logger.warn(LocalizableMessage.raw(
+          "Permissions error reading server: "+getLastLdapUrl(), npe));
       if (!isAdministratorDn())
       {
         lastException = new TopologyCacheException(
@@ -189,8 +189,8 @@ public class ServerLoader extends Thread
     }
     catch (AuthenticationException ae)
     {
-      LOG.log(Level.WARNING,
-          "Authentication exception: "+getLastLdapUrl(), ae);
+      logger.warn(LocalizableMessage.raw(
+          "Authentication exception: "+getLastLdapUrl(), ae));
       if (!isAdministratorDn())
       {
         lastException = new TopologyCacheException(
@@ -207,8 +207,8 @@ public class ServerLoader extends Thread
     }
     catch (NamingException ne)
     {
-      LOG.log(Level.WARNING,
-          "NamingException error reading server: "+getLastLdapUrl(), ne);
+      logger.warn(LocalizableMessage.raw(
+          "NamingException error reading server: "+getLastLdapUrl(), ne));
       if (ctx == null)
       {
         lastException =
@@ -228,9 +228,9 @@ public class ServerLoader extends Thread
     {
       if (!isInterrupted)
       {
-        LOG.log(Level.WARNING,
-            "Generic error reading server: "+getLastLdapUrl(), t);
-        LOG.log(Level.WARNING, "server Properties: "+serverProperties);
+        logger.warn(LocalizableMessage.raw(
+            "Generic error reading server: "+getLastLdapUrl(), t));
+        logger.warn(LocalizableMessage.raw("server Properties: "+serverProperties));
         lastException =
             new TopologyCacheException(TopologyCacheException.Type.BUG, t);
       }
@@ -432,7 +432,7 @@ public class ServerLoader extends Thread
     }
     catch (Throwable t)
     {
-      LOG.log(Level.WARNING, "Error parsing authentication DNs.", t);
+      logger.warn(LocalizableMessage.raw("Error parsing authentication DNs.", t));
     }
     return isAdministratorDn;
   }

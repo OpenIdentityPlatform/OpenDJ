@@ -30,14 +30,13 @@ import java.net.SocketException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.UpdateMsg;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -46,10 +45,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class ServerWriter extends DirectoryThread
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final Session session;
   private final ServerHandler handler;
@@ -89,9 +85,9 @@ public class ServerWriter extends DirectoryThread
   @Override
   public void run()
   {
-    if (debugEnabled())
+    if (logger.isTraceEnabled())
     {
-      TRACER.debugInfo(getName() + " starting");
+      logger.trace(getName() + " starting");
     }
 
     LocalizableMessage errMessage = null;
@@ -199,9 +195,9 @@ public class ServerWriter extends DirectoryThread
     finally {
       session.close();
       replicationServerDomain.stopServer(handler, false);
-      if (debugEnabled())
+      if (logger.isTraceEnabled())
       {
-        TRACER.debugInfo(getName() + " stopped " + errMessage);
+        logger.trace(getName() + " stopped " + errMessage);
       }
     }
   }

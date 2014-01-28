@@ -27,8 +27,9 @@
 
 package org.opends.quicksetup;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
@@ -37,7 +38,6 @@ import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.cli.CLIException;
-import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Class used by Launcher to start a CLI application.
@@ -52,8 +52,7 @@ public class QuickSetupCli {
 
   private UserData userData;
 
-  static private final Logger LOG =
-    Logger.getLogger(QuickSetupCli.class.getName());
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Creates a QuickSetupCli instance.
@@ -108,7 +107,7 @@ public class QuickSetupCli {
                   });
         }
         Thread appThread = new Thread(cliApp, "CLI Application");
-        LOG.log(Level.INFO, "Launching application");
+        logger.debug(LocalizableMessage.raw("Launching application"));
         appThread.start();
         while (!Thread.State.TERMINATED.equals(appThread.getState())) {
           try {
@@ -118,12 +117,12 @@ public class QuickSetupCli {
           }
         }
         returnValue = cliApp.getReturnCode();
-        LOG.log(Level.INFO, "Application returnValue: "+returnValue);
+        logger.debug(LocalizableMessage.raw("Application returnValue: "+returnValue));
         if (returnValue == null) {
           ApplicationException ue = cliApp.getRunError();
           if (ue != null)
           {
-            LOG.log(Level.INFO, "Application run error: "+ue, ue);
+            logger.debug(LocalizableMessage.raw("Application run error: "+ue, ue));
             returnValue = ue.getType();
           }
           else
@@ -140,7 +139,7 @@ public class QuickSetupCli {
     }
     catch (UserDataException uude)
     {
-      LOG.log(Level.SEVERE, "UserDataException: "+uude, uude);
+      logger.error(LocalizableMessage.raw("UserDataException: "+uude, uude));
       System.err.println();
       System.err.println(StaticUtils.wrapText(uude.getLocalizedMessage(),
               Utils.getCommandLineMaxLineWidth()));
@@ -156,7 +155,7 @@ public class QuickSetupCli {
     }
     catch (ApplicationException ae)
     {
-      LOG.log(Level.SEVERE, "ApplicationException: "+ae, ae);
+      logger.error(LocalizableMessage.raw("ApplicationException: "+ae, ae));
       System.err.println();
       System.err.println(ae.getLocalizedMessage());
       System.err.println();
@@ -164,10 +163,10 @@ public class QuickSetupCli {
     }
     catch (Throwable t)
     {
-      LOG.log(Level.SEVERE, "Unexpected error: "+t, t);
+      logger.error(LocalizableMessage.raw("Unexpected error: "+t, t));
       returnValue = ReturnCode.UNKNOWN;
     }
-    LOG.log(Level.INFO, "returnValue: "+returnValue.getReturnCode());
+    logger.debug(LocalizableMessage.raw("returnValue: "+returnValue.getReturnCode()));
     return returnValue;
   }
 

@@ -44,8 +44,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import static org.opends.messages.AccessControlMessages.*;
 import org.opends.server.core.DirectoryServer;
@@ -63,10 +62,7 @@ import java.util.*;
 public class AciListenerManager implements
     BackendInitializationListener, AlertGenerator
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The fully-qualified name of this class.
@@ -453,10 +449,7 @@ public class AciListenerManager implements
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         continue;
       }
       InternalSearchOperation internalSearch =
@@ -474,10 +467,7 @@ public class AciListenerManager implements
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        logger.traceException(e);
         continue;
       }
       if (!internalSearch.getSearchEntries().isEmpty())

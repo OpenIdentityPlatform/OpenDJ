@@ -32,7 +32,6 @@ import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -58,7 +57,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.SubentryPasswordPolicy;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
@@ -75,10 +74,7 @@ public final class PasswordPolicyImportPlugin
        implements ConfigurationChangeListener<PasswordPolicyImportPluginCfg>,
                   ImportTaskListener
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
@@ -343,10 +339,7 @@ public final class PasswordPolicyImportPlugin
       }
       catch (DirectoryException de)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        logger.traceException(de);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(
                 de.getMessageObject());
@@ -428,10 +421,7 @@ policyLoop:
                   }
                   catch (Exception e)
                   {
-                    if (debugEnabled())
-                    {
-                      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                    }
+                    logger.traceException(e);
 
                     LocalizableMessage message =
                       ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
@@ -463,10 +453,7 @@ policyLoop:
                   }
                   catch (Exception e)
                   {
-                    if (debugEnabled())
-                    {
-                      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                    }
+                    logger.traceException(e);
 
                     LocalizableMessage message =
                       ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
@@ -528,10 +515,7 @@ policyLoop:
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               LocalizableMessage message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
                   .get(t.getNameOrOID(), String.valueOf(entry.getName()),
@@ -586,10 +570,7 @@ policyLoop:
             }
             catch (Exception e)
             {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+              logger.traceException(e);
 
               LocalizableMessage message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
                   .get(t.getNameOrOID(), String.valueOf(entry.getName()),
