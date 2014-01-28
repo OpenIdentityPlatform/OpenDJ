@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -389,13 +389,10 @@ public class DomainFakeCfg implements ReplicationDomainCfg
    * @throws ConfigException
    *          If the add listener could not be registered.
    */
-  public
-  void addECLDomainAddListener(
+  public void addECLDomainAddListener(
       ConfigurationAddListener<ExternalChangelogDomainCfg> listener)
-  throws ConfigException
+      throws ConfigException
   {}
-
-
 
   /**
    * Deregisters an existing ECL Domain configuration add listener.
@@ -404,11 +401,8 @@ public class DomainFakeCfg implements ReplicationDomainCfg
    *          The ECL Domain configuration add listener.
    */
   public void removeECLDomainAddListener(
-      ConfigurationAddListener<ExternalChangelogDomainCfg>
-  listener)
+      ConfigurationAddListener<ExternalChangelogDomainCfg> listener)
   {}
-
-
 
   /**
    * Registers to be notified the ECL Domain is deleted.
@@ -418,13 +412,10 @@ public class DomainFakeCfg implements ReplicationDomainCfg
    * @throws ConfigException
    *          If the delete listener could not be registered.
    */
-  public void
-  addECLDomainDeleteListener(
+  public void addECLDomainDeleteListener(
       ConfigurationDeleteListener<ExternalChangelogDomainCfg> listener)
-  throws ConfigException
+      throws ConfigException
   {}
-
-
 
   /**
    * Deregisters an existing ECL Domain configuration delete listener.
@@ -432,8 +423,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
    * @param listener
    *          The ECL Domain configuration delete listener.
    */
-  public void
-  removeECLDomainDeleteListener(
+  public void removeECLDomainDeleteListener(
       ConfigurationDeleteListener<ExternalChangelogDomainCfg> listener)
   {}
 
@@ -457,4 +447,10 @@ public class DomainFakeCfg implements ReplicationDomainCfg
     return 1440;
   }
 
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + ", baseDN=" + baseDN + ", serverId="
+        + serverId + ", replicationServers=" + replicationServers;
+  }
 }
