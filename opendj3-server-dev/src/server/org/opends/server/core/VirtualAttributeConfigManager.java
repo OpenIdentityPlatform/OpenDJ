@@ -42,7 +42,6 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -157,7 +156,7 @@ public class VirtualAttributeConfigManager
         }
         catch (InitializationException ie)
         {
-          ErrorLogger.logError(ie.getMessageObject());
+          logger.error(ie.getMessageObject());
           continue;
         }
       }

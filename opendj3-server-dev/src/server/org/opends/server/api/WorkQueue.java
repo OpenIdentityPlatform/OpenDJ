@@ -27,8 +27,7 @@
 package org.opends.server.api;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.WorkQueueCfg;
 import org.opends.server.config.ConfigException;
@@ -57,6 +56,9 @@ import org.opends.server.types.Operation;
      mayInvoke=true)
 public abstract class WorkQueue<T extends WorkQueueCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Initializes this work queue based on the information in the
    * provided configuration entry.
@@ -167,8 +169,7 @@ public abstract class WorkQueue<T extends WorkQueueCfg>
       int cpus = Runtime.getRuntime().availableProcessors();
       int value = Math.max(24, cpus * 2);
 
-      LocalizableMessage message = INFO_ERGONOMIC_SIZING_OF_WORKER_THREAD_POOL.get(value);
-      logError(message);
+      logger.debug(INFO_ERGONOMIC_SIZING_OF_WORKER_THREAD_POOL, value);
 
       return value;
     }

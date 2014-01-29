@@ -29,6 +29,7 @@ package org.opends.server.tools;
 
 
 import org.opends.server.api.Backend;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.backends.jeb.BackendImpl;
@@ -56,7 +57,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.ToolMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -75,6 +75,9 @@ import org.opends.server.admin.std.server.BackendCfg;
  */
 public class VerifyIndex
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Processes the command-line arguments and invokes the verify process.
    *
@@ -395,16 +398,12 @@ public class VerifyIndex
     }
     catch (DirectoryException de)
     {
-      LocalizableMessage message = ERR_CANNOT_DECODE_BASE_DN.get(
-          baseDNString.getValue(), de.getMessageObject());
-      logError(message);
+      logger.error(ERR_CANNOT_DECODE_BASE_DN, baseDNString.getValue(), de.getMessageObject());
       return 1;
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_CANNOT_DECODE_BASE_DN.get(
-          baseDNString.getValue(), getExceptionMessage(e));
-      logError(message);
+      logger.error(ERR_CANNOT_DECODE_BASE_DN, baseDNString.getValue(), getExceptionMessage(e));
       return 1;
     }
 
@@ -434,9 +433,7 @@ public class VerifyIndex
           }
           else
           {
-            LocalizableMessage message =
-                ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue());
-            logError(message);
+            logger.error(ERR_MULTIPLE_BACKENDS_FOR_BASE, baseDNString.getValue());
             return 1;
           }
           break;
@@ -446,15 +443,13 @@ public class VerifyIndex
 
     if (backend == null)
     {
-      LocalizableMessage message = ERR_NO_BACKENDS_FOR_BASE.get(baseDNString.getValue());
-      logError(message);
+      logger.error(ERR_NO_BACKENDS_FOR_BASE, baseDNString.getValue());
       return 1;
     }
 
     if (!(backend instanceof BackendImpl))
     {
-      LocalizableMessage message = ERR_BACKEND_NO_INDEXING_SUPPORT.get();
-      logError(message);
+      logger.error(ERR_BACKEND_NO_INDEXING_SUPPORT);
       return 1;
     }
 
@@ -484,17 +479,13 @@ public class VerifyIndex
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        LocalizableMessage message = ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-        logError(message);
+        logger.error(ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-      logError(message);
+      logger.error(ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
       return 1;
     }
 
@@ -519,9 +510,7 @@ public class VerifyIndex
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_VERIFYINDEX_ERROR_DURING_VERIFY.get(
-          stackTraceToSingleLineString(e));
-      logError(message);
+      logger.error(ERR_VERIFYINDEX_ERROR_DURING_VERIFY, stackTraceToSingleLineString(e));
       returnCode = 1;
     }
 
@@ -533,16 +522,12 @@ public class VerifyIndex
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        LocalizableMessage message = WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-        logError(message);
+        logger.warn(WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-      logError(message);
+      logger.warn(WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
     }
 
     return returnCode;

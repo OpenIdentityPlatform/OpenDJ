@@ -43,7 +43,6 @@ import org.opends.server.types.operation.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import static org.opends.messages.AccessControlMessages.*;
@@ -423,7 +422,7 @@ public class AciListenerManager implements
     if (backend.getEntryCount() > 0
         && !backend.isIndexed(aciType, IndexType.PRESENCE))
     {
-      logError(WARN_ACI_ATTRIBUTE_NOT_INDEXED.get(backend
+      logger.warn(WARN_ACI_ATTRIBUTE_NOT_INDEXED.get(backend
           .getBackendID(), "aci"));
     }
 
@@ -477,10 +476,8 @@ public class AciListenerManager implements
                 failedACIMsgs);
         if (!failedACIMsgs.isEmpty())
           logMsgsSetLockDownMode(failedACIMsgs);
-        LocalizableMessage message =
-            INFO_ACI_ADD_LIST_ACIS.get(Integer.toString(validAcis),
+        logger.debug(INFO_ACI_ADD_LIST_ACIS, Integer.toString(validAcis),
                 String.valueOf(baseDN));
-        logError(message);
       }
     }
   }
@@ -561,8 +558,7 @@ public class AciListenerManager implements
 
     for (LocalizableMessage msg : failedACIMsgs)
     {
-      LocalizableMessage message = WARN_ACI_SERVER_DECODE_FAILED.get(msg);
-      logError(message);
+      logger.warn(WARN_ACI_SERVER_DECODE_FAILED, msg);
     }
     if (!inLockDownMode)
       setLockDownMode();

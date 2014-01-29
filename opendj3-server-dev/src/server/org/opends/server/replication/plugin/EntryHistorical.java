@@ -28,7 +28,6 @@ package org.opends.server.replication.plugin;
 
 import java.util.*;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
@@ -40,7 +39,6 @@ import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -684,10 +682,8 @@ public class EntryHistorical
                * historical information is going to be kept.
                * Log information for the repair tool.
                */
-              LocalizableMessage message = ERR_UNKNOWN_ATTRIBUTE_IN_HISTORICAL.get(
-                  entry.getName().toNormalizedString(),
+              logger.error(ERR_UNKNOWN_ATTRIBUTE_IN_HISTORICAL, entry.getName().toNormalizedString(),
                   histVal.getAttrString());
-              logError(message);
               continue;
             }
 
@@ -729,8 +725,7 @@ public class EntryHistorical
       // Any exception happening here means that the coding of the historical
       // information was wrong.
       // Log an error and continue with an empty historical.
-      LocalizableMessage message = ERR_BAD_HISTORICAL.get(entry.getName().toString());
-      logError(message);
+      logger.error(ERR_BAD_HISTORICAL, entry.getName().toString());
     }
 
     /* set the reference to the historical information in the entry */

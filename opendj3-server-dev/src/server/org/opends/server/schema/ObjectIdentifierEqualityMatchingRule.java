@@ -29,6 +29,7 @@ package org.opends.server.schema;
 
 
 import static org.opends.messages.SchemaMessages.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -40,7 +41,6 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.AttributeType;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -59,6 +59,9 @@ import org.opends.server.types.ResultCode;
 class ObjectIdentifierEqualityMatchingRule
        extends EqualityMatchingRule
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Creates a new instance of this objectIdentifierMatch matching rule.
    */
@@ -221,9 +224,7 @@ class ObjectIdentifierEqualityMatchingRule
         if (! isValidSchemaElement(lowerValue, 0, lowerValue.length(),
                                    invalidReason))
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_OID_INVALID_VALUE.get(
-              lowerValue, invalidReason.toString());
-          ErrorLogger.logError(message);
+          logger.error(ERR_ATTR_SYNTAX_OID_INVALID_VALUE, lowerValue, invalidReason.toString());
         }
 
         return ByteString.valueOf(lowerValue);

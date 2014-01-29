@@ -726,7 +726,7 @@ public class HTTPConnectionHandler extends
         // error + alert about the horked config
         logger.traceException(e);
 
-        logError(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(friendlyName,
+        logger.error(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(friendlyName,
             String.valueOf(currentConfig.dn()), getExceptionMessage(e)));
 
         if (lastIterationFailed)
@@ -739,7 +739,7 @@ public class HTTPConnectionHandler extends
               ERR_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES.get(friendlyName,
                   String.valueOf(currentConfig.dn()),
                   stackTraceToSingleLineString(e));
-          logError(message);
+          logger.error(message);
 
           DirectoryServer.sendAlertNotification(this,
               ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES, message);
@@ -764,7 +764,7 @@ public class HTTPConnectionHandler extends
 
     if (HTTPAccessLogger.getHTTPAccessLogPublishers().isEmpty())
     {
-      logError(WARN_CONFIG_LOGGER_NO_ACTIVE_HTTP_ACCESS_LOGGERS.get());
+      logger.warn(WARN_CONFIG_LOGGER_NO_ACTIVE_HTTP_ACCESS_LOGGERS.get());
     }
 
     this.httpServer = createHttpServer();
@@ -775,7 +775,7 @@ public class HTTPConnectionHandler extends
     logger.trace("Starting HTTP server...");
     this.httpServer.start();
     logger.trace("HTTP server started");
-    logError(NOTE_CONNHANDLER_STARTED_LISTENING.get(handlerName));
+    logger.info(NOTE_CONNHANDLER_STARTED_LISTENING.get(handlerName));
   }
 
   private HttpServer createHttpServer()
@@ -933,7 +933,7 @@ public class HTTPConnectionHandler extends
       this.httpServer.shutdownNow();
       cleanUpHttpServer();
       logger.trace("HTTP server stopped");
-      logError(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
+      logger.info(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
     }
   }
 

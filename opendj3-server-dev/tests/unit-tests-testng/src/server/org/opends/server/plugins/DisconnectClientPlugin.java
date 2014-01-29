@@ -29,6 +29,7 @@ package org.opends.server.plugins;
 
 
 import java.io.IOException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -65,6 +66,9 @@ import org.opends.server.types.operation.*;
 public class DisconnectClientPlugin
        extends DirectoryServerPlugin<PluginCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * The OID for the disconnect request control, which is used to flag
    * operations that should cause the client connection to be terminated.
@@ -762,7 +766,7 @@ public class DisconnectClientPlugin
     }
     catch (Exception e)
     {
-      ErrorLogger.logError(LocalizableMessage.raw("Unable to decode the disconnect client control:  " +
+      logger.error(LocalizableMessage.raw("Unable to decode the disconnect client control:  " +
               e));
     }
 

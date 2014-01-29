@@ -59,7 +59,6 @@ import org.opends.server.admin.server.ServerManagedObjectChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -311,10 +310,9 @@ public final class AggregationPropertyDefinition
         // The condition could not be evaluated.
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo
+        logger.error(ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION, mo
             .getManagedObjectDefinition().getUserFriendlyName(), String
             .valueOf(mo.getDN()), StaticUtils.getExceptionMessage(e));
-        ErrorLogger.logError(message);
         unacceptableReasons.add(message);
         return false;
       }

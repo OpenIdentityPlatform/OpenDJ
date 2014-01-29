@@ -27,6 +27,7 @@
 package org.opends.server.monitors;
 
 import static org.opends.messages.ConfigMessages.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.loggers.ErrorLogger.*;
 
 import java.util.ArrayList;
@@ -49,6 +50,9 @@ import org.opends.server.types.Attribute;
 public class EntryCacheMonitorProvider
        extends MonitorProvider<EntryCacheMonitorProviderCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // The name for this monitor.
   private String monitorName;
 
@@ -67,7 +71,7 @@ public class EntryCacheMonitorProvider
   public EntryCacheMonitorProvider()
   {
     this.entryCacheName = "Entry Caches";
-    this.entryCache = (EntryCache<?>) DirectoryServer.getEntryCache();
+    this.entryCache = DirectoryServer.getEntryCache();
   }
 
   /**
@@ -99,18 +103,16 @@ public class EntryCacheMonitorProvider
     }
     if (monitorConfiguration == null) {
       LocalizableMessage message =
-        INFO_WARN_CONFIG_ENTRYCACHE_NO_MONITOR_CONFIG_ENTRY.get(
-        ConfigConstants.DN_ENTRY_CACHE_MONITOR_CONFIG,
-        monitorName);
-      logError(message);
+          INFO_WARN_CONFIG_ENTRYCACHE_NO_MONITOR_CONFIG_ENTRY.get(
+              ConfigConstants.DN_ENTRY_CACHE_MONITOR_CONFIG, monitorName);
+      logger.debug(message);
       throw new ConfigException(message);
     }
     if (!monitorConfiguration.isEnabled()) {
       LocalizableMessage message =
-        INFO_WARN_CONFIG_ENTRYCACHE_MONITOR_CONFIG_DISABLED.get(
-        ConfigConstants.DN_ENTRY_CACHE_MONITOR_CONFIG,
-        monitorName);
-      logError(message);
+          INFO_WARN_CONFIG_ENTRYCACHE_MONITOR_CONFIG_DISABLED.get(
+              ConfigConstants.DN_ENTRY_CACHE_MONITOR_CONFIG, monitorName);
+      logger.debug(message);
       throw new ConfigException(message);
     }
   }

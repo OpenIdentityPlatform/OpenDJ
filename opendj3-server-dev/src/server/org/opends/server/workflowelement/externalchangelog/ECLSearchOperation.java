@@ -52,7 +52,6 @@ import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.replication.protocol.StartECLSessionMsg
 .ECLRequestType.*;
 import static org.opends.server.replication.protocol.StartECLSessionMsg
@@ -747,7 +746,7 @@ public class ECLSearchOperation
         // Unable to decode the message - log an error.
         logger.traceException(e);
 
-        logError(LocalizableMessage.raw("An exception was encountered while try to encode a "
+        logger.error(LocalizableMessage.raw("An exception was encountered while try to encode a "
                 + "replication add message for entry \""
                 + addMsg.getDN()
                 + "\" into an External Change Log entry: "
@@ -805,7 +804,7 @@ public class ECLSearchOperation
         // Unable to decode the message - log an error.
         logger.traceException(e);
 
-        logError(LocalizableMessage.raw("An exception was encountered while try to encode a "
+        logger.error(LocalizableMessage.raw("An exception was encountered while try to encode a "
                 + "replication modify message for entry \""
                 + modifyMsg.getDN()
                 + "\" into an External Change Log entry: "

@@ -57,7 +57,6 @@ import org.opends.server.util.StaticUtils;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -3516,8 +3515,8 @@ public final class Schema
       // changes could potentially be sent to the other servers again
       // when this server is restarted, which shouldn't hurt anything.
       // Still, we should log a warning message.
-      logError(ERR_SCHEMA_CANNOT_WRITE_CONCAT_SCHEMA_FILE.get(
-          String.valueOf(concatFilePath), getExceptionMessage(e)));
+      logger.error(ERR_SCHEMA_CANNOT_WRITE_CONCAT_SCHEMA_FILE.get(String
+          .valueOf(concatFilePath), getExceptionMessage(e)));
     }
   }
 

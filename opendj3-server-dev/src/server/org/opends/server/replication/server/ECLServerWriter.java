@@ -41,7 +41,6 @@ import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -155,15 +154,14 @@ public class ECLServerWriter extends ServerWriter
       // session is always null if a socket exception has occurred.
       if (session != null)
       {
-        logError(handler.getBadlyDisconnectedErrorMessage());
+        logger.error(handler.getBadlyDisconnectedErrorMessage());
       }
     }
     catch (Exception e)
     {
       // An unexpected error happened.
       // Log an error and close the connection.
-      logError(ERR_WRITER_UNEXPECTED_EXCEPTION.get(
-          handler + " " + stackTraceToSingleLineString(e)));
+      logger.error(ERR_WRITER_UNEXPECTED_EXCEPTION.get(handler + " " + stackTraceToSingleLineString(e)));
     }
     finally
     {
@@ -259,7 +257,7 @@ public class ECLServerWriter extends ServerWriter
       }
       catch (Exception e)
       {
-        logError(ERR_WRITER_UNEXPECTED_EXCEPTION.get(
+        logger.error(ERR_WRITER_UNEXPECTED_EXCEPTION.get(
             handler + " " + stackTraceToSingleLineString(e)));
         mypsearch.cancel();
       }

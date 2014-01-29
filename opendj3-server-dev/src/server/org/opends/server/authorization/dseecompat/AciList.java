@@ -27,9 +27,8 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.messages.AccessControlMessages.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.authorization.dseecompat.AciHandler.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -44,6 +43,9 @@ import org.forgerock.opendj.ldap.ByteString;
  * using the entry DN as the key.
  */
 public class AciList {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
 
   /**
    * A map containing all the ACIs.
@@ -449,9 +451,7 @@ public class AciList {
               //This should never happen since only a copy of the
               //ACI with a new DN is being made. Log a message if it does and
               //keep going.
-              LocalizableMessage message = WARN_ACI_ADD_LIST_FAILED_DECODE.get(
-                  aci.toString(), String.valueOf(relocateDN), ex.getMessage());
-              logError(message);
+              logger.warn(WARN_ACI_ADD_LIST_FAILED_DECODE, aci.toString(), String.valueOf(relocateDN), ex.getMessage());
             }
           }
           tempAciList.put(relocateDN, acis);

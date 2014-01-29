@@ -27,6 +27,7 @@
 package org.opends.server.replication;
 
 import java.io.File;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,9 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class SchemaReplicationTest extends ReplicationTestCase
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
 
   private List<Modification> rcvdMods;
 
@@ -108,7 +112,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @Test()
   public void pushSchemaChange() throws Exception
   {
-    logError(LocalizableMessage.raw("Starting replication test : pushSchemaChange "));
+    logger.error(LocalizableMessage.raw("Starting replication test : pushSchemaChange "));
 
     cleanUpReplicationServersDB();
 
@@ -175,7 +179,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @Test(enabled=true,dependsOnMethods = { "pushSchemaChange" })
   public void replaySchemaChange() throws Exception
   {
-    logError(LocalizableMessage.raw("Starting replication test : replaySchemaChange "));
+    logger.error(LocalizableMessage.raw("Starting replication test : replaySchemaChange "));
 
     cleanUpReplicationServersDB();
 
@@ -211,7 +215,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "replaySchemaChange" })
   public void pushSchemaFilesChange() throws Exception
   {
-    logError(LocalizableMessage.raw("Starting replication test : pushSchemaFilesChange "));
+    logger.error(LocalizableMessage.raw("Starting replication test : pushSchemaFilesChange "));
 
     cleanUpReplicationServersDB();
 
@@ -292,6 +296,6 @@ public class SchemaReplicationTest extends ReplicationTestCase
     {
       broker.stop();
     }
-    logError(LocalizableMessage.raw("Ending replication test : pushSchemaFilesChange "));
+    logger.error(LocalizableMessage.raw("Ending replication test : pushSchemaFilesChange "));
   }
 }

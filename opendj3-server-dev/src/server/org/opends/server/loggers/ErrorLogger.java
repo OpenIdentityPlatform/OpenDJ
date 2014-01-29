@@ -27,7 +27,6 @@
 package org.opends.server.loggers;
 
 import static org.opends.messages.ConfigMessages.*;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.admin.ClassPropertyDefinition;

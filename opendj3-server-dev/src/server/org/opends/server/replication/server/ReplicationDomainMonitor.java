@@ -27,12 +27,12 @@
 package org.opends.server.replication.server;
 
 import java.io.IOException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.MonitorMsg;
@@ -40,7 +40,6 @@ import org.opends.server.replication.protocol.MonitorRequestMsg;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -48,6 +47,9 @@ import static org.opends.server.util.StaticUtils.*;
  */
 class ReplicationDomainMonitor
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
 
   /**
    * The monitor data consolidated over the topology.
@@ -182,9 +184,7 @@ class ReplicationDomainMonitor
               catch (IOException e)
               {
                 // Log a message and do a best effort from here.
-                LocalizableMessage message = ERR_SENDING_REMOTE_MONITOR_DATA_REQUEST.get(
-                    baseDN, serverId, e.getMessage());
-                logError(message);
+                logger.error(ERR_SENDING_REMOTE_MONITOR_DATA_REQUEST, baseDN, serverId, e.getMessage());
               }
             }
 
@@ -207,7 +207,7 @@ class ReplicationDomainMonitor
               // error log with repeated messages.
               if (!pendingMonitorDataServerIDs.contains(serverId))
               {
-                logError(NOTE_MONITOR_DATA_RECEIVED.get(baseDN, serverId));
+                logger.info(NOTE_MONITOR_DATA_RECEIVED.get(baseDN, serverId));
               }
             }
 
@@ -218,8 +218,7 @@ class ReplicationDomainMonitor
               // error log with repeated messages.
               if (!monitorDataLateServers.contains(serverId))
               {
-                logError(WARN_MISSING_REMOTE_MONITOR_DATA.get(
-                    baseDN, serverId));
+                logger.warn(WARN_MISSING_REMOTE_MONITOR_DATA.get(baseDN, serverId));
               }
             }
 
@@ -312,8 +311,7 @@ class ReplicationDomainMonitor
       {
         // This is a response for an earlier request whose computing is
         // already complete.
-        logError(INFO_IGNORING_REMOTE_MONITOR_DATA.get(
-            domain.getBaseDN().toNormalizedString(), msg.getSenderID()));
+        logger.debug(INFO_IGNORING_REMOTE_MONITOR_DATA.get(domain.getBaseDN().toNormalizedString(), msg.getSenderID()));
         return;
       }
 
@@ -371,7 +369,7 @@ class ReplicationDomainMonitor
       catch (RuntimeException e)
       {
         // FIXME: do we really expect these???
-        logError(ERR_PROCESSING_REMOTE_MONITOR_DATA.get(e.getMessage() + " "
+        logger.error(ERR_PROCESSING_REMOTE_MONITOR_DATA.get(e.getMessage() + " "
             + stackTraceToSingleLineString(e)));
       }
       finally

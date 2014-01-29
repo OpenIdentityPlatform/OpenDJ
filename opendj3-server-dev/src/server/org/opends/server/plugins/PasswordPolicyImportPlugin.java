@@ -31,7 +31,6 @@ package org.opends.server.plugins;
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -365,9 +364,8 @@ policyLoop:
                 .getAuthenticationPolicy(policyDN);
             if (authPolicy == null)
             {
-              LocalizableMessage message = WARN_PLUGIN_PWIMPORT_NO_SUCH_POLICY.get(
-                  String.valueOf(entry.getName()), String.valueOf(policyDN));
-              logError(message);
+              logger.warn(WARN_PLUGIN_PWIMPORT_NO_SUCH_POLICY, String
+                  .valueOf(entry.getName()), String.valueOf(policyDN));
             }
             else if (authPolicy.isPasswordPolicy())
             {
@@ -378,9 +376,8 @@ policyLoop:
           }
           catch (DirectoryException de)
           {
-            LocalizableMessage message = WARN_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN.get(
-                String.valueOf(entry.getName()), de.getMessageObject());
-            logError(message);
+            logger.warn(WARN_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN, String
+                .valueOf(entry.getName()), de.getMessageObject());
             break policyLoop;
           }
         }
@@ -423,12 +420,10 @@ policyLoop:
                   {
                     logger.traceException(e);
 
-                    LocalizableMessage message =
-                      ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
-                        .get(policy.getPasswordAttribute().getNameOrOID(),
-                            String.valueOf(entry.getName()),
-                            stackTraceToSingleLineString(e));
-                    logError(message);
+                    logger.error(ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD,
+                        policy.getPasswordAttribute().getNameOrOID(), String
+                            .valueOf(entry.getName()),
+                        stackTraceToSingleLineString(e));
                     gotError = true;
                     break;
                   }
@@ -455,12 +450,10 @@ policyLoop:
                   {
                     logger.traceException(e);
 
-                    LocalizableMessage message =
-                      ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
-                        .get(policy.getPasswordAttribute().getNameOrOID(),
-                            String.valueOf(entry.getName()),
-                            stackTraceToSingleLineString(e));
-                    logError(message);
+                    logger.error(ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD,
+                        policy.getPasswordAttribute().getNameOrOID(), String
+                            .valueOf(entry.getName()),
+                        stackTraceToSingleLineString(e));
                     gotError = true;
                     break;
                   }
@@ -517,10 +510,9 @@ policyLoop:
             {
               logger.traceException(e);
 
-              LocalizableMessage message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
-                  .get(t.getNameOrOID(), String.valueOf(entry.getName()),
-                      stackTraceToSingleLineString(e));
-              logError(message);
+              logger.error(ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD, t
+                  .getNameOrOID(), String.valueOf(entry.getName()),
+                  stackTraceToSingleLineString(e));
               gotError = true;
               break;
             }
@@ -572,10 +564,9 @@ policyLoop:
             {
               logger.traceException(e);
 
-              LocalizableMessage message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
-                  .get(t.getNameOrOID(), String.valueOf(entry.getName()),
-                      stackTraceToSingleLineString(e));
-              logError(message);
+              logger.error(ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD, t
+                  .getNameOrOID(), String.valueOf(entry.getName()),
+                  stackTraceToSingleLineString(e));
               gotError = true;
               break;
             }

@@ -175,17 +175,13 @@ public class RestoreTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        LocalizableMessage message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-        logError(message);
+        logger.error(ERR_RESTOREDB_CANNOT_LOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
         return false;
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-      logError(message);
+      logger.error(ERR_RESTOREDB_CANNOT_LOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
       return false;
     }
     return true;
@@ -204,17 +200,13 @@ public class RestoreTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        LocalizableMessage message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-        logError(message);
+        logger.warn(WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
         return false;
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-      logError(message);
+      logger.warn(WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
       return false;
     }
     return true;
@@ -259,9 +251,7 @@ public class RestoreTask extends Task
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
-          String.valueOf(backupDirectory), getExceptionMessage(e));
-      logError(message);
+      logger.error(ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY, String.valueOf(backupDirectory), getExceptionMessage(e));
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -273,10 +263,7 @@ public class RestoreTask extends Task
       BackupInfo backupInfo = backupDir.getBackupInfo(backupID);
       if (backupInfo == null)
       {
-        LocalizableMessage message =
-            ERR_RESTOREDB_INVALID_BACKUP_ID.get(
-                    backupID, String.valueOf(backupDirectory));
-        logError(message);
+        logger.error(ERR_RESTOREDB_INVALID_BACKUP_ID, backupID, String.valueOf(backupDirectory));
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -285,10 +272,7 @@ public class RestoreTask extends Task
       BackupInfo latestBackup = backupDir.getLatestBackup();
       if (latestBackup == null)
       {
-        LocalizableMessage message =
-            ERR_RESTOREDB_NO_BACKUPS_IN_DIRECTORY.get(
-                    String.valueOf(backupDirectory));
-        logError(message);
+        logger.error(ERR_RESTOREDB_NO_BACKUPS_IN_DIRECTORY, String.valueOf(backupDirectory));
         return TaskState.STOPPED_BY_ERROR;
       }
       else
@@ -309,9 +293,7 @@ public class RestoreTask extends Task
     catch (ConfigException e)
     {
       logger.traceException(e);
-      LocalizableMessage message = ERR_RESTOREDB_NO_BACKENDS_FOR_DN.get(
-          String.valueOf(backupDirectory), configEntryDN.toString());
-      logError(message);
+      logger.error(ERR_RESTOREDB_NO_BACKENDS_FOR_DN, String.valueOf(backupDirectory), configEntryDN.toString());
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -323,9 +305,7 @@ public class RestoreTask extends Task
 
     if (! backend.supportsRestore())
     {
-      LocalizableMessage message =
-          ERR_RESTOREDB_CANNOT_RESTORE.get(backend.getBackendID());
-      logError(message);
+      logger.error(ERR_RESTOREDB_CANNOT_RESTORE, backend.getBackendID());
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -348,7 +328,7 @@ public class RestoreTask extends Task
       {
         logger.traceException(e);
 
-        logError(e.getMessageObject());
+        logger.error(e.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -371,17 +351,13 @@ public class RestoreTask extends Task
           catch (DirectoryException de)
           {
             DirectoryServer.notifyRestoreEnded(backend, restoreConfig, false);
-            LocalizableMessage message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
-                backupID, backupDir.getPath(), de.getMessageObject());
-            logError(message);
+            logger.error(ERR_RESTOREDB_ERROR_DURING_BACKUP, backupID, backupDir.getPath(), de.getMessageObject());
             errorsEncountered = true;
           }
           catch (Exception e)
           {
             DirectoryServer.notifyRestoreEnded(backend, restoreConfig, false);
-            LocalizableMessage message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
-                backupID, backupDir.getPath(), getExceptionMessage(e));
-            logError(message);
+            logger.error(ERR_RESTOREDB_ERROR_DURING_BACKUP, backupID, backupDir.getPath(), getExceptionMessage(e));
             errorsEncountered = true;
           }
         }
@@ -411,7 +387,7 @@ public class RestoreTask extends Task
         {
           logger.traceException(e);
 
-          logError(e.getMessageObject());
+          logger.error(e.getMessageObject());
           errorsEncountered = true;
         }
       }

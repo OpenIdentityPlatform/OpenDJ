@@ -49,7 +49,6 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.PluginMessages.*;
 
 import static org.opends.server.util.StaticUtils.*;
@@ -200,10 +199,8 @@ public final class ProfilerPlugin
         {
           logger.traceException(e);
 
-          LocalizableMessage message = ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA.
-              get(String.valueOf(configEntryDN), filename,
+          logger.error(ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA, String.valueOf(configEntryDN), filename,
                   stackTraceToSingleLineString(e));
-          ErrorLogger.logError(message);
         }
       }
     }

@@ -35,7 +35,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.*;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -3664,7 +3663,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
           (passwordPolicy.getStateUpdateFailurePolicy() ==
            PasswordPolicyCfgDefn.StateUpdateFailurePolicy.IGNORE)))
       {
-        ErrorLogger.logError(message);
+        logger.error(message);
       }
       else
       {

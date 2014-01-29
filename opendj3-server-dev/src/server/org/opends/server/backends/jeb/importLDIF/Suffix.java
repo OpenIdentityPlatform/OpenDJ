@@ -28,15 +28,14 @@
 package org.opends.server.backends.jeb.importLDIF;
 
 import java.util.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import org.opends.server.backends.jeb.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.backends.jeb.importLDIF.Importer.*;
-import org.forgerock.i18n.LocalizableMessage;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import static org.opends.messages.JebMessages.*;
@@ -49,6 +48,9 @@ import static org.opends.messages.JebMessages.*;
  */
 public class Suffix
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   private final List<DN> includeBranches, excludeBranches;
   private final DN baseDN;
   private final EntryContainer srcEntryContainer;
@@ -245,8 +247,7 @@ public class Suffix
     try {
       assureNotPending(dn);
     } catch (InterruptedException e) {
-      LocalizableMessage message = ERR_JEB_IMPORT_LDIF_PENDING_ERR.get(e.getMessage());
-      logError(message);
+      logger.error(ERR_JEB_IMPORT_LDIF_PENDING_ERR, e.getMessage());
       throw e;
     }
     //Check the DN cache.

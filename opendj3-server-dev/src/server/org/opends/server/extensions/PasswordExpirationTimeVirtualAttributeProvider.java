@@ -36,7 +36,6 @@ import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
@@ -145,7 +144,7 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     }
     catch (DirectoryException de)
     {
-      ErrorLogger.logError(de.getMessageObject());
+      logger.error(de.getMessageObject());
 
       if (logger.isTraceEnabled())
       {
@@ -177,7 +176,7 @@ public class PasswordExpirationTimeVirtualAttributeProvider
       }
       catch (DirectoryException de)
       {
-        ErrorLogger.logError(de.getMessageObject());
+        logger.error(de.getMessageObject());
 
         if (logger.isTraceEnabled())
         {

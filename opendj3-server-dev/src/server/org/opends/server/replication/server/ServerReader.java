@@ -35,7 +35,6 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.replication.common.ServerStatus.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -130,16 +129,14 @@ public class ServerReader extends DirectoryThread
               {
                 long referenceGenerationId = handler.getReferenceGenId();
                 if (dsStatus == BAD_GEN_ID_STATUS)
-                  logError(WARN_IGNORING_UPDATE_FROM_DS_BADGENID.get(
-                      handler.getReplicationServerId(),
+                  logger.warn(WARN_IGNORING_UPDATE_FROM_DS_BADGENID.get(handler.getReplicationServerId(),
                       updateMsg.getCSN().toString(),
                       handler.getBaseDNString(), handler.getServerId(),
                       session.getReadableRemoteAddress(),
                       handler.getGenerationId(),
                       referenceGenerationId));
                 if (dsStatus == FULL_UPDATE_STATUS)
-                  logError(WARN_IGNORING_UPDATE_FROM_DS_FULLUP.get(
-                      handler.getReplicationServerId(),
+                  logger.warn(WARN_IGNORING_UPDATE_FROM_DS_FULLUP.get(handler.getReplicationServerId(),
                       updateMsg.getCSN().toString(),
                       handler.getBaseDNString(), handler.getServerId(),
                       session.getReadableRemoteAddress()));
@@ -155,7 +152,7 @@ public class ServerReader extends DirectoryThread
               if (referenceGenerationId > 0
                   && referenceGenerationId != handler.getGenerationId())
               {
-                logError(
+                logger.error(
                     WARN_IGNORING_UPDATE_FROM_RS.get(
                         handler.getReplicationServerId(),
                         updateMsg.getCSN().toString(),
@@ -203,7 +200,7 @@ public class ServerReader extends DirectoryThread
                     handler.getBaseDNString(),
                     Integer.toString(handler.getServerId()),
                     csMsg.toString());
-              logError(errMessage);
+              logger.error(errMessage);
             }
           } else if (msg instanceof ChangeTimeHeartbeatMsg)
           {
@@ -226,7 +223,7 @@ public class ServerReader extends DirectoryThread
              * connection.
              */
             errMessage = NOTE_READER_NULL_MSG.get(handler.toString());
-            logError(errMessage);
+            logger.error(errMessage);
             return;
           }
         } catch (NotSupportedOldVersionPDUException e)
@@ -249,7 +246,7 @@ public class ServerReader extends DirectoryThread
       if (!handler.shuttingDown())
       {
         errMessage = handler.getBadlyDisconnectedErrorMessage();
-        logError(errMessage);
+        logger.error(errMessage);
       }
     }
     catch (Exception e)
@@ -260,7 +257,7 @@ public class ServerReader extends DirectoryThread
        */
       errMessage = NOTE_READER_EXCEPTION.get(
           handler.toString(), stackTraceToSingleLineString(e));
-      logError(errMessage);
+      logger.error(errMessage);
     }
     finally
     {

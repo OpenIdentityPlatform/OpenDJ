@@ -41,7 +41,6 @@ import org.opends.server.types.DN;
 
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.server.loggers.ErrorLogger.*;
 import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -92,7 +91,7 @@ public class NameAndOptionalUIDSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_UNIQUE_MEMBER_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
           EMR_UNIQUE_MEMBER_OID, SYNTAX_NAME_AND_OPTIONAL_UID_NAME));
     }
 
@@ -100,7 +99,7 @@ public class NameAndOptionalUIDSyntax
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_CASE_IGNORE_OID, SYNTAX_NAME_AND_OPTIONAL_UID_NAME));
     }
   }

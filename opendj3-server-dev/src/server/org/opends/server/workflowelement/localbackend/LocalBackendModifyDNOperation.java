@@ -47,7 +47,6 @@ import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -237,10 +236,7 @@ public class LocalBackendModifyDNOperation
             {
               logger.traceException(e);
 
-              LocalizableMessage message =
-                  ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER
-                      .get(getExceptionMessage(e));
-              logError(message);
+              logger.error(ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER, getExceptionMessage(e));
             }
           }
         }
@@ -925,8 +921,7 @@ public class LocalBackendModifyDNOperation
               }
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logError(ERR_MODDN_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
-                      getConnectionID(), getOperationID(),
+              logger.error(ERR_MODDN_SYNCH_CONFLICT_RESOLUTION_FAILED.get(getConnectionID(), getOperationID(),
                       getExceptionMessage(de)));
 
               setResponseData(de);
@@ -957,7 +952,7 @@ public class LocalBackendModifyDNOperation
               }
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logError(ERR_MODDN_SYNCH_PREOP_FAILED.get(getConnectionID(),
+              logger.error(ERR_MODDN_SYNCH_PREOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
               return false;
@@ -977,7 +972,7 @@ public class LocalBackendModifyDNOperation
               provider.doPostOperation(this);
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logError(ERR_MODDN_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+              logger.error(ERR_MODDN_SYNCH_POSTOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
               return;

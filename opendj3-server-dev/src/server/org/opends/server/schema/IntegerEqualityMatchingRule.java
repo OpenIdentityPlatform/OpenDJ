@@ -29,6 +29,7 @@ package org.opends.server.schema;
 
 
 import static org.opends.messages.SchemaMessages.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.Collection;
@@ -37,7 +38,6 @@ import java.util.Collections;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
@@ -52,6 +52,9 @@ import org.opends.server.types.ResultCode;
 class IntegerEqualityMatchingRule
        extends EqualityMatchingRule
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Creates a new instance of this integerMatch matching rule.
    */
@@ -175,7 +178,7 @@ class IntegerEqualityMatchingRule
                     if (! logged)
                     {
                       logged = true;
-                      ErrorLogger.logError(message);
+                      logger.error(message);
                     }
                     break;
                 }
@@ -197,7 +200,7 @@ class IntegerEqualityMatchingRule
                     if (! logged)
                     {
                       logged = true;
-                      ErrorLogger.logError(message);
+                      logger.error(message);
                     }
                     break;
                 }
@@ -260,7 +263,7 @@ class IntegerEqualityMatchingRule
                 if (! logged)
                 {
                   logged = true;
-                  ErrorLogger.logError(message);
+                  logger.error(message);
                 }
                 break;
             }
@@ -279,7 +282,7 @@ class IntegerEqualityMatchingRule
               if (! logged)
               {
                 logged = true;
-                ErrorLogger.logError(message);
+                logger.error(message);
               }
               break;
           }
@@ -301,7 +304,7 @@ class IntegerEqualityMatchingRule
           if (! logged)
           {
             logged = true;
-            ErrorLogger.logError(message);
+            logger.error(message);
           }
 
           buffer.append("0");
@@ -326,7 +329,7 @@ class IntegerEqualityMatchingRule
           if (! logged)
           {
             logged = true;
-            ErrorLogger.logError(message);
+            logger.error(message);
           }
 
           buffer.setCharAt(0, '0');

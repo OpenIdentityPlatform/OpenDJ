@@ -30,13 +30,11 @@ package org.opends.server.backends.jeb.importLDIF;
 
 
 import static org.opends.messages.JebMessages.ERR_JEB_IMPORT_BUFFER_IO_ERROR;
-import static org.opends.server.loggers.ErrorLogger.logError;
-
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.jeb.importLDIF.Importer.IndexManager;
 
 import com.sleepycat.util.PackedInteger;
@@ -49,6 +47,9 @@ import com.sleepycat.util.PackedInteger;
  */
 public final class IndexInputBuffer implements Comparable<IndexInputBuffer>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   private final IndexManager indexMgr;
   private final FileChannel channel;
   private final long begin;
@@ -193,9 +194,8 @@ public final class IndexInputBuffer implements Comparable<IndexInputBuffer>
       }
       catch (IOException ex)
       {
-        LocalizableMessage message = ERR_JEB_IMPORT_BUFFER_IO_ERROR.get(indexMgr
+        logger.error(ERR_JEB_IMPORT_BUFFER_IO_ERROR, indexMgr
             .getBufferFileName());
-        logError(message);
         throw new RuntimeException(ex);
       }
     }

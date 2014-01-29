@@ -133,7 +133,7 @@ public class SetGenerationIdTask extends Task
     }
     catch(DirectoryException de)
     {
-      logError(de.getMessageObject());
+      logger.error(de.getMessageObject());
       return TaskState.STOPPED_BY_ERROR;
     }
 

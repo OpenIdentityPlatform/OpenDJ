@@ -42,7 +42,6 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -132,10 +131,8 @@ public class FingerprintCertificateMapper
       Backend b = DirectoryServer.getBackend(baseDN);
       if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
       {
-        LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(
-            configuration.dn().toString(),
+        logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn().toString(),
             t.getNameOrOID(), b.getBackendID());
-        ErrorLogger.logError(message);
       }
     }
 
@@ -383,7 +380,7 @@ public class FingerprintCertificateMapper
             configuration.dn().toString(),
             t.getNameOrOID(), b.getBackendID());
         messages.add(message);
-        ErrorLogger.logError(message);
+        logger.error(message);
       }
     }
 

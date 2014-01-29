@@ -85,7 +85,7 @@ public class MonitorTest extends ReplicationTestCase
 
   private void debugInfo(String s)
   {
-    logError(LocalizableMessage.raw(s));
+    logger.error(LocalizableMessage.raw(s));
     if (logger.isTraceEnabled())
     {
       logger.trace("** TEST **" + s);

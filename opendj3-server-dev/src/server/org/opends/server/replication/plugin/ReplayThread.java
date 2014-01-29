@@ -27,14 +27,12 @@
 package org.opends.server.replication.plugin;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
@@ -106,9 +104,7 @@ public class ReplayThread extends DirectoryThread
          * catch all exceptions happening so that the thread never dies even
          * in case of problems.
          */
-        LocalizableMessage message = ERR_EXCEPTION_REPLAYING_REPLICATION_MESSAGE.get(
-            stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(ERR_EXCEPTION_REPLAYING_REPLICATION_MESSAGE, stackTraceToSingleLineString(e));
       }
     }
     if (logger.isTraceEnabled())

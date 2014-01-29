@@ -26,6 +26,7 @@
  */
 package org.opends.server.core;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -55,7 +56,6 @@ import org.opends.server.types.ResultCode;
 import static org.opends.messages.ConfigMessages.*;
 
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.loggers.ErrorLogger;
 
 
 /**
@@ -70,6 +70,9 @@ public class AlertHandlerConfigManager
                   ConfigurationDeleteListener<AlertHandlerCfg>
 
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // A mapping between the DNs of the config entries and the associated alert
   // handlers.
   private ConcurrentHashMap<DN,AlertHandler> alertHandlers;
@@ -129,7 +132,7 @@ public class AlertHandlerConfigManager
         }
         catch (InitializationException ie)
         {
-          ErrorLogger.logError(ie.getMessageObject());
+          logger.error(ie.getMessageObject());
           continue;
         }
       }

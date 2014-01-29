@@ -26,6 +26,7 @@
  */
 package org.opends.server.schema;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -45,7 +46,6 @@ import org.opends.server.core.DirectoryServer;
 
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -62,6 +62,9 @@ public class DirectoryStringSyntax
        extends AttributeSyntax<DirectoryStringAttributeSyntaxCfg>
        implements ConfigurationChangeListener<DirectoryStringAttributeSyntaxCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // The default approximate matching rule for this syntax.
   private ApproximateMatchingRule defaultApproximateMatchingRule;
 
@@ -124,7 +127,7 @@ public class DirectoryStringSyntax
          DirectoryServer.getApproximateMatchingRule(AMR_DOUBLE_METAPHONE_OID);
     if (defaultApproximateMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE.get(
           AMR_DOUBLE_METAPHONE_OID, SYNTAX_DIRECTORY_STRING_NAME));
     }
 
@@ -132,7 +135,7 @@ public class DirectoryStringSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
           EMR_CASE_IGNORE_OID, SYNTAX_DIRECTORY_STRING_NAME));
     }
 
@@ -140,7 +143,7 @@ public class DirectoryStringSyntax
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
           OMR_CASE_IGNORE_OID, SYNTAX_DIRECTORY_STRING_NAME));
     }
 
@@ -148,7 +151,7 @@ public class DirectoryStringSyntax
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_CASE_IGNORE_OID, SYNTAX_DIRECTORY_STRING_NAME));
     }
 

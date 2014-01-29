@@ -30,7 +30,6 @@ package org.opends.server.extensions;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -170,9 +169,8 @@ public class ParallelWorkQueue
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR.get(
-          String.valueOf(ParallelWorkQueueMonitor.class), String.valueOf(e));
-      logError(message);
+      logger.error(ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR, String
+          .valueOf(ParallelWorkQueueMonitor.class), String.valueOf(e));
     }
   }
 
@@ -207,8 +205,7 @@ public class ParallelWorkQueue
       {
         logger.traceException(e);
 
-        logError(WARN_QUEUE_UNABLE_TO_CANCEL.get(
-            String.valueOf(o), String.valueOf(e)));
+        logger.warn(WARN_QUEUE_UNABLE_TO_CANCEL.get(String.valueOf(o), String.valueOf(e)));
       }
     }
 
@@ -224,8 +221,7 @@ public class ParallelWorkQueue
       {
         logger.traceException(e);
 
-        logError(WARN_QUEUE_UNABLE_TO_NOTIFY_THREAD.get(
-            t.getName(), String.valueOf(e)));
+        logger.warn(WARN_QUEUE_UNABLE_TO_NOTIFY_THREAD.get(t.getName(), String.valueOf(e)));
       }
     }
   }
@@ -356,9 +352,8 @@ public class ParallelWorkQueue
     {
       if (numFailures > MAX_RETRY_COUNT)
       {
-        LocalizableMessage message = ERR_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES.get(
-            Thread.currentThread().getName(), numFailures, MAX_RETRY_COUNT);
-        logError(message);
+        logger.error(ERR_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES, Thread
+            .currentThread().getName(), numFailures, MAX_RETRY_COUNT);
       }
 
       return null;
@@ -422,8 +417,8 @@ public class ParallelWorkQueue
 
       // This should not happen.  The only recourse we have is to log a message
       // and try again.
-      logError(WARN_WORKER_WAITING_UNCAUGHT_EXCEPTION.get(
-          Thread.currentThread().getName(), String.valueOf(e)));
+      logger.warn(WARN_WORKER_WAITING_UNCAUGHT_EXCEPTION.get(Thread
+          .currentThread().getName(), String.valueOf(e)));
       return retryNextOperation(workerThread, numFailures + 1);
     }
   }

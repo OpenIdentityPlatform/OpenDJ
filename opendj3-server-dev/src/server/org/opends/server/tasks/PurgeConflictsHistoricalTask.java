@@ -189,7 +189,7 @@ public class PurgeConflictsHistoricalTask extends Task
       if (de.getResultCode() != ResultCode.ADMIN_LIMIT_EXCEEDED)
       {
         // Error raised at submission time
-        logError(de.getMessageObject());
+        logger.error(de.getMessageObject());
         initState = TaskState.STOPPED_BY_ERROR;
       }
       else

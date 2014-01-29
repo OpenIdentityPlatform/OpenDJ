@@ -27,6 +27,7 @@
 package org.opends.server.replication.server;
 
 import java.io.IOException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
@@ -44,7 +45,6 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 
 /**
  * This class defines a server handler  :
@@ -53,6 +53,9 @@ import static org.opends.server.loggers.ErrorLogger.*;
  */
 public abstract class ServerHandler extends MessageHandler
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Time during which the server will wait for existing thread to stop
    * during the shutdownWriter.
@@ -75,7 +78,7 @@ public abstract class ServerHandler extends MessageHandler
         logger.trace("In " +
           ((handler != null) ? handler.toString() : "Replication Server") +
           " closing session with err=" + providedMsg);
-      logError(providedMsg);
+      logger.error(providedMsg);
     }
 
     if (providedSession != null)

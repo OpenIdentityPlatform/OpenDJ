@@ -28,7 +28,6 @@ package org.opends.server.workflowelement.localbackend;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -220,7 +219,7 @@ public class LocalBackendAddOperation
             {
               logger.traceException(e);
 
-              logError(ERR_ADD_ERROR_NOTIFYING_CHANGE_LISTENER
+              logger.error(ERR_ADD_ERROR_NOTIFYING_CHANGE_LISTENER
                   .get(getExceptionMessage(e)));
             }
           }
@@ -294,7 +293,7 @@ public class LocalBackendAddOperation
         }
         catch (DirectoryException de)
         {
-          logError(ERR_ADD_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
+          logger.error(ERR_ADD_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
               getConnectionID(), getOperationID(), getExceptionMessage(de)));
           throw de;
         }
@@ -503,7 +502,7 @@ public class LocalBackendAddOperation
           }
           catch (DirectoryException de)
           {
-            logError(ERR_ADD_SYNCH_PREOP_FAILED.get(getConnectionID(),
+            logger.error(ERR_ADD_SYNCH_PREOP_FAILED.get(getConnectionID(),
                 getOperationID(), getExceptionMessage(de)));
             throw de;
           }
@@ -539,7 +538,7 @@ public class LocalBackendAddOperation
         {
           logger.traceException(de);
 
-          logError(ERR_ADD_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+          logger.error(ERR_ADD_SYNCH_POSTOP_FAILED.get(getConnectionID(),
               getOperationID(), getExceptionMessage(de)));
           setResponseData(de);
           break;
@@ -1098,7 +1097,7 @@ public class LocalBackendAddOperation
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               case WARN:
-                logError(message);
+                logger.error(message);
               }
             }
           }

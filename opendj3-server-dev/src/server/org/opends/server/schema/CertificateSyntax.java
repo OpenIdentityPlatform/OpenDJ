@@ -30,6 +30,7 @@ package org.opends.server.schema;
 
 
 import java.util.List;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateAttributeSyntaxCfg;
@@ -48,7 +49,6 @@ import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1Reader;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -66,6 +66,9 @@ public class CertificateSyntax
        extends AttributeSyntax<CertificateAttributeSyntaxCfg>
        implements ConfigurationChangeListener<CertificateAttributeSyntaxCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
 
@@ -103,7 +106,7 @@ public class CertificateSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CERTIFICATE_EXACT_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
           EMR_CERTIFICATE_EXACT_OID, SYNTAX_CERTIFICATE_NAME));
     }
 
@@ -111,7 +114,7 @@ public class CertificateSyntax
          DirectoryServer.getOrderingMatchingRule(OMR_OCTET_STRING_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
           OMR_OCTET_STRING_OID, SYNTAX_CERTIFICATE_NAME));
     }
 
@@ -119,7 +122,7 @@ public class CertificateSyntax
          DirectoryServer.getSubstringMatchingRule(SMR_OCTET_STRING_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_OCTET_STRING_OID, SYNTAX_CERTIFICATE_NAME));
     }
 

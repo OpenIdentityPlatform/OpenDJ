@@ -57,7 +57,6 @@ import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -196,7 +195,7 @@ public final class ReplicationServer
         getServerId(),
         listenSocket.getInetAddress().getHostAddress(),
         listenSocket.getLocalPort());
-    logError(listenMsg);
+    logger.error(listenMsg);
 
     while (!shutdown && !stopListen)
     {
@@ -267,9 +266,7 @@ public final class ReplicationServer
         // Do not log the message during shutdown.
         logger.traceException(e);
         if (!shutdown) {
-          LocalizableMessage message =
-            ERR_EXCEPTION_LISTENING.get(e.getLocalizedMessage());
-          logError(message);
+          logger.error(ERR_EXCEPTION_LISTENING, e.getLocalizedMessage());
         }
       }
     }
@@ -430,12 +427,10 @@ public final class ReplicationServer
             " successfully initialized");
     } catch (UnknownHostException e)
     {
-      logError(ERR_UNKNOWN_HOSTNAME.get());
+      logger.error(ERR_UNKNOWN_HOSTNAME.get());
     } catch (IOException e)
     {
-      LocalizableMessage message = ERR_COULD_NOT_BIND_CHANGELOG.get(
-          getReplicationPort(), e.getMessage());
-      logError(message);
+      logger.error(ERR_COULD_NOT_BIND_CHANGELOG, getReplicationPort(), e.getMessage());
     } catch (DirectoryException e)
     {
       //FIXME:DirectoryException is raised by initializeECL => fix err msg
@@ -443,7 +438,7 @@ public final class ReplicationServer
           LocalizableMessage
               .raw("Directory Exception raised by ECL initialization: "
                   + e.getMessage());
-      logError(message);
+      logger.error(message);
     }
   }
 
@@ -811,13 +806,13 @@ public final class ReplicationServer
       {
         if (logger.isTraceEnabled())
           logger.traceException(e);
-        logError(ERR_COULD_NOT_CLOSE_THE_SOCKET.get(e.toString()));
+        logger.error(ERR_COULD_NOT_CLOSE_THE_SOCKET.get(e.toString()));
       }
       catch (InterruptedException e)
       {
         if (logger.isTraceEnabled())
           logger.traceException(e);
-        logError(ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e.toString()));
+        logger.error(ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e.toString()));
       }
     }
 
@@ -1048,7 +1043,7 @@ public final class ReplicationServer
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(e.getLocalizedMessage());
       LocalizableMessage msg = ERR_DELETE_REPL_BACKEND_FAILED.get(mb.toString());
-      logError(msg);
+      logger.error(msg);
     }
   }
 

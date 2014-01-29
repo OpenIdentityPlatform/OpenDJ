@@ -44,7 +44,6 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.config.ConfigConstants.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.ConfigMessages.*;
 /**
  * This class defines a string configuration attribute, which can hold zero or
@@ -625,7 +624,7 @@ public final class StringConfigAttribute
 
         if (allowFailures)
         {
-          ErrorLogger.logError(message);
+          logger.error(message);
           continue;
         }
         else

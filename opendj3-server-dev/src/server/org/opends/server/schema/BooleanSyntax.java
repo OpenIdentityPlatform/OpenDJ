@@ -26,6 +26,7 @@
  */
 package org.opends.server.schema;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -43,7 +44,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -60,6 +60,9 @@ import org.opends.server.util.ServerConstants;
 public class BooleanSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
 
@@ -120,8 +123,7 @@ public class BooleanSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_BOOLEAN_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_BOOLEAN_OID, SYNTAX_BOOLEAN_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(EMR_BOOLEAN_OID, SYNTAX_BOOLEAN_NAME));
     }
   }
 

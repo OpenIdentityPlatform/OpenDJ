@@ -173,9 +173,7 @@ public class RebuildTask extends Task
     }
     catch (DirectoryException de)
     {
-      LocalizableMessage message =
-          ERR_CANNOT_DECODE_BASE_DN.get(baseDN, de.getMessageObject());
-      logError(message);
+      logger.error(ERR_CANNOT_DECODE_BASE_DN, baseDN, de.getMessageObject());
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -201,15 +199,13 @@ public class RebuildTask extends Task
 
     if (backend == null)
     {
-      LocalizableMessage message = ERR_NO_BACKENDS_FOR_BASE.get(baseDN);
-      logError(message);
+      logger.error(ERR_NO_BACKENDS_FOR_BASE, baseDN);
       return TaskState.STOPPED_BY_ERROR;
     }
 
     if (!(backend instanceof BackendImpl))
     {
-      LocalizableMessage message = ERR_REBUILDINDEX_WRONG_BACKEND_TYPE.get();
-      logError(message);
+      logger.error(ERR_REBUILDINDEX_WRONG_BACKEND_TYPE);
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -230,7 +226,7 @@ public class RebuildTask extends Task
       {
         logger.traceException(e);
 
-        logError(e.getMessageObject());
+        logger.error(e.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;
       }
 
@@ -238,19 +234,15 @@ public class RebuildTask extends Task
       {
         if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
         {
-          LocalizableMessage message =
-              ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(backend
+          logger.error(ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND, backend
                   .getBackendID(), String.valueOf(failureReason));
-          logError(message);
           return TaskState.STOPPED_BY_ERROR;
         }
       }
       catch (Exception e)
       {
-        LocalizableMessage message =
-            ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(backend
+        logger.error(ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND, backend
                 .getBackendID(), getExceptionMessage(e));
-        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -261,19 +253,15 @@ public class RebuildTask extends Task
       {
         if (!LockFileManager.acquireSharedLock(lockFile, failureReason))
         {
-          LocalizableMessage message =
-              ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND.get(backend
+          logger.error(ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND, backend
                   .getBackendID(), String.valueOf(failureReason));
-          logError(message);
           return TaskState.STOPPED_BY_ERROR;
         }
       }
       catch (Exception e)
       {
-        LocalizableMessage message =
-            ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND.get(backend
+        logger.error(ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND, backend
                 .getBackendID(), getExceptionMessage(e));
-        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -293,7 +281,7 @@ public class RebuildTask extends Task
       LocalizableMessage message =
           ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage());
       logger.traceException(e);
-      logError(message);
+      logger.error(message);
       isBackendNeedToBeEnabled = true;
       returnCode = TaskState.STOPPED_BY_ERROR;
     }
@@ -301,9 +289,7 @@ public class RebuildTask extends Task
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage());
-      logError(message);
+      logger.error(ERR_REBUILDINDEX_ERROR_DURING_REBUILD, e.getMessage());
       returnCode = TaskState.STOPPED_BY_ERROR;
     }
     finally
@@ -315,19 +301,15 @@ public class RebuildTask extends Task
         failureReason = new StringBuilder();
         if (!LockFileManager.releaseLock(lockFile, failureReason))
         {
-          LocalizableMessage message =
-              WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend
+          logger.warn(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND, backend
                   .getBackendID(), String.valueOf(failureReason));
-          logError(message);
           returnCode = TaskState.COMPLETED_WITH_ERRORS;
         }
       }
       catch (Throwable t)
       {
-        LocalizableMessage message =
-            WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(),
+        logger.warn(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND, backend.getBackendID(),
                 getExceptionMessage(t));
-        logError(message);
         returnCode = TaskState.COMPLETED_WITH_ERRORS;
       }
     }
@@ -346,7 +328,7 @@ public class RebuildTask extends Task
       {
         logger.traceException(e);
 
-        logError(e.getMessageObject());
+        logger.error(e.getMessageObject());
         returnCode = TaskState.STOPPED_BY_ERROR;
       }
     }

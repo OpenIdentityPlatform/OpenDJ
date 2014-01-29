@@ -59,7 +59,6 @@ import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -187,7 +186,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
         catch (InitializationException ie)
         {
           // Log error but keep going
-          logError(ie.getMessageObject());
+          logger.error(ie.getMessageObject());
         }
       }
     }
@@ -590,7 +589,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
         filter = groupImplementation.getGroupDefinitionFilter();
         if (backend.getEntryCount() > 0 && ! backend.isIndexed(filter))
         {
-          logError(WARN_GROUP_FILTER_NOT_INDEXED.get(String.valueOf(filter),
+          logger.warn(WARN_GROUP_FILTER_NOT_INDEXED.get(String.valueOf(filter),
                         String.valueOf(configEntryDN), backend.getBackendID()));
         }
       }

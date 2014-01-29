@@ -28,7 +28,6 @@
 package org.opends.server.replication.service;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.protocol.Session;
 
@@ -135,7 +134,7 @@ final class HeartbeatMonitor extends DirectoryThread
           if (gotOneFailure)
           {
             // Heartbeat is well overdue so the server is assumed to be dead.
-            logError(WARN_HEARTBEAT_FAILURE.get(serverID,
+            logger.warn(WARN_HEARTBEAT_FAILURE.get(serverID,
                 replicationServerID, session.getReadableRemoteAddress(),
                 baseDN));
 

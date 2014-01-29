@@ -246,9 +246,8 @@ public class DirectoryThread extends Thread
       }
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_UNCAUGHT_THREAD_EXCEPTION.get(
-          t.getName(), stackTraceToSingleLineString(e));
-      logError(message);
+      LocalizableMessage message = ERR_UNCAUGHT_THREAD_EXCEPTION.get(t.getName(), stackTraceToSingleLineString(e));
+      logger.error(message);
       DirectoryServer.sendAlertNotification(this,
           ALERT_TYPE_UNCAUGHT_EXCEPTION, message);
     }

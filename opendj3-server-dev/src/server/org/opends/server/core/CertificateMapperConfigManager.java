@@ -26,6 +26,7 @@
  */
 package org.opends.server.core;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -52,7 +53,6 @@ import org.opends.server.types.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -70,6 +70,9 @@ public class CertificateMapperConfigManager
                   ConfigurationDeleteListener<CertificateMapperCfg>
 
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // A mapping between the DNs of the config entries and the associated
   // certificate mappers.
   private ConcurrentHashMap<DN,CertificateMapper> certificateMappers;
@@ -134,7 +137,7 @@ public class CertificateMapperConfigManager
         }
         catch (InitializationException ie)
         {
-          logError(ie.getMessageObject());
+          logger.error(ie.getMessageObject());
           continue;
         }
       }

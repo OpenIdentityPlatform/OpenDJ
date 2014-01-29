@@ -34,7 +34,9 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
@@ -42,12 +44,11 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.HostPort;
-
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
-
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
+
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 
@@ -61,6 +62,8 @@ public final class SNMPConnectionHandler
         extends ConnectionHandler<SNMPConnectionHandlerCfg>
         implements ConfigurationChangeListener<SNMPConnectionHandlerCfg>,
         AlertGenerator {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     // Current configuration
     SNMPConnectionHandlerCfg currentConfig;
@@ -98,8 +101,7 @@ public final class SNMPConnectionHandler
             throws ConfigException, InitializationException {
 
         if (configuration == null) {
-            LocalizableMessage message = ERR_SNMP_CONNHANDLER_NO_CONFIGURATION.get();
-            logError(message);
+            logger.error(ERR_SNMP_CONNHANDLER_NO_CONFIGURATION);
             return;
         }
 
@@ -108,9 +110,8 @@ public final class SNMPConnectionHandler
 
         String jarLocation = this.currentConfig.getOpendmkJarfile();
         if ((jarLocation==null) || (jarLocation.length()==0)){
-            LocalizableMessage message = ERR_SNMP_CONNHANDLER_NO_OPENDMK_JARFILES.get();
-            logError(message);
-            return;
+          logger.error(ERR_SNMP_CONNHANDLER_NO_OPENDMK_JARFILES);
+          return;
         }
 
         // Get the jarFile Location and test if exists to be able to
@@ -126,10 +127,8 @@ public final class SNMPConnectionHandler
         }
 
         if (!fullpathFile.exists()) {
-            LocalizableMessage message =
-              ERR_SNMP_CONNHANDLER_OPENDMK_JARFILES_DOES_NOT_EXIST.get(
+           logger.error(ERR_SNMP_CONNHANDLER_OPENDMK_JARFILES_DOES_NOT_EXIST,
                   fullpathFile.getAbsolutePath());
-            logError(message);
             return;
         }
 
@@ -139,10 +138,8 @@ public final class SNMPConnectionHandler
                 this.currentConfig.getListenPort()));
 
         if (!this.isOperational(fullpathFile)) {
-            LocalizableMessage message =
-              ERR_SNMP_CONNHANDLER_OPENDMK_JARFILES_NOT_OPERATIONAL.get(
+            logger.error(ERR_SNMP_CONNHANDLER_OPENDMK_JARFILES_NOT_OPERATIONAL,
                   fullpathFile.getAbsolutePath());
-            logError(message);
             return;
         }
 
@@ -154,8 +151,7 @@ public final class SNMPConnectionHandler
           this.provider.initializeConnectionHandler(this.currentConfig);
         }
         catch (Exception ex) {
-            LocalizableMessage message = ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get();
-            logError(message);
+            logger.error(ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION);
             return;
         }
     }
@@ -258,7 +254,6 @@ public final class SNMPConnectionHandler
         try {
             String url = "jar:" + file.toURI().toURL() + "!/";
             URL u = new URL(url);
-            Class[] parameters = new Class[]{URL.class};
             URLClassLoader sysloader =
               (URLClassLoader)ClassLoader.getSystemClassLoader();
             Class sysclass = URLClassLoader.class;

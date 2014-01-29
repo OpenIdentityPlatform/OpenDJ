@@ -60,7 +60,6 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.EMailMessage;
 
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -673,7 +672,7 @@ public class SMTPAccountStatusNotificationHandler
     {
       logger.traceException(e);
 
-      logError(ERR_SMTP_ASNH_CANNOT_SEND_MESSAGE.get(notificationType.getName(),
+      logger.error(ERR_SMTP_ASNH_CANNOT_SEND_MESSAGE.get(notificationType.getName(),
                     notification.getUserDN().toString(),
                     getExceptionMessage(e)));
     }

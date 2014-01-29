@@ -49,7 +49,6 @@ import org.opends.server.types.operation.PreOperationBindOperation;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -1149,13 +1148,13 @@ public class LocalBackendBindOperation
         {
           logger.traceException(e);
 
-          logError(cannotProcessAttributeMessage.get(v.getValue().toString(),
+          logger.error(cannotProcessAttributeMessage.get(v.getValue().toString(),
               String.valueOf(userEntry.getName())));
         }
       }
       else if (a.size() > 1)
       {
-        logError(nonUniqueAttributeMessage.get(String
+        logger.error(nonUniqueAttributeMessage.get(String
             .valueOf(userEntry.getName())));
       }
     }

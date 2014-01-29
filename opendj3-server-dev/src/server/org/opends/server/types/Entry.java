@@ -53,7 +53,6 @@ import org.opends.server.util.LDIFWriter;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -1852,7 +1851,7 @@ public class Entry
           else if (structuralPolicy == AcceptRejectWarn.WARN
               && !multipleOCErrorLogged)
           {
-            logError(message);
+            logger.error(message);
             multipleOCErrorLogged = true;
           }
         }
@@ -1874,7 +1873,7 @@ public class Entry
       }
       else if (structuralPolicy == AcceptRejectWarn.WARN)
       {
-        logError(message);
+        logger.error(message);
       }
     }
     else
@@ -2011,7 +2010,7 @@ public class Entry
         }
         else if (structuralPolicy == AcceptRejectWarn.WARN)
         {
-          logError(message);
+          logger.error(message);
         }
       }
 
@@ -2163,7 +2162,7 @@ public class Entry
             }
             else if (structuralPolicy == AcceptRejectWarn.WARN)
             {
-              logError(message);
+              logger.error(message);
             }
           }
         }
@@ -2188,7 +2187,7 @@ public class Entry
               }
               else if (structuralPolicy == AcceptRejectWarn.WARN)
               {
-                logError(message);
+                logger.error(message);
               }
             }
           }
@@ -2237,7 +2236,7 @@ public class Entry
         }
         else if (structuralPolicy == AcceptRejectWarn.WARN)
         {
-          logError(message);
+          logger.error(message);
         }
       }
     }
@@ -2261,7 +2260,7 @@ public class Entry
         }
         else if (structuralPolicy == AcceptRejectWarn.WARN)
         {
-          logError(message);
+          logger.error(message);
         }
       }
     }
@@ -2343,7 +2342,7 @@ public class Entry
             }
             else if (structuralPolicy == AcceptRejectWarn.WARN)
             {
-              logError(message);
+              logger.error(message);
             }
           }
           else
@@ -2365,7 +2364,7 @@ public class Entry
                 }
                 else if (structuralPolicy == AcceptRejectWarn.WARN)
                 {
-                  logError(message);
+                  logger.error(message);
                 }
               }
               else
@@ -2399,7 +2398,7 @@ public class Entry
               }
               else if (structuralPolicy == AcceptRejectWarn.WARN)
               {
-                logError(message);
+                logger.error(message);
               }
             }
             finally
@@ -2443,7 +2442,7 @@ public class Entry
             }
             else if (structuralPolicy == AcceptRejectWarn.WARN)
             {
-              logError(message);
+              logger.error(message);
             }
           }
           else
@@ -2465,7 +2464,7 @@ public class Entry
                 }
                 else if (structuralPolicy == AcceptRejectWarn.WARN)
                 {
-                  logError(message);
+                  logger.error(message);
                 }
               }
               else
@@ -2490,7 +2489,7 @@ public class Entry
               }
               else if (structuralPolicy == AcceptRejectWarn.WARN)
               {
-                logError(message);
+                logger.error(message);
               }
             }
             finally
@@ -2516,7 +2515,7 @@ public class Entry
           }
           else if (structuralPolicy == AcceptRejectWarn.WARN)
           {
-            logError(message);
+            logger.error(message);
           }
         }
         else
@@ -2545,7 +2544,7 @@ public class Entry
                   }
                   else if (structuralPolicy == AcceptRejectWarn.WARN)
                   {
-                    logError(message);
+                    logger.error(message);
                   }
                 }
               }
@@ -2599,7 +2598,7 @@ public class Entry
       }
       else if (structuralPolicy == AcceptRejectWarn.WARN)
       {
-        logError(message);
+        logger.error(message);
       }
     }
 
@@ -2628,7 +2627,7 @@ public class Entry
       }
       else if (structuralPolicy == AcceptRejectWarn.WARN)
       {
-        logError(message);
+        logger.error(message);
       }
     }
 

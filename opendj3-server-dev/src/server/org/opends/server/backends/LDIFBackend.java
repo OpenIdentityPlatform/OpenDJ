@@ -45,7 +45,6 @@ import org.opends.server.util.*;
 import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -1149,7 +1148,7 @@ public class LDIFBackend
           {
             LocalizableMessage m = ERR_LDIF_BACKEND_DUPLICATE_ENTRY.get(ldifFilePath,
                              currentConfig.dn().toString(), entryDN.toString());
-            logError(m);
+            logger.error(m);
             reader.rejectLastEntry(m);
             continue;
           }
@@ -1178,7 +1177,7 @@ public class LDIFBackend
           {
             LocalizableMessage m = ERR_LDIF_BACKEND_ENTRY_OUT_OF_SCOPE.get(ldifFilePath,
                              currentConfig.dn().toString(), entryDN.toString());
-            logError(m);
+            logger.error(m);
             reader.rejectLastEntry(m);
             continue;
           }
@@ -1188,7 +1187,7 @@ public class LDIFBackend
           {
             LocalizableMessage m = ERR_LDIF_BACKEND_MISSING_PARENT.get(ldifFilePath,
                              currentConfig.dn().toString(), entryDN.toString());
-            logError(m);
+            logger.error(m);
             reader.rejectLastEntry(m);
             continue;
           }

@@ -26,6 +26,7 @@
  */
 package org.opends.server.tasks;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -59,6 +60,9 @@ import static org.opends.server.util.StaticUtils.*;
 public class DisconnectClientTask
        extends Task
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // Indicates whether to send a notification message to the client.
   private boolean notifyClient;
 
@@ -217,10 +221,7 @@ disconnectMessageLoop:
     // terminate it.
     if (clientConnection == null)
     {
-      LocalizableMessage message =
-          ERR_TASK_DISCONNECT_NO_SUCH_CONNECTION.get(
-                  String.valueOf(connectionID));
-      logError(message);
+      logger.error(ERR_TASK_DISCONNECT_NO_SUCH_CONNECTION, String.valueOf(connectionID));
 
       return TaskState.COMPLETED_WITH_ERRORS;
     }

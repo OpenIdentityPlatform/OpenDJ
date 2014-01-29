@@ -50,7 +50,6 @@ import javax.mail.MessagingException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.EMailMessage;
@@ -931,7 +930,7 @@ public abstract class Task
   {
     // Simply pass this on to the server error logger, and it will call back
     // to the addLogMessage method for this task.
-    ErrorLogger.logError(message);
+    logger.error(message);
   }
 
   /**
@@ -1185,9 +1184,7 @@ public abstract class Task
 
       taskState = TaskState.STOPPED_BY_ERROR;
 
-      LocalizableMessage message = ERR_TASK_EXECUTE_FAILED.get(
-          String.valueOf(taskEntry.getName()), stackTraceToSingleLineString(e));
-      logError(message);
+      logger.error(ERR_TASK_EXECUTE_FAILED, String.valueOf(taskEntry.getName()), stackTraceToSingleLineString(e));
     }
 
     return taskState;

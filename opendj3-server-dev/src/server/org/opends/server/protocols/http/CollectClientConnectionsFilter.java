@@ -358,7 +358,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
           INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(ctx.clientConnection
               .getClientHostPort(), ctx.clientConnection.getServerHostPort(),
               getExceptionMessage(e));
-      logError(message);
+      logger.debug(message);
 
       ctx.clientConnection.disconnect(DisconnectReason.SERVER_ERROR, false,
           message);

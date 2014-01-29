@@ -44,7 +44,6 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.config.ConfigConstants.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.ConfigMessages.*;
 /**
  * This class defines a DN configuration attribute, which can hold zero or more
@@ -643,7 +642,7 @@ public final class DNConfigAttribute
         LocalizableMessage message = ERR_CONFIG_ATTR_DN_NULL.get(getName());
         if (allowFailures)
         {
-          ErrorLogger.logError(message);
+          logger.error(message);
           continue;
         }
         else
@@ -668,7 +667,7 @@ public final class DNConfigAttribute
 
         if (allowFailures)
         {
-          ErrorLogger.logError(message);
+          logger.error(message);
           continue;
         }
         else

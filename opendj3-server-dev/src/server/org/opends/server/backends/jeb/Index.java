@@ -27,8 +27,6 @@
 package org.opends.server.backends.jeb;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.server.loggers.ErrorLogger.*;
-
 import com.sleepycat.je.*;
 
 import org.opends.server.types.*;
@@ -567,7 +565,7 @@ public class Index extends DatabaseContainer
           }
 
           setTrusted(txn, false);
-          logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+          logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
         }
 
         if((rebuildRunning || trusted) && addedIDs != null &&
@@ -690,7 +688,7 @@ public class Index extends DatabaseContainer
         }
 
         setTrusted(txn, false);
-        logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+        logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
       }
 
       if((rebuildRunning || trusted) && addedIDs != null && addedIDs.size() > 0)
@@ -796,7 +794,7 @@ public class Index extends DatabaseContainer
           }
 
           setTrusted(txn, false);
-          logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+          logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
         }
       }
     }
@@ -845,7 +843,7 @@ public class Index extends DatabaseContainer
         }
 
         setTrusted(txn, false);
-        logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+        logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
       }
       else
       {
@@ -880,7 +878,7 @@ public class Index extends DatabaseContainer
         }
 
         setTrusted(txn, false);
-        logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+        logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
       }
     }
   }

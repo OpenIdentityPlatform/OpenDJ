@@ -41,7 +41,6 @@ import org.opends.server.api.Group;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -250,12 +249,10 @@ public class StaticGroup
           {
             logger.traceException(de);
 
-            LocalizableMessage message = ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN.
-                get(v.getValue().toString(),
+            logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN, v.getValue().toString(),
                     someMemberAttributeType.getNameOrOID(),
                     String.valueOf(groupEntry.getName()),
                     de.getMessageObject());
-            ErrorLogger.logError(message);
           }
         }
       }

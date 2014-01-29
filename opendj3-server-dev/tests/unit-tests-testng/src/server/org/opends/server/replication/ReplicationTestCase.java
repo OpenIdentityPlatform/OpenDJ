@@ -280,7 +280,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void cleanConfigEntries() throws Exception
   {
-    logError(LocalizableMessage.raw("ReplicationTestCase/Cleaning config entries"));
+    logger.error(LocalizableMessage.raw("ReplicationTestCase/Cleaning config entries"));
 
     for (DN dn : configEntriesToCleanup)
     {
@@ -297,7 +297,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void cleanRealEntries() throws Exception
   {
-    logError(LocalizableMessage.raw("ReplicationTestCase/Cleaning entries"));
+    logger.error(LocalizableMessage.raw("ReplicationTestCase/Cleaning entries"));
 
     for (DN dn : entriesToCleanup)
     {
@@ -314,7 +314,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   @AfterClass
   public void classCleanUp() throws Exception
   {
-    logError(LocalizableMessage.raw(" ##### Calling ReplicationTestCase.classCleanUp ##### "));
+    logger.error(LocalizableMessage.raw(" ##### Calling ReplicationTestCase.classCleanUp ##### "));
 
     removeReplicationServerDB();
 
@@ -341,7 +341,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void paranoiaCheck() throws Exception
   {
-    logError(LocalizableMessage.raw("Performing paranoia check"));
+    logger.error(LocalizableMessage.raw("Performing paranoia check"));
 
     // Check for config entries for replication server
     assertNoConfigEntriesWithFilter("(objectclass=ds-cfg-replication-server)",

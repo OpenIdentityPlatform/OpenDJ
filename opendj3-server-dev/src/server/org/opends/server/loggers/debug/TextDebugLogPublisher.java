@@ -196,8 +196,7 @@ public class TextDebugLogPublisher
     config.addDebugTargetDeleteListener(this);
 
     //Get the default/global settings
-    LogLevel logLevel =
-        DebugLogLevel.parse(config.getDefaultDebugLevel().toString());
+    LogLevel logLevel = LogLevel.ALL;
     Set<LogCategory> logCategories = null;
     if(!config.getDefaultDebugCategory().isEmpty())
     {

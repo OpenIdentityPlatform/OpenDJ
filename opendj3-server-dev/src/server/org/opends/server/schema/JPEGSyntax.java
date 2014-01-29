@@ -30,6 +30,7 @@ package org.opends.server.schema;
 
 
 import java.util.List;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.JPEGAttributeSyntaxCfg;
@@ -45,7 +46,6 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -63,6 +63,9 @@ public class JPEGSyntax
        extends AttributeSyntax<JPEGAttributeSyntaxCfg>
        implements ConfigurationChangeListener<JPEGAttributeSyntaxCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
 
@@ -100,24 +103,21 @@ public class JPEGSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_OCTET_STRING_OID, SYNTAX_JPEG_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(EMR_OCTET_STRING_OID, SYNTAX_JPEG_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_OCTET_STRING_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
-          OMR_OCTET_STRING_OID, SYNTAX_JPEG_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(OMR_OCTET_STRING_OID, SYNTAX_JPEG_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_OCTET_STRING_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_OCTET_STRING_OID, SYNTAX_JPEG_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(SMR_OCTET_STRING_OID, SYNTAX_JPEG_NAME));
     }
 
     this.config = configuration;

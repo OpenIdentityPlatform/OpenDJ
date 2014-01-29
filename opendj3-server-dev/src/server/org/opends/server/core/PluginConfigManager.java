@@ -53,7 +53,6 @@ import org.opends.server.types.operation.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -312,7 +311,7 @@ public class PluginConfigManager
       }
       catch (InitializationException ie)
       {
-        logError(ie.getMessageObject());
+        logger.error(ie.getMessageObject());
         continue;
       }
     }
@@ -955,7 +954,7 @@ public class PluginConfigManager
           {
             LocalizableMessage message = WARN_CONFIG_PLUGIN_EMPTY_ELEMENT_IN_ORDER.get(
                 pluginType.getName());
-            logError(message);
+            logger.warn(message);
           }
         }
         else if (token.equals("*"))
@@ -969,7 +968,7 @@ public class PluginConfigManager
             {
               LocalizableMessage message = WARN_CONFIG_PLUGIN_MULTIPLE_WILDCARDS_IN_ORDER.
                   get(pluginType.getName());
-              logError(message);
+              logger.warn(message);
             }
           }
           else
@@ -992,7 +991,7 @@ public class PluginConfigManager
               {
                 LocalizableMessage message = WARN_CONFIG_PLUGIN_LISTED_MULTIPLE_TIMES.get(
                     pluginType.getName(), token);
-                logError(message);
+                logger.warn(message);
               }
             }
 
@@ -1009,7 +1008,7 @@ public class PluginConfigManager
               {
                 LocalizableMessage message = WARN_CONFIG_PLUGIN_LISTED_MULTIPLE_TIMES.get(
                     pluginType.getName(), token);
-                logError(message);
+                logger.warn(message);
               }
             }
 
@@ -1027,7 +1026,7 @@ public class PluginConfigManager
         {
           LocalizableMessage message =
               WARN_CONFIG_PLUGIN_ORDER_NO_WILDCARD.get(pluginType.getName());
-          logError(message);
+          logger.warn(message);
         }
       }
 
@@ -1468,7 +1467,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_STARTUP_PLUGIN_RETURNED_NULL.get(
             String.valueOf(p.getPluginEntryDN()));
-        logError(message);
+        logger.error(message);
         return PluginResult.Startup.stopStartup(message);
       }
       else if (! result.continueProcessing())
@@ -1477,7 +1476,7 @@ public class PluginConfigManager
             get(String.valueOf(p.getPluginEntryDN()),
                 result.getErrorMessage(),
                 result.getErrorMessage().ordinal());
-        logError(message);
+        logger.error(message);
         return result;
       }
     }
@@ -1515,7 +1514,7 @@ public class PluginConfigManager
         LocalizableMessage message = ERR_PLUGIN_SHUTDOWN_PLUGIN_EXCEPTION.
             get(String.valueOf(p.getPluginEntryDN()),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
     }
   }
@@ -1550,7 +1549,7 @@ public class PluginConfigManager
                 clientConnection.getConnectionID(),
                 clientConnection.getClientAddress(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.PostConnect.disconnectClient(
             DisconnectReason.SERVER_ERROR, true, message);
@@ -1563,7 +1562,7 @@ public class PluginConfigManager
             get(String.valueOf(p.getPluginEntryDN()),
                 clientConnection.getConnectionID(),
                 clientConnection.getClientAddress());
-        logError(message);
+        logger.error(message);
 
         return PluginResult.PostConnect.disconnectClient(
             DisconnectReason.SERVER_ERROR, true, message);
@@ -1621,7 +1620,7 @@ public class PluginConfigManager
                 clientConnection.getConnectionID(),
                 clientConnection.getClientAddress(),
                 stackTraceToSingleLineString(e));
-        logError(msg);
+        logger.error(msg);
       }
 
 
@@ -1631,7 +1630,7 @@ public class PluginConfigManager
             get(String.valueOf(p.getPluginEntryDN()),
                 clientConnection.getConnectionID(),
                 clientConnection.getClientAddress());
-        logError(msg);
+        logger.error(msg);
       }
       else if (! result.continuePluginProcessing())
       {
@@ -1680,7 +1679,7 @@ public class PluginConfigManager
             get(String.valueOf(p.getPluginEntryDN()),
                 String.valueOf(entry.getName()),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
       }
@@ -1690,7 +1689,7 @@ public class PluginConfigManager
         LocalizableMessage message = ERR_PLUGIN_LDIF_IMPORT_PLUGIN_RETURNED_NULL.
             get(String.valueOf(p.getPluginEntryDN()),
                 String.valueOf(entry.getName()));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
       }
@@ -1777,7 +1776,7 @@ public class PluginConfigManager
             get(String.valueOf(p.getPluginEntryDN()),
                 String.valueOf(entry.getName()),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
       }
@@ -1787,7 +1786,7 @@ public class PluginConfigManager
         LocalizableMessage message = ERR_PLUGIN_LDIF_EXPORT_PLUGIN_RETURNED_NULL.
             get(String.valueOf(p.getPluginEntryDN()),
                 String.valueOf(entry.getName()));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
       }
@@ -1871,7 +1870,7 @@ public class PluginConfigManager
             .getOperationName(), String.valueOf(plugin.getPluginEntryDN()),
             operation.getConnectionID(), operation.getOperationID(),
             stackTraceToSingleLineString(e));
-    logError(message);
+    logger.error(message);
 
     return PluginResult.PreParse.stopProcessing(DirectoryServer
         .getServerErrorResultCode(), message);
@@ -1885,7 +1884,7 @@ public class PluginConfigManager
             .getOperationType().getOperationName(), String.valueOf(plugin
             .getPluginEntryDN()), operation.getConnectionID(), String
             .valueOf(operation.getOperationID()));
-    logError(message);
+    logger.error(message);
 
     return PluginResult.PreParse.stopProcessing(DirectoryServer
         .getServerErrorResultCode(), message);
@@ -2670,7 +2669,7 @@ public class PluginConfigManager
             .getOperationType().getOperationName(), String.valueOf(plugin
             .getPluginEntryDN()), operation.getConnectionID(), operation
             .getOperationID(), stackTraceToSingleLineString(e));
-    logError(message);
+    logger.error(message);
 
     registerSkippedPreOperationPlugins(i, plugins, operation);
 
@@ -2687,7 +2686,7 @@ public class PluginConfigManager
             .getOperationType().getOperationName(), String.valueOf(plugin
             .getPluginEntryDN()), operation.getConnectionID(), operation
             .getOperationID());
-    logError(message);
+    logger.error(message);
 
     registerSkippedPreOperationPlugins(i, plugins, operation);
 
@@ -2995,7 +2994,7 @@ public class PluginConfigManager
                 abandonOperation.getConnectionID(),
                 abandonOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3005,7 +3004,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 abandonOperation.getConnectionID(),
                 abandonOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3079,7 +3078,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 addOperation.getConnectionID(), addOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3088,7 +3087,7 @@ public class PluginConfigManager
             get(addOperation.getOperationType().getOperationName(),
                 String.valueOf(p.getPluginEntryDN()),
                 addOperation.getConnectionID(), addOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3162,7 +3161,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 bindOperation.getConnectionID(), bindOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3172,7 +3171,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 bindOperation.getConnectionID(),
                 bindOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3247,7 +3246,7 @@ public class PluginConfigManager
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3257,7 +3256,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3332,7 +3331,7 @@ public class PluginConfigManager
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3342,7 +3341,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3417,7 +3416,7 @@ public class PluginConfigManager
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3427,7 +3426,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3502,7 +3501,7 @@ public class PluginConfigManager
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3512,7 +3511,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3586,7 +3585,7 @@ public class PluginConfigManager
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3596,7 +3595,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3671,7 +3670,7 @@ public class PluginConfigManager
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3681,7 +3680,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3756,7 +3755,7 @@ public class PluginConfigManager
                 unbindOperation.getConnectionID(),
                 unbindOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3766,7 +3765,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 unbindOperation.getConnectionID(),
                 unbindOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3831,7 +3830,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 addOperation.getConnectionID(), addOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3840,7 +3839,7 @@ public class PluginConfigManager
             get(addOperation.getOperationType().getOperationName(),
                 String.valueOf(p.getPluginEntryDN()),
                 addOperation.getConnectionID(), addOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3895,7 +3894,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 bindOperation.getConnectionID(), bindOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3905,7 +3904,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 bindOperation.getConnectionID(),
                 bindOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3961,7 +3960,7 @@ public class PluginConfigManager
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -3971,7 +3970,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4027,7 +4026,7 @@ public class PluginConfigManager
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -4037,7 +4036,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4092,7 +4091,7 @@ public class PluginConfigManager
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -4102,7 +4101,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4158,7 +4157,7 @@ public class PluginConfigManager
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -4168,7 +4167,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4224,7 +4223,7 @@ public class PluginConfigManager
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -4234,7 +4233,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4290,7 +4289,7 @@ public class PluginConfigManager
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
 
       if (result == null)
@@ -4300,7 +4299,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID());
-        logError(message);
+        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4345,7 +4344,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 addOperation.getConnectionID(), addOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
     }
   }
@@ -4378,7 +4377,7 @@ public class PluginConfigManager
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
     }
   }
@@ -4411,7 +4410,7 @@ public class PluginConfigManager
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
     }
   }
@@ -4444,7 +4443,7 @@ public class PluginConfigManager
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
       }
     }
   }
@@ -4489,7 +4488,7 @@ public class PluginConfigManager
                 searchOperation.getOperationID(),
                 String.valueOf(searchEntry.getName()),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing(false,
             DirectoryServer.getServerErrorResultCode(), message);
@@ -4502,7 +4501,7 @@ public class PluginConfigManager
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
                 String.valueOf(searchEntry.getName()));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing(false,
             DirectoryServer.getServerErrorResultCode(), message);
@@ -4564,7 +4563,7 @@ public class PluginConfigManager
                 searchOperation.getOperationID(),
                 searchReference.getReferralURLString(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing(false,
             DirectoryServer.getServerErrorResultCode(), message);
@@ -4577,7 +4576,7 @@ public class PluginConfigManager
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
                 searchReference.getReferralURLString());
-        logError(message);
+        logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing(false,
             DirectoryServer.getServerErrorResultCode(), message);
@@ -4645,7 +4644,7 @@ public class PluginConfigManager
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.SubordinateModifyDN.stopProcessing(
             DirectoryServer.getServerErrorResultCode(), message);
@@ -4658,7 +4657,7 @@ public class PluginConfigManager
                         String.valueOf(p.getPluginEntryDN()),
                         modifyDNOperation.getConnectionID(),
                         String.valueOf(modifyDNOperation.getOperationID()));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.SubordinateModifyDN.stopProcessing(
             DirectoryServer.getServerErrorResultCode(), message);
@@ -4718,7 +4717,7 @@ public class PluginConfigManager
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.SubordinateDelete.stopProcessing(
             DirectoryServer.getServerErrorResultCode(), message);
@@ -4731,7 +4730,7 @@ public class PluginConfigManager
                         String.valueOf(p.getPluginEntryDN()),
                         deleteOperation.getConnectionID(),
                         String.valueOf(deleteOperation.getOperationID()));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.SubordinateDelete.stopProcessing(
             DirectoryServer.getServerErrorResultCode(), message);
@@ -4784,7 +4783,7 @@ public class PluginConfigManager
             get(String.valueOf(p.getPluginEntryDN()),
                 operation.getConnectionID(), operation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logError(message);
+        logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing
             (false, DirectoryServer.getServerErrorResultCode(), message);
@@ -4795,7 +4794,7 @@ public class PluginConfigManager
         LocalizableMessage message = ERR_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_RETURNED_NULL.
             get(String.valueOf(p.getPluginEntryDN()),
                 operation.getConnectionID(), operation.getOperationID());
-        logError(message);
+        logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing
             (false, DirectoryServer.getServerErrorResultCode(), message);
@@ -4809,7 +4808,8 @@ public class PluginConfigManager
     if (result == null)
     {
       // This should only happen if there were no intermediate response plugins
-      // registered, which is fine.
+      // registered, which is fine.WARN
+
       result =
           PluginResult.IntermediateResponse.continueOperationProcessing(true);
     }

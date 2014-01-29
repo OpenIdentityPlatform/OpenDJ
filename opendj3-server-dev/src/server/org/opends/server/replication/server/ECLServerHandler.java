@@ -27,6 +27,7 @@
 package org.opends.server.replication.server;
 
 import java.io.IOException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +43,6 @@ import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.replication.protocol.StartECLSessionMsg
 .ECLRequestType.*;
@@ -56,6 +56,9 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public final class ECLServerHandler extends ServerHandler
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
 
   /**
    * Marks the end of the search on the External Change Log.
@@ -915,7 +918,7 @@ public final class ECLServerHandler extends ServerHandler
     releaseCursor();
     for (DomainContext domainCtxt : domainCtxts) {
       if (!domainCtxt.unRegisterHandler()) {
-        logError(LocalizableMessage.raw(            this + " shutdown() - error when unregistering handler "
+        logger.error(LocalizableMessage.raw(            this + " shutdown() - error when unregistering handler "
                 + domainCtxt.mh));
       }
       domainCtxt.stopServer();

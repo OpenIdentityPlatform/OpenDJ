@@ -30,7 +30,6 @@ package org.opends.server.extensions;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.CONFIG_DIR_NAME;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -132,7 +131,7 @@ public class GSSAPISASLMechanismHandler extends
       configuration.addGSSAPIChangeListener(this);
       this.configuration = configuration;
       LocalizableMessage msg = INFO_GSSAPI_STARTED.get();
-      logError(msg);
+      logger.error(msg);
     }
     catch (UnknownHostException unhe)
     {
@@ -327,7 +326,7 @@ public class GSSAPISASLMechanismHandler extends
     }
     w.write(principal.toString());
     LocalizableMessage msg = INFO_GSSAPI_PRINCIPAL_NAME.get(principal.toString());
-    logError(msg);
+    logger.error(msg);
     w.write("\" isInitiator=false;");
     w.newLine();
     w.write("};");
@@ -352,7 +351,7 @@ public class GSSAPISASLMechanismHandler extends
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_GSSAPI);
     clearProperties();
     LocalizableMessage msg = INFO_GSSAPI_STOPPED.get();
-    logError(msg);
+    logger.error(msg);
   }
 
 
@@ -411,7 +410,7 @@ private void clearProperties() {
       LocalizableMessage message = ERR_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT
             .get(getExceptionMessage(ex));
       // Log a configuration error.
-      logError(message);
+      logger.error(message);
       connection.setSASLAuthStateInfo(null);
       bindOp.setAuthFailureReason(message);
       bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -593,7 +592,7 @@ throws UnknownHostException, IOException, InitializationException
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
     serverFQDN = getFQDN(config);
     LocalizableMessage msg = INFO_GSSAPI_SERVER_FQDN.get(serverFQDN);
-    logError(msg);
+    logger.error(msg);
     saslProps = new HashMap<String, String>();
     saslProps.put(Sasl.QOP, getQOP(config));
     saslProps.put(Sasl.REUSE, "false");

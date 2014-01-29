@@ -27,6 +27,7 @@
 package org.opends.server.replication;
 
 import java.util.LinkedList;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
@@ -57,6 +58,9 @@ import static org.testng.Assert.*;
 public class StressTest extends ReplicationTestCase
 {
 
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+
   private static final String REPLICATION_STRESS_TEST =
     "Replication Stress Test";
 
@@ -76,7 +80,7 @@ public class StressTest extends ReplicationTestCase
   @Test(enabled=false, groups="slow")
   public void fromServertoBroker() throws Exception
   {
-    logError(LocalizableMessage.raw("Starting replication StressTest : fromServertoBroker"));
+    logger.error(LocalizableMessage.raw("Starting replication StressTest : fromServertoBroker"));
 
     final DN baseDN = DN.valueOf("ou=People," + TEST_ROOT_DN_STRING);
     final int TOTAL_MESSAGES = 1000;

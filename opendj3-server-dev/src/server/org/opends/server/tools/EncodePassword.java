@@ -62,7 +62,6 @@ import org.opends.server.util.args.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -909,12 +908,9 @@ public class EncodePassword
             backend = (Backend) backendClass.newInstance();
           } catch (Exception e) {
             logger.traceException(e);
-            LocalizableMessage message =
-              ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
-                  String.valueOf(className),
+            logger.error(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE, String.valueOf(className),
                   String.valueOf(backendCfg.dn()),
                   stackTraceToSingleLineString(e));
-            logError(message);
             continue;
           }
           backend.setBackendID(backendID);
@@ -924,23 +920,17 @@ public class EncodePassword
             backend.initializeBackend();
           } catch (Exception e) {
             logger.traceException(e);
-            LocalizableMessage message =
-              ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
-                  String.valueOf(className),
+            logger.error(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE, String.valueOf(className),
                   String.valueOf(backendCfg.dn()),
                   stackTraceToSingleLineString(e));
-            logError(message);
           }
           try {
             DirectoryServer.registerBackend(backend);
           } catch (Exception e)
           {
             logger.traceException(e);
-            LocalizableMessage message =
-              WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(
-                  backendCfg.getBackendId(),
+            logger.warn(WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND, backendCfg.getBackendId(),
                   getExceptionMessage(e));
-            logError(message);
           }
         }
       }

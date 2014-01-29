@@ -63,7 +63,6 @@ import org.opends.server.extensions.DefaultEntryCache;
 import org.opends.server.monitors.EntryCacheMonitorProvider;
 import org.opends.server.types.DN;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -173,7 +172,7 @@ public class EntryCacheConfigManager
     } catch (Exception e) {
       logger.traceException(e);
 
-      logError(WARN_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY.get());
+      logger.warn(WARN_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY.get());
       return;
     }
 
@@ -182,7 +181,7 @@ public class EntryCacheConfigManager
     // no entry cache defined below it.
     if (entryCacheBase == null)
     {
-      logError(WARN_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY.get());
+      logger.error(WARN_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY.get());
       return;
     }
 
@@ -200,7 +199,7 @@ public class EntryCacheConfigManager
       if (!cacheOrderMap.isEmpty()) {
         if (cacheOrderMap.containsKey(configuration.getCacheLevel())) {
           // Log error and skip this cache.
-          logError(ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
+          logger.error(ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
             String.valueOf(configuration.dn()),
             configuration.getCacheLevel()));
           continue;
@@ -215,7 +214,7 @@ public class EntryCacheConfigManager
         try {
           loadAndInstallEntryCache(className, configuration);
         } catch (InitializationException ie) {
-          logError(ie.getMessageObject());
+          logger.error(ie.getMessageObject());
         }
       }
     }
@@ -235,9 +234,7 @@ public class EntryCacheConfigManager
           } catch (UnsupportedOperationException ex) {
             // Some backend implementations might not support entry
             // cache preload. Log a warning and continue.
-            LocalizableMessage message = WARN_CACHE_PRELOAD_BACKEND_FAILED.get(
-              backend.getBackendID());
-            logError(message);
+            logger.warn(WARN_CACHE_PRELOAD_BACKEND_FAILED, backend.getBackendID());
             continue;
           }
         }

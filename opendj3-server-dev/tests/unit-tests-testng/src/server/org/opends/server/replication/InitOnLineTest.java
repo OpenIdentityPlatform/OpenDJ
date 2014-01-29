@@ -114,7 +114,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
   private void log(String s)
   {
-    logError(LocalizableMessage.raw("InitOnLineTests/" + s));
+    logger.error(LocalizableMessage.raw("InitOnLineTests/" + s));
     if (logger.isTraceEnabled())
     {
       logger.trace(s);

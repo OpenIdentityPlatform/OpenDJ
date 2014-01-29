@@ -29,6 +29,7 @@
 package org.opends.server.schema;
 
 import org.opends.server.util.StaticUtils;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -77,6 +78,9 @@ import static org.opends.server.schema.GeneralizedTimeSyntax.*;
 public final class TimeBasedMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   //Greater-than RelativeTimeMatchingRule.
   private MatchingRule greaterThanRTMRule;
 
@@ -194,7 +198,7 @@ public final class TimeBasedMatchingRuleFactory
             throw de;
 
           case WARN:
-            logError(de.getMessageObject());
+            logger.error(de.getMessageObject());
             return value.toByteString();
 
           default:
@@ -366,7 +370,7 @@ public final class TimeBasedMatchingRuleFactory
           if(message !=null)
           {
             //Log the message and throw an exception.
-            logError(message);
+            logger.error(message);
             throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
           }
@@ -948,7 +952,7 @@ public final class TimeBasedMatchingRuleFactory
           }
           if(message !=null)
           {
-            logError(message);
+            logger.error(message);
             throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
           }
@@ -966,7 +970,7 @@ public final class TimeBasedMatchingRuleFactory
         LocalizableMessage message =
                 WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.
                 get(value.toString(),year);
-        logError(message);
+        logger.warn(message);
         throw new DirectoryException(
                 ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
@@ -1016,7 +1020,7 @@ public final class TimeBasedMatchingRuleFactory
           LocalizableMessage message =
                 WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.
                 get(value.toString(),month);
-          logError(message);
+          logger.warn(message);
            throw new DirectoryException(
                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
@@ -1048,9 +1052,8 @@ public final class TimeBasedMatchingRuleFactory
       if(invalidDate)
       {
         LocalizableMessage message =
-                WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.
-                get(value.toString(),date);
-        logError(message);
+            WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(value.toString(), date);
+        logger.warn(message);
         throw new DirectoryException(
                 ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
@@ -1060,27 +1063,27 @@ public final class TimeBasedMatchingRuleFactory
          LocalizableMessage message =
                 WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.
                 get(value.toString(),date);
-        logError(message);
+         logger.warn(message);
         throw new DirectoryException(
                 ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
 
       if(!(minute >=-1 && minute <=59))
       {
-           LocalizableMessage message =
+            LocalizableMessage message =
                 WARN_ATTR_INVALID_MINUTE_ASSERTION_FORMAT.
                 get(value.toString(),date);
-        logError(message);
+                logger.warn(message);
         throw new DirectoryException(
                 ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
 
       if(!(second >=-1 && second <=60)) //Consider leap seconds.
       {
-         LocalizableMessage message =
+      LocalizableMessage message =
                 WARN_ATTR_INVALID_SECOND_ASSERTION_FORMAT.
                 get(value.toString(),date);
-        logError(message);
+         logger.warn(message);
         throw new DirectoryException(
                 ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }

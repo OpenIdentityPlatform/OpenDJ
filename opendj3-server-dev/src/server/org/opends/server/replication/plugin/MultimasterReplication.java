@@ -27,6 +27,7 @@
 package org.opends.server.replication.plugin;
 
 import java.util.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -45,7 +46,6 @@ import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.replication.plugin.
 ReplicationRepairRequestControl.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -67,6 +67,9 @@ public class MultimasterReplication
                   BackupTaskListener, RestoreTaskListener, ImportTaskListener,
                   ExportTaskListener
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   private ReplicationServerListener replicationServerListener = null;
   private static final Map<DN, LDAPReplicationDomain> domains =
     new ConcurrentHashMap<DN, LDAPReplicationDomain>(4) ;
@@ -194,8 +197,7 @@ public class MultimasterReplication
     }
     catch (ConfigException e)
     {
-      logError(ERR_COULD_NOT_START_REPLICATION.get(
-          configuration.dn().toString(), e.getLocalizedMessage()
+      logger.error(ERR_COULD_NOT_START_REPLICATION.get(configuration.dn().toString(), e.getLocalizedMessage()
           + " " + stackTraceToSingleLineString(e)));
     }
     return null;

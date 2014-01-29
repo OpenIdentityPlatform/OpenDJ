@@ -259,10 +259,111 @@ class Replace
     if name.nil? then '' else name end
   end
 
+  # Process provided directories
+  # Expects a processing block accepting a file as argument and returning a count of changes dones
+  def process_dirs(dirs, stopwords, extensions)
+    count_files = 0
+    count_total = 0
+    dirs.each { |directory|
+      files = files_under_directory(directory, extensions)
+      files.each { |file|
+        #puts file.to_s
+        exclude_file = stopwords.any? { |stopword| file.include?(stopword) }
+        next if exclude_file
+        count = yield file # call the block
+        if count > 0
+          count_files += 1
+          count_total += count
+        end
+      }
+    }
+    puts "Replaced in #{count_files} files, for a total of #{count_total} replacements"
+  end
+
+  # Process provided file
+  # Expects a processing block accepting a source string as argument and returning a count of changes + a new
+  # content
+  def process_file(file)
+    count = 0
+    File.open(file) { |source|
+      contents = source.read
+      count, new_contents = yield contents
+      File.open(file + ".copy", "w+") { |f| f.write(new_contents) }
+    }
+    FileUtils.mv(file + ".copy", file, :verbose => false)
+    count
+  end
+
+
   # Return all files with provided extensions under the provided directory
   # and all its subdirectories recursively
   def files_under_directory(directory, extensions)
     Dir[directory + '/**/*.{' + extensions.join(",") + '}']
+  end
+
+  def run_messages
+    prepare_messages
+    process_dirs(JAVA_DIRS, ["--nostopword--"], ['java']) { |file|
+       process_file(file) { |content|
+          count, new_content = process_message(content)
+          next count, new_content
+       }
+    }
+  end
+
+  def process_message(content)
+    has_logger = /LocalizedLogger\.getLoggerForThisClass/ =~ content
+    needs_logger = /logError/ =~ content
+    count = 0
+    if needs_logger && has_logger.nil?
+       count = 1
+
+       content.sub!(/class ([^{]+){/,
+          "class \\1{\n\n  " +
+          "private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();\n")
+
+       content.sub!(/import (.*);/,
+          "import \\1;\nimport org.forgerock.i18n.slf4j.LocalizedLogger;")
+    end
+
+    if needs_logger
+      count = 1
+      pattern = /(final )?(LocalizableMessage )?message\s*=\s*(\w+)\s*.\s*get\(\s*([^;]*)\);\s+(ErrorLogger\.)?logError\(\w+\);/m
+      mdata = pattern.match(content)
+      while !mdata.nil? do
+         msg = mdata[3]
+         args = if mdata[4].nil? || mdata[4]=="" then "" else ", " + mdata[4] end
+         level = MESSAGES_MAP[msg]
+         puts "1... #{level} - #{msg}"
+         content.sub!(pattern, "logger.#{level}(#{msg}#{args});")
+         mdata = pattern.match(content)
+      end
+
+      pattern = /logError\((\w+).get\s*\(\s*/m
+      mdata = pattern.match(content)
+      stop = {}
+      while !mdata.nil? do
+         msg = mdata[1]
+         break if !stop[msg].nil?
+         stop[msg] = msg
+         level = MESSAGES_MAP[msg]
+         puts "2... #{level} - #{msg}"
+         if !level.nil?
+            content.sub!(pattern, "logger.#{level}(#{msg}.get(")
+         end
+         mdata = pattern.match(content)
+      end
+
+      # all remaining patterns
+      content.gsub!(/(ErrorLogger\.)?logError\(/, 'logger.error(')
+
+    end
+    return count, content
+  end
+
+  def prepare_messages
+    files = Dir['src/messages/messages/*.properties']
+    files.each do |file| messages(file) end
   end
 
   # Build a map of error messages and error level
@@ -274,14 +375,16 @@ class Replace
       first, *rest = token[0].split "_"
       level_label = if %w(INFO DEBUG NOTICE).include?(first) then first else first.to_s + "_" + rest[0].to_s end
       level = LOG_LEVELS[level_label]
-      label = first + rest.join("_")
-      label = label.gsub("MILD", "").gsub("SEVERE", "").gsub("FATAL", "")
-      puts "level #{level}, label #{label}"
+      label = first + "_" + rest.join("_")
+      label = label.gsub("MILD_", '').gsub("SEVERE_", '').gsub("FATAL_", '').gsub("NOTICE_", 'NOTE_').gsub(/_\d+$/, '')
+      MESSAGES_MAP[label] = level
+      #puts "#{label}=#{level} #{token}"
     }
   end
 
 end
 
 # Launch all replacements defined in the REPLACEMENTS constant
-Replace.new.messages("src/messages/messages/admin.properties")
+#Replace.new.messages("src/messages/messages/admin.properties")
+Replace.new.run_messages
 #Replace.new.run

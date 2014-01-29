@@ -72,7 +72,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -1808,13 +1807,11 @@ public class TrustStoreBackend
                                            new FilePermission(0600)))
         {
           // Log a warning that the permissions were not set.
-          LocalizableMessage message = WARN_TRUSTSTORE_SET_PERMISSIONS_FAILED.get(path);
-          ErrorLogger.logError(message);
+          logger.warn(WARN_TRUSTSTORE_SET_PERMISSIONS_FAILED, path);
         }
       } catch(DirectoryException e) {
         // Log a warning that the permissions were not set.
-        LocalizableMessage message = WARN_TRUSTSTORE_SET_PERMISSIONS_FAILED.get(path);
-        ErrorLogger.logError(message);
+        logger.warn(WARN_TRUSTSTORE_SET_PERMISSIONS_FAILED, path);
       }
     }
   }

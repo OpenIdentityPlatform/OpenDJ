@@ -29,6 +29,7 @@ package org.opends.server.extensions;
 
 
 import org.opends.server.admin.std.server.AnonymousSASLMechanismHandlerCfg;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
@@ -36,7 +37,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -52,6 +52,9 @@ import static org.opends.server.util.ServerConstants.*;
 public class AnonymousSASLMechanismHandler
        extends SASLMechanismHandler<AnonymousSASLMechanismHandlerCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Creates a new instance of this SASL mechanism handler.  No initialization
    * should be done in this method, as it should all be performed in the
@@ -109,7 +112,7 @@ public class AnonymousSASLMechanismHandler
       {
         bindOperation.addAdditionalLogItem(AdditionalLogItem.quotedKeyValue(
             getClass(), "trace", credString));
-        logError(INFO_SASLANONYMOUS_TRACE.
+        logger.error(INFO_SASLANONYMOUS_TRACE.
             get(bindOperation.getConnectionID(), bindOperation.getOperationID(),
                 credString));
 

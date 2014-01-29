@@ -29,7 +29,7 @@ package org.opends.server.schema;
 
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.Collection;
@@ -52,6 +52,9 @@ import org.opends.server.types.ResultCode;
 class UUIDEqualityMatchingRule
        extends EqualityMatchingRule
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Creates a new instance of this caseExactMatch matching rule.
    */
@@ -154,7 +157,7 @@ class UUIDEqualityMatchingRule
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         case WARN:
-          logError(message);
+          logger.error(message);
           return value.toByteString();
         default:
           return value.toByteString();
@@ -184,7 +187,7 @@ class UUIDEqualityMatchingRule
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               case WARN:
-                logError(
+                logger.error(
                         message);
                 return value.toByteString();
               default:
@@ -242,7 +245,7 @@ class UUIDEqualityMatchingRule
                   throw new DirectoryException(
                                  ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
                 case WARN:
-                  logError(
+                  logger.error(
                           message);
                   return value.toByteString();
                 default:

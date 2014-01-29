@@ -26,6 +26,7 @@
  */
 package org.opends.server.schema;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -55,7 +56,10 @@ import static org.opends.server.util.StaticUtils.*;
  * order:
  * <BR>
  * <UL>
- *   <LI>An opening curly brace ("{") character.</LI>
+ *   <LI>An opening curly brace ("{
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+") character.</LI>
  *   <LI>The name of the storage scheme used to encode the value.</LI>
  *   <LI>A closing curly brace ("}") character.</LI>
  *   <LI>The encoded value.</LI>
@@ -64,10 +68,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class UserPasswordSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -92,8 +97,8 @@ public class UserPasswordSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_USER_PASSWORD_EXACT_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_USER_PASSWORD_EXACT_NAME, SYNTAX_USER_PASSWORD_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
+          EMR_USER_PASSWORD_EXACT_NAME, SYNTAX_USER_PASSWORD_NAME);
     }
   }
 

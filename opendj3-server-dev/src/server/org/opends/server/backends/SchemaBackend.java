@@ -71,7 +71,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
@@ -93,7 +92,6 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -507,9 +505,7 @@ public class SchemaBackend
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES.get(
-          getExceptionMessage(e));
-      ErrorLogger.logError(message);
+      logger.error(ERR_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES, getExceptionMessage(e));
     }
 
 
@@ -1516,9 +1512,7 @@ public class SchemaBackend
             // in the extraAttribute map. This in fact acts as a replace.
             if (SchemaConfigManager.isSchemaAttribute(a))
             {
-              LocalizableMessage message = ERR_SCHEMA_INVALID_REPLACE_MODIFICATION.get(
-                  a.getNameWithOptions());
-              ErrorLogger.logError(message);
+              logger.error(ERR_SCHEMA_INVALID_REPLACE_MODIFICATION, a.getNameWithOptions());
             }
             else
             {
@@ -4432,17 +4426,11 @@ public class SchemaBackend
           }
           catch (DirectoryException de)
           {
-            LocalizableMessage message =
-              NOTE_SCHEMA_IMPORT_FAILED.get(
-                  attrType.toString(), de.getMessage());
-            logError(message);
+            logger.info(NOTE_SCHEMA_IMPORT_FAILED, attrType.toString(), de.getMessage());
           }
           catch (Exception e)
           {
-            LocalizableMessage message =
-              NOTE_SCHEMA_IMPORT_FAILED.get(
-                  attrType.toString(), e.getMessage());
-            logError(message);
+            logger.info(NOTE_SCHEMA_IMPORT_FAILED, attrType.toString(), e.getMessage());
           }
         }
       }
@@ -4551,17 +4539,11 @@ public class SchemaBackend
           }
           catch (DirectoryException de)
           {
-            LocalizableMessage message =
-              NOTE_SCHEMA_IMPORT_FAILED.get(
-                  newObjectClass.toString(), de.getMessage());
-            logError(message);
+            logger.info(NOTE_SCHEMA_IMPORT_FAILED, newObjectClass.toString(), de.getMessage());
           }
           catch (Exception e)
           {
-            LocalizableMessage message =
-              NOTE_SCHEMA_IMPORT_FAILED.get(
-                  newObjectClass.toString(), e.getMessage());
-            logError(message);
+            logger.info(NOTE_SCHEMA_IMPORT_FAILED, newObjectClass.toString(), e.getMessage());
           }
         }
       }
@@ -5295,16 +5277,11 @@ public class SchemaBackend
           try
           {
             schemaBackupInstanceDir.renameTo(schemaInstanceDir);
-            LocalizableMessage message =
-                NOTE_SCHEMA_RESTORE_RESTORED_OLD_SCHEMA.get(
-                    schemaInstanceDirPath);
-            logError(message);
+            logger.info(NOTE_SCHEMA_RESTORE_RESTORED_OLD_SCHEMA, schemaInstanceDirPath);
           }
           catch (Exception e2)
           {
-            LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_RESTORE_OLD_SCHEMA.get(
-                schemaBackupInstanceDir.getPath());
-            logError(message);
+            logger.error(ERR_SCHEMA_RESTORE_CANNOT_RESTORE_OLD_SCHEMA, schemaBackupInstanceDir.getPath());
           }
         }
 
@@ -5332,9 +5309,7 @@ public class SchemaBackend
         // Tell the user where the previous schema was archived.
         if (schemaBackupInstanceDir != null)
         {
-          LocalizableMessage message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
-              schemaBackupInstanceDir.getPath());
-          logError(message);
+          logger.error(ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED, schemaBackupInstanceDir.getPath());
         }
 
         LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_GET_ZIP_ENTRY.get(
@@ -5389,9 +5364,7 @@ public class SchemaBackend
           // Tell the user where the previous schema was archived.
           if (schemaBackupInstanceDir != null)
           {
-            LocalizableMessage message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
-                schemaBackupInstanceDir.getPath());
-            logError(message);
+            logger.error(ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED, schemaBackupInstanceDir.getPath());
           }
 
           LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_CREATE_FILE.get(
@@ -5450,9 +5423,7 @@ public class SchemaBackend
         // Tell the user where the previous schema was archived.
         if (schemaBackupInstanceDir != null)
         {
-          LocalizableMessage message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
-              schemaBackupInstanceDir.getPath());
-          logError(message);
+          logger.error(ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED, schemaBackupInstanceDir.getPath());
         }
 
         LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE.get(
@@ -5485,17 +5456,14 @@ public class SchemaBackend
       byte[] calculatedHash = digest.digest();
       if (Arrays.equals(calculatedHash, unsignedHash))
       {
-        LocalizableMessage message = NOTE_SCHEMA_RESTORE_UNSIGNED_HASH_VALID.get();
-        logError(message);
+        logger.info(NOTE_SCHEMA_RESTORE_UNSIGNED_HASH_VALID);
       }
       else
       {
         // Tell the user where the previous schema was archived.
         if (schemaBackupInstanceDir != null)
         {
-          LocalizableMessage message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
-              schemaBackupInstanceDir.getPath());
-          logError(message);
+          logger.error(ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED, schemaBackupInstanceDir.getPath());
         }
 
         LocalizableMessage message =
@@ -5510,17 +5478,14 @@ public class SchemaBackend
       byte[] calculatedSignature = mac.doFinal();
       if (Arrays.equals(calculatedSignature, signedHash))
       {
-        LocalizableMessage message = NOTE_SCHEMA_RESTORE_SIGNED_HASH_VALID.get();
-        logError(message);
+        logger.info(NOTE_SCHEMA_RESTORE_SIGNED_HASH_VALID);
       }
       else
       {
         // Tell the user where the previous schema was archived.
         if (schemaBackupInstanceDir != null)
         {
-          LocalizableMessage message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
-              schemaBackupInstanceDir.getPath());
-          logError(message);
+          logger.error(ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED, schemaBackupInstanceDir.getPath());
         }
 
         LocalizableMessage message = ERR_SCHEMA_RESTORE_SIGNED_HASH_INVALID.get(backupID);
@@ -5533,9 +5498,7 @@ public class SchemaBackend
     // If we are just verifying the archive, then we're done.
     if (verifyOnly)
     {
-      LocalizableMessage message =
-          NOTE_SCHEMA_RESTORE_VERIFY_SUCCESSFUL.get(backupID, backupPath);
-      logError(message);
+      logger.info(NOTE_SCHEMA_RESTORE_VERIFY_SUCCESSFUL, backupID, backupPath);
       return;
     }
 
@@ -5548,8 +5511,7 @@ public class SchemaBackend
       recursiveDelete(schemaBackupInstanceDir);
     }
 
-    LocalizableMessage message = NOTE_SCHEMA_RESTORE_SUCCESSFUL.get(backupID, backupPath);
-    logError(message);
+    logger.info(NOTE_SCHEMA_RESTORE_SUCCESSFUL, backupID, backupPath);
   }
 
 

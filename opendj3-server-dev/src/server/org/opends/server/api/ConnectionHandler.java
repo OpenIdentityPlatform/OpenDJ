@@ -27,8 +27,7 @@
 package org.opends.server.api;
 
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -58,6 +57,9 @@ public abstract class ConnectionHandler
        <T extends ConnectionHandlerCfg>
        extends DirectoryThread
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /** The monitor associated with this connection handler. */
   private ConnectionHandlerMonitor monitor;
 
@@ -313,10 +315,8 @@ public abstract class ConnectionHandler
       int cpus = Runtime.getRuntime().availableProcessors();
       int value = Math.max(2, cpus / 2);
 
-      LocalizableMessage message =
-          INFO_ERGONOMIC_SIZING_OF_REQUEST_HANDLER_THREADS.get(friendlyName,
+      logger.debug(INFO_ERGONOMIC_SIZING_OF_REQUEST_HANDLER_THREADS, friendlyName,
               value);
-      logError(message);
 
       return value;
     }

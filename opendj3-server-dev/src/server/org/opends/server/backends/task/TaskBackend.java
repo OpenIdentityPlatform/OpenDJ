@@ -55,7 +55,6 @@ import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -1870,8 +1869,7 @@ public class TaskBackend
       byte[] calculatedHash = digest.digest();
       if (Arrays.equals(calculatedHash, unsignedHash))
       {
-        LocalizableMessage message = NOTE_TASKS_RESTORE_UNSIGNED_HASH_VALID.get();
-        logError(message);
+        logger.info(NOTE_TASKS_RESTORE_UNSIGNED_HASH_VALID);
       }
       else
       {
@@ -1887,8 +1885,7 @@ public class TaskBackend
       byte[] calculatedSignature = mac.doFinal();
       if (Arrays.equals(calculatedSignature, signedHash))
       {
-        LocalizableMessage message = NOTE_TASKS_RESTORE_SIGNED_HASH_VALID.get();
-        logError(message);
+        logger.info(NOTE_TASKS_RESTORE_SIGNED_HASH_VALID);
       }
       else
       {
@@ -1901,15 +1898,12 @@ public class TaskBackend
     // If we are just verifying the archive, then we're done.
     if (verifyOnly)
     {
-      LocalizableMessage message =
-          NOTE_TASKS_RESTORE_VERIFY_SUCCESSFUL.get(backupID, backupPath);
-      logError(message);
+      logger.info(NOTE_TASKS_RESTORE_VERIFY_SUCCESSFUL, backupID, backupPath);
       return;
     }
 
     // If we've gotten here, then the archive was restored successfully.
-    LocalizableMessage message = NOTE_TASKS_RESTORE_SUCCESSFUL.get(backupID, backupPath);
-    logError(message);
+    logger.info(NOTE_TASKS_RESTORE_SUCCESSFUL, backupID, backupPath);
   }
 
 

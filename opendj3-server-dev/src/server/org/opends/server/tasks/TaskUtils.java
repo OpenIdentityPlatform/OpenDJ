@@ -31,7 +31,6 @@ package org.opends.server.tasks;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.ServerConstants;
 
@@ -91,16 +90,12 @@ public class TaskUtils
     }
     catch (ConfigException ce)
     {
-      LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
-          String.valueOf(configEntry.getDN()), ce.getMessage());
-      logError(message);
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, String.valueOf(configEntry.getDN()), ce.getMessage());
       return null;
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
-          String.valueOf(configEntry.getDN()), getExceptionMessage(e));
-      logError(message);
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, String.valueOf(configEntry.getDN()), getExceptionMessage(e));
       return null;
     }
   }
@@ -124,16 +119,12 @@ public class TaskUtils
     }
     catch (DirectoryException de)
     {
-      LocalizableMessage message = ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(
-          DN_BACKEND_BASE, de.getMessageObject());
-      logError(message);
+      logger.error(ERR_CANNOT_DECODE_BACKEND_BASE_DN, DN_BACKEND_BASE, de.getMessageObject());
       return configEntries;
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(
-          DN_BACKEND_BASE, getExceptionMessage(e));
-      logError(message);
+      logger.error(ERR_CANNOT_DECODE_BACKEND_BASE_DN, DN_BACKEND_BASE, getExceptionMessage(e));
       return configEntries;
     }
 
@@ -144,16 +135,12 @@ public class TaskUtils
     }
     catch (ConfigException ce)
     {
-      LocalizableMessage message = ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(
-          DN_BACKEND_BASE, ce.getMessage());
-      logError(message);
+      logger.error(ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY, DN_BACKEND_BASE, ce.getMessage());
       return configEntries;
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(
-          DN_BACKEND_BASE, getExceptionMessage(e));
-      logError(message);
+      logger.error(ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY, DN_BACKEND_BASE, getExceptionMessage(e));
       return configEntries;
     }
 
@@ -186,16 +173,12 @@ public class TaskUtils
       }
       catch (ConfigException ce)
       {
-        LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
-            String.valueOf(configEntry.getDN()), ce.getMessage());
-        logError(message);
+        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, String.valueOf(configEntry.getDN()), ce.getMessage());
         continue;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
-            String.valueOf(configEntry.getDN()), getExceptionMessage(e));
-        logError(message);
+        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, String.valueOf(configEntry.getDN()), getExceptionMessage(e));
         continue;
       }
 

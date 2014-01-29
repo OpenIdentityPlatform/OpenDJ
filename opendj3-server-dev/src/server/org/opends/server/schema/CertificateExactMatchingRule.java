@@ -46,7 +46,6 @@ import java.util.Collections;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.GSERException;
 import org.opends.server.protocols.asn1.GSERParser;
@@ -226,7 +225,7 @@ class CertificateExactMatchingRule
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         case WARN:
-          ErrorLogger.logError(message);
+          logger.error(message);
 
           certificateIssuer= toLowerCase(dnstring);
           break;
@@ -328,7 +327,7 @@ class CertificateExactMatchingRule
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
           case WARN:
-            ErrorLogger.logError(message);
+            logger.error(message);
             break;
         }
       }
@@ -363,7 +362,7 @@ class CertificateExactMatchingRule
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         case WARN:
-          ErrorLogger.logError(message);
+          logger.error(message);
 
           certificateIssuer= toLowerCase(dnstring);
           break;

@@ -30,7 +30,6 @@ package org.opends.server.core.networkgroups;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.util.Reject.*;
 
@@ -515,10 +514,8 @@ public class NetworkGroup
         {
           // The workflow does not exist, log an error message
           // and skip the workflow.
-          LocalizableMessage message =
-              INFO_ERR_WORKFLOW_DOES_NOT_EXIST.get(workflowID,
+          logger.debug(INFO_ERR_WORKFLOW_DOES_NOT_EXIST, workflowID,
                   networkGroup.getID());
-          logError(message);
         }
         else
         {

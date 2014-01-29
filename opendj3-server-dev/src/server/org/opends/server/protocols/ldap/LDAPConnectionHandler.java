@@ -734,7 +734,7 @@ public final class LDAPConnectionHandler extends
             allowReuseAddress, config.dn());
     if (errorMessage != null)
     {
-      logError(errorMessage);
+      logger.error(errorMessage);
       throw new InitializationException(errorMessage);
     }
 
@@ -975,7 +975,7 @@ public final class LDAPConnectionHandler extends
           cleanUpSelector();
           listening = false;
 
-          logError(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
+          logger.info(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
         }
 
         StaticUtils.sleep(1000);
@@ -1005,7 +1005,7 @@ public final class LDAPConnectionHandler extends
         // administrative action before trying again.
         if (numRegistered == 0)
         {
-          logError(ERR_LDAP_CONNHANDLER_NO_ACCEPTORS.get(String
+          logger.error(ERR_LDAP_CONNHANDLER_NO_ACCEPTORS.get(String
               .valueOf(currentConfig.dn())));
 
           enabled = false;
@@ -1029,7 +1029,7 @@ public final class LDAPConnectionHandler extends
           {
             logger.traceException(e);
 
-            logError(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(friendlyName,
+            logger.error(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(friendlyName,
                 String.valueOf(currentConfig.dn()), getExceptionMessage(e)));
 
             if (lastIterationFailed)
@@ -1038,10 +1038,11 @@ public final class LDAPConnectionHandler extends
               // encountered a failure. Rather than enter a potential
               // infinite loop of failures, disable this acceptor and
               // log an error.
-              LocalizableMessage message = ERR_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES
-                  .get(friendlyName, String.valueOf(currentConfig.dn()),
+              LocalizableMessage message =
+                  ERR_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES.get(friendlyName,
+                      String.valueOf(currentConfig.dn()),
                       stackTraceToSingleLineString(e));
-              logError(message);
+              logger.error(message);
 
               DirectoryServer.sendAlertNotification(this,
                   ALERT_TYPE_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
@@ -1074,10 +1075,10 @@ public final class LDAPConnectionHandler extends
         // only thing we can do here is log a message, send an alert,
         // and disable the selector until an administrator can figure
         // out what's going on.
-        LocalizableMessage message = ERR_LDAP_CONNHANDLER_UNCAUGHT_ERROR
-            .get(String.valueOf(currentConfig.dn()),
-                stackTraceToSingleLineString(e));
-        logError(message);
+        LocalizableMessage message =
+            ERR_LDAP_CONNHANDLER_UNCAUGHT_ERROR.get(String
+                .valueOf(currentConfig.dn()), stackTraceToSingleLineString(e));
+        logger.error(message);
 
         DirectoryServer.sendAlertNotification(this,
             ALERT_TYPE_LDAP_CONNECTION_HANDLER_UNCAUGHT_ERROR, message);
@@ -1154,15 +1155,15 @@ public final class LDAPConnectionHandler extends
         channel.register(selector, SelectionKey.OP_ACCEPT);
         numRegistered++;
 
-        logError(NOTE_CONNHANDLER_STARTED_LISTENING.get(handlerName));
+        logger.info(NOTE_CONNHANDLER_STARTED_LISTENING.get(handlerName));
       }
       catch (Exception e)
       {
         logger.traceException(e);
 
-        logError(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED.get(
-            String.valueOf(currentConfig.dn()), a.getHostAddress(),
-            listenPort, stackTraceToSingleLineString(e)));
+        logger.error(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED.get(String
+            .valueOf(currentConfig.dn()), a.getHostAddress(), listenPort,
+            stackTraceToSingleLineString(e)));
       }
     }
     return numRegistered;
@@ -1257,7 +1258,7 @@ public final class LDAPConnectionHandler extends
           INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(clientConnection
               .getClientHostPort(), clientConnection.getServerHostPort(),
               getExceptionMessage(e));
-      logError(message);
+      logger.debug(message);
 
       clientConnection.disconnect(DisconnectReason.SERVER_ERROR,
           currentConfig.isSendRejectionNotice(), message);

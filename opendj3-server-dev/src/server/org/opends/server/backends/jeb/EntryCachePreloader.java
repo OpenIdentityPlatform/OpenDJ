@@ -33,8 +33,6 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import java.util.Collection;
-import org.forgerock.i18n.LocalizableMessage;
-
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -52,7 +50,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ExtensionMessages.*;
 
 /**
@@ -168,7 +165,7 @@ class EntryCachePreloader
    */
   protected void preload()
   {
-    logError(NOTE_CACHE_PRELOAD_PROGRESS_START.get(jeb.getBackendID()));
+    logger.info(NOTE_CACHE_PRELOAD_PROGRESS_START.get(jeb.getBackendID()));
     // Start collector thread first.
     collector.start();
     // Kick off a single worker.
@@ -184,9 +181,7 @@ class EntryCachePreloader
         if (processedEntries.get() > 0) {
           long freeMemory =
             Runtime.getRuntime().freeMemory() / bytesPerMegabyte;
-          LocalizableMessage message = NOTE_CACHE_PRELOAD_PROGRESS_REPORT.get(
-            jeb.getBackendID(), processedEntries.get(), freeMemory);
-          logError(message);
+          logger.info(NOTE_CACHE_PRELOAD_PROGRESS_REPORT, jeb.getBackendID(), processedEntries.get(), freeMemory);
         }
       }
     };
@@ -238,9 +233,7 @@ class EntryCachePreloader
       }
       // Cancel progress report task and report done.
       timer.cancel();
-      LocalizableMessage message = NOTE_CACHE_PRELOAD_PROGRESS_DONE.get(
-        jeb.getBackendID(), processedEntries.get());
-      logError(message);
+      logger.info(NOTE_CACHE_PRELOAD_PROGRESS_DONE, jeb.getBackendID(), processedEntries.get());
     } catch (InterruptedException ex) {
       logger.traceException(ex);
       // Interrupt the collector.
@@ -249,8 +242,7 @@ class EntryCachePreloader
       for (Thread thread : preloadThreads) {
         thread.interrupt();
       }
-      logError(WARN_CACHE_PRELOAD_INTERRUPTED.get(
-        jeb.getBackendID()));
+      logger.warn(WARN_CACHE_PRELOAD_INTERRUPTED.get(jeb.getBackendID()));
     } finally {
       // Kill the timer task.
       timer.cancel();
@@ -294,11 +286,9 @@ class EntryCachePreloader
             processedEntries.getAndIncrement();
           } catch (Exception ex) {
             logger.traceException(ex);
-            LocalizableMessage message = ERR_CACHE_PRELOAD_ENTRY_FAILED.get(
-              entry.getName().toNormalizedString(),
+            logger.error(ERR_CACHE_PRELOAD_ENTRY_FAILED, entry.getName().toNormalizedString(),
               (ex.getCause() != null ? ex.getCause().getMessage() :
                 stackTraceToSingleLineString(ex)));
-            logError(message);
           }
         } catch (Exception ex) {
           break;

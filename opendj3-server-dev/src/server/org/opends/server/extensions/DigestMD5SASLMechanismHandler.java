@@ -51,7 +51,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -112,14 +111,14 @@ public class DigestMD5SASLMechanismHandler
          identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
          serverFQDN = getFQDN(configuration);
          LocalizableMessage msg= NOTE_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
-         logError(msg);
+         logger.error(msg);
          String QOP = getQOP(configuration);
          saslProps = new HashMap<String,String>();
          saslProps.put(Sasl.QOP, QOP);
          String realm=getRealm(configuration);
          if(realm != null) {
            msg = INFO_DIGEST_MD5_REALM.get(realm);
-           logError(msg);
+           logger.error(msg);
            saslProps.put(REALM_PROPERTY, getRealm(configuration));
          }
          this.configuration = configuration;
@@ -243,14 +242,14 @@ public class DigestMD5SASLMechanismHandler
           identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
           serverFQDN = getFQDN(configuration);
           LocalizableMessage msg = NOTE_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
-          logError(msg);
+          logger.error(msg);
           String QOP = getQOP(configuration);
           saslProps = new HashMap<String,String>();
           saslProps.put(Sasl.QOP, QOP);
           String realm=getRealm(configuration);
           if(realm != null) {
                msg = INFO_DIGEST_MD5_REALM.get(realm);
-              logError(msg);
+              logger.error(msg);
              saslProps.put(REALM_PROPERTY, getRealm(configuration));
           }
           this.configuration  = configuration;

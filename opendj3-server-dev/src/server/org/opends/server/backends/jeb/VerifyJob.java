@@ -28,7 +28,6 @@ package org.opends.server.backends.jeb;
 import com.sleepycat.je.*;
 import org.forgerock.i18n.LocalizableMessage;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
@@ -352,9 +351,7 @@ public class VerifyJob
                    String.valueOf(keyCount));
       if (cleanMode)
       {
-        LocalizableMessage message = NOTE_JEB_VERIFY_CLEAN_FINAL_STATUS.get(
-            keyCount, errorCount, totalTime/1000, rate);
-        logError(message);
+        logger.info(NOTE_JEB_VERIFY_CLEAN_FINAL_STATUS, keyCount, errorCount, totalTime/1000, rate);
 
         if (multiReferenceCount > 0)
         {
@@ -364,41 +361,30 @@ public class VerifyJob
             averageEntryReferences = (float)entryReferencesCount/keyCount;
           }
 
-          message =
-              INFO_JEB_VERIFY_MULTIPLE_REFERENCE_COUNT.get(multiReferenceCount);
-          logError(message);
+          logger.debug(INFO_JEB_VERIFY_MULTIPLE_REFERENCE_COUNT, multiReferenceCount);
           addStatEntry(statEntry, "verify-multiple-reference-count",
                        String.valueOf(multiReferenceCount));
 
-          message = INFO_JEB_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT.get(
-              entryLimitExceededCount);
-          logError(message);
+          logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT, entryLimitExceededCount);
           addStatEntry(statEntry, "verify-entry-limit-exceeded-count",
                        String.valueOf(entryLimitExceededCount));
 
-          message = INFO_JEB_VERIFY_AVERAGE_REFERENCE_COUNT.get(
-              averageEntryReferences);
-          logError(message);
+          logger.debug(INFO_JEB_VERIFY_AVERAGE_REFERENCE_COUNT, averageEntryReferences);
           addStatEntry(statEntry, "verify-average-reference-count",
                        String.valueOf(averageEntryReferences));
 
-          message =
-              INFO_JEB_VERIFY_MAX_REFERENCE_COUNT.get(maxEntryPerValue);
-          logError(message);
+          logger.debug(INFO_JEB_VERIFY_MAX_REFERENCE_COUNT, maxEntryPerValue);
           addStatEntry(statEntry, "verify-max-reference-count",
                        String.valueOf(maxEntryPerValue));
         }
       }
       else
       {
-        LocalizableMessage message = NOTE_JEB_VERIFY_FINAL_STATUS.get(
-            keyCount, errorCount, totalTime/1000, rate);
-        logError(message);
+        logger.info(NOTE_JEB_VERIFY_FINAL_STATUS, keyCount, errorCount, totalTime/1000, rate);
         //TODO add entry-limit-stats to the statEntry
         if (entryLimitMap.size() > 0)
         {
-          message = INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_HEADER.get();
-          logError(message);
+          logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_HEADER);
 
           for (Map.Entry<Index,HashMap<ByteString,Long>> mapEntry :
               entryLimitMap.entrySet())
@@ -419,10 +405,8 @@ public class VerifyJob
               medianValue = values[x];
             }
 
-            message = INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_ROW.
-                get(index.toString(), values.length, values[0],
+            logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_ROW, index.toString(), values.length, values[0],
                     values[values.length-1], medianValue);
-            logError(message);
           }
         }
       }
@@ -2026,9 +2010,7 @@ public class VerifyJob
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      LocalizableMessage message = NOTE_JEB_VERIFY_PROGRESS_REPORT.get(
-        latestCount, totalCount, errorCount, rate);
-      logError(message);
+      logger.info(NOTE_JEB_VERIFY_PROGRESS_REPORT, latestCount, totalCount, errorCount, rate);
 
       try
       {
@@ -2046,9 +2028,7 @@ public class VerifyJob
           cacheMissRate = nCacheMiss/(float)deltaCount;
         }
 
-        message = INFO_JEB_VERIFY_CACHE_AND_MEMORY_REPORT.get(
-            freeMemory, cacheMissRate);
-        logError(message);
+        logger.debug(INFO_JEB_VERIFY_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
 
         prevEnvStats = envStats;
       }

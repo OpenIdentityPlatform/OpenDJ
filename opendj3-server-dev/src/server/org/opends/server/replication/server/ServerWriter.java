@@ -36,7 +36,6 @@ import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.UpdateMsg;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -126,8 +125,7 @@ public class ServerWriter extends DirectoryThread
           {
             if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS)
             {
-              logError(WARN_IGNORING_UPDATE_TO_DS_BADGENID.get(
-                  handler.getReplicationServerId(),
+              logger.warn(WARN_IGNORING_UPDATE_TO_DS_BADGENID.get(handler.getReplicationServerId(),
                   update.getCSN().toString(),
                   handler.getBaseDNString(), handler.getServerId(),
                   session.getReadableRemoteAddress(),
@@ -136,8 +134,7 @@ public class ServerWriter extends DirectoryThread
             }
             else if (dsStatus == ServerStatus.FULL_UPDATE_STATUS)
             {
-              logError(WARN_IGNORING_UPDATE_TO_DS_FULLUP.get(
-                  handler.getReplicationServerId(),
+              logger.warn(WARN_IGNORING_UPDATE_TO_DS_FULLUP.get(handler.getReplicationServerId(),
                   update.getCSN().toString(),
                   handler.getBaseDNString(), handler.getServerId(),
                   session.getReadableRemoteAddress()));
@@ -155,7 +152,7 @@ public class ServerWriter extends DirectoryThread
               || referenceGenerationId == -1
               || handler.getGenerationId() == -1)
           {
-            logError(
+            logger.error(
                 WARN_IGNORING_UPDATE_TO_RS.get(
                     handler.getReplicationServerId(),
                     update.getCSN().toString(),
@@ -180,7 +177,7 @@ public class ServerWriter extends DirectoryThread
        * be removed, just ignore the exception and let the thread die as well
        */
       errMessage = handler.getBadlyDisconnectedErrorMessage();
-      logError(errMessage);
+      logger.error(errMessage);
     }
     catch (Exception e)
     {
@@ -190,7 +187,7 @@ public class ServerWriter extends DirectoryThread
        */
       errMessage = ERR_WRITER_UNEXPECTED_EXCEPTION.get(handler +
                         " " +  stackTraceToSingleLineString(e));
-      logError(errMessage);
+      logger.error(errMessage);
     }
     finally {
       session.close();

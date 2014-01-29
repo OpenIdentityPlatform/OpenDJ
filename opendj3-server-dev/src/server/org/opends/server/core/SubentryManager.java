@@ -63,7 +63,6 @@ import org.opends.server.workflowelement.localbackend.
             LocalBackendSearchOperation;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.config.ConfigConstants.*;
 
@@ -321,8 +320,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
             ")");
       if (backend.getEntryCount() > 0 && ! backend.isIndexed(filter))
       {
-        logError(WARN_SUBENTRY_FILTER_NOT_INDEXED.get(
-                String.valueOf(filter), backend.getBackendID()));
+        logger.warn(WARN_SUBENTRY_FILTER_NOT_INDEXED.get(String.valueOf(filter), backend.getBackendID()));
       }
     }
     catch (Exception e)

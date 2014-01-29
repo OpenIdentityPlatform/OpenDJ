@@ -28,7 +28,6 @@ package org.opends.server.workflowelement.localbackend;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -364,9 +363,7 @@ public class LocalBackendModifyOperation
             {
               logger.traceException(e);
 
-              LocalizableMessage message = ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER
-                  .get(getExceptionMessage(e));
-              logError(message);
+              logger.error(ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER, getExceptionMessage(e));
             }
           }
         }
@@ -1432,12 +1429,12 @@ public class LocalBackendModifyOperation
             if (!syntax.isHumanReadable() || syntax.isBinary())
             {
               // Value is not human-readable
-              logError(ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE.get(
-                  String.valueOf(entryDN), attr.getName(), invalidReason));
+              logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE.get(String
+                  .valueOf(entryDN), attr.getName(), invalidReason));
             }
             else
             {
-              logError(ERR_MODIFY_ADD_INVALID_SYNTAX.get(String
+              logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX.get(String
                   .valueOf(entryDN), attr.getName(), v.getValue().toString(),
                   invalidReason));
             }
@@ -1641,12 +1638,12 @@ public class LocalBackendModifyOperation
             if (!syntax.isHumanReadable() || syntax.isBinary())
             {
               // Value is not human-readable
-              logError(ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE.get(String
+              logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE.get(String
                   .valueOf(entryDN), attr.getName(), invalidReason));
             }
             else
             {
-              logError(ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String
+              logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String
                   .valueOf(entryDN), attr.getName(), v.getValue().toString(),
                   invalidReason));
             }
@@ -2063,8 +2060,7 @@ public class LocalBackendModifyOperation
               }
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logError(ERR_MODIFY_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
-                      getConnectionID(), getOperationID(),
+              logger.error(ERR_MODIFY_SYNCH_CONFLICT_RESOLUTION_FAILED.get(getConnectionID(), getOperationID(),
                       getExceptionMessage(de)));
               setResponseData(de);
               return false;
@@ -2093,7 +2089,7 @@ public class LocalBackendModifyOperation
               }
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logError(ERR_MODIFY_SYNCH_PREOP_FAILED.get(getConnectionID(),
+              logger.error(ERR_MODIFY_SYNCH_PREOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
               return false;
@@ -2112,7 +2108,7 @@ public class LocalBackendModifyOperation
               provider.doPostOperation(this);
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logError(ERR_MODIFY_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+              logger.error(ERR_MODIFY_SYNCH_POSTOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
               return;

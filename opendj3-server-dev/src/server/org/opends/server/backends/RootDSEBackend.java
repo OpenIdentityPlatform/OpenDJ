@@ -68,7 +68,6 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.
      ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -233,9 +232,7 @@ public class RootDSEBackend
           Backend backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
           {
-            LocalizableMessage message = WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(
-                String.valueOf(baseDN));
-            logError(message);
+            logger.warn(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE, String.valueOf(baseDN));
           }
           else
           {
@@ -479,9 +476,7 @@ public class RootDSEBackend
 
     // This method should never be used to get anything other than the root DSE.
     // If we got here, then that appears to be the case, so log a message.
-    LocalizableMessage message =
-        WARN_ROOTDSE_GET_ENTRY_NONROOT.get(String.valueOf(entryDN));
-    logError(message);
+    logger.warn(WARN_ROOTDSE_GET_ENTRY_NONROOT, String.valueOf(entryDN));
 
 
     // Go ahead and check the subordinate backends to see if we can find the

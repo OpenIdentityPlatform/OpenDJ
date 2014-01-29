@@ -44,7 +44,6 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.config.ConfigConstants.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.ConfigMessages.*;
 /**
  * This class defines a multi-choice configuration attribute, which can hold
@@ -696,7 +695,7 @@ public final class MultiChoiceConfigAttribute
         LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
         if (allowFailures)
         {
-          ErrorLogger.logError(message);
+          logger.error(message);
           continue;
         }
         else
@@ -711,7 +710,7 @@ public final class MultiChoiceConfigAttribute
                 valueString, getName());
         if (allowFailures)
         {
-          ErrorLogger.logError(message);
+          logger.error(message);
           continue;
         }
         else

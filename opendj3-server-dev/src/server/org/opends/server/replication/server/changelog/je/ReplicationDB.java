@@ -27,12 +27,12 @@
 package org.opends.server.replication.server.changelog.je;
 
 import java.io.Closeable;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -48,7 +48,6 @@ import static com.sleepycat.je.LockMode.*;
 import static com.sleepycat.je.OperationStatus.*;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -59,6 +58,9 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class ReplicationDB
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
 
   private Database db;
   private ReplicationDbEnv dbenv;
@@ -267,7 +269,7 @@ public class ReplicationDB
     }
     catch (DatabaseException e)
     {
-      logError(NOTE_EXCEPTION_CLOSING_DATABASE.get(toString(),
+      logger.info(NOTE_EXCEPTION_CLOSING_DATABASE.get(toString(),
           stackTraceToSingleLineString(e)));
     }
     finally
@@ -805,11 +807,9 @@ public class ReplicationDB
            * changes.
            * TODO : This should be handled by the repair functionality.
            */
-          LocalizableMessage message = ERR_REPLICATIONDB_CANNOT_PROCESS_CHANGE_RECORD
-              .get(replicationServer.getServerId(),
+          logger.error(ERR_REPLICATIONDB_CANNOT_PROCESS_CHANGE_RECORD, replicationServer.getServerId(),
                   (csn == null ? "" : csn.toString()),
                   e.getMessage());
-          logError(message);
         }
       }
       return currentChange;
@@ -870,7 +870,7 @@ public class ReplicationDB
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(ERR_ERROR_CLEARING_DB.get(toString(),
           e.getMessage() + " " + stackTraceToSingleLineString(e)));
-      logError(mb.toMessage());
+      logger.error(mb.toMessage());
     }
     finally
     {

@@ -46,7 +46,6 @@ import org.opends.server.util.ModifyDNChangeRecordEntry;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -192,8 +191,7 @@ public final class InternalClientConnection
     {
       logger.traceException(de);
 
-      logError(ERR_INTERNAL_CANNOT_DECODE_DN.get(
-          fullDNString, getExceptionMessage(de)));
+      logger.error(ERR_INTERNAL_CANNOT_DECODE_DN.get(fullDNString, getExceptionMessage(de)));
     }
 
     connectionID  = nextConnectionID.getAndDecrement();

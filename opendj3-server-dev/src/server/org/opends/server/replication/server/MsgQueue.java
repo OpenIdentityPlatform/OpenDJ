@@ -27,6 +27,7 @@
 package org.opends.server.replication.server;
 
 import java.util.NavigableMap;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -34,7 +35,6 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 
 /**
  * This class is used to build ordered lists of UpdateMsg.
@@ -42,6 +42,9 @@ import static org.opends.server.loggers.ErrorLogger.*;
  */
 public class MsgQueue
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   private NavigableMap<CSN, UpdateMsg> map = new TreeMap<CSN, UpdateMsg>();
   private final Object lock = new Object();
 
@@ -125,7 +128,7 @@ public class MsgQueue
             LocalizableMessage errMsg = ERR_RSQUEUE_DIFFERENT_MSGS_WITH_SAME_CN.get(
                 msgSameCSN.getCSN().toString(),
                 msgSameCSN.toString(), update.toString());
-            logError(errMsg);
+            logger.error(errMsg);
           }
         }
         catch(Exception e)
@@ -155,7 +158,7 @@ public class MsgQueue
       {
         // should never happen
         LocalizableMessage msg = ERR_BYTE_COUNT.get(Integer.toString(bytesCount));
-        logError(msg);
+        logger.error(msg);
         bytesCount = 0;
       }
       return update;

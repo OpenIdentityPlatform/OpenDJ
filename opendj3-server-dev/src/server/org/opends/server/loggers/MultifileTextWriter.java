@@ -196,17 +196,13 @@ public class MultifileTextWriter
       {
         if(!FilePermission.setPermissions(file, filePermissions))
         {
-          LocalizableMessage message = WARN_LOGGER_UNABLE_SET_PERMISSIONS.get(
-              filePermissions.toString(), file.toString());
-          ErrorLogger.logError(message);
+          logger.warn(WARN_LOGGER_UNABLE_SET_PERMISSIONS, filePermissions.toString(), file.toString());
         }
       }
       catch(Exception e)
       {
         // Log an warning that the permissions were not set.
-        LocalizableMessage message = WARN_LOGGER_SET_PERMISSION_FAILED.get(
-            file.toString(), stackTraceToSingleLineString(e));
-        ErrorLogger.logError(message);
+        logger.warn(WARN_LOGGER_SET_PERMISSION_FAILED, file.toString(), stackTraceToSingleLineString(e));
       }
     }
   }

@@ -639,9 +639,7 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
-            filterString, de.getMessageObject());
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER, filterString, de.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -656,9 +654,7 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
-            filterString, de.getMessageObject());
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER, filterString, de.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -681,16 +677,12 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
-            s, de.getMessageObject());
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE, s, de.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
-            s, getExceptionMessage(e));
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE, s, getExceptionMessage(e));
         return TaskState.STOPPED_BY_ERROR;
       }
 
@@ -706,14 +698,12 @@ public class ImportTask extends Task
 
       if (backend == null)
       {
-        LocalizableMessage message = ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID.get();
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID);
         return TaskState.STOPPED_BY_ERROR;
       }
       else if (! backend.supportsLDIFImport())
       {
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_IMPORT.get(backendID);
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_CANNOT_IMPORT, backendID);
         return TaskState.STOPPED_BY_ERROR;
       }
       // Make sure that if the "backendID" argument was provided, no include
@@ -730,9 +720,7 @@ public class ImportTask extends Task
           builder.append(" / ");
           builder.append(backend.getBaseDNs()[i].toNormalizedString());
         }
-        LocalizableMessage message = ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND.get(
-            builder.toString(), ATTR_IMPORT_CLEAR_BACKEND);
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND, builder.toString(), ATTR_IMPORT_CLEAR_BACKEND);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -751,9 +739,8 @@ public class ImportTask extends Task
           else if(backend != locatedBackend)
           {
             // The include branches span across multiple backends.
-            LocalizableMessage message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
-                includeBranch.toNormalizedString(), backend.getBackendID());
-            logError(message);
+            logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch
+                .toNormalizedString(), backend.getBackendID());
             return TaskState.STOPPED_BY_ERROR;
           }
         }
@@ -801,16 +788,12 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
-            s, de.getMessageObject());
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE, s, de.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
-            s, getExceptionMessage(e));
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE, s, getExceptionMessage(e));
         return TaskState.STOPPED_BY_ERROR;
       }
 
@@ -832,9 +815,7 @@ public class ImportTask extends Task
         if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
-          LocalizableMessage message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
-              includeBranch.toNormalizedString(), backend.getBackendID());
-          logError(message);
+          logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch.toNormalizedString(), backend.getBackendID());
           return TaskState.STOPPED_BY_ERROR;
         }
       }
@@ -864,9 +845,7 @@ public class ImportTask extends Task
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_PARSE_TEMPLATE_FILE.get(
-            templateFile, e.getMessage());
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_CANNOT_PARSE_TEMPLATE_FILE, templateFile, e.getMessage());
         return TaskState.STOPPED_BY_ERROR;
       }
 
@@ -918,9 +897,7 @@ public class ImportTask extends Task
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_OPEN_REJECTS_FILE.get(
-            rejectFile, getExceptionMessage(e));
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_CANNOT_OPEN_REJECTS_FILE, rejectFile, getExceptionMessage(e));
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -942,9 +919,7 @@ public class ImportTask extends Task
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_OPEN_SKIP_FILE.get(
-            skipFile, getExceptionMessage(e));
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_CANNOT_OPEN_SKIP_FILE, skipFile, getExceptionMessage(e));
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -968,7 +943,7 @@ public class ImportTask extends Task
     {
       logger.traceException(e);
 
-      logError(e.getMessageObject());
+      logger.error(e.getMessageObject());
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -982,9 +957,7 @@ public class ImportTask extends Task
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
         {
-          LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND.get(
-              backend.getBackendID(), String.valueOf(failureReason));
-          logError(message);
+          logger.error(ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
           return TaskState.STOPPED_BY_ERROR;
         }
       }
@@ -992,9 +965,7 @@ public class ImportTask extends Task
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND.get(
-            backend.getBackendID(), getExceptionMessage(e));
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
         return TaskState.STOPPED_BY_ERROR;
       }
 
@@ -1021,7 +992,7 @@ public class ImportTask extends Task
           message = ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(
               de.getMessageObject());
         }
-        logError(message);
+        logger.error(message);
         return TaskState.STOPPED_BY_ERROR;
       }
       catch (Exception e)
@@ -1029,9 +1000,7 @@ public class ImportTask extends Task
         logger.traceException(e);
 
         DirectoryServer.notifyImportEnded(backend, importConfig, false);
-        LocalizableMessage message =
-            ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(getExceptionMessage(e));
-        logError(message);
+        logger.error(ERR_LDIFIMPORT_ERROR_DURING_IMPORT, getExceptionMessage(e));
         return TaskState.STOPPED_BY_ERROR;
       }
       finally
@@ -1043,9 +1012,7 @@ public class ImportTask extends Task
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            LocalizableMessage message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
-                backend.getBackendID(), String.valueOf(failureReason));
-            logError(message);
+            logger.warn(WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
             return TaskState.COMPLETED_WITH_ERRORS;
           }
         }
@@ -1053,9 +1020,7 @@ public class ImportTask extends Task
         {
           logger.traceException(e);
 
-          LocalizableMessage message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
-              backend.getBackendID(), getExceptionMessage(e));
-          logError(message);
+          logger.warn(WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
           return TaskState.COMPLETED_WITH_ERRORS;
         }
 
@@ -1076,7 +1041,7 @@ public class ImportTask extends Task
       {
         logger.traceException(e);
 
-        logError(e.getMessageObject());
+        logger.error(e.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;
       }
       DirectoryServer.notifyImportEnded(backend, importConfig, true);

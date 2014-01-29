@@ -49,7 +49,6 @@ import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.util.Pair;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -323,7 +322,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       if (logger.isTraceEnabled())
         logger.traceException(e);
 
-      logError(ERR_COULD_NOT_READ_DB.get(this.dbDirectory.getAbsolutePath(),
+      logger.error(ERR_COULD_NOT_READ_DB.get(this.dbDirectory.getAbsolutePath(),
           e.getLocalizedMessage()));
     }
   }
@@ -704,7 +703,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
         {
           if (logger.isTraceEnabled())
             logger.traceException(e);
-          logError(ERR_CHANGENUMBER_DATABASE.get(e.getLocalizedMessage()));
+          logger.error(ERR_CHANGENUMBER_DATABASE.get(e.getLocalizedMessage()));
         }
       }
       return cnIndexDB;

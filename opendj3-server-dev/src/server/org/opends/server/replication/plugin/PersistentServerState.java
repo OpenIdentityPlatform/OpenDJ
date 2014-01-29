@@ -27,6 +27,7 @@
 package org.opends.server.replication.plugin;
 
 import java.util.ArrayList;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,7 +44,6 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 
 /**
  * This class implements a ServerState that is stored in the backend
@@ -52,6 +52,9 @@ import static org.opends.server.loggers.ErrorLogger.*;
  */
 public class PersistentServerState
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
    private final DN baseDn;
    private final InternalClientConnection conn =
        InternalClientConnection.getRootConnection();
@@ -189,10 +192,8 @@ public class PersistentServerState
       if (((search.getResultCode() != ResultCode.SUCCESS)) &&
           ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
       {
-        LocalizableMessage message = ERR_ERROR_SEARCHING_RUV.
-            get(search.getResultCode().getResultCodeName(), search.toString(),
+        logger.error(ERR_ERROR_SEARCHING_RUV, search.getResultCode().getResultCodeName(), search.toString(),
                 search.getErrorMessage(), baseDn.toString());
-        logError(message);
         return null;
       }
 
@@ -335,12 +336,10 @@ public class PersistentServerState
     op.run();
     if (op.getResultCode() != ResultCode.SUCCESS)
     {
-      LocalizableMessage message = DEBUG_ERROR_UPDATING_RUV.get(
-              op.getResultCode().getResultCodeName().toString(),
+      logger.trace(DEBUG_ERROR_UPDATING_RUV, op.getResultCode().getResultCodeName().toString(),
               op.toString(),
               op.getErrorMessage().toString(),
               baseDn.toString());
-      logError(message);
     }
     return op.getResultCode();
   }
@@ -406,9 +405,7 @@ public class PersistentServerState
       {
         // An error happened trying to search for the updates
         // Log an error
-        message = ERR_CANNOT_RECOVER_CHANGES.get(
-            baseDn.toNormalizedString());
-        logError(message);
+        logger.error(ERR_CANNOT_RECOVER_CHANGES, baseDn.toNormalizedString());
       }
       else
       {
@@ -438,9 +435,7 @@ public class PersistentServerState
           // Update the serverState with the new maxCsn
           // present in the database
           this.update(dbMaxCsn);
-          message = NOTE_SERVER_STATE_RECOVERY.get(
-              baseDn.toNormalizedString(), dbMaxCsn.toString());
-          logError(message);
+          logger.info(NOTE_SERVER_STATE_RECOVERY, baseDn.toNormalizedString(), dbMaxCsn.toString());
         }
       }
     }
