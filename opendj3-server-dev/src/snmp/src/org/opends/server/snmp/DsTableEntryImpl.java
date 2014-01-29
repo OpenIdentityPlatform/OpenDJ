@@ -22,18 +22,20 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.snmp;
 
 import com.sun.management.snmp.agent.SnmpMib;
+
 import java.util.Iterator;
 import java.util.Set;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 
 /**
  * The class is used for implementing the "DsTableEntry" group implementation.
@@ -48,10 +50,9 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
      * utility included with the Java SDK.
      */
     private static final long serialVersionUID = -3346380035687141480L;
-    /**
-     * The debug log tracer for this class.
-     */
-    private static final DebugTracer TRACER = DebugLogger.getTracer();
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     /**
      * Directory Server MBeanServer.
      */
@@ -98,9 +99,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
                     "buildID");
             return SNMPMonitor.string2ByteArray(value1 + " - " + value2);
         } catch (Exception ex) {
-            if (DebugLogger.debugEnabled()) {
-                TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-            }
+            logger.traceException(ex);
             return null;
         }
     }
@@ -117,9 +116,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
                     "entryCacheHits"));
             return SNMPMonitor.counter32Value(value);
         } catch (Exception ex) {
-            if (DebugLogger.debugEnabled()) {
-                TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-            }
+            logger.traceException(ex);
         }
         return 0L;
     }
@@ -136,9 +133,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
                     "currentEntryCacheCount"));
             return SNMPMonitor.gauge32Value(value);
         } catch (Exception ex) {
-            if (DebugLogger.debugEnabled()) {
-                TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-            }
+            logger.traceException(ex);
         }
         return 0L;
     }
@@ -163,9 +158,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
             }
             return SNMPMonitor.gauge32Value(result);
         } catch (Exception ex) {
-            if (DebugLogger.debugEnabled()) {
-                TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-            }
+            logger.traceException(ex);
         }
         return 0L;
     }
@@ -191,9 +184,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
                         "type=DsTableEntry,name=" +
         SNMPConnectionHandlerDefinitions.MONITOR_SYSTEM_INFORMATION_OBJECTNAME);
             } catch (Exception ex) {
-                if (DebugLogger.debugEnabled()) {
-                    TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-                }
+              logger.traceException(ex);
             }
         }
         return this.entryName;

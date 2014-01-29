@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.snmp;
 
@@ -29,8 +30,6 @@ import com.sun.management.snmp.UserAcl;
 import java.util.SortedSet;
 import org.opends.server.admin.std.meta.SNMPConnectionHandlerCfgDefn.*;
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
 
 /**
  * The SNMP User ACL.
@@ -38,10 +37,6 @@ import org.opends.server.loggers.debug.DebugTracer;
  */
 public class SNMPUserAcl implements UserAcl {
 
-    /**
-     * The debug log tracer for this class.
-     */
-    private static final DebugTracer TRACER = DebugLogger.getTracer();
     /**
      * If * then all the users are allowed to access in read.
      */

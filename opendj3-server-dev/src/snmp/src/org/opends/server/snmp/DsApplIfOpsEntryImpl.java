@@ -22,17 +22,17 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  *
  */
 package org.opends.server.snmp;
 
 import com.sun.management.snmp.agent.SnmpMib;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * The class is used for representing "DsApplIfOpsEntryImpl" implementation.
@@ -46,10 +46,9 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    * utility included with the Java SDK.
    */
   private static final long serialVersionUID = 3876259684025799091L;
-  /**
-   * The debug log tracer for this class.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * ObjectName of the DsApplIfOpsEntry.
    */
@@ -346,9 +345,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
                 SNMPConnectionHandlerDefinitions.SNMP_DOMAIN +
                 "type=DsApplIfOpsEntry,name=" + name);
       } catch (Exception ex) {
-        if (DebugLogger.debugEnabled()) {
-           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        logger.traceException(ex);
         return null;
       }
     }

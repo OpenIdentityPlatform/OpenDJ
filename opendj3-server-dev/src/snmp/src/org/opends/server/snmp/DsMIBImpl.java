@@ -22,25 +22,26 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock Inc.
+ *      Portions Copyright 2012-2014 ForgeRock Inc.
  */
 package org.opends.server.snmp;
 
 
 import javax.management.MBeanServer;
+
 import com.sun.management.snmp.agent.SnmpMib;
+
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Set;
+
 import javax.management.MBeanServerNotification;
 import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * The class represents the "DsMIB" group implementation.
@@ -56,10 +57,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
    */
   private static final long serialVersionUID = 6787374593664749374L;
 
-  /**
-   * The debug log tracer for this class.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Directory Server MIB access.
@@ -132,9 +130,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
     // Initialize the MIB
     initDsTables();
 
-    if (DebugLogger.debugEnabled()) {
-      TRACER.debugVerbose("DsMIB Group Created");
-    }
+    logger.trace("DsMIB Group Created");
   }
 
   /**
@@ -211,9 +207,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
               "JMImplementation:type=MBeanServerDelegate");
       this.server.addNotificationListener(name, this, null, null);
     } catch (Exception ex) {
-      if (DebugLogger.debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+        logger.traceException(ex);
     }
   }
 
@@ -260,15 +254,13 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
 
       // Add the entry in the table
       this.DsTable.addEntry(entry, entry.getObjectName());
-      this.dsTableEntries.put(entry.getObjectName(), (DsEntry)entry);
+      this.dsTableEntries.put(entry.getObjectName(), entry);
       if (this.registeredSnmpMBean) {
         // Register the SNMP OID MBean
         this.server.registerMBean(entry, entry.getObjectName());
       }
     } catch (Exception ex) {
-        if (DebugLogger.debugEnabled()) {
-           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        logger.traceException(ex);
         return false;
     }
     return true;
@@ -309,10 +301,8 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
         this.server.registerMBean(entry, entry.getObjectName());
       }
     } catch (Exception ex) {
-      if (DebugLogger.debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
-      return false;
+        logger.traceException(ex);
+        return false;
     }
     return true;
   }
@@ -331,7 +321,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
       DsApplIfOpsEntryImpl entry = (DsApplIfOpsEntryImpl)
               this.dsApplIfOpsTableEntries.get(connectionHandlerName);
 
-      this.DsApplIfOpsTable.removeEntry((DsApplIfOpsEntryMBean) entry);
+      this.DsApplIfOpsTable.removeEntry(entry);
       this.dsApplIfOpsTableEntries.remove(connectionHandlerName);
       this.server.unregisterMBean(entry.getObjectName());
       return true;
