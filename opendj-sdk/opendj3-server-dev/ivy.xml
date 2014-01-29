@@ -50,21 +50,11 @@
     <!-- subsequent versions are not compatible with java 6, so force to use this version only -->
     <dependency org="javax.servlet"         name="javax.servlet-api"        rev="[3.1-b02]" />
     <dependency org="com.sleepycat"         name="je"                       rev="5.0.97" />
-    <dependency org="org.forgerock.opendj"  name="opendj-rest2ldap-servlet" rev="&opendj.sdk.version;" conf="default->master,compile">
-      <exclude  module="slf4j-jdk14"/>
-    </dependency>
-    <dependency org="org.forgerock.opendj"  name="opendj-slf4j-adapter" rev="&opendj.sdk.version;">
-      <exclude  module="opendj3-server-dev"/>
-    </dependency>
+    <dependency org="org.forgerock.opendj"  name="opendj-rest2ldap-servlet" rev="&opendj.sdk.version;" conf="default->master,compile" />
+    <dependency org="org.forgerock.opendj"  name="opendj-slf4j-adapter" rev="&opendj.sdk.version;" />
     <dependency org="org.forgerock.commons"  name="i18n-slf4j"  rev="&i18n.version;" />
-    <dependency org="org.forgerock.opendj"  name="opendj-server2x-adapter"  rev="&opendj.sdk.version;">
-      <!-- This is the OpenDJ server module :) -->
-      <exclude  module="opendj-server"/>
-      <exclude  module="slf4j-jdk14"/>
-    </dependency>
-    <dependency org="org.glassfish.grizzly" name="grizzly-http-servlet"     rev="&grizzly.version;">
-      <exclude module="javax.servlet-api" />
-    </dependency>
+    <dependency org="org.forgerock.opendj"  name="opendj-server2x-adapter"  rev="&opendj.sdk.version;" />
+    <dependency org="org.glassfish.grizzly" name="grizzly-http-servlet"     rev="&grizzly.version;" />
 
     <!-- Test libs -->
     <!--dependency org="org.testng"            name="testng"                   rev="6.8.1" /-->
@@ -92,6 +82,10 @@
     -->
 
     <exclude org="javax.activation"         artifact="activation" />
+    <exclude  module="slf4j-jdk14"/>
+    <!-- This is already the OpenDJ server module :) -->
+    <exclude  module="opendj-server"/>
+    <exclude  module="opendj3-server-dev"/>
   </dependencies>
 </ivy-module>
 
