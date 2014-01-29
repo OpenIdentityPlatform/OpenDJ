@@ -106,12 +106,12 @@ public final class CliConstants {
     public static final String OPTION_LONG_BATCH_FILE_PATH = "batchFilePath";
 
     /**
-     * The value for the short option hostname.
+     * The value for the short option host name.
      */
     public static final char OPTION_SHORT_HOST = 'h';
 
     /**
-     * The value for the long option hostname.
+     * The value for the long option host name.
      */
     public static final String OPTION_LONG_HOST = "hostname";
 
