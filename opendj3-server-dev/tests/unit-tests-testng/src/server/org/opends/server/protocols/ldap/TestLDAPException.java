@@ -58,7 +58,7 @@ public class TestLDAPException extends LdapTestCase
   {
     LocalizableMessageDescriptor.Arg1 msgID = ERR_ECN_INVALID_ELEMENT_TYPE;
     LDAPException ex = new LDAPException(LDAPResultCode.OTHER, msgID.get(""));
-    LocalizableMessageDescriptor.Arg1<CharSequence> msgID1 =
+    LocalizableMessageDescriptor.Arg1<Object> msgID1 =
         ERR_ECN_CANNOT_DECODE_VALUE;
     new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID1.get(""), ex);
     assertTrue(ex.getResultCode() == LDAPResultCode.OTHER);

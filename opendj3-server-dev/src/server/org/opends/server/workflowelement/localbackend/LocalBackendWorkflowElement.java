@@ -828,8 +828,8 @@ public class LocalBackendWorkflowElement extends
    *           If the update operation has been rejected.
    */
   static void checkIfBackendIsWritable(Backend backend, Operation op,
-      DN entryDN, LocalizableMessageDescriptor.Arg1<CharSequence> serverMsg,
-      LocalizableMessageDescriptor.Arg1<CharSequence> backendMsg)
+      DN entryDN, LocalizableMessageDescriptor.Arg1<Object> serverMsg,
+      LocalizableMessageDescriptor.Arg1<Object> backendMsg)
       throws DirectoryException
   {
     if (!backend.isPrivateBackend())

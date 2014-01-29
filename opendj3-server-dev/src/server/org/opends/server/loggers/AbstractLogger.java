@@ -163,7 +163,7 @@ public abstract class AbstractLogger
 
   private final Class<P> logPublisherClass;
 
-  private final Arg3<CharSequence, CharSequence, CharSequence>
+  private final Arg3<Object, Object, Object>
       invalidLoggerClassErrorMessage;
 
   ServerContext serverContext;
@@ -178,7 +178,7 @@ public abstract class AbstractLogger
    */
   public AbstractLogger(
       final Class<P> logPublisherClass,
-      final Arg3<CharSequence, CharSequence, CharSequence>
+      final Arg3<Object, Object, Object>
           invalidLoggerClassErrorMessage)
   {
     this.logPublisherClass = logPublisherClass;
