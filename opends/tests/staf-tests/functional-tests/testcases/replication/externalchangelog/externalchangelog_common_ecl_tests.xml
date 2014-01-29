@@ -345,11 +345,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -575,11 +579,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -806,11 +814,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -1035,11 +1047,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -1262,11 +1278,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -1492,11 +1512,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -1726,11 +1750,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -1955,11 +1983,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)                    
+                      nextChgNumber = None
+                      nextIndex = None                   
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -2189,11 +2221,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -2434,14 +2470,19 @@
                   <script>
                     eclEntry        = STAXResult
                     eclIndexValue   = None
-                    
-                    if ecl_mode == 'opends':
-                      eclIndexValue = eclEntry['changelogcookie'][0]
-                      nextIndex     = eclEntry['changelogcookie'][0]
+
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        eclIndexValue = eclEntry['changelogcookie'][0]
+                        nextIndex     = eclEntry['changelogcookie'][0]
+                      else:
+                        eclIndexValue = eclEntry['changenumber'][0]
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      eclIndexValue = eclEntry['changenumber'][0]
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      eclIndexValue = None
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
@@ -2720,11 +2761,15 @@
                           <sequence>
                           
                             <script>
-                              if ecl_mode == 'opends':
-                                nextIndex     = eclEntry['changelogcookie'][0]
+                              if len(eclEntry) > 0:
+                                if ecl_mode == 'opends':
+                                  nextIndex = eclEntry['changelogcookie'][0]
+                                else:
+                                  nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                  nextIndex     = str(nextChgNumber)
                               else:
-                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                                nextIndex     = str(nextChgNumber)
+                                nextChgNumber = None
+                                nextIndex = None
                                         
                               modEntry               = modEntries[i]                        
                               myTargetDN             = modEntry['dn'][0]
@@ -3061,11 +3106,15 @@
                           <sequence>
                           
                             <script>
-                              if ecl_mode == 'opends':
-                                nextIndex     = eclEntry['changelogcookie'][0]
+                              if len(eclEntry) > 0:
+                                if ecl_mode == 'opends':
+                                  nextIndex = eclEntry['changelogcookie'][0]
+                                else:
+                                  nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                  nextIndex     = str(nextChgNumber)
                               else:
-                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                                nextIndex     = str(nextChgNumber)
+                                nextChgNumber = None
+                                nextIndex = None
                                         
                               modEntry               = modEntries[i]                        
                               myTargetDN             = modEntry['dn'][0]
@@ -3328,11 +3377,15 @@
                           <sequence>
                           
                             <script>
-                              if ecl_mode == 'opends':
-                                nextIndex     = eclEntry['changelogcookie'][0]
+                              if len(eclEntry) > 0:
+                                if ecl_mode == 'opends':
+                                  nextIndex = eclEntry['changelogcookie'][0]
+                                else:
+                                  nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                  nextIndex     = str(nextChgNumber)
                               else:
-                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                                nextIndex     = str(nextChgNumber)
+                                nextChgNumber = None
+                                nextIndex = None
                                 
                               addedEntry             = addedEntries[i]
                               myTargetDN             = addedEntry['dn'][0]
@@ -3606,11 +3659,15 @@
                           <sequence>
                           
                             <script>
-                              if ecl_mode == 'opends':
-                                nextIndex     = eclEntry['changelogcookie'][0]
+                              if len(eclEntry) > 0:
+                                if ecl_mode == 'opends':
+                                  nextIndex = eclEntry['changelogcookie'][0]
+                                else:
+                                  nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                  nextIndex     = str(nextChgNumber)
                               else:
-                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                                nextIndex     = str(nextChgNumber)
+                                nextChgNumber = None
+                                nextIndex = None
                                 
                               addedEntry             = addedEntries[i]
                               myTargetDN             = addedEntry['dn'][0]
@@ -3890,11 +3947,15 @@
                           <sequence>
                           
                             <script>
-                              if ecl_mode == 'opends':
-                                nextIndex     = eclEntry['changelogcookie'][0]
+                              if len(eclEntry) > 0:
+                                if ecl_mode == 'opends':
+                                  nextIndex = eclEntry['changelogcookie'][0]
+                                else:
+                                  nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                  nextIndex     = str(nextChgNumber)
                               else:
-                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                                nextIndex     = str(nextChgNumber)
+                                nextChgNumber = None
+                                nextIndex = None
                                         
                               modEntry               = modEntries[i]                        
                               myTargetDN             = modEntry['dn'][0]
@@ -4152,11 +4213,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex     = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)                    
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -4412,11 +4477,15 @@
                                indexvar="i">
                         <sequence>
                           <script>
-                            if ecl_mode == 'opends':
-                              nextIndex     = eclEntry['changelogcookie'][0]
+                            if len(eclEntry) > 0:
+                              if ecl_mode == 'opends':
+                                nextIndex = eclEntry['changelogcookie'][0]
+                              else:
+                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                nextIndex     = str(nextChgNumber)
                             else:
-                              nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                              nextIndex     = str(nextChgNumber)
+                              nextChgNumber = None
+                              nextIndex = None
                           </script>
                           <message>
                             'Index to use for the next ECL search:  %s' % nextIndex
@@ -4611,11 +4680,15 @@
                     eclEntry = STAXResult
                     firstEclEntryList.append(eclEntry)
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -5058,11 +5131,15 @@
                     <sequence>
                     
                       <script>
-                        if ecl_mode == 'opends':
-                          nextIndex     = eclEntry['changelogcookie'][0]
+                        if len(eclEntry) > 0:
+                          if ecl_mode == 'opends':
+                            nextIndex = eclEntry['changelogcookie'][0]
+                          else:
+                            nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                            nextIndex     = str(nextChgNumber)
                         else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
+                          nextChgNumber = None
+                          nextIndex = None
                           
                         addedEntry             = addedEntries[i]
                         myTargetDN             = addedEntry['dn'][0]
@@ -5382,11 +5459,15 @@
                     <sequence>
                     
                       <script>
-                        if ecl_mode == 'opends':
-                          nextIndex     = eclEntry['changelogcookie'][0]
+                        if len(eclEntry) > 0:
+                          if ecl_mode == 'opends':
+                            nextIndex = eclEntry['changelogcookie'][0]
+                          else:
+                            nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                            nextIndex     = str(nextChgNumber)
                         else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
+                          nextChgNumber = None
+                          nextIndex = None
                           
                         addedEntry             = addedEntries[i]
                         myTargetDN             = addedEntry['dn'][0]
@@ -5585,11 +5666,15 @@
                     <sequence>
                     
                       <script>
-                        if ecl_mode == 'opends':
-                          nextIndex     = eclEntry['changelogcookie'][0]
+                        if len(eclEntry) > 0:
+                          if ecl_mode == 'opends':
+                            nextIndex = eclEntry['changelogcookie'][0]
+                          else:
+                            nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                            nextIndex     = str(nextChgNumber)
                         else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
+                          nextChgNumber = None
+                          nextIndex = None
                           
                         addedEntry             = addedEntries[i]
                         myTargetDN             = addedEntry['dn'][0]
@@ -6256,11 +6341,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -6658,11 +6747,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -6979,11 +7072,15 @@
                           <sequence>
                           
                             <script>
-                              if ecl_mode == 'opends':
-                                nextIndex     = eclEntry['changelogcookie'][0]
+                              if len(eclEntry) > 0:
+                                if ecl_mode == 'opends':
+                                  nextIndex = eclEntry['changelogcookie'][0]
+                                else:
+                                  nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                  nextIndex     = str(nextChgNumber)
                               else:
-                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                                nextIndex     = str(nextChgNumber)
+                                nextChgNumber = None
+                                nextIndex = None
                                 
                               addedEntry             = addedEntries[i]
                               myTargetDN             = addedEntry['dn'][0]
@@ -7348,11 +7445,15 @@
                       <script>
                         eclEntry = STAXResult
                         
-                        if ecl_mode == 'opends':
-                          nextIndex = eclEntry['changelogcookie'][0]
+                        if len(eclEntry) > 0:
+                          if ecl_mode == 'opends':
+                            nextIndex = eclEntry['changelogcookie'][0]
+                          else:
+                            nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                            nextIndex     = str(nextChgNumber)
                         else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
+                          nextChgNumber = None
+                          nextIndex = None
                       </script>
                       <message>
                         'Parsed changelog entry:  \n%s' % eclEntry
@@ -7600,11 +7701,15 @@
                       <script>
                         eclEntry = STAXResult
                         
-                        if ecl_mode == 'opends':
-                          nextIndex = eclEntry['changelogcookie'][0]
+                        if len(eclEntry) > 0:
+                          if ecl_mode == 'opends':
+                            nextIndex = eclEntry['changelogcookie'][0]
+                          else:
+                            nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                            nextIndex     = str(nextChgNumber)
                         else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
+                          nextChgNumber = None
+                          nextIndex = None
                       </script>
                       <message>
                         'Parsed changelog entry:  \n%s' % eclEntry
@@ -7894,11 +7999,15 @@
                       <script>
                         eclEntry = STAXResult
                         
-                        if ecl_mode == 'opends':
-                          nextIndex = eclEntry['changelogcookie'][0]
+                        if len(eclEntry) > 0:
+                          if ecl_mode == 'opends':
+                            nextIndex = eclEntry['changelogcookie'][0]
+                          else:
+                            nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                            nextIndex     = str(nextChgNumber)
                         else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
+                          nextChgNumber = None
+                          nextIndex = None
                       </script>
                       <message>
                         'Parsed changelog entry:  \n%s' % eclEntry
@@ -8184,11 +8293,15 @@
                       <script>
                         eclEntry = STAXResult
                         
-                        if ecl_mode == 'opends':
-                          nextIndex = eclEntry['changelogcookie'][0]
+                        if len(eclEntry) > 0:
+                          if ecl_mode == 'opends':
+                            nextIndex = eclEntry['changelogcookie'][0]
+                          else:
+                            nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                            nextIndex     = str(nextChgNumber)
                         else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
+                          nextChgNumber = None
+                          nextIndex = None
                       </script>
                       <message>
                         'Parsed changelog entry:  \n%s' % eclEntry
@@ -8450,11 +8563,15 @@
                       <script>
                         eclEntry = STAXResult
                         
-                        if ecl_mode == 'opends':
-                          nextIndex = eclEntry['changelogcookie'][0]
+                        if len(eclEntry) > 0:
+                          if ecl_mode == 'opends':
+                            nextIndex = eclEntry['changelogcookie'][0]
+                          else:
+                            nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                            nextIndex     = str(nextChgNumber)
                         else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
+                          nextChgNumber = None
+                          nextIndex = None
                       </script>
                       <message>
                         'Parsed changelog entry:  \n%s' % eclEntry
@@ -8767,11 +8884,15 @@
                               <sequence>
                               
                                 <script>
-                                  if ecl_mode == 'opends':
-                                    nextIndex     = eclEntry['changelogcookie'][0]
+                                  if len(eclEntry) > 0:
+                                    if ecl_mode == 'opends':
+                                      nextIndex = eclEntry['changelogcookie'][0]
+                                    else:
+                                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                      nextIndex     = str(nextChgNumber)
                                   else:
-                                    nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                                    nextIndex     = str(nextChgNumber)
+                                    nextChgNumber = None
+                                    nextIndex = None
                                     
                                   addedEntry             = addedEntries[i]
                                   myTargetDN             = addedEntry['dn'][0]
@@ -9142,11 +9263,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -9443,11 +9568,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -9784,11 +9913,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -10095,11 +10228,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -10404,11 +10541,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -10715,11 +10856,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -11027,11 +11172,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -11331,11 +11480,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -11666,11 +11819,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -11977,11 +12134,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry
@@ -12248,11 +12409,15 @@
                   <script>
                     eclEntry = STAXResult
                     
-                    if ecl_mode == 'opends':
-                      nextIndex     = eclEntry['changelogcookie'][0]
+                    if len(eclEntry) > 0:
+                      if ecl_mode == 'opends':
+                        nextIndex = eclEntry['changelogcookie'][0]
+                      else:
+                        nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                        nextIndex     = str(nextChgNumber)
                     else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
+                      nextChgNumber = None
+                      nextIndex = None
                   </script>
                   <message>
                     'Parsed changelog entry:  \n%s' % eclEntry

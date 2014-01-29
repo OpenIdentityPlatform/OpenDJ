@@ -111,7 +111,9 @@
                   <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/replication/replication_cleanup.xml' 
                             % (TESTS_DIR)"/>
-                   <call function="'replication_cleanup'" />
+                   <call function="'replication_cleanup'">
+                     { 'label' : 'opends' }
+                   </call>
                  </sequence>
               <catch exception="'STAFException'">
                 <sequence>
@@ -230,7 +232,9 @@
                   <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/replication/replication_cleanup.xml' 
                             % (TESTS_DIR)"/>
-                   <call function="'replication_cleanup'" />
+                   <call function="'replication_cleanup'">
+                     { 'label' : 'draft' }
+                   </call>
                  </sequence>
               <catch exception="'STAFException'">
                 <sequence>
