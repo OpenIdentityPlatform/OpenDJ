@@ -26,8 +26,7 @@
  */
 package org.opends.server.authorization.dseecompat;
 import static org.opends.messages.AccessControlMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 
@@ -35,6 +34,9 @@ import org.opends.server.core.DirectoryServer;
  * The AuthMethod class represents an authmethod bind rule keyword expression.
  */
 public class AuthMethod implements KeywordBindRule {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
 
     /**
      * Enumeration representing the authentication method.
@@ -92,7 +94,7 @@ public class AuthMethod implements KeywordBindRule {
       {
         String saslMech = expr.substring(5);
         if (DirectoryServer.getSASLMechanismHandler(saslMech) == null) {
-          logError(NOTE_ACI_SYNTAX_DUBIOUS_AUTHMETHOD_SASL_MECHANISM.
+          logger.error(NOTE_ACI_SYNTAX_DUBIOUS_AUTHMETHOD_SASL_MECHANISM.
                     get(saslMech));
         }
         return new AuthMethod(EnumAuthMethod.AUTHMETHOD_SASL, saslMech, type);

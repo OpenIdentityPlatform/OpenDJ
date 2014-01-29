@@ -287,9 +287,7 @@ public class BackendImpl
     try
     {
       // Log an informational message about the number of entries.
-      LocalizableMessage message = NOTE_JEB_BACKEND_STARTED.get(
-          cfg.getBackendId(), rootContainer.getEntryCount());
-      logError(message);
+      logger.info(NOTE_JEB_BACKEND_STARTED, cfg.getBackendId(), rootContainer.getEntryCount());
     }
     catch(DatabaseException databaseException)
     {
@@ -373,8 +371,7 @@ public class BackendImpl
     catch (DatabaseException e)
     {
       logger.traceException(e);
-      LocalizableMessage message = ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage());
-      logError(message);
+      logger.error(ERR_JEB_DATABASE_EXCEPTION, e.getMessage());
     }
 
     // Checksum this db environment and register its offline state id/checksum.
@@ -389,8 +386,7 @@ public class BackendImpl
     threadWriteCount.set(0);
 
     // Log an informational message.
-    LocalizableMessage message = NOTE_BACKEND_OFFLINE.get(cfg.getBackendId());
-    logError(message);
+    logger.info(NOTE_BACKEND_OFFLINE, cfg.getBackendId());
   }
 
   /** {@inheritDoc} */
@@ -992,7 +988,7 @@ public class BackendImpl
           long closeTime = (finishTime - startTime) / 1000;
           LocalizableMessage msg =
                        NOTE_JEB_IMPORT_LDIF_ROOTCONTAINER_CLOSE.get(closeTime);
-          logError(msg);
+          logger.error(msg);
           rootContainer = null;
         }
 
@@ -1407,7 +1403,7 @@ public class BackendImpl
   DirectoryException createDirectoryException(DatabaseException e) {
     if (e instanceof EnvironmentFailureException && !rootContainer.isValid()) {
       LocalizableMessage message = NOTE_BACKEND_ENVIRONMENT_UNUSABLE.get(getBackendID());
-      logError(message);
+      logger.info(message);
       DirectoryServer.sendAlertNotification(DirectoryServer.getInstance(),
               ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE, message);
     }
@@ -1500,7 +1496,7 @@ public class BackendImpl
     LocalizableMessage msg = NOTE_JEB_DISK_SPACE_RESTORED.get(monitor.getFreeSpace(),
         monitor.getDirectory().getPath(), cfg.getBackendId(),
         Math.max(monitor.getLowThreshold(), monitor.getFullThreshold()));
-    logError(msg);
+    logger.error(msg);
   }
 
   private void checkDiskSpace(Operation operation) throws DirectoryException

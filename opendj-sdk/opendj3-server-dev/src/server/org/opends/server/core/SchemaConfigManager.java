@@ -43,7 +43,6 @@ import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -377,7 +376,7 @@ public class SchemaConfigManager
       }
       else
       {
-        logError(message);
+        logger.error(message);
         return null;
       }
     }
@@ -409,7 +408,7 @@ public class SchemaConfigManager
       }
       else
       {
-        logError(message);
+        logger.error(message);
         StaticUtils.close(reader);
         return null;
       }
@@ -421,18 +420,14 @@ public class SchemaConfigManager
       Entry e = reader.readEntry(false);
       if (e != null)
       {
-        LocalizableMessage message = WARN_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE.get(
-            schemaFile, schemaDirPath);
-        logError(message);
+        logger.warn(WARN_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE, schemaFile, schemaDirPath);
       }
     }
     catch (Exception e)
     {
       logger.traceException(e);
 
-      LocalizableMessage message = WARN_CONFIG_SCHEMA_UNPARSEABLE_EXTRA_DATA_IN_FILE.get(
-          schemaFile, schemaDirPath, getExceptionMessage(e));
-      logError(message);
+      logger.warn(WARN_CONFIG_SCHEMA_UNPARSEABLE_EXTRA_DATA_IN_FILE, schemaFile, schemaDirPath, getExceptionMessage(e));
     }
     finally
     {
@@ -770,7 +765,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -788,7 +783,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -805,9 +800,7 @@ public class SchemaConfigManager
           {
             logger.traceException(de);
 
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_LDAP_SYNTAX.get(
-                schemaFile, de.getMessageObject());
-            logError(message);
+            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_LDAP_SYNTAX, schemaFile, de.getMessageObject());
 
             try
             {
@@ -857,7 +850,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -874,7 +867,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -890,9 +883,7 @@ public class SchemaConfigManager
           {
             logger.traceException(de);
 
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE.get(
-                schemaFile, de.getMessageObject());
-            logError(message);
+            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE, schemaFile, de.getMessageObject());
 
             try
             {
@@ -943,7 +934,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -961,7 +952,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -977,9 +968,7 @@ public class SchemaConfigManager
           {
             logger.traceException(de);
 
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_OC.get(
-                schemaFile, de.getMessageObject());
-            logError(message);
+            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_OC, schemaFile, de.getMessageObject());
 
             try
             {
@@ -1027,7 +1016,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -1045,7 +1034,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -1061,9 +1050,7 @@ public class SchemaConfigManager
           {
             logger.traceException(de);
 
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_NAME_FORM.get(
-                schemaFile, de.getMessageObject());
-            logError(message);
+            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_NAME_FORM, schemaFile, de.getMessageObject());
 
             try
             {
@@ -1113,7 +1100,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -1131,7 +1118,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -1147,9 +1134,7 @@ public class SchemaConfigManager
           {
             logger.traceException(de);
 
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_DCR.get(
-                schemaFile, de.getMessageObject());
-            logError(message);
+            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_DCR, schemaFile, de.getMessageObject());
 
             try
             {
@@ -1199,7 +1184,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -1217,7 +1202,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -1233,9 +1218,7 @@ public class SchemaConfigManager
           {
             logger.traceException(de);
 
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_DSR.get(
-                schemaFile, de.getMessageObject());
-            logError(message);
+            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_DSR, schemaFile, de.getMessageObject());
 
             try
             {
@@ -1285,7 +1268,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -1304,7 +1287,7 @@ public class SchemaConfigManager
             }
             else
             {
-              logError(message);
+              logger.error(message);
               continue;
             }
           }
@@ -1320,9 +1303,7 @@ public class SchemaConfigManager
           {
             logger.traceException(de);
 
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CONFLICTING_MRU.get(
-                schemaFile, de.getMessageObject());
-            logError(message);
+            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_MRU, schemaFile, de.getMessageObject());
 
             try
             {

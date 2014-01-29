@@ -59,7 +59,6 @@ import org.opends.server.types.DirectoryException;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.schema.StringPrepProfile.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.messages.SchemaMessages.*;
 
@@ -111,24 +110,21 @@ public class LDAPSyntaxDescriptionSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(EMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
-          OMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(OMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(SMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME));
     }
   }
 
@@ -1465,7 +1461,7 @@ public class LDAPSyntaxDescriptionSyntax
         }
         catch(DirectoryException de)
         {
-          logError(de.getMessageObject());
+          logger.error(de.getMessageObject());
         }
       }
       return orderingMatchingRule;

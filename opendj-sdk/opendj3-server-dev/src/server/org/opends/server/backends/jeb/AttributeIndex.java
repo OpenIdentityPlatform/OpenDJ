@@ -50,7 +50,6 @@ import org.opends.server.api.IndexQueryFactory;
 import org.opends.server.config.ConfigException;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import org.opends.server.core.DirectoryServer;
@@ -273,10 +272,7 @@ public class AttributeIndex
                                                     toLowerCase(ruleName));
         if(rule == null)
         {
-          LocalizableMessage message =
-                  ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE.get(
-                  String.valueOf(attrType),ruleName);
-          logError(message);
+          logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, String.valueOf(attrType),ruleName);
           continue;
         }
         Map<String,Index> indexMap = new HashMap<String,Index>();
@@ -2162,10 +2158,7 @@ public class AttributeIndex
                                             toLowerCase(ruleName));
            if(rule == null)
           {
-            LocalizableMessage message =
-                    ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE.get(
-                    String.valueOf(attrType),ruleName);
-            logError(message);
+            logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, String.valueOf(attrType),ruleName);
             continue;
           }
           validRules.add(rule);

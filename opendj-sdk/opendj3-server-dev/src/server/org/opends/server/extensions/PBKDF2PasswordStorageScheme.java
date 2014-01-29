@@ -40,7 +40,6 @@ import org.opends.server.admin.std.server.PBKDF2PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -272,10 +271,7 @@ public class PBKDF2PasswordStorageScheme
       saltLength = decodedBytes.length - SHA1_LENGTH;
       if (saltLength <= 0)
       {
-        LocalizableMessage message =
-          ERR_PWSCHEME_INVALID_BASE64_DECODED_STORED_PASSWORD.get(
-          storedPassword.toString());
-        ErrorLogger.logError(message);
+        logger.error(ERR_PWSCHEME_INVALID_BASE64_DECODED_STORED_PASSWORD, storedPassword.toString());
         return false;
       }
       saltBytes = new byte[saltLength];
@@ -287,9 +283,7 @@ public class PBKDF2PasswordStorageScheme
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
-          storedPassword.toString(), String.valueOf(e));
-      ErrorLogger.logError(message);
+      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD, storedPassword.toString(), String.valueOf(e));
       return false;
     }
 

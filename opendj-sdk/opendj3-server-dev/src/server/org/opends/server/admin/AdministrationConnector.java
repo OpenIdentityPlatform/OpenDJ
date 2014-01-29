@@ -26,7 +26,6 @@
  */
 package org.opends.server.admin;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.AdminMessages.*;
 import java.io.File;
 import java.io.FileWriter;
@@ -62,7 +61,6 @@ import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.admin.std.server.TrustManagerProviderCfg;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
@@ -674,7 +672,7 @@ public final class AdministrationConnector implements
         }
         LocalizableMessage message = ERR_ADMIN_CERTIFICATE_GENERATION_MISSING_FILES
             .get(err);
-        logError(message);
+        logger.error(message);
         throw new InitializationException(message);
       }
 
@@ -724,16 +722,13 @@ public final class AdministrationConnector implements
               new FilePermission(0600)))
           {
             // Log a warning that the permissions were not set.
-            LocalizableMessage message = WARN_ADMIN_SET_PERMISSIONS_FAILED
-                .get(pinFilePath);
-            ErrorLogger.logError(message);
+            logger.warn(WARN_ADMIN_SET_PERMISSIONS_FAILED, pinFilePath);
           }
         }
         catch (DirectoryException e)
         {
           // Log a warning that the permissions were not set.
-          LocalizableMessage message = WARN_ADMIN_SET_PERMISSIONS_FAILED.get(pinFilePath);
-          ErrorLogger.logError(message);
+          logger.warn(WARN_ADMIN_SET_PERMISSIONS_FAILED, pinFilePath);
         }
       }
 
@@ -749,7 +744,7 @@ public final class AdministrationConnector implements
     {
       logger.traceException(e);
       LocalizableMessage message = ERR_ADMIN_CERTIFICATE_GENERATION.get(e.getMessage());
-      logError(message);
+      logger.error(message);
       throw new InitializationException(message);
     }
   }

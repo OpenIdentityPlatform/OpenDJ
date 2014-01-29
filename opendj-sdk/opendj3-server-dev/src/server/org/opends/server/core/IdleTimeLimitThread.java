@@ -36,7 +36,6 @@ import org.opends.server.api.ServerShutdownListener;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DisconnectReason;
 
-import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.CoreMessages.*;
 
 import static org.opends.server.util.StaticUtils.*;
@@ -139,11 +138,9 @@ public class IdleTimeLimitThread
                   {
                     logger.traceException(e);
 
-                    LocalizableMessage message = ERR_IDLETIME_DISCONNECT_ERROR.get(
-                            c.getConnectionID(),
+                    logger.error(ERR_IDLETIME_DISCONNECT_ERROR, c.getConnectionID(),
                             stackTraceToSingleLineString(e)
                     );
-                    ErrorLogger.logError(message);
                   }
                 }
                 else
@@ -163,9 +160,7 @@ public class IdleTimeLimitThread
       {
         logger.traceException(e);
 
-        LocalizableMessage message =
-            ERR_IDLETIME_UNEXPECTED_ERROR.get(stackTraceToSingleLineString(e));
-        ErrorLogger.logError(message);
+        logger.error(ERR_IDLETIME_UNEXPECTED_ERROR, stackTraceToSingleLineString(e));
       }
     }
   }

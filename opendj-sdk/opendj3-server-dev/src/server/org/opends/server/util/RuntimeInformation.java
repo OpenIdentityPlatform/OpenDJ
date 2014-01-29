@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.util;
 
 import java.io.File;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetAddress;
@@ -41,7 +42,6 @@ import com.sleepycat.je.JEVersion;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.RuntimeMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.DynamicConstants.*;
 
  /**
@@ -49,6 +49,9 @@ import static org.opends.server.util.DynamicConstants.*;
   * environment.
   */
  public class RuntimeInformation {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
 
 
    private static boolean is64Bit=false;
@@ -262,35 +265,35 @@ import static org.opends.server.util.DynamicConstants.*;
      String installDir = toCanonicalPath(DirectoryServer.getServerRoot());
      if (installDir == null)
      {
-       logError(NOTE_UNKNOWN_INSTALL_DIRECTORY.get());
+       logger.info(NOTE_UNKNOWN_INSTALL_DIRECTORY.get());
      }
      else
      {
-       logError(NOTE_INSTALL_DIRECTORY.get(installDir));
+       logger.info(NOTE_INSTALL_DIRECTORY.get(installDir));
      }
      String instanceDir = toCanonicalPath(DirectoryServer.getInstanceRoot());
      if (instanceDir == null)
      {
-       logError(NOTE_UNKNOWN_INSTANCE_DIRECTORY.get());
+       logger.info(NOTE_UNKNOWN_INSTANCE_DIRECTORY.get());
      }
      else
      {
-       logError(NOTE_INSTANCE_DIRECTORY.get(instanceDir));
+       logger.info(NOTE_INSTANCE_DIRECTORY.get(instanceDir));
      }
-    logError(NOTE_JVM_INFO.get(System.getProperty("java.runtime.version"),
+    logger.info(NOTE_JVM_INFO.get(System.getProperty("java.runtime.version"),
                                System.getProperty("java.vendor"),
                                getArch(),Runtime.getRuntime().maxMemory()));
     long physicalMemorySize = getPhysicalMemorySize();
     if (physicalMemorySize != -1)
     {
-      logError(NOTE_JVM_HOST.get(getHostName(), getOSInfo(),
+      logger.info(NOTE_JVM_HOST.get(getHostName(), getOSInfo(),
           physicalMemorySize, Runtime.getRuntime().availableProcessors()));
     }
     else
     {
-      logError(NOTE_JVM_HOST_WITH_UNKNOWN_PHYSICAL_MEM.get(getHostName(),
+      logger.info(NOTE_JVM_HOST_WITH_UNKNOWN_PHYSICAL_MEM.get(getHostName(),
           getOSInfo(), Runtime.getRuntime().availableProcessors()));
     }
-    logError(NOTE_JVM_ARGS.get(getInputArguments()));
+    logger.info(NOTE_JVM_ARGS.get(getInputArguments()));
    }
  }

@@ -27,6 +27,7 @@
 package org.opends.server.replication;
 
 import java.net.SocketTimeoutException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,6 +65,9 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class UpdateOperationTest extends ReplicationTestCase
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * An entry with a entryUUID
    */
@@ -266,7 +270,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   public void toggleReceiveStatus() throws Exception
   {
     testSetUp("toggleReceiveStatus");
-    logError(LocalizableMessage.raw("Starting synchronization test : toggleReceiveStatus"));
+    logger.error(LocalizableMessage.raw("Starting synchronization test : toggleReceiveStatus"));
 
     /*
      * Open a session to the replicationServer using the broker API.
@@ -327,7 +331,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   public void lostHeartbeatFailover() throws Exception
   {
     testSetUp("lostHeartbeatFailover");
-    logError(LocalizableMessage.raw("Starting replication test : lostHeartbeatFailover"));
+    logger.error(LocalizableMessage.raw("Starting replication test : lostHeartbeatFailover"));
 
     /*
      * Open a session to the replicationServer using the broker API.
@@ -536,7 +540,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   public void namingConflicts() throws Exception
   {
     testSetUp("namingConflicts");
-    logError(LocalizableMessage.raw("Starting replication test : namingConflicts"));
+    logger.error(LocalizableMessage.raw("Starting replication test : namingConflicts"));
 
     String resolvedMonitorAttr = "resolved-naming-conflicts";
     String unresolvedMonitorAttr = "unresolved-naming-conflicts";
@@ -1104,7 +1108,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   public void updateOperations(boolean assured) throws Exception
   {
     testSetUp("updateOperations");
-    logError(LocalizableMessage.raw("Starting replication test : updateOperations " + assured));
+    logger.error(LocalizableMessage.raw("Starting replication test : updateOperations " + assured));
 
     // Cleanup from previous run
     cleanupTest();
@@ -1262,7 +1266,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   public void deleteNoSuchObject() throws Exception
   {
     testSetUp("deleteNoSuchObject");
-    logError(LocalizableMessage.raw("Starting replication test : deleteNoSuchObject"));
+    logger.error(LocalizableMessage.raw("Starting replication test : deleteNoSuchObject"));
 
     DeleteOperation op = connection.processDelete("cn=No Such Object," + baseDN);
     assertEquals(op.getResultCode(), ResultCode.NO_SUCH_OBJECT);
@@ -1277,7 +1281,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   public void infiniteReplayLoop() throws Exception
   {
     testSetUp("infiniteReplayLoop");
-    logError(LocalizableMessage.raw("Starting replication test : infiniteReplayLoop"));
+    logger.error(LocalizableMessage.raw("Starting replication test : infiniteReplayLoop"));
 
     int serverId = 11;
     ReplicationBroker broker =
@@ -1376,7 +1380,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   public void csnGeneratorAdjust() throws Exception
   {
     testSetUp("csnGeneratorAdjust");
-    logError(LocalizableMessage.raw("Starting synchronization test : CSNGeneratorAdjust"));
+    logger.error(LocalizableMessage.raw("Starting synchronization test : CSNGeneratorAdjust"));
 
     /*
      * Open a session to the replicationServer using the broker API.
@@ -1447,7 +1451,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
     if (!msgs.isEmpty())
     {
-      logError(LocalizableMessage.raw("Leftover messages from previous test runs " + msgs));
+      logger.error(LocalizableMessage.raw("Leftover messages from previous test runs " + msgs));
     }
   }
 }

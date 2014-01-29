@@ -29,7 +29,6 @@ package org.opends.server.core;
 
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.lang.reflect.InvocationTargetException;
@@ -160,10 +159,8 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
           {
             // Just log a message instead of failing the server initialization.
             // This will allow the administrator to fix any problems.
-            LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-                String.valueOf(subentry.getDN()),
+            logger.error(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG, String.valueOf(subentry.getDN()),
                 stackTraceToSingleLineString(e));
-            logError(message);
           }
         }
       }

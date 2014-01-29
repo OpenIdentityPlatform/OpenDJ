@@ -38,7 +38,6 @@ import java.util.Collections;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -195,7 +194,7 @@ class UniqueMemberEqualityMatchingRule
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         case WARN:
-          ErrorLogger.logError(message);
+          logger.error(message);
 
           valueBuffer.append(toLowerCase(valueString).substring(0, dnEndPos));
           break;
@@ -238,7 +237,7 @@ class UniqueMemberEqualityMatchingRule
             case WARN:
               if (! logged)
               {
-                ErrorLogger.logError(message);
+                logger.error(message);
                 logged = true;
               }
               break;

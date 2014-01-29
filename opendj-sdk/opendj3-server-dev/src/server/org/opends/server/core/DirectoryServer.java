@@ -1004,7 +1004,7 @@ public final class DirectoryServer
     initializeJMX();
 
 
-    logError(INFO_DIRECTORY_BOOTSTRAPPING.get());
+    logger.debug(INFO_DIRECTORY_BOOTSTRAPPING.get());
 
 
     // Perform all the bootstrapping that is shared with the client-side
@@ -1252,7 +1252,7 @@ public final class DirectoryServer
       }
 
 
-      logError(NOTE_DIRECTORY_SERVER_STARTING.get(getVersionString(),
+      logger.info(NOTE_DIRECTORY_SERVER_STARTING.get(getVersionString(),
                                                   BUILD_ID, REVISION_NUMBER));
 
       // Acquire an exclusive lock for the Directory Server process.
@@ -1509,7 +1509,7 @@ public final class DirectoryServer
       isRunning = true;
 
       LocalizableMessage message = NOTE_DIRECTORY_SERVER_STARTED.get();
-      logError(message);
+      logger.info(message);
       sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, message);
 
       // Force the root connection to be initialized.
@@ -1595,10 +1595,8 @@ public final class DirectoryServer
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(currentFactory.getClass().getName(),
+      logger.error(ERR_CANNOT_BOOTSTRAP_MATCHING_RULE, currentFactory.getClass().getName(),
               stackTraceToSingleLineString(e));
-      logError(message);
     }
   }
 
@@ -1638,7 +1636,7 @@ public final class DirectoryServer
     {
       logger.traceException(e);
 
-      logError(ERR_CANNOT_BOOTSTRAP_SYNTAX.get(syntax.getClass().getName(),
+      logger.error(ERR_CANNOT_BOOTSTRAP_SYNTAX.get(syntax.getClass().getName(),
           stackTraceToSingleLineString(e)));
     }
     return syntax;
@@ -2284,8 +2282,7 @@ public final class DirectoryServer
           // rollback to auto mode is failing too!!
           // well, just log an error message and suggest the admin
           // to restart the server with the last valid config...
-          LocalizableMessage message = ERR_CONFIG_WORKFLOW_CANNOT_CONFIGURE_MANUAL.get();
-          logError(message);
+          logger.error(ERR_CONFIG_WORKFLOW_CANNOT_CONFIGURE_MANUAL);
         }
       }
     }
@@ -2311,8 +2308,7 @@ public final class DirectoryServer
           // rollback to auto mode is failing too!!
           // well, just log an error message and suggest the admin
           // to restart the server with the last valid config...
-          LocalizableMessage message = ERR_CONFIG_WORKFLOW_CANNOT_CONFIGURE_AUTO.get();
-          logError(message);
+          logger.error(ERR_CONFIG_WORKFLOW_CANNOT_CONFIGURE_AUTO);
         }
       }
     }
@@ -4614,13 +4610,11 @@ public final class DirectoryServer
     }
 
 
-    LocalizableMessage message = NOTE_SENT_ALERT_NOTIFICATION.get(
-        generator.getClassName(), alertType,
+    logger.info(NOTE_SENT_ALERT_NOTIFICATION, generator.getClassName(), alertType,
             alertMessage != null ?
                     alertMessage.resourceName()+"-"+alertMessage.ordinal():
                     "-1",
             alertMessage);
-    logError(message);
   }
 
 
@@ -6196,7 +6190,7 @@ public final class DirectoryServer
       // that this registration has caused
       if (warnings != null) {
         for (LocalizableMessage warning : warnings) {
-          logError(warning);
+          logger.error(warning);
         }
       }
 
@@ -6244,7 +6238,7 @@ public final class DirectoryServer
       // that this registration has caused
       if (warnings != null) {
         for (LocalizableMessage error : warnings) {
-          logError(error);
+          logger.error(error);
         }
       }
 
@@ -6947,9 +6941,10 @@ public final class DirectoryServer
         {
           // The port was already specified: this is a configuration error,
           // log a message.
-          LocalizableMessage message = ERR_HOST_PORT_ALREADY_SPECIFIED.get(
-              c.getConnectionHandlerName(), listener.toString());
-          logError(message);
+          LocalizableMessage message =
+              ERR_HOST_PORT_ALREADY_SPECIFIED.get(c.getConnectionHandlerName(),
+                  listener.toString());
+          logger.error(message);
           errorMessages.add(message);
 
         }
@@ -6969,8 +6964,7 @@ public final class DirectoryServer
     // If there are no connection handlers log a message.
     if (connectionHandlers.isEmpty())
     {
-      LocalizableMessage message = ERR_NOT_AVAILABLE_CONNECTION_HANDLERS.get();
-      logError(message);
+      logger.error(ERR_NOT_AVAILABLE_CONNECTION_HANDLERS);
       throw new ConfigException(ERR_ERROR_STARTING_CONNECTION_HANDLERS.get());
     }
 
@@ -8067,9 +8061,8 @@ public final class DirectoryServer
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            message = WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK.
-                get(backend.getBackendID(), String.valueOf(failureReason));
-            logError(message);
+            logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK,
+                backend.getBackendID(), String.valueOf(failureReason));
             // FIXME -- Do we need to send an admin alert?
           }
         }
@@ -8077,9 +8070,8 @@ public final class DirectoryServer
         {
           logger.traceException(e2);
 
-          message = WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK.
-              get(backend.getBackendID(), stackTraceToSingleLineString(e2));
-          logError(message);
+          logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend
+              .getBackendID(), stackTraceToSingleLineString(e2));
           // FIXME -- Do we need to send an admin alert?
         }
       }
@@ -8103,8 +8095,7 @@ public final class DirectoryServer
     try {
         if (!LockFileManager.releaseLock(serverLockFileName,
                 failureReason)) {
-            message = NOTE_SERVER_SHUTDOWN.get(className, failureReason);
-            logError(message);
+            logger.info(NOTE_SERVER_SHUTDOWN, className, failureReason);
         }
     } catch (Exception e) {
         logger.traceException(e);
@@ -8122,7 +8113,7 @@ public final class DirectoryServer
     // Log a final message indicating that the server is stopped (which should
     // be true for all practical purposes), and then shut down all the error
     // loggers.
-    logError(NOTE_SERVER_STOPPED.get());
+    logger.info(NOTE_SERVER_STOPPED.get());
 
     removeAllAccessLogPublishers();
     removeAllErrorLogPublishers();
@@ -8752,7 +8743,7 @@ public final class DirectoryServer
     if (lockdownMode)
     {
       LocalizableMessage message = WARN_DIRECTORY_SERVER_ENTERING_LOCKDOWN_MODE.get();
-      logError(message);
+      logger.warn(message);
 
       sendAlertNotification(directoryServer, ALERT_TYPE_ENTERING_LOCKDOWN_MODE,
               message);
@@ -8760,7 +8751,7 @@ public final class DirectoryServer
     else
     {
       LocalizableMessage message = NOTE_DIRECTORY_SERVER_LEAVING_LOCKDOWN_MODE.get();
-      logError(message);
+      logger.info(message);
 
       sendAlertNotification(directoryServer, ALERT_TYPE_LEAVING_LOCKDOWN_MODE,
               message);

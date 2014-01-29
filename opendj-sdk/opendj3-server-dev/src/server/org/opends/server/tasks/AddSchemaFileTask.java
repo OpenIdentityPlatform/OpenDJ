@@ -188,9 +188,7 @@ public class AddSchemaFileTask
     final Lock schemaLock = LockManager.lockWrite(schemaDN);
     if (schemaLock == null)
     {
-      LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA.get(
-          String.valueOf(schemaDN));
-      logError(message);
+      logger.error(ERR_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA, String.valueOf(schemaDN));
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -237,18 +235,16 @@ public class AddSchemaFileTask
         {
           logger.traceException(ce);
 
-          LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.
-              get(String.valueOf(schemaFile), ce.getMessage());
-          logError(message);
+          logger.error(ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE, String
+              .valueOf(schemaFile), ce.getMessage());
           return TaskState.STOPPED_BY_ERROR;
         }
         catch (InitializationException ie)
         {
           logger.traceException(ie);
 
-          LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.
-              get(String.valueOf(schemaFile), ie.getMessage());
-          logError(message);
+          logger.error(ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE, String
+              .valueOf(schemaFile), ie.getMessage());
           return TaskState.STOPPED_BY_ERROR;
         }
       }
@@ -266,10 +262,8 @@ public class AddSchemaFileTask
           {
             logger.traceException(e);
 
-            LocalizableMessage message =
-                ERR_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER.
-                  get(provider.getClass().getName(), getExceptionMessage(e));
-            logError(message);
+            logger.error(ERR_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER,
+                provider.getClass().getName(), getExceptionMessage(e));
           }
         }
 

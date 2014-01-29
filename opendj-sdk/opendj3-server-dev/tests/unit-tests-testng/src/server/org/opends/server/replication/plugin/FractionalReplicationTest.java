@@ -123,7 +123,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private static String ENTRY_DN2 = "uid=1," + TEST2_ORG_DN_STRING;
 
   private void debugInfo(String s) {
-    logError(LocalizableMessage.raw(s));
+    logger.error(LocalizableMessage.raw(s));
     if (logger.isTraceEnabled())
     {
       logger.trace("** TEST **" + s);

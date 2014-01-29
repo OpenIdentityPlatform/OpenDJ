@@ -44,7 +44,6 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigConstants;
 
 import org.opends.server.types.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ConfigMessages.*;
 
@@ -167,9 +166,7 @@ public class BackendConfigManager implements
         // then log an error and skip it.
         if (DirectoryServer.hasBackend(backendCfg.getBackendId()))
         {
-          LocalizableMessage message = WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID.get(
-              backendID, String.valueOf(backendDN));
-          logError(message);
+          logger.warn(WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID, backendID, String.valueOf(backendDN));
           continue;
         }
 
@@ -192,10 +189,8 @@ public class BackendConfigManager implements
         {
           logger.traceException(e);
 
-          LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.
-              get(String.valueOf(className), String.valueOf(backendDN),
+          logger.error(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE, String.valueOf(className), String.valueOf(backendDN),
                   stackTraceToSingleLineString(e));
-          logError(message);
           continue;
         }
 
@@ -241,9 +236,7 @@ public class BackendConfigManager implements
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
           {
-            LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
-                backendID, String.valueOf(failureReason));
-            logError(message);
+            logger.error(ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK, backendID, String.valueOf(failureReason));
             // FIXME -- Do we need to send an admin alert?
             continue;
           }
@@ -252,9 +245,7 @@ public class BackendConfigManager implements
         {
           logger.traceException(e);
 
-          LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
-              backendID, stackTraceToSingleLineString(e));
-          logError(message);
+          logger.error(ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK, backendID, stackTraceToSingleLineString(e));
           // FIXME -- Do we need to send an admin alert?
           continue;
         }
@@ -269,10 +260,8 @@ public class BackendConfigManager implements
         {
           logger.traceException(e);
 
-          LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.
-              get(String.valueOf(className), String.valueOf(backendDN),
+          logger.error(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE, String.valueOf(className), String.valueOf(backendDN),
                   stackTraceToSingleLineString(e));
-          logError(message);
 
           try
           {
@@ -280,9 +269,7 @@ public class BackendConfigManager implements
             StringBuilder failureReason = new StringBuilder();
             if (! LockFileManager.releaseLock(lockFile, failureReason))
             {
-              message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.
-                  get(backendID, String.valueOf(failureReason));
-              logError(message);
+              logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, String.valueOf(failureReason));
               // FIXME -- Do we need to send an admin alert?
             }
           }
@@ -290,9 +277,7 @@ public class BackendConfigManager implements
           {
             logger.traceException(e2);
 
-            message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.
-                get(backendID, stackTraceToSingleLineString(e2));
-            logError(message);
+            logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, stackTraceToSingleLineString(e2));
             // FIXME -- Do we need to send an admin alert?
           }
 
@@ -317,9 +302,7 @@ public class BackendConfigManager implements
         {
           logger.traceException(e);
 
-          LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(
-              backendID, getExceptionMessage(e));
-          logError(message);
+          logger.warn(WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND, backendID, getExceptionMessage(e));
           // FIXME -- Do we need to send an admin alert?
         }
 
@@ -333,9 +316,7 @@ public class BackendConfigManager implements
       {
         // The backend is explicitly disabled.  Log a mild warning and
         // continue.
-        LocalizableMessage message =
-            INFO_CONFIG_BACKEND_DISABLED.get(String.valueOf(backendDN));
-        logError(message);
+        logger.debug(INFO_CONFIG_BACKEND_DISABLED, String.valueOf(backendDN));
       }
     }
   }
@@ -512,9 +493,8 @@ public class BackendConfigManager implements
             StringBuilder failureReason = new StringBuilder();
             if (! LockFileManager.releaseLock(lockFile, failureReason))
             {
-              LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.
-                  get(backend.getBackendID(), String.valueOf(failureReason));
-              logError(message);
+              logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK,
+                  backend.getBackendID(), String.valueOf(failureReason));
               // FIXME -- Do we need to send an admin alert?
             }
           }
@@ -522,9 +502,8 @@ public class BackendConfigManager implements
           {
             logger.traceException(e2);
 
-            LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.
-                get(backend.getBackendID(), stackTraceToSingleLineString(e2));
-            logError(message);
+            logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend
+                .getBackendID(), stackTraceToSingleLineString(e2));
             // FIXME -- Do we need to send an admin alert?
           }
 
@@ -674,9 +653,9 @@ public class BackendConfigManager implements
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
         {
-          LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
-              backendID, String.valueOf(failureReason));
-          logError(message);
+          LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(backendID,
+              String.valueOf(failureReason));
+          logger.error(message);
           // FIXME -- Do we need to send an admin alert?
 
           resultCode = ResultCode.CONSTRAINT_VIOLATION;
@@ -690,9 +669,9 @@ public class BackendConfigManager implements
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
-            backendID, stackTraceToSingleLineString(e));
-        logError(message);
+        LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(backendID,
+            stackTraceToSingleLineString(e));
+        logger.error(message);
         // FIXME -- Do we need to send an admin alert?
 
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
@@ -722,9 +701,9 @@ public class BackendConfigManager implements
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.
-                get(backendID, String.valueOf(failureReason));
-            logError(message);
+            LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(backendID,
+                String.valueOf(failureReason));
+            logger.warn(message);
             // FIXME -- Do we need to send an admin alert?
           }
         }
@@ -732,9 +711,9 @@ public class BackendConfigManager implements
         {
           logger.traceException(e2);
 
-          LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
-              backendID, stackTraceToSingleLineString(e2));
-          logError(message);
+          LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(backendID,
+              stackTraceToSingleLineString(e2));
+          logger.warn(message);
           // FIXME -- Do we need to send an admin alert?
         }
 
@@ -766,7 +745,7 @@ public class BackendConfigManager implements
         resultCode = DirectoryServer.getServerErrorResultCode();
         messages.add(message);
 
-        logError(message);
+        logger.warn(message);
         // FIXME -- Do we need to send an admin alert?
 
         return new ConfigChangeResult(resultCode, adminActionRequired,
@@ -897,9 +876,8 @@ public class BackendConfigManager implements
     {
       // The backend is explicitly disabled.  We will log a message to
       // indicate that it won't be enabled and return.
-      LocalizableMessage message =
-          INFO_CONFIG_BACKEND_DISABLED.get(String.valueOf(backendDN));
-      logError(message);
+      LocalizableMessage message = INFO_CONFIG_BACKEND_DISABLED.get(String.valueOf(backendDN));
+      logger.debug(message);
       messages.add(message);
       return new ConfigChangeResult(resultCode, adminActionRequired,
                                     messages);
@@ -912,9 +890,9 @@ public class BackendConfigManager implements
     String backendID = cfg.getBackendId();
     if (DirectoryServer.hasBackend(backendID))
     {
-      LocalizableMessage message = WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID.get(
-          String.valueOf(backendDN), backendID);
-      logError(message);
+      LocalizableMessage message = WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID.get(String.valueOf(backendDN),
+          backendID);
+      logger.warn(message);
       messages.add(message);
       return new ConfigChangeResult(resultCode, adminActionRequired,
                                     messages);
@@ -988,9 +966,10 @@ public class BackendConfigManager implements
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
-            backendID, String.valueOf(failureReason));
-        logError(message);
+        LocalizableMessage message =
+            ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(backendID, String
+                .valueOf(failureReason));
+        logger.error(message);
         // FIXME -- Do we need to send an admin alert?
 
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
@@ -1006,7 +985,7 @@ public class BackendConfigManager implements
 
       LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
           backendID, stackTraceToSingleLineString(e));
-      logError(message);
+      logger.error(message);
       // FIXME -- Do we need to send an admin alert?
 
       resultCode = ResultCode.CONSTRAINT_VIOLATION;
@@ -1038,9 +1017,7 @@ public class BackendConfigManager implements
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
-              backendID, String.valueOf(failureReason));
-          logError(message);
+          logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, String.valueOf(failureReason));
           // FIXME -- Do we need to send an admin alert?
         }
       }
@@ -1048,9 +1025,7 @@ public class BackendConfigManager implements
       {
         logger.traceException(e2);
 
-        LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
-            backendID, stackTraceToSingleLineString(e2));
-        logError(message);
+        logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, stackTraceToSingleLineString(e2));
         // FIXME -- Do we need to send an admin alert?
       }
 
@@ -1082,7 +1057,7 @@ public class BackendConfigManager implements
       resultCode = DirectoryServer.getServerErrorResultCode();
       messages.add(message);
 
-      logError(message);
+      logger.error(message);
       // FIXME -- Do we need to send an admin alert?
 
       return new ConfigChangeResult(resultCode, adminActionRequired,
@@ -1185,9 +1160,8 @@ public class BackendConfigManager implements
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
-              backend.getBackendID(), String.valueOf(failureReason));
-          logError(message);
+          logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend
+              .getBackendID(), String.valueOf(failureReason));
           // FIXME -- Do we need to send an admin alert?
         }
       }
@@ -1195,9 +1169,8 @@ public class BackendConfigManager implements
       {
         logger.traceException(e2);
 
-        LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
-            backend.getBackendID(), stackTraceToSingleLineString(e2));
-        logError(message);
+        logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend
+            .getBackendID(), stackTraceToSingleLineString(e2));
         // FIXME -- Do we need to send an admin alert?
       }
 

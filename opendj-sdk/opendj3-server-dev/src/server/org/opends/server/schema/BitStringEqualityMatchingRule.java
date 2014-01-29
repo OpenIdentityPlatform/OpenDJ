@@ -29,7 +29,7 @@ package org.opends.server.schema;
 
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.Collection;
@@ -51,6 +51,9 @@ import org.opends.server.types.ResultCode;
 class BitStringEqualityMatchingRule
        extends EqualityMatchingRule
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Creates a new instance of this bitStringMatch matching rule.
    */
@@ -157,7 +160,7 @@ class BitStringEqualityMatchingRule
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         case WARN:
-          logError(message);
+          logger.error(message);
           return ByteString.valueOf(valueString);
         default:
           return ByteString.valueOf(valueString);
@@ -179,7 +182,7 @@ class BitStringEqualityMatchingRule
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         case WARN:
-          logError(
+          logger.error(
                   message);
           return ByteString.valueOf(valueString);
         default:
@@ -207,7 +210,7 @@ class BitStringEqualityMatchingRule
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
           case WARN:
-            logError(message);
+            logger.error(message);
             return ByteString.valueOf(valueString);
           default:
             return ByteString.valueOf(valueString);

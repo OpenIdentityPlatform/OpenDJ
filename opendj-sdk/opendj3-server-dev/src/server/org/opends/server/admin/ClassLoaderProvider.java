@@ -30,7 +30,6 @@ package org.opends.server.admin;
 
 import static org.opends.messages.AdminMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.ServerConstants.EOL;
 
@@ -557,9 +556,7 @@ public final class ClassLoaderProvider {
       if (!extensionsPath.exists()) {
         // The extensions directory does not exist. This is not a
         // critical problem.
-        LocalizableMessage message = ERR_ADMIN_NO_EXTENSIONS_DIR.get(
-                String.valueOf(extensionsPath));
-        logError(message);
+        logger.error(ERR_ADMIN_NO_EXTENSIONS_DIR, String.valueOf(extensionsPath));
         return;
       }
 
@@ -676,7 +673,7 @@ public final class ClassLoaderProvider {
       try {
         // Log build information of extensions in the error log
         String[] information = getBuildInformation(jarFile);
-        logError(
+        logger.error(
           NOTE_LOG_EXTENSION_INFORMATION.
             get(jarFile.getName(),
                 information[1],

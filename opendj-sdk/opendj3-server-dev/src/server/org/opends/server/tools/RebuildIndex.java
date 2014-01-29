@@ -27,10 +27,10 @@
 package org.opends.server.tools;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -79,6 +79,9 @@ import java.util.List;
  */
 public class RebuildIndex extends TaskTool
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   private StringArgument configClass = null;
   private StringArgument configFile = null;
   private StringArgument baseDNString = null;
@@ -365,10 +368,8 @@ public class RebuildIndex extends TaskTool
     }
     catch (Exception e)
     {
-      final LocalizableMessage message =
-          ERR_CANNOT_DECODE_BASE_DN.get(dn,
+      logger.error(ERR_CANNOT_DECODE_BASE_DN, dn,
               getExceptionMessage(e));
-      logError(message);
       return false;
     }
 
@@ -379,7 +380,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (Exception e)
     {
-      logError(LocalizableMessage.raw(e.getMessage()));
+      logger.error(LocalizableMessage.raw(e.getMessage()));
       return false;
     }
 
@@ -603,19 +604,15 @@ public class RebuildIndex extends TaskTool
       final StringBuilder failureReason = new StringBuilder();
       if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        final LocalizableMessage message =
-            ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(backend
+        logger.error(ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND, backend
                 .getBackendID(), String.valueOf(failureReason));
-        logError(message);
         return 1;
       }
     }
     catch (Exception e)
     {
-      final LocalizableMessage message =
-          ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(backend
+      logger.error(ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND, backend
               .getBackendID(), getExceptionMessage(e));
-      logError(message);
       return 1;
     }
 
@@ -626,12 +623,12 @@ public class RebuildIndex extends TaskTool
     }
     catch (InitializationException e)
     {
-      logError(ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage()));
+      logger.error(ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage()));
       returnCode = 1;
     }
     catch (Exception e)
     {
-      logError(ERR_REBUILDINDEX_ERROR_DURING_REBUILD
+      logger.error(ERR_REBUILDINDEX_ERROR_DURING_REBUILD
           .get(getExceptionMessage(e)));
       returnCode = 1;
     }
@@ -644,13 +641,13 @@ public class RebuildIndex extends TaskTool
         final StringBuilder failureReason = new StringBuilder();
         if (!LockFileManager.releaseLock(lockFile, failureReason))
         {
-          logError(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend
+          logger.warn(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend
               .getBackendID(), String.valueOf(failureReason)));
         }
       }
       catch (Exception e)
       {
-        logError(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend
+        logger.error(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend
             .getBackendID(), getExceptionMessage(e)));
       }
     }

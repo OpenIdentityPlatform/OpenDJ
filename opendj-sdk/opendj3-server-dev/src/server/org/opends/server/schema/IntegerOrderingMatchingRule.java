@@ -29,7 +29,7 @@ package org.opends.server.schema;
 
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.Collection;
@@ -54,6 +54,9 @@ public class IntegerOrderingMatchingRule
        extends AbstractMatchingRule
        implements OrderingMatchingRule
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class implements the <CODE>java.io.Serializable</CODE> interface.  This
@@ -188,7 +191,7 @@ public class IntegerOrderingMatchingRule
                     if (! logged)
                     {
                       logged = true;
-                      logError(message);
+                      logger.error(message);
                     }
                     break;
                 }
@@ -211,7 +214,7 @@ public class IntegerOrderingMatchingRule
                     if (! logged)
                     {
                       logged = true;
-                      logError(
+                      logger.error(
                               message);
                     }
                     break;
@@ -275,7 +278,7 @@ public class IntegerOrderingMatchingRule
                 if (! logged)
                 {
                   logged = true;
-                  logError(
+                  logger.error(
                           message);
                 }
                 break;
@@ -295,7 +298,7 @@ public class IntegerOrderingMatchingRule
               if (! logged)
               {
                 logged = true;
-                logError(
+                logger.error(
                         message);
               }
               break;
@@ -318,7 +321,7 @@ public class IntegerOrderingMatchingRule
           if (! logged)
           {
             logged = true;
-            logError(
+            logger.error(
                     message);
           }
 
@@ -345,7 +348,7 @@ public class IntegerOrderingMatchingRule
           if (! logged)
           {
             logged = true;
-            logError(
+            logger.error(
                     message);
           }
 

@@ -40,7 +40,6 @@ import static com.sleepycat.je.LockMode.*;
 import static com.sleepycat.je.OperationStatus.*;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -134,7 +133,7 @@ public class DraftCNDB
     }
     catch (DatabaseException e)
     {
-      logError(NOTE_EXCEPTION_CLOSING_DATABASE.get(toString(),
+      logger.info(NOTE_EXCEPTION_CLOSING_DATABASE.get(toString(),
           stackTraceToSingleLineString(e)));
     }
     finally
@@ -621,7 +620,7 @@ public class DraftCNDB
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(ERR_ERROR_CLEARING_DB.get(toString(),
           e.getMessage() + " " + stackTraceToSingleLineString(e)));
-      logError(mb.toMessage());
+      logger.error(mb.toMessage());
     }
     finally
     {

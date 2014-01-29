@@ -29,6 +29,7 @@ package org.opends.server.schema;
 
 
 import static org.opends.messages.SchemaMessages.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.schema.StringPrepProfile.*;
@@ -39,7 +40,6 @@ import java.util.Collections;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
@@ -55,6 +55,9 @@ import org.opends.server.types.ResultCode;
 class NumericStringEqualityMatchingRule
        extends EqualityMatchingRule
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Creates a new instance of this caseExactMatch matching rule.
    */
@@ -175,7 +178,7 @@ class NumericStringEqualityMatchingRule
             case WARN:
               if (! logged)
               {
-                ErrorLogger.logError(message);
+                logger.error(message);
                 logged = true;
               }
           }

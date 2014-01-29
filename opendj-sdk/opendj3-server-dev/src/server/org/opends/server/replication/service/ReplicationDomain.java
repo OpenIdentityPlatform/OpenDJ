@@ -54,7 +54,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.replication.common.AssuredMode.*;
 import static org.opends.server.replication.common.StatusMachine.*;
 
@@ -342,7 +341,7 @@ public abstract class ReplicationDomain
     // Sanity check: is it a valid initial status?
     if (!isValidInitialStatus(initStatus))
     {
-      logError(ERR_DS_INVALID_INIT_STATUS.get(initStatus.toString(),
+      logger.error(ERR_DS_INVALID_INIT_STATUS.get(initStatus.toString(),
           getBaseDNString(), Integer.toString(getServerId())));
     }
     else
@@ -371,7 +370,7 @@ public abstract class ReplicationDomain
     StatusMachineEvent event = StatusMachineEvent.statusToEvent(reqStatus);
     if (event == StatusMachineEvent.INVALID_EVENT)
     {
-      logError(ERR_DS_INVALID_REQUESTED_STATUS.get(reqStatus.toString(),
+      logger.error(ERR_DS_INVALID_REQUESTED_STATUS.get(reqStatus.toString(),
           getBaseDNString(), Integer.toString(getServerId())));
       return;
     }
@@ -758,14 +757,14 @@ public abstract class ReplicationDomain
               attempt of initialization while we have started a new one
               on this side.
               */
-              logError(ERR_ERROR_MSG_RECEIVED.get(errorMsg.getDetails()));
+              logger.error(ERR_ERROR_MSG_RECEIVED.get(errorMsg.getDetails()));
             }
           }
           else
           {
             // Simply log - happen if import/export has been terminated
             // on our side before receiving this ErrorMsg.
-            logError(ERR_ERROR_MSG_RECEIVED.get(errorMsg.getDetails()));
+            logger.error(ERR_ERROR_MSG_RECEIVED.get(errorMsg.getDetails()));
           }
         }
         else if (msg instanceof ChangeStatusMsg)
@@ -888,7 +887,7 @@ public abstract class ReplicationDomain
         Some problems detected: message did not correctly reach every
         requested servers. Log problem
         */
-        logError(NOTE_DS_RECEIVED_ACK_ERROR.get(
+        logger.error(NOTE_DS_RECEIVED_ACK_ERROR.get(
             getBaseDNString(), Integer.toString(getServerId()),
             update.toString(), ack.errorsToString()));
 
@@ -1388,7 +1387,7 @@ public abstract class ReplicationDomain
 
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
     {
-      logError(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START_ALL.get(
+      logger.error(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START_ALL.get(
           countEntries(), getBaseDNString(), getServerId()));
 
       for (DSInfo dsi : getReplicasList())
@@ -1407,7 +1406,7 @@ public abstract class ReplicationDomain
     }
     else
     {
-      logError(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START.get(countEntries(),
+      logger.error(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START.get(countEntries(),
           getBaseDNString(), getServerId(), serverToInitialize));
 
       ieCtx.startList.add(serverToInitialize);
@@ -1524,7 +1523,7 @@ public abstract class ReplicationDomain
             */
             try { Thread.sleep(1000); }
             catch(Exception e){ /* do nothing */ }
-            logError(NOTE_RESENDING_INIT_TARGET.get(
+            logger.error(NOTE_RESENDING_INIT_TARGET.get(
                 exportRootException.getLocalizedMessage()));
 
             continue;
@@ -1565,12 +1564,12 @@ public abstract class ReplicationDomain
         : exportRootException.getLocalizedMessage();
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
     {
-      logError(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END_ALL.get(
+      logger.error(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END_ALL.get(
           getBaseDNString(), getServerId(), cause));
     }
     else
     {
-      logError(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END.get(
+      logger.error(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END.get(
           getBaseDNString(), getServerId(), serverToInitialize, cause));
     }
 
@@ -2208,7 +2207,7 @@ public abstract class ReplicationDomain
     {
       // Should not happen
       errMsg = LocalizableMessage.raw(          e.getLocalizedMessage());
-      logError(errMsg);
+      logger.error(errMsg);
     }
 
     // When error, update the task and raise the error to the caller
@@ -2249,7 +2248,7 @@ public abstract class ReplicationDomain
     try
     {
       // Log starting
-      logError(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.get(getBaseDNString(),
+      logger.error(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.get(getBaseDNString(),
           initTargetMsgReceived.getSenderID(), getServerId()));
 
       // Go into full update status
@@ -2326,7 +2325,7 @@ public abstract class ReplicationDomain
             Restart the whole import protocol exchange by sending again
             the request
             */
-            logError(NOTE_RESENDING_INIT_FROM_REMOTE_REQUEST.get(
+            logger.error(NOTE_RESENDING_INIT_FROM_REMOTE_REQUEST.get(
                 ieCtx.getException().getLocalizedMessage()));
 
             broker.publish(ieCtx.initReqMsgSent);
@@ -2345,7 +2344,7 @@ public abstract class ReplicationDomain
             An error occurs when sending a new request for a new import.
             This error is not stored, preferring to keep the initial one.
             */
-            logError(ERR_SENDING_NEW_ATTEMPT_INIT_REQUEST.get(
+            logger.error(ERR_SENDING_NEW_ATTEMPT_INIT_REQUEST.get(
               e.getLocalizedMessage(),
               ieCtx.getException().getLocalizedMessage()));
           }
@@ -2390,7 +2389,7 @@ public abstract class ReplicationDomain
             getServerId(),
             (ieCtx.getException() == null ? ""
                 : ieCtx.getException().getLocalizedMessage()));
-        logError(msg);
+        logger.error(msg);
         releaseIEContext();
       } // finally
     } // finally
@@ -2426,7 +2425,7 @@ public abstract class ReplicationDomain
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      logError(ERR_DS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
+      logger.error(ERR_DS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
           String.valueOf(getServerId()), status.toString(), event.toString()));
       return;
     }
@@ -3224,7 +3223,7 @@ public abstract class ReplicationDomain
       }
       else if (getAssuredMode() != AssuredMode.SAFE_DATA_MODE)
       {
-        logError(ERR_DS_UNKNOWN_ASSURED_MODE.get(String.valueOf(getServerId()),
+        logger.error(ERR_DS_UNKNOWN_ASSURED_MODE.get(String.valueOf(getServerId()),
             msg.getAssuredMode().toString(), getBaseDNString(),
             msg.toString()));
       }
@@ -3434,7 +3433,7 @@ public abstract class ReplicationDomain
     } catch (TimeoutException ex)
     {
       // This exception may only be raised if assured replication is enabled
-      logError(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
+      logger.error(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
           Long.toString(getAssuredTimeout()), update.toString()));
     }
   }

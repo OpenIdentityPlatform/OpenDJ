@@ -47,7 +47,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1ByteChannelReader;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -362,9 +361,7 @@ public class LDAPRequestHandler
 
             // This should not happen, and it would have caused our reader
             // thread to die.  Log a severe error.
-            LocalizableMessage message = ERR_LDAP_REQHANDLER_UNEXPECTED_SELECT_EXCEPTION.
-                get(getName(), getExceptionMessage(e));
-            ErrorLogger.logError(message);
+            logger.error(ERR_LDAP_REQHANDLER_UNEXPECTED_SELECT_EXCEPTION, getName(), getExceptionMessage(e));
           }
           finally
           {

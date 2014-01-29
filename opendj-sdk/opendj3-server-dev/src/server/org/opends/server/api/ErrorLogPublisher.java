@@ -27,6 +27,7 @@
 package org.opends.server.api;
 
 import java.util.HashMap;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,9 @@ import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 public abstract class ErrorLogPublisher<T extends ErrorLogPublisherCfg>
     implements LogPublisher<T>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * The hash map that will be used to define specific log severities
    * for the various categories.

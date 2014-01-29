@@ -27,6 +27,7 @@
 package org.opends.server.replication.server;
 
 import java.io.IOException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,7 +41,6 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 
 /**
@@ -49,6 +49,9 @@ import static org.opends.server.replication.protocol.ProtocolVersion.*;
  */
 public class ReplicationServerHandler extends ServerHandler
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
 
   /**
    * Properties filled only if remote server is a RS.
@@ -246,11 +249,9 @@ public class ReplicationServerHandler extends ServerHandler
         replicationServerDomain.receiveTopoInfoFromRS(inTopoMsg, this, false);
       }
 
-      LocalizableMessage message = INFO_REPLICATION_SERVER_CONNECTION_TO_RS
-          .get(getReplicationServerId(), getServerId(),
+      logger.debug(INFO_REPLICATION_SERVER_CONNECTION_TO_RS, getReplicationServerId(), getServerId(),
               replicationServerDomain.getBaseDN().toNormalizedString(),
               session.getReadableRemoteAddress());
-      logError(message);
 
       super.finalizeStart();
     }
@@ -372,11 +373,9 @@ public class ReplicationServerHandler extends ServerHandler
       if (inTopoMsg!=null)
         replicationServerDomain.receiveTopoInfoFromRS(inTopoMsg, this, false);
 
-      LocalizableMessage message = INFO_REPLICATION_SERVER_CONNECTION_FROM_RS
-          .get(getReplicationServerId(), getServerId(),
+      logger.debug(INFO_REPLICATION_SERVER_CONNECTION_FROM_RS, getReplicationServerId(), getServerId(),
               replicationServerDomain.getBaseDN().toNormalizedString(),
               session.getReadableRemoteAddress());
-      logError(message);
 
       super.finalizeStart();
     }
@@ -517,10 +516,8 @@ public class ReplicationServerHandler extends ServerHandler
        * and we have a null state ?
        * replicationServerDomain.setGenerationId(generationId, false);
        */
-      LocalizableMessage message = WARN_BAD_GENERATION_ID_FROM_RS.get(
-          serverId, session.getReadableRemoteAddress(), generationId,
+      logger.warn(WARN_BAD_GENERATION_ID_FROM_RS, serverId, session.getReadableRemoteAddress(), generationId,
           getBaseDNString(), getReplicationServerId(), localGenerationId);
-      logError(message);
     }
   }
 

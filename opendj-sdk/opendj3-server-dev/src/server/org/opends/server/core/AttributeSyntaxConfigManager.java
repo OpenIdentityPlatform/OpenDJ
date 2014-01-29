@@ -29,6 +29,7 @@ package org.opends.server.core;
 
 
 import java.lang.reflect.Method;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -54,7 +55,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -72,6 +72,9 @@ public class AttributeSyntaxConfigManager
                   ConfigurationDeleteListener<AttributeSyntaxCfg>
 
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // A mapping between the DNs of the config entries and the associated
   // attribute syntaxes.
   private ConcurrentHashMap<DN,AttributeSyntax> syntaxes;
@@ -138,15 +141,14 @@ public class AttributeSyntaxConfigManager
           }
           catch (DirectoryException de)
           {
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
-               String.valueOf(syntaxConfiguration.dn()), de.getMessageObject());
-            logError(message);
+            logger.warn(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX, String
+                .valueOf(syntaxConfiguration.dn()), de.getMessageObject());
             continue;
           }
         }
         catch (InitializationException ie)
         {
-          logError(ie.getMessageObject());
+          logger.error(ie.getMessageObject());
           continue;
         }
       }

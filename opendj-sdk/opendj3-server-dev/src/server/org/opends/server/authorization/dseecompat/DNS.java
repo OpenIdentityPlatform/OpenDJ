@@ -28,7 +28,6 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.net.InetAddress;
@@ -126,18 +125,12 @@ public class DNS implements KeywordBindRule {
                     {
                       dns.add(canonicalName);
 
-                      LocalizableMessage message =
-                        WARN_ACI_LOCALHOST_DOESNT_MATCH_CANONICAL_VALUE.
-                            get(expr, hn, canonicalName);
-                      logError(message);
+                      logger.warn(WARN_ACI_LOCALHOST_DOESNT_MATCH_CANONICAL_VALUE, expr, hn, canonicalName);
                     }
                     else
                     {
-                      LocalizableMessage message =
-                        WARN_ACI_HOSTNAME_DOESNT_MATCH_CANONICAL_VALUE.
-                            get(expr, hn, addr.getHostAddress(),
+                      logger.warn(WARN_ACI_HOSTNAME_DOESNT_MATCH_CANONICAL_VALUE, expr, hn, addr.getHostAddress(),
                                 addr.getCanonicalHostName());
-                      logError(message);
                     }
                   }
                 }
@@ -146,9 +139,7 @@ public class DNS implements KeywordBindRule {
               {
                 logger.traceException(e);
 
-                LocalizableMessage message = WARN_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME.
-                    get(hn, expr, getExceptionMessage(e));
-                logError(message);
+                logger.warn(WARN_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME, hn, expr, getExceptionMessage(e));
               }
             }
 

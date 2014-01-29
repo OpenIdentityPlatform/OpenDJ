@@ -26,6 +26,7 @@
  */
 package org.opends.server.schema;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -46,7 +47,6 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 import org.forgerock.opendj.ldap.ByteSequence;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -67,6 +67,9 @@ public class TelephoneNumberSyntax
        extends AttributeSyntax<TelephoneNumberAttributeSyntaxCfg>
        implements ConfigurationChangeListener<TelephoneNumberAttributeSyntaxCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // Indicates whether this matching rule should operate in strict mode.
   private boolean strictMode;
 
@@ -104,16 +107,14 @@ public class TelephoneNumberSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_TELEPHONE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_TELEPHONE_OID, SYNTAX_TELEPHONE_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(EMR_TELEPHONE_OID, SYNTAX_TELEPHONE_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_TELEPHONE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_TELEPHONE_OID, SYNTAX_TELEPHONE_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(SMR_TELEPHONE_OID, SYNTAX_TELEPHONE_NAME));
     }
 
 

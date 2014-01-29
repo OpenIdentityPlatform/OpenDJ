@@ -29,6 +29,7 @@ package org.opends.server.schema;
 
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -39,7 +40,6 @@ import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.ByteSequence;
 
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -54,6 +54,9 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class SubstringAssertionSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
 
@@ -88,7 +91,7 @@ public class SubstringAssertionSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
           EMR_CASE_IGNORE_OID, SYNTAX_SUBSTRING_ASSERTION_NAME));
     }
 
@@ -96,7 +99,7 @@ public class SubstringAssertionSyntax
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
           OMR_CASE_IGNORE_OID, SYNTAX_SUBSTRING_ASSERTION_NAME));
     }
 
@@ -104,7 +107,7 @@ public class SubstringAssertionSyntax
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_CASE_IGNORE_OID, SYNTAX_SUBSTRING_ASSERTION_NAME));
     }
   }

@@ -33,7 +33,6 @@ import org.opends.server.api.DirectoryThread;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -185,15 +184,12 @@ public class TaskThread extends DirectoryThread
         {
           Task task = getAssociatedTask();
 
-          LocalizableMessage message = NOTE_TASK_STARTED.get(
-            task.getDisplayName(), task.getTaskID());
-          logError(message);
+          logger.info(NOTE_TASK_STARTED, task.getDisplayName(), task.getTaskID());
 
           taskState = task.execute();
 
-          message = NOTE_TASK_FINISHED.get(task.getDisplayName(),
+          logger.info(NOTE_TASK_FINISHED, task.getDisplayName(),
               task.getTaskID(), taskState.getDisplayName());
-          logError(message);
         }
       }
       catch (Exception e)
@@ -202,10 +198,8 @@ public class TaskThread extends DirectoryThread
 
         Task task = getAssociatedTask();
 
-        LocalizableMessage message = ERR_TASK_EXECUTE_FAILED.
-            get(String.valueOf(task.getTaskEntry().getName()),
+        logger.error(ERR_TASK_EXECUTE_FAILED, String.valueOf(task.getTaskEntry().getName()),
                 stackTraceToSingleLineString(e));
-        logError(message);
         task.setTaskState(TaskState.STOPPED_BY_ERROR);
       }
 

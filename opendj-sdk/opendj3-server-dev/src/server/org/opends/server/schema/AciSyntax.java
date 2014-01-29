@@ -41,7 +41,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.forgerock.opendj.ldap.ByteSequence;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -89,16 +88,14 @@ public class AciSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_IA5_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(EMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_IA5_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(SMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME));
     }
   }
 
@@ -225,7 +222,7 @@ public class AciSyntax
     {
       logger.traceException(e);
 
-      logError(e.getMessageObject());
+      logger.error(e.getMessageObject());
       invalidReason.append(e.getMessageObject());
       return false;
     }

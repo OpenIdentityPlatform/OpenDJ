@@ -157,14 +157,14 @@ public class InitializeTask extends Task
 
       // Error raised at completion time
       if (taskCompletionError != null)
-        logError(taskCompletionError);
+        logger.error(taskCompletionError);
 
     }
     catch(InterruptedException ie) {}
     catch(DirectoryException de)
     {
       // Error raised at submission time
-      logError(de.getMessageObject());
+      logger.error(de.getMessageObject());
       initState = TaskState.STOPPED_BY_ERROR;
     }
 

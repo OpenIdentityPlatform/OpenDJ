@@ -27,7 +27,6 @@
 package org.opends.server.util;
 
 import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.util.Reject.*;
 
@@ -1076,8 +1075,7 @@ public final class LDIFReader implements Closeable
 
       if (objectClasses.containsKey(objectClass))
       {
-        logError(WARN_LDIF_DUPLICATE_OBJECTCLASS.get(
-            String.valueOf(entryDN), lastEntryLineNumber, ocName));
+        logger.warn(WARN_LDIF_DUPLICATE_OBJECTCLASS.get(String.valueOf(entryDN), lastEntryLineNumber, ocName));
       }
       else
       {
@@ -1128,7 +1126,7 @@ public final class LDIFReader implements Closeable
           if (DirectoryServer.getSyntaxEnforcementPolicy() ==
                    AcceptRejectWarn.WARN)
           {
-            logError(message);
+            logger.error(message);
           }
           else
           {

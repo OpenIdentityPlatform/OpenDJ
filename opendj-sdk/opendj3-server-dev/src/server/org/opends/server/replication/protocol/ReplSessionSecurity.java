@@ -27,6 +27,7 @@
 package org.opends.server.replication.protocol;
 
 import java.io.IOException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.net.Socket;
 import java.util.SortedSet;
 
@@ -35,13 +36,11 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryConfig;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -52,6 +51,9 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public final class ReplSessionSecurity
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Whether replication sessions use SSL encryption.
    */
@@ -260,11 +262,9 @@ public final class ReplSessionSecurity
     {
       // This is probably a connection attempt from an unexpected client
       // log that to warn the administrator.
-      final LocalizableMessage message = INFO_SSL_SERVER_CON_ATTEMPT_ERROR.get(
-          socket.getRemoteSocketAddress().toString(),
+      logger.debug(INFO_SSL_SERVER_CON_ATTEMPT_ERROR, socket.getRemoteSocketAddress().toString(),
           socket.getLocalSocketAddress().toString(),
           e.getLocalizedMessage());
-      logError(message);
       return null;
     }
     finally

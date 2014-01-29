@@ -287,7 +287,7 @@ public final class AccessControlConfigManager
         newHandler.initializeAccessControlHandler(null);
         if(logMessage) {
           LocalizableMessage message = WARN_CONFIG_AUTHZ_DISABLED.get();
-          logError(message);
+          logger.warn(message);
           if (currentConfiguration != null) {
             DirectoryServer.sendAlertNotification(this,
                     ALERT_TYPE_ACCESS_CONTROL_DISABLED, message);
@@ -297,7 +297,7 @@ public final class AccessControlConfigManager
         newHandler = loadHandler(handlerClassName, config, initHandler);
         if(logMessage) {
           LocalizableMessage message = NOTE_CONFIG_AUTHZ_ENABLED.get(handlerClassName);
-          logError(message);
+          logger.info(message);
           if (currentConfiguration != null) {
             DirectoryServer.sendAlertNotification(this,
                     ALERT_TYPE_ACCESS_CONTROL_ENABLED, message);
@@ -442,8 +442,7 @@ public final class AccessControlConfigManager
       Class<? extends AccessControlHandler> providerClass =
            propertyDefinition.loadClass(className, AccessControlHandler.class);
       AccessControlHandler<? extends AccessControlHandlerCfg> provider =
-          (AccessControlHandler<? extends AccessControlHandlerCfg>)
-           providerClass.newInstance();
+          providerClass.newInstance();
 
       if (configuration != null)
       {

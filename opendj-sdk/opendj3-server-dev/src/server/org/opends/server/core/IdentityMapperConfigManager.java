@@ -26,6 +26,7 @@
  */
 package org.opends.server.core;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -52,7 +53,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.ConfigMessages.*;
 
 import static org.opends.server.util.StaticUtils.*;
@@ -71,6 +71,9 @@ public class IdentityMapperConfigManager
                   ConfigurationDeleteListener<IdentityMapperCfg>
 
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // A mapping between the DNs of the config entries and the associated identity
   // mappers.
   private ConcurrentHashMap<DN,IdentityMapper> identityMappers;
@@ -134,7 +137,7 @@ public class IdentityMapperConfigManager
         }
         catch (InitializationException ie)
         {
-          logError(ie.getMessageObject());
+          logger.error(ie.getMessageObject());
           continue;
         }
       }
@@ -147,12 +150,11 @@ public class IdentityMapperConfigManager
     DN mapperDN = DirectoryServer.getProxiedAuthorizationIdentityMapperDN();
     if (mapperDN == null)
     {
-      logError(ERR_CONFIG_IDMAPPER_NO_PROXY_MAPPER_DN.get());
+      logger.error(ERR_CONFIG_IDMAPPER_NO_PROXY_MAPPER_DN.get());
     }
     else if (! identityMappers.containsKey(mapperDN))
     {
-      logError(ERR_CONFIG_IDMAPPER_INVALID_PROXY_MAPPER_DN.get(
-          String.valueOf(mapperDN)));
+      logger.error(ERR_CONFIG_IDMAPPER_INVALID_PROXY_MAPPER_DN.get(String.valueOf(mapperDN)));
     }
   }
 

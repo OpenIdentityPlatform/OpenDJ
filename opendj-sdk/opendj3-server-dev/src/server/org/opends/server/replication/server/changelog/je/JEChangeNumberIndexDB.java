@@ -47,7 +47,6 @@ import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
 import org.opends.server.types.*;
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -292,7 +291,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
       }
       catch (Exception end)
       {
-        logError(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH
+        logger.error(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH
             .get(stackTraceToSingleLineString(end)));
         if (replicationServer != null)
         {

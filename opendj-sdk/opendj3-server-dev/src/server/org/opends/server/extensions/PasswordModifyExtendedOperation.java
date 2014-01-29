@@ -45,7 +45,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PasswordPolicyState;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
@@ -988,8 +987,7 @@ public class PasswordModifyExtendedOperation
           // At this point, the user's password is already changed so there's
           // not much point in returning a non-success result.  However, we
           // should at least log that something went wrong.
-          ErrorLogger.logError(WARN_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE.get(
-                  String.valueOf(userDN),
+          logger.warn(WARN_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE.get(String.valueOf(userDN),
                   String.valueOf(modOp.getResultCode()),
                   modOp.getErrorMessage()));
         }

@@ -26,10 +26,10 @@
  */
 package org.opends.server.extensions;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ExtensionMessages.*;
 
 
@@ -67,6 +67,9 @@ public class ErrorLogAccountStatusNotificationHandler
           ConfigurationChangeListener
           <ErrorLogAccountStatusNotificationHandlerCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * The set of names for the account status notification types that may be
    * logged by this notification handler.
@@ -116,8 +119,7 @@ public class ErrorLogAccountStatusNotificationHandler
   public void handleStatusNotification(
                    AccountStatusNotification notification)
   {
-    logError(NOTE_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION.get(
-                  notification.getNotificationType().getName(),
+    logger.info(NOTE_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION.get(notification.getNotificationType().getName(),
                   String.valueOf(notification.getUserDN()),
                   notification.getMessage().ordinal(),
                   notification.getMessage()));

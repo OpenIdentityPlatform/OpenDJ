@@ -31,7 +31,6 @@ import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.authorization.dseecompat.EnumEvalReason.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -633,8 +632,7 @@ public final class AciHandler extends
       catch (DirectoryException ex)
       {
         // Log a message and keep going.
-        LocalizableMessage message = WARN_ACI_NOT_VALID_DN.get(DNString);
-        logError(message);
+        logger.warn(WARN_ACI_NOT_VALID_DN, DNString);
       }
     }
 
@@ -821,10 +819,8 @@ public final class AciHandler extends
           && !operation.getClientConnection().hasPrivilege(
               Privilege.MODIFY_ACL, operation))
       {
-        LocalizableMessage message =
-            INFO_ACI_MODIFY_FAILED_PRIVILEGE.get(String.valueOf(container
+        logger.debug(INFO_ACI_MODIFY_FAILED_PRIVILEGE, String.valueOf(container
                 .getResourceDN()), String.valueOf(container.getClientDN()));
-        logError(message);
         return false;
       }
       // This access check handles the case where all attributes of this
@@ -1001,10 +997,8 @@ public final class AciHandler extends
     final Lock entryLock = LockManager.lockRead(superiorDN);
     if (entryLock == null)
     {
-      LocalizableMessage message =
-          WARN_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER.get(String
+      logger.warn(WARN_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER, String
               .valueOf(superiorDN));
-      logError(message);
       return false;
     }
 
@@ -1219,10 +1213,8 @@ public final class AciHandler extends
           {
             aciListenerMgr.logMsgsSetLockDownMode(failedACIMsgs);
           }
-          LocalizableMessage message =
-            INFO_ACI_ADD_LIST_ACIS.get(Integer.toString(validAcis),
+          logger.debug(INFO_ACI_ADD_LIST_ACIS, Integer.toString(validAcis),
                 String.valueOf(baseDN));
-          logError(message);
         }
       }
       catch (Exception e)
@@ -1259,8 +1251,7 @@ public final class AciHandler extends
       if (globalAcis != null)
       {
         aciList.addAci(DN.rootDN(), globalAcis);
-        logError(INFO_ACI_ADD_LIST_GLOBAL_ACIS.get(
-            Integer.toString(globalAcis.size())));
+        logger.debug(INFO_ACI_ADD_LIST_GLOBAL_ACIS.get(Integer.toString(globalAcis.size())));
       }
     }
     catch (Exception e)
@@ -1461,9 +1452,7 @@ public final class AciHandler extends
       if (!operation.getClientConnection().hasPrivilege(
           Privilege.MODIFY_ACL, operation))
       {
-        LocalizableMessage message = INFO_ACI_ADD_FAILED_PRIVILEGE.get(
-            String.valueOf(entry.getName()), String.valueOf(clientDN));
-        logError(message);
+        logger.debug(INFO_ACI_ADD_FAILED_PRIVILEGE, String.valueOf(entry.getName()), String.valueOf(clientDN));
         return false;
       }
       List<Attribute> attributeList =

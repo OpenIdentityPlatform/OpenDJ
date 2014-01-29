@@ -31,11 +31,9 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 
 /**
  * This class defines a data structure that combines an address and port number,
@@ -313,8 +311,7 @@ public final class HostPort
     catch (UnknownHostException e)
     {
       // We could not resolve this host name, default to the provided host name
-      LocalizableMessage message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(host);
-      logError(message);
+      logger.error(ERR_COULD_NOT_SOLVE_HOSTNAME, host);
       return host;
     }
   }

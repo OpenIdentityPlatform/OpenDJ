@@ -30,7 +30,6 @@ package org.opends.server.extensions;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -214,10 +213,8 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR.get(
-            String.valueOf(TraditionalWorkQueueMonitor.class),
+        logger.error(ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR, String.valueOf(TraditionalWorkQueueMonitor.class),
             String.valueOf(e));
-        logError(message);
       }
     }
     finally
@@ -266,7 +263,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       {
         logger.traceException(e);
 
-        logError(WARN_QUEUE_UNABLE_TO_CANCEL.get(String.valueOf(o),
+        logger.warn(WARN_QUEUE_UNABLE_TO_CANCEL.get(String.valueOf(o),
             String.valueOf(e)));
       }
     }
@@ -282,7 +279,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       {
         logger.traceException(e);
 
-        logError(WARN_QUEUE_UNABLE_TO_NOTIFY_THREAD.get(t.getName(),
+        logger.warn(WARN_QUEUE_UNABLE_TO_NOTIFY_THREAD.get(t.getName(),
             String.valueOf(e)));
       }
     }
@@ -472,9 +469,8 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
       if (numFailures > MAX_RETRY_COUNT)
       {
-        LocalizableMessage message = ERR_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES.get(Thread
+        logger.error(ERR_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES, Thread
             .currentThread().getName(), numFailures, MAX_RETRY_COUNT);
-        logError(message);
 
         return null;
       }
@@ -520,7 +516,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
       // If we've gotten here, then the worker thread was interrupted for some
       // other reason. This should not happen, and we need to log a message.
-      logError(WARN_WORKER_INTERRUPTED_WITHOUT_SHUTDOWN.get(Thread
+      logger.warn(WARN_WORKER_INTERRUPTED_WITHOUT_SHUTDOWN.get(Thread
           .currentThread().getName(), String.valueOf(ie)));
     }
     catch (Exception e)
@@ -529,7 +525,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
       // This should not happen. The only recourse we have is to log a message
       // and try again.
-      logError(WARN_WORKER_WAITING_UNCAUGHT_EXCEPTION.get(Thread
+      logger.warn(WARN_WORKER_WAITING_UNCAUGHT_EXCEPTION.get(Thread
           .currentThread().getName(), String.valueOf(e)));
     }
     finally

@@ -29,7 +29,7 @@ package org.opends.server.schema;
 
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.Collection;
@@ -55,6 +55,9 @@ import org.opends.server.util.ServerConstants;
 class CaseExactIA5SubstringMatchingRule
        extends SubstringMatchingRule
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Creates a new instance of this caseExactSubstringsMatch matching rule.
    */
@@ -196,7 +199,7 @@ class CaseExactIA5SubstringMatchingRule
           case WARN:
             if (! logged)
             {
-              logError(message);
+              logger.error(message);
               logged = true;
             }
 
@@ -282,7 +285,7 @@ class CaseExactIA5SubstringMatchingRule
           case WARN:
             if (! logged)
             {
-              logError(message);
+              logger.error(message);
               logged = true;
             }
 

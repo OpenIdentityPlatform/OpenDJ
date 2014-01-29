@@ -27,6 +27,7 @@
 package org.opends.server.replication;
 
 import java.net.SocketTimeoutException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -60,6 +61,9 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class ProtocolWindowTest extends ReplicationTestCase
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   private static final int WINDOW_SIZE = 10;
   private static final int REPLICATION_QUEUE_SIZE = 100;
 
@@ -86,7 +90,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow")
   public void saturateQueueAndRestart() throws Exception
   {
-    logError(LocalizableMessage.raw("Starting Replication ProtocolWindowTest : saturateAndRestart"));
+    logger.error(LocalizableMessage.raw("Starting Replication ProtocolWindowTest : saturateAndRestart"));
 
     // suffix synchronized
     String testName = "protocolWindowTest";
@@ -179,11 +183,11 @@ public class ProtocolWindowTest extends ReplicationTestCase
         if (op.getResultCode() != ResultCode.SUCCESS
             && op.getResultCode() != ResultCode.NO_SUCH_OBJECT)
         {
-          logError(LocalizableMessage.raw("saturateQueueAndRestart: error cleaning config entry: " + dn));
+          logger.error(LocalizableMessage.raw("saturateQueueAndRestart: error cleaning config entry: " + dn));
         }
       } catch (NoSuchElementException e)
       {
-        logError(LocalizableMessage.raw("saturateQueueAndRestart: error cleaning config entry: " + dn));
+        logger.error(LocalizableMessage.raw("saturateQueueAndRestart: error cleaning config entry: " + dn));
       }
       clearChangelogDB(replicationServer);
     }

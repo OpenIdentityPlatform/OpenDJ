@@ -45,7 +45,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.EMailMessage;
 
-import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.ExtensionMessages.*;
 
 import static org.opends.server.util.StaticUtils.*;
@@ -174,7 +173,7 @@ public class SMTPAlertHandler
 
       LocalizableMessage msg = WARN_SMTPALERTHANDLER_ERROR_SENDING_MESSAGE.get(
           alertType, alertMessage, e.getLocalizedMessage());
-      ErrorLogger.logError(msg);
+      logger.error(msg);
     }
   }
 

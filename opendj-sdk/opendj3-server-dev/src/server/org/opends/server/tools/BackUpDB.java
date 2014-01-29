@@ -27,6 +27,7 @@
 package org.opends.server.tools;
 
 import java.io.File;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
@@ -72,7 +73,6 @@ import org.opends.server.util.cli.CLIException;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -87,6 +87,9 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class BackUpDB extends TaskTool
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * The main method for BackUpDB tool.
    *
@@ -777,9 +780,7 @@ public class BackUpDB extends TaskTool
         {
           if (! b.supportsBackup())
           {
-            LocalizableMessage message =
-                WARN_BACKUPDB_BACKUP_NOT_SUPPORTED.get(b.getBackendID());
-            logError(message);
+            logger.warn(WARN_BACKUPDB_BACKUP_NOT_SUPPORTED, b.getBackendID());
           }
           else
           {
@@ -794,8 +795,7 @@ public class BackUpDB extends TaskTool
       {
         for (String id : requestedBackends)
         {
-          LocalizableMessage message = ERR_BACKUPDB_NO_BACKENDS_FOR_ID.get(id);
-          logError(message);
+          logger.error(ERR_BACKUPDB_NO_BACKENDS_FOR_ID, id);
         }
 
         return 1;
@@ -810,8 +810,7 @@ public class BackUpDB extends TaskTool
     // If there are no backends to archive, then print an error and exit.
     if (backendsToArchive.isEmpty())
     {
-      LocalizableMessage message = WARN_BACKUPDB_NO_BACKENDS_TO_ARCHIVE.get();
-      logError(message);
+      logger.warn(WARN_BACKUPDB_NO_BACKENDS_TO_ARCHIVE);
       return 1;
     }
 
@@ -827,25 +826,20 @@ public class BackUpDB extends TaskTool
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
         {
-          LocalizableMessage message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
-              b.getBackendID(), String.valueOf(failureReason));
-          logError(message);
+          logger.error(ERR_BACKUPDB_CANNOT_LOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
           errorsEncountered = true;
           continue;
         }
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
-            b.getBackendID(), getExceptionMessage(e));
-        logError(message);
+        logger.error(ERR_BACKUPDB_CANNOT_LOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
         errorsEncountered = true;
         continue;
       }
 
 
-      LocalizableMessage message = NOTE_BACKUPDB_STARTING_BACKUP.get(b.getBackendID());
-      logError(message);
+      logger.info(NOTE_BACKUPDB_STARTING_BACKUP, b.getBackendID());
 
 
       // Get the config entry for this backend.
@@ -886,9 +880,7 @@ public class BackUpDB extends TaskTool
           }
           catch (ConfigException ce)
           {
-            message = ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR.get(
-                descriptorPath, ce.getMessage());
-            logError(message);
+            logger.error(ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR, descriptorPath, ce.getMessage());
             errorsEncountered = true;
 
             try
@@ -897,25 +889,19 @@ public class BackUpDB extends TaskTool
               StringBuilder failureReason = new StringBuilder();
               if (! LockFileManager.releaseLock(lockFile, failureReason))
               {
-                message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-                    b.getBackendID(), String.valueOf(failureReason));
-                logError(message);
+                logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
               }
             }
             catch (Exception e)
             {
-              message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-                  b.getBackendID(), getExceptionMessage(e));
-              logError(message);
+              logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
             }
 
             continue;
           }
           catch (Exception e)
           {
-            message = ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR.get(
-                descriptorPath, getExceptionMessage(e));
-            logError(message);
+            logger.error(ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR, descriptorPath, getExceptionMessage(e));
             errorsEncountered = true;
 
             try
@@ -924,16 +910,12 @@ public class BackUpDB extends TaskTool
               StringBuilder failureReason = new StringBuilder();
               if (! LockFileManager.releaseLock(lockFile, failureReason))
               {
-                message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-                    b.getBackendID(), String.valueOf(failureReason));
-                logError(message);
+                logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
               }
             }
             catch (Exception e2)
             {
-              message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-                  b.getBackendID(), getExceptionMessage(e2));
-              logError(message);
+              logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e2));
             }
 
             continue;
@@ -952,9 +934,7 @@ public class BackUpDB extends TaskTool
         }
         catch (Exception e)
         {
-          message = ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR.get(
-              backupDirPath, getExceptionMessage(e));
-          logError(message);
+          logger.error(ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR, backupDirPath, getExceptionMessage(e));
           errorsEncountered = true;
 
           try
@@ -963,16 +943,12 @@ public class BackUpDB extends TaskTool
             StringBuilder failureReason = new StringBuilder();
             if (! LockFileManager.releaseLock(lockFile, failureReason))
             {
-              message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-                  b.getBackendID(), String.valueOf(failureReason));
-              logError(message);
+              logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
             }
           }
           catch (Exception e2)
           {
-            message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-                b.getBackendID(), getExceptionMessage(e2));
-            logError(message);
+            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e2));
           }
 
           continue;
@@ -995,9 +971,7 @@ public class BackUpDB extends TaskTool
       StringBuilder unsupportedReason = new StringBuilder();
       if (! b.supportsBackup(backupConfig, unsupportedReason))
       {
-        message = ERR_BACKUPDB_CANNOT_BACKUP.get(
-            b.getBackendID(), unsupportedReason.toString());
-        logError(message);
+        logger.error(ERR_BACKUPDB_CANNOT_BACKUP, b.getBackendID(), unsupportedReason.toString());
         errorsEncountered = true;
 
         try
@@ -1006,16 +980,12 @@ public class BackUpDB extends TaskTool
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-                b.getBackendID(), String.valueOf(failureReason));
-            logError(message);
+            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
           }
         }
         catch (Exception e2)
         {
-          message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-              b.getBackendID(), getExceptionMessage(e2));
-          logError(message);
+          logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e2));
         }
 
         continue;
@@ -1029,9 +999,7 @@ public class BackUpDB extends TaskTool
       }
       catch (DirectoryException de)
       {
-        message = ERR_BACKUPDB_ERROR_DURING_BACKUP.get(
-            b.getBackendID(), de.getMessageObject());
-        logError(message);
+        logger.error(ERR_BACKUPDB_ERROR_DURING_BACKUP, b.getBackendID(), de.getMessageObject());
         errorsEncountered = true;
 
         try
@@ -1040,25 +1008,19 @@ public class BackUpDB extends TaskTool
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-                b.getBackendID(), String.valueOf(failureReason));
-            logError(message);
+            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
           }
         }
         catch (Exception e)
         {
-          message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-              b.getBackendID(), getExceptionMessage(e));
-          logError(message);
+          logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
         }
 
         continue;
       }
       catch (Exception e)
       {
-        message = ERR_BACKUPDB_ERROR_DURING_BACKUP.get(
-            b.getBackendID(), getExceptionMessage(e));
-        logError(message);
+        logger.error(ERR_BACKUPDB_ERROR_DURING_BACKUP, b.getBackendID(), getExceptionMessage(e));
         errorsEncountered = true;
 
         try
@@ -1067,16 +1029,12 @@ public class BackUpDB extends TaskTool
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-                b.getBackendID(), String.valueOf(failureReason));
-            logError(message);
+            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
           }
         }
         catch (Exception e2)
         {
-          message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-              b.getBackendID(), getExceptionMessage(e2));
-          logError(message);
+          logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e2));
         }
 
         continue;
@@ -1090,17 +1048,13 @@ public class BackUpDB extends TaskTool
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-              b.getBackendID(), String.valueOf(failureReason));
-          logError(message);
+          logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
           errorsEncountered = true;
         }
       }
       catch (Exception e)
       {
-        message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-            b.getBackendID(), getExceptionMessage(e));
-        logError(message);
+        logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
         errorsEncountered = true;
       }
     }
@@ -1111,14 +1065,12 @@ public class BackUpDB extends TaskTool
     int ret = 0;
     if (errorsEncountered)
     {
-      LocalizableMessage message = NOTE_BACKUPDB_COMPLETED_WITH_ERRORS.get();
-      logError(message);
+      logger.info(NOTE_BACKUPDB_COMPLETED_WITH_ERRORS);
       ret = 1;
     }
     else
     {
-      LocalizableMessage message = NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY.get();
-      logError(message);
+      logger.info(NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY);
     }
     return ret;
   }

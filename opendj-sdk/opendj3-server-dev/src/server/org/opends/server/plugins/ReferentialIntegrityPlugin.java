@@ -72,7 +72,6 @@ import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 
 import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -245,7 +244,7 @@ public class ReferentialIntegrityPlugin
         /* This should never happen because the filter has already
          * been verified.
          */
-        logError(de.getMessageObject());
+        logger.error(de.getMessageObject());
       }
     }
 
@@ -716,14 +715,13 @@ public class ReferentialIntegrityPlugin
         break;
 
       case NO_SUCH_OBJECT:
-        logError(INFO_PLUGIN_REFERENT_SEARCH_NO_SUCH_OBJECT.get(
-                      baseDN.toString()));
+        logger.debug(INFO_PLUGIN_REFERENT_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString()));
         return;
 
       default:
         LocalizableMessage message1 = ERR_PLUGIN_REFERENT_SEARCH_FAILED.
                 get(String.valueOf(operation.getErrorMessage()));
-        logError(message1);
+        logger.error(message1);
         return;
     }
 
@@ -817,7 +815,7 @@ public class ReferentialIntegrityPlugin
             conn.processModify(entryDN, mods);
     if(modifyOperation.getResultCode() != ResultCode.SUCCESS)
     {
-      logError(ERR_PLUGIN_REFERENT_MODIFY_FAILED.get(entryDN.toString(),
+      logger.error(ERR_PLUGIN_REFERENT_MODIFY_FAILED.get(entryDN.toString(),
                       String.valueOf(modifyOperation.getErrorMessage())));
     }
   }
@@ -903,7 +901,7 @@ public class ReferentialIntegrityPlugin
       }
       catch (IOException io)
       {
-        logError(ERR_PLUGIN_REFERENT_CLOSE_LOGFILE.get(io.getMessage()));
+        logger.error(ERR_PLUGIN_REFERENT_CLOSE_LOGFILE.get(io.getMessage()));
       }
     }
   }
@@ -931,7 +929,7 @@ public class ReferentialIntegrityPlugin
       }
       catch (IOException io)
       {
-        logError(ERR_PLUGIN_REFERENT_CLOSE_LOGFILE.get(io.getMessage()));
+        logger.error(ERR_PLUGIN_REFERENT_CLOSE_LOGFILE.get(io.getMessage()));
       }
     }
   }
@@ -970,17 +968,14 @@ public class ReferentialIntegrityPlugin
           } catch (DirectoryException ex) {
             //This exception should rarely happen since the plugin wrote the DN
             //strings originally.
-            LocalizableMessage message=
-                    ERR_PLUGIN_REFERENT_CANNOT_DECODE_STRING_AS_DN.
-                                                           get(ex.getMessage());
-            logError(message);
+            logger.error(ERR_PLUGIN_REFERENT_CANNOT_DECODE_STRING_AS_DN, ex.getMessage());
           }
         }
         reader.close();
         logFile.delete();
         logFile.createNewFile();
       } catch (IOException io) {
-        logError(ERR_PLUGIN_REFERENT_REPLACE_LOGFILE.get(io.getMessage()));
+        logger.error(ERR_PLUGIN_REFERENT_REPLACE_LOGFILE.get(io.getMessage()));
       }
     }
   }

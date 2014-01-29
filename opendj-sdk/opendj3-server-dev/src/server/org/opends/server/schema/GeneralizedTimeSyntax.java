@@ -49,7 +49,6 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -108,7 +107,7 @@ public class GeneralizedTimeSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_GENERALIZED_TIME_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
           EMR_GENERALIZED_TIME_OID, SYNTAX_GENERALIZED_TIME_NAME));
     }
 
@@ -116,7 +115,7 @@ public class GeneralizedTimeSyntax
          DirectoryServer.getOrderingMatchingRule(OMR_GENERALIZED_TIME_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
           OMR_GENERALIZED_TIME_OID, SYNTAX_GENERALIZED_TIME_NAME));
     }
 
@@ -124,7 +123,7 @@ public class GeneralizedTimeSyntax
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_CASE_IGNORE_OID, SYNTAX_GENERALIZED_TIME_NAME));
     }
   }

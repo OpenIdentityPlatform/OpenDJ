@@ -49,7 +49,6 @@ import static com.sleepycat.je.OperationStatus.*;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -436,7 +435,7 @@ public class ReplicationDbEnv
     }
     catch (DatabaseException e)
     {
-      logError(closeDBErrorMessage(null, e));
+      logger.error(closeDBErrorMessage(null, e));
     }
   }
 
@@ -449,7 +448,7 @@ public class ReplicationDbEnv
     }
     catch (DatabaseException e)
     {
-      logError(closeDBErrorMessage(db.getDatabaseName(), e));
+      logger.error(closeDBErrorMessage(db.getDatabaseName(), e));
     }
   }
 
@@ -562,7 +561,7 @@ public class ReplicationDbEnv
         mb.append(ERR_ERROR_CLEARING_DB.get(databaseName,
             e.getMessage() + " " +
             stackTraceToSingleLineString(e)));
-        logError(mb.toMessage());
+        logger.error(mb.toMessage());
       }
       finally
       {
@@ -609,7 +608,7 @@ public class ReplicationDbEnv
    */
   void shutdownOnException(DatabaseException e)
   {
-    logError(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR
+    logger.error(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR
         .get(stackTraceToSingleLineString(e)));
     replicationServer.shutdown();
   }

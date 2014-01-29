@@ -74,7 +74,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.ServerConstants;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -328,8 +327,7 @@ public class FileSystemEntryCache
               INDEXKEY.getBytes("UTF-8"));
 
           // Persistent state report.
-          LocalizableMessage message = NOTE_FSCACHE_RESTORE.get();
-          logError(message);
+          logger.info(NOTE_FSCACHE_RESTORE);
 
           if (OperationStatus.SUCCESS ==
               entryCacheDB.get(null, indexKey, indexData, LockMode.DEFAULT)) {
@@ -364,7 +362,7 @@ public class FileSystemEntryCache
                 // Remove cache entries specific to this backend.
                 clearBackend(DirectoryServer.getBackend(backend));
                 // Log an error message.
-                logError(WARN_FSCACHE_OFFLINE_STATE_FAIL.get(backend));
+                logger.warn(WARN_FSCACHE_OFFLINE_STATE_FAIL.get(backend));
               }
             }
             // Pop max entries limit.
@@ -372,15 +370,13 @@ public class FileSystemEntryCache
           }
 
           // Persistent state report.
-          message = NOTE_FSCACHE_RESTORE_REPORT.get(
-            entryCacheIndex.dnMap.size());
-          logError(message);
+          logger.info(NOTE_FSCACHE_RESTORE_REPORT, entryCacheIndex.dnMap.size());
 
         } catch (CacheIndexNotFoundException e) {
           logger.traceException(e);
 
           // Log an error message.
-          logError(NOTE_FSCACHE_INDEX_NOT_FOUND.get());
+          logger.info(NOTE_FSCACHE_INDEX_NOT_FOUND.get());
 
           // Clear the entry cache.
           clear();
@@ -388,7 +384,7 @@ public class FileSystemEntryCache
           logger.traceException(e);
 
           // Log an error message.
-          logError(ERR_FSCACHE_INDEX_IMPAIRED.get());
+          logger.error(ERR_FSCACHE_INDEX_IMPAIRED.get());
 
           // Clear the entry cache.
           clear();
@@ -396,7 +392,7 @@ public class FileSystemEntryCache
           logger.traceException(e);
 
           // Log an error message.
-          logError(ERR_FSCACHE_CANNOT_LOAD_PERSISTENT_DATA.get());
+          logger.error(ERR_FSCACHE_CANNOT_LOAD_PERSISTENT_DATA.get());
 
           // Clear the entry cache.
           clear();
@@ -443,8 +439,7 @@ public class FileSystemEntryCache
           DatabaseEntry indexData = new DatabaseEntry();
 
           // Persistent state save report.
-          LocalizableMessage message = NOTE_FSCACHE_SAVE.get();
-          logError(message);
+          logger.info(NOTE_FSCACHE_SAVE);
           //This line causes an unchecked call error if the SuppressWarnings
           //annotation is removed at the beginning of this method.
           entryCacheDataBinding.objectToEntry(entryCacheIndex, indexData);
@@ -458,13 +453,11 @@ public class FileSystemEntryCache
           logger.traceException(e);
 
           // Log an error message.
-          logError(ERR_FSCACHE_CANNOT_STORE_PERSISTENT_DATA.get());
+          logger.error(ERR_FSCACHE_CANNOT_STORE_PERSISTENT_DATA.get());
         }
 
         // Persistent state save report.
-        LocalizableMessage message = NOTE_FSCACHE_SAVE_REPORT.get(
-          entryCacheIndex.dnMap.size());
-        logError(message);
+        logger.info(NOTE_FSCACHE_SAVE_REPORT, entryCacheIndex.dnMap.size());
       }
 
       // Close JE databases and environment and clear all the maps.
@@ -1294,7 +1287,7 @@ public class FileSystemEntryCache
       logger.traceException(e);
 
       // Log an error message.
-      logError(ERR_FSCACHE_CANNOT_RETRIEVE_ENTRY.get());
+      logger.error(ERR_FSCACHE_CANNOT_RETRIEVE_ENTRY.get());
     }
     return null;
   }
@@ -1379,7 +1372,7 @@ public class FileSystemEntryCache
       logger.traceException(e);
 
       // Log an error message.
-      logError(
+      logger.error(
           ERR_FSCACHE_CANNOT_STORE_ENTRY.get());
 
       return false;
@@ -1425,8 +1418,7 @@ public class FileSystemEntryCache
           }
         } catch(Exception e) {
           // Log a warning that the permissions were not set.
-          LocalizableMessage message = WARN_FSCACHE_SET_PERMISSIONS_FAILED.get(cacheHome);
-          logError(message);
+          logger.warn(WARN_FSCACHE_SET_PERMISSIONS_FAILED, cacheHome);
         }
       }
     } else {

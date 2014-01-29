@@ -26,6 +26,7 @@
  */
 package org.opends.server.extensions;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -48,7 +49,6 @@ import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.messages.ExtensionMessages.*;
-import org.opends.server.loggers.ErrorLogger;
 
 /**
  * This class implements a Directory Server thread that will be used to perform
@@ -61,6 +61,9 @@ public class DynamicGroupSearchThread
        extends DirectoryThread
        implements InternalSearchListener
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // The set of base DNs for the search requests.
   private final DN[] baseDNs;
 
@@ -132,10 +135,8 @@ public class DynamicGroupSearchThread
       {
         if (resultCode == ResultCode.NO_SUCH_OBJECT)
         {
-          LocalizableMessage message = WARN_DYNAMICGROUP_NONEXISTENT_BASE_DN.
-              get(String.valueOf(baseDNs[searchCounter]),
+          logger.warn(WARN_DYNAMICGROUP_NONEXISTENT_BASE_DN, String.valueOf(baseDNs[searchCounter]),
                   String.valueOf(memberList.getDynamicGroupDN()));
-          ErrorLogger.logError(message);
           continue;
         }
         else

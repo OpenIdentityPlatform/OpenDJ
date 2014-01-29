@@ -175,10 +175,10 @@ public class ParallelWorkerThread
 
         try
         {
-          LocalizableMessage message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.
-              get(getName(), String.valueOf(operation),
-                  stackTraceToSingleLineString(t));
-          logError(message);
+          LocalizableMessage message =
+              ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(getName(), String
+                  .valueOf(operation), stackTraceToSingleLineString(t));
+          logger.error(message);
 
           operation.setResultCode(DirectoryServer.getServerErrorResultCode());
           operation.appendErrorMessage(message);
@@ -218,11 +218,11 @@ public class ParallelWorkerThread
     // and we will want to log a message.
     if (stoppedByReducedThreadNumber)
     {
-      logError(INFO_WORKER_STOPPED_BY_REDUCED_THREADNUMBER.get(getName()));
+      logger.debug(INFO_WORKER_STOPPED_BY_REDUCED_THREADNUMBER.get(getName()));
     }
     else if (! workQueue.shutdownRequested())
     {
-      logError(WARN_UNEXPECTED_WORKER_THREAD_EXIT.get(getName()));
+      logger.warn(WARN_UNEXPECTED_WORKER_THREAD_EXIT.get(getName()));
     }
 
 

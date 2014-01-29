@@ -27,6 +27,7 @@
 package org.opends.server.protocols.jmx;
 
 import java.io.IOException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -59,6 +60,9 @@ public final class JmxConnectionHandler extends
     ConnectionHandler<JMXConnectionHandlerCfg> implements
     ServerShutdownListener,
     ConfigurationChangeListener<JMXConnectionHandlerCfg> {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
 
   /**
    * Key that may be placed into a JMX connection environment map to
@@ -306,7 +310,7 @@ public final class JmxConnectionHandler extends
         config.getListenPort(), reasons))
     {
       LocalizableMessage message = reasons.get(0);
-      logError(message);
+      logger.error(message);
       throw new InitializationException(message);
     }
 

@@ -30,9 +30,9 @@ package org.opends.server.schema;
 
 
 import static org.opends.messages.ConfigMessages.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -78,6 +78,9 @@ public final class CollationMatchingRuleFactory extends
     MatchingRuleFactory<CollationMatchingRuleCfg> implements
     ConfigurationChangeListener<CollationMatchingRuleCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
 
   // Whether equality matching rules are enabled.
   private boolean equalityMatchingRuleType;
@@ -252,7 +255,7 @@ public final class CollationMatchingRuleFactory extends
         LocalizableMessage msg =
             WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_FORMAT
                 .get(collation);
-        logError(msg);
+        logger.error(msg);
         continue;
       }
 
@@ -274,7 +277,7 @@ public final class CollationMatchingRuleFactory extends
                 collation, configuration.dn().toNormalizedString(),
                 languageTag);
 
-        logError(msg);
+        logger.error(msg);
       }
     }
 

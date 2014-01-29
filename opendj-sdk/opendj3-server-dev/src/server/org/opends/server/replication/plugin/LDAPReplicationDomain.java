@@ -388,7 +388,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       // Replication server is missing some of our changes: let's
       // send them to him.
-      logError(DEBUG_GOING_TO_SEARCH_FOR_CHANGES.get());
+      logger.trace(DEBUG_GOING_TO_SEARCH_FOR_CHANGES.get());
 
       /*
        * Get all the changes that have not been seen by this
@@ -398,7 +398,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         if (buildAndPublishMissingChanges(startCSN, broker, shutdown))
         {
-          logError(DEBUG_CHANGES_SENT.get());
+          logger.trace(DEBUG_CHANGES_SENT.get());
           synchronized(replayOperations)
           {
             replayOperations.clear();
@@ -413,7 +413,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * Log an error for the repair tool
            * that will need to re-synchronize the servers.
            */
-          logError(ERR_CANNOT_RECOVER_CHANGES.get(getBaseDNString()));
+          logger.error(ERR_CANNOT_RECOVER_CHANGES.get(getBaseDNString()));
         }
       } catch (Exception e)
       {
@@ -424,7 +424,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * Log an error for the repair tool
          * that will need to re-synchronize the servers.
          */
-        logError(ERR_CANNOT_RECOVER_CHANGES.get(getBaseDNString()));
+        logger.error(ERR_CANNOT_RECOVER_CHANGES.get(getBaseDNString()));
       }
       finally
       {
@@ -481,7 +481,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     catch (DirectoryException e)
     {
-      logError(ERR_LOADING_GENERATION_ID.get(
+      logger.error(ERR_LOADING_GENERATION_ID.get(
           getBaseDNString(), stackTraceToSingleLineString(e)));
     }
 
@@ -569,7 +569,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // Should not happen as normally already called without problem in
       // isConfigurationChangeAcceptable or isConfigurationAcceptable
       // if we come up to this method
-      logError(NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
+      logger.error(NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
           stackTraceToSingleLineString(e)));
       return;
     }
@@ -588,7 +588,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     catch  (ConfigException e)
     {
       // Should not happen
-      logError(NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
+      logger.error(NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
           stackTraceToSingleLineString(e)));
       return;
     }
@@ -662,7 +662,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     if (search.getResultCode() != ResultCode.SUCCESS
         && search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
     {
-      logError(ERR_SEARCHING_GENERATION_ID.get(
+      logger.error(ERR_SEARCHING_GENERATION_ID.get(
         search.getResultCode().getResultCodeName() + " " +
         search.getErrorMessage(),
         getBaseDNString()));
@@ -715,7 +715,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         if (attr.size() > 1)
         {
-          logError(ERR_LOADING_GENERATION_ID.get(getBaseDNString(),
+          logger.error(ERR_LOADING_GENERATION_ID.get(getBaseDNString(),
               "#Values=" + attr.size() + " Must be exactly 1 in entry "
               + resultEntry.toLDIFString()));
         }
@@ -776,7 +776,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       // Should not happen as configuration in domain root entry is flushed
       // from valid configuration in local variables
-      logError(NOTE_ERR_FRACTIONAL.get(
+      logger.error(NOTE_ERR_FRACTIONAL.get(
           fractionalConfig.getBaseDn().toString(),
           stackTraceToSingleLineString(e)));
       return false;
@@ -810,7 +810,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // Should not happen as configuration in domain root entry is flushed
       // from valid configuration in local variables so both should have already
       // been checked
-      logError(NOTE_ERR_FRACTIONAL.get(
+      logger.error(NOTE_ERR_FRACTIONAL.get(
           fractionalConfig.getBaseDn().toString(),
           stackTraceToSingleLineString(e)));
       return false;
@@ -1421,7 +1421,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     catch(DirectoryException e)
     {
-      logError(NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
+      logger.error(NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
           stackTraceToSingleLineString(e)));
       return FRACTIONAL_HAS_NO_FRACTIONAL_FILTERED_ATTRIBUTES;
     }
@@ -2017,7 +2017,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         catch  (NoSuchElementException e)
         {
-          logError(ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
+          logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
               op.toString(), curCSN.toString()));
           return;
         }
@@ -2035,7 +2035,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           * It should never happen.
           */
           pendingChanges.remove(curCSN);
-          logError(ERR_UNKNOWN_TYPE.get(op.getOperationType().toString()));
+          logger.error(ERR_UNKNOWN_TYPE.get(op.getOperationType().toString()));
           return;
         }
 
@@ -2055,7 +2055,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         catch (NoSuchElementException e)
         {
-          logError(ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
+          logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
               op.toString(), curCSN.toString()));
           return;
         }
@@ -2068,7 +2068,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         } catch (TimeoutException ex)
         {
           // This exception may only be raised if assured replication is enabled
-          logError(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
+          logger.error(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
               Long.toString(getAssuredTimeout()), msg.toString()));
         }
       }
@@ -2170,7 +2170,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        ResultCode res = newOp.getResultCode();
        if (res != ResultCode.SUCCESS)
        {
-        logError(ERR_COULD_NOT_SOLVE_CONFLICT.get(
+        logger.error(ERR_COULD_NOT_SOLVE_CONFLICT.get(
             entryDN.toString(), res.toString()));
        }
      }
@@ -2444,7 +2444,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           // Let the repair tool know about this.
           LocalizableMessage message = ERR_LOOP_REPLAYING_OPERATION.get(op.toString(),
             op.getErrorMessage().toString());
-          logError(message);
+          logger.error(message);
           numUnresolvedNamingConflicts.incrementAndGet();
           replayErrorMsg = message.toString();
           updateError(csn);
@@ -2468,9 +2468,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * to be inconsistent.
            * Let the repair tool know about this.
            */
-          LocalizableMessage message = ERR_EXCEPTION_REPLAYING_OPERATION.get(
-            stackTraceToSingleLineString(e), op.toString());
-          logError(message);
+          LocalizableMessage message =
+              ERR_EXCEPTION_REPLAYING_OPERATION.get(
+                  stackTraceToSingleLineString(e), op.toString());
           replayErrorMsg = message.toString();
           updateError(csn);
         } else
@@ -2494,9 +2494,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   private String logDecodingOperationError(LDAPUpdateMsg msg, Exception e)
   {
-    LocalizableMessage message = ERR_EXCEPTION_DECODING_OPERATION.get(
-        String.valueOf(msg) + " " + stackTraceToSingleLineString(e));
-    logError(message);
+    LocalizableMessage message =
+        ERR_EXCEPTION_DECODING_OPERATION.get(String.valueOf(msg) + " "
+            + stackTraceToSingleLineString(e));
+    logger.error(message);
     return message.toString();
   }
 
@@ -2699,7 +2700,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       // The other type of errors can not be caused by naming conflicts.
       // Log a message for the repair tool.
-      logError(ERR_ERROR_REPLAYING_OPERATION.get(
+      logger.error(ERR_ERROR_REPLAYING_OPERATION.get(
           op.toString(), ctx.getCSN().toString(),
           result.toString(), op.getErrorMessage().toString()));
       return true;
@@ -2768,7 +2769,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    {
      // The other type of errors can not be caused by naming conflicts.
      // Log a message for the repair tool.
-     logError(ERR_ERROR_REPLAYING_OPERATION.get(
+     logger.error(ERR_ERROR_REPLAYING_OPERATION.get(
          op.toString(), ctx.getCSN().toString(),
          result.toString(), op.getErrorMessage().toString()));
      return true;
@@ -2888,7 +2889,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     // The other type of errors can not be caused by naming conflicts.
     // Log a message for the repair tool.
-    logError(ERR_ERROR_REPLAYING_OPERATION.get(
+    logger.error(ERR_ERROR_REPLAYING_OPERATION.get(
         op.toString(), ctx.getCSN().toString(),
         result.toString(), op.getErrorMessage().toString()));
     return true;
@@ -2986,7 +2987,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       // The other type of errors can not be caused by naming conflicts.
       // log a message for the repair tool.
-      logError(ERR_ERROR_REPLAYING_OPERATION.get(
+      logger.error(ERR_ERROR_REPLAYING_OPERATION.get(
           op.toString(), ctx.getCSN().toString(),
           result.toString(), op.getErrorMessage().toString()));
       return true;
@@ -3051,7 +3052,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         mb.append(String.valueOf(conflictOp));
         mb.append(" ");
         mb.append(String.valueOf(op.getResultCode()));
-        logError(mb.toMessage());
+        logger.error(mb.toMessage());
       }
     } catch (DirectoryException e)
     {
@@ -3063,7 +3064,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       mb.append(String.valueOf(conflictOp));
       mb.append(" ");
       mb.append(stackTraceToSingleLineString(e));
-      logError(mb.toMessage());
+      logger.error(mb.toMessage());
     }
 
     return conflict;
@@ -3098,7 +3099,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       mb.append(String.valueOf(conflictOp));
       mb.append(" ");
       mb.append(String.valueOf(newOp.getResultCode()));
-      logError(mb.toMessage());
+      logger.error(mb.toMessage());
     }
   }
 
@@ -3135,7 +3136,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       mb.append(String.valueOf(op));
       mb.append(" ");
       mb.append(String.valueOf(newOp.getResultCode()));
-      logError(mb.toMessage());
+      logger.error(mb.toMessage());
     }
 
     // Generate an alert to let the administration know that some
@@ -3296,7 +3297,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        * not available, log an error and retry upon timeout
        * should we stop the modifications ?
        */
-      logError(ERR_LOADING_GENERATION_ID.get(
+      logger.error(ERR_LOADING_GENERATION_ID.get(
           getBaseDNString(), stackTraceToSingleLineString(e)));
       return;
     }
@@ -3375,7 +3376,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       if (result != ResultCode.SUCCESS)
       {
-        logError(ERR_UPDATING_GENERATION_ID.get(
+        logger.error(ERR_UPDATING_GENERATION_ID.get(
             result.getResultCodeName(), getBaseDNString()));
       }
     }
@@ -3428,7 +3429,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       if (search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
       {
-        logError(ERR_SEARCHING_GENERATION_ID.get(
+        logger.error(ERR_SEARCHING_GENERATION_ID.get(
             search.getResultCode().getResultCodeName() + " " +
             search.getErrorMessage(),
             getBaseDNString()));
@@ -3449,7 +3450,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           Attribute attr = attrs.get(0);
           if (attr.size()>1)
           {
-            logError(ERR_LOADING_GENERATION_ID.get(
+            logger.error(ERR_LOADING_GENERATION_ID.get(
                 getBaseDNString(), "#Values=" + attr.size() +
                 " Must be exactly 1 in entry " + resultEntry.toLDIFString()));
           }
@@ -3462,7 +3463,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
             }
             catch(Exception e)
             {
-              logError(ERR_LOADING_GENERATION_ID.get(
+              logger.error(ERR_LOADING_GENERATION_ID.get(
                   getBaseDNString(), stackTraceToSingleLineString(e)));
             }
           }
@@ -3548,17 +3549,19 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-        logError(message);
+        LocalizableMessage message =
+            ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(backend.getBackendID(),
+                String.valueOf(failureReason));
+        logger.error(message);
         throw new DirectoryException(ResultCode.OTHER, message);
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
-          backend.getBackendID(), stackTraceToSingleLineString(e));
-      logError(message);
+      LocalizableMessage message =
+          ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(backend.getBackendID(),
+              stackTraceToSingleLineString(e));
+      logger.error(message);
       throw new DirectoryException(ResultCode.OTHER, message);
     }
 
@@ -3619,17 +3622,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       if (ros == null ||
           ros.getNumExportedEntries() < entryCount)
       {
-        LocalizableMessage message =
-            ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
-        logError(message);
+        LocalizableMessage message = ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
+        logger.error(message);
         throw new DirectoryException(ResultCode.OTHER, message);
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(
-          stackTraceToSingleLineString(e));
-      logError(message);
+      LocalizableMessage message = ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(stackTraceToSingleLineString(e));
+      logger.error(message);
       throw new DirectoryException(ResultCode.OTHER, message);
     }
     finally
@@ -3650,17 +3651,19 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          LocalizableMessage message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
-              backend.getBackendID(), String.valueOf(failureReason));
-          logError(message);
+          LocalizableMessage message =
+              WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(),
+                  String.valueOf(failureReason));
+          logger.warn(message);
           throw new DirectoryException(ResultCode.OTHER, message);
         }
       }
       catch (Exception e)
       {
-        LocalizableMessage message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
-            backend.getBackendID(), stackTraceToSingleLineString(e));
-        logError(message);
+        LocalizableMessage message =
+            WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(),
+                stackTraceToSingleLineString(e));
+        logger.warn(message);
         throw new DirectoryException(ResultCode.OTHER, message);
       }
     }
@@ -3688,10 +3691,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     StringBuilder failureReason = new StringBuilder();
     if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
     {
-      LocalizableMessage message = ERR_INIT_CANNOT_LOCK_BACKEND.get(
-                          backend.getBackendID(),
-                          String.valueOf(failureReason));
-      logError(message);
+      LocalizableMessage message = ERR_INIT_CANNOT_LOCK_BACKEND.get(backend.getBackendID(),
+          String.valueOf(failureReason));
+      logger.error(message);
       throw new DirectoryException(ResultCode.OTHER, message);
     }
   }
@@ -3803,9 +3805,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // Release lock
     if (!LockFileManager.releaseLock(lockFile, failureReason))
     {
-      LocalizableMessage message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
-          backend.getBackendID(), String.valueOf(failureReason));
-      logError(message);
+      LocalizableMessage message =
+          WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(),
+              String.valueOf(failureReason));
+      logger.warn(message);
       throw new DirectoryException(ResultCode.OTHER, message);
     }
 
@@ -4048,7 +4051,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     catch(Exception e)
     {
       logger.traceException(e);
-      logError(ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(
+      logger.error(ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(
           stackTraceToSingleLineString(e)));
     }
   }
@@ -4155,7 +4158,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       catch (DirectoryException de)
       {
-        logError(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
+        logger.error(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
             "Replication Domain on " + getBaseDNString(),
             stackTraceToSingleLineString(de)));
         // and go on
@@ -4168,7 +4171,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // Go into bad data set status
       setNewStatus(StatusMachineEvent.TO_BAD_GEN_ID_STATUS_EVENT);
       broker.signalStatusChange(status);
-      logError(NOTE_FRACTIONAL_BAD_DATA_SET_NEED_RESYNC.get(getBaseDNString()));
+      logger.error(NOTE_FRACTIONAL_BAD_DATA_SET_NEED_RESYNC.get(getBaseDNString()));
       return; // Do not send changes to the replication server
     }
 
@@ -4206,7 +4209,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
     } catch (Exception e)
     {
-      logError(ERR_PUBLISHING_FAKE_OPS.get(getBaseDNString(),
+      logger.error(ERR_PUBLISHING_FAKE_OPS.get(getBaseDNString(),
           stackTraceToSingleLineString(e)));
     }
   }
@@ -4414,7 +4417,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     if (!backend.supportsLDIFExport())
     {
       LocalizableMessage msg = ERR_INIT_EXPORT_NOT_SUPPORTED.get(backend.getBackendID());
-      logError(msg);
+      logger.error(msg);
       throw new DirectoryException(ResultCode.OTHER, msg);
     }
 
@@ -5185,7 +5188,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          mb.append(String.valueOf(newOp));
          mb.append(" ");
          mb.append(String.valueOf(newOp.getResultCode()));
-         logError(mb.toMessage());
+         logger.error(mb.toMessage());
        }
        else if (task != null)
        {

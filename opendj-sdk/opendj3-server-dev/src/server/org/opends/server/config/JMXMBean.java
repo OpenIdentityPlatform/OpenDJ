@@ -160,9 +160,7 @@ public final class JMXMBean
       {
         logger.traceException(e);
 
-          LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN.get(
-              configEntryDN.toString(), String.valueOf(e));
-          logError(message);
+          logger.error(ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN, configEntryDN.toString(), String.valueOf(e));
       }
       return nameStr ;
   }
@@ -209,9 +207,7 @@ public final class JMXMBean
               logger.traceException(e);
                 e.printStackTrace();
 
-                LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN.get(
-                    configEntryDN.toString(), String.valueOf(e));
-                logError(message);
+                logger.error(ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN, configEntryDN.toString(), String.valueOf(e));
             }
         }
     }
@@ -524,9 +520,8 @@ public final class JMXMBean
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
-          String.valueOf(configEntryDN), attributeName);
-      logError(message);
+      LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(String.valueOf(configEntryDN), attributeName);
+      logger.error(message);
       throw new AttributeNotFoundException(message.toString());
     }
   }

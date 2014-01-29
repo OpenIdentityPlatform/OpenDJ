@@ -46,7 +46,6 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -2262,10 +2261,8 @@ public final class SearchFilter
       case UNDEFINED:
         return false;
       default:
-        LocalizableMessage message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-            get(String.valueOf(entry.getName()), toString(),
+        logger.error(ERR_SEARCH_FILTER_INVALID_RESULT_TYPE, String.valueOf(entry.getName()), toString(),
                 String.valueOf(result));
-        logError(message);
         return false;
     }
   }

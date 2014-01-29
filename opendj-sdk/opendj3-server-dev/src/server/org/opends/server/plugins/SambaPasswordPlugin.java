@@ -29,7 +29,6 @@ package org.opends.server.plugins;
 
 
 import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.StaticUtils.bytesToHexNoSpace;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
@@ -898,7 +897,7 @@ public final class SambaPasswordPlugin extends
     {
       for (final LocalizableMessage m : messages)
       {
-        logError(m);
+        logger.error(m);
       }
       throw new ConfigException(messages.poll());
     }

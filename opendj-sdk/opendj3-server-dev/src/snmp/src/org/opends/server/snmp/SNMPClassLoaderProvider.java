@@ -27,13 +27,9 @@
 package org.opends.server.snmp;
 
 import com.sun.management.comm.CommunicatorServer;
+
 import java.io.File;
 
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import com.sun.management.comm.SnmpV3AdaptorServer;
 import com.sun.management.snmp.InetAddressAcl;
@@ -43,9 +39,11 @@ import com.sun.management.snmp.UserAcl;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.SortedSet;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import org.forgerock.i18n.LocalizableMessage;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
@@ -54,17 +52,14 @@ import org.opends.server.util.StaticUtils;
 import org.forgerock.util.Reject;
 
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 
 /**
  * The SNMPClassLoaderProvider.
  */
 public class SNMPClassLoaderProvider {
 
-    /**
-     * The debug log tracer for this class.
-     */
-    private static final DebugTracer TRACER = DebugLogger.getTracer();
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     /**
      * The current configuration state.
      */
@@ -180,9 +175,7 @@ public class SNMPClassLoaderProvider {
                 }
             }
         } catch (Exception ex) {
-            if (debugEnabled()) {
-                TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-            }
+            logger.traceException(ex);
         }
 
         // Check if the security file
@@ -262,9 +255,7 @@ public class SNMPClassLoaderProvider {
                     this.currentConfig.getTrapsDestination());
 
             if (this.sentTraps == false) {
-                LocalizableMessage message =
-                        ERR_SNMP_CONNHANDLER_NO_VALID_TRAP_DESTINATIONS.get();
-                logError(message);
+                logger.error(ERR_SNMP_CONNHANDLER_NO_VALID_TRAP_DESTINATIONS);
             } else {
                 // Send a coldStart SNMP Trap.
                 this.snmpAdaptor.setTrapPort(snmpTrapPort);
@@ -309,7 +300,7 @@ public class SNMPClassLoaderProvider {
                         0,
                         null);
             }
-            String[] names = this.snmpAdaptor.getMibs();
+            this.snmpAdaptor.getMibs();
 
             // Stop the SNMP Adaptor
             this.snmpAdaptor.stop();
@@ -331,9 +322,7 @@ public class SNMPClassLoaderProvider {
                 this.server.unregisterMBean(this.UsmObjName);
             }
         } catch (Exception ex) {
-            if (debugEnabled()) {
-                TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-            }
+            logger.traceException(ex);
         }
     }
 
@@ -367,12 +356,12 @@ public class SNMPClassLoaderProvider {
             engineParameters.activateEncryption();
 
             // Create the UACL controller
-            UserAcl uacls = (UserAcl) new SNMPUserAcl(configuration);
+            UserAcl uacls = new SNMPUserAcl(configuration);
             engineParameters.setUserAcl(uacls);
 
             // V1/V2 Security parameters
             InetAddressAcl acls =
-                    (InetAddressAcl) new SNMPInetAddressAcl(configuration);
+                    new SNMPInetAddressAcl(configuration);
 
             adaptor = new SnmpV3AdaptorServer(engineParameters, null, acls,
                     configuration.getListenPort(), null);
@@ -382,7 +371,7 @@ public class SNMPClassLoaderProvider {
 
             return adaptor;
         } catch (Exception ex) {
-            TRACER.debugError("Could not instanciate the SNMP Adaptor");
+            logger.trace("Could not instanciate the SNMP Adaptor");
             return null;
         }
     }
@@ -397,12 +386,10 @@ public class SNMPClassLoaderProvider {
         boolean found = false;
         for (String dest : destinations) {
             try {
-                InetAddress addr = InetAddress.getByName(dest);
+                InetAddress.getByName(dest);
                 found = true;
             } catch (UnknownHostException ex) {
-                LocalizableMessage message = ERR_SNMP_CONNHANDLER_TRAPS_DESTINATION.get(
-                        dest);
-                logError(message);
+                logger.error(ERR_SNMP_CONNHANDLER_TRAPS_DESTINATION, dest);
             }
         }
         return found;

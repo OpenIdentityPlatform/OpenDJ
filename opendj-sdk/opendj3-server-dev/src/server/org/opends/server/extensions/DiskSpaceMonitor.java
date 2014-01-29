@@ -32,7 +32,6 @@ import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import static org.opends.messages.CoreMessages.
@@ -292,8 +291,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
     }
     catch(Exception e)
     {
-      ErrorLogger.logError(ERR_DISK_SPACE_MONITOR_UPDATE_FAILED.get(
-          directory.getPath(), e.toString()));
+      logger.error(ERR_DISK_SPACE_MONITOR_UPDATE_FAILED.get(directory.getPath(), e.toString()));
 
       logger.traceException(e);
     }

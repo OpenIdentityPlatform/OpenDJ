@@ -28,6 +28,7 @@ package org.opends.server.extensions;
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
@@ -51,6 +52,9 @@ import org.opends.server.types.SearchFilter;
  */
 public class EntryCacheCommon
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Configuration phases. Each value identifies a configuration step:
    * - PHASE_INIT       when invoking method initializeEntryCache()
@@ -186,7 +190,7 @@ public class EntryCacheCommon
       {
       case PHASE_INIT:
         {
-        logError (error);
+        logger.error(error);
         break;
         }
       case PHASE_ACCEPTABLE:

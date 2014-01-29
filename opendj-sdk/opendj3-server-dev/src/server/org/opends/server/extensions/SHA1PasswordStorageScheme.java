@@ -44,7 +44,6 @@ import org.opends.server.util.Base64;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -255,8 +254,7 @@ public class SHA1PasswordStorageScheme
     {
       logger.traceException(e);
 
-      logError(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
-          storedPassword.toString(), String.valueOf(e)));
+      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(storedPassword.toString(), String.valueOf(e)));
 
       return false;
     }

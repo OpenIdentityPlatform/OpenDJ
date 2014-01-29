@@ -29,6 +29,7 @@ package org.opends.server.util;
 
 
 import java.security.cert.CertificateException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
@@ -37,9 +38,7 @@ import javax.net.ssl.X509TrustManager;
 
 
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.UtilityMessages.*;
-import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -55,6 +54,9 @@ import org.forgerock.i18n.LocalizableMessage;
 public final class ExpirationCheckTrustManager
        implements X509TrustManager
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   // The trust manager that is wrapped by this trust manager.
   private X509TrustManager trustManager;
 
@@ -98,17 +100,15 @@ public final class ExpirationCheckTrustManager
       }
       catch (CertificateExpiredException cee)
       {
-        LocalizableMessage message = ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_EXPIRED.get(
-            c.getSubjectDN().getName(), String.valueOf(c.getNotAfter()));
-        logError(message);
+        logger.error(ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_EXPIRED, c
+            .getSubjectDN().getName(), String.valueOf(c.getNotAfter()));
 
         throw cee;
       }
       catch (CertificateNotYetValidException cnyve)
       {
-        LocalizableMessage message = ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_NOT_YET_VALID.get(
-            c.getSubjectDN().getName(), String.valueOf(c.getNotBefore()));
-        logError(message);
+        logger.error(ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_NOT_YET_VALID, c
+            .getSubjectDN().getName(), String.valueOf(c.getNotBefore()));
 
         throw cnyve;
       }
@@ -143,17 +143,15 @@ public final class ExpirationCheckTrustManager
       }
       catch (CertificateExpiredException cee)
       {
-        LocalizableMessage message = ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_EXPIRED.get(
-            c.getSubjectDN().getName(), String.valueOf(c.getNotAfter()));
-        logError(message);
+        logger.error(ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_EXPIRED, c
+            .getSubjectDN().getName(), String.valueOf(c.getNotAfter()));
 
         throw cee;
       }
       catch (CertificateNotYetValidException cnyve)
       {
-        LocalizableMessage message = ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_NOT_YET_VALID.get(
-            c.getSubjectDN().getName(), String.valueOf(c.getNotBefore()));
-        logError(message);
+        logger.error(ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_NOT_YET_VALID, c
+            .getSubjectDN().getName(), String.valueOf(c.getNotBefore()));
 
         throw cnyve;
       }

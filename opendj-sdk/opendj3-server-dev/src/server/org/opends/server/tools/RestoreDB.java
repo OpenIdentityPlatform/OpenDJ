@@ -26,6 +26,7 @@
  */
 package org.opends.server.tools;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 
 
@@ -61,7 +62,6 @@ import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.cli.CLIException;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -79,6 +79,9 @@ import org.opends.server.tasks.RestoreTask;
  * internally within the server process (e.g., via the tasks interface).
  */
 public class RestoreDB extends TaskTool {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * The main method for RestoreDB tool.
    *
@@ -484,9 +487,7 @@ public class RestoreDB extends TaskTool {
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
-          backupDirectory.getValue(), getExceptionMessage(e));
-      logError(message);
+      logger.error(ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY, backupDirectory.getValue(), getExceptionMessage(e));
       return 1;
     }
 
@@ -572,9 +573,7 @@ public class RestoreDB extends TaskTool {
       BackupInfo backupInfo = backupDir.getLatestBackup();
       if (backupInfo == null)
       {
-        LocalizableMessage message = ERR_RESTOREDB_NO_BACKUPS_IN_DIRECTORY.get(
-            backupDirectory.getValue());
-        logError(message);
+        logger.error(ERR_RESTOREDB_NO_BACKUPS_IN_DIRECTORY, backupDirectory.getValue());
         return 1;
       }
       backupID = backupInfo.getBackupID();
@@ -584,15 +583,12 @@ public class RestoreDB extends TaskTool {
         backupInfo = backupDir.getBackupInfo(backupID);
         if (backupInfo == null)
         {
-          LocalizableMessage message = ERR_RESTOREDB_INVALID_BACKUP_ID.get(
-                  backupID, backupDirectory.getValue());
-          logError(message);
+          logger.error(ERR_RESTOREDB_INVALID_BACKUP_ID, backupID, backupDirectory.getValue());
           return 1;
         }
       }
       if (backupInfo.isEncrypted() || null != backupInfo.getSignedHash()) {
-        LocalizableMessage message = ERR_RESTOREDB_ENCRYPT_OR_SIGN_REQUIRES_ONLINE.get();
-        logError(message);
+        logger.error(ERR_RESTOREDB_ENCRYPT_OR_SIGN_REQUIRES_ONLINE);
         return 1;
       }
     }
@@ -626,16 +622,12 @@ public class RestoreDB extends TaskTool {
 
     if (backend == null)
     {
-      LocalizableMessage message = ERR_RESTOREDB_NO_BACKENDS_FOR_DN.get(
-          backupDirectory.getValue(), configEntryDN.toString());
-      logError(message);
+      logger.error(ERR_RESTOREDB_NO_BACKENDS_FOR_DN, backupDirectory.getValue(), configEntryDN.toString());
       return 1;
     }
     else if (! backend.supportsRestore())
     {
-      LocalizableMessage message =
-          ERR_RESTOREDB_CANNOT_RESTORE.get(backend.getBackendID());
-      logError(message);
+      logger.error(ERR_RESTOREDB_CANNOT_RESTORE, backend.getBackendID());
       return 1;
     }
 
@@ -652,17 +644,13 @@ public class RestoreDB extends TaskTool {
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        LocalizableMessage message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-        logError(message);
+        logger.error(ERR_RESTOREDB_CANNOT_LOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-      logError(message);
+      logger.error(ERR_RESTOREDB_CANNOT_LOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
       return 1;
     }
 
@@ -674,15 +662,11 @@ public class RestoreDB extends TaskTool {
     }
     catch (DirectoryException de)
     {
-      LocalizableMessage message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
-          backupID, backupDir.getPath(), de.getMessageObject());
-      logError(message);
+      logger.error(ERR_RESTOREDB_ERROR_DURING_BACKUP, backupID, backupDir.getPath(), de.getMessageObject());
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
-          backupID, backupDir.getPath(), getExceptionMessage(e));
-      logError(message);
+      logger.error(ERR_RESTOREDB_ERROR_DURING_BACKUP, backupID, backupDir.getPath(), getExceptionMessage(e));
     }
 
 
@@ -693,16 +677,12 @@ public class RestoreDB extends TaskTool {
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        LocalizableMessage message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-        logError(message);
+        logger.warn(WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-      logError(message);
+      logger.warn(WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
     }
     return 0;
   }

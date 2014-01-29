@@ -51,7 +51,6 @@ import static com.sleepycat.je.EnvironmentConfig.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.JebMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 
 /**
  * This class maps JE properties to configuration attributes.
@@ -338,11 +337,9 @@ public class ConfigurableEnvironment
           int cpus = Runtime.getRuntime().availableProcessors();
           value = Integer.valueOf(Math.max(24, cpus * 2));
 
-          LocalizableMessage message =
-              INFO_ERGONOMIC_SIZING_OF_JE_CLEANER_THREADS.get(String
+          logger.debug(INFO_ERGONOMIC_SIZING_OF_JE_CLEANER_THREADS, String
                   .valueOf(cfg.dn().rdn().getAttributeValue(0)),
                   (Number) value);
-          logError(message);
         }
         else if (attrName.equals(ATTR_NUM_LOCK_TABLES)
             && value == null)
@@ -356,11 +353,9 @@ public class ConfigurableEnvironment
           BigInteger tmp = BigInteger.valueOf((cleaners + workers) * 2);
           value = tmp.nextProbablePrime();
 
-          LocalizableMessage message =
-              INFO_ERGONOMIC_SIZING_OF_JE_LOCK_TABLES.get(String
+          logger.debug(INFO_ERGONOMIC_SIZING_OF_JE_LOCK_TABLES, String
                   .valueOf(cfg.dn().rdn().getAttributeValue(0)),
                   (Number) value);
-          logError(message);
         }
 
         return String.valueOf(value);

@@ -32,7 +32,6 @@ import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.ChangeNotificationListener;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
@@ -212,11 +211,8 @@ public class CryptoManagerSync
     ResultCode resultCode = searchOperation.getResultCode();
     if (resultCode != ResultCode.SUCCESS)
     {
-      LocalizableMessage message =
-           INFO_TRUSTSTORESYNC_ADMIN_SUFFIX_SEARCH_FAILED.get(
-                String.valueOf(adminSuffixDN),
+      logger.debug(INFO_TRUSTSTORESYNC_ADMIN_SUFFIX_SEARCH_FAILED, String.valueOf(adminSuffixDN),
                 searchOperation.getErrorMessage().toString());
-      ErrorLogger.logError(message);
     }
 
     for (SearchResultEntry searchEntry : searchOperation.getSearchEntries())
@@ -229,9 +225,7 @@ public class CryptoManagerSync
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_TRUSTSTORESYNC_EXCEPTION.get(
-             stackTraceToSingleLineString(e));
-        ErrorLogger.logError(message);
+        logger.error(ERR_TRUSTSTORESYNC_EXCEPTION, stackTraceToSingleLineString(e));
       }
     }
 
@@ -431,10 +425,8 @@ public class CryptoManagerSync
 
     if (delOperation.getResultCode() != ResultCode.SUCCESS)
     {
-      LocalizableMessage message = INFO_TRUSTSTORESYNC_DELETE_FAILED.get(
-           String.valueOf(dstDN),
+      logger.debug(INFO_TRUSTSTORESYNC_DELETE_FAILED, String.valueOf(dstDN),
            String.valueOf(delOperation.getErrorMessage()));
-      ErrorLogger.logError(message);
     }
   }
 
@@ -474,10 +466,8 @@ public class CryptoManagerSync
     AddOperation addOperation = conn.processAdd(addEntry);
     if (addOperation.getResultCode() != ResultCode.SUCCESS)
     {
-      LocalizableMessage message = INFO_TRUSTSTORESYNC_ADD_FAILED.get(
-           String.valueOf(dstDN),
+      logger.debug(INFO_TRUSTSTORESYNC_ADD_FAILED, String.valueOf(dstDN),
            String.valueOf(addOperation.getErrorMessage()));
-      ErrorLogger.logError(message);
     }
   }
 
@@ -509,7 +499,7 @@ public class CryptoManagerSync
       {
         LocalizableMessage message = LocalizableMessage.raw("Failed to import key entry: %s",
                                       e.getMessage());
-        ErrorLogger.logError(message);
+        logger.error(message);
       }
     }
   }
@@ -585,7 +575,7 @@ public class CryptoManagerSync
       {
         LocalizableMessage message = LocalizableMessage.raw("Failed to import modified key entry: %s",
                                       e.getMessage());
-        ErrorLogger.logError(message);
+        logger.error(message);
       }
     }
   }

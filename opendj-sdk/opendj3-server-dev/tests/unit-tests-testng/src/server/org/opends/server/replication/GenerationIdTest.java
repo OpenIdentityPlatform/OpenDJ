@@ -138,7 +138,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
   private void debugInfo(String s)
   {
-    logError(LocalizableMessage.raw("** TEST **" + s));
+    logger.error(LocalizableMessage.raw("** TEST **" + s));
     if (logger.isTraceEnabled())
     {
       logger.trace("** TEST **" + s);

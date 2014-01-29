@@ -66,7 +66,6 @@ import org.opends.server.util.ModifyDNChangeRecordEntry;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -152,8 +151,7 @@ public final class LDIFConnectionHandler
         // The path specified as the LDIF directory exists, but isn't a
         // directory.  This is probably a mistake, and we should at least log
         // a warning message.
-        logError(WARN_LDIF_CONNHANDLER_LDIF_DIRECTORY_NOT_DIRECTORY.get(
-                      ldifDirectory.getAbsolutePath(),
+        logger.warn(WARN_LDIF_CONNHANDLER_LDIF_DIRECTORY_NOT_DIRECTORY.get(ldifDirectory.getAbsolutePath(),
                       configuration.dn().toString()));
       }
     }
@@ -161,8 +159,7 @@ public final class LDIFConnectionHandler
     {
       // The path specified as the LDIF directory doesn't exist.  We should log
       // a warning message saying that we won't do anything until it's created.
-      logError(WARN_LDIF_CONNHANDLER_LDIF_DIRECTORY_MISSING.get(
-                    ldifDirectory.getAbsolutePath(),
+      logger.warn(WARN_LDIF_CONNHANDLER_LDIF_DIRECTORY_MISSING.get(ldifDirectory.getAbsolutePath(),
                     configuration.dn().toString()));
     }
 
@@ -503,7 +500,7 @@ public final class LDIFConnectionHandler
       fullyProcessed = false;
       LocalizableMessage m = ERR_LDIF_CONNHANDLER_IO_ERROR.get(inputPath,
                                                     getExceptionMessage(ioe));
-      logError(m);
+      logger.error(m);
       DirectoryConfig.sendAlertNotification(this,
                            ALERT_TYPE_LDIF_CONNHANDLER_PARSE_ERROR, m);
     }
@@ -559,7 +556,7 @@ public final class LDIFConnectionHandler
 
         LocalizableMessage m = ERR_LDIF_CONNHANDLER_CANNOT_RENAME.get(inputPath,
                          renamedPath, getExceptionMessage(e));
-        logError(m);
+        logger.error(m);
         DirectoryConfig.sendAlertNotification(this,
                              ALERT_TYPE_LDIF_CONNHANDLER_IO_ERROR, m);
       }
@@ -581,7 +578,7 @@ public final class LDIFConnectionHandler
 
         LocalizableMessage m = ERR_LDIF_CONNHANDLER_CANNOT_DELETE.get(inputPath,
                          getExceptionMessage(e));
-        logError(m);
+        logger.error(m);
         DirectoryConfig.sendAlertNotification(this,
                              ALERT_TYPE_LDIF_CONNHANDLER_IO_ERROR, m);
       }

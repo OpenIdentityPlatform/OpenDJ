@@ -62,7 +62,6 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.types.FilterType.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -498,9 +497,7 @@ public class ReplicationBackend extends Backend
       rate = 1000f*exportedCount / totalTime;
     }
 
-    LocalizableMessage message = NOTE_JEB_EXPORT_FINAL_STATUS.get(
-        exportedCount, skippedCount, totalTime/1000, rate);
-    logError(message);
+    logger.info(NOTE_JEB_EXPORT_FINAL_STATUS, exportedCount, skippedCount, totalTime/1000, rate);
   }
 
   private List<ReplicationServerDomain> selectReplicationDomains(
@@ -591,7 +588,7 @@ public class ReplicationBackend extends Backend
       catch (Exception e)
       {
         logger.traceException(e);
-        logError(ERR_BACKEND_EXPORT_ENTRY.get(dnString, String.valueOf(e)));
+        logger.error(ERR_BACKEND_EXPORT_ENTRY.get(dnString, String.valueOf(e)));
       }
     }
   }
@@ -873,7 +870,7 @@ public class ReplicationBackend extends Backend
       {
         message = ERR_BACKEND_SEARCH_ENTRY.get(dnStr, e.getLocalizedMessage());
       }
-      logError(message);
+      logger.error(message);
     }
   }
 
@@ -1091,9 +1088,7 @@ public class ReplicationBackend extends Backend
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      LocalizableMessage message =
-          NOTE_JEB_EXPORT_PROGRESS_REPORT.get(latestCount, skippedCount, rate);
-      logError(message);
+      logger.info(NOTE_JEB_EXPORT_PROGRESS_REPORT, latestCount, skippedCount, rate);
 
       previousCount = latestCount;
       previousTime = latestTime;

@@ -32,7 +32,6 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -756,8 +755,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       // This must mean that the operation has either not yet completed
       // or that it completed without a result for some reason. In any
       // case, log a message and set the response to "operations error".
-      logError(ERR_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE.get(
-          operation.getOperationType().toString(), operation
+      logger.error(ERR_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE.get(operation.getOperationType().toString(), operation
               .getConnectionID(), operation.getOperationID()));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
@@ -829,8 +827,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       // If this an LDAPv2 client, then we can't send this.
       if (ldapVersion == 2)
       {
-        logError(ERR_LDAPV2_SKIPPING_EXTENDED_RESPONSE.get(
-            getConnectionID(), operation.getOperationID(), String
+        logger.error(ERR_LDAPV2_SKIPPING_EXTENDED_RESPONSE.get(getConnectionID(), operation.getOperationID(), String
                 .valueOf(operation)));
         return null;
       }
@@ -859,7 +856,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     default:
       // This must be a type of operation that doesn't have a response.
       // This shouldn't happen, so log a message and return.
-      logError(ERR_LDAP_CLIENT_SEND_RESPONSE_INVALID_OP.get(String
+      logger.error(ERR_LDAP_CLIENT_SEND_RESPONSE_INVALID_OP.get(String
           .valueOf(operation.getOperationType()), getConnectionID(),
           operation.getOperationID(), String.valueOf(operation)));
       return null;
@@ -926,11 +923,9 @@ public final class LDAPClientConnection extends ClientConnection implements
     // any more referrals to this client for the rest of the operation.
     if (ldapVersion == 2)
     {
-      LocalizableMessage message =
-          ERR_LDAPV2_SKIPPING_SEARCH_REFERENCE.get(getConnectionID(),
+      logger.error(ERR_LDAPV2_SKIPPING_SEARCH_REFERENCE, getConnectionID(),
               searchOperation.getOperationID(), String
                   .valueOf(searchReference));
-      logError(message);
       return false;
     }
 
@@ -2126,7 +2121,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       LocalizableMessage msg =
           ERR_LDAPV2_EXTENDED_REQUEST_NOT_ALLOWED.get(
               getConnectionID(), message.getMessageID());
-      logError(msg);
+      logger.error(msg);
       disconnect(DisconnectReason.PROTOCOL_ERROR, false, msg);
       return false;
     }

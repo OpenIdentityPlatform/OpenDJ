@@ -53,7 +53,6 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.opends.server.types.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -218,9 +217,7 @@ public class BackupManager
         // No incremental backup ID: log a message informing that a backup
         // could not be found and that a normal backup will be done.
         incremental = false;
-        LocalizableMessage message = WARN_BACKUPDB_INCREMENTAL_NOT_FOUND_DOING_NORMAL.get(
-            backupDir.getPath());
-        logError(message);
+        logger.warn(WARN_BACKUPDB_INCREMENTAL_NOT_FOUND_DOING_NORMAL, backupDir.getPath());
       }
       else
       {
@@ -395,8 +392,7 @@ public class BackupManager
             break;
           }
 
-          message = NOTE_JEB_BACKUP_FILE_UNCHANGED.get(logFileName);
-          logError(message);
+          logger.info(NOTE_JEB_BACKUP_FILE_UNCHANGED, logFileName);
 
           unchangedList.add(logFileName);
 
@@ -493,9 +489,7 @@ public class BackupManager
 
           Arrays.sort(logFiles);
 
-          message = NOTE_JEB_BACKUP_CLEANER_ACTIVITY.get(
-                  String.valueOf(logFiles.length));
-          logError(message);
+          logger.info(NOTE_JEB_BACKUP_CLEANER_ACTIVITY, String.valueOf(logFiles.length));
         }
         else
         {
@@ -921,8 +915,7 @@ public class BackupManager
       {
         if (verifyOnly)
         {
-          LocalizableMessage message = NOTE_JEB_BACKUP_VERIFY_FILE.get(zipEntry.getName());
-          logError(message);
+          logger.info(NOTE_JEB_BACKUP_VERIFY_FILE, zipEntry.getName());
         }
 
         // The file name is part of the hash.
@@ -966,9 +959,7 @@ public class BackupManager
         {
           outputStream.close();
 
-          LocalizableMessage message = NOTE_JEB_BACKUP_RESTORED_FILE.get(
-              zipEntry.getName(), totalBytesRead);
-          logError(message);
+          logger.info(NOTE_JEB_BACKUP_RESTORED_FILE, zipEntry.getName(), totalBytesRead);
         }
       }
 
@@ -1063,8 +1054,7 @@ public class BackupManager
     // Finish the zip entry.
     zipStream.closeEntry();
 
-    LocalizableMessage message = NOTE_JEB_BACKUP_ARCHIVED_FILE.get(zipEntry.getName());
-    logError(message);
+    logger.info(NOTE_JEB_BACKUP_ARCHIVED_FILE, zipEntry.getName());
 
     return totalBytesRead;
   }

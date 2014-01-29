@@ -26,6 +26,7 @@
  */
 package org.opends.server.tasks;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.messages.TaskMessages;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -72,6 +73,9 @@ import java.io.File;
  */
 public class BackupTask extends Task
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
 
 
   /**
@@ -271,17 +275,15 @@ public class BackupTask extends Task
     {
       if (!backendIDList.isEmpty())
       {
-        LocalizableMessage message = ERR_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID.get(
+        logger.error(ERR_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID,
             ATTR_TASK_BACKUP_ALL, ATTR_TASK_BACKUP_BACKEND_ID);
-        logError(message);
         return false;
       }
     }
     else if (backendIDList.isEmpty())
     {
-      LocalizableMessage message = ERR_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID.get(
+      logger.error(ERR_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID,
           ATTR_TASK_BACKUP_ALL, ATTR_TASK_BACKUP_BACKEND_ID);
-      logError(message);
       return false;
     }
 
@@ -307,10 +309,8 @@ public class BackupTask extends Task
     {
       if (! incremental)
       {
-        LocalizableMessage message = ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL.
-            get(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID,
+        logger.error(ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL, ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID,
                 ATTR_TASK_BACKUP_INCREMENTAL);
-        logError(message);
         return false;
       }
     }
@@ -320,9 +320,7 @@ public class BackupTask extends Task
     // was given.
     if (signHash && (! hash))
     {
-      LocalizableMessage message = ERR_BACKUPDB_SIGN_REQUIRES_HASH.get(
-          ATTR_TASK_BACKUP_SIGN_HASH, ATTR_TASK_BACKUP_HASH);
-      logError(message);
+      logger.error(ERR_BACKUPDB_SIGN_REQUIRES_HASH, ATTR_TASK_BACKUP_SIGN_HASH, ATTR_TASK_BACKUP_HASH);
       return false;
     }
 
@@ -368,14 +366,11 @@ public class BackupTask extends Task
         Backend b = DirectoryServer.getBackend(id);
         if (b == null || configEntries.get(id) == null)
         {
-          LocalizableMessage message = ERR_BACKUPDB_NO_BACKENDS_FOR_ID.get(id);
-          logError(message);
+          logger.error(ERR_BACKUPDB_NO_BACKENDS_FOR_ID, id);
         }
         else if (! b.supportsBackup())
         {
-          LocalizableMessage message =
-              WARN_BACKUPDB_BACKUP_NOT_SUPPORTED.get(b.getBackendID());
-          logError(message);
+          logger.warn(WARN_BACKUPDB_BACKUP_NOT_SUPPORTED, b.getBackendID());
         }
         else
         {
@@ -394,8 +389,7 @@ public class BackupTask extends Task
     // If there are no backends to archive, then print an error and exit.
     if (backendsToArchive.isEmpty())
     {
-      LocalizableMessage message = WARN_BACKUPDB_NO_BACKENDS_TO_ARCHIVE.get();
-      logError(message);
+      logger.warn(WARN_BACKUPDB_NO_BACKENDS_TO_ARCHIVE);
       return false;
     }
 
@@ -435,26 +429,20 @@ public class BackupTask extends Task
           // backend
           if (! backupDir.getConfigEntryDN().equals(cfg.dn()))
           {
-            LocalizableMessage message = ERR_BACKUPDB_CANNOT_BACKUP_IN_DIRECTORY.get(
-                b.getBackendID(),backupLocation.getPath(),
+            logger.error(ERR_BACKUPDB_CANNOT_BACKUP_IN_DIRECTORY, b.getBackendID(),backupLocation.getPath(),
                 backupDir.getConfigEntryDN().rdn().
                 getAttributeValue(0).toString());
-            logError(message);
             return false ;
           }
         }
         catch (ConfigException ce)
         {
-          LocalizableMessage message = ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR.get(
-              descriptorPath, ce.getMessage());
-          logError(message);
+          logger.error(ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR, descriptorPath, ce.getMessage());
           return false;
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR.get(
-              descriptorPath, getExceptionMessage(e));
-          logError(message);
+          logger.error(ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR, descriptorPath, getExceptionMessage(e));
           return false;
         }
       }
@@ -471,9 +459,7 @@ public class BackupTask extends Task
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR.get(
-            backupLocation.getPath(), getExceptionMessage(e));
-        logError(message);
+        logger.error(ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR, backupLocation.getPath(), getExceptionMessage(e));
         return false;
       }
 
@@ -502,17 +488,13 @@ public class BackupTask extends Task
     catch (DirectoryException de)
     {
       DirectoryServer.notifyBackupEnded(b, backupConfig, false);
-      LocalizableMessage message = ERR_BACKUPDB_ERROR_DURING_BACKUP.get(
-          b.getBackendID(), de.getMessageObject());
-      logError(message);
+      logger.error(ERR_BACKUPDB_ERROR_DURING_BACKUP, b.getBackendID(), de.getMessageObject());
       return false;
     }
     catch (Exception e)
     {
       DirectoryServer.notifyBackupEnded(b, backupConfig, false);
-      LocalizableMessage message = ERR_BACKUPDB_ERROR_DURING_BACKUP.get(
-          b.getBackendID(), getExceptionMessage(e));
-      logError(message);
+      logger.error(ERR_BACKUPDB_ERROR_DURING_BACKUP, b.getBackendID(), getExceptionMessage(e));
       return false;
     }
 
@@ -532,17 +514,13 @@ public class BackupTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        LocalizableMessage message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
-            b.getBackendID(), String.valueOf(failureReason));
-        logError(message);
+        logger.error(ERR_BACKUPDB_CANNOT_LOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
         return false;
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
-          b.getBackendID(), getExceptionMessage(e));
-      logError(message);
+      logger.error(ERR_BACKUPDB_CANNOT_LOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
       return false;
     }
 
@@ -562,17 +540,13 @@ public class BackupTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        LocalizableMessage message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-            b.getBackendID(), String.valueOf(failureReason));
-        logError(message);
+        logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
         return false;
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
-          b.getBackendID(), getExceptionMessage(e));
-      logError(message);
+      logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
       return false;
     }
 
@@ -650,8 +624,7 @@ public class BackupTask extends Task
 
       try
       {
-        LocalizableMessage message = NOTE_BACKUPDB_STARTING_BACKUP.get(b.getBackendID());
-        logError(message);
+        logger.info(NOTE_BACKUPDB_STARTING_BACKUP, b.getBackendID());
 
 
         // Get the path to the directory to use for this backup.  If we will be
@@ -691,20 +664,17 @@ public class BackupTask extends Task
     // completed at least for one of the backends.
     if (errorsEncountered)
     {
-      LocalizableMessage message = NOTE_BACKUPDB_COMPLETED_WITH_ERRORS.get();
-      logError(message);
+      logger.info(NOTE_BACKUPDB_COMPLETED_WITH_ERRORS);
       return TaskState.STOPPED_BY_ERROR;
     }
     else if (isCancelled())
     {
-      LocalizableMessage message = NOTE_BACKUPDB_CANCELLED.get();
-      logError(message);
+      logger.info(NOTE_BACKUPDB_CANCELLED);
       return getTaskInterruptState();
     }
     else
     {
-      LocalizableMessage message = NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY.get();
-      logError(message);
+      logger.info(NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY);
       return TaskState.COMPLETED_SUCCESSFULLY;
     }
   }

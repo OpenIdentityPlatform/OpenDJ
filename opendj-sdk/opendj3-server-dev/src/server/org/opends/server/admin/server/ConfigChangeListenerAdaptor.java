@@ -56,7 +56,6 @@ import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -464,7 +463,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
       } else {
         LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST
             .get(String.valueOf(dn));
-        ErrorLogger.logError(message);
+        logger.error(message);
       }
     } catch (ConfigException e) {
       // The dependent entry could not be retrieved.
@@ -472,7 +471,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
       LocalizableMessage message = AdminMessages.ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
           String.valueOf(dn), StaticUtils.getExceptionMessage(e));
-      ErrorLogger.logError(message);
+      logger.error(message);
     }
 
     return null;

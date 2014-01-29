@@ -28,7 +28,6 @@ package org.opends.server.schema;
 
 
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.Collection;
@@ -161,7 +160,7 @@ class GeneralizedTimeEqualityMatchingRule
           throw de;
 
         case WARN:
-          logError(de.getMessageObject());
+          logger.error(de.getMessageObject());
           return value.toByteString();
 
         default:

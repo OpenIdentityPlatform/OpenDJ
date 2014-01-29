@@ -38,7 +38,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.DynamicGroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -159,11 +158,9 @@ public class DynamicGroup
           {
             logger.traceException(de);
 
-            LocalizableMessage message = ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL.
-                get(v.getValue().toString(),
+            logger.error(ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL, v.getValue().toString(),
                     String.valueOf(groupEntry.getName()),
                     de.getMessageObject());
-            ErrorLogger.logError(message);
           }
         }
       }

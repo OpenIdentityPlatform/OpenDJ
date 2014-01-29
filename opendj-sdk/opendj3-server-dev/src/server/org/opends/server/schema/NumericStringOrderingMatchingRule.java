@@ -29,6 +29,7 @@ package org.opends.server.schema;
 
 
 import static org.opends.messages.SchemaMessages.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.schema.StringPrepProfile.*;
@@ -40,7 +41,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
@@ -57,6 +57,9 @@ public class NumericStringOrderingMatchingRule
        extends AbstractMatchingRule
        implements OrderingMatchingRule
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class implements the <CODE>java.io.Serializable</CODE> interface.  This
@@ -187,7 +190,7 @@ public class NumericStringOrderingMatchingRule
             case WARN:
               if (! logged)
               {
-                ErrorLogger.logError(message);
+                logger.error(message);
                 logged = true;
               }
           }

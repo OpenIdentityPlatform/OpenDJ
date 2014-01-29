@@ -22,14 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock Inc.
+ *      Portions Copyright 2012-2014 ForgeRock Inc.
  */
 package org.opends.server.snmp;
 
-import com.sun.management.snmp.SnmpStatusException;
 import java.security.PrivilegedAction;
-
-
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -38,23 +35,23 @@ import javax.management.Attribute;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.security.auth.Subject;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.jmx.Credential;
 import org.opends.server.protocols.jmx.OpendsJmxPrincipal;
-import org.opends.server.types.DebugLogLevel;
+
+import com.sun.management.snmp.SnmpStatusException;
 
 /**
  * The SNMPMonitor Class allows to get a singleton SNMPMonitor object allowing
  * to access the JMX cn=monitor MBean.
  */
-public class SNMPMonitor {
+public class SNMPMonitor
+{
 
-  /**
-   * Debug Tracer for this class.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Singleton SNMPMonitor object.
    */
@@ -72,38 +69,47 @@ public class SNMPMonitor {
    */
   public static ObjectName pattern;
 
-  static {
-    try {
-      pattern = new ObjectName(
-              SNMPConnectionHandlerDefinitions.JMX_DOMAIN +
-              "Name=rootDSE,Rdn1=cn-monitor,*");
-    } catch (Exception ex) {
-      if (DebugLogger.debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+  static
+  {
+    try
+    {
+      pattern =
+          new ObjectName(SNMPConnectionHandlerDefinitions.JMX_DOMAIN
+              + "Name=rootDSE,Rdn1=cn-monitor,*");
+    }
+    catch (Exception ex)
+    {
+      logger.traceException(ex);
     }
   }
 
   /**
    * Creates an SNMPMonitor object mapping.
-   * @param server to use to the mapping
+   *
+   * @param server
+   *          to use to the mapping
    */
-  private SNMPMonitor(MBeanServer server) {
+  private SNMPMonitor(MBeanServer server)
+  {
     this.server = server;
     this.subject = new Subject();
     this.subject.getPrincipals().add(new OpendsJmxPrincipal("cn=anonymous"));
     InternalClientConnection clientConnection =
-            InternalClientConnection.getRootConnection();
+        InternalClientConnection.getRootConnection();
     this.subject.getPrivateCredentials().add(new Credential(clientConnection));
   }
 
   /**
    * Gets the singleton SNMPMonitor object.
-   * @param server The server
+   *
+   * @param server
+   *          The server
    * @return the SNMPMonitor mapping object.
    */
-  public static SNMPMonitor getMonitor(MBeanServer server) {
-    if (monitor == null) {
+  public static SNMPMonitor getMonitor(MBeanServer server)
+  {
+    if (monitor == null)
+    {
       monitor = new SNMPMonitor(server);
     }
     return monitor;
@@ -111,44 +117,55 @@ public class SNMPMonitor {
 
   /**
    * Gets the Connection Handlers Statistics MBean.
-   * @return the Set of Connection Handlers Statistics.
-   *         If Statistics do not exist then an empty Set is returned
+   *
+   * @return the Set of Connection Handlers Statistics. If Statistics do not
+   *         exist then an empty Set is returned
    */
-  public Set<ObjectName> getConnectionHandlersStatistics() {
+  public Set<ObjectName> getConnectionHandlersStatistics()
+  {
     Set<ObjectName> results = new HashSet<ObjectName>();
-    try {
+    try
+    {
       Set monitorObjects = this.server.queryNames(SNMPMonitor.pattern, null);
-      for (Iterator iter = monitorObjects.iterator(); iter.hasNext();) {
+      for (Iterator iter = monitorObjects.iterator(); iter.hasNext();)
+      {
         ObjectName name = (ObjectName) iter.next();
-        if ((name.getCanonicalName().contains("Connection_Handler")) &&
-                (name.getCanonicalName().endsWith("_Statistics"))) {
+        if ((name.getCanonicalName().contains("Connection_Handler"))
+            && (name.getCanonicalName().endsWith("_Statistics")))
+        {
           results.add(name);
         }
       }
-    } catch (Exception ex) {
-      if (DebugLogger.debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+    }
+    catch (Exception ex)
+    {
+      logger.traceException(ex);
     }
     return results;
   }
 
   /**
-   * Return the ObjectName of the Connection Handler corresponding to
-   * the statistics name.
-   * @param statistics ObjectName
+   * Return the ObjectName of the Connection Handler corresponding to the
+   * statistics name.
+   *
+   * @param statistics
+   *          ObjectName
    * @return the Connection Handler ObjectName, null otherwise
    */
-  public ObjectName getConnectionHandler(ObjectName statistics) {
+  public ObjectName getConnectionHandler(ObjectName statistics)
+  {
 
     // Check parameter
-    if (statistics == null) {
+    if (statistics == null)
+    {
       return null;
     }
 
-    try {
+    try
+    {
       String value = statistics.getCanonicalName();
-      if (!value.endsWith("_Statistics")) {
+      if (!value.endsWith("_Statistics"))
+      {
         return null;
       }
       int index = value.indexOf("_Statistics");
@@ -157,199 +174,256 @@ public class SNMPMonitor {
 
       // Check if the MBean exists
       Set query = this.server.queryNames(connectionHandlerName, null);
-      if ((query != null) && (!query.isEmpty())) {
+      if ((query != null) && (!query.isEmpty()))
+      {
         return connectionHandlerName;
       }
-    } catch (Exception ex) {
-      if (DebugLogger.debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+    }
+    catch (Exception ex)
+    {
+      logger.traceException(ex);
     }
     return null;
   }
 
   /**
    * Return a Set of Connection Handler ObjectNames.
+   *
    * @return the Set of ObjectNames, an empty Set if no connection handlers
    */
-  public Set<ObjectName> getConnectionHandlers() {
+  public Set<ObjectName> getConnectionHandlers()
+  {
     Set monitorObjects;
     Set<ObjectName> results = new HashSet<ObjectName>();
-    try {
+    try
+    {
       monitorObjects = this.server.queryNames(SNMPMonitor.pattern, null);
-      for (Iterator iter = monitorObjects.iterator(); iter.hasNext();) {
+      for (Iterator iter = monitorObjects.iterator(); iter.hasNext();)
+      {
         ObjectName name = (ObjectName) iter.next();
-        if ((name.getCanonicalName().contains("Connection_Handler")) &&
-                (!(name.getCanonicalName().endsWith("_Statistics"))) &&
-                (name.getKeyProperty("Rdn3") == null)) {
+        if ((name.getCanonicalName().contains("Connection_Handler"))
+            && (!(name.getCanonicalName().endsWith("_Statistics")))
+            && (name.getKeyProperty("Rdn3") == null))
+        {
           results.add(name);
         }
       }
       return results;
-    } catch (Exception ex) {
-      if (DebugLogger.debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
-      return results;
     }
+    catch (Exception ex)
+    {
+      logger.traceException(ex);
+    }
+    return results;
   }
 
   /**
    * Returns the ObjectName of the Statistics Connection Handler name.
    * corresponding to the Connection Handler name
-   * @param connectionHandlerName The connection handler name
-   * @return the ObjectName of the statistics ObjectName,
-   *         null if the statistics could not be found
+   *
+   * @param connectionHandlerName
+   *          The connection handler name
+   * @return the ObjectName of the statistics ObjectName, null if the statistics
+   *         could not be found
    */
   public ObjectName getConnectionHandlerStatistics(
-          ObjectName connectionHandlerName) {
+      ObjectName connectionHandlerName)
+  {
 
-    if (connectionHandlerName == null) {
+    if (connectionHandlerName == null)
+    {
       return null;
     }
-    try {
+    try
+    {
       String value =
-              connectionHandlerName.getCanonicalName().concat("_Statistics");
+          connectionHandlerName.getCanonicalName().concat("_Statistics");
       ObjectName statistics = new ObjectName(value);
       // Check if the MBean exists
       Set query = this.server.queryNames(statistics, null);
-      if ((query != null) && (!query.isEmpty())) {
+      if ((query != null) && (!query.isEmpty()))
+      {
         return statistics;
       }
-    } catch (Exception ex) {
-      if (DebugLogger.debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
+    }
+    catch (Exception ex)
+    {
+      logger.traceException(ex);
     }
     return null;
   }
 
   /**
    * Get the value of the attribute.
-   * @param name of Mbean as a String
-   * @param attribute to look for
-   * @return the value of the attribute, null if the attribute could not
-   * be found
+   *
+   * @param name
+   *          of Mbean as a String
+   * @param attribute
+   *          to look for
+   * @return the value of the attribute, null if the attribute could not be
+   *         found
    */
-  public Object getAttribute(String name, String attribute) {
-    try {
-      ObjectName objName = new ObjectName(
-              SNMPConnectionHandlerDefinitions.JMX_DOMAIN +
-              "Name=" + name);
+  public Object getAttribute(String name, String attribute)
+  {
+    try
+    {
+      ObjectName objName =
+          new ObjectName(SNMPConnectionHandlerDefinitions.JMX_DOMAIN + "Name="
+              + name);
       return getAttribute(objName, attribute);
-    } catch (Exception ex) {
-      if (DebugLogger.debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
-      return null;
     }
+    catch (Exception ex)
+    {
+      logger.traceException(ex);
+    }
+    return null;
   }
 
   /**
    * Gets the value of an attribute.
-   * @param name of the Mbean
-   * @param attribute to look for
+   *
+   * @param name
+   *          of the Mbean
+   * @param attribute
+   *          to look for
    * @return the value of the attribute, null if the attribute value could not
-   * be found
+   *         be found
    */
   @SuppressWarnings("unchecked")
-  public Object getAttribute(final ObjectName name, final String attribute) {
-    return Subject.doAs(this.subject, new PrivilegedAction() {
+  public Object getAttribute(final ObjectName name, final String attribute)
+  {
+    return Subject.doAs(this.subject, new PrivilegedAction()
+    {
 
-      public Object run() {
-        try {
+      public Object run()
+      {
+        try
+        {
           Attribute attr = (Attribute) server.getAttribute(name, attribute);
-          if (attr != null) {
+          if (attr != null)
+          {
             return attr.getValue();
           }
-        } catch (Exception ex) {
-          if (DebugLogger.debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-          }
+        }
+        catch (Exception ex)
+        {
+          logger.traceException(ex);
         }
         return null;
       }
-      });
+    });
   }
 
- /**
+  /**
    * Wrapper for SNMP Byte[].
-   * @param s value string
+   *
+   * @param s
+   *          value string
    * @return a Byte[]
    */
-  public static Byte[] string2ByteArray(String s) {
+  public static Byte[] string2ByteArray(String s)
+  {
     byte[] b = s.getBytes();
     Byte[] barray = new Byte[b.length];
-    for (int index=0; index<b.length; index++) {
-        barray[index] = new Byte(b[index]);
+    for (int index = 0; index < b.length; index++)
+    {
+      barray[index] = new Byte(b[index]);
     }
     return barray;
   }
 
-
   /**
    * Wrapper for SNMP Counter32.
-   * @param v value
+   *
+   * @param v
+   *          value
    * @return a counter32
    */
-  public static long counter32Value(long v) {
-    if (v > (pow(2, 32) - 1)) {
+  public static long counter32Value(long v)
+  {
+    if (v > (pow(2, 32) - 1))
+    {
       return (v % pow(2, 32));
-    } else {
+    }
+    else
+    {
       return v;
     }
   }
 
   /**
    * Wrapper for SNMP Counter32.
-   * @param V Value
+   *
+   * @param V
+   *          Value
    * @return a Counter32
    */
-  public static Long counter32Value(Long V) {
+  public static Long counter32Value(Long V)
+  {
     long v = V.longValue();
-    if (v > (pow(2, 32) - 1)) {
+    if (v > (pow(2, 32) - 1))
+    {
       return new Long(v % pow(2, 32));
-    } else {
+    }
+    else
+    {
       return V;
     }
   }
 
   /**
    * Latcher for SNMP Gauge32.
-   * @param v value
+   *
+   * @param v
+   *          value
    * @return a gauge32
    */
-  public static long gauge32Value(long v) {
-    if (v > (pow(2, 32) - 1)) {
+  public static long gauge32Value(long v)
+  {
+    if (v > (pow(2, 32) - 1))
+    {
       return (pow(2, 32) - 1);
-    } else {
+    }
+    else
+    {
       return v;
     }
   }
 
   /**
    * Latcher for SNMP Gauge32.
-   * @param V value
+   *
+   * @param V
+   *          value
    * @return a gauge32
    */
-  public static Long gauge32Value(Long V) {
+  public static Long gauge32Value(Long V)
+  {
     long v = V.longValue();
-    if (v > (pow(2, 32) - 1)) {
+    if (v > (pow(2, 32) - 1))
+    {
       return new Long(pow(2, 32) - 1);
-    } else {
+    }
+    else
+    {
       return V;
     }
   }
 
   /**
    * Checker for SNMP INTEGER.
-   * @param V value
+   *
+   * @param V
+   *          value
    * @return an Integer
-   * @throws com.sun.management.snmp.SnmpStatusException If an error occurs
+   * @throws com.sun.management.snmp.SnmpStatusException
+   *           If an error occurs
    */
-  public static Integer integerValue(Long V) throws SnmpStatusException {
+  public static Integer integerValue(Long V) throws SnmpStatusException
+  {
     long v = V.longValue();
-    if (v > (pow(2, 31) - 1)) {
+    if (v > (pow(2, 31) - 1))
+    {
       throw new SnmpStatusException("Returned intrumented value size too big");
     }
     Integer ret = new Integer(V.intValue());
@@ -359,16 +433,20 @@ public class SNMPMonitor {
   /**
    * pow x^y.
    */
-  private static long pow(long x, long y) {
+  private static long pow(long x, long y)
+  {
     int j = 1;
     long k = x;
-    if (y == 0) {
+    if (y == 0)
+    {
       return 1;
     }
-    if (y == 1) {
+    if (y == 1)
+    {
       return x;
     }
-    while (j < y) {
+    while (j < y)
+    {
       k = k * x;
       j++;
     }

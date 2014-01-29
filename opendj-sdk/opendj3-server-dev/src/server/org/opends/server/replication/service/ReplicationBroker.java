@@ -55,7 +55,6 @@ import org.opends.server.types.HostPort;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.replication.server.ReplicationServer.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -918,14 +917,12 @@ public class ReplicationBroker
         final int rsServerId = rs.rsInfo.getServerId();
         if (rsGenId == getGenerationID() || rsGenId == -1)
         {
-          logError(NOTE_NOW_FOUND_SAME_GENERATION_CHANGELOG.get(
-              serverId, rsServerId, baseDN.toNormalizedString(),
+          logger.info(NOTE_NOW_FOUND_SAME_GENERATION_CHANGELOG.get(serverId, rsServerId, baseDN.toNormalizedString(),
               rs.replicationServer, getGenerationID()));
         }
         else
         {
-          logError(WARN_NOW_FOUND_BAD_GENERATION_CHANGELOG.get(
-              serverId, rsServerId, baseDN.toNormalizedString(),
+          logger.warn(WARN_NOW_FOUND_BAD_GENERATION_CHANGELOG.get(serverId, rsServerId, baseDN.toNormalizedString(),
               rs.replicationServer, getGenerationID(), rsGenId));
         }
       }
@@ -940,14 +937,13 @@ public class ReplicationBroker
 
           if (replicationServerInfos.size() > 0)
           {
-            logError(WARN_COULD_NOT_FIND_CHANGELOG.get(
-                serverId, baseDN.toNormalizedString(),
-                collectionToString(replicationServerInfos.keySet(), ", ")));
+            logger.warn(WARN_COULD_NOT_FIND_CHANGELOG.get(serverId, baseDN
+                .toNormalizedString(), collectionToString(
+                replicationServerInfos.keySet(), ", ")));
           }
           else
           {
-            logError(WARN_NO_AVAILABLE_CHANGELOGS.get(
-                serverId, baseDN.toNormalizedString()));
+            logger.warn(WARN_NO_AVAILABLE_CHANGELOGS.get(serverId, baseDN.toNormalizedString()));
           }
         }
       }
@@ -1016,10 +1012,10 @@ public class ReplicationBroker
         warn user and start heartbeat monitor to recover when a server
         with the right group id shows up.
         */
-        logError(WARN_CONNECTED_TO_SERVER_WITH_WRONG_GROUP_ID.get(
-            Byte.toString(groupId), Integer.toString(rs.getServerId()),
-            rsInfo.getServerURL(), Byte.toString(rs.getGroupId()),
-            baseDN.toNormalizedString(), Integer.toString(getServerId())));
+        logger.warn(WARN_CONNECTED_TO_SERVER_WITH_WRONG_GROUP_ID.get(Byte
+            .toString(groupId), Integer.toString(rs.getServerId()), rsInfo
+            .getServerURL(), Byte.toString(rs.getGroupId()), baseDN
+            .toNormalizedString(), Integer.toString(getServerId())));
       }
       startRSHeartBeatMonitoring(rs);
       if (rsInfo.getProtocolVersion() >=
@@ -1031,8 +1027,7 @@ public class ReplicationBroker
     }
     catch (Exception e)
     {
-      logError(ERR_COMPUTING_FAKE_OPS.get(
-          baseDN.toNormalizedString(), rsInfo.getServerURL(),
+      logger.error(ERR_COMPUTING_FAKE_OPS.get(baseDN.toNormalizedString(), rsInfo.getServerURL(),
           e.getLocalizedMessage() + " " + stackTraceToSingleLineString(e)));
     }
     finally
@@ -1234,7 +1229,7 @@ public class ReplicationBroker
         if (keepSession) // Log error message only for final connection
         {
           // log the error message only once to avoid overflowing the error log
-          logError(errorMessage);
+          logger.error(errorMessage);
         }
 
         if (logger.isTraceEnabled())
@@ -1276,8 +1271,7 @@ public class ReplicationBroker
     }
     catch (Exception e)
     {
-      logError(WARN_EXCEPTION_STARTING_SESSION_PHASE.get(
-          getServerId(), server, getBaseDN().toNormalizedString(),
+      logger.warn(WARN_EXCEPTION_STARTING_SESSION_PHASE.get(getServerId(), server, getBaseDN().toNormalizedString(),
           stackTraceToSingleLineString(e)));
 
       rs.session.close();
@@ -1330,7 +1324,7 @@ public class ReplicationBroker
     }
     catch (Exception e)
     {
-      logError(WARN_EXCEPTION_STARTING_SESSION_PHASE.get(
+      logger.error(WARN_EXCEPTION_STARTING_SESSION_PHASE.get(
           getServerId(), electedRS.rsInfo.getServerURL(),
           getBaseDN().toNormalizedString(), stackTraceToSingleLineString(e)));
 
@@ -2296,7 +2290,7 @@ public class ReplicationBroker
           mb.append(NOTE_EXCEPTION_RESTARTING_SESSION.get(
               getBaseDN().toNormalizedString(), e.getLocalizedMessage()));
           mb.append(stackTraceToSingleLineString(e));
-          logError(mb.toMessage());
+          logger.error(mb.toMessage());
         }
 
         if (rs.isConnected() || !infiniteTry)
@@ -2592,10 +2586,8 @@ public class ReplicationBroker
         else if (msg instanceof StopMsg)
         {
           // RS performs a proper disconnection
-          LocalizableMessage message = WARN_REPLICATION_SERVER_PROPERLY_DISCONNECTED.get(
-              previousRsServerID, rs.replicationServer,
+          logger.warn(WARN_REPLICATION_SERVER_PROPERLY_DISCONNECTED, previousRsServerID, rs.replicationServer,
               serverId, baseDN.toNormalizedString());
-          logError(message);
 
           // Try to find a suitable RS
           reStart(rs.session, true);
@@ -2672,7 +2664,7 @@ public class ReplicationBroker
                       evals.getEvaluation(previousRsServerID).toString(),
                       evals.getEvaluation(bestRsServerId).toString());
                 }
-                logError(message);
+                logger.error(message);
                 if (logger.isTraceEnabled())
                   debugInfo("best replication servers evaluation results: "
                       + evals);
@@ -2702,7 +2694,7 @@ public class ReplicationBroker
           if (rs.session == null || !rs.session.closeInitiated())
           {
             // We did not initiate the close on our side, log an error message.
-            logError(WARN_REPLICATION_SERVER_BADLY_DISCONNECTED.get(
+            logger.error(WARN_REPLICATION_SERVER_BADLY_DISCONNECTED.get(
                 serverId, baseDN.toNormalizedString(), previousRsServerID,
                 rs.replicationServer));
           }
@@ -2958,11 +2950,9 @@ public class ReplicationBroker
           new ChangeStatusMsg(ServerStatus.INVALID_STATUS, newStatus));
     } catch (IOException ex)
     {
-      LocalizableMessage message = ERR_EXCEPTION_SENDING_CS.get(
-        getBaseDN().toNormalizedString(),
+      logger.error(ERR_EXCEPTION_SENDING_CS, getBaseDN().toNormalizedString(),
         Integer.toString(getServerId()),
         ex.getLocalizedMessage() + " " + stackTraceToSingleLineString(ex));
-      logError(message);
     }
   }
 

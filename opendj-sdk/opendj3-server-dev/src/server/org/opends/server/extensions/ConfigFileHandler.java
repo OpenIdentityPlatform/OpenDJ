@@ -206,14 +206,14 @@ public class ConfigFileHandler
       f = new File(configFile + ".startok");
       if (! f.exists())
       {
-        logError(WARN_CONFIG_FILE_NO_STARTOK_FILE.get(f.getAbsolutePath(),
+        logger.warn(WARN_CONFIG_FILE_NO_STARTOK_FILE.get(f.getAbsolutePath(),
                                                       configFile));
         useLastKnownGoodConfig = false;
         f = new File(configFile);
       }
       else
       {
-        logError(NOTE_CONFIG_FILE_USING_STARTOK_FILE.get(f.getAbsolutePath(),
+        logger.info(NOTE_CONFIG_FILE_USING_STARTOK_FILE.get(f.getAbsolutePath(),
                                                          configFile));
       }
     }
@@ -847,8 +847,7 @@ public class ConfigFileHandler
       // FIXME -- Log each error message and throw an exception.
       for (LocalizableMessage s : errorList)
       {
-        LocalizableMessage message = ERR_CONFIG_ERROR_APPLYING_STARTUP_CHANGE.get(s);
-        logError(message);
+        logger.error(ERR_CONFIG_ERROR_APPLYING_STARTUP_CHANGE, s);
       }
 
       LocalizableMessage message = ERR_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE.get();
@@ -1817,9 +1816,10 @@ public class ConfigFileHandler
 
           StaticUtils.close(inputStream, outputStream);
 
-          LocalizableMessage message = WARN_CONFIG_MANUAL_CHANGES_DETECTED.get(
-              configFile, newConfigFile.getAbsolutePath());
-          logError(message);
+          LocalizableMessage message =
+              WARN_CONFIG_MANUAL_CHANGES_DETECTED.get(configFile, newConfigFile
+                  .getAbsolutePath());
+          logger.warn(message);
 
           DirectoryServer.sendAlertNotification(this,
                ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED, message);
@@ -1829,9 +1829,10 @@ public class ConfigFileHandler
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_CONFIG_MANUAL_CHANGES_LOST.get(
-            configFile, stackTraceToSingleLineString(e));
-        logError(message);
+        LocalizableMessage message =
+            ERR_CONFIG_MANUAL_CHANGES_LOST.get(configFile,
+                stackTraceToSingleLineString(e));
+        logger.error(message);
 
         DirectoryServer.sendAlertNotification(this,
              ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED, message);
@@ -1853,9 +1854,10 @@ public class ConfigFileHandler
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG.get(
-          String.valueOf(tempConfig), stackTraceToSingleLineString(e));
-      logError(message);
+      LocalizableMessage message =
+          ERR_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG.get(String
+              .valueOf(tempConfig), stackTraceToSingleLineString(e));
+      logger.error(message);
 
       DirectoryServer.sendAlertNotification(this,
            ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
@@ -1874,10 +1876,11 @@ public class ConfigFileHandler
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CONFIG_FILE_WRITE_CANNOT_RENAME_NEW_CONFIG.
-          get(String.valueOf(tempConfig), String.valueOf(configFile),
+      LocalizableMessage message =
+          ERR_CONFIG_FILE_WRITE_CANNOT_RENAME_NEW_CONFIG.get(String
+              .valueOf(tempConfig), String.valueOf(configFile),
               stackTraceToSingleLineString(e));
-      logError(message);
+      logger.error(message);
 
       DirectoryServer.sendAlertNotification(this,
            ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
@@ -1920,9 +1923,9 @@ public class ConfigFileHandler
       {
         if (! archiveDirectory.mkdirs())
         {
-          LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR_NO_REASON.
-              get(archiveDirectory.getAbsolutePath());
-          logError(message);
+          LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR_NO_REASON.get(
+              archiveDirectory.getAbsolutePath());
+          logger.error(message);
 
           DirectoryServer.sendAlertNotification(this,
                ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
@@ -1933,10 +1936,10 @@ public class ConfigFileHandler
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR.
-            get(archiveDirectory.getAbsolutePath(),
-                stackTraceToSingleLineString(e));
-        logError(message);
+        LocalizableMessage message =
+            ERR_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR.get(archiveDirectory
+                .getAbsolutePath(), stackTraceToSingleLineString(e));
+        logger.error(message);
 
         DirectoryServer.sendAlertNotification(this,
              ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
@@ -1969,9 +1972,10 @@ public class ConfigFileHandler
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE.get(
-          stackTraceToSingleLineString(e));
-      logError(message);
+      LocalizableMessage message =
+          ERR_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE
+              .get(stackTraceToSingleLineString(e));
+      logger.error(message);
 
       DirectoryServer.sendAlertNotification(this,
            ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
@@ -1999,9 +2003,10 @@ public class ConfigFileHandler
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE.get(
-          stackTraceToSingleLineString(e));
-      logError(message);
+      LocalizableMessage message =
+          ERR_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE
+              .get(stackTraceToSingleLineString(e));
+      logger.error(message);
 
       DirectoryServer.sendAlertNotification(this,
            ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
@@ -2099,7 +2104,7 @@ public class ConfigFileHandler
         {
           logger.traceException(e);
 
-          logError(ERR_STARTOK_CANNOT_WRITE.get(configFile, tempFilePath,
+          logger.error(ERR_STARTOK_CANNOT_WRITE.get(configFile, tempFilePath,
                                                 getExceptionMessage(e)));
           return;
         }
@@ -2108,7 +2113,7 @@ public class ConfigFileHandler
       {
         logger.traceException(e);
 
-        logError(ERR_STARTOK_CANNOT_OPEN_FOR_WRITING.get(tempFilePath,
+        logger.error(ERR_STARTOK_CANNOT_OPEN_FOR_WRITING.get(tempFilePath,
                       getExceptionMessage(e)));
         return;
       }
@@ -2121,7 +2126,7 @@ public class ConfigFileHandler
     {
       logger.traceException(e);
 
-      logError(ERR_STARTOK_CANNOT_OPEN_FOR_READING.get(configFile,
+      logger.error(ERR_STARTOK_CANNOT_OPEN_FOR_READING.get(configFile,
                                                        getExceptionMessage(e)));
       return;
     }
@@ -2167,7 +2172,7 @@ public class ConfigFileHandler
     {
       logger.traceException(e);
 
-      logError(ERR_STARTOK_CANNOT_RENAME.get(tempFilePath, startOKFilePath,
+      logger.error(ERR_STARTOK_CANNOT_RENAME.get(tempFilePath, startOKFilePath,
                                              getExceptionMessage(e)));
       return;
     }
@@ -2984,15 +2989,11 @@ public class ConfigFileHandler
           try
           {
             configBackupDir.renameTo(configDir);
-            LocalizableMessage message =
-                NOTE_CONFIG_RESTORE_RESTORED_OLD_CONFIG.get(configDirPath);
-            logError(message);
+            logger.info(NOTE_CONFIG_RESTORE_RESTORED_OLD_CONFIG, configDirPath);
           }
           catch (Exception e2)
           {
-            LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_RESTORE_OLD_CONFIG.get(
-                configBackupDir.getPath());
-            logError(message);
+            logger.error(ERR_CONFIG_RESTORE_CANNOT_RESTORE_OLD_CONFIG, configBackupDir.getPath());
           }
         }
 
@@ -3021,9 +3022,7 @@ public class ConfigFileHandler
         // Tell the user where the previous config was archived.
         if (configBackupDir != null)
         {
-          LocalizableMessage message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
-              configBackupDir.getPath());
-          logError(message);
+          logger.error(ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED, configBackupDir.getPath());
         }
 
         LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_GET_ZIP_ENTRY.get(
@@ -3073,9 +3072,7 @@ public class ConfigFileHandler
           // Tell the user where the previous config was archived.
           if (configBackupDir != null)
           {
-            LocalizableMessage message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
-                configBackupDir.getPath());
-            logError(message);
+            logger.error(ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED, configBackupDir.getPath());
           }
 
           LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_CREATE_FILE.
@@ -3135,9 +3132,7 @@ public class ConfigFileHandler
         // Tell the user where the previous config was archived.
         if (configBackupDir != null)
         {
-          LocalizableMessage message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
-              configBackupDir.getPath());
-          logError(message);
+          logger.error(ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED, configBackupDir.getPath());
         }
 
         LocalizableMessage message = ERR_CONFIG_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE.get(
@@ -3170,17 +3165,14 @@ public class ConfigFileHandler
       byte[] calculatedHash = digest.digest();
       if (Arrays.equals(calculatedHash, unsignedHash))
       {
-        LocalizableMessage message = NOTE_CONFIG_RESTORE_UNSIGNED_HASH_VALID.get();
-        logError(message);
+        logger.info(NOTE_CONFIG_RESTORE_UNSIGNED_HASH_VALID);
       }
       else
       {
         // Tell the user where the previous config was archived.
         if (configBackupDir != null)
         {
-          LocalizableMessage message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
-              configBackupDir.getPath());
-          logError(message);
+          logger.error(ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED, configBackupDir.getPath());
         }
 
         LocalizableMessage message =
@@ -3195,17 +3187,14 @@ public class ConfigFileHandler
       byte[] calculatedSignature = mac.doFinal();
       if (Arrays.equals(calculatedSignature, signedHash))
       {
-        LocalizableMessage message = NOTE_CONFIG_RESTORE_SIGNED_HASH_VALID.get();
-        logError(message);
+        logger.info(NOTE_CONFIG_RESTORE_SIGNED_HASH_VALID);
       }
       else
       {
         // Tell the user where the previous config was archived.
         if (configBackupDir != null)
         {
-          LocalizableMessage message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
-              configBackupDir.getPath());
-          logError(message);
+          logger.error(ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED, configBackupDir.getPath());
         }
 
         LocalizableMessage message =
@@ -3219,9 +3208,7 @@ public class ConfigFileHandler
     // If we are just verifying the archive, then we're done.
     if (verifyOnly)
     {
-      LocalizableMessage message =
-          NOTE_CONFIG_RESTORE_VERIFY_SUCCESSFUL.get(backupID, backupPath);
-      logError(message);
+      logger.info(NOTE_CONFIG_RESTORE_VERIFY_SUCCESSFUL, backupID, backupPath);
       return;
     }
 
@@ -3234,8 +3221,7 @@ public class ConfigFileHandler
       recursiveDelete(configBackupDir);
     }
 
-    LocalizableMessage message = NOTE_CONFIG_RESTORE_SUCCESSFUL.get(backupID, backupPath);
-    logError(message);
+    logger.info(NOTE_CONFIG_RESTORE_SUCCESSFUL, backupID, backupPath);
   }
 
 
@@ -3302,10 +3288,8 @@ public class ConfigFileHandler
   {
     if (result == null)
     {
-      LocalizableMessage message = ERR_CONFIG_CHANGE_NO_RESULT.
-          get(String.valueOf(className), String.valueOf(methodName),
+      logger.error(ERR_CONFIG_CHANGE_NO_RESULT, String.valueOf(className), String.valueOf(methodName),
               String.valueOf(entryDN));
-      logError(message);
       return;
     }
 
@@ -3329,25 +3313,19 @@ public class ConfigFileHandler
 
     if (resultCode != ResultCode.SUCCESS)
     {
-      LocalizableMessage message = ERR_CONFIG_CHANGE_RESULT_ERROR.
-          get(String.valueOf(className), String.valueOf(methodName),
+      logger.error(ERR_CONFIG_CHANGE_RESULT_ERROR, String.valueOf(className), String.valueOf(methodName),
               String.valueOf(entryDN), String.valueOf(resultCode),
               adminActionRequired, messageBuffer.toString());
-      logError(message);
     }
     else if (adminActionRequired)
     {
-      LocalizableMessage message = WARN_CONFIG_CHANGE_RESULT_ACTION_REQUIRED.
-          get(String.valueOf(className), String.valueOf(methodName),
+      logger.warn(WARN_CONFIG_CHANGE_RESULT_ACTION_REQUIRED, String.valueOf(className), String.valueOf(methodName),
               String.valueOf(entryDN), messageBuffer.toString());
-      logError(message);
     }
     else if (messageBuffer.length() > 0)
     {
-      LocalizableMessage message = INFO_CONFIG_CHANGE_RESULT_MESSAGES.
-          get(String.valueOf(className), String.valueOf(methodName),
+      logger.debug(INFO_CONFIG_CHANGE_RESULT_MESSAGES, String.valueOf(className), String.valueOf(methodName),
               String.valueOf(entryDN), messageBuffer.toString());
-      logError(message);
     }
   }
 

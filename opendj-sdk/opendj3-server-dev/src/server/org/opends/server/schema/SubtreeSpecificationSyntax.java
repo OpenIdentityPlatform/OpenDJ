@@ -27,7 +27,6 @@
 package org.opends.server.schema;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -124,21 +123,21 @@ public final class SubtreeSpecificationSyntax
     defaultEqualityMatchingRule = DirectoryServer
         .getEqualityMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null) {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
           EMR_OCTET_STRING_OID, SYNTAX_SUBTREE_SPECIFICATION_NAME));
     }
 
     defaultOrderingMatchingRule = DirectoryServer
         .getOrderingMatchingRule(OMR_OCTET_STRING_OID);
     if (defaultOrderingMatchingRule == null) {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
           OMR_OCTET_STRING_OID, SYNTAX_SUBTREE_SPECIFICATION_NAME));
     }
 
     defaultSubstringMatchingRule = DirectoryServer
         .getSubstringMatchingRule(SMR_OCTET_STRING_OID);
     if (defaultSubstringMatchingRule == null) {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
           SMR_OCTET_STRING_OID, SYNTAX_SUBTREE_SPECIFICATION_NAME));
     }
   }

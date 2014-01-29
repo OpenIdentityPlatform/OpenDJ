@@ -27,8 +27,7 @@
 package org.opends.server.core;
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,6 +62,9 @@ public class LoggerConfigManager implements
     ConfigurationAddListener<LogPublisherCfg>,
     ConfigurationDeleteListener<LogPublisherCfg>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
 
   private final ServerContext serverContext;
 
@@ -146,11 +148,11 @@ public class LoggerConfigManager implements
     // disable all debug loggers.
     if (accessPublisherCfgs.isEmpty())
     {
-      logError(WARN_CONFIG_LOGGER_NO_ACTIVE_ACCESS_LOGGERS.get());
+      logger.warn(WARN_CONFIG_LOGGER_NO_ACTIVE_ACCESS_LOGGERS.get());
     }
     if (errorPublisherCfgs.isEmpty())
     {
-      logError(WARN_CONFIG_LOGGER_NO_ACTIVE_ERROR_LOGGERS.get());
+      logger.warn(WARN_CONFIG_LOGGER_NO_ACTIVE_ERROR_LOGGERS.get());
     }
 
     DebugLogger.getInstance().initializeLogger(debugPublisherCfgs, serverContext);

@@ -27,7 +27,6 @@
 package org.opends.server.workflowelement.localbackend;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -205,10 +204,7 @@ public class LocalBackendDeleteOperation
             {
               logger.traceException(e);
 
-              LocalizableMessage message =
-                  ERR_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER
-                      .get(getExceptionMessage(e));
-              logError(message);
+              logger.error(ERR_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER, getExceptionMessage(e));
             }
           }
         }
@@ -589,8 +585,7 @@ public class LocalBackendDeleteOperation
               }
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logError(ERR_DELETE_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
-                      getConnectionID(), getOperationID(),
+              logger.error(ERR_DELETE_SYNCH_CONFLICT_RESOLUTION_FAILED.get(getConnectionID(), getOperationID(),
                       getExceptionMessage(de)));
               setResponseData(de);
               return false;
@@ -609,7 +604,7 @@ public class LocalBackendDeleteOperation
               provider.doPostOperation(this);
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logError(ERR_DELETE_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+              logger.error(ERR_DELETE_SYNCH_POSTOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
               return;
@@ -637,7 +632,7 @@ public class LocalBackendDeleteOperation
               }
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logError(ERR_DELETE_SYNCH_PREOP_FAILED.get(getConnectionID(),
+              logger.error(ERR_DELETE_SYNCH_PREOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
               return false;

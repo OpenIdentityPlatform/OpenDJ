@@ -43,7 +43,6 @@ import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.InitializationException;
 import static org.opends.messages.JebMessages.*;
@@ -194,17 +193,13 @@ public class RootContainer
       {
         if(!FilePermission.setPermissions(backendDirectory, backendPermission))
         {
-          LocalizableMessage message = WARN_JEB_UNABLE_SET_PERMISSIONS.get(
-              backendPermission.toString(), backendDirectory.toString());
-          logError(message);
+          logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission.toString(), backendDirectory.toString());
         }
       }
       catch(Exception e)
       {
         // Log an warning that the permissions were not set.
-        LocalizableMessage message = WARN_JEB_SET_PERMISSIONS_FAILED.get(
-            backendDirectory.toString(), e.toString());
-        logError(message);
+        logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory.toString(), e.toString());
       }
     }
 
@@ -409,9 +404,7 @@ public class RootContainer
         PreloadConfig preloadConfig = new PreloadConfig();
         preloadConfig.setLoadLNs(true);
 
-        LocalizableMessage message =
-            NOTE_JEB_CACHE_PRELOAD_STARTED.get(backend.getBackendID());
-        logError(message);
+        logger.info(NOTE_JEB_CACHE_PRELOAD_STARTED, backend.getBackendID());
 
         boolean isInterrupted = false;
 
@@ -440,52 +433,37 @@ public class RootContainer
           if (preloadStatus != PreloadStatus.SUCCESS)
           {
             if (preloadStatus == PreloadStatus.EXCEEDED_TIME) {
-              message =
-                NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_BY_TIME.get(
-                backend.getBackendID(), db.getName());
-              logError(message);
+              logger.info(NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_BY_TIME, backend.getBackendID(), db.getName());
             } else if (preloadStatus == PreloadStatus.FILLED_CACHE) {
-              message =
-                NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_BY_SIZE.get(
-                backend.getBackendID(), db.getName());
-              logError(message);
+              logger.info(NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_BY_SIZE, backend.getBackendID(), db.getName());
             } else {
-              message =
-                NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_UNKNOWN.get(
-                backend.getBackendID(), db.getName());
-              logError(message);
+              logger.info(NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_UNKNOWN, backend.getBackendID(), db.getName());
             }
 
             isInterrupted = true;
             break;
           }
 
-          message = NOTE_JEB_CACHE_DB_PRELOADED.get(db.getName());
-          logError(message);
+          logger.info(NOTE_JEB_CACHE_DB_PRELOADED, db.getName());
         }
 
         if (!isInterrupted) {
-          message = NOTE_JEB_CACHE_PRELOAD_DONE.get(backend.getBackendID());
-          logError(message);
+          logger.info(NOTE_JEB_CACHE_PRELOAD_DONE, backend.getBackendID());
         }
 
         // Log an informational message about the size of the cache.
         EnvironmentStats stats = env.getStats(new StatsConfig());
         long total = stats.getCacheTotalBytes();
 
-        message =
-            NOTE_JEB_CACHE_SIZE_AFTER_PRELOAD.get(total / (1024 * 1024));
-        logError(message);
+        logger.info(NOTE_JEB_CACHE_SIZE_AFTER_PRELOAD, total / (1024 * 1024));
       }
       catch (DatabaseException e)
       {
         logger.traceException(e);
 
-        LocalizableMessage message =
-          ERR_JEB_CACHE_PRELOAD.get(backend.getBackendID(),
+        logger.error(ERR_JEB_CACHE_PRELOAD, backend.getBackendID(),
           (e.getCause() != null ? e.getCause().getMessage() :
             stackTraceToSingleLineString(e)));
-        logError(message);
       }
     }
   }
@@ -934,17 +912,13 @@ public class RootContainer
             if(!FilePermission.setPermissions(backendDirectory,
                 backendPermission))
             {
-              LocalizableMessage message = WARN_JEB_UNABLE_SET_PERMISSIONS.get(
-                  backendPermission.toString(), backendDirectory.toString());
-              logError(message);
+              logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission.toString(), backendDirectory.toString());
             }
           }
           catch(Exception e)
           {
             // Log an warning that the permissions were not set.
-            LocalizableMessage message = WARN_JEB_SET_PERMISSIONS_FAILED.get(
-                backendDirectory.toString(), e.toString());
-            logError(message);
+            logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory.toString(), e.toString());
           }
         }
       }

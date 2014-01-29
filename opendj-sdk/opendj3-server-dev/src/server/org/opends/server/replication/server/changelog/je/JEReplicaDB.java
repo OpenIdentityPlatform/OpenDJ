@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
 import java.util.ArrayList;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,13 +61,18 @@ import static org.opends.server.util.StaticUtils.*;
  * It is responsible for efficiently saving the updates that is received from
  * each master server into stable storage.
  * <p>
- * This class is also able to generate a {@link DBCursor} that can be used to
+ * This class is also able to generate a {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+@link DBCursor} that can be used to
  * read all changes from a given {@link CSN}.
  * <p>
  * This class publish some monitoring information below cn=monitor.
  */
 public class JEReplicaDB implements Runnable
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * The msgQueue holds all the updates not yet saved to stable storage.
    * <p>
@@ -331,8 +337,7 @@ public class JEReplicaDB implements Runnable
       catch (ChangelogException e)
       {
         // We are already shutting down
-        logError(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH
-            .get(stackTraceToSingleLineString(e)));
+        logger.error(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH, stackTraceToSingleLineString(e));
       }
     }
 
@@ -409,8 +414,7 @@ public class JEReplicaDB implements Runnable
 
   private void stop(Exception e)
   {
-    logError(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH
-        .get(stackTraceToSingleLineString(e)));
+    logger.error(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH, stackTraceToSingleLineString(e));
 
     thread.initiateShutdown();
 

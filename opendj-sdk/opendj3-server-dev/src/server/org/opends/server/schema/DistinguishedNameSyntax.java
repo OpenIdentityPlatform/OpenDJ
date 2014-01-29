@@ -38,7 +38,6 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -107,16 +106,14 @@ public class DistinguishedNameSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_DN_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_DN_OID, SYNTAX_DN_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(EMR_DN_OID, SYNTAX_DN_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_CASE_IGNORE_OID, SYNTAX_DN_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(SMR_CASE_IGNORE_OID, SYNTAX_DN_NAME));
     }
   }
 
