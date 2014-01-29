@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
-
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.CliConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 import java.io.File;
@@ -47,6 +46,16 @@ import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
+
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.FileBasedArgument;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.StringArgument;
+
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.KeyManagers;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
@@ -67,11 +76,6 @@ import org.forgerock.opendj.ldap.requests.Requests;
  * A connection factory designed for use with command line tools.
  */
 final class ConnectionFactoryProvider {
-    /**
-     * End Of Line.
-     */
-    static final String EOL = System.getProperty("line.separator");
-
     /**
      * The Logger.
      */
@@ -353,8 +357,8 @@ final class ConnectionFactoryProvider {
                 throw new ArgumentException(message);
             }
 
-            // Couldn't have at the same time trustAll and
-            // trustStore related arg
+            /* Couldn't have at the same time trustAll and
+             trustStore related arg*/
             if (trustAllArg.isPresent() && trustStorePathArg.isPresent()) {
                 final LocalizableMessage message =
                         ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
@@ -374,8 +378,8 @@ final class ConnectionFactoryProvider {
                 throw new ArgumentException(message);
             }
 
-            // Couldn't have at the same time trustStorePasswordArg and
-            // trustStorePasswordFileArg
+            /* Couldn't have at the same time trustStorePasswordArg and
+             trustStorePasswordFileArg*/
             if (trustStorePasswordArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
                 final LocalizableMessage message =
                         ERR_TOOL_CONFLICTING_ARGS.get(trustStorePasswordArg.getLongIdentifier(),
@@ -401,8 +405,7 @@ final class ConnectionFactoryProvider {
                 }
             }
 
-            // Couldn't have at the same time startTLSArg and
-            // useSSLArg
+            // Couldn't have at the same time startTLSArg and useSSLArg
             if (useStartTLSArg.isPresent() && useSSLArg.isPresent()) {
                 final LocalizableMessage message =
                         ERR_TOOL_CONFLICTING_ARGS.get(useStartTLSArg.getLongIdentifier(), useSSLArg

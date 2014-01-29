@@ -22,14 +22,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
-
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.CliConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -49,6 +48,14 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.MultiChoiceArgument;
+import com.forgerock.opendj.cli.StringArgument;
 
 /**
  * A load generation tool that can be used to load a Directory Server with
@@ -211,22 +218,15 @@ public final class SearchRate extends ConsoleApplication {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
             runner = new SearchPerformanceRunner(argParser, this);
 
-            propertiesFileArgument =
-                    new StringArgument("propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH,
-                            false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_PROP_FILE_PATH.get());
+            propertiesFileArgument = CommonArguments.getPropertiesFileArgument();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            noPropertiesFileArgument =
-                    new BooleanArgument("noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-                            INFO_DESCRIPTION_NO_PROP_FILE.get());
+            noPropertiesFileArgument = CommonArguments.getNoPropertiesFileArgument();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-            showUsage =
-                    new BooleanArgument("showUsage", OPTION_SHORT_HELP, OPTION_LONG_HELP,
-                            INFO_DESCRIPTION_SHOWUSAGE.get());
+            showUsage = CommonArguments.getShowUsage();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
 
@@ -254,9 +254,7 @@ public final class SearchRate extends ConsoleApplication {
             dereferencePolicy.setDefaultValue(DereferenceAliasesPolicy.NEVER);
             argParser.addArgument(dereferencePolicy);
 
-            verbose =
-                    new BooleanArgument("verbose", 'v', "verbose", INFO_DESCRIPTION_VERBOSE.get());
-            verbose.setPropertyName("verbose");
+            verbose = CommonArguments.getVerbose();
             argParser.addArgument(verbose);
 
             scriptFriendly =
@@ -291,9 +289,8 @@ public final class SearchRate extends ConsoleApplication {
         final List<String> attributes = new LinkedList<String>();
         final ArrayList<String> filterAndAttributeStrings = argParser.getTrailingArguments();
         if (filterAndAttributeStrings.size() > 0) {
-            // the list of trailing arguments should be structured as follow:
-            // the first trailing argument is
-            // considered the filter, the other as attributes.
+            /* The list of trailing arguments should be structured as follow:
+             the first trailing argument is considered the filter, the other as attributes.*/
             runner.filter = filterAndAttributeStrings.remove(0);
             // The rest are attributes
             for (final String s : filterAndAttributeStrings) {
@@ -311,8 +308,8 @@ public final class SearchRate extends ConsoleApplication {
         }
 
         try {
-            // Try it out to make sure the format string and data sources
-            // match.
+            /* Try it out to make sure the format string and data sources
+             match.*/
             final Object[] data = DataSource.generateData(runner.getDataSources(), null);
             String.format(runner.filter, data);
             String.format(runner.baseDN, data);

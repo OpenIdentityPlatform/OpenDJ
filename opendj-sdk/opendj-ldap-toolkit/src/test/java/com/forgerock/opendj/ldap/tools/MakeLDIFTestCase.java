@@ -21,12 +21,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
 import static org.fest.assertions.Assertions.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -107,7 +109,7 @@ public class MakeLDIFTestCase extends ToolsTestCase {
                 assertThat(out.size()).isEqualTo(0);
             }
 
-            assertThat(err.toString("UTF-8")).contains(Utils.wrapText(expectedErrOutput, Utils.MAX_LINE_WIDTH));
+            assertThat(err.toString("UTF-8")).contains(wrapText(expectedErrOutput, MAX_LINE_WIDTH));
         } finally {
             org.forgerock.util.Utils.closeSilently(outStream, errStream);
         }

@@ -50,6 +50,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.util.Reject;
 
+import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ConsoleApplication;
+
 /**
  * A trust manager which prompts the user for the length of time that they would
  * like to trust a server certificate.

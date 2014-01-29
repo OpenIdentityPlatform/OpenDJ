@@ -22,14 +22,15 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
-
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.CliConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -65,6 +66,14 @@ import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 import org.forgerock.opendj.ldif.EntryWriter;
 import org.forgerock.opendj.ldif.LDIFChangeRecordReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
+
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.StringArgument;
 
 /**
  * A tool that can be used to issue update (Add/Delete/Modify/ModifyDN) requests
@@ -102,7 +111,7 @@ public final class LDAPModify extends ConsoleApplication {
                     printResult(opType, change.getName().toString(), r);
                     return r.getResultCode().intValue();
                 } catch (final ErrorResultException ere) {
-                    return Utils.printErrorMessage(LDAPModify.this, ere);
+                    return printErrorMessage(LDAPModify.this, ere);
                 }
             }
             return ResultCode.SUCCESS.intValue();
@@ -232,8 +241,7 @@ public final class LDAPModify extends ConsoleApplication {
     }
 
     private int run(final String[] args) {
-        // Create the command-line argument parser for use with this
-        // program.
+        // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
                 new ArgumentParser(LDAPModify.class.getName(), toolDescription, false);
@@ -258,16 +266,12 @@ public final class LDAPModify extends ConsoleApplication {
 
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
-            propertiesFileArgument =
-                    new StringArgument("propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH,
-                            false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_PROP_FILE_PATH.get());
+
+            propertiesFileArgument = CommonArguments.getPropertiesFileArgument();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            noPropertiesFileArgument =
-                    new BooleanArgument("noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-                            INFO_DESCRIPTION_NO_PROP_FILE.get());
+            noPropertiesFileArgument = CommonArguments.getNoPropertiesFileArgument();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
@@ -319,12 +323,7 @@ public final class LDAPModify extends ConsoleApplication {
             controlStr.setPropertyName("control");
             argParser.addArgument(controlStr);
 
-            version =
-                    new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
-                            OPTION_LONG_PROTOCOL_VERSION, false, false, true,
-                            INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3, null,
-                            INFO_DESCRIPTION_VERSION.get());
-            version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
+            version = CommonArguments.getVersionArgument();
             argParser.addArgument(version);
 
             encodingStr =
@@ -334,10 +333,7 @@ public final class LDAPModify extends ConsoleApplication {
             encodingStr.setPropertyName("encoding");
             argParser.addArgument(encodingStr);
 
-            continueOnError =
-                    new BooleanArgument("continueOnError", 'c', "continueOnError",
-                            INFO_DESCRIPTION_CONTINUE_ON_ERROR.get());
-            continueOnError.setPropertyName("continueOnError");
+            continueOnError = CommonArguments.getContinueOnErrorArgument();
             argParser.addArgument(continueOnError);
 
             noop =
@@ -346,14 +342,10 @@ public final class LDAPModify extends ConsoleApplication {
             noop.setPropertyName(OPTION_LONG_DRYRUN);
             argParser.addArgument(noop);
 
-            verbose =
-                    new BooleanArgument("verbose", 'v', "verbose", INFO_DESCRIPTION_VERBOSE.get());
-            verbose.setPropertyName("verbose");
+            verbose = CommonArguments.getVerbose();
             argParser.addArgument(verbose);
 
-            showUsage =
-                    new BooleanArgument("showUsage", OPTION_SHORT_HELP, OPTION_LONG_HELP,
-                            INFO_DESCRIPTION_SHOWUSAGE.get());
+            showUsage = CommonArguments.getShowUsage();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
@@ -366,8 +358,8 @@ public final class LDAPModify extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
 
-            // If we should just display usage or version information,
-            // then print it and exit.
+            /* If we should just display usage or version information,
+             then print it and exit.*/
             if (argParser.usageOrVersionDisplayed()) {
                 return 0;
             }
@@ -503,7 +495,7 @@ public final class LDAPModify extends ConsoleApplication {
                 return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
             }
         } finally {
-            org.forgerock.util.Utils.closeSilently(reader, connection);
+            closeSilently(reader, connection);
         }
 
         return ResultCode.SUCCESS.intValue();

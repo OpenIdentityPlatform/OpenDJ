@@ -22,14 +22,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
-
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
@@ -42,6 +40,15 @@ import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
+
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.FileBasedArgument;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.StringArgument;
 
 /**
  * A tool that can be used to issue LDAP password modify extended requests to
@@ -105,16 +112,12 @@ public final class LDAPPasswordModify extends ConsoleApplication {
 
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
-            propertiesFileArgument =
-                    new StringArgument("propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH,
-                            false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_PROP_FILE_PATH.get());
+
+            propertiesFileArgument = CommonArguments.getPropertiesFileArgument();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            noPropertiesFileArgument =
-                    new BooleanArgument("noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-                            INFO_DESCRIPTION_NO_PROP_FILE.get());
+            noPropertiesFileArgument = CommonArguments.getNoPropertiesFileArgument();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
@@ -160,22 +163,13 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             controlStr.setPropertyName("control");
             argParser.addArgument(controlStr);
 
-            version =
-                    new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
-                            OPTION_LONG_PROTOCOL_VERSION, false, false, true,
-                            INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3, null,
-                            INFO_DESCRIPTION_VERSION.get());
-            version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
+            version = CommonArguments.getVersionArgument();
             argParser.addArgument(version);
 
-            verbose =
-                    new BooleanArgument("verbose", 'v', "verbose", INFO_DESCRIPTION_VERBOSE.get());
-            verbose.setPropertyName("verbose");
+            verbose = CommonArguments.getVerbose();
             argParser.addArgument(verbose);
 
-            showUsage =
-                    new BooleanArgument("showUsage", OPTION_SHORT_HELP, OPTION_LONG_HELP,
-                            INFO_DESCRIPTION_SHOWUSAGE.get());
+            showUsage = CommonArguments.getShowUsage();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
@@ -188,8 +182,8 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
 
-            // If we should just display usage or version information,
-            // then print it and exit.
+            /* If we should just display usage or version information,
+             then print it and exit.*/
             if (argParser.usageOrVersionDisplayed()) {
                 return 0;
             }

@@ -22,20 +22,29 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.CliConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.ldap.tools.Utils.*;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+
 import org.forgerock.i18n.LocalizableMessage;
+
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.StringArgument;
+
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldif.EntryGenerator;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;

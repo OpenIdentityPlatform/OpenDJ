@@ -21,14 +21,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012-2013 ForgeRock AS
+ *      Copyright 2012-2014 ForgeRock AS
  */
-
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.CliConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -54,6 +53,15 @@ import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.MultiChoiceArgument;
+import com.forgerock.opendj.cli.StringArgument;
+
 /**
  * This utility can be used to perform search operations against data in an LDIF
  * file.
@@ -76,8 +84,8 @@ public final class LDIFSearch extends ConsoleApplication {
     }
 
     private int run(final String[] args) {
-        // Create the command-line argument parser for use with this
-        // program.
+        /* Create the command-line argument parser for use with this
+         program.*/
 
         final LocalizableMessage toolDescription = INFO_LDIFSEARCH_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
@@ -144,9 +152,7 @@ public final class LDIFSearch extends ConsoleApplication {
             timeLimit.setPropertyName("timeLimit");
             argParser.addArgument(timeLimit);
 
-            showUsage =
-                    new BooleanArgument("showUsage", OPTION_SHORT_HELP, OPTION_LONG_HELP,
-                            INFO_DESCRIPTION_SHOWUSAGE.get());
+            showUsage = CommonArguments.getShowUsage();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
@@ -159,8 +165,8 @@ public final class LDIFSearch extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
 
-            // If we should just display usage or version information,
-            // then print it and exit.
+            /* If we should just display usage or version information,
+             then print it and exit.*/
             if (argParser.usageOrVersionDisplayed()) {
                 return ResultCode.SUCCESS.intValue();
             }
@@ -177,11 +183,11 @@ public final class LDIFSearch extends ConsoleApplication {
             final List<String> filterAndAttributeStrings =
                     trailingArguments.subList(1, trailingArguments.size());
 
-            // the list of trailing arguments should be structured as follow:
-            // - If a filter file is present, trailing arguments are
-            // considered as attributes
-            // - If filter file is not present, the first trailing argument is
-            // considered the filter, the other as attributes.
+            /* The list of trailing arguments should be structured as follow:
+             - If a filter file is present, trailing arguments are
+             considered as attributes
+             - If filter file is not present, the first trailing argument is
+             considered the filter, the other as attributes.*/
             if (!filename.isPresent()) {
                 final String filterString = filterAndAttributeStrings.remove(0);
                 try {

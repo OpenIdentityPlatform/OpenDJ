@@ -21,17 +21,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012-2013 ForgeRock AS
+ *      Copyright 2012-2014 ForgeRock AS
  */
-
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.ldap.tools.ToolConstants.OPTION_LONG_HELP;
-import static com.forgerock.opendj.ldap.tools.ToolConstants.OPTION_LONG_OUTPUT_LDIF_FILENAME;
-import static com.forgerock.opendj.ldap.tools.ToolConstants.OPTION_SHORT_HELP;
-import static com.forgerock.opendj.ldap.tools.ToolConstants.OPTION_SHORT_OUTPUT_LDIF_FILENAME;
+import static com.forgerock.opendj.cli.CliConstants.OPTION_LONG_OUTPUT_LDIF_FILENAME;
+import static com.forgerock.opendj.cli.CliConstants.OPTION_SHORT_OUTPUT_LDIF_FILENAME;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -55,6 +52,13 @@ import org.forgerock.opendj.ldif.LDIFChangeRecordReader;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.forgerock.opendj.ldif.RejectedChangeRecordListener;
+
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.StringArgument;
 
 /**
  * A tool that can be used to issue update (Add/Delete/Modify/ModifyDN) requests
@@ -99,15 +103,10 @@ public final class LDIFModify extends ConsoleApplication {
                                     .get(INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get()));
             argParser.addArgument(outputFilename);
 
-            continueOnError =
-                    new BooleanArgument("continueOnError", 'c', "continueOnError",
-                            INFO_DESCRIPTION_CONTINUE_ON_ERROR.get());
-            continueOnError.setPropertyName("continueOnError");
+            continueOnError = CommonArguments.getContinueOnErrorArgument();
             argParser.addArgument(continueOnError);
 
-            showUsage =
-                    new BooleanArgument("showUsage", OPTION_SHORT_HELP, OPTION_LONG_HELP,
-                            INFO_DESCRIPTION_SHOWUSAGE.get());
+            showUsage = CommonArguments.getShowUsage();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
@@ -193,9 +192,8 @@ public final class LDIFModify extends ConsoleApplication {
                 outputStream = System.out;
             }
 
-            // Check that we are not attempting to read both the source and
-            // changes
-            // from stdin.
+            /* Check that we are not attempting to read both the source and
+             changes from stdin.*/
             if (sourceInputStream == changesInputStream) {
                 final LocalizableMessage message = ERR_LDIFMODIFY_MULTIPLE_USES_OF_STDIN.get();
                 println(message);
