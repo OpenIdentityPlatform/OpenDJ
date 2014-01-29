@@ -26,4 +26,4 @@
 /**
  * Classes implementing the OpenDJ CLI shared APIs.
  */
-package org.forgerock.opendj.cli;
+package com.forgerock.opendj.cli;

@@ -24,7 +24,7 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions copyright 2014 ForgeRock AS
  */
-package org.forgerock.opendj.cli;
+package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.ERR_CONSOLE_INPUT_ERROR;
 
