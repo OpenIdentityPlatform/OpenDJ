@@ -744,7 +744,7 @@ public class Utils
   public static LocalizableMessage getThrowableMsg(LocalizableMessage message, Throwable t)
   {
     LocalizableMessageBuilder mb = new LocalizableMessageBuilder(message);
-    LocalizableMessageDescriptor.Arg1<CharSequence> tag;
+    LocalizableMessageDescriptor.Arg1<Object> tag;
     if (isOutOfMemory(t))
     {
       tag = INFO_EXCEPTION_OUT_OF_MEMORY_DETAILS;

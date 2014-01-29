@@ -240,7 +240,7 @@ public class GenerateMessageFile extends Task {
         c = Integer.class;
       } else if (
               "s".equals(sa5)) {
-        c = CharSequence.class;
+        c = Object.class;
       } else if (
               "c".equals(sa5)) {
         c = Character.class;

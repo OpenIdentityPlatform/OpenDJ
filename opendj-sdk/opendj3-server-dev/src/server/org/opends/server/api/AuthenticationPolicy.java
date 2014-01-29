@@ -96,25 +96,22 @@ public abstract class AuthenticationPolicy
         }
         catch (Exception e)
         {
-          logger.trace(e.getMessage(), e);
+          logger.traceException(e);
 
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Could not parse password policy subentry "
-                + "DN %s for user %s", v.getValue(),
-                userDNString, e);
-          }
+          logger.trace(
+              "Could not parse password policy subentry DN %s for user %s", v
+                  .getValue(), userDNString, e);
 
           if (useDefaultOnError)
           {
             logger.error(ERR_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN,
-                v.getValue().toString(), userDNString, e.getMessage());
+                v.getValue(), userDNString, e.getMessage());
             return DirectoryServer.getDefaultPasswordPolicy();
           }
           else
           {
             LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN
-                .get(v.getValue().toString(), userDNString, e.getMessage());
+                .get(v.getValue(), userDNString, e.getMessage());
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message,
                 e);
           }
@@ -124,12 +121,10 @@ public abstract class AuthenticationPolicy
             .getAuthenticationPolicy(subentryDN);
         if (policy == null)
         {
-          logger.trace("Password policy subentry %s for user %s "
-                + "is not defined in the Directory Server.",
-                subentryDN, userDNString);
+          logger.trace("Password policy subentry %s for user %s is not defined in the Directory Server.",
+                  subentryDN, userDNString);
 
-          LocalizableMessage message = ERR_PWPSTATE_NO_SUCH_POLICY.get(userDNString,
-              String.valueOf(subentryDN));
+          LocalizableMessage message = ERR_PWPSTATE_NO_SUCH_POLICY.get(userDNString, subentryDN);
           if (useDefaultOnError)
           {
             logger.error(message);
@@ -167,9 +162,8 @@ public abstract class AuthenticationPolicy
             {
               // This shouldn't happen but if it does debug log
               // this problem and fall back to default policy.
-              logger.trace("Found unknown password policy subentry "
-                    + "DN %s for user %s", subentry.getDN(),
-                    userDNString);
+              logger.trace("Found unknown password policy subentry DN %s for user %s",
+                  subentry.getDN(), userDNString);
               break;
             }
             return policy;
@@ -178,17 +172,15 @@ public abstract class AuthenticationPolicy
         catch (Exception e)
         {
           if (logger.isTraceEnabled()) {
-            logger.trace("Could not parse password policy subentry "
-                + "DN %s for user %s: %s", subentry.getDN(),
-                userDNString, stackTraceToSingleLineString(e));
+            logger.trace("Could not parse password policy subentry DN %s for user %s: %s",
+                subentry.getDN(), userDNString, stackTraceToSingleLineString(e));
           }
         }
       }
     }
 
     // No authentication policy found, so use the global default.
-    logger.trace("Using the default password policy for user %s",
-          userDNString);
+    logger.trace("Using the default password policy for user %s", userDNString);
 
     return DirectoryServer.getDefaultPasswordPolicy();
   }

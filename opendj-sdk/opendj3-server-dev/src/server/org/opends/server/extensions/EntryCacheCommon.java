@@ -293,13 +293,9 @@ public class EntryCacheCommon
    *
    * @return the set of search filters
    */
-  public static HashSet<SearchFilter> getFilters (
-      SortedSet<String>       filters,
-      LocalizableMessageDescriptor.Arg3<CharSequence, CharSequence, CharSequence>
-                              decodeErrorMsg,
-      ConfigErrorHandler      errorHandler,
-      DN                      configEntryDN
-      )
+  public static HashSet<SearchFilter> getFilters(SortedSet<String> filters,
+      LocalizableMessageDescriptor.Arg3<Object, Object, Object> decodeErrorMsg,
+      ConfigErrorHandler errorHandler, DN configEntryDN)
   {
     // Returned value
     HashSet<SearchFilter> searchFilters = new HashSet<SearchFilter>();

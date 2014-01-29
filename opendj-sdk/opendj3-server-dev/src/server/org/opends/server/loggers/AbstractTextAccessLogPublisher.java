@@ -195,7 +195,7 @@ public abstract class AbstractTextAccessLogPublisher
     }
 
     private PatternDN[] decodePatterns(Set<String> patterns,
-        Arg2<CharSequence, CharSequence> errorMessage, DN dn)
+        Arg2<Object, Object> errorMessage, DN dn)
         throws ConfigException
     {
       PatternDN[] results = new PatternDN[patterns.size()];
@@ -208,7 +208,7 @@ public abstract class AbstractTextAccessLogPublisher
         }
         catch (final DirectoryException e)
         {
-          throw new ConfigException(errorMessage.get(String.valueOf(dn), s));
+          throw new ConfigException(errorMessage.get(dn, s));
         }
       }
       return results;

@@ -1128,8 +1128,8 @@ public class LocalBackendBindOperation
 
   private Integer getIntegerUserAttribute(Entry userEntry,
       String attributeTypeName,
-      Arg1<CharSequence> nonUniqueAttributeMessage,
-      Arg2<CharSequence, CharSequence> cannotProcessAttributeMessage)
+      Arg1<Object> nonUniqueAttributeMessage,
+      Arg2<Object, Object> cannotProcessAttributeMessage)
   {
     AttributeType attrType =
         DirectoryServer.getAttributeType(attributeTypeName, true);
