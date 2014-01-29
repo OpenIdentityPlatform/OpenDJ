@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -35,6 +35,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.ConsoleApplication;
 
 @SuppressWarnings("javadoc")
 public class ConnectionFactoryProviderTest extends ToolsTestCase {

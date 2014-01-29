@@ -27,6 +27,8 @@
 
 package com.forgerock.opendj.ldap.tools;
 
+import static org.forgerock.util.Utils.closeSilently;
+
 import java.io.IOException;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
@@ -48,8 +50,14 @@ import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
-import org.forgerock.util.Utils;
 
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.MultiColumnPrinter;
+import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.ldap.tools.AuthenticatedConnectionFactory.AuthenticatedConnection;
 import com.forgerock.opendj.util.StaticUtils;
 
@@ -859,7 +867,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             stopRequested = true;
             app.println(LocalizableMessage.raw(e.getResult().getDiagnosticMessage()));
         } finally {
-            Utils.closeSilently(connections);
+            closeSilently(connections);
         }
 
         return 0;

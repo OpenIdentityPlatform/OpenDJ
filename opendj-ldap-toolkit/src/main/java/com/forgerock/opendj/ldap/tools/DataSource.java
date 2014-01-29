@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -37,7 +38,9 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 
+import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.util.StaticUtils;
+
 import org.forgerock.util.Reject;
 
 /**
@@ -249,7 +252,7 @@ final class DataSource {
      *            Data sources that will generate arguments referenced by the
      *            format specifiers in the format string.
      * @param data
-     *            The array where genereated data will be placed to format the
+     *            The array where generated data will be placed to format the
      *            string.
      * @return A formatted string
      */

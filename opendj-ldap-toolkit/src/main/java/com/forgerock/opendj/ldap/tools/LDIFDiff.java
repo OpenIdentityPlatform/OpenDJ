@@ -22,16 +22,14 @@
  *
  *
  *      Copyright 2012-2013 ForgeRock AS
+ *      Portions copyright 2014 ForgeRock AS
  */
-
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.ldap.tools.ToolConstants.OPTION_LONG_HELP;
-import static com.forgerock.opendj.ldap.tools.ToolConstants.OPTION_LONG_OUTPUT_LDIF_FILENAME;
-import static com.forgerock.opendj.ldap.tools.ToolConstants.OPTION_SHORT_HELP;
-import static com.forgerock.opendj.ldap.tools.ToolConstants.OPTION_SHORT_OUTPUT_LDIF_FILENAME;
+import static com.forgerock.opendj.cli.CliConstants.OPTION_LONG_OUTPUT_LDIF_FILENAME;
+import static com.forgerock.opendj.cli.CliConstants.OPTION_SHORT_OUTPUT_LDIF_FILENAME;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -47,6 +45,13 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.ldif.LDIFChangeRecordWriter;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
+
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.StringArgument;
 
 /**
  * This utility can be used to compare two LDIF files and report the differences
@@ -90,9 +95,7 @@ public final class LDIFDiff extends ConsoleApplication {
                                     .get(INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get()));
             argParser.addArgument(outputFilename);
 
-            showUsage =
-                    new BooleanArgument("showUsage", OPTION_SHORT_HELP, OPTION_LONG_HELP,
-                            INFO_DESCRIPTION_SHOWUSAGE.get());
+            showUsage = CommonArguments.getShowUsage();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
@@ -105,8 +108,8 @@ public final class LDIFDiff extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
 
-            // If we should just display usage or version information,
-            // then print it and exit.
+            /* If we should just display usage or version information,
+             then print it and exit.*/
             if (argParser.usageOrVersionDisplayed()) {
                 return ResultCode.SUCCESS.intValue();
             }
@@ -178,8 +181,8 @@ public final class LDIFDiff extends ConsoleApplication {
                 outputStream = System.out;
             }
 
-            // Check that we are not attempting to read both the source and
-            // target from stdin.
+            /* Check that we are not attempting to read both the source and
+             target from stdin.*/
             if (sourceInputStream == targetInputStream) {
                 final LocalizableMessage message = ERR_LDIFDIFF_MULTIPLE_USES_OF_STDIN.get();
                 println(message);

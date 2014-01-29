@@ -22,14 +22,15 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
-
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.CliConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.Utils.secondsToTimeString;
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -75,6 +76,14 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.EntryWriter;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.MultiChoiceArgument;
+import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 import com.forgerock.opendj.util.StaticUtils;
 
@@ -120,7 +129,7 @@ public final class LDAPSearch extends ConsoleApplication {
                         if (control.getSecondsBeforeExpiration() > 0) {
                             final int timeToExp = control.getSecondsBeforeExpiration();
                             final LocalizableMessage timeToExpStr =
-                                    Utils.secondsToTimeString(timeToExp);
+                                    secondsToTimeString(timeToExp);
 
                             println(INFO_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION
                                     .get(timeToExpStr));
@@ -147,7 +156,7 @@ public final class LDAPSearch extends ConsoleApplication {
                             if (control.getSecondsBeforeUnlock() > 0) {
                                 final int timeToUnlock = control.getSecondsBeforeUnlock();
                                 final LocalizableMessage timeToUnlockStr =
-                                        Utils.secondsToTimeString(timeToUnlock);
+                                        secondsToTimeString(timeToUnlock);
 
                                 println(INFO_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK
                                         .get(timeToUnlockStr));
@@ -221,8 +230,8 @@ public final class LDAPSearch extends ConsoleApplication {
     }
 
     private int run(final String[] args, final boolean returnMatchingEntries) {
-        // Create the command-line argument parser for use with this
-        // program.
+        /* Create the command-line argument parser for use with this
+         program.*/
         final LocalizableMessage toolDescription = INFO_LDAPSEARCH_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
                 new ArgumentParser(LDAPSearch.class.getName(), toolDescription, false, true, 0, 0,
@@ -254,15 +263,11 @@ public final class LDAPSearch extends ConsoleApplication {
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
             final StringArgument propertiesFileArgument =
-                    new StringArgument("propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH,
-                            false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_PROP_FILE_PATH.get());
+                CommonArguments.getPropertiesFileArgument();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            final BooleanArgument noPropertiesFileArgument =
-                    new BooleanArgument("noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-                            INFO_DESCRIPTION_NO_PROP_FILE.get());
+            final BooleanArgument noPropertiesFileArgument = CommonArguments.getNoPropertiesFileArgument();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
@@ -360,12 +365,7 @@ public final class LDAPSearch extends ConsoleApplication {
             effectiveRightsAttrs.setPropertyName(OPTION_LONG_EFFECTIVERIGHTSATTR);
             argParser.addArgument(effectiveRightsAttrs);
 
-            version =
-                    new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
-                            OPTION_LONG_PROTOCOL_VERSION, false, false, true,
-                            INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3, null,
-                            INFO_DESCRIPTION_VERSION.get());
-            version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
+            version = CommonArguments.getVersionArgument();
             argParser.addArgument(version);
 
             final StringArgument encodingStr =
@@ -416,10 +416,7 @@ public final class LDAPSearch extends ConsoleApplication {
             countEntries.setPropertyName("countEntries");
             argParser.addArgument(countEntries);
 
-            final BooleanArgument continueOnError =
-                    new BooleanArgument("continueOnError", 'c', "continueOnError",
-                            INFO_DESCRIPTION_CONTINUE_ON_ERROR.get());
-            continueOnError.setPropertyName("continueOnError");
+            final BooleanArgument continueOnError = CommonArguments.getContinueOnErrorArgument();
             argParser.addArgument(continueOnError);
 
             noop =
@@ -428,14 +425,10 @@ public final class LDAPSearch extends ConsoleApplication {
             noop.setPropertyName(OPTION_LONG_DRYRUN);
             argParser.addArgument(noop);
 
-            verbose =
-                    new BooleanArgument("verbose", 'v', "verbose", INFO_DESCRIPTION_VERBOSE.get());
-            verbose.setPropertyName("verbose");
+            verbose = CommonArguments.getVerbose();
             argParser.addArgument(verbose);
 
-            final BooleanArgument showUsage =
-                    new BooleanArgument("showUsage", OPTION_SHORT_HELP, OPTION_LONG_HELP,
-                            INFO_DESCRIPTION_SHOWUSAGE.get());
+            final BooleanArgument showUsage = CommonArguments.getShowUsage();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
@@ -465,11 +458,11 @@ public final class LDAPSearch extends ConsoleApplication {
         final List<String> attributes = new LinkedList<String>();
         final ArrayList<String> filterAndAttributeStrings = argParser.getTrailingArguments();
         if (filterAndAttributeStrings.size() > 0) {
-            // the list of trailing arguments should be structured as follow:
-            // - If a filter file is present, trailing arguments are
-            // considered as attributes
-            // - If filter file is not present, the first trailing argument is
-            // considered the filter, the other as attributes.
+            /* The list of trailing arguments should be structured as follow:
+             - If a filter file is present, trailing arguments are
+             considered as attributes
+             - If filter file is not present, the first trailing argument is
+             considered the filter, the other as attributes.*/
             if (!filename.isPresent()) {
                 final String filterString = filterAndAttributeStrings.remove(0);
 
@@ -830,11 +823,11 @@ public final class LDAPSearch extends ConsoleApplication {
         }
 
         if (noop.isPresent()) {
-            // We don't actually need to open a connection or perform the
-            // search, so we're done. We should return 0 to either mean that the
-            // processing was successful or that there were no matching entries,
-            // based on countEntries.isPresent() (but in either case the return value
-            // should be zero).
+            /* We don't actually need to open a connection or perform the
+             search, so we're done. We should return 0 to either mean that the
+             processing was successful or that there were no matching entries,
+             based on countEntries.isPresent() (but in either case the return value
+             should be zero).*/
             return 0;
         }
 
@@ -944,7 +937,7 @@ public final class LDAPSearch extends ConsoleApplication {
         } catch (final ErrorResultException ere) {
             return Utils.printErrorMessage(this, ere);
         } finally {
-            org.forgerock.util.Utils.closeSilently(ldifWriter, connection);
+            closeSilently(ldifWriter, connection);
         }
 
         return 0;
