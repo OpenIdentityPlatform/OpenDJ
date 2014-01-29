@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.snmp;
 
@@ -36,8 +36,6 @@ import java.util.SortedSet;
 import java.util.Vector;
 
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
 
 /**
  * This class allows to manage the IP-ACL based access rights
@@ -45,10 +43,6 @@ import org.opends.server.loggers.debug.DebugTracer;
  */
 public class SNMPInetAddressAcl implements InetAddressAcl {
 
-    /**
-     * The debug log tracer for this class.
-     */
-    private static final DebugTracer TRACER = DebugLogger.getTracer();
     /**
      * Current Security Configuration for the SNMP Connection Handler.
      */

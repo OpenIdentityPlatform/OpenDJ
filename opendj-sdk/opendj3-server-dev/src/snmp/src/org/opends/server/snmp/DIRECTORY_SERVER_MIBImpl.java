@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock Inc.
+ *      Portions Copyright 2012-2014 ForgeRock Inc.
  */
 package org.opends.server.snmp;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * The class is the "DIRECTORY-SERVER-MIB" implementation.
@@ -43,10 +43,9 @@ public class DIRECTORY_SERVER_MIBImpl extends DIRECTORY_SERVER_MIB {
      * utility included with the Java SDK.
      */
     private static final long serialVersionUID = 1420660265781848102L;
-    /**
-     * The debug log tracer for this class.
-     */
-    private static final DebugTracer TRACER = DebugLogger.getTracer();
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     /**
      * Indicates if the SNMP Mbeans have to be registered or not.
      */
@@ -75,10 +74,8 @@ public class DIRECTORY_SERVER_MIBImpl extends DIRECTORY_SERVER_MIB {
         super();
         this.registeredSnmpMBean = registeredMBean;
         this.mibObName = mibName;
-        if (DebugLogger.debugEnabled()) {
-            TRACER.debugVerbose("DIRECTORY_SERVER_MIB=" + this.mibObName +
-                    " created with registerMBean=" + this.registeredSnmpMBean);
-        }
+        logger.trace("DIRECTORY_SERVER_MIB=%s created with registerMBean=%s",
+            this.mibObName, this.registeredSnmpMBean);
     }
 
     /**

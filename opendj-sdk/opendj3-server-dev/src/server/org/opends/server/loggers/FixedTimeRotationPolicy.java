@@ -25,18 +25,18 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.List;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-import java.util.*;
-
-import org.opends.server.util.TimeThread;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.admin.std.server.FixedTimeLogRotationPolicyCfg;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.FixedTimeLogRotationPolicyCfg;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
+import org.opends.server.util.TimeThread;
 
 
 /**
@@ -47,13 +47,7 @@ public class FixedTimeRotationPolicy implements
     RotationPolicy<FixedTimeLogRotationPolicyCfg>,
     ConfigurationChangeListener<FixedTimeLogRotationPolicyCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-
-  private static final long MS_IN_DAY = 24 * 3600 * 1000;
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The scheduled rotation times as ms offsets from the beginnging of the day.
   private int[] rotationTimes;
@@ -138,10 +132,7 @@ public class FixedTimeRotationPolicy implements
       nextRotationTime.set(Calendar.MINUTE, rotationTimes[i] % 100);
     }
 
-    if (debugEnabled())
-    {
-      TRACER.debugInfo("The next fixed rotation time is %s", rotationTimes[i]);
-    }
+    logger.trace("The next fixed rotation time is %s", rotationTimes[i]);
 
     return TimeThread.getCalendar().after(nextRotationTime);
   }
