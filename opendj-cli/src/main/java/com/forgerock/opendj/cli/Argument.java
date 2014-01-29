@@ -50,8 +50,7 @@ abstract class Argument {
     private boolean isMultiValued;
 
     // Indicates whether this argument was provided in the set of
-    // command-line
-    // arguments.
+    // command-line arguments.
     private boolean isPresent;
 
     // Indicates whether this argument is required to have a value.
@@ -82,13 +81,11 @@ abstract class Argument {
     private String propertyName;
 
     // The value placeholder for this argument, which will be used in
-    // usage
-    // information.
+    // usage information.
     private LocalizableMessage valuePlaceholder;
 
     // Indicates whether this argument was provided in the set of
-    // properties
-    // found is a properties file.
+    // properties found is a properties file.
     private boolean isValueSetByProperty;
 
     /**

@@ -54,8 +54,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  */
 public final class FileBasedArgument extends Argument {
     // The mapping between filenames specified and the first lines read
-    // from those
-    // files.
+    // from those files.
     private final LinkedHashMap<String, String> namesToValues;
 
     /**
