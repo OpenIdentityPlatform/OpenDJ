@@ -34,15 +34,20 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn.*;
+import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 
 
 
@@ -77,36 +82,41 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   private static final String PWD_ATTR_SAFEMODIFY = "pwdsafemodify";
   private static final String PWD_ATTR_FAILURECOUNTINTERVAL =
       "pwdfailurecountinterval";
+  private static final String PWD_ATTR_VALIDATOR = "ds-cfg-password-validator";
+  private static final String PWD_OC_VALIDATORPOLICY = "pwdvalidatorpolicy";
 
-  // Password Policy Subentry DN.
+  /** Password Policy Subentry DN. */
   private final DN passwordPolicySubentryDN;
-  // The value of the "allow-user-password-changes" property.
+  /** The value of the "allow-user-password-changes" property. */
   private final Boolean pAllowUserPasswordChanges;
-  // The value of the "force-change-on-reset" property.
+  /** The value of the "force-change-on-reset" property. */
   private final Boolean pForceChangeOnReset;
-  // The value of the "grace-login-count" property.
+  /** The value of the "grace-login-count" property. */
   private final Integer pGraceLoginCount;
-  // The value of the "lockout-duration" property.
+  /** The value of the "lockout-duration" property. */
   private final Long pLockoutDuration;
-  // The value of the "lockout-failure-count" property.
+  /** The value of the "lockout-failure-count" property. */
   private final Integer pLockoutFailureCount;
-  // The value of the "lockout-failure-expiration-interval" property.
+  /** The value of the "lockout-failure-expiration-interval" property. */
   private final Long pLockoutFailureExpirationInterval;
-  // The value of the "max-password-age" property.
+  /** The value of the "max-password-age" property. */
   private final Long pMaxPasswordAge;
-  // The value of the "min-password-age" property.
+  /** The value of the "min-password-age" property. */
   private final Long pMinPasswordAge;
-  // The value of the "password-attribute" property.
+  /** The value of the "password-attribute" property. */
   private final AttributeType pPasswordAttribute;
-  // The value of the "password-change-requires-current-password" property.
+  /** The value of the "password-change-requires-current-password" property. */
   private final Boolean pPasswordChangeRequiresCurrentPassword;
-  // The value of the "password-expiration-warning-interval" property.
+  /** The value of the "password-expiration-warning-interval" property. */
   private final Long pPasswordExpirationWarningInterval;
-  // The value of the "password-history-count" property.
+  /** The value of the "password-history-count" property. */
   private final Integer pPasswordHistoryCount;
-  // Indicates if the password attribute uses auth password syntax.
+  /** Indicates if the password attribute uses auth password syntax. */
   private final Boolean pAuthPasswordSyntax;
-
+  /** The set of password validators if any. */
+  private final Set<DN> pValidatorNames = new HashSet<DN>();
+  /** Used when logging errors due to invalid validator reference. */
+  private AtomicBoolean isAlreadyLogged = new AtomicBoolean();
 
 
   // Returns the global default password policy which will be used for deriving
@@ -494,6 +504,36 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     else
     {
       this.pLockoutFailureExpirationInterval = null;
+    }
+
+    // Now check for the pwdValidatorPolicy OC and its attribute.
+    // Determine if this is a password validator policy object class.
+    ObjectClass pwdValidatorPolicyOC =
+        DirectoryServer.getObjectClass(PWD_OC_VALIDATORPOLICY);
+    if (pwdValidatorPolicyOC != null &&
+        objectClasses.containsKey(pwdValidatorPolicyOC))
+    {
+      AttributeType pwdAttrType =
+          DirectoryServer.getAttributeType(PWD_ATTR_VALIDATOR, true);
+      List<Attribute> pwdAttrList = entry.getAttribute(pwdAttrType);
+      if ((pwdAttrList != null) && (!pwdAttrList.isEmpty()))
+      {
+        for (Attribute attr : pwdAttrList)
+        {
+          for (AttributeValue val : attr)
+          {
+            DN validatorDN = DN.decode(val.getValue());
+            if (DirectoryServer.getPasswordValidator(validatorDN) == null)
+            {
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  ERR_PWPOLICY_UNKNOWN_VALIDATOR.get(
+                      this.passwordPolicySubentryDN.toNormalizedString(),
+                      validatorDN.toString(), PWD_ATTR_VALIDATOR));
+            }
+            pValidatorNames.add(validatorDN);
+          }
+        }
+      }
     }
   }
 
@@ -952,16 +992,83 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   }
 
 
-
   /**
    * {@inheritDoc}
    */
   @Override
   public Collection<PasswordValidator<?>> getPasswordValidators()
   {
+    if (!pValidatorNames.isEmpty())
+    {
+      Collection<PasswordValidator<?>> values =
+          new HashSet<PasswordValidator<?>>();
+      for (DN validatorDN : pValidatorNames){
+        PasswordValidator<?> validator = DirectoryServer
+            .getPasswordValidator(validatorDN);
+        if (validator == null) {
+          PasswordValidator<?> errorValidator = new RejectPasswordValidator(
+              validatorDN.toString(), passwordPolicySubentryDN.toString());
+          values.clear();
+          values.add(errorValidator);
+          return values;
+        }
+        values.add(validator);
+      }
+      isAlreadyLogged.set(false);
+      return values;
+    }
     return getDefaultPasswordPolicy().getPasswordValidators();
   }
 
+
+  /**
+   * Implementation of a specific Password Validator that reject all
+   * password due to mis-configured password policy subentry.
+   * This is only used when a subentry is referencing a password
+   * validator that is no longer configured.
+   */
+  private final class RejectPasswordValidator extends
+      PasswordValidator<PasswordValidatorCfg>
+  {
+    private final String validatorName;
+    private final String pwPolicyName;
+    public RejectPasswordValidator(String name, String policyName)
+    {
+      super();
+      validatorName = name;
+      pwPolicyName = policyName;
+    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override()
+    public void initializePasswordValidator(PasswordValidatorCfg configuration)
+        throws ConfigException, InitializationException
+    {
+      // do nothing
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override()
+    public boolean passwordIsAcceptable(ByteString newPassword,
+                                        Set<ByteString> currentPasswords,
+                                        Operation operation, Entry userEntry,
+                                        LocalizableMessageBuilder invalidReason)
+    {
+      invalidReason.append(ERR_PWPOLICY_REJECT_DUE_TO_UNKNOWN_VALIDATOR_REASON
+          .get());
+
+      // Only log an error once, on first error
+      if (isAlreadyLogged.compareAndSet(false, true)) {
+        logger.error(ERR_PWPOLICY_REJECT_DUE_TO_UNKNOWN_VALIDATOR_LOG.get(
+            userEntry.getName().toNormalizedString(), pwPolicyName,
+            validatorName));
+      }
+      return false;
+    }
+  }
 
 
   /**
