@@ -41,13 +41,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -172,16 +172,8 @@ public abstract class ClientConnection
     networkGroup       = NetworkGroup.getDefaultNetworkGroup();
     networkGroup.addConnection(this);
     mustEvaluateNetworkGroup = true;
-    if (logger.isTraceEnabled())
-      {
-        LocalizableMessage message =
-                INFO_CHANGE_NETWORK_GROUP.get(
-                  getConnectionID(),
-                  "null",
-                  networkGroup.getID());
-        logger.trace(message.toString());
-      }
 
+    logger.trace(INFO_CHANGE_NETWORK_GROUP, getConnectionID(), null, networkGroup.getID());
   }
 
 
@@ -1054,16 +1046,9 @@ public abstract class ClientConnection
     if (operation == null)
     {
       result = privileges.contains(privilege);
-      if (logger.isTraceEnabled())
-      {
-        DN authDN = authenticationInfo.getAuthenticationDN();
-
-        LocalizableMessage message = INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGE
-                .get(getConnectionID(), -1L,
-                     String.valueOf(authDN),
-                     privilege.getName(), result);
-        logger.trace(message.toString());
-      }
+      logger.trace(INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGE,
+          getConnectionID(), -1L, authenticationInfo.getAuthenticationDN(),
+          privilege.getName(), result);
     }
     else
     {
@@ -1073,18 +1058,10 @@ public abstract class ClientConnection
            !authenticationInfo.isAuthenticated())) {
         result = privileges.contains(privilege) ||
                  DirectoryServer.isDisabled(privilege);
-        if (logger.isTraceEnabled())
-        {
-          DN authDN = authenticationInfo.getAuthenticationDN();
-
-          LocalizableMessage message =
-                  INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGE.get(
-                    getConnectionID(),
-                    operation.getOperationID(),
-                    String.valueOf(authDN),
-                    privilege.getName(), result);
-          logger.trace(message.toString());
-        }
+        logger.trace(INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGE,
+            getConnectionID(), operation.getOperationID(),
+            authenticationInfo.getAuthenticationDN(),
+            privilege.getName(), result);
       }
       else
       {
@@ -1163,29 +1140,16 @@ public abstract class ClientConnection
 
       buffer.append(" }");
 
+      final DN authDN = authenticationInfo.getAuthenticationDN();
       if (operation == null)
       {
-        DN authDN = authenticationInfo.getAuthenticationDN();
-
-        LocalizableMessage message =
-                INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES.get(
-                  getConnectionID(), -1L,
-                  String.valueOf(authDN),
-                  buffer.toString(), result);
-        logger.trace(
-                message.toString());
+        logger.trace(INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES.get(
+            getConnectionID(), -1L, authDN, buffer, result));
       }
       else
       {
-        DN authDN = authenticationInfo.getAuthenticationDN();
-
-        LocalizableMessage message = INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES
-                .get(
-                  getConnectionID(),
-                  operation.getOperationID(),
-                  String.valueOf(authDN),
-                  buffer.toString(), result);
-        logger.trace(message.toString());
+        logger.trace(INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES.get(
+            getConnectionID(), operation.getOperationID(), authDN, buffer, result));
       }
 
       return result;
@@ -1704,15 +1668,8 @@ public abstract class ClientConnection
   public final void setNetworkGroup (NetworkGroup networkGroup)
   {
     if (this.networkGroup != networkGroup) {
-      if (logger.isTraceEnabled())
-      {
-        LocalizableMessage message =
-                INFO_CHANGE_NETWORK_GROUP.get(
-                  getConnectionID(),
-                  this.networkGroup.getID(),
-                  networkGroup.getID());
-        logger.trace(message.toString());
-      }
+      logger.trace(INFO_CHANGE_NETWORK_GROUP, getConnectionID(),
+          this.networkGroup.getID(), networkGroup.getID());
 
       // If there is a change, first remove this connection
       // from the current network group
