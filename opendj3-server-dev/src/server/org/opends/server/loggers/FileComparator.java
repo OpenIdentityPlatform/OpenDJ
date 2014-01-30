@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -35,7 +36,7 @@ import java.util.Comparator;
  * This class implements a comparator that can compare two files based on the
  * time that they were last modified.
  */
-public class FileComparator implements Comparator<File>
+class FileComparator implements Comparator<File>
 {
   /**
    * Compare two files based on file modification time.

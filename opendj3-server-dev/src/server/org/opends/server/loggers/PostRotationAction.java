@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -31,7 +32,7 @@ package org.opends.server.loggers;
  * This interface describes the action that needs to be taken
  * at the time of a rotation.
  */
-public interface PostRotationAction
+interface PostRotationAction
 {
   /**
    * The action that needs to be executed. Returns true

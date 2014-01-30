@@ -57,7 +57,7 @@ import java.util.Calendar;
  * When a switch is required, the writer closes the current file and opens a
  * new one named in accordance with a specified FileNamingPolicy.
  */
-public class MultifileTextWriter
+class MultifileTextWriter
     implements ServerShutdownListener, TextWriter,
     ConfigurationChangeListener<SizeLimitLogRotationPolicyCfg>
 {

@@ -800,7 +800,7 @@ objectClass: ds-cfg-log-publisher
 objectClass: ds-cfg-debug-log-publisher
 objectClass: ds-cfg-file-based-debug-log-publisher
 cn: File-Based Debug Logger
-ds-cfg-java-class: org.opends.server.loggers.debug.TextDebugLogPublisher
+ds-cfg-java-class: org.opends.server.loggers.TextDebugLogPublisher
 ds-cfg-enabled: false
 ds-cfg-log-file: logs/debug
 ds-cfg-log-file-permissions: 640

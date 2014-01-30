@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -31,7 +32,7 @@ import java.io.File;
  * This class implements a post rotation action that encrypts
  * the log file.
  */
-public class EncryptAction implements PostRotationAction
+class EncryptAction implements PostRotationAction
 {
 
   private File originalFile;

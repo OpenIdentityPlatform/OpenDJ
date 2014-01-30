@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -32,7 +33,7 @@ import java.io.FilenameFilter;
 /**
  * This class defines a filename filter that will be used for log files.
  */
-public class LogFileFilter implements FilenameFilter
+class LogFileFilter implements FilenameFilter
 {
   private String prefix;
 

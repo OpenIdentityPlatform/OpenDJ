@@ -62,7 +62,7 @@ import org.forgerock.opendj.ldap.ByteString;
  * @param <T>
  *          The type of access log publisher configuration.
  */
-public abstract class AbstractTextAccessLogPublisher
+abstract class AbstractTextAccessLogPublisher
     <T extends AccessLogPublisherCfg> extends AccessLogPublisher<T>
 {
   /**

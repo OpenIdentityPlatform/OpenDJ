@@ -45,7 +45,7 @@ import org.opends.server.core.DirectoryServer;
  * character-based stream. Note that this implementation is
  * parallel unbound ie there is no queue size cap imposed.
  */
-public class ParallelTextWriter
+class ParallelTextWriter
     implements ServerShutdownListener, TextWriter
 {
   /**

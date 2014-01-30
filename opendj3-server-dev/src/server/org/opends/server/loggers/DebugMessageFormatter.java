@@ -22,8 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS.
  */
-package org.opends.server.loggers.debug;
+package org.opends.server.loggers;
 
 import java.util.*;
 
@@ -133,7 +134,6 @@ public class DebugMessageFormatter
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
-    boolean firstElement= true;
     for (int i= 0; i < array.length; i++) {
       if (i > 0) buffer.append(", ");
       buffer.append(array[i]);
@@ -147,7 +147,6 @@ public class DebugMessageFormatter
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
-    boolean firstElement= true;
     for (int i= 0; i < array.length; i++) {
       if (i > 0) buffer.append(", ");
       buffer.append(array[i]);
@@ -161,7 +160,6 @@ public class DebugMessageFormatter
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
-    boolean firstElement= true;
     for (int i= 0; i < array.length; i++) {
       if (i > 0) buffer.append(", ");
       buffer.append(array[i]);
@@ -175,7 +173,6 @@ public class DebugMessageFormatter
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
-    boolean firstElement= true;
     for (int i= 0; i < array.length; i++) {
       if (i > 0) buffer.append(", ");
       buffer.append(array[i]);
@@ -189,7 +186,6 @@ public class DebugMessageFormatter
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
-    boolean firstElement= true;
     for (int i= 0; i < array.length; i++) {
       if (i > 0) buffer.append(", ");
       buffer.append(array[i]);
@@ -203,7 +199,6 @@ public class DebugMessageFormatter
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
-    boolean firstElement= true;
     for (int i= 0; i < array.length; i++) {
       if (i > 0) buffer.append(", ");
       buffer.append(array[i]);
@@ -217,7 +212,6 @@ public class DebugMessageFormatter
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
-    boolean firstElement= true;
     for (int i= 0; i < array.length; i++) {
       if (i > 0) buffer.append(", ");
       buffer.append(array[i]);

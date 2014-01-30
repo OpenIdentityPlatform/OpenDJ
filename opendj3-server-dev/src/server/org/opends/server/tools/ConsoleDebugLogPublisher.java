@@ -34,10 +34,10 @@ import org.opends.server.admin.std.server.DebugLogPublisherCfg;
 import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.ServerContext;
+import org.opends.server.loggers.DebugMessageFormatter;
+import org.opends.server.loggers.DebugStackTraceFormatter;
 import org.opends.server.loggers.LogCategory;
-import org.opends.server.loggers.debug.DebugMessageFormatter;
-import org.opends.server.loggers.debug.DebugStackTraceFormatter;
-import org.opends.server.loggers.debug.TraceSettings;
+import org.opends.server.loggers.TraceSettings;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.InitializationException;
@@ -83,7 +83,7 @@ public class ConsoleDebugLogPublisher extends
    * {@inheritDoc}
    */
   @Override
-  public void traceMessage(TraceSettings settings,
+  public void trace(TraceSettings settings,
                            String signature,
                            String sourceLocation,
                            String msg,
@@ -94,8 +94,7 @@ public class ConsoleDebugLogPublisher extends
     String stack = null;
     if(stackTrace != null)
     {
-      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
-                                                      settings.getStackDepth());
+      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace, settings.getStackDepth());
     }
     publish(category, msg, stack);
   }
@@ -104,7 +103,7 @@ public class ConsoleDebugLogPublisher extends
    * {@inheritDoc}
    */
   @Override
-  public void traceCaught(TraceSettings settings,
+  public void traceException(TraceSettings settings,
                           String signature,
                           String sourceLocation,
                           String msg,
@@ -112,18 +111,8 @@ public class ConsoleDebugLogPublisher extends
   {
     LogCategory category = DebugLogCategory.CAUGHT;
 
-    StringBuilder format = new StringBuilder();
-    format.append("caught={%s} ");
-    format.append(signature);
-    format.append("():");
-    format.append(sourceLocation);
-    StringBuilder message = new StringBuilder();
-    if (!msg.isEmpty())
-    {
-      message.append(msg).append(" ");
-    }
-    message.append(DebugMessageFormatter.format("caught={%s}",
-        new Object[] { ex }));
+    String message = DebugMessageFormatter.format("%s caught={%s} %s(): %s",
+        new Object[] { msg, ex, signature, sourceLocation });
 
     String stack = null;
     if (stackTrace != null)
@@ -132,7 +121,7 @@ public class ConsoleDebugLogPublisher extends
           DebugStackTraceFormatter.formatStackTrace(ex, settings
               .getStackDepth(), settings.isIncludeCause());
     }
-    publish(category, message.toString(), stack);
+    publish(category, message, stack);
   }
 
   /**

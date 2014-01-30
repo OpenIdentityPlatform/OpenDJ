@@ -40,7 +40,7 @@ import org.opends.server.core.DirectoryServer;
  * A Text Writer which writes log records asynchronously to
  * character-based stream.
  */
-public class AsynchronousTextWriter
+class AsynchronousTextWriter
     implements ServerShutdownListener, TextWriter
 {
   /**

@@ -27,7 +27,9 @@
 package org.opends.server.tools;
 
 import java.io.File;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
@@ -48,11 +50,11 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.TextDebugLogPublisher;
 import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.tasks.BackupTask;
 import org.opends.server.tools.tasks.TaskTool;
