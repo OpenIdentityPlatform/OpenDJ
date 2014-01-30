@@ -74,7 +74,6 @@ import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.service.ReplicationMonitor.*;

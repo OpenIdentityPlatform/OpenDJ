@@ -37,7 +37,6 @@ import org.opends.server.types.CancelRequest;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Operation;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 

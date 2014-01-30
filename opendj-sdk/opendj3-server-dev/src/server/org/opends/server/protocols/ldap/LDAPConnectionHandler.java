@@ -27,7 +27,6 @@
 package org.opends.server.protocols.ldap;
 
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 

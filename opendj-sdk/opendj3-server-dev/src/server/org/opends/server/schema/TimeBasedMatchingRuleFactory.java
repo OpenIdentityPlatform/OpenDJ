@@ -65,7 +65,6 @@ import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.TimeThread.*;
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.schema.GeneralizedTimeSyntax.*;

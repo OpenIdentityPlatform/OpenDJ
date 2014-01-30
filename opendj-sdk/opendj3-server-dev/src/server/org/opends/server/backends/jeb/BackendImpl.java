@@ -65,7 +65,6 @@ import static com.sleepycat.je.EnvironmentConfig.*;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 

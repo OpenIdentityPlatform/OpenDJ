@@ -42,7 +42,6 @@ import org.opends.server.core.DirectoryServer;
 
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;

@@ -49,7 +49,6 @@ import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.testng.Assert.*;
 
 /**

@@ -26,13 +26,10 @@
  */
 package org.opends.server.monitors;
 
-import static org.opends.messages.ConfigMessages.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.server.loggers.ErrorLogger.*;
-
 import java.util.ArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.EntryCacheMonitorProviderCfg;
 import org.opends.server.api.EntryCache;
@@ -41,6 +38,8 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
+
+import static org.opends.messages.ConfigMessages.*;
 
 /**
  * This class defines a Directory Server monitor provider that can be used to
@@ -92,7 +91,8 @@ public class EntryCacheMonitorProvider
   /**
    * {@inheritDoc}
    */
-  public void initializeMonitorProvider(
+  @Override
+	public void initializeMonitorProvider(
     EntryCacheMonitorProviderCfg configuration)
     throws ConfigException
   {
@@ -120,7 +120,8 @@ public class EntryCacheMonitorProvider
   /**
    * {@inheritDoc}
    */
-  public String getMonitorInstanceName()
+  @Override
+	public String getMonitorInstanceName()
   {
     return monitorName;
   }
@@ -128,7 +129,8 @@ public class EntryCacheMonitorProvider
   /**
    * {@inheritDoc}
    */
-  public ArrayList<Attribute> getMonitorData()
+  @Override
+	public ArrayList<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
 

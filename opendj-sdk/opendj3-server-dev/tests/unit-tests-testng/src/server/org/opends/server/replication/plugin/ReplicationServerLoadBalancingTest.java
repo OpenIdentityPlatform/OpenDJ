@@ -41,7 +41,6 @@ import org.opends.server.types.DN;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.testng.Assert.*;
 
 /**

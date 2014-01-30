@@ -50,7 +50,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.types.SearchScope.*;
 import static org.testng.Assert.*;
 

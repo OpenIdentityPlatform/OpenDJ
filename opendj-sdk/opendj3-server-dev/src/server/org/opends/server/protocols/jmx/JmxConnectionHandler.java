@@ -27,12 +27,15 @@
 package org.opends.server.protocols.jmx;
 
 import java.io.IOException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.net.InetSocketAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
@@ -45,7 +48,6 @@ import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.types.HostPort.*;
 import static org.opends.server.util.StaticUtils.*;
 

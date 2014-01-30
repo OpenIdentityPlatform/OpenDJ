@@ -42,7 +42,6 @@ import org.opends.server.types.HostPort;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.testng.Assert.*;
 
 /**

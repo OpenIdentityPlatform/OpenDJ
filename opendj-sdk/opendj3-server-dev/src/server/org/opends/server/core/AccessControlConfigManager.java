@@ -25,14 +25,6 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.forgerock.i18n.LocalizableMessage;
-
-
-
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -41,6 +33,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -50,13 +44,14 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.config.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class manages the application-wide access-control configuration.
@@ -318,7 +313,8 @@ public final class AccessControlConfigManager
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationChangeAcceptable(
+  @Override
+	public boolean isConfigurationChangeAcceptable(
                       AccessControlHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
@@ -346,7 +342,8 @@ public final class AccessControlConfigManager
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(
+  @Override
+	public ConfigChangeResult applyConfigurationChange(
                                  AccessControlHandlerCfg configuration)
   {
     ResultCode resultCode = ResultCode.SUCCESS;
@@ -376,7 +373,8 @@ public final class AccessControlConfigManager
   /**
    * {@inheritDoc}
    */
-  public DN getComponentEntryDN()
+  @Override
+	public DN getComponentEntryDN()
   {
     return currentConfiguration.dn();
   }
@@ -386,7 +384,8 @@ public final class AccessControlConfigManager
   /**
    * {@inheritDoc}
    */
-  public String getClassName()
+  @Override
+	public String getClassName()
   {
     return CLASS_NAME;
   }
@@ -396,7 +395,8 @@ public final class AccessControlConfigManager
   /**
    * {@inheritDoc}
    */
-  public LinkedHashMap<String,String> getAlerts()
+  @Override
+	public LinkedHashMap<String,String> getAlerts()
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 

@@ -50,7 +50,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 
 /**
  * This class defines an SNMP connection handler, which can be used to answer

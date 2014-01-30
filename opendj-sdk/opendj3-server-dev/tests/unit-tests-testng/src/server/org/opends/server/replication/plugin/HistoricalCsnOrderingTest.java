@@ -27,7 +27,6 @@
 package org.opends.server.replication.plugin;
 
 import java.util.LinkedList;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -35,6 +34,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.config.ConfigException;
@@ -46,12 +47,10 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.testng.Assert.*;
 
 /**
