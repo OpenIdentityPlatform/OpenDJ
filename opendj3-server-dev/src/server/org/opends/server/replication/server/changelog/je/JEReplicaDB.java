@@ -27,11 +27,11 @@
 package org.opends.server.replication.server.changelog.je;
 
 import java.util.ArrayList;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.MonitorProvider;
@@ -51,7 +51,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**

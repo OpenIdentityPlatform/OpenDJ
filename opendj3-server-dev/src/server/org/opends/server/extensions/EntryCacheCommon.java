@@ -27,7 +27,6 @@
 package org.opends.server.extensions;
 
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.util.StaticUtils.*;
 

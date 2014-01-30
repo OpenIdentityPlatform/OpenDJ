@@ -49,7 +49,6 @@ import static java.util.Collections.*;
 import static org.assertj.core.data.MapEntry.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.replication.service.ReplicationBroker.*;
 import static org.testng.Assert.*;
 

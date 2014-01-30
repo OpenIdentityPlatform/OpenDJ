@@ -36,11 +36,11 @@ import java.util.*;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.data.MapEntry;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.*;
@@ -52,7 +52,6 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.data.MapEntry.*;
 import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.testng.Assert.*;
 
 /**

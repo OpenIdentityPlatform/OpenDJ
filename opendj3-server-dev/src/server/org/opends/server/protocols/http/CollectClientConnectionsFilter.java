@@ -37,6 +37,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.adapter.server2x.Adapters;
 import org.forgerock.opendj.ldap.*;
@@ -48,16 +50,13 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.util.Base64;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
