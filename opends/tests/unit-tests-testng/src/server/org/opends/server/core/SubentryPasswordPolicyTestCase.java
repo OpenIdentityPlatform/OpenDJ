@@ -22,14 +22,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.core;
 
 
 
+import java.util.Collection;
 import java.util.List;
 
+import org.opends.server.api.PasswordValidator;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -191,8 +193,47 @@ public class SubentryPasswordPolicyTestCase
          "pwdLockoutDuration: 2147483648",
          "pwdMaxFailure: 3",
          "pwdMustChange: TRUE",
-         "pwdAttribute: userPassword"
-         );
+         "pwdAttribute: userPassword",
+         "",
+         "dn: cn=Temp Policy 6," + SUFFIX,
+         "objectClass: top",
+         "objectClass: pwdPolicy",
+         "objectClass: pwdValidatorPolicy",
+         "objectClass: subentry",
+         "cn: Temp Policy 6",
+         "subtreeSpecification: { base \"ou=people\" }",
+         "pwdLockoutDuration: 300",
+         "pwdMaxFailure: 3",
+         "pwdMustChange: TRUE",
+         "pwdAttribute: userPassword",
+         "",
+         "dn: cn=Temp Policy 7," + SUFFIX,
+         "objectClass: top",
+         "objectClass: pwdPolicy",
+         "objectClass: pwdValidatorPolicy",
+         "objectClass: subentry",
+         "cn: Temp Policy 7",
+         "subtreeSpecification: { base \"ou=people\" }",
+         "pwdLockoutDuration: 300",
+         "pwdMaxFailure: 3",
+         "pwdMustChange: TRUE",
+         "pwdAttribute: userPassword",
+         "ds-cfg-password-validator: Not_A_DN",
+         "",
+         "dn: cn=Temp Policy 8," + SUFFIX,
+         "objectClass: top",
+         "objectClass: pwdPolicy",
+         "objectClass: pwdValidatorPolicy",
+         "objectClass: subentry",
+         "cn: Temp Policy 8",
+         "subtreeSpecification: { base \"ou=people\" }",
+         "pwdLockoutDuration: 300",
+         "pwdMaxFailure: 3",
+         "pwdMustChange: TRUE",
+         "pwdAttribute: userPassword",
+         "ds-cfg-password-validator: cn=Unique Characters Inexistant,cn=Password Validators,cn=config"
+
+    );
 
     Object[][] configEntries = new Object[entries.size()][1];
     for (int i=0; i < configEntries.length; i++)
@@ -297,6 +338,17 @@ public class SubentryPasswordPolicyTestCase
     assertEquals(policy.isAllowUserPasswordChanges(), false);
     assertEquals(policy.isPasswordChangeRequiresCurrentPassword(), true);
 
+    /* Check the password validator attributes for correct values.
+     * The default unit-test config has a single Password validator which is
+     * enabled for the default password policy.
+     */
+    Collection<PasswordValidator<?>> validators = policy.getPasswordValidators();
+    assertEquals(validators.size(), 1);
+    for (PasswordValidator<?> validator : validators)
+    {
+      assertTrue(validator.toString().startsWith("org.opends.server.extensions.TestPasswordValidator"));
+    }
+
     // Make sure this policy applies to the test entry
     // its supposed to target and that its the same
     // policy object as previously tested.
@@ -316,6 +368,88 @@ public class SubentryPasswordPolicyTestCase
     assertNotNull(statePolicy);
     assertEquals(defaultPolicy, statePolicy);
   }
+
+  /**
+   * Ensures that password policy constructed from subentry,
+   * containing a password validator reference,
+   * is active and has a valid configuration.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testValidConfigurationWithValidator()
+      throws Exception
+  {
+    PasswordPolicy defaultPolicy =
+        DirectoryServer.getDefaultPasswordPolicy();
+    assertNotNull(defaultPolicy);
+
+    // The values are selected on a basis that they
+    // should differ from default password policy.
+    Entry policyEntry = TestCaseUtils.makeEntry(
+        "dn: cn=Temp Validator Policy," + SUFFIX,
+        "objectClass: top",
+        "objectClass: pwdPolicy",
+        "objectClass: pwdValidatorPolicy",
+        "objectClass: subentry",
+        "cn: Temp Policy",
+        "subtreeSpecification: { base \"ou=people\" }",
+        "pwdLockoutDuration: 300",
+        "pwdMaxFailure: 3",
+        "pwdMustChange: TRUE",
+        "pwdAttribute: authPassword",
+        "pwdMinAge: 600",
+        "pwdMaxAge: 2147483647",
+        "pwdInHistory: 5",
+        "pwdExpireWarning: 864000",
+        "pwdGraceAuthNLimit: 3",
+        "pwdFailureCountInterval: 3600",
+        "pwdAllowUserChange: FALSE",
+        "pwdSafeModify: TRUE",
+        "ds-cfg-password-validator: cn=Unique Characters,cn=Password Validators,cn=config",
+        "ds-cfg-password-validator: cn=Length-Based Password Validator,cn=Password Validators,cn=config"
+    );
+
+    InternalClientConnection connection =
+        InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+        connection.processAdd(policyEntry.getDN(),
+            policyEntry.getObjectClasses(),
+            policyEntry.getUserAttributes(),
+            policyEntry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(policyEntry.getDN()));
+
+    PasswordPolicy policy = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(
+        DN.decode("cn=Temp Validator Policy," + SUFFIX));
+    assertNotNull(policy);
+
+    // Check the password validator attributes for correct values.
+    Collection<PasswordValidator<?>> validators = policy.getPasswordValidators();
+    assertFalse(validators.isEmpty());
+    assertEquals(validators.size(), 2);
+
+    // Make sure this policy applies to the test entry
+    // its supposed to target and that its the same
+    // policy object as previously tested.
+    Entry testEntry = DirectoryServer.getEntry(DN.decode(
+        "uid=rogasawara," + BASE));
+    assertNotNull(testEntry);
+
+    AuthenticationPolicy statePolicy = AuthenticationPolicy.forUser(testEntry,
+        false);
+    assertNotNull(statePolicy);
+    assertEquals(policy, statePolicy);
+
+    // Make sure this policy is gone and default
+    // policy is in effect instead.
+    TestCaseUtils.deleteEntry(policyEntry.getDN());
+    statePolicy = AuthenticationPolicy.forUser(testEntry, false);
+    assertNotNull(statePolicy);
+    assertEquals(defaultPolicy, statePolicy);
+  }
+
 
   /**
    * Ensures that password policy pwdPolicySubentry
@@ -397,4 +531,6 @@ public class SubentryPasswordPolicyTestCase
             defaultPolicy.getDN(
             ).toString())));
   }
+
+
 }
