@@ -314,7 +314,7 @@ public final class AccessControlConfigManager
    * {@inheritDoc}
    */
   @Override
-	public boolean isConfigurationChangeAcceptable(
+  public boolean isConfigurationChangeAcceptable(
                       AccessControlHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
@@ -343,7 +343,7 @@ public final class AccessControlConfigManager
    * {@inheritDoc}
    */
   @Override
-	public ConfigChangeResult applyConfigurationChange(
+  public ConfigChangeResult applyConfigurationChange(
                                  AccessControlHandlerCfg configuration)
   {
     ResultCode resultCode = ResultCode.SUCCESS;
@@ -374,7 +374,7 @@ public final class AccessControlConfigManager
    * {@inheritDoc}
    */
   @Override
-	public DN getComponentEntryDN()
+  public DN getComponentEntryDN()
   {
     return currentConfiguration.dn();
   }
@@ -385,7 +385,7 @@ public final class AccessControlConfigManager
    * {@inheritDoc}
    */
   @Override
-	public String getClassName()
+  public String getClassName()
   {
     return CLASS_NAME;
   }
@@ -396,7 +396,7 @@ public final class AccessControlConfigManager
    * {@inheritDoc}
    */
   @Override
-	public LinkedHashMap<String,String> getAlerts()
+  public LinkedHashMap<String,String> getAlerts()
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 
