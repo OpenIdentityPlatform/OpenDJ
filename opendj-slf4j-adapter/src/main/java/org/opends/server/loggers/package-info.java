@@ -25,7 +25,6 @@
  */
 
 /**
- * Classes needed by SLF4J to choose actual implementation of SLF4J API.
+ * Classes implementing a SLF4J Logging Adapter for OpenDJ server.
  */
-package org.slf4j.impl;
-
+package org.opends.server.loggers;

@@ -23,7 +23,7 @@
  *
  *      Copyright 2014 ForgeRock AS.
  */
-package org.slf4j.impl;
+package org.opends.server.loggers;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 /**
  * Factory to retrieve an openDJ implementation of SLF4J Logger.
  */
-final class OpenDJLoggerFactory implements ILoggerFactory {
+public final class OpenDJLoggerFactory implements ILoggerFactory {
 
     private final ConcurrentMap<String, Logger> loggerMap;
 
