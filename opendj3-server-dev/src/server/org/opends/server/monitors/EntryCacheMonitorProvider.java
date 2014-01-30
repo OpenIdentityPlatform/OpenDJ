@@ -92,7 +92,7 @@ public class EntryCacheMonitorProvider
    * {@inheritDoc}
    */
   @Override
-	public void initializeMonitorProvider(
+  public void initializeMonitorProvider(
     EntryCacheMonitorProviderCfg configuration)
     throws ConfigException
   {
@@ -121,7 +121,7 @@ public class EntryCacheMonitorProvider
    * {@inheritDoc}
    */
   @Override
-	public String getMonitorInstanceName()
+  public String getMonitorInstanceName()
   {
     return monitorName;
   }
@@ -130,7 +130,7 @@ public class EntryCacheMonitorProvider
    * {@inheritDoc}
    */
   @Override
-	public ArrayList<Attribute> getMonitorData()
+  public ArrayList<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
 
