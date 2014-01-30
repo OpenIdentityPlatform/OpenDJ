@@ -39,12 +39,12 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.loggers.DebugLogger;
+import org.opends.server.loggers.TextDebugLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
-import org.opends.server.loggers.debug.TextDebugLogPublisher;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.TraceSettings;
+import org.opends.server.loggers.TraceSettings;
 import org.opends.server.types.*;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.ArgumentException;
@@ -64,6 +64,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
+
 import org.opends.server.admin.std.server.BackendCfg;
 
 

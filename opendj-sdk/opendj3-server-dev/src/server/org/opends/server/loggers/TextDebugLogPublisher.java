@@ -24,7 +24,7 @@
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 ForgeRock AS
  */
-package org.opends.server.loggers.debug;
+package org.opends.server.loggers;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +42,6 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.opends.server.loggers.*;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
@@ -450,50 +449,35 @@ public class TextDebugLogPublisher
    * {@inheritDoc}
    */
   @Override
-  public void traceMessage(TraceSettings settings,
-                           String signature,
-                           String sourceLocation,
-                           String msg,
-                           StackTraceElement[] stackTrace)
+  public void trace(TraceSettings settings, String signature,
+      String sourceLocation, String msg, StackTraceElement[] stackTrace)
   {
-    LogCategory category = DebugLogCategory.MESSAGE;
-
     String stack = null;
-    if(stackTrace != null)
+    if (stackTrace != null)
     {
       stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
-                                                        settings.stackDepth);
+          settings.stackDepth);
     }
-    publish(category, signature, sourceLocation, msg, stack);
+    publish(DebugLogCategory.MESSAGE, signature, sourceLocation, msg, stack);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void traceCaught(TraceSettings settings,
-                          String signature,
-                          String sourceLocation,
-                          String msg,
-                          Throwable ex, StackTraceElement[] stackTrace)
+  public void traceException(TraceSettings settings, String signature,
+      String sourceLocation, String msg, Throwable ex,
+      StackTraceElement[] stackTrace)
   {
-    LogCategory category = DebugLogCategory.CAUGHT;
-    StringBuilder message = new StringBuilder();
-    if (!msg.isEmpty())
-    {
-      message.append(msg).append(" ");
-    }
-    message.append(DebugMessageFormatter.format("caught={%s}",
-        new Object[] { ex }));
+    String message = DebugMessageFormatter.format("%s caught={%s}", new Object[] { msg, ex });
 
     String stack = null;
-    if(stackTrace != null)
+    if (stackTrace != null)
     {
-      stack = DebugStackTraceFormatter.formatStackTrace(ex,
-                                                        settings.stackDepth,
-                                                        settings.includeCause);
+      stack = DebugStackTraceFormatter.formatStackTrace(ex, settings.stackDepth,
+          settings.includeCause);
     }
-    publish(category, signature, sourceLocation, message.toString(), stack);
+    publish(DebugLogCategory.CAUGHT, signature, sourceLocation, message, stack);
   }
 
   /**

@@ -23,6 +23,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2014 ForgeRock AS.
   ! -->
 <adm:managed-object name="file-based-debug-log-publisher"
   plural-name="file-based-debug-log-publishers"
@@ -43,7 +44,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.loggers.debug.TextDebugLogPublisher
+          org.opends.server.loggers.TextDebugLogPublisher
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
@@ -139,7 +140,7 @@
   </adm:property>
   <adm:property name="time-interval" advanced="true">
     <adm:synopsis>
-      Specifies the interval at which to check whether the log files 
+      Specifies the interval at which to check whether the log files
       need to be rotated.
     </adm:synopsis>
     <adm:default-behavior>
@@ -252,7 +253,7 @@
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          No retention policy is used and log files are never 
+          No retention policy is used and log files are never
           cleaned.
         </adm:synopsis>
       </adm:alias>

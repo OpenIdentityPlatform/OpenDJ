@@ -27,7 +27,9 @@
 package org.opends.server.core;
 
 import static org.opends.messages.ConfigMessages.*;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,9 +46,9 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.AbstractLogger;
 import org.opends.server.loggers.AccessLogger;
+import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.HTTPAccessLogger;
-import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;

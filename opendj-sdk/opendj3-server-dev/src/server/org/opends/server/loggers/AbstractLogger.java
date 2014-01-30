@@ -36,6 +36,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg3;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -45,10 +46,8 @@ import org.opends.server.api.LogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.StaticUtils;
@@ -68,6 +67,8 @@ public abstract class AbstractLogger
     implements ConfigurationAddListener<C>, ConfigurationDeleteListener<C>,
     ConfigurationChangeListener<C>
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The storage designed to store log publishers. It is helpful in abstracting
@@ -257,13 +258,13 @@ public abstract class AbstractLogger
       }
       catch(ConfigException e)
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        logger.traceException(e);
         messages.add(e.getMessageObject());
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
       catch (Exception e)
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        logger.traceException(e);
         messages.add(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
                 String.valueOf(config.dn().toString()),
                 stackTraceToSingleLineString(e)));
@@ -271,14 +272,6 @@ public abstract class AbstractLogger
       }
     }
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-  private void debugCaught(LogLevel error, Exception e)
-  {
-    if (DebugLogger.debugEnabled())
-    {
-      DebugLogger.getTracer().debugCaught(DebugLogLevel.ERROR, e);
-    }
   }
 
   private P findLogPublisher(DN dn)

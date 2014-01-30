@@ -41,7 +41,7 @@ import java.io.File;
  * The advantage of using a handler is that we can handle exceptions
  * asynchronously (useful when dealing with an AsynchronousPublisher).
  */
-public class LogPublisherErrorHandler
+class LogPublisherErrorHandler
 {
   private DN publisherConfigDN;
   private boolean writeErroroccurred = false;

@@ -38,7 +38,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
  * This class implements a post rotation action that compresses
  * the file using GZIP compression.
  */
-public class GZIPAction implements PostRotationAction
+class GZIPAction implements PostRotationAction
 {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

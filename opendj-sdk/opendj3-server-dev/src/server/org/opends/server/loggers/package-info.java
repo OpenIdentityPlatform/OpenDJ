@@ -22,13 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
-
 
 /**
  * Contains implementations of Directory Server access, error, and debug
- * loggers.  This includes classes with static methods that should be used to
+ * loggers.  This includes classes with static methods are used to
  * trigger the generation of log messages, as well as actual implementations
  * that can write the log contents to various targets.
  */

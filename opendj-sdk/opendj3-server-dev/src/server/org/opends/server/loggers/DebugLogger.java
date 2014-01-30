@@ -24,7 +24,7 @@
  *      Copyright 2007-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 ForgeRock AS
  */
-package org.opends.server.loggers.debug;
+package org.opends.server.loggers;
 
 import static org.opends.messages.ConfigMessages.*;
 
@@ -35,7 +35,6 @@ import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
 import org.opends.server.api.DebugLogPublisher;
-import org.opends.server.loggers.AbstractLogger;
 
 /**
  * A logger for debug and trace logging. DebugLogger provides a debugging
@@ -161,7 +160,7 @@ public class DebugLogger extends AbstractLogger
    *
    * @return True if debug logging is enabled. False otherwise.
    */
-  public static boolean debugEnabled()
+  static boolean debugEnabled()
   {
     return enabled;
   }
@@ -177,25 +176,13 @@ public class DebugLogger extends AbstractLogger
   }
 
   /**
-   * Creates a new Debug Tracer for the caller class and registers it
-   * with the Debug Logger.
-   *
-   * @return The tracer created for the caller class.
-   */
-  public static DebugTracer getTracer()
-  {
-    // TODO : remove this method
-    return getTracer("org.opends");
-  }
-
-  /**
    * Returns the registered Debug Tracer for a traced class.
    *
    * @param className The name of the class tracer to retrieve.
    * @return The tracer for the provided class or null if there are
    *         no tracers registered.
    */
-  public static DebugTracer getTracer(String className)
+  static DebugTracer getTracer(final String className)
   {
     DebugTracer tracer = classTracers.get(className);
     if (tracer == null)

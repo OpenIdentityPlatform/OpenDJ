@@ -25,19 +25,15 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 
-package org.opends.server.loggers.debug;
+package org.opends.server.loggers;
 import org.forgerock.i18n.LocalizableMessage;
-
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
-import org.opends.server.loggers.LogLevel;
-import org.opends.server.loggers.LogCategory;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.DebugTargetCfgDefn;
 import org.opends.server.admin.std.server.DebugTargetCfg;
-
 
 import java.util.*;
 

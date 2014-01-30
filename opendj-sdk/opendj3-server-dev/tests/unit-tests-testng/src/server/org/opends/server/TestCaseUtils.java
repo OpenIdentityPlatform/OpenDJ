@@ -51,8 +51,6 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.*;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;

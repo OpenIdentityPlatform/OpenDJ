@@ -24,15 +24,12 @@
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-package org.opends.server.loggers.debug;
+package org.opends.server.loggers;
+
+import java.util.Map;
 
 import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.loggers.LogLevel;
-import org.opends.server.loggers.LogCategory;
-
-import java.util.Map;
 
 /**
  * Class for source-code tracing at the method level.
@@ -43,8 +40,7 @@ import java.util.Map;
  * Logging is always done at a level basis, with debug log messages
  * exceeding the trace threshold being traced, others being discarded.
  */
-
-public class DebugTracer
+class DebugTracer
 {
   /** The class this aspect traces. */
   private String className;
@@ -54,7 +50,7 @@ public class DebugTracer
    */
   private class PublisherSettings
   {
-    DebugLogPublisher debugPublisher;
+    DebugLogPublisher<?> debugPublisher;
     TraceSettings classSettings;
     Map<String, TraceSettings> methodSettings;
   }
@@ -96,214 +92,25 @@ public class DebugTracer
   }
 
   /**
-   * Log an arbitrary event at the verbose level.
-   * Same as debugMessage(DebugLogLevel.ERROR, msg)
+   * Log the provided message.
    *
-   * @param msg message to format and log.
+   * @param msg
+   *          message to log.
    */
-  public void debugVerbose(String msg)
+  void trace(String msg)
   {
-    debugMessage(DebugLogLevel.VERBOSE, msg, new Object[]{});
+    traceException(msg, null);
   }
 
   /**
-   * Log an arbitrary event at the verbose level.
-   * Same as debugMessage(DebugLogLevel.ERROR, msg, msgArgs...)
+   * Log the provided message and exception.
    *
-   * @param msg message to format and log.
-   * @param msgArgs arguments to place into the format string.
+   * @param msg
+   *          the message
+   * @param exception
+   *          the exception caught. May be {@code null}.
    */
-  public void debugVerbose(String msg, Object... msgArgs)
-  {
-    debugMessage(DebugLogLevel.VERBOSE, msg, msgArgs);
-  }
-
-  /**
-   * Log an arbitrary event at the info level.
-   * Same as debugMessage(DebugLogLevel.ERROR, msg)
-   *
-   * @param msg message to format and log.
-   */
-  public void debugInfo(String msg)
-  {
-    debugMessage(DebugLogLevel.INFO, msg, new Object[]{});
-  }
-
-  /**
-   * Log an arbitrary event at the info level.
-   * Same as debugMessage(DebugLogLevel.ERROR, msg, msgArgs...)
-   *
-   * @param msg message to format and log.
-   * @param msgArgs arguments to place into the format string.
-   */
-  public void debugInfo(String msg, Object... msgArgs)
-  {
-    debugMessage(DebugLogLevel.INFO, msg, msgArgs);
-  }
-
-  /**
-   * Log an arbitrary event at the warning level.
-   * Same as debugMessage(DebugLogLevel.ERROR, msg)
-   *
-   * @param msg message to format and log.
-   */
-  public void debugWarning(String msg)
-
-  {
-    debugMessage(DebugLogLevel.WARNING, msg, new Object[]{});
-  }
-
-  /**
-   * Log an arbitrary event at the warning level.
-   * Same as debugMessage(DebugLogLevel.ERROR, msg, msgArgs...)
-   *
-   * @param msg message to format and log.
-   * @param msgArgs arguments to place into the format string.
-   */
-  public void debugWarning(String msg, Object... msgArgs)
-  {
-    debugMessage(DebugLogLevel.WARNING, msg, msgArgs);
-  }
-
-  /**
-   * Log an arbitrary event at the error level.
-   * Same as debugMessage(DebugLogLevel.ERROR, msg)
-   *
-   * @param msg message to format and log.
-   */
-  public void debugError(String msg)
-
-  {
-    debugMessage(DebugLogLevel.ERROR, msg, new Object[]{});
-  }
-
-  /**
-   * Log an arbitrary event at the error level.
-   * Same as debugMessage(DebugLogLevel.ERROR, msg, msgArgs...)
-   *
-   * @param msg message to format and log.
-   * @param msgArgs arguments to place into the format string.
-   */
-  public void debugError(String msg, Object... msgArgs)
-  {
-    debugMessage(DebugLogLevel.ERROR, msg, msgArgs);
-  }
-
-  /**
-   * Log an arbitrary event.
-   *
-   * @param level the level of the log message.
-   * @param msg message to format and log.
-   */
-  public void debugMessage(LogLevel level, String msg)
-  {
-    debugMessage(level, msg, new Object[]{});
-  }
-
-  /**
-   * Log an arbitrary event.
-   *
-   * @param level the level of the log message.
-   * @param msg message to format and log.
-   * @param msgArgs arguments to place into the format string.
-   */
-  public void debugMessage(LogLevel level, String msg, Object... msgArgs)
-  {
-    if(DebugLogger.debugEnabled())
-    {
-      StackTraceElement[] stackTrace = null;
-      StackTraceElement[] filteredStackTrace = null;
-      StackTraceElement callerFrame = null;
-      for (PublisherSettings settings : publisherSettings)
-      {
-        TraceSettings activeSettings = settings.classSettings;
-        Map<String, TraceSettings> methodSettings = settings.methodSettings;
-
-        if (shouldLog(DebugLogCategory.MESSAGE, activeSettings) || methodSettings != null)
-        {
-          if(stackTrace == null)
-          {
-            stackTrace = Thread.currentThread().getStackTrace();
-          }
-          if (callerFrame == null)
-          {
-            callerFrame = getCallerFrame(stackTrace);
-          }
-
-          String signature = callerFrame.getMethodName();
-
-          // Specific method settings still could exist. Try getting
-          // the settings for this method.
-          if(methodSettings != null)
-          {
-            TraceSettings mSettings = methodSettings.get(signature);
-
-            if (mSettings == null)
-            {
-              // Try looking for an undecorated method name
-              int idx = signature.indexOf('(');
-              if (idx != -1)
-              {
-                mSettings =
-                    methodSettings.get(signature.substring(0, idx));
-              }
-            }
-
-            // If this method does have a specific setting and it is not
-            // suppose to be logged, continue.
-            if (mSettings != null)
-            {
-              if(!shouldLog(DebugLogCategory.MESSAGE, mSettings))
-              {
-                continue;
-              }
-              else
-              {
-                activeSettings = mSettings;
-              }
-            }
-          }
-
-          String sl = callerFrame.getFileName() + ":" +
-              callerFrame.getLineNumber();
-
-          if(msgArgs != null && msgArgs.length > 0)
-          {
-            msg = String.format(msg, msgArgs);
-          }
-
-          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
-          {
-            filteredStackTrace =
-                DebugStackTraceFormatter.SMART_FRAME_FILTER.
-                    getFilteredStackTrace(stackTrace);
-          }
-
-          settings.debugPublisher.traceMessage(activeSettings, signature, sl,
-                                               msg, filteredStackTrace);
-        }
-      }
-    }
-  }
-
-  /**
-   * Log a caught exception.
-   *
-   * @param level the level of the log message.
-   * @param ex the exception caught.
-   */
-  public void debugCaught(LogLevel level, Throwable ex)
-  {
-    debugCaught("", ex);
-  }
-
-  /**
-   * Log a caught exception.
-   *
-   * @param msg the message
-   * @param ex the exception caught.
-   */
-  public void debugCaught(String msg, Throwable ex)
+  void traceException(String msg, Throwable exception)
   {
     if(DebugLogger.debugEnabled())
     {
@@ -360,18 +167,27 @@ public class DebugTracer
             }
           }
 
-          String sl = callerFrame.getFileName() + ":" +
+          String sourceLocation = callerFrame.getFileName() + ":" +
               callerFrame.getLineNumber();
 
           if (filteredStackTrace == null && activeSettings.stackDepth > 0)
           {
+            StackTraceElement[] trace = exception == null ? stackTrace : exception.getStackTrace();
             filteredStackTrace =
                 DebugStackTraceFormatter.SMART_FRAME_FILTER.
-                    getFilteredStackTrace(ex.getStackTrace());
+                    getFilteredStackTrace(trace);
           }
 
-          settings.debugPublisher.traceCaught(activeSettings, signature, sl,
-                                              msg, ex, filteredStackTrace);
+          if (exception == null)
+          {
+            settings.debugPublisher.trace(activeSettings, signature,
+                sourceLocation, msg, filteredStackTrace);
+          }
+          else
+          {
+            settings.debugPublisher.traceException(activeSettings, signature,
+                sourceLocation, msg, exception, filteredStackTrace);
+          }
         }
       }
     }
@@ -382,7 +198,7 @@ public class DebugTracer
    *
    * @return The name of the class this tracer traces.
    */
-  public String getTracedClassName()
+  String getTracedClassName()
   {
     return className;
   }
@@ -395,7 +211,7 @@ public class DebugTracer
    *            Log category to check
    * @return {@code true} if logging is enabled, false otherwise.
    */
-  public boolean enabledFor(LogCategory logCategory)
+  boolean enabledFor(LogCategory logCategory)
   {
     for (PublisherSettings settings : publisherSettings)
     {
@@ -417,7 +233,7 @@ public class DebugTracer
    *
    * @return {@code true} if logging is enabled, false otherwise.
    */
-  public boolean enabled()
+  boolean enabled()
   {
     for (PublisherSettings settings : publisherSettings)
     {

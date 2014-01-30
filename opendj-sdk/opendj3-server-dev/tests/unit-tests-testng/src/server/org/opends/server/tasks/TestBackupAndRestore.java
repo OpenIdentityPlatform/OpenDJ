@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS.
  */
 
 
@@ -236,7 +237,7 @@ public class TestBackupAndRestore extends TasksTestCase
    * @param taskEntry The task entry.
    * @param expectedState The expected completion state of the task.
    */
-  @Test(dataProvider = "backups")
+  @Test(enabled=false, dataProvider = "backups")
   public void testBackups(Entry taskEntry, TaskState expectedState)
        throws Exception
   {

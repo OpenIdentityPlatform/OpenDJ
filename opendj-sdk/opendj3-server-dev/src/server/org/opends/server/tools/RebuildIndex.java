@@ -41,16 +41,13 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.extensions.ConfigFileHandler;
-
 import org.opends.server.config.ConfigException;
-
+import org.opends.server.loggers.DebugLogger;
+import org.opends.server.loggers.TextDebugLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
-import org.opends.server.loggers.debug.TextDebugLogPublisher;
-import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.LockFileManager;

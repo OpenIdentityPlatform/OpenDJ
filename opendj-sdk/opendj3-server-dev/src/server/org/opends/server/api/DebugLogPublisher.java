@@ -33,7 +33,7 @@ import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
-import org.opends.server.loggers.debug.TraceSettings;
+import org.opends.server.loggers.TraceSettings;
 import org.opends.server.types.DebugLogLevel;
 
 /**
@@ -347,11 +347,8 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    * @param  stackTrace      The stack trace at the time the message
    *                         is logged or null if its not available.
    */
-  public abstract void traceMessage(TraceSettings settings,
-                                    String signature,
-                                    String sourceLocation,
-                                    String msg,
-                                    StackTraceElement[] stackTrace);
+  public abstract void trace(TraceSettings settings, String signature,
+      String sourceLocation, String msg, StackTraceElement[] stackTrace);
 
 
 
@@ -360,15 +357,13 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    * @param  settings        The current trace settings in effect.
    * @param  signature       The method signature.
    * @param  sourceLocation  The location of the method in the source.
-   * @param msg TODO
+   * @param  msg             The message to be logged.
    * @param  ex              The exception that was caught.
    * @param  stackTrace      The stack trace at the time the exception
    *                         is caught or null if its not available.
    */
-  public abstract void traceCaught(TraceSettings settings,
-                                   String signature,
-                                   String sourceLocation,
-                                   String msg,
-                                   Throwable ex, StackTraceElement[] stackTrace);
+  public abstract void traceException(TraceSettings settings, String signature,
+      String sourceLocation, String msg, Throwable ex,
+      StackTraceElement[] stackTrace);
 
 }
