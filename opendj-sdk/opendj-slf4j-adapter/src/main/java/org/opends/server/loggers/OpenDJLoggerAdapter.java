@@ -23,15 +23,11 @@
  *
  *      Copyright 2014 ForgeRock AS.
  */
-package org.slf4j.impl;
+package org.opends.server.loggers;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedMarker;
 import org.opends.messages.Severity;
-import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 
@@ -59,8 +55,11 @@ final class OpenDJLoggerAdapter implements Logger {
      *            The name of logger.
      */
     public OpenDJLoggerAdapter(final String name) {
-        this.name = name;
+        // Tracer always use the provided name
+        // which should be a classname
         this.tracer = DebugLogger.getTracer(name);
+        // Name is simplified if possible
+        this.name = LoggingCategoryNames.getCategoryName(name);
     }
 
     /** {@inheritDoc} */
@@ -71,13 +70,13 @@ final class OpenDJLoggerAdapter implements Logger {
 
     /** Trace with message only. */
     private void logTraceMessage(String msg) {
-        tracer.debugMessage(DebugLogLevel.VERBOSE, msg);
+        tracer.trace(msg);
 
     }
 
     /** Trace with message and exception. */
-    private void logTraceException(@SuppressWarnings("unused") String message, Throwable t) {
-        tracer.debugCaught(DebugLogLevel.VERBOSE, t);
+    private void logTraceException(String message, Throwable t) {
+        tracer.traceException(message, t);
     }
 
     /**
