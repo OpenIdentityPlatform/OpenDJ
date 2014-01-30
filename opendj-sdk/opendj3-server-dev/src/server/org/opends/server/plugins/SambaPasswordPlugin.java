@@ -26,12 +26,6 @@
  */
 package org.opends.server.plugins;
 
-
-
-import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.util.StaticUtils.bytesToHexNoSpace;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -43,9 +37,11 @@ import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
-import org.opends.server.admin.std.meta.SambaPasswordPluginCfgDefn.*;
+import org.opends.server.admin.std.meta.SambaPasswordPluginCfgDefn.PwdSyncPolicy;
 import org.opends.server.admin.std.server.SambaPasswordPluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
@@ -55,15 +51,14 @@ import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.extensions.PasswordModifyExtendedOperation;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostOperationExtendedOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 
-
+import static org.opends.messages.PluginMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * The Samba password synchronization plugin implementation class.
@@ -469,6 +464,7 @@ public final class SambaPasswordPlugin extends
   private static final TimeStampProvider DEFAULT_TIMESTAMP_PROVIDER =
   new TimeStampProvider()
   {
+    @Override
     public long getCurrentTime()
     {
       return System.currentTimeMillis() / 1000L;
@@ -982,30 +978,23 @@ public final class SambaPasswordPlugin extends
       {
         final Attribute attribute = Attributes.create(
             SAMBA_NT_PASSWORD_ATTRIBUTE_NAME, ntHash(password));
-        modifications
-            .add(new Modification(ModificationType.REPLACE, attribute));
+        modifications.add(new Modification(ModificationType.REPLACE, attribute));
       }
 
       if (config.getPwdSyncPolicy().contains(PwdSyncPolicy.SYNC_LM_PASSWORD))
       {
         final Attribute attribute = Attributes.create(
             SAMBA_LM_PASSWORD_ATTRIBUTE_NAME, lmHash(password));
-        modifications
-            .add(new Modification(ModificationType.REPLACE, attribute));
+        modifications.add(new Modification(ModificationType.REPLACE, attribute));
       }
       final Attribute pwdLastSet = Attributes.create(
         SAMBA_PWD_LAST_SET_NAME,
         String.valueOf(timeStampProvider.getCurrentTime()));
-      modifications
-            .add(new Modification(ModificationType.REPLACE, pwdLastSet));
+      modifications.add(new Modification(ModificationType.REPLACE, pwdLastSet));
     }
     catch (final Exception e)
     {
-      ERR_PLUGIN_SAMBA_SYNC_ENCODING.get(e.getMessage());
-      if (logger.isTraceEnabled())
-      {
-        logger.trace(e.getMessage(), e);
-      }
+      logger.info(ERR_PLUGIN_SAMBA_SYNC_ENCODING.get(e.getMessage()), e);
       modifications = null;
     }
 
@@ -1045,7 +1034,7 @@ public final class SambaPasswordPlugin extends
    * current modify operation.
    *
    * @param modifyOperation
-   *          Current modify operation which will be modified to add samba
+   *          Current modify operation which will be modified to add Samba
    *          password attribute changes.
    * @param passwords
    *          List of userPassword clear-text attribute values to be hashed for
@@ -1056,28 +1045,19 @@ public final class SambaPasswordPlugin extends
       final List<AttributeValue> passwords)
   {
     // Get the last password (in case there is more then one).
-
     final String password = passwords.get(passwords.size() - 1).toString();
-
     try
     {
       // Generate the necessary modifications.
-
       for (final Modification modification : getModifications(password))
       {
         modifyOperation.addModification(modification);
       }
-
     }
     catch (final DirectoryException e)
     {
-      ERR_PLUGIN_SAMBA_SYNC_MODIFICATION_PROCESSING.get(e.getMessage());
-      if (logger.isTraceEnabled())
-      {
-        logger.trace(e.getMessage());
-      }
+      logger.info(ERR_PLUGIN_SAMBA_SYNC_MODIFICATION_PROCESSING.get(e.getMessage()), e);
     }
-
   }
 
   /**
@@ -1097,7 +1077,7 @@ public final class SambaPasswordPlugin extends
    * Use custom timestamp provider. Intended primarily for testing purposes.
    *
    * @param timeStampProvider Provider object that implements the
-   * TimeStampProvider intreface.
+   * TimeStampProvider interface.
    */
   void setTimeStampProvider(TimeStampProvider timeStampProvider)
   {
