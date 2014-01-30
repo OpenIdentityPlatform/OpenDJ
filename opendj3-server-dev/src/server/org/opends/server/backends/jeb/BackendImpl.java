@@ -39,6 +39,8 @@ import java.util.zip.Adler32;
 import java.util.zip.CheckedInputStream;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
@@ -51,10 +53,8 @@ import org.opends.server.backends.jeb.importLDIF.Importer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.extensions.DiskSpaceMonitor;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.RuntimeInformation;
-import org.forgerock.util.Reject;
 
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Durability;
@@ -992,11 +992,7 @@ public class BackendImpl
         }
 
         // Sync the environment to disk.
-        if (logger.isTraceEnabled())
-        {
-          LocalizableMessage message = NOTE_JEB_IMPORT_CLOSING_DATABASE.get();
-          logger.trace(message.toString());
-        }
+        logger.trace(NOTE_JEB_IMPORT_CLOSING_DATABASE);
       }
       catch (DatabaseException de)
       {

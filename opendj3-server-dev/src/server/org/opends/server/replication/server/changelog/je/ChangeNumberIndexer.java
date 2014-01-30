@@ -31,9 +31,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.DirectoryThread;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.api.DirectoryThread;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
@@ -515,9 +514,8 @@ public class ChangeNumberIndexer extends DirectoryThread
       // Rely on the DirectoryThread uncaught exceptions handler
       // for logging error + alert.
       // LocalizableMessage logged here gives corrective information to the administrator.
-      LocalizableMessage msg = ERR_CHANGE_NUMBER_INDEXER_UNEXPECTED_EXCEPTION.get(
+      logger.trace(ERR_CHANGE_NUMBER_INDEXER_UNEXPECTED_EXCEPTION,
           getClass().getSimpleName(), stackTraceToSingleLineString(e));
-      logger.trace(msg.toString());
       throw e;
     }
     catch (Exception e)
@@ -526,9 +524,8 @@ public class ChangeNumberIndexer extends DirectoryThread
       // Rely on the DirectoryThread uncaught exceptions handler
       // for logging error + alert.
       // LocalizableMessage logged here gives corrective information to the administrator.
-      LocalizableMessage msg = ERR_CHANGE_NUMBER_INDEXER_UNEXPECTED_EXCEPTION.get(
+      logger.trace(ERR_CHANGE_NUMBER_INDEXER_UNEXPECTED_EXCEPTION,
           getClass().getSimpleName(), stackTraceToSingleLineString(e));
-      logger.trace(msg.toString());
       throw new RuntimeException(e);
     }
     finally
