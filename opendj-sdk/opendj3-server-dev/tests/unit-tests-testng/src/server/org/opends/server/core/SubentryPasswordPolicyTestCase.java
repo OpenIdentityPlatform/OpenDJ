@@ -414,15 +414,15 @@ public class SubentryPasswordPolicyTestCase
         InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-        connection.processAdd(policyEntry.getDN(),
+        connection.processAdd(policyEntry.getName(),
             policyEntry.getObjectClasses(),
             policyEntry.getUserAttributes(),
             policyEntry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(policyEntry.getDN()));
+    assertNotNull(DirectoryServer.getEntry(policyEntry.getName()));
 
     PasswordPolicy policy = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(
-        DN.decode("cn=Temp Validator Policy," + SUFFIX));
+        DN.valueOf("cn=Temp Validator Policy," + SUFFIX));
     assertNotNull(policy);
 
     // Check the password validator attributes for correct values.
@@ -433,18 +433,16 @@ public class SubentryPasswordPolicyTestCase
     // Make sure this policy applies to the test entry
     // its supposed to target and that its the same
     // policy object as previously tested.
-    Entry testEntry = DirectoryServer.getEntry(DN.decode(
-        "uid=rogasawara," + BASE));
+    Entry testEntry = DirectoryServer.getEntry(DN.valueOf("uid=rogasawara," + BASE));
     assertNotNull(testEntry);
 
-    AuthenticationPolicy statePolicy = AuthenticationPolicy.forUser(testEntry,
-        false);
+    AuthenticationPolicy statePolicy = AuthenticationPolicy.forUser(testEntry, false);
     assertNotNull(statePolicy);
     assertEquals(policy, statePolicy);
 
     // Make sure this policy is gone and default
     // policy is in effect instead.
-    TestCaseUtils.deleteEntry(policyEntry.getDN());
+    TestCaseUtils.deleteEntry(policyEntry.getName());
     statePolicy = AuthenticationPolicy.forUser(testEntry, false);
     assertNotNull(statePolicy);
     assertEquals(defaultPolicy, statePolicy);
