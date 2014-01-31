@@ -20,7 +20,7 @@
 # CDDL HEADER END
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
-#      Portions Copyright 2012-2013 ForgeRock AS
+#      Portions Copyright 2012-2014 ForgeRock AS
 #
 #
 # dc=com sample LDIF file
@@ -682,6 +682,7 @@ ou: People
 preferredLanguage: en, ko;q=0.8
 uidNumber: 1076
 gidNumber: 1000
+description: Original description
 
 dn: uid=bmaddox,ou=People,dc=example,dc=com
 objectClass: person
