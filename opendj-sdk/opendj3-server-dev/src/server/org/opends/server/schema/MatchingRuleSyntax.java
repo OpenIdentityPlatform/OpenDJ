@@ -563,7 +563,7 @@ public class MatchingRuleSyntax
                                                     false);
         if (syntax == null)
         {
-          logger.error(ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX, valueStr, oidBuffer.toString());
+          logger.error(ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX, valueStr, oidBuffer);
 
           syntax = DirectoryServer.getDefaultAttributeSyntax();
         }

@@ -332,7 +332,7 @@ public final class LDIFReader implements Closeable
           toAttributesMap(operationalAttrBuilders);
       Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
                                operationalAttributes);
-      logger.trace(entry.toString());
+      logger.trace("readEntry1(), created entry: %s", entry);
 
       try
       {
@@ -528,7 +528,7 @@ public final class LDIFReader implements Closeable
           toAttributesMap(operationalAttrBuilders);
       Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
                                operationalAttributes);
-      logger.trace(entry.toString());
+      logger.trace("readEntry2(), created entry: %s", entry);
 
       try
       {

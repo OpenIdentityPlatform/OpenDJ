@@ -1557,7 +1557,7 @@ public class UninstallCliHelper extends ConsoleApplication {
    private void printErrorMessage(LocalizableMessage msg)
    {
      super.println(msg);
-     logger.warn(LocalizableMessage.raw(msg.toString()));
+     logger.warn(LocalizableMessage.raw(msg));
    }
 
    /**

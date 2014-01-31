@@ -508,8 +508,7 @@ private void clearProperties() {
     if(!keyTabFile.exists()) {
       LocalizableMessage message = ERR_SASL_GSSAPI_KEYTAB_INVALID.get(keyTabFilePath);
       unacceptableReasons.add(message);
-      if (logger.isTraceEnabled())
-        logger.trace(message.toString());
+      logger.trace(message);
       isAcceptable = false;
     }
 
@@ -520,8 +519,7 @@ private void clearProperties() {
     {
       LocalizableMessage message = ERR_SASLGSSAPI_KDC_REALM_NOT_DEFINED.get();
       unacceptableReasons.add(message);
-      if (logger.isTraceEnabled())
-        logger.trace(message.toString());
+      logger.trace(message);
       isAcceptable = false;
     }
 

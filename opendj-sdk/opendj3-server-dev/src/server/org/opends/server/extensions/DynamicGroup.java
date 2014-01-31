@@ -157,10 +157,8 @@ public class DynamicGroup
           catch (DirectoryException de)
           {
             logger.traceException(de);
-
-            logger.error(ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL, v.getValue().toString(),
-                    String.valueOf(groupEntry.getName()),
-                    de.getMessageObject());
+            logger.error(ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL, v.getValue(),
+                    String.valueOf(groupEntry.getName()), de.getMessageObject());
           }
         }
       }

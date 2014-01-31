@@ -725,7 +725,7 @@ public class EntryHistorical
       // Any exception happening here means that the coding of the historical
       // information was wrong.
       // Log an error and continue with an empty historical.
-      logger.error(ERR_BAD_HISTORICAL, entry.getName().toString());
+      logger.error(ERR_BAD_HISTORICAL, entry.getName());
     }
 
     /* set the reference to the historical information in the entry */

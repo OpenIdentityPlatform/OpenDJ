@@ -193,13 +193,13 @@ public class RootContainer
       {
         if(!FilePermission.setPermissions(backendDirectory, backendPermission))
         {
-          logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission.toString(), backendDirectory.toString());
+          logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
         }
       }
       catch(Exception e)
       {
         // Log an warning that the permissions were not set.
-        logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory.toString(), e.toString());
+        logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
       }
     }
 
@@ -668,6 +668,7 @@ public class RootContainer
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       LocalDBBackendCfg cfg,
       List<LocalizableMessage> unacceptableReasons)
@@ -744,6 +745,7 @@ public class RootContainer
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg cfg)
   {
     ConfigChangeResult ccr;
@@ -822,10 +824,7 @@ public class RootContainer
         // properties that are mutable at runtime.
         env.setMutableConfig(newEnvConfig);
 
-        if (logger.isTraceEnabled())
-        {
-          logger.trace(env.getConfig().toString());
-        }
+        logger.trace("JE database configuration: %s", env.getConfig());
       }
 
       // Create the directory if it doesn't exist.
@@ -912,13 +911,13 @@ public class RootContainer
             if(!FilePermission.setPermissions(backendDirectory,
                 backendPermission))
             {
-              logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission.toString(), backendDirectory.toString());
+              logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
             }
           }
           catch(Exception e)
           {
             // Log an warning that the permissions were not set.
-            logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory.toString(), e.toString());
+            logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
           }
         }
       }

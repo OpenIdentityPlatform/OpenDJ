@@ -131,7 +131,7 @@ public class FingerprintCertificateMapper
       Backend b = DirectoryServer.getBackend(baseDN);
       if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
       {
-        logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn().toString(),
+        logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn(),
             t.getNameOrOID(), b.getBackendID());
       }
     }

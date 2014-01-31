@@ -2034,7 +2034,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           * It should never happen.
           */
           pendingChanges.remove(curCSN);
-          logger.error(ERR_UNKNOWN_TYPE.get(op.getOperationType().toString()));
+          logger.error(ERR_UNKNOWN_TYPE.get(op.getOperationType()));
           return;
         }
 

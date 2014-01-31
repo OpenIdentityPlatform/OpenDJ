@@ -100,7 +100,6 @@ public class SaltedMD5PasswordStorageScheme
   public SaltedMD5PasswordStorageScheme()
   {
     super();
-
   }
 
 
@@ -281,8 +280,7 @@ public class SaltedMD5PasswordStorageScheme
     catch (Exception e)
     {
       logger.traceException(e);
-
-      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD, storedPassword.toString(), String.valueOf(e));
+      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD, storedPassword, String.valueOf(e));
       return false;
     }
 

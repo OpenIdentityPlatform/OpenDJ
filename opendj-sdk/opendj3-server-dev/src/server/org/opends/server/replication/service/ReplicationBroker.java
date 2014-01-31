@@ -1234,7 +1234,7 @@ public class ReplicationBroker
 
         if (logger.isTraceEnabled())
         {
-          logger.trace(errorMessage.toString());
+          logger.trace(errorMessage);
         }
       }
     }

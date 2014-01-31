@@ -4426,11 +4426,11 @@ public class SchemaBackend
           }
           catch (DirectoryException de)
           {
-            logger.info(NOTE_SCHEMA_IMPORT_FAILED, attrType.toString(), de.getMessage());
+            logger.info(NOTE_SCHEMA_IMPORT_FAILED, attrType, de.getMessage());
           }
           catch (Exception e)
           {
-            logger.info(NOTE_SCHEMA_IMPORT_FAILED, attrType.toString(), e.getMessage());
+            logger.info(NOTE_SCHEMA_IMPORT_FAILED, attrType, e.getMessage());
           }
         }
       }
@@ -4539,11 +4539,11 @@ public class SchemaBackend
           }
           catch (DirectoryException de)
           {
-            logger.info(NOTE_SCHEMA_IMPORT_FAILED, newObjectClass.toString(), de.getMessage());
+            logger.info(NOTE_SCHEMA_IMPORT_FAILED, newObjectClass, de.getMessage());
           }
           catch (Exception e)
           {
-            logger.info(NOTE_SCHEMA_IMPORT_FAILED, newObjectClass.toString(), e.getMessage());
+            logger.info(NOTE_SCHEMA_IMPORT_FAILED, newObjectClass, e.getMessage());
           }
         }
       }

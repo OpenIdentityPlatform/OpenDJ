@@ -137,7 +137,7 @@ public final class UpgradeTasks
       public void perform(final UpgradeContext context) throws ClientException
       {
         final LocalizableMessage msg = INFO_UPGRADE_TASK_REPLACE_SCHEMA_FILE.get(fileName);
-        logger.debug(LocalizableMessage.raw(msg.toString()));
+        logger.debug(msg);
 
         final ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, msg, 0);
@@ -753,7 +753,7 @@ public final class UpgradeTasks
             if (oldSnmpConfig.exists())
             {
               context.notifyProgress(pnc.setProgress(20));
-              logger.debug(LocalizableMessage.raw(summary.toString()));
+              logger.debug(summary);
 
               final File snmpConfig =
                   new File(UpgradeUtils.configSnmpSecurityDirectory,
@@ -863,7 +863,7 @@ public final class UpgradeTasks
     }
     if (ldif != null)
     {
-      logger.debug(LocalizableMessage.raw(Arrays.asList(ldif).toString()));
+      logger.debug(LocalizableMessage.raw(Arrays.toString(ldif)));
     }
   }
 
@@ -873,7 +873,7 @@ public final class UpgradeTasks
   {
     countErrors++;
     context.notifyProgress(pnc.setProgress(-100));
-    logger.error(LocalizableMessage.raw(message.toString()));
+    logger.error(message);
     if (!context.isIgnoreErrorsMode())
     {
       throw new ClientException(EXIT_CODE_ERROR, message);

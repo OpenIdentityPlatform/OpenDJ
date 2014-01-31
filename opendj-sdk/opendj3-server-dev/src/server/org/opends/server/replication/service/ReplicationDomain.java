@@ -341,7 +341,7 @@ public abstract class ReplicationDomain
     // Sanity check: is it a valid initial status?
     if (!isValidInitialStatus(initStatus))
     {
-      logger.error(ERR_DS_INVALID_INIT_STATUS.get(initStatus.toString(),
+      logger.error(ERR_DS_INVALID_INIT_STATUS.get(initStatus,
           getBaseDNString(), Integer.toString(getServerId())));
     }
     else
@@ -370,7 +370,7 @@ public abstract class ReplicationDomain
     StatusMachineEvent event = StatusMachineEvent.statusToEvent(reqStatus);
     if (event == StatusMachineEvent.INVALID_EVENT)
     {
-      logger.error(ERR_DS_INVALID_REQUESTED_STATUS.get(reqStatus.toString(),
+      logger.error(ERR_DS_INVALID_REQUESTED_STATUS.get(reqStatus,
           getBaseDNString(), Integer.toString(getServerId())));
       return;
     }

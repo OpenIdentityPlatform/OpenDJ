@@ -197,7 +197,7 @@ public class MultimasterReplication
     }
     catch (ConfigException e)
     {
-      logger.error(ERR_COULD_NOT_START_REPLICATION.get(configuration.dn().toString(), e.getLocalizedMessage()
+      logger.error(ERR_COULD_NOT_START_REPLICATION.get(configuration.dn(), e.getLocalizedMessage()
           + " " + stackTraceToSingleLineString(e)));
     }
     return null;

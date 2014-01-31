@@ -159,7 +159,7 @@ public final class JMXMBean
       {
         logger.traceException(e);
 
-          logger.error(ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN, configEntryDN.toString(), String.valueOf(e));
+          logger.error(ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN, configEntryDN, String.valueOf(e));
       }
       return nameStr ;
   }
@@ -194,19 +194,19 @@ public final class JMXMBean
                   {
                     mBeanServer.unregisterMBean(objectName);
                   }
-                } catch(Exception e)
+                }
+                catch(Exception e)
                 {
                   logger.traceException(e);
                 }
 
                 mBeanServer.registerMBean(this, objectName);
 
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
               logger.traceException(e);
-                e.printStackTrace();
-
-                logger.error(ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN, configEntryDN.toString(), String.valueOf(e));
+              logger.error(ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN, configEntryDN, String.valueOf(e));
             }
         }
     }

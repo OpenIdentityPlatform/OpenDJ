@@ -472,7 +472,7 @@ public final class Upgrade
       context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS.get(UpgradeUtils
           .getInstallationPath()
           + File.separator + UpgradeLog.UPGRADELOGNAME), NOTICE_CALLBACK);
-      logger.info(LocalizableMessage.raw(INFO_UPGRADE_PROCESS_END.get().toString()));
+      logger.info(INFO_UPGRADE_PROCESS_END);
     }
   }
 

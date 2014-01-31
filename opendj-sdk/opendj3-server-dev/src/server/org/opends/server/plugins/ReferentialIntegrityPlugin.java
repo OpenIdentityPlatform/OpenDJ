@@ -715,7 +715,7 @@ public class ReferentialIntegrityPlugin
         break;
 
       case NO_SUCH_OBJECT:
-        logger.debug(INFO_PLUGIN_REFERENT_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString()));
+        logger.debug(INFO_PLUGIN_REFERENT_SEARCH_NO_SUCH_OBJECT.get(baseDN));
         return;
 
       default:
@@ -815,7 +815,7 @@ public class ReferentialIntegrityPlugin
             conn.processModify(entryDN, mods);
     if(modifyOperation.getResultCode() != ResultCode.SUCCESS)
     {
-      logger.error(ERR_PLUGIN_REFERENT_MODIFY_FAILED.get(entryDN.toString(),
+      logger.error(ERR_PLUGIN_REFERENT_MODIFY_FAILED.get(entryDN,
                       String.valueOf(modifyOperation.getErrorMessage())));
     }
   }

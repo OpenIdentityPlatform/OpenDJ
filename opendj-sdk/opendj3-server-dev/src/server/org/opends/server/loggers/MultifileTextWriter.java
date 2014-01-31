@@ -196,13 +196,13 @@ class MultifileTextWriter
       {
         if(!FilePermission.setPermissions(file, filePermissions))
         {
-          logger.warn(WARN_LOGGER_UNABLE_SET_PERMISSIONS, filePermissions.toString(), file.toString());
+          logger.warn(WARN_LOGGER_UNABLE_SET_PERMISSIONS, filePermissions, file);
         }
       }
       catch(Exception e)
       {
         // Log an warning that the permissions were not set.
-        logger.warn(WARN_LOGGER_SET_PERMISSION_FAILED, file.toString(), stackTraceToSingleLineString(e));
+        logger.warn(WARN_LOGGER_SET_PERMISSION_FAILED, file, stackTraceToSingleLineString(e));
       }
     }
   }

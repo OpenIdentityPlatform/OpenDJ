@@ -186,8 +186,7 @@ class FileManager
     }
     else
     {
-      logger.debug(LocalizableMessage.raw(new StringBuilder("File '").append(file.toString())
-          .append("' does not exist").toString()));
+      logger.debug(LocalizableMessage.raw("File '" + file + "' does not exist"));
     }
   }
 
@@ -370,9 +369,8 @@ class FileManager
         {
           if (insureParentsExist(destination))
           {
-            final LocalizableMessage message = LocalizableMessage.raw("Copying file '%s' to '%s'",
-                objectFile.getAbsolutePath(), destination.getAbsolutePath());
-            logger.debug(LocalizableMessage.raw(message.toString()));
+            logger.debug(LocalizableMessage.raw("Copying file '%s' to '%s'",
+                objectFile.getAbsolutePath(), destination.getAbsolutePath()));
             FileInputStream fis = null;
             FileOutputStream fos = null;
             try
@@ -416,17 +414,15 @@ class FileManager
           {
             final LocalizableMessage errMsg = INFO_ERROR_COPYING_FILE.get(
                 objectFile.getAbsolutePath(), destination.getAbsolutePath());
-            logger.error(LocalizableMessage.raw(errMsg.toString()));
+            logger.error(LocalizableMessage.raw(errMsg));
             throw new IOException(errMsg.toString());
           }
         }
         else
         {
-          final LocalizableMessage message = LocalizableMessage.raw(
+          logger.debug(LocalizableMessage.raw(
               "Ignoring file '%s' since '%s' already exists",
-              objectFile.getAbsolutePath(), destination.getAbsolutePath());
-
-          logger.debug(LocalizableMessage.raw(message.toString()));
+              objectFile.getAbsolutePath(), destination.getAbsolutePath()));
         }
       }
     }

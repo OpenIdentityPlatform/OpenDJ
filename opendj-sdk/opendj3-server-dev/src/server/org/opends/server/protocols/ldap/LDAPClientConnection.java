@@ -755,8 +755,8 @@ public final class LDAPClientConnection extends ClientConnection implements
       // This must mean that the operation has either not yet completed
       // or that it completed without a result for some reason. In any
       // case, log a message and set the response to "operations error".
-      logger.error(ERR_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE.get(operation.getOperationType().toString(), operation
-              .getConnectionID(), operation.getOperationID()));
+      logger.error(ERR_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE.get(operation.getOperationType(),
+          operation.getConnectionID(), operation.getOperationID()));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
