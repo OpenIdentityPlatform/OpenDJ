@@ -161,7 +161,7 @@ public class AddToGroupPanel extends StatusGenericPanel
       {
         if (t != null)
         {
-          errors.add(ERR_CTRL_PANEL_UNEXPECTED_DETAILS.get(t.toString()));
+          errors.add(ERR_CTRL_PANEL_UNEXPECTED_DETAILS.get(t));
         }
         displayMainPanel();
         setEnabledCancel(true);

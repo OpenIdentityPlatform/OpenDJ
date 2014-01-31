@@ -215,8 +215,7 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
       if (arg != null)
       {
         details.append("<br><br>"+
-            ERR_CTRL_PANEL_RESOLVING_REFERRAL_DETAILS.get(arg.toString(),
-                msg));
+            ERR_CTRL_PANEL_RESOLVING_REFERRAL_DETAILS.get(arg, msg));
       }
       else
       {

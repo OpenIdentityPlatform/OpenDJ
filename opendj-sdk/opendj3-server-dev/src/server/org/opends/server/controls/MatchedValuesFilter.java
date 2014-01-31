@@ -730,9 +730,8 @@ public class MatchedValuesFilter
     catch(Exception e)
     {
       // TODO: Need a better message.
-      LocalizableMessage message =
-          ERR_MVFILTER_INVALID_ELEMENT_TYPE.get(e.toString());
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR,
+          ERR_MVFILTER_INVALID_ELEMENT_TYPE.get(e));
     }
 
     switch (type)

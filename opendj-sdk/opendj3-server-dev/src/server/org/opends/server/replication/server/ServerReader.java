@@ -222,7 +222,7 @@ public class ServerReader extends DirectoryThread
              * The remote server has sent an unknown message, close the
              * connection.
              */
-            errMessage = NOTE_READER_NULL_MSG.get(handler.toString());
+            errMessage = NOTE_READER_NULL_MSG.get(handler);
             logger.error(errMessage);
             return;
           }

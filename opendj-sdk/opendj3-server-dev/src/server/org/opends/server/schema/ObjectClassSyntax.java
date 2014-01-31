@@ -516,11 +516,8 @@ public class ObjectClassSyntax
               //hyphen is allowed but not as the first byte.
                 if (index==0)
                 {
-                  LocalizableMessage msg = ERR_OC_SYNTAX_ATTR_ILLEGAL_INITIAL_DASH.
-                        get(value.toString());
-                  throw new DirectoryException(
-                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                               msg);
+                  throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                      ERR_OC_SYNTAX_ATTR_ILLEGAL_INITIAL_DASH.get(value));
                 }
                 break;
               case '_':
@@ -529,22 +526,16 @@ public class ObjectClassSyntax
               // name exceptions option is enabled.
                 if (index==0)
                 {
-                  LocalizableMessage msg =
-                          ERR_OC_SYNTAX_ATTR_ILLEGAL_INITIAL_UNDERSCORE.
-                        get(value.toString(),
-                            ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
-                  throw new DirectoryException(
-                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                               msg);
+                  LocalizableMessage msg = ERR_OC_SYNTAX_ATTR_ILLEGAL_INITIAL_UNDERSCORE
+                      .get(value, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+                  throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, msg);
                 }
                 else if (!allowExceptions)
                 {
                   LocalizableMessage msg = ERR_OC_SYNTAX_ATTR_ILLEGAL_UNDERSCORE_CHAR.
-                        get(value.toString(),
-                            ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+                        get(value, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
                   throw new DirectoryException(
-                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                               msg);
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, msg);
                 }
                 break;
 
@@ -554,11 +545,9 @@ public class ObjectClassSyntax
                 if(index ==0 && isDigit(ch) && !allowExceptions)
                 {
                   LocalizableMessage message = ERR_OC_SYNTAX_ATTR_ILLEGAL_INITIAL_DIGIT.
-                    get(value.toString(), ch,
-                        ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+                    get(value, ch, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
                   throw new DirectoryException(
-                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                             message);
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
                 }
                 else if(!((ch>='0' && ch<='9') || (ch>='A' && ch<='Z') ||
                         (ch>='a' && ch<='z')))
@@ -721,7 +710,7 @@ public class ObjectClassSyntax
                 // requires an attribute type that we don't know anything about.
                 LocalizableMessage message =
                     WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR.
-                      get(oid, woidBuffer.toString());
+                      get(oid, woidBuffer);
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                              message);
               }
@@ -766,7 +755,7 @@ public class ObjectClassSyntax
               // an attribute type that we don't know anything about.
               LocalizableMessage message =
                   WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR.
-                    get(oid, woidBuffer.toString());
+                    get(oid, woidBuffer);
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            message);
             }
@@ -807,7 +796,7 @@ public class ObjectClassSyntax
                 // an attribute type that we don't know anything about.
                 LocalizableMessage message =
                   WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR.
-                      get(oid, woidBuffer.toString());
+                      get(oid, woidBuffer);
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                              message);
               }
@@ -852,7 +841,7 @@ public class ObjectClassSyntax
               // attribute type that we don't know anything about.
               LocalizableMessage message =
                 WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR.
-                    get(oid, woidBuffer.toString());
+                    get(oid, woidBuffer);
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            message);
             }
@@ -895,8 +884,7 @@ public class ObjectClassSyntax
             {
               LocalizableMessage message =
                 WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
-                  get(oid, objectClassType.toString(), superiorType.toString(),
-                        superiorClass.getNameOrOID());
+                  get(oid, objectClassType, superiorType, superiorClass.getNameOrOID());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            message);
             }
@@ -910,7 +898,7 @@ public class ObjectClassSyntax
             {
               LocalizableMessage message =
                 WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
-                  get(oid, objectClassType.toString(), superiorType.toString(),
+                  get(oid, objectClassType, superiorType,
                         superiorClass.getNameOrOID());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            message);
@@ -925,7 +913,7 @@ public class ObjectClassSyntax
             {
               LocalizableMessage message =
                 WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
-                  get(oid, objectClassType.toString(), superiorType.toString(),
+                  get(oid, objectClassType, superiorType,
                         superiorClass.getNameOrOID());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            message);

@@ -249,11 +249,7 @@ public class DistinguishedNameSyntax
     catch (Exception e)
     {
       logger.traceException(e);
-
-
-      invalidReason.append(ERR_ATTR_SYNTAX_DN_INVALID.get(value.toString(),
-                                      String.valueOf(e)));
-
+      invalidReason.append(ERR_ATTR_SYNTAX_DN_INVALID.get(value, e));
       return false;
     }
   }

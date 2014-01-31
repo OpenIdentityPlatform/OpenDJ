@@ -227,7 +227,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     useOpenDSJavaHome = Utilities.createRadioButton(LocalizableMessage.EMPTY);
     useOpenDSJavaHome.setOpaque(false);
     useOpenDSJavaHome.getAccessibleContext().setAccessibleName(
-        INFO_CTRL_PANEL_USE_OPENDS_JAVA_HOME.get().toString()+" "+
+        INFO_CTRL_PANEL_USE_OPENDS_JAVA_HOME.get()+" "+
         INFO_CTRL_PANEL_USE_OPENDS_JAVA_HOME_HELP.get());
     lJavaHome.setLabelFor(useOpenDSJavaHome);
     gbc.gridx = 0;
@@ -256,7 +256,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     useSpecifiedJavaHome = Utilities.createRadioButton(LocalizableMessage.EMPTY);
     useSpecifiedJavaHome.setOpaque(false);
     useSpecifiedJavaHome.getAccessibleContext().setAccessibleName(
-        INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_HOME.get().toString() +
+        INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_HOME.get() +
         " "+INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_HOME_HELP.get());
     useOpenDSJavaHomeLabel.setLabelFor(useSpecifiedJavaHome);
     LabelWithHelpIcon useSpecifiedJavaHomeLabel = new LabelWithHelpIcon(
@@ -311,7 +311,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         INFO_CTRL_PANEL_JAVA_ARGUMENTS_LABEL.get());
     useSpecifiedJavaArgs = Utilities.createRadioButton(LocalizableMessage.EMPTY);
     useSpecifiedJavaArgs.getAccessibleContext().setAccessibleName(
-        INFO_CTRL_PANEL_USE_OPENDS_JAVA_ARGS.get().toString() +
+        INFO_CTRL_PANEL_USE_OPENDS_JAVA_ARGS.get() +
         " "+INFO_CTRL_PANEL_USE_OPENDS_JAVA_ARGS_HELP.get());
     useSpecifiedJavaArgs.setOpaque(false);
     useOpenDSJavaArgs = Utilities.createRadioButton(LocalizableMessage.EMPTY);
@@ -342,7 +342,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     p.add(useSpecifiedJavaArgs, gbc);
     useOpenDSJavaArgsLabel.setLabelFor(useSpecifiedJavaArgs);
     useSpecifiedJavaArgs.getAccessibleContext().setAccessibleName(
-        INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_ARGS.get().toString() +
+        INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_ARGS.get() +
         " "+INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_ARGS_HELP.get());
 
     gbc.gridx ++;

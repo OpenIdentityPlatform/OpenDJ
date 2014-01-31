@@ -1330,7 +1330,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     } else {
       // Just tell that the file/directory does not exist.
       notifyListeners(getFormattedWarning(
-          INFO_PROGRESS_DELETING_FILE_DOES_NOT_EXIST.get(cfile.toString())));
+          INFO_PROGRESS_DELETING_FILE_DOES_NOT_EXIST.get(cfile)));
     }
   }
 

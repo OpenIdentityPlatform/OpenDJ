@@ -354,8 +354,7 @@ implements Comparator<BackendDescriptor>
     // Add the total: always at the end
 
     String[] line = new String[attributes.size() + 1];
-    line[0] = "<html><b>"+INFO_CTRL_PANEL_TOTAL_LABEL.get().toString()+
-    "</b>";
+    line[0] = "<html><b>" + INFO_CTRL_PANEL_TOTAL_LABEL.get() + "</b>";
     for (int i=1; i<line.length; i++)
     {
       boolean valueSet = false;

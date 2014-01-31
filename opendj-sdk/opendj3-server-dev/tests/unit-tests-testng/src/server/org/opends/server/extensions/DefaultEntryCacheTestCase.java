@@ -463,19 +463,19 @@ public class DefaultEntryCacheTestCase
       assertNotNull(super.cache.getEntry(
         testSoftRefEntriesList.get(0).getName()),
         "Expected to find " +
-        testSoftRefEntriesList.get(0).getName().toString() +
+        testSoftRefEntriesList.get(0).getName() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
       assertNotNull(super.cache.getEntry(
         testFIFOEntriesList.get(0).getName()),
         "Expected to find " +
-        testFIFOEntriesList.get(0).getName().toString() +
+        testFIFOEntriesList.get(0).getName() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
       assertNotNull(super.cache.getEntry(
         testFSEntriesList.get(0).getName()),
         "Expected to find " +
-        testFSEntriesList.get(0).getName().toString() +
+        testFSEntriesList.get(0).getName() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
     }
@@ -485,19 +485,19 @@ public class DefaultEntryCacheTestCase
       assertNotNull(softRefCache.getEntry(
         testSoftRefEntriesList.get(0).getName()),
         "Expected to find " +
-        testSoftRefEntriesList.get(0).getName().toString() +
+        testSoftRefEntriesList.get(0).getName() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
       assertNotNull(fifoCache.getEntry(
         testFIFOEntriesList.get(0).getName()),
         "Expected to find " +
-        testFIFOEntriesList.get(0).getName().toString() +
+        testFIFOEntriesList.get(0).getName() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
       assertNotNull(fsCache.getEntry(
         testFSEntriesList.get(0).getName()),
         "Expected to find " +
-        testFSEntriesList.get(0).getName().toString() +
+        testFSEntriesList.get(0).getName() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
     }

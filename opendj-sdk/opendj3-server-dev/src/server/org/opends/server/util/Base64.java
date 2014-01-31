@@ -559,8 +559,7 @@ public final class Base64
     }
     catch (ArgumentException ae)
     {
-      System.err.println(
-          ERR_ERROR_PARSING_ARGS.get(ae.getMessage()).toString());
+      System.err.println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       System.exit(1);
     }
 
@@ -593,7 +592,7 @@ public final class Base64
       catch (Throwable t)
       {
         // Bug
-        System.err.println(ERR_UNEXPECTED.get(t.toString()).toString());
+        System.err.println(ERR_UNEXPECTED.get(t));
         System.exit(1);
       }
     }
@@ -614,7 +613,7 @@ public final class Base64
         }
         catch(UnsupportedEncodingException ex)
         {
-          System.err.println(ERR_UNEXPECTED.get(ex.toString()).toString());
+          System.err.println(ERR_UNEXPECTED.get(ex));
           System.exit(1);
         }
       }

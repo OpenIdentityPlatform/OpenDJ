@@ -482,10 +482,8 @@ public class ConfigFileHandler
       {
         close(reader);
 
-        LocalizableMessage message = ERR_CONFIG_FILE_NO_PARENT.get(entryDN.toString(),
-                               reader.getLastEntryLineNumber(),
-                               f.getAbsolutePath(), parentDN.toString());
-        throw new InitializationException(message);
+        throw new InitializationException(ERR_CONFIG_FILE_NO_PARENT.get(
+            entryDN, reader.getLastEntryLineNumber(), f.getAbsolutePath(), parentDN));
       }
 
 

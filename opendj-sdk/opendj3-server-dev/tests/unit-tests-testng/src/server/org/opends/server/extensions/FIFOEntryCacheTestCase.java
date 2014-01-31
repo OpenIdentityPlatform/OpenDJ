@@ -306,7 +306,7 @@ public class FIFOEntryCacheTestCase
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       assertFalse(super.cache.containsEntry(
         super.testEntriesList.get(i).getName()), "Not expected to find " +
-        super.testEntriesList.get(i).getName().toString() + " in the " +
+        super.testEntriesList.get(i).getName() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
         cache.toVerboseString());
     }
@@ -375,7 +375,7 @@ public class FIFOEntryCacheTestCase
     for(int i = 0; i < (super.NUMTESTENTRIES - super.MAXENTRIES); i++ ) {
       assertFalse(super.cache.containsEntry(
         super.testEntriesList.get(i).getName()), "Not expected to find " +
-        super.testEntriesList.get(i).getName().toString() + " in the " +
+        super.testEntriesList.get(i).getName() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
         cache.toVerboseString());
     }
@@ -387,7 +387,7 @@ public class FIFOEntryCacheTestCase
     {
       assertTrue(super.cache.containsEntry(
         super.testEntriesList.get(i).getName()), "Expected to find " +
-        super.testEntriesList.get(i).getName().toString() + " in the " +
+        super.testEntriesList.get(i).getName() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
         cache.toVerboseString());
     }

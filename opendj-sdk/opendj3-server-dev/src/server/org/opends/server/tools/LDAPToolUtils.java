@@ -281,7 +281,7 @@ public class LDAPToolUtils
 
     if (matchedDN != null)
     {
-      err.println(ERR_TOOL_MATCHED_DN.get(matchedDN.toString()));
+      err.println(ERR_TOOL_MATCHED_DN.get(matchedDN));
     }
   }
 

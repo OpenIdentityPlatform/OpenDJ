@@ -1015,13 +1015,13 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       String cmd = getCommandLineToInitializeAll();
 
       getProgressDialog().appendProgressHtml(Utilities.applyFont(
-          INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_INITIALIZE_ALL.get().toString()+
+          INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_INITIALIZE_ALL.get()+
           "<br><b>"+cmd+"</b><br><br>",
           ColorAndFontConstants.progressFont));
 
       for (DN baseDN : replicatedBaseDNs)
       {
-        LocalizableMessage msg = INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN.toString(),
+        LocalizableMessage msg = INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
             ConnectionUtils.getHostPort(getInfo().getDirContext()));
         getProgressDialog().appendProgressHtml(Utilities.applyFont(
             msg.toString()+"<br>", ColorAndFontConstants.progressFont));

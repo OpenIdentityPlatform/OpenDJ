@@ -656,9 +656,8 @@ public abstract class ConfigAttribute
     {
       if (! tempValues.remove(value))
       {
-        LocalizableMessage message =
-           ERR_CONFIG_ATTR_NO_SUCH_VALUE.get(name, value.getValue().toString());
-        throw new ConfigException(message);
+        throw new ConfigException(
+            ERR_CONFIG_ATTR_NO_SUCH_VALUE.get(name, value.getValue()));
       }
     }
 

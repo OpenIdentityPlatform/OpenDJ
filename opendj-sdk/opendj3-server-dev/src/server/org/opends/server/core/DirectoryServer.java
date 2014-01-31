@@ -7078,7 +7078,7 @@ public final class DirectoryServer
           DN user = clientConnection.getAuthenticationInfo()
               .getAuthorizationDN();
           LocalizableMessage message = ERR_ENQUEUE_MUST_CHANGE_PASSWORD
-              .get(user != null ? user.toString() : "anonymous");
+              .get(user != null ? user : "anonymous");
           throw new DirectoryException(
                   ResultCode.CONSTRAINT_VIOLATION, message);
 
@@ -7105,7 +7105,7 @@ public final class DirectoryServer
             user = clientConnection.getAuthenticationInfo()
                 .getAuthorizationDN();
             message = ERR_ENQUEUE_MUST_CHANGE_PASSWORD
-                .get(user != null ? user.toString() : "anonymous");
+                .get(user != null ? user : "anonymous");
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
           }

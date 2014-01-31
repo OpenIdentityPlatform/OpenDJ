@@ -842,7 +842,7 @@ public class LDAPPasswordModify
       if (matchedDN != null)
       {
 
-        message = ERR_LDAPPWMOD_FAILURE_MATCHED_DN.get(matchedDN.toString());
+        message = ERR_LDAPPWMOD_FAILURE_MATCHED_DN.get(matchedDN);
         err.println(wrapText(message, MAX_LINE_WIDTH));
       }
 

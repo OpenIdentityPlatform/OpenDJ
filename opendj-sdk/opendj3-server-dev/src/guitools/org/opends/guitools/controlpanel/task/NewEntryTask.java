@@ -126,7 +126,7 @@ public class NewEntryTask extends Task
    */
   public LocalizableMessage getTaskDescription()
   {
-    return INFO_CTRL_PANEL_NEW_ENTRY_TASK_DESCRIPTION.get(dn.toString());
+    return INFO_CTRL_PANEL_NEW_ENTRY_TASK_DESCRIPTION.get(dn);
   }
 
   /**
@@ -235,7 +235,7 @@ public class NewEntryTask extends Task
           printEquivalentCommand();
           getProgressDialog().appendProgressHtml(
               Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_CREATING_ENTRY.get(dn.toString()),
+                  INFO_CTRL_PANEL_CREATING_ENTRY.get(dn),
                   ColorAndFontConstants.progressFont));
         }
       });

@@ -558,8 +558,7 @@ public final class EMailMessage
     }
     catch (ArgumentException ae)
     {
-      System.err.println(
-           ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()).toString());
+      System.err.println(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       System.exit(1);
     }
 
@@ -569,8 +568,7 @@ public final class EMailMessage
     }
     catch (ArgumentException ae)
     {
-      System.err.println(
-          ERR_ERROR_PARSING_ARGS.get(ae.getMessage()).toString());
+      System.err.println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       System.exit(1);
     }
 

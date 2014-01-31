@@ -823,7 +823,7 @@ public final class LDIFReader implements Closeable
     if (colonPos <= 0)
     {
       LocalizableMessage message =
-              ERR_LDIF_NO_ATTR_NAME.get(lastEntryLineNumber, line.toString());
+              ERR_LDIF_NO_ATTR_NAME.get(lastEntryLineNumber, line);
 
       logToRejectWriter(lines, message);
       throw new LDIFException(message, lastEntryLineNumber, true);
@@ -838,7 +838,7 @@ public final class LDIFReader implements Closeable
     else if (! attrName.equals("dn"))
     {
       LocalizableMessage message =
-              ERR_LDIF_NO_DN.get(lastEntryLineNumber, line.toString());
+              ERR_LDIF_NO_DN.get(lastEntryLineNumber, line);
 
       logToRejectWriter(lines, message);
       throw new LDIFException(message, lastEntryLineNumber, true);
@@ -1490,7 +1490,7 @@ public final class LDIFReader implements Closeable
     {
       logger.traceException(e);
       LocalizableMessage message =
-          ERR_LDIF_INVALID_DN.get(lineNumber, line.toString(), e.getMessage());
+          ERR_LDIF_INVALID_DN.get(lineNumber, line, e.getMessage());
       throw new LDIFException(message, lineNumber, true);
     }
 

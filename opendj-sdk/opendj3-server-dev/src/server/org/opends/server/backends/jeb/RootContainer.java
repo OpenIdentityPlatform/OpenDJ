@@ -170,9 +170,7 @@ public class RootContainer
     }
     catch(Exception e)
     {
-      LocalizableMessage message =
-          ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn().toString());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn()));
     }
 
     //Make sure the mode will allow the server itself access to
@@ -721,9 +719,7 @@ public class RootContainer
     }
     catch(Exception e)
     {
-      LocalizableMessage message =
-              ERR_CONFIG_BACKEND_MODE_INVALID.get(cfg.dn().toString());
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(ERR_CONFIG_BACKEND_MODE_INVALID.get(cfg.dn()));
       acceptable = false;
     }
 

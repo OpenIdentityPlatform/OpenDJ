@@ -202,7 +202,7 @@ public class PreloadEntryCacheTestCase
     for(int i = 0; i < NUMTESTENTRIES; i++ ) {
       assertNotNull(DirectoryServer.getEntryCache().getEntry(
         testEntriesList.get(i).getName()), "Expected to find " +
-        testEntriesList.get(i).getName().toString() +
+        testEntriesList.get(i).getName() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + toVerboseString());
     }

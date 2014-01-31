@@ -274,7 +274,7 @@ public final class TextHTTPAccessLogPublisher extends
     }
     if (fields.size() == unsupportedFields.size())
     { // all fields are unsupported
-      return ERR_CONFIG_LOGGING_EMPTY_LOG_FORMAT.get(cfg.dn().toString());
+      return ERR_CONFIG_LOGGING_EMPTY_LOG_FORMAT.get(cfg.dn());
     }
     return null;
   }

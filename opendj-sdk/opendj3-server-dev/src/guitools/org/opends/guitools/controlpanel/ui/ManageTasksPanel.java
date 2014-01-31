@@ -478,7 +478,7 @@ public class ManageTasksPanel extends StatusGenericPanel
           gbc.insets.left = 10;
           gbc.insets.right = 0;
           detailsSubpanel.add(Utilities.createPrimaryLabel(
-              INFO_CTRL_PANEL_OPERATION_NAME_AS_LABEL.get(label.toString())),
+              INFO_CTRL_PANEL_OPERATION_NAME_AS_LABEL.get(label)),
               gbc);
 
           gbc.gridx = 1;

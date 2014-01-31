@@ -146,20 +146,18 @@ public final class ChangeNumberControlPlugin
           break;
 
         default:
-          LocalizableMessage message =
-              ERR_PLUGIN_CHANGE_NUMBER_INVALID_PLUGIN_TYPE.get(t.toString());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_PLUGIN_CHANGE_NUMBER_INVALID_PLUGIN_TYPE.get(t));
       }
     }
     if (types.size() != 4) {
       StringBuilder expected = new StringBuilder();
-      expected.append(PluginType.POST_OPERATION_ADD.toString());
+      expected.append(PluginType.POST_OPERATION_ADD);
       expected.append(", ");
-      expected.append(PluginType.POST_OPERATION_DELETE.toString());
+      expected.append(PluginType.POST_OPERATION_DELETE);
       expected.append(", ");
-      expected.append(PluginType.POST_OPERATION_MODIFY.toString());
+      expected.append(PluginType.POST_OPERATION_MODIFY);
       expected.append(", ");
-      expected.append(PluginType.POST_OPERATION_MODIFY_DN.toString());
+      expected.append(PluginType.POST_OPERATION_MODIFY_DN);
 
       StringBuilder found = new StringBuilder();
       boolean first = true;
@@ -169,12 +167,11 @@ public final class ChangeNumberControlPlugin
         } else {
           found.append(", ");
         }
-        found.append(t.toString());
+        found.append(t);
       }
 
-      LocalizableMessage message = ERR_PLUGIN_CHANGE_NUMBER_INVALID_PLUGIN_TYPE_LIST.get(
-              found.toString(), expected.toString());
-          throw new ConfigException(message);
+      throw new ConfigException(ERR_PLUGIN_CHANGE_NUMBER_INVALID_PLUGIN_TYPE_LIST.get(
+          found, expected));
     }
   }
 

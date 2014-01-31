@@ -526,7 +526,7 @@ public class FileSystemEntryCacheTestCase
     for(int i = 0; i < (super.NUMTESTENTRIES - super.MAXENTRIES); i++ ) {
       assertFalse(super.cache.containsEntry(
         super.testEntriesList.get(i).getName()), "Not expected to find " +
-        super.testEntriesList.get(i).getName().toString() + " in the " +
+        super.testEntriesList.get(i).getName() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
         cache.toVerboseString());
     }
@@ -538,7 +538,7 @@ public class FileSystemEntryCacheTestCase
     {
       assertTrue(super.cache.containsEntry(
         super.testEntriesList.get(i).getName()), "Expected to find " +
-        super.testEntriesList.get(i).getName().toString() + " in the " +
+        super.testEntriesList.get(i).getName() + " in the " +
         "cache.  Cache contents:" + ServerConstants.EOL +
         cache.toVerboseString());
     }
@@ -575,7 +575,7 @@ public class FileSystemEntryCacheTestCase
         assertTrue(super.cache.containsEntry(
           super.testEntriesList.get(i).getName()),
           "Expected to find " +
-          super.testEntriesList.get(i).getName().toString() + " in the " +
+          super.testEntriesList.get(i).getName() + " in the " +
           "cache.  Cache contents:" + ServerConstants.EOL +
           cache.toVerboseString());
     }
@@ -584,7 +584,7 @@ public class FileSystemEntryCacheTestCase
     assertTrue(super.cache.containsEntry(
       super.testEntriesList.get(super.NUMTESTENTRIES - 1).getName()),
       "Expected to find " +
-      super.testEntriesList.get(super.NUMTESTENTRIES - 1).getName().toString() +
+      super.testEntriesList.get(super.NUMTESTENTRIES - 1).getName() +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
@@ -595,7 +595,7 @@ public class FileSystemEntryCacheTestCase
         assertFalse(super.cache.containsEntry(
           super.testEntriesList.get(i).getName()),
           "Not expected to find " +
-          super.testEntriesList.get(i).getName().toString() + " in the " +
+          super.testEntriesList.get(i).getName() + " in the " +
           "cache.  Cache contents:" + ServerConstants.EOL +
           cache.toVerboseString());
     }
@@ -643,7 +643,7 @@ public class FileSystemEntryCacheTestCase
       assertTrue(super.cache.containsEntry(
           super.testEntriesList.get(i).getName()),
           "Expected to find " +
-          super.testEntriesList.get(i).getName().toString() + " in the " +
+          super.testEntriesList.get(i).getName() + " in the " +
           "cache.  Cache contents:" + ServerConstants.EOL +
           cache.toVerboseString());
     }
@@ -708,7 +708,7 @@ public class FileSystemEntryCacheTestCase
       assertFalse(super.cache.containsEntry(
           super.testEntriesList.get(i).getName()),
           "Not expected to find " +
-          super.testEntriesList.get(i).getName().toString() + " in the " +
+          super.testEntriesList.get(i).getName() + " in the " +
           "cache.  Cache contents:" + ServerConstants.EOL +
           cache.toVerboseString());
     }

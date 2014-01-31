@@ -1178,7 +1178,7 @@ public class SchemaBackend
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
-                    get(v.getValue().toString(), de.getMessageObject());
+                    get(v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1360,7 +1360,7 @@ public class SchemaBackend
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
-                    get(v.getValue().toString(), de.getMessageObject());
+                    get(v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }

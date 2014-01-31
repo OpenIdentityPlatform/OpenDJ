@@ -7946,7 +7946,7 @@ public class ReplicationCliMain extends ConsoleApplication
     adminProperties.put(ADSContext.AdministratorProperty.PASSWORD,
         uData.getAdminPwd());
     adminProperties.put(ADSContext.AdministratorProperty.DESCRIPTION,
-        INFO_GLOBAL_ADMINISTRATOR_DESCRIPTION.get().toString());
+        INFO_GLOBAL_ADMINISTRATOR_DESCRIPTION.get());
     return adminProperties;
   }
 
@@ -9371,8 +9371,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       println();
       // We assume that the app we are running is this one.
-      println(
-          INFO_REPLICATION_NON_INTERACTIVE.get(commandBuilder.toString()));
+      println(INFO_REPLICATION_NON_INTERACTIVE.get(commandBuilder));
     }
     if (argParser.equivalentCommandFileArgument.isPresent())
     {

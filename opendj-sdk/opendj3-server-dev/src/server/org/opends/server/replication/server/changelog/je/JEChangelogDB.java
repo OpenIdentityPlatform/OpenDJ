@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.config.ConfigException;
@@ -164,9 +163,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       final LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(e.getLocalizedMessage());
       mb.append(" ");
-      mb.append(String.valueOf(dbDirectory));
-      LocalizableMessage msg = ERR_FILE_CHECK_CREATE_FAILED.get(mb.toString());
-      throw new ConfigException(msg, e);
+      mb.append(dbDirectory);
+      throw new ConfigException(ERR_FILE_CHECK_CREATE_FAILED.get(mb), e);
     }
   }
 

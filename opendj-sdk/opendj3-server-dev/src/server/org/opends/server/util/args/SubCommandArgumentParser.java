@@ -855,9 +855,8 @@ public class SubCommandArgumentParser extends ArgumentParser
           LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
           if (! a.valueIsAcceptable(argValue, invalidReason))
           {
-            LocalizableMessage message = ERR_SUBCMDPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID.
-                get(argValue, argName, invalidReason.toString());
-            throw new ArgumentException(message);
+            throw new ArgumentException(ERR_SUBCMDPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID
+                .get(argValue, argName, invalidReason));
           }
 
           // If the argument already has a value, then make sure it is

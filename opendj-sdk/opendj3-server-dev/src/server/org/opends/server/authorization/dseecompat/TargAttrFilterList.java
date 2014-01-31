@@ -183,10 +183,8 @@ public class TargAttrFilterList {
             default: {
                 AttributeType attrType=filter.getAttributeType();
                 if(!attrType.equals(type)) {
-                    LocalizableMessage message =
-               WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LISTS_ATTR_FILTER.
-                          get(filter.toString());
-                    throw new AciException(message);
+                    throw new AciException(
+                        WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LISTS_ATTR_FILTER.get(filter));
                 }
             }
         }

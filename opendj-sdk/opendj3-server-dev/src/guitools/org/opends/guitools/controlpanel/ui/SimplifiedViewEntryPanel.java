@@ -1386,8 +1386,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     catch (IOException ioe)
     {
       throw new OnlineUpdateException(
-          ERR_CTRL_PANEL_ERROR_CHECKING_ENTRY.get(ioe.toString()),
-          ioe);
+          ERR_CTRL_PANEL_ERROR_CHECKING_ENTRY.get(ioe), ioe);
     }
     finally
     {

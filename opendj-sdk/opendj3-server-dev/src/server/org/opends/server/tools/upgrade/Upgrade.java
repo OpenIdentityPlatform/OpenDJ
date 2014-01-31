@@ -367,8 +367,8 @@ public final class Upgrade
 
     context.notify(INFO_UPGRADE_TITLE.get(), TITLE_CALLBACK);
     context.notify(
-        INFO_UPGRADE_SUMMARY.get(context.getFromVersion().toString(), context
-            .getToVersion().toString()), NOTICE_CALLBACK);
+        INFO_UPGRADE_SUMMARY.get(context.getFromVersion(), context.getToVersion()),
+        NOTICE_CALLBACK);
     context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS.get(UpgradeUtils
         .getInstallationPath()
         + File.separator + UpgradeLog.UPGRADELOGNAME), NOTICE_CALLBACK);
@@ -565,7 +565,7 @@ public final class Upgrade
        * upgrade so that upgrade is idempotent.
        */
       final LocalizableMessage message =
-          ERR_UPGRADE_VERSION_UP_TO_DATE.get(context.getToVersion().toString());
+          ERR_UPGRADE_VERSION_UP_TO_DATE.get(context.getToVersion());
       context.notify(message, NOTICE_CALLBACK);
       throw new ClientException(EXIT_CODE_SUCCESS, message);
     }

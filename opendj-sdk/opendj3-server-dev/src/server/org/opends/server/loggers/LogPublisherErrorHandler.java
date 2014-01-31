@@ -84,10 +84,8 @@ class LogPublisherErrorHandler
    */
   public void handleOpenError(File file, Throwable ex)
   {
-    LocalizableMessage msg = ERR_LOGGER_ERROR_OPENING_FILE.get(file.toString(),
-                            publisherConfigDN.toString(),
-                            stackTraceToSingleLineString(ex));
-    System.err.println(msg);
+    System.err.println(ERR_LOGGER_ERROR_OPENING_FILE.get(
+        file, publisherConfigDN, stackTraceToSingleLineString(ex)));
   }
 
   /**

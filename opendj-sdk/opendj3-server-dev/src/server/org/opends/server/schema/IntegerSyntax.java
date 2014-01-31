@@ -25,10 +25,8 @@
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.forgerock.i18n.LocalizableMessage;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
@@ -39,7 +37,6 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-
 
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -90,10 +87,8 @@ public class IntegerSyntax
       }
       catch (NumberFormatException e)
       {
-        LocalizableMessage message =
-            WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(nvalue.toString());
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-            message);
+            WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(nvalue));
       }
     }
   };

@@ -931,8 +931,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     {
       // looks like two connected LDAP servers have the same serverId
       logger.error(ERR_DUPLICATE_SERVER_ID, localReplicationServer.getMonitorInstanceName(),
-          connectedDSs.get(dsHandler.getServerId()).toString(),
-          dsHandler.toString(), dsHandler.getServerId());
+          connectedDSs.get(dsHandler.getServerId()), dsHandler, dsHandler.getServerId());
       return true;
     }
     return false;
@@ -1534,11 +1533,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
        * An error happened trying to send an error msg to this server.
        * Log an error and close the connection to this server.
        */
-      LocalizableMessageBuilder mb2 = new LocalizableMessageBuilder();
-      mb2.append(ERR_CHANGELOG_ERROR_SENDING_ERROR.get(this.toString()));
-      mb2.append(" ");
-      mb2.append(stackTraceToSingleLineString(ignored));
-      logger.error(mb2.toMessage());
+      logger.error(ERR_CHANGELOG_ERROR_SENDING_ERROR.get(this), ignored);
       stopServer(msgEmitter, false);
     }
   }
@@ -2168,10 +2163,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
     catch (ChangelogException e)
     {
-      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-      mb.append(ERR_ERROR_CLEARING_DB.get(baseDN.toString(), e.getMessage()
-          + " " + stackTraceToSingleLineString(e)));
-      logger.error(mb.toMessage());
+      logger.error(ERR_ERROR_CLEARING_DB.get(baseDN, e.getMessage()), e);
     }
   }
 

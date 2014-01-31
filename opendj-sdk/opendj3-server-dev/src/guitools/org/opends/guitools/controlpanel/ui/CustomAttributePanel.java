@@ -982,7 +982,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     {
       if (!StaticUtils.isValidSchemaElement(n, 0, n.length(), err))
       {
-        errors.add(ERR_CTRL_PANEL_INVALID_ATTRIBUTE_NAME.get(err.toString()));
+        errors.add(ERR_CTRL_PANEL_INVALID_ATTRIBUTE_NAME.get(err));
         setPrimaryInvalid(lName);
         err = new LocalizableMessageBuilder();
       }
@@ -1002,7 +1002,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     {
       if (!StaticUtils.isValidSchemaElement(n, 0, n.length(), err))
       {
-        errors.add(ERR_CTRL_PANEL_OID_NOT_VALID.get(err.toString()));
+        errors.add(ERR_CTRL_PANEL_OID_NOT_VALID.get(err));
         setPrimaryInvalid(lOID);
         err = new LocalizableMessageBuilder();
       }

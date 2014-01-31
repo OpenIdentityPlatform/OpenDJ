@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -139,7 +140,7 @@ public abstract class GenericMenuBar extends JMenuBar
         } catch (Throwable t)
         {
           throw new WebBrowserException(url,
-              ERR_CTRL_PANEL_UNEXPECTED_DETAILS.get(t.toString()), t);
+              ERR_CTRL_PANEL_UNEXPECTED_DETAILS.get(t), t);
         }
         return null;
       }

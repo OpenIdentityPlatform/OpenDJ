@@ -1144,7 +1144,7 @@ public final class DSConfig extends ConsoleApplication {
     {
       println();
       // We assume that the app we are running is this one.
-      println(INFO_DSCFG_NON_INTERACTIVE.get(commandBuilder.toString()));
+      println(INFO_DSCFG_NON_INTERACTIVE.get(commandBuilder));
     }
     if (equivalentCommandFileArgument.isPresent())
     {
@@ -1280,7 +1280,7 @@ public final class DSConfig extends ConsoleApplication {
       reader.close();
 
     } catch (IOException ex) {
-      println(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex.toString()));
+      println(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex));
     }
   }
 

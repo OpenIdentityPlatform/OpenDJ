@@ -560,10 +560,9 @@ public class DITContentRuleSyntax
               }
               else
               {
-                LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.
-                    get(valueStr, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                             message);
+                    ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.get(
+                        valueStr, woidBuffer));
               }
             }
             else if (oc.getObjectClassType() != ObjectClassType.AUXILIARY)
@@ -571,8 +570,7 @@ public class DITContentRuleSyntax
               // This isn't good because it isn't an auxiliary class.
               LocalizableMessage message =
                   ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY.
-                    get(valueStr, woidBuffer.toString(),
-                        oc.getObjectClassType().toString());
+                    get(valueStr, woidBuffer, oc.getObjectClassType());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            message);
             }
@@ -624,8 +622,7 @@ public class DITContentRuleSyntax
           {
             // This isn't good because it isn't an auxiliary class.
             LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY.
-                get(valueStr, woidBuffer.toString(),
-                    oc.getObjectClassType().toString());
+                get(valueStr, woidBuffer, oc.getObjectClassType());
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
           }
@@ -833,10 +830,9 @@ public class DITContentRuleSyntax
               }
               else
               {
-                LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.
-                    get(valueStr, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                             message);
+                    ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.get(
+                        valueStr, woidBuffer));
               }
             }
 

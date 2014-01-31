@@ -310,7 +310,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
       {
         assertTrue(eattr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
         assertTrue(eattr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
-            "Comparing: " + eattr.toString() + " and " + genAttrList.get(i).toAttribute().toString());
+            "Comparing: " + eattr + " and " + genAttrList.get(i).toAttribute());
         i++;
       }
     }
@@ -447,7 +447,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
       {
         assertTrue(attr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
         assertTrue(attr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
-            "Comparing: " + attr.toString() + " and " + genAttrList.get(i).toAttribute().toString());
+            "Comparing: " + attr + " and " + genAttrList.get(i).toAttribute());
         i++;
       }
     }
@@ -634,7 +634,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
       {
         assertTrue(attr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
         assertTrue(attr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
-            "Comparing: " + attr.toString() + " and " + genAttrList.get(i).toAttribute().toString());
+            "Comparing: " + attr + " and " + genAttrList.get(i).toAttribute());
         i++;
       }
     }
@@ -835,7 +835,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
       {
         assertTrue(attr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
         assertTrue(attr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
-            "Comparing: " + attr.toString() + " and " + genAttrList.get(i).toAttribute().toString());
+            "Comparing: " + attr + " and " + genAttrList.get(i).toAttribute());
         i++;
       }
     }

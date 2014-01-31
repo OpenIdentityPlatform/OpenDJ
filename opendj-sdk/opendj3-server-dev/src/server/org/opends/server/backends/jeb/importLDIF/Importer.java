@@ -1637,9 +1637,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       {
         if (!suffix.isParentProcessed(parentDN, tmpEnv, clearedBackend))
         {
-          LocalizableMessage message =
-              ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(parentDN.toString());
-          reader.rejectEntry(entry, message);
+          reader.rejectEntry(entry, ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(parentDN));
           return false;
         }
       }
@@ -3219,7 +3217,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       default:
         if (!rebuildConfig.isClearDegradedState())
         {
-          message = NOTE_JEB_REBUILD_START.get(sb.toString(), totalEntries);
+          message = NOTE_JEB_REBUILD_START.get(sb, totalEntries);
         }
         break;
       }

@@ -178,8 +178,7 @@ public class FIFOEntryCache
           buffer.append(iterator.next());
         }
       }
-      LocalizableMessage message = ERR_FIFOCACHE_CANNOT_INITIALIZE.get(buffer.toString());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_FIFOCACHE_CANNOT_INITIALIZE.get(buffer));
     }
   }
 
@@ -1083,17 +1082,15 @@ public class FIFOEntryCache
       sb.append(ServerConstants.EOL);
     }
 
-    // See if there is anything on idMap that isnt reflected on
+    // See if there is anything on idMap that is not reflected on
     // dnMap in case maps went out of sync.
     for (Backend backend : idMapCopy.keySet()) {
       for (Long id : idMapCopy.get(backend).keySet()) {
-        if ((idMapCopy.get(backend).get(id) == null) ||
-            !dnMapCopy.containsKey(
-              idMapCopy.get(backend).get(id).getDN())) {
-          sb.append((idMapCopy.get(backend).get(id) != null ?
-              idMapCopy.get(backend).get(id).getDN().toString() : null));
+        final CacheEntry cacheEntry = idMapCopy.get(backend).get(id);
+        if (cacheEntry == null || !dnMapCopy.containsKey(cacheEntry.getDN())) {
+          sb.append(cacheEntry != null ? cacheEntry.getDN() : null);
           sb.append(":");
-          sb.append(id.toString());
+          sb.append(id);
           sb.append(":");
           sb.append(backend.getBackendID());
           sb.append(ServerConstants.EOL);

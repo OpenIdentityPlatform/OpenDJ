@@ -204,7 +204,7 @@ public class AddToGroupTask extends Task
               printEquivalentCommandToModify(groupDn, modifications, false);
               getProgressDialog().appendProgressHtml(
                   Utilities.getProgressWithPoints(
-                      INFO_CTRL_PANEL_ADDING_TO_GROUP.get(groupDn.toString()),
+                      INFO_CTRL_PANEL_ADDING_TO_GROUP.get(groupDn),
                       ColorAndFontConstants.progressFont));
             }
           });

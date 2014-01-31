@@ -996,8 +996,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         EntryID baseID = dn2id.get(null, aBaseDN, LockMode.DEFAULT);
         if (baseID == null)
         {
-          LocalizableMessage message =
-            ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN.toString());
+          LocalizableMessage message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN);
           DN matchedDN = getMatchedDN(aBaseDN);
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
               message, matchedDN, null);
@@ -1633,10 +1632,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       // Check whether the entry already exists.
       if (dn2id.get(txn, entry.getName(), LockMode.DEFAULT) != null)
       {
-        LocalizableMessage message =
-          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-            message);
+            ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName()));
       }
 
       // Check that the parent entry exists.
@@ -1664,30 +1661,24 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       if (!dn2id.insert(txn, entry.getName(), entryID))
       {
         // Do not ever expect to come through here.
-        LocalizableMessage message =
-          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-            message);
+            ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName()));
       }
 
       // Update the referral database for referral entries.
       if (!dn2uri.addEntry(txn, entry))
       {
         // Do not ever expect to come through here.
-        LocalizableMessage message =
-          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-            message);
+            ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName()));
       }
 
       // Insert into id2entry.
       if (!id2entry.insert(txn, entryID, entry))
       {
         // Do not ever expect to come through here.
-        LocalizableMessage message =
-          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-            message);
+            ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName()));
       }
 
       // Insert into the indexes, in index configuration order.
@@ -1860,10 +1851,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           {
             // The subtree delete control was not specified and
             // the target entry is not a leaf.
-            LocalizableMessage message =
-              ERR_JEB_DELETE_NOT_ALLOWED_ON_NONLEAF.get(entryDN.toString());
             throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF,
-                message);
+                ERR_JEB_DELETE_NOT_ALLOWED_ON_NONLEAF.get(entryDN));
           }
 
           // This is a subtree delete so create a index buffer
@@ -2004,7 +1993,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       if (status != OperationStatus.SUCCESS)
       {
         LocalizableMessage message =
-          ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey.toString());
+          ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey);
         DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
@@ -2016,7 +2005,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     if (dn2id.delete(txn, leafDNKey) != OperationStatus.SUCCESS)
     {
       // Do not expect to ever come through here.
-      LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey.toString());
+      LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey);
       DN matchedDN = getMatchedDN(baseDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
           message, matchedDN, null);
@@ -2026,9 +2015,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     Entry entry = id2entry.get(txn, leafID, LockMode.RMW);
     if (entry == null)
     {
-      LocalizableMessage msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(leafID.toString());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          msg);
+          ERR_JEB_MISSING_ID2ENTRY_RECORD.get(leafID));
     }
 
     if (!manageDsaIT)
@@ -2042,9 +2030,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     // Remove from id2entry.
     if (!id2entry.remove(txn, leafID))
     {
-      LocalizableMessage msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(leafID.toString());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          msg);
+          ERR_JEB_MISSING_ID2ENTRY_RECORD.get(leafID));
     }
 
     // Remove from the indexes, in index config order.
@@ -2199,9 +2186,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       if (entry == null)
       {
         // The entryID does not exist.
-        LocalizableMessage msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(entryID.toString());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-            msg);
+            ERR_JEB_MISSING_ID2ENTRY_RECORD.get(entryID));
       }
 
       // Put the entry in the cache making sure not to overwrite
@@ -2243,7 +2229,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       {
         // The entry does not exist.
         LocalizableMessage message =
-          ERR_JEB_MODIFY_NO_SUCH_OBJECT.get(newEntry.getName().toString());
+          ERR_JEB_MODIFY_NO_SUCH_OBJECT.get(newEntry.getName());
         DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
@@ -2394,7 +2380,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         dn2uri.targetEntryReferrals(currentDN, null);
 
         LocalizableMessage message =
-          ERR_JEB_MODIFYDN_NO_SUCH_OBJECT.get(currentDN.toString());
+          ERR_JEB_MODIFYDN_NO_SUCH_OBJECT.get(currentDN);
         DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
@@ -2403,9 +2389,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       Entry oldApexEntry = id2entry.get(txn, oldApexID, LockMode.DEFAULT);
       if (oldApexEntry == null)
       {
-        LocalizableMessage msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(oldApexID.toString());
-        throw new DirectoryException(
-            DirectoryServer.getServerErrorResultCode(), msg);
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+            ERR_JEB_MISSING_ID2ENTRY_RECORD.get(oldApexID));
       }
 
       if (!isManageDsaITOperation(modifyDNOperation))
@@ -3901,7 +3886,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       // Check for referral entries above the base entry.
       dn2uri.targetEntryReferrals(baseDN, searchScope);
 
-      LocalizableMessage message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString());
+      LocalizableMessage message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN);
       DN matchedDN = getMatchedDN(baseDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);

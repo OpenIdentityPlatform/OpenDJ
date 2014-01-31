@@ -462,9 +462,9 @@ public final class UpgradeCli extends ConsoleApplication implements
         if (cc.getOptionType() == ConfirmationCallback.YES_NO_OPTION)
         {
           choices.addAll(yesNoDefaultResponses);
-          prompt.append(INFO_PROMPT_YES_COMPLETE_ANSWER.get().toString())
+          prompt.append(INFO_PROMPT_YES_COMPLETE_ANSWER.get())
               .append("/")
-              .append(INFO_PROMPT_NO_COMPLETE_ANSWER.get().toString());
+              .append(INFO_PROMPT_NO_COMPLETE_ANSWER.get());
         }
         else if (cc.getOptionType()
             == ConfirmationCallback.YES_NO_CANCEL_OPTION)
@@ -474,11 +474,10 @@ public final class UpgradeCli extends ConsoleApplication implements
               .arrayToList(new String[] { INFO_TASKINFO_CMD_CANCEL_CHAR.get()
                   .toString() }));
 
-          prompt.append(" ").append("(").append(
-              INFO_PROMPT_YES_COMPLETE_ANSWER.get().toString()).append("/")
-              .append(INFO_PROMPT_NO_COMPLETE_ANSWER.get().toString())
-              .append("/").append(
-                  INFO_TASKINFO_CMD_CANCEL_CHAR.get().toString());
+          prompt.append(" ")
+                .append("(").append(INFO_PROMPT_YES_COMPLETE_ANSWER.get())
+                .append("/").append(INFO_PROMPT_NO_COMPLETE_ANSWER.get())
+                .append("/").append(INFO_TASKINFO_CMD_CANCEL_CHAR.get());
         }
         prompt.append(")");
 
@@ -503,26 +502,22 @@ public final class UpgradeCli extends ConsoleApplication implements
               break;
             }
 
-            if ((value.toLowerCase().equals(
-                INFO_PROMPT_YES_FIRST_LETTER_ANSWER.get().toString()) || value
-                .toLowerCase().equals(
-                    INFO_PROMPT_YES_COMPLETE_ANSWER.get().toString()))
+            String valueLC = value.toLowerCase();
+            if ((valueLC.equals(INFO_PROMPT_YES_FIRST_LETTER_ANSWER.get())
+                || valueLC.equals(INFO_PROMPT_YES_COMPLETE_ANSWER.get()))
                 && choices.contains(value))
             {
               cc.setSelectedIndex(ConfirmationCallback.YES);
               break;
             }
-            else if ((value.toLowerCase().equals(
-                INFO_PROMPT_NO_FIRST_LETTER_ANSWER.get().toString()) || value
-                .toLowerCase().equals(
-                    INFO_PROMPT_NO_COMPLETE_ANSWER.get().toString()))
+            else if ((valueLC.equals(INFO_PROMPT_NO_FIRST_LETTER_ANSWER.get())
+                || valueLC.equals(INFO_PROMPT_NO_COMPLETE_ANSWER.get()))
                 && choices.contains(value))
             {
               cc.setSelectedIndex(ConfirmationCallback.NO);
               break;
             }
-            else if ((value.toLowerCase().equals(INFO_TASKINFO_CMD_CANCEL_CHAR
-                .get().toString()))
+            else if (valueLC.equals(INFO_TASKINFO_CMD_CANCEL_CHAR.get())
                 && choices.contains(value))
             {
               cc.setSelectedIndex(ConfirmationCallback.CANCEL);

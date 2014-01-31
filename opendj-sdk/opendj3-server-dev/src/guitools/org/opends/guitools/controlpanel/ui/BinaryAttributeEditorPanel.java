@@ -417,12 +417,11 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
           {
             if (useFile.isSelected())
             {
-              errors.add(ERR_CTRL_PANEL_ERROR_READING_FILE.get(t.toString()));
+              errors.add(ERR_CTRL_PANEL_ERROR_READING_FILE.get(t));
             }
             else
             {
-              errors.add(
-                  ERR_CTRL_PANEL_ERROR_DECODING_BASE_64.get(t.toString()));
+              errors.add(ERR_CTRL_PANEL_ERROR_DECODING_BASE_64.get(t));
             }
             displayErrorDialog(errors);
           }

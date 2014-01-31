@@ -224,8 +224,7 @@ public abstract class AuthenticationPolicyState
           }
 
           final LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME
-              .get(v.getValue().toString(), attributeType.getNameOrOID(), entry
-                  .getName().toString(), String.valueOf(e));
+              .get(v.getValue(), attributeType.getNameOrOID(), entry.getName(), e);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message, e);
         }

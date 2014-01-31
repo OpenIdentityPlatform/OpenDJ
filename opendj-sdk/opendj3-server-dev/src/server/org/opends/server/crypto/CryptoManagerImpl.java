@@ -561,12 +561,11 @@ public class CryptoManagerImpl
     }
     //The certificate can never be null. The LocalizableMessage digest code that will
     //use it later throws a NPE if the certificate is null.
-    if(certificate == null) {
-      LocalizableMessage msg =
-        ERR_CRYPTOMGR_FAILED_INSTANCE_CERTIFICATE_NULL.get(entryDN.toString());
-        throw new CryptoManagerException(msg);
+    if (certificate == null) {
+      throw new CryptoManagerException(
+          ERR_CRYPTOMGR_FAILED_INSTANCE_CERTIFICATE_NULL.get(entryDN));
     }
-    return(certificate);
+    return certificate;
   }
 
 

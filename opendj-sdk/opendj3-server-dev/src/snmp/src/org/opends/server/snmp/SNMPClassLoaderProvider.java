@@ -218,7 +218,7 @@ public class SNMPClassLoaderProvider {
 
             if (this.snmpAdaptor == null) {
               throw new Exception(
-                   ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
+                   ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get());
             }
 
             // Create the Usm MIB to allow user management
@@ -232,7 +232,7 @@ public class SNMPClassLoaderProvider {
                     this.snmpAdaptor.registerUsmMib(server, this.UsmObjName);
                 } catch (Exception ex) {
                     throw new Exception(
-                      ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
+                      ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get());
                 }
             }
 
@@ -246,7 +246,7 @@ public class SNMPClassLoaderProvider {
             // Check if the snmpAdaptor is online
             if (this.snmpAdaptor.getState() != CommunicatorServer.ONLINE) {
                 throw new Exception(
-                      ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
+                      ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get());
             }
 
             // Check the trap destinations before trying to sent traps
@@ -282,7 +282,7 @@ public class SNMPClassLoaderProvider {
 
         } catch (Exception ex) {
             throw new Exception(
-                    ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
+                    ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get());
         }
     }
 

@@ -291,7 +291,7 @@ public class DeleteSchemaElementsTask extends Task
         catch (NamingException ne)
         {
           throw new OnlineUpdateException(
-              ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne.toString()), ne);
+              ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne), ne);
         }
       }
       else
@@ -351,7 +351,7 @@ public class DeleteSchemaElementsTask extends Task
         catch (NamingException ne)
         {
           throw new OnlineUpdateException(
-              ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne.toString()), ne);
+              ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne), ne);
         }
       }
       else
@@ -426,7 +426,7 @@ public class DeleteSchemaElementsTask extends Task
     catch (IOException e)
     {
       throw new OfflineUpdateException(
-          ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(e.toString()), e);
+          ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(e), e);
     }
     finally
     {
