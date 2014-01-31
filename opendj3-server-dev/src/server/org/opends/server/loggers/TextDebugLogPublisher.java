@@ -26,10 +26,6 @@
  */
 package org.opends.server.loggers;
 
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,6 +51,10 @@ import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * The debug log publisher implementation that writes debug messages to files
@@ -197,20 +197,11 @@ public class TextDebugLogPublisher
     config.addDebugTargetAddListener(this);
     config.addDebugTargetDeleteListener(this);
 
-    TraceSettings defaultSettings =
-        new TraceSettings(TraceSettings.Level.getLevel(true, config
-            .isDefaultDebugExceptionsOnly()), config
-            .isDefaultOmitMethodEntryArguments(), config
-            .isDefaultOmitMethodReturnValue(), config
-            .getDefaultThrowableStackFrames(), config
-            .isDefaultIncludeThrowableCause());
-
-    addTraceSettings(null, defaultSettings);
+    addTraceSettings(null, getDefaultSettings(config));
 
     for(String name : config.listDebugTargets())
     {
-      DebugTargetCfg targetCfg = config.getDebugTarget(name);
-
+      final DebugTargetCfg targetCfg = config.getDebugTarget(name);
       addTraceSettings(targetCfg.getDebugScope(), new TraceSettings(targetCfg));
     }
 
@@ -264,16 +255,7 @@ public class TextDebugLogPublisher
     boolean adminActionRequired = false;
     List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
-    TraceSettings defaultSettings =
-        new TraceSettings(TraceSettings.Level.getLevel(true, config
-            .isDefaultDebugExceptionsOnly()), config
-            .isDefaultOmitMethodEntryArguments(), config
-            .isDefaultOmitMethodReturnValue(), config
-            .getDefaultThrowableStackFrames(), config
-            .isDefaultIncludeThrowableCause());
-
-    addTraceSettings(null, defaultSettings);
-
+    addTraceSettings(null, getDefaultSettings(config));
     DebugLogger.updateTracerSettings();
 
     File logFile = getFileForPath(config.getLogFile());
@@ -359,6 +341,17 @@ public class TextDebugLogPublisher
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+  private TraceSettings getDefaultSettings(FileBasedDebugLogPublisherCfg config)
+  {
+    return new TraceSettings(TraceSettings.Level.getLevel(
+        true,
+        config.isDefaultDebugExceptionsOnly()),
+        config.isDefaultOmitMethodEntryArguments(),
+        config.isDefaultOmitMethodReturnValue(),
+        config.getDefaultThrowableStackFrames(),
+        config.isDefaultIncludeThrowableCause());
   }
 
   /**
