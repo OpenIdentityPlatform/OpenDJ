@@ -2,12 +2,12 @@
 .\"     Title: dbtest
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 03/21/2012
+.\"      Date: 01/31/2014
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.5.0
+.\"    Source: OpenDJ 2.7.0-SNAPSHOT
 .\"  Language: English
 .\"
-.TH "DBTEST" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "DBTEST" "1" "01/31/2014" "OpenDJ 2\&.7\&.0\-SNAPSHOT" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -30,8 +30,8 @@
 .SH "NAME"
 dbtest \- gather OpenDJ JE database debugging information
 .SH "SYNOPSIS"
-.HP \w'\fBdbtest\fR\fBsubcommand\fR\ 'u
-\fBdbtest\fR\fBsubcommand\fR [options]
+.HP \w'\fBdbtest\fR \fBsubcommand\fR\ 'u
+\fBdbtest\fR \fBsubcommand\fR [options]
 .SH "DESCRIPTION"
 .PP
 This utility can be used to debug the JE database\&.
@@ -42,6 +42,8 @@ The following subcommands are supported\&.
 \fBdbtest dump\-database\-container\fR
 .RS 4
 Dump records from a database container
+.sp
+Depending on database size, this subcommand can generate lots of output\&.
 .RE
 .PP
 \fBdbtest list\-database\-containers\fR
@@ -57,6 +59,73 @@ List the entry containers for a root container
 \fBdbtest list\-index\-status\fR
 .RS 4
 List the status of indexes in an entry container
+.sp
+When you list index status, the result is a table, followed by a "Total", which is the total number of indexes, followed by a list of indexes with "Undefined keys" to show the values for which the number of entries exceeded the index entry limit\&. The table has the following columns\&.
+.PP
+Index Name
+.RS 4
+Name of the index, which takes the form
+\fIattr\&.type\fR
+for attribute indexes, and vlv\&.\fIname\fR
+for VLV indexes\&. Some indexes are for OpenDJ directory server\*(Aqs internal use\&.
+.sp
+Example:
+givenName\&.substring
+.RE
+.PP
+Index Type
+.RS 4
+Type of the index, which is
+Index
+for attribute indexes, and
+VLVIndex
+for VLV indexes\&.
+.RE
+.PP
+JE Database Name
+.RS 4
+Name of the Berkeley Java Edition database, which reflects how OpenDJ directory server organizes the data in the database\&.
+.sp
+Example:
+dc_example_dc_com_givenName\&.substring
+.RE
+.PP
+Index Valid
+.RS 4
+This is
+true
+for valid indexes\&. If this is
+false, the index might be degraded.
+Verify the index, and rebuild the index if necessary\&.
+.RE
+.PP
+Record Count
+.RS 4
+Number of indexed keys\&. Use the
+\fBdbtest dump\-database\-container\fR
+command to see how many entry IDs correspond to each key\&.
+.RE
+.PP
+Undefined
+.RS 4
+Number of keys for which there are too many values to maintain an index, based on the index entry limit\&. This is recorded as
+\-
+for VLV indexes\&.
+.sp
+In other words, with the default index entry limit of 4000, if every user in your large directory has a mail address ending in
+@example\&.com, and a substring index is maintained for
+mail, then OpenDJ directory server does not maintain indexes for keys corresponding to substrings in
+@example\&.com\&.
+.sp
+As a result, an LDAP search with the filter
+"(mail=*@example\&.com)"
+becomes an unindexed search even though a substring index exists for the mail attribute\&. By default OpenDJ directory server does not allow unindexed searches except by privileged users\&. This is usually exactly the behavior you want in order to prevent client applications for example from sending searches that return every user in the directory\&. Clients should refine their search filters instead\&.
+.RE
+.PP
+95%, 90%, 85%
+.RS 4
+Number of keys for which the number of values is approaching the index entry limit, having reached the specified percentage\&. This is a measure of how full the entry ID lists are\&.
+.RE
 .RE
 .PP
 \fBdbtest list\-root\-containers\fR
@@ -120,5 +189,5 @@ Total / Average Data Size: 24 bytes / 8 bytes
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2012 ForgeRock AS
+Copyright \(co 2011-2014 ForgeRock AS
 .br
