@@ -2412,7 +2412,7 @@ public class InstallDS extends ConsoleApplication
     {
         LocalizableMessage.raw(String.valueOf(uData.getServerPort())),
         LocalizableMessage.raw(String.valueOf(uData.getAdminConnectorPort())),
-        LocalizableMessage.raw(jmxPort != -1 ? String.valueOf(jmxPort) : null),
+        LocalizableMessage.raw(jmxPort != -1 ? String.valueOf(jmxPort) : ""),
         LocalizableMessage.raw(
             Utils.getSecurityOptionsString(uData.getSecurityOptions(), false)),
         LocalizableMessage.raw(uData.getDirectoryManagerDn()),
