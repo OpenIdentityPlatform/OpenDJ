@@ -29,7 +29,6 @@ package org.opends.server.loggers;
 import java.util.Map;
 
 import org.opends.server.api.DebugLogPublisher;
-import org.opends.server.types.DebugLogCategory;
 
 /**
  * Class for source-code tracing at the method level.
@@ -117,12 +116,13 @@ class DebugTracer
       StackTraceElement[] stackTrace = null;
       StackTraceElement[] filteredStackTrace = null;
       StackTraceElement callerFrame = null;
+      final boolean hasException = (exception != null);
       for (PublisherSettings settings : publisherSettings)
       {
         TraceSettings activeSettings = settings.classSettings;
         Map<String, TraceSettings> methodSettings = settings.methodSettings;
 
-        if (shouldLog(DebugLogCategory.CAUGHT, activeSettings) || methodSettings != null)
+        if (shouldLog(hasException, activeSettings) || methodSettings != null)
         {
           if(stackTrace == null)
           {
@@ -156,7 +156,7 @@ class DebugTracer
             // suppose to be logged, continue.
             if (mSettings != null)
             {
-              if(!shouldLog(DebugLogCategory.CAUGHT, mSettings))
+              if(!shouldLog(hasException, mSettings))
               {
                 continue;
               }
@@ -170,23 +170,23 @@ class DebugTracer
           String sourceLocation = callerFrame.getFileName() + ":" +
               callerFrame.getLineNumber();
 
-          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
+          if (filteredStackTrace == null && activeSettings.getStackDepth() > 0)
           {
-            StackTraceElement[] trace = exception == null ? stackTrace : exception.getStackTrace();
+            StackTraceElement[] trace = hasException ? exception.getStackTrace() : stackTrace;
             filteredStackTrace =
                 DebugStackTraceFormatter.SMART_FRAME_FILTER.
                     getFilteredStackTrace(trace);
           }
 
-          if (exception == null)
-          {
-            settings.debugPublisher.trace(activeSettings, signature,
-                sourceLocation, msg, filteredStackTrace);
-          }
-          else
+          if (hasException)
           {
             settings.debugPublisher.traceException(activeSettings, signature,
                 sourceLocation, msg, exception, filteredStackTrace);
+          }
+          else
+          {
+            settings.debugPublisher.trace(activeSettings, signature,
+                sourceLocation, msg, filteredStackTrace);
           }
         }
       }
@@ -204,30 +204,6 @@ class DebugTracer
   }
 
   /**
-   * Indicates if logging is enabled for the provided debug log
-   * category.
-   *
-   * @param logCategory
-   *            Log category to check
-   * @return {@code true} if logging is enabled, false otherwise.
-   */
-  boolean enabledFor(LogCategory logCategory)
-  {
-    for (PublisherSettings settings : publisherSettings)
-    {
-      TraceSettings activeSettings = settings.classSettings;
-      Map<String, TraceSettings> methodSettings = settings.methodSettings;
-
-      if (shouldLog(logCategory, activeSettings)
-          || methodSettings != null)
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Indicates if logging is enabled for at least one category
    * in a publisher.
    *
@@ -237,10 +213,7 @@ class DebugTracer
   {
     for (PublisherSettings settings : publisherSettings)
     {
-      TraceSettings activeSettings = settings.classSettings;
-      Map<String, TraceSettings> methodSettings = settings.methodSettings;
-
-      if (shouldLog(activeSettings) || methodSettings != null)
+      if (shouldLog(settings.classSettings) || settings.methodSettings != null)
       {
         return true;
       }
@@ -298,13 +271,11 @@ class DebugTracer
       // method call frame if any.
       for (StackTraceElement aStackTrace : stackTrace)
       {
-        if(aStackTrace.getClassName().startsWith("java.lang.Thread"))
+        if(aStackTrace.getClassName().startsWith(Thread.class.getName()))
         {
           continue;
         }
-
-        if (!aStackTrace.getClassName().startsWith(
-            "org.opends.server.loggers.debug"))
+        if (!aStackTrace.getClassName().startsWith(DebugTracer.class.getName()))
         {
           return aStackTrace;
         }
@@ -314,15 +285,16 @@ class DebugTracer
     return null;
   }
 
-  private boolean shouldLog(LogCategory messageCategory, TraceSettings activeSettings)
+  /** Indicates if there is something to log. */
+  private boolean shouldLog(boolean hasException, TraceSettings activeSettings)
   {
-    return activeSettings.includeCategories != null &&
-        activeSettings.includeCategories.contains(messageCategory);
+    return activeSettings.getLevel() == TraceSettings.Level.ALL
+        || (hasException && activeSettings.getLevel() == TraceSettings.Level.EXCEPTIONS_ONLY);
   }
 
-  /** Indicates if at least one category is active for logging. */
+  /** Indicates if there is something to log. */
   private boolean shouldLog(TraceSettings settings)
   {
-    return settings.includeCategories != null && !settings.includeCategories.isEmpty();
+    return settings.getLevel() != TraceSettings.Level.DISABLED;
   }
 }

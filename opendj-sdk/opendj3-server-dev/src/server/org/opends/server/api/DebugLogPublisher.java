@@ -34,7 +34,6 @@ import java.util.TreeMap;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
 import org.opends.server.loggers.TraceSettings;
-import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class defines the set of methods and structures that must be
@@ -72,7 +71,7 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
     methodTraceSettings = null;
 
     //Set the global settings so that nothing is logged.
-    addTraceSettings(null, new TraceSettings(DebugLogLevel.DISABLED));
+    addTraceSettings(null, TraceSettings.DISABLED);
   }
 
 

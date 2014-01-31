@@ -68,8 +68,6 @@ public abstract class AbstractLogger
     ConfigurationChangeListener<C>
 {
 
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
   /**
    * The storage designed to store log publishers. It is helpful in abstracting
    * away the methods used to manage the collection.
@@ -258,13 +256,13 @@ public abstract class AbstractLogger
       }
       catch(ConfigException e)
       {
-        logger.traceException(e);
+        LocalizedLogger.getLoggerForThisClass().traceException(e);
         messages.add(e.getMessageObject());
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
       catch (Exception e)
       {
-        logger.traceException(e);
+        LocalizedLogger.getLoggerForThisClass().traceException(e);
         messages.add(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
             config.dn(), stackTraceToSingleLineString(e)));
         resultCode = DirectoryServer.getServerErrorResultCode();

@@ -20,7 +20,7 @@
 # CDDL HEADER END
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2010-2013 ForgeRock AS.
+#      Portions Copyright 2010-2014 ForgeRock AS.
 #      Portions Copyright 2012-2014 Manuel Gaupp
 #
 #
@@ -804,7 +804,6 @@ ds-cfg-java-class: org.opends.server.loggers.TextDebugLogPublisher
 ds-cfg-enabled: false
 ds-cfg-log-file: logs/debug
 ds-cfg-log-file-permissions: 640
-ds-cfg-default-debug-level: error
 ds-cfg-asynchronous: false
 
 dn: cn=Log Rotation Policies,cn=config

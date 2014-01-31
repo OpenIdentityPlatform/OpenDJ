@@ -36,10 +36,8 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.ServerContext;
 import org.opends.server.loggers.DebugMessageFormatter;
 import org.opends.server.loggers.DebugStackTraceFormatter;
-import org.opends.server.loggers.LogCategory;
 import org.opends.server.loggers.TraceSettings;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.ServerConstants;
 
@@ -89,14 +87,12 @@ public class ConsoleDebugLogPublisher extends
                            String msg,
                            StackTraceElement[] stackTrace)
   {
-    LogCategory category = DebugLogCategory.MESSAGE;
-
     String stack = null;
     if(stackTrace != null)
     {
       stack = DebugStackTraceFormatter.formatStackTrace(stackTrace, settings.getStackDepth());
     }
-    publish(category, msg, stack);
+    publish(msg, stack);
   }
 
   /**
@@ -109,8 +105,6 @@ public class ConsoleDebugLogPublisher extends
                           String msg,
                           Throwable ex, StackTraceElement[] stackTrace)
   {
-    LogCategory category = DebugLogCategory.CAUGHT;
-
     String message = DebugMessageFormatter.format("%s caught={%s} %s(): %s",
         new Object[] { msg, ex, signature, sourceLocation });
 
@@ -121,7 +115,7 @@ public class ConsoleDebugLogPublisher extends
           DebugStackTraceFormatter.formatStackTrace(ex, settings
               .getStackDepth(), settings.isIncludeCause());
     }
-    publish(category, message, stack);
+    publish(message, stack);
   }
 
   /**
@@ -136,15 +130,11 @@ public class ConsoleDebugLogPublisher extends
 
   // Publishes a record, optionally performing some "special" work:
   // - injecting a stack trace into the message
-  private void publish(LogCategory category, String msg, String stack)
+  private void publish(String msg, String stack)
   {
     StringBuilder buf = new StringBuilder();
     // Emit the timestamp.
     buf.append(dateFormat.format(System.currentTimeMillis()));
-    buf.append(" ");
-
-    // Emit debug category.
-    buf.append(category);
     buf.append(" ");
 
     // Emit the debug level.
@@ -162,25 +152,6 @@ public class ConsoleDebugLogPublisher extends
     }
 
     err.print(buf);
-  }
-
-  private String buildDefaultEntryMessage(String signature,
-                                          String sourceLocation, Object[] args)
-  {
-    StringBuilder format = new StringBuilder();
-    format.append(signature);
-    format.append("(");
-    for (int i = 0; i < args.length; i++)
-    {
-      if (i != 0) format.append(", ");
-      format.append("arg");
-      format.append(i + 1);
-      format.append("={%s}");
-    }
-    format.append("):");
-    format.append(sourceLocation);
-
-    return DebugMessageFormatter.format(format.toString(), args);
   }
 
   /**

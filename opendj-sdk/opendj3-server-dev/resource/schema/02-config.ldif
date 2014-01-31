@@ -21,7 +21,7 @@
 #
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2010-2013 ForgeRock AS.
+#      Portions Copyright 2010-2014 ForgeRock AS.
 #      Portions Copyright 2011 profiq, s.r.o.
 #      Portions Copyright 2012 Manuel Gaupp
 #
@@ -1731,17 +1731,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.293
   EQUALITY caseIgnoreMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.294
-  NAME 'ds-cfg-default-debug-level'
-  EQUALITY caseIgnoreMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.295
-  NAME 'ds-cfg-default-debug-category'
-  EQUALITY caseIgnoreMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.296
   NAME 'ds-cfg-default-omit-method-entry-arguments'
   EQUALITY booleanMatch
@@ -1771,17 +1760,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.300
   EQUALITY caseIgnoreMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.301
-  NAME 'ds-cfg-debug-level'
-  EQUALITY caseIgnoreMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.302
-  NAME 'ds-cfg-debug-category'
-  EQUALITY caseIgnoreMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.303
   NAME 'ds-cfg-omit-method-entry-arguments'
@@ -3759,6 +3737,18 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.132
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.134
+  NAME 'ds-cfg-debug-exceptions-only'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.135
+  NAME 'ds-cfg-default-debug-exceptions-only'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -4035,8 +4025,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.24
   NAME 'ds-cfg-debug-log-publisher'
   SUP ds-cfg-log-publisher
   STRUCTURAL
-  MUST ds-cfg-default-debug-level
-  MAY ( ds-cfg-default-debug-category $
+  MAY ( ds-cfg-default-debug-exceptions-only $
         ds-cfg-default-omit-method-entry-arguments $
         ds-cfg-default-omit-method-return-value $
         ds-cfg-default-include-throwable-cause $
@@ -4812,9 +4801,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.100
   NAME 'ds-cfg-debug-target'
   SUP top
   STRUCTURAL
-  MUST ( ds-cfg-debug-scope $
-         ds-cfg-debug-level )
-  MAY ( ds-cfg-debug-category $
+  MUST ( ds-cfg-enabled $
+         ds-cfg-debug-scope )
+  MAY ( ds-cfg-debug-exceptions-only $
         ds-cfg-omit-method-entry-arguments $
         ds-cfg-omit-method-return-value $
         ds-cfg-include-throwable-cause $
