@@ -1598,26 +1598,18 @@ public class RootDSEBackend
       }
       else
       {
-        StringBuilder basesStr = new StringBuilder();
+        StringBuilder basesStr = new StringBuilder("{ ");
         for (DN dn : subordinateBaseDNs.keySet())
         {
           if (basesStr.length() > 0)
           {
             basesStr.append(", ");
           }
-          else
-          {
-            basesStr.append("{ ");
-          }
-
           basesStr.append(dn);
         }
-
         basesStr.append(" }");
 
-        LocalizableMessage message = INFO_ROOTDSE_USING_NEW_SUBORDINATE_BASE_DNS.get(
-                basesStr.toString());
-        messages.add(message);
+        messages.add(INFO_ROOTDSE_USING_NEW_SUBORDINATE_BASE_DNS.get(basesStr));
       }
 
 

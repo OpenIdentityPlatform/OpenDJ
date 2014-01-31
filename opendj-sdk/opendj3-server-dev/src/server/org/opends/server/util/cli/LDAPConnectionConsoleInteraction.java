@@ -1517,18 +1517,16 @@ public class LDAPConnectionConsoleInteraction {
     {
       // Certificate DN
       app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_USER_DN.get(
-          chain[i].getSubjectDN().toString()));
+          chain[i].getSubjectDN()));
 
       // certificate validity
-      app.println(
-          INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_VALIDITY.get(
-              chain[i].getNotBefore().toString(),
-              chain[i].getNotAfter().toString()));
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_VALIDITY.get(
+          chain[i].getNotBefore(),
+          chain[i].getNotAfter()));
 
       // certificate Issuer
-      app.println(
-          INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER.get(
-              chain[i].getIssuerDN().toString()));
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER.get(
+          chain[i].getIssuerDN()));
 
       if (i+1 <chain.length)
       {

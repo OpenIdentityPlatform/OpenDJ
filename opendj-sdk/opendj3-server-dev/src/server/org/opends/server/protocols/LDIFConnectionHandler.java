@@ -151,16 +151,16 @@ public final class LDIFConnectionHandler
         // The path specified as the LDIF directory exists, but isn't a
         // directory.  This is probably a mistake, and we should at least log
         // a warning message.
-        logger.warn(WARN_LDIF_CONNHANDLER_LDIF_DIRECTORY_NOT_DIRECTORY.get(ldifDirectory.getAbsolutePath(),
-                      configuration.dn().toString()));
+        logger.warn(WARN_LDIF_CONNHANDLER_LDIF_DIRECTORY_NOT_DIRECTORY.get(
+            ldifDirectory.getAbsolutePath(), configuration.dn()));
       }
     }
     else
     {
       // The path specified as the LDIF directory doesn't exist.  We should log
       // a warning message saying that we won't do anything until it's created.
-      logger.warn(WARN_LDIF_CONNHANDLER_LDIF_DIRECTORY_MISSING.get(ldifDirectory.getAbsolutePath(),
-                    configuration.dn().toString()));
+      logger.warn(WARN_LDIF_CONNHANDLER_LDIF_DIRECTORY_MISSING.get(
+          ldifDirectory.getAbsolutePath(), configuration.dn()));
     }
 
     this.currentConfig = configuration;
@@ -462,7 +462,7 @@ public final class LDIFConnectionHandler
 
           LocalizableMessage m = INFO_LDIF_CONNHANDLER_RESULT_CODE.get(
                            operation.getResultCode().getIntValue(),
-                           operation.getResultCode().toString());
+                           operation.getResultCode());
           writer.writeComment(m, 78);
 
           LocalizableMessageBuilder errorMessage = operation.getErrorMessage();

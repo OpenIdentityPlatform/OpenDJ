@@ -426,11 +426,8 @@ public class StaticGroup
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
         LocalizableMessage msg = ERR_STATICGROUP_ADD_MEMBER_UPDATE_FAILED.get(
-                String.valueOf(nestedGroupDN),
-                String.valueOf(groupEntryDN),
-                modifyOperation.getErrorMessage().toString());
-        throw new DirectoryException(modifyOperation.getResultCode(),
-                                     msg);
+            nestedGroupDN, groupEntryDN, modifyOperation.getErrorMessage());
+        throw new DirectoryException(modifyOperation.getResultCode(), msg);
       }
 
 
@@ -695,8 +692,7 @@ public class StaticGroup
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
         LocalizableMessage message = ERR_STATICGROUP_ADD_MEMBER_UPDATE_FAILED.
-            get(String.valueOf(userDN), String.valueOf(groupEntryDN),
-                modifyOperation.getErrorMessage().toString());
+            get(userDN, groupEntryDN, modifyOperation.getErrorMessage());
         throw new DirectoryException(modifyOperation.getResultCode(), message);
       }
 
@@ -750,8 +746,7 @@ public class StaticGroup
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
         LocalizableMessage message = ERR_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED.
-            get(String.valueOf(userDN), String.valueOf(groupEntryDN),
-                modifyOperation.getErrorMessage().toString());
+            get(userDN, groupEntryDN, modifyOperation.getErrorMessage());
         throw new DirectoryException(modifyOperation.getResultCode(), message);
       }
 

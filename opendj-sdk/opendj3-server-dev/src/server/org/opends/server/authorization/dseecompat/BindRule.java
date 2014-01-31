@@ -519,9 +519,7 @@ public class BindRule {
                 break;
             }
             default:  {
-                LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD.get(
-                    keyword.toString());
-                throw new AciException(message);
+                throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD.get(keyword));
             }
         }
         return rule;

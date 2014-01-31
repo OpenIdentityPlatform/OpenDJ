@@ -888,8 +888,7 @@ public abstract class ReplicationDomain
         requested servers. Log problem
         */
         logger.error(NOTE_DS_RECEIVED_ACK_ERROR.get(
-            getBaseDNString(), Integer.toString(getServerId()),
-            update.toString(), ack.errorsToString()));
+            getBaseDN(), getServerId(), update, ack.errorsToString()));
 
         List<Integer> failedServers = ack.getFailedServers();
 
@@ -1458,7 +1457,7 @@ public abstract class ReplicationDomain
           throw new DirectoryException(
               ResultCode.OTHER,
               ERR_INIT_NO_SUCCESS_START_FROM_SERVERS.get(
-                  ieCtx.failureList.toString()));
+                  ieCtx.failureList));
         }
 
         exportBackend(new BufferedOutputStream(new ReplOutputStream(this)));
@@ -1554,7 +1553,7 @@ public abstract class ReplicationDomain
       exportRootException = new DirectoryException(ResultCode.OTHER,
               ERR_INIT_NO_SUCCESS_END_FROM_SERVERS.get(
                   Long.toString(getGenerationID()),
-                  ieCtx.failureList.toString()));
+                  ieCtx.failureList));
     }
 
     // Don't forget to release IEcontext acquired at beginning.
@@ -2426,7 +2425,7 @@ public abstract class ReplicationDomain
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
       logger.error(ERR_DS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
-          String.valueOf(getServerId()), status.toString(), event.toString()));
+          String.valueOf(getServerId()), status, event));
       return;
     }
 
@@ -3224,8 +3223,8 @@ public abstract class ReplicationDomain
       else if (getAssuredMode() != AssuredMode.SAFE_DATA_MODE)
       {
         logger.error(ERR_DS_UNKNOWN_ASSURED_MODE.get(String.valueOf(getServerId()),
-            msg.getAssuredMode().toString(), getBaseDNString(),
-            msg.toString()));
+            msg.getAssuredMode(), getBaseDNString(),
+            msg));
       }
         // Nothing to do in Assured safe data mode, only RS ack updates.
     }
@@ -3434,7 +3433,7 @@ public abstract class ReplicationDomain
     {
       // This exception may only be raised if assured replication is enabled
       logger.error(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
-          Long.toString(getAssuredTimeout()), update.toString()));
+          Long.toString(getAssuredTimeout()), update));
     }
   }
 

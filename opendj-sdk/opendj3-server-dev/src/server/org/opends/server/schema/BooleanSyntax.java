@@ -251,8 +251,7 @@ public class BooleanSyntax
 
     if (! returnValue)
     {
-      invalidReason.append(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(
-              value.toString()));
+      invalidReason.append(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(value));
     }
 
     return returnValue;
@@ -270,16 +269,10 @@ public class BooleanSyntax
    */
   public static AttributeValue createBooleanValue(boolean b)
   {
-    if (b)
-    {
-      return AttributeValues.create(ServerConstants.TRUE_VALUE,
-                                ServerConstants.TRUE_VALUE);
-    }
-    else
-    {
-      return AttributeValues.create(ServerConstants.FALSE_VALUE,
-                                ServerConstants.FALSE_VALUE);
-    }
+    ByteString value = b
+        ? ServerConstants.TRUE_VALUE
+        : ServerConstants.FALSE_VALUE;
+    return AttributeValues.create(value, value);
   }
 
 

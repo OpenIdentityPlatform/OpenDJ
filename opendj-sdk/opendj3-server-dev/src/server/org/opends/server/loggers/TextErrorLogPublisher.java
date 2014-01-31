@@ -174,17 +174,13 @@ public class TextErrorLogPublisher
     }
     catch(DirectoryException e)
     {
-      LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
-          config.dn().toString(), String.valueOf(e));
-      throw new InitializationException(message, e);
-
+      throw new InitializationException(
+          ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(config.dn(), e), e);
     }
     catch(IOException e)
     {
-      LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
-          logFile.toString(), config.dn().toString(), String.valueOf(e));
-      throw new InitializationException(message, e);
-
+      throw new InitializationException(
+          ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(logFile, config.dn(), e), e);
     }
 
     Set<ErrorLogPublisherCfgDefn.DefaultSeverity> defSevs =
@@ -559,11 +555,9 @@ public class TextErrorLogPublisher
     }
     catch(Exception e)
     {
-      LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
-              config.dn().toString(),
-              stackTraceToSingleLineString(e));
       resultCode = DirectoryServer.getServerErrorResultCode();
-      messages.add(message);
+      messages.add(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+          config.dn(), stackTraceToSingleLineString(e)));
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);

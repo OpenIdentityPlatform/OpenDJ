@@ -188,8 +188,7 @@ class CaseExactIA5EqualityMatchingRule
         // enforcement is enabled, then we'll throw an exception.  Otherwise,
         // we'll get rid of the character.
 
-        LocalizableMessage message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
-                value.toString(), String.valueOf(c));
+        LocalizableMessage message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(value, c);
 
         switch (DirectoryServer.getSyntaxEnforcementPolicy())
         {

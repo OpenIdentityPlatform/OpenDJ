@@ -556,7 +556,7 @@ public class MonitorBackend extends Backend implements
       logger.traceException(e);
 
       final LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
-          baseMonitorDN.toString(), getExceptionMessage(e));
+          baseMonitorDN, getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
   }

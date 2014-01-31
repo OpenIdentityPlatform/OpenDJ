@@ -557,10 +557,8 @@ public class RestoreDB extends TaskTool {
         }
 
 
-        message = INFO_RESTOREDB_LIST_DEPENDENCIES.get(
-                dependencyList.toString());
+        message = INFO_RESTOREDB_LIST_DEPENDENCIES.get(dependencyList);
         out.println(message);
-
         out.println();
       }
 

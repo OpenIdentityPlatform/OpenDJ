@@ -265,11 +265,8 @@ public class AciList {
           if(dn == DN.rootDN()) {
             msgDN=configDN;
           }
-          LocalizableMessage message = WARN_ACI_ADD_LIST_FAILED_DECODE.get(
-                  value.getValue().toString(),
-                  String.valueOf(msgDN),
-                  ex.getMessage());
-          failedACIMsgs.add(message);
+          failedACIMsgs.add(WARN_ACI_ADD_LIST_FAILED_DECODE.get(
+              value.getValue(), msgDN, ex.getMessage()));
         }
       }
     }

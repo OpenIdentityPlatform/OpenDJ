@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
-
 package org.opends.server.util;
 
 import static org.opends.messages.ToolMessages.ERR_BUILDVERSION_NOT_FOUND;
@@ -134,8 +133,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
         BuildVersion.instanceVersion().toString()))
     {
       throw new InitializationException(ERR_BUILDVERSION_MISMATCH.get(
-          BuildVersion.binaryVersion().toString(), BuildVersion
-              .instanceVersion().toString()));
+          BuildVersion.binaryVersion(), BuildVersion.instanceVersion()));
     }
   }
 

@@ -405,8 +405,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
       // is 2nd (or 1st depending of the year) of Mars.
       if (calendar.get(Calendar.MONTH) != m)
       {
-        errorMessages.add(ERR_CTRL_PANEL_INVALID_DAY_IN_MONTH.get(d,
-            month.getSelectedItem().toString()));
+        errorMessages.add(ERR_CTRL_PANEL_INVALID_DAY_IN_MONTH.get(d, month.getSelectedItem()));
         setPrimaryInvalid(lDay);
         setPrimaryInvalid(lMonth);
       }
@@ -1127,7 +1126,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     GridBagConstraints gbc = new GridBagConstraints();
 
     JEditorPane explanation = Utilities.makeHtmlPane(
-        INFO_CTRL_PANEL_CRON_HELP.get().toString(),
+        INFO_CTRL_PANEL_CRON_HELP.get(),
         ColorAndFontConstants.inlineHelpFont);
     gbc.gridx = 0;
     gbc.gridy = 0;

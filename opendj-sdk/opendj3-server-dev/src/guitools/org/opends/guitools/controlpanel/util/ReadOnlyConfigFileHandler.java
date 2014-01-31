@@ -198,9 +198,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
               if (parentDN == null)
               {
                 LocalizableMessage message = ERR_CONFIG_FILE_UNKNOWN_PARENT.get(
-                    entryDN.toString(),
-                    reader.getLastEntryLineNumber(),
-                    f.getAbsolutePath());
+                    entryDN, reader.getLastEntryLineNumber(), f.getAbsolutePath());
                 throw new InitializationException(message);
               }
               else

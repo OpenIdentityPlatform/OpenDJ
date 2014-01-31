@@ -150,9 +150,7 @@ public class SoftReferenceEntryCache
           buffer.append(iterator.next());
         }
       }
-      LocalizableMessage message = ERR_SOFTREFCACHE_CANNOT_INITIALIZE.get(
-        buffer.toString());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_SOFTREFCACHE_CANNOT_INITIALIZE.get(buffer));
     }
   }
 

@@ -139,8 +139,7 @@ public class LogRotationPolicyConfigManager implements
     } catch (Exception e) {
       logger.traceException(e);
 
-      messages.add(ERR_CONFIG_ROTATION_POLICY_CANNOT_CREATE_POLICY.get(
-              String.valueOf(config.dn().toString()),
+      messages.add(ERR_CONFIG_ROTATION_POLICY_CANNOT_CREATE_POLICY.get(config.dn(),
               stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
@@ -218,10 +217,8 @@ public class LogRotationPolicyConfigManager implements
       theClass = pd.loadClass(className, RotationPolicy.class);
       theClass.newInstance();
     } catch (Exception e) {
-      LocalizableMessage message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className,
-                                  config.dn().toString(),
-                                  String.valueOf(e));
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(
+          ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className, config.dn(), e));
       return false;
     }
     // Check that the implementation class implements the correct interface.
@@ -232,10 +229,8 @@ public class LogRotationPolicyConfigManager implements
       theClass.getMethod("initializeLogRotationPolicy", config
           .configurationClass());
     } catch (Exception e) {
-      LocalizableMessage message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className,
-                                  config.dn().toString(),
-                                  String.valueOf(e));
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(
+          ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className, config.dn(), e));
       return false;
     }
     // The class is valid as far as we can tell.
@@ -267,11 +262,11 @@ public class LogRotationPolicyConfigManager implements
       // Rethrow the exceptions thrown be the invoked method.
       Throwable e = ite.getTargetException();
       LocalizableMessage message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(
-          className, config.dn().toString(), stackTraceToSingleLineString(e));
+          className, config.dn(), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     } catch (Exception e) {
       LocalizableMessage message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(
-          className, config.dn().toString(), String.valueOf(e));
+          className, config.dn(), e);
       throw new ConfigException(message, e);
     }
 

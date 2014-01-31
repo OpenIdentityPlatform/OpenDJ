@@ -107,11 +107,8 @@ public class SizeBasedRetentionPolicy implements
     File[] files = fileNamingPolicy.listFiles();
     if(files == null)
     {
-      LocalizableMessage message =
-          ERR_LOGGER_ERROR_LISTING_FILES.get(
-              fileNamingPolicy.getInitialName().toString());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+          ERR_LOGGER_ERROR_LISTING_FILES.get(fileNamingPolicy.getInitialName()));
     }
 
     long totalLength = 0;

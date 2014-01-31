@@ -573,9 +573,8 @@ public final class Upgrade
     // The upgrade only supports version >= 2.4.5.
     if (context.getFromVersion().compareTo(UPGRADESUPPORTSVERSIONFROM) < 0)
     {
-      final LocalizableMessage message =
-          INFO_UPGRADE_VERSION_IS_NOT_SUPPORTED.get(UPGRADESUPPORTSVERSIONFROM
-              .toString(), UPGRADESUPPORTSVERSIONFROM.toString());
+      final LocalizableMessage message = INFO_UPGRADE_VERSION_IS_NOT_SUPPORTED.get(
+              UPGRADESUPPORTSVERSIONFROM, UPGRADESUPPORTSVERSIONFROM);
       context.notify(message, NOTICE_CALLBACK);
       throw new ClientException(EXIT_CODE_ERROR, message);
     }
@@ -604,9 +603,8 @@ public final class Upgrade
       // Write the new version
       buildInfo.write(context.getToVersion().toString());
 
-      context.notify(INFO_UPGRADE_SUCCESSFUL.get(context.getFromVersion()
-          .toString(), context.getToVersion().toString()), TITLE_CALLBACK);
-
+      context.notify(INFO_UPGRADE_SUCCESSFUL.get(
+          context.getFromVersion(), context.getToVersion()), TITLE_CALLBACK);
     }
     catch (IOException e)
     {

@@ -476,13 +476,9 @@ public final class AccessControlConfigManager
             }
           }
 
-          LocalizableMessage message = ERR_CONFIG_AUTHZ_CONFIG_NOT_ACCEPTABLE.get(
-            // Bug: where in a section where configuration is null
-            // WAS: String.valueOf( configuration.dn())
-            // Now:
-                  "null"
-                  , buffer.toString());
-          throw new InitializationException(message);
+          // Bug: where in a section where configuration is null
+          throw new InitializationException(ERR_CONFIG_AUTHZ_CONFIG_NOT_ACCEPTABLE.get(
+                  null /* WAS: configuration.dn() */, buffer));
         }
       }
 
@@ -491,8 +487,7 @@ public final class AccessControlConfigManager
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER.
-          get(className, String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
+          get(className, configuration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }

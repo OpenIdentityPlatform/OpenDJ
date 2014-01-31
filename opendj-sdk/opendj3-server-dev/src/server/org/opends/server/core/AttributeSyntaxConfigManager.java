@@ -498,9 +498,8 @@ public class AttributeSyntaxConfigManager
             }
           }
 
-          LocalizableMessage message = ERR_CONFIG_SCHEMA_SYNTAX_CONFIG_NOT_ACCEPTABLE.get(
-              String.valueOf(configuration.dn()), buffer.toString());
-          throw new InitializationException(message);
+          throw new InitializationException(
+              ERR_CONFIG_SCHEMA_SYNTAX_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), buffer));
         }
       }
 
@@ -509,8 +508,7 @@ public class AttributeSyntaxConfigManager
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_SCHEMA_SYNTAX_CANNOT_INITIALIZE.
-          get(className, String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
+          get(className, configuration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }

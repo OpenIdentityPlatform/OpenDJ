@@ -122,9 +122,7 @@ public class LDIFBackend
     // map.
     if (baseDNs == null || baseDNs.length != 1)
     {
-      LocalizableMessage message = ERR_LDIF_BACKEND_MULTIPLE_BASE_DNS.get(
-                             currentConfig.dn().toString());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_LDIF_BACKEND_MULTIPLE_BASE_DNS.get(currentConfig.dn()));
     }
 
     for (DN dn : baseDNs)
@@ -139,7 +137,7 @@ public class LDIFBackend
         logger.traceException(e);
 
         LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
-            dn.toString(), getExceptionMessage(e));
+            dn, getExceptionMessage(e));
         throw new InitializationException(message, e);
       }
     }
@@ -220,7 +218,7 @@ public class LDIFBackend
 
       LocalizableMessage m = ERR_LDIF_BACKEND_ERROR_CREATING_FILE.get(
                        tempFile.getAbsolutePath(),
-                       currentConfig.dn().toString(),
+                       currentConfig.dn(),
                        stackTraceToSingleLineString(e));
       DirectoryServer.sendAlertNotification(this,
                            ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE, m);
@@ -243,7 +241,7 @@ public class LDIFBackend
 
         LocalizableMessage m = ERR_LDIF_BACKEND_ERROR_WRITING_FILE.get(
                          tempFile.getAbsolutePath(),
-                         currentConfig.dn().toString(),
+                         currentConfig.dn(),
                          stackTraceToSingleLineString(e));
         DirectoryServer.sendAlertNotification(this,
                              ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE, m);
@@ -292,7 +290,7 @@ public class LDIFBackend
       LocalizableMessage m = ERR_LDIF_BACKEND_ERROR_RENAMING_FILE.get(
                        tempFile.getAbsolutePath(),
                        ldifFile.getAbsolutePath(),
-                       currentConfig.dn().toString(),
+                       currentConfig.dn(),
                        stackTraceToSingleLineString(e));
       DirectoryServer.sendAlertNotification(this,
                            ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE, m);
@@ -783,16 +781,13 @@ public class LDIFBackend
           parentDN = parentDN.getParentDNInSuffix();
         }
 
-        LocalizableMessage m = ERR_LDIF_BACKEND_MODDN_NO_SUCH_SOURCE_ENTRY.get(
-                         currentDN.toString());
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m, matchedDN,
-                                     null);
+        LocalizableMessage m = ERR_LDIF_BACKEND_MODDN_NO_SUCH_SOURCE_ENTRY.get(currentDN);
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m, matchedDN, null);
       }
 
       if (entryMap.containsKey(newDN))
       {
-        LocalizableMessage m = ERR_LDIF_BACKEND_MODDN_TARGET_ENTRY_ALREADY_EXISTS.get(
-                         newDN.toString());
+        LocalizableMessage m = ERR_LDIF_BACKEND_MODDN_TARGET_ENTRY_ALREADY_EXISTS.get(newDN);
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, m);
       }
 
@@ -1140,8 +1135,8 @@ public class LDIFBackend
           DN entryDN = e.getName();
           if (entryMap.containsKey(entryDN))
           {
-            LocalizableMessage m = ERR_LDIF_BACKEND_DUPLICATE_ENTRY.get(ldifFilePath,
-                             currentConfig.dn().toString(), entryDN.toString());
+            LocalizableMessage m =
+                ERR_LDIF_BACKEND_DUPLICATE_ENTRY.get(ldifFilePath, currentConfig.dn(), entryDN);
             logger.error(m);
             reader.rejectLastEntry(m);
             continue;
@@ -1169,8 +1164,8 @@ public class LDIFBackend
 
           if (! isBelowBaseDN)
           {
-            LocalizableMessage m = ERR_LDIF_BACKEND_ENTRY_OUT_OF_SCOPE.get(ldifFilePath,
-                             currentConfig.dn().toString(), entryDN.toString());
+            LocalizableMessage m = ERR_LDIF_BACKEND_ENTRY_OUT_OF_SCOPE.get(
+                ldifFilePath, currentConfig.dn(), entryDN);
             logger.error(m);
             reader.rejectLastEntry(m);
             continue;
@@ -1179,8 +1174,8 @@ public class LDIFBackend
           DN parentDN = entryDN.getParentDNInSuffix();
           if (parentDN == null || !entryMap.containsKey(parentDN))
           {
-            LocalizableMessage m = ERR_LDIF_BACKEND_MISSING_PARENT.get(ldifFilePath,
-                             currentConfig.dn().toString(), entryDN.toString());
+            LocalizableMessage m = ERR_LDIF_BACKEND_MISSING_PARENT.get(
+                ldifFilePath, currentConfig.dn(), entryDN);
             logger.error(m);
             reader.rejectLastEntry(m);
             continue;
@@ -1314,8 +1309,7 @@ public class LDIFBackend
       currentConfig.getBaseDN().toArray(baseDNs);
       if (baseDNs.length != 1)
       {
-        throw new ConfigException(ERR_LDIF_BACKEND_MULTIPLE_BASE_DNS.get(
-                                       currentConfig.dn().toString()));
+        throw new ConfigException(ERR_LDIF_BACKEND_MULTIPLE_BASE_DNS.get(currentConfig.dn()));
       }
 
       baseDNSet = new HashSet<DN>();
@@ -1342,8 +1336,7 @@ public class LDIFBackend
     // Make sure that there is only a single base DN.
     if (configuration.getBaseDN().size() != 1)
     {
-      unacceptableReasons.add(ERR_LDIF_BACKEND_MULTIPLE_BASE_DNS.get(
-                                   configuration.dn().toString()));
+      unacceptableReasons.add(ERR_LDIF_BACKEND_MULTIPLE_BASE_DNS.get(configuration.dn()));
       configAcceptable = false;
     }
 

@@ -448,9 +448,8 @@ public abstract class ConfigAttribute
 
     if (! valueIsAcceptable(value, rejectReason))
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_REJECTED_VALUE.get(
-          value.getValue().toString(), name, rejectReason.toString());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_REJECTED_VALUE.get(
+          value.getValue(), name, rejectReason));
     }
 
 
@@ -469,9 +468,8 @@ public abstract class ConfigAttribute
       value = iterator.next();
       if (! valueIsAcceptable(value, rejectReason))
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_REJECTED_VALUE.get(
-            value.getValue().toString(), name, rejectReason.toString());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_REJECTED_VALUE.get(
+            value.getValue(), name, rejectReason));
       }
     }
 
@@ -588,16 +586,14 @@ public abstract class ConfigAttribute
     {
       if (tempValues.contains(value))
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(
-            name, value.getValue().toString());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(
+            name, value.getValue()));
       }
 
       if (! valueIsAcceptable(value, rejectReason))
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_REJECTED_VALUE.get(
-            value.getValue().toString(), name, rejectReason.toString());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_REJECTED_VALUE.get(
+            value.getValue(), name, rejectReason));
       }
     }
 

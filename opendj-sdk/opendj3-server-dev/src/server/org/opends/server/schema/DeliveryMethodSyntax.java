@@ -286,8 +286,7 @@ public class DeliveryMethodSyntax
     StringTokenizer tokenizer = new StringTokenizer(stringValue, " $");
     if (! tokenizer.hasMoreTokens())
     {
-      invalidReason.append(ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS.get(
-              value.toString()));
+      invalidReason.append(ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS.get(value));
       return false;
     }
 

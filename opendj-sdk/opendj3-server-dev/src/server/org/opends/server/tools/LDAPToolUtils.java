@@ -296,7 +296,6 @@ public class LDAPToolUtils
    */
   public static String getMessageForConnectionException(ASN1Exception ae)
   {
-    String msg;
     Throwable cause = ae.getCause();
     if (cause != null)
     {
@@ -308,19 +307,10 @@ public class LDAPToolUtils
       }
       if (isTimeout)
       {
-        msg = ERR_CLIENT_SIDE_TIMEOUT.get(
-            ae.getMessageObject().toString()).toString();
-      }
-      else
-      {
-        msg = ae.getMessageObject().toString();
+        return ERR_CLIENT_SIDE_TIMEOUT.get(ae.getMessageObject()).toString();
       }
     }
-    else
-    {
-      msg = ae.getMessageObject().toString();
-    }
-    return msg;
+    return ae.getMessageObject().toString();
   }
 }
 

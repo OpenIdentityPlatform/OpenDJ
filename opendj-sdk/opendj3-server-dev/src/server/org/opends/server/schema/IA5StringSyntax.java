@@ -25,10 +25,8 @@
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.forgerock.i18n.LocalizableMessage;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
@@ -40,11 +38,9 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.ByteSequence;
 
-
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-
 
 /**
  * This class implements the IA5 string attribute syntax, which is simply a
@@ -245,14 +241,10 @@ public class IA5StringSyntax
       b = value.byteAt(i);
       if ((b & 0x7F) != b)
       {
-
-        LocalizableMessage message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
-                value.toString(), String.valueOf(b));
-        invalidReason.append(message);
+        invalidReason.append(WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(value, b));
         return false;
       }
     }
-
     return true;
   }
 

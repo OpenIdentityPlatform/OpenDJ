@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -260,7 +260,7 @@ public class GenericFrame extends JFrame
     {
       setTitle(INFO_CTRL_PANEL_GENERIC_TITLE.get(
               DynamicConstants.PRODUCT_NAME,
-              panel.getTitle().toString()).toString());
+              panel.getTitle()).toString());
     }
   }
 

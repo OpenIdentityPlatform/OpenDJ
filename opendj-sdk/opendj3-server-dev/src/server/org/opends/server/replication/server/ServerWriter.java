@@ -126,8 +126,7 @@ public class ServerWriter extends DirectoryThread
             if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS)
             {
               logger.warn(WARN_IGNORING_UPDATE_TO_DS_BADGENID.get(handler.getReplicationServerId(),
-                  update.getCSN().toString(),
-                  handler.getBaseDNString(), handler.getServerId(),
+                  update.getCSN(), handler.getBaseDN(), handler.getServerId(),
                   session.getReadableRemoteAddress(),
                   handler.getGenerationId(),
                   referenceGenerationId));
@@ -135,8 +134,7 @@ public class ServerWriter extends DirectoryThread
             else if (dsStatus == ServerStatus.FULL_UPDATE_STATUS)
             {
               logger.warn(WARN_IGNORING_UPDATE_TO_DS_FULLUP.get(handler.getReplicationServerId(),
-                  update.getCSN().toString(),
-                  handler.getBaseDNString(), handler.getServerId(),
+                  update.getCSN(), handler.getBaseDN(), handler.getServerId(),
                   session.getReadableRemoteAddress()));
             }
             continue;
@@ -152,15 +150,12 @@ public class ServerWriter extends DirectoryThread
               || referenceGenerationId == -1
               || handler.getGenerationId() == -1)
           {
-            logger.error(
-                WARN_IGNORING_UPDATE_TO_RS.get(
-                    handler.getReplicationServerId(),
-                    update.getCSN().toString(),
-                    handler.getBaseDNString(),
-                    handler.getServerId(),
-                    session.getReadableRemoteAddress(),
-                    handler.getGenerationId(),
-                    referenceGenerationId));
+            logger.error(WARN_IGNORING_UPDATE_TO_RS.get(
+                handler.getReplicationServerId(),
+                update.getCSN(), handler.getBaseDN(), handler.getServerId(),
+                session.getReadableRemoteAddress(),
+                handler.getGenerationId(),
+                referenceGenerationId));
             continue;
           }
         }

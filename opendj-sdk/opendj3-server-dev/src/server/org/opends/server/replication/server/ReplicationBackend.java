@@ -183,7 +183,7 @@ public class ReplicationBackend extends Backend
         logger.traceException(e);
 
         LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
-            dn.toString(), getExceptionMessage(e));
+            dn, getExceptionMessage(e));
         throw new InitializationException(message, e);
       }
     }

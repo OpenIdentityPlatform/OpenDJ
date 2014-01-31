@@ -423,10 +423,8 @@ public class PatternDN
       }
       else
       {
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(
-            dnString, attributeName.toString(), c);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+            ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(dnString, attributeName, c));
       }
 
       // Skip over any spaces after the equal sign.
@@ -518,10 +516,8 @@ public class PatternDN
         // because that would be invalid.
         if (pos >= length)
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
-              dnString, attributeName.toString());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, attributeName));
         }
 
 
@@ -1060,16 +1056,12 @@ public class PatternDN
         validOID = false;
       }
 
-
       if (! validOID)
       {
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(
-            dnString, attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+            ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(dnString, attributeName));
       }
     }
-
 
     return pos;
   }

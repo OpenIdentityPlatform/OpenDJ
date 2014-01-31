@@ -187,8 +187,7 @@ class CaseIgnoreIA5SubstringMatchingRule
         // This is not a valid character for an IA5 string.  If strict syntax
         // enforcement is enabled, then we'll throw an exception.  Otherwise,
         // we'll get rid of the character.
-        LocalizableMessage message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
-                value.toString(), String.valueOf(c));
+        LocalizableMessage message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(value, c);
 
         switch (DirectoryServer.getSyntaxEnforcementPolicy())
         {
@@ -273,8 +272,7 @@ class CaseIgnoreIA5SubstringMatchingRule
         // This is not a valid character for an IA5 string.  If strict syntax
         // enforcement is enabled, then we'll throw an exception.  Otherwise,
         // we'll get rid of the character.
-        LocalizableMessage message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
-                substring.toString(), String.valueOf(c));
+        LocalizableMessage message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(substring, c);
 
         switch (DirectoryServer.getSyntaxEnforcementPolicy())
         {

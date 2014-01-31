@@ -612,10 +612,8 @@ public class DITContentRuleSyntax
             }
             else
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.get(
-                  valueStr, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message);
+                  ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.get(valueStr, woidBuffer));
             }
           }
           else if (oc.getObjectClassType() != ObjectClassType.AUXILIARY)
@@ -655,15 +653,12 @@ public class DITContentRuleSyntax
               // requires an attribute type that we don't know anything about.
               if (allowUnknownElements)
               {
-                attr = DirectoryServer.getDefaultAttributeType(
-                                            woidBuffer.toString());
+                attr = DirectoryServer.getDefaultAttributeType(woidBuffer.toString());
               }
               else
               {
-                LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(
-                    valueStr, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                             message);
+                    ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(valueStr, woidBuffer));
               }
             }
 
@@ -705,10 +700,8 @@ public class DITContentRuleSyntax
             }
             else
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(
-                  valueStr, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message);
+                  ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(valueStr, woidBuffer));
             }
           }
 
@@ -745,10 +738,8 @@ public class DITContentRuleSyntax
               }
               else
               {
-                LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(
-                    valueStr, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                             message);
+                    ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(valueStr, woidBuffer));
               }
             }
 
@@ -790,10 +781,8 @@ public class DITContentRuleSyntax
             }
             else
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(
-                  valueStr, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message);
+                  ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(valueStr, woidBuffer));
             }
           }
 
@@ -874,10 +863,8 @@ public class DITContentRuleSyntax
             }
             else
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.get(
-                  valueStr, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message);
+                  ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.get(valueStr, woidBuffer));
             }
           }
 

@@ -1395,7 +1395,7 @@ public class UninstallCliHelper extends ConsoleApplication {
           returnValue = askConfirmation(
             ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
                 Utils.getMessageFromCollection(exceptionMsgs,
-                  Constants.LINE_SEPARATOR).toString()), true, logger);
+                  Constants.LINE_SEPARATOR)), true, logger);
         }
         catch (CLIException ce)
         {
@@ -1434,7 +1434,7 @@ public class UninstallCliHelper extends ConsoleApplication {
               "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
               "--"+parser.forceOnErrorArg.getLongIdentifier(),
               Utils.getMessageFromCollection(exceptionMsgs,
-                  Constants.LINE_SEPARATOR).toString());
+                  Constants.LINE_SEPARATOR));
           throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
               null);
         }

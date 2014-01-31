@@ -2976,7 +2976,7 @@ public abstract class Installer extends GuiApplication {
     adminProperties.put(ADSContext.AdministratorProperty.PASSWORD,
         userData.getGlobalAdministratorPassword());
     adminProperties.put(ADSContext.AdministratorProperty.DESCRIPTION,
-        INFO_GLOBAL_ADMINISTRATOR_DESCRIPTION.get().toString());
+        INFO_GLOBAL_ADMINISTRATOR_DESCRIPTION.get());
     return adminProperties;
   }
 
@@ -3677,8 +3677,7 @@ public abstract class Installer extends GuiApplication {
           qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
           qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
           qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
-          errorMsgs.add(INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-                  host+":"+port, t.toString()));
+          errorMsgs.add(INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(host+":"+port, t));
         }
       }
       else if (t instanceof NamingException)
@@ -3695,8 +3694,7 @@ public abstract class Installer extends GuiApplication {
       }
       else if (t instanceof ADSContextException)
       {
-        errorMsgs.add(INFO_REMOTE_ADS_EXCEPTION.get(
-                host+":"+port, t.toString()));
+        errorMsgs.add(INFO_REMOTE_ADS_EXCEPTION.get(host+":"+port, t));
       }
       else
       {

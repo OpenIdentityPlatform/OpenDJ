@@ -524,8 +524,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         {
           LocalizableMessage title = INFO_CTRL_PANEL_ERROR_SEARCHING_ENTRY_TITLE.get();
           LocalizableMessage details =
-            ERR_CTRL_PANEL_ERROR_SEARCHING_ENTRY.get(node.getDN(),
-                throwable.toString());
+            ERR_CTRL_PANEL_ERROR_SEARCHING_ENTRY.get(node.getDN(), throwable);
           displayErrorMessage(title, details);
         }
         else

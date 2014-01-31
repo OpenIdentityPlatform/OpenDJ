@@ -897,7 +897,7 @@ public class LDAPPasswordModify
             if (pwPolicyWarningType != null)
             {
               LocalizableMessage message = INFO_LDAPPWMOD_PWPOLICY_WARNING.get(
-                      pwPolicyWarningType.toString(),
+                      pwPolicyWarningType,
                       pwPolicyControl.getWarningValue());
               out.println(wrapText(message, MAX_LINE_WIDTH));
             }
@@ -906,15 +906,13 @@ public class LDAPPasswordModify
                  pwPolicyControl.getErrorType();
             if (pwPolicyErrorType != null)
             {
-              LocalizableMessage message = INFO_LDAPPWMOD_PWPOLICY_ERROR.get(
-                      pwPolicyErrorType.toString());
+              LocalizableMessage message = INFO_LDAPPWMOD_PWPOLICY_ERROR.get(pwPolicyErrorType);
               out.println(wrapText(message, MAX_LINE_WIDTH));
             }
           }
           catch (Exception e)
           {
-            LocalizableMessage message = ERR_LDAPPWMOD_CANNOT_DECODE_PWPOLICY_CONTROL.get(
-                    String.valueOf(e));
+            LocalizableMessage message = ERR_LDAPPWMOD_CANNOT_DECODE_PWPOLICY_CONTROL.get(e);
             err.println(wrapText(message, MAX_LINE_WIDTH));
           }
         }

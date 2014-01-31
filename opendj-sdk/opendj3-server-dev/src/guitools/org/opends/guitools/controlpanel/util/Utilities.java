@@ -344,7 +344,7 @@ public class Utilities
    * @param font the font to be used in the message.
    * @return a JEditorPane that displays a message.
    */
-  public static JEditorPane makeHtmlPane(String text, Font font)
+  public static JEditorPane makeHtmlPane(CharSequence text, Font font)
   {
     JEditorPane pane = new JEditorPane();
     pane.setContentType("text/html");
@@ -958,7 +958,7 @@ public class Utilities
    * @return a string that represents the original HTML with the font specified
    * as parameter.
    */
-  public static String applyFont(String html, Font font)
+  public static String applyFont(CharSequence html, Font font)
   {
     StringBuilder buf = new StringBuilder();
 
@@ -1658,7 +1658,7 @@ public class Utilities
    */
   public static String getProgressDone(Font progressFont)
   {
-    return applyFont(INFO_CTRL_PANEL_PROGRESS_DONE.get().toString(),
+    return applyFont(INFO_CTRL_PANEL_PROGRESS_DONE.get(),
         progressFont.deriveFont(Font.BOLD));
   }
 
@@ -1798,9 +1798,7 @@ public class Utilities
   {
     l.setText(INFO_CTRL_PANEL_NOT_AVAILABLE_LONG_LABEL.get().toString());
     l.setHelpIconVisible(true);
-    l.setHelpTooltip(
-            INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_TOOLTIP.get()
-                    .toString());
+    l.setHelpTooltip(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_TOOLTIP.get().toString());
   }
 
   /**
@@ -1828,9 +1826,7 @@ public class Utilities
   {
     l.setText(INFO_CTRL_PANEL_NOT_AVAILABLE_LONG_LABEL.get().toString());
     l.setHelpIconVisible(true);
-    l.setHelpTooltip(
-            INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_TOOLTIP.get()
-                    .toString());
+    l.setHelpTooltip(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_TOOLTIP.get().toString());
   }
 
   /**

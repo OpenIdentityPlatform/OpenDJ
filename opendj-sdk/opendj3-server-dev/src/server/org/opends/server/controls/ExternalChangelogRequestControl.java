@@ -91,7 +91,7 @@ public class ExternalChangelogRequestControl
           LocalizableMessage message =
             ERR_CANNOT_DECODE_CONTROL_VALUE.get(
                 getOID() + " x=" + value.toHexString() + " v="
-                + mdssValue , getExceptionMessage(e).toString());
+                + mdssValue , getExceptionMessage(e));
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
         }
       }

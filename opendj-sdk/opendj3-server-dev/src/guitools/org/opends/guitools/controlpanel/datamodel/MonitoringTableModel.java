@@ -388,8 +388,7 @@ implements Comparator<P>
    */
   private String getAverageHeader(MonitoringAttributes attr)
   {
-    return getHeader(INFO_CTRL_PANEL_AVERAGE_HEADER.get(
-        attr.getMessage().toString()), 15);
+    return getHeader(INFO_CTRL_PANEL_AVERAGE_HEADER.get(attr.getMessage()), 15);
   }
 
   /**

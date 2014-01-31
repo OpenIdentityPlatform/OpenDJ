@@ -111,7 +111,7 @@ public class CreateRCScript
     if (serverRoot == null)
     {
       err.println(ERR_CREATERC_UNABLE_TO_DETERMINE_SERVER_ROOT.get(
-                       PROPERTY_SERVER_ROOT, ENV_VAR_INSTALL_ROOT).toString());
+                       PROPERTY_SERVER_ROOT, ENV_VAR_INSTALL_ROOT));
       return 1;
     }
 
@@ -189,8 +189,7 @@ public class CreateRCScript
       File f = new File(javaHome.getValue());
       if (! (f.exists() && f.isDirectory()))
       {
-        err.println(ERR_CREATERC_JAVA_HOME_DOESNT_EXIST.get(
-                         javaHome.getValue()).toString());
+        err.println(ERR_CREATERC_JAVA_HOME_DOESNT_EXIST.get(javaHome.getValue()));
         return 1;
       }
 
@@ -302,11 +301,9 @@ public class CreateRCScript
     }
     catch (Exception e)
     {
-      err.println(ERR_CREATERC_CANNOT_WRITE.get(
-                       getExceptionMessage(e)).toString());
+      err.println(ERR_CREATERC_CANNOT_WRITE.get(getExceptionMessage(e)));
       return 1;
     }
-
 
     // If we've gotten here, then everything has completed successfully.
     return 0;

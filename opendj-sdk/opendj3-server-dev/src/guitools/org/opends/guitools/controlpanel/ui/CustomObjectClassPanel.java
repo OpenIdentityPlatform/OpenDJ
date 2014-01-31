@@ -788,8 +788,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
         LocalizableMessage elementType = NewAttributePanel.getSchemaElementType(n, schema);
         if (elementType != null)
         {
-          errors.add(ERR_CTRL_PANEL_OBJECTCLASS_NAME_ALREADY_IN_USE.get(n,
-              elementType.toString()));
+          errors.add(ERR_CTRL_PANEL_OBJECTCLASS_NAME_ALREADY_IN_USE.get(n, elementType));
           setPrimaryInvalid(lName);
         }
       }
@@ -808,8 +807,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
         LocalizableMessage elementType = NewAttributePanel.getSchemaElementType(n, schema);
         if (elementType != null)
         {
-          errors.add(ERR_CTRL_PANEL_OID_ALREADY_IN_USE.get(n,
-              elementType.toString()));
+          errors.add(ERR_CTRL_PANEL_OID_ALREADY_IN_USE.get(n, elementType));
           setPrimaryInvalid(lOID);
         }
       }
@@ -844,8 +842,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
               NewAttributePanel.getSchemaElementType(alias, schema);
             if (elementType != null)
             {
-              errors.add(ERR_CTRL_PANEL_ALIAS_ALREADY_IN_USE.get(n,
-                  elementType.toString()));
+              errors.add(ERR_CTRL_PANEL_ALIAS_ALREADY_IN_USE.get(n, elementType));
               setPrimaryInvalid(lAliases);
             }
           }

@@ -304,8 +304,7 @@ public class ReferentialIntegrityPlugin
 
         default:
           isAcceptable = false;
-          unacceptableReasons.add(ERR_PLUGIN_REFERENT_INVALID_PLUGIN_TYPE.get(
-                                  t.toString()));
+          unacceptableReasons.add(ERR_PLUGIN_REFERENT_INVALID_PLUGIN_TYPE.get(t));
       }
     }
 
@@ -337,9 +336,7 @@ public class ReferentialIntegrityPlugin
         {
           isAcceptable = false;
           unacceptableReasons.add(ERR_PLUGIN_REFERENT_ATTR_UNINDEXED.get(
-                                         pluginCfg.dn().toString(),
-                                         type.getNameOrOID(),
-                                         b.getBackendID()));
+              pluginCfg.dn(), type.getNameOrOID(), b.getBackendID()));
         }
       }
     }
@@ -1267,10 +1264,7 @@ public class ReferentialIntegrityPlugin
             return PluginResult.PreOperation.stopProcessing(
                   ResultCode.CONSTRAINT_VIOLATION,
                   ERR_PLUGIN_REFERENT_NAMINGCONTEXT_MISMATCH.get(
-                    valueEntryDN.toString(),
-                    attr.getName(),
-                    entryDN.toString()
-                  )
+                      valueEntryDN, attr.getName(), entryDN)
                 );
           }
 
@@ -1289,10 +1283,7 @@ public class ReferentialIntegrityPlugin
           return PluginResult.PreOperation.stopProcessing(
             ResultCode.CONSTRAINT_VIOLATION,
             ERR_PLUGIN_REFERENT_ENTRY_MISSING.get(
-            valueEntryDN.toString(),
-            attr.getName(),
-            entryDN.toString()
-            ));
+                valueEntryDN, attr.getName(), entryDN));
         }
 
         /* Verify that the value entry conforms to the filter.
@@ -1304,11 +1295,7 @@ public class ReferentialIntegrityPlugin
           return PluginResult.PreOperation.stopProcessing(
             ResultCode.CONSTRAINT_VIOLATION,
             ERR_PLUGIN_REFERENT_FILTER_MISMATCH.get(
-              valueEntry.getName().toString(),
-              attr.getName(),
-              entryDN.toString(),
-              filter.toString())
-            );
+                valueEntry.getName(), attr.getName(), entryDN, filter));
         }
       }
     }

@@ -540,11 +540,9 @@ public class LDAPSyntaxDescriptionSyntax
           ByteString entry = ByteString.valueOf(v);
           if (entries.contains(entry))
           {
-            LocalizableMessage message =
-                  WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(
-                          valueStr, entry.toString(),pos);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                  message);
+                WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(
+                    valueStr, entry,pos));
           }
           entries.add(entry);
         }
@@ -1406,14 +1404,10 @@ public class LDAPSyntaxDescriptionSyntax
     {
       //The value is acceptable if it belongs to the set.
       boolean isAllowed = entries.contains(value);
-
-      if(!isAllowed)
+      if (!isAllowed)
       {
-        LocalizableMessage message = WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(
-                value.toString(),oid);
-        invalidReason.append(message);
+        invalidReason.append(WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(value,oid));
       }
-
       return isAllowed;
     }
 

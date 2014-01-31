@@ -193,8 +193,7 @@ public class BinaryCellPanel extends JPanel
     }
     else
     {
-      returnValue = INFO_CTRL_PANEL_CONTENTS_OF_FILE.get(
-          value.getFile().toString());
+      returnValue = INFO_CTRL_PANEL_CONTENTS_OF_FILE.get(value.getFile());
     }
     return returnValue;
   }

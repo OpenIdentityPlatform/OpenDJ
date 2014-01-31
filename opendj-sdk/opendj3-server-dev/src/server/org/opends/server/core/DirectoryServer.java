@@ -6939,9 +6939,8 @@ public final class DirectoryServer
         {
           // The port was already specified: this is a configuration error,
           // log a message.
-          LocalizableMessage message =
-              ERR_HOST_PORT_ALREADY_SPECIFIED.get(c.getConnectionHandlerName(),
-                  listener.toString());
+          LocalizableMessage message = ERR_HOST_PORT_ALREADY_SPECIFIED.get(
+              c.getConnectionHandlerName(), listener);
           logger.error(message);
           errorMessages.add(message);
 

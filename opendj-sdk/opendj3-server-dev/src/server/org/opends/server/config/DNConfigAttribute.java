@@ -575,8 +575,7 @@ public final class DNConfigAttribute
       logger.traceException(e);
 
       rejectReason.append(ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-              value.getValue().toString(), getName(),
-              String.valueOf(e)));
+              value.getValue(), getName(), e));
       return false;
     }
 
@@ -833,7 +832,7 @@ public final class DNConfigAttribute
                 logger.traceException(e);
 
                 LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-                    v.getValue().toString(), getName(), String.valueOf(e));
+                    v.getValue(), getName(), e);
                 throw new ConfigException(message, e);
               }
 
@@ -845,9 +844,8 @@ public final class DNConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          LocalizableMessage message =
-              ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName());
-          throw new ConfigException(message);
+          throw new ConfigException(
+              ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName()));
         }
       }
       else
@@ -856,9 +854,8 @@ public final class DNConfigAttribute
         if (activeValues!= null)
         {
           // We cannot have multiple active value sets.
-          LocalizableMessage message =
-              ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName());
-          throw new ConfigException(message);
+          throw new ConfigException(
+              ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName()));
         }
 
 
@@ -900,7 +897,7 @@ public final class DNConfigAttribute
               logger.traceException(e);
 
               LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-                  v.getValue().toString(), getName(), String.valueOf(e));
+                  v.getValue(), getName(), e);
               throw new ConfigException(message, e);
             }
 

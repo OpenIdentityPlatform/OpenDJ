@@ -329,10 +329,9 @@ public class InstallerHelper {
     }
     catch (Throwable t)
     {
-      LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
-              serverDisplay, t.toString());
       throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          ReturnCode.CONFIGURATION_ERROR,
+          INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t),
           t);
     }
   }
@@ -396,10 +395,9 @@ public class InstallerHelper {
     }
     catch (Throwable t)
     {
-      LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
-              serverDisplay, t.toString());
       throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          ReturnCode.CONFIGURATION_ERROR,
+          INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t),
           t);
     }
   }
@@ -435,10 +433,9 @@ public class InstallerHelper {
     }
     catch (Throwable t)
     {
-      LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
-              serverDisplay, t.toString());
       throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          ReturnCode.CONFIGURATION_ERROR,
+          INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t),
           t);
     }
   }
@@ -651,10 +648,9 @@ public class InstallerHelper {
     }
     catch (Throwable t)
     {
-      LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
-              serverDisplay, t.toString());
       throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          ReturnCode.CONFIGURATION_ERROR,
+          INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t),
           t);
     }
   }
@@ -764,10 +760,9 @@ public class InstallerHelper {
     }
     catch (Throwable t)
     {
-      LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
-              serverDisplay, t.toString());
       throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          ReturnCode.CONFIGURATION_ERROR,
+          INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t),
           t);
     }
   }

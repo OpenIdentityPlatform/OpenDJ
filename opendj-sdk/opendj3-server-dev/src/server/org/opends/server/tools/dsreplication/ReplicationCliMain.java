@@ -3702,7 +3702,7 @@ public class ReplicationCliMain extends ConsoleApplication
             println(
                 ERR_REPLICATION_STATUS_READING_REGISTERED_SERVERS.get(
                     Utils.getMessageFromCollection(exceptionMsgs,
-                        Constants.LINE_SEPARATOR).toString()));
+                        Constants.LINE_SEPARATOR)));
             println();
           }
           else
@@ -3712,7 +3712,7 @@ public class ReplicationCliMain extends ConsoleApplication
               cancelled = !askConfirmation(
               ERR_REPLICATION_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.
                   get(Utils.getMessageFromCollection(exceptionMsgs,
-                      Constants.LINE_SEPARATOR).toString()), true, logger);
+                      Constants.LINE_SEPARATOR)), true, logger);
             }
             catch (CLIException ce)
             {
@@ -5604,7 +5604,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         println(ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
                 Utils.getMessageFromCollection(messages,
-                    Constants.LINE_SEPARATOR).toString()));
+                    Constants.LINE_SEPARATOR)));
       }
     }
     // Check whether there is more than one replication server in the
@@ -6335,7 +6335,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println(
             ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
                 Utils.getMessageFromCollection(messages,
-                    Constants.LINE_SEPARATOR).toString()));
+                    Constants.LINE_SEPARATOR)));
       }
     }
 
@@ -6837,7 +6837,7 @@ public class ReplicationCliMain extends ConsoleApplication
         LocalizableMessage msg =
             ERR_REPLICATION_STATUS_READING_REGISTERED_SERVERS.get(
                 Utils.getMessageFromCollection(messages,
-                    Constants.LINE_SEPARATOR).toString());
+                    Constants.LINE_SEPARATOR));
         println(msg);
       }
     }
@@ -8019,8 +8019,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           throw new ReplicationCliException(
               ERR_REPLICATION_INITIALIZING_TRIES_COMPLETED.get(
-                  pnfe.getMessageObject().toString()),
-              INITIALIZING_TRIES_COMPLETED, pnfe);
+                  pnfe.getMessageObject()), INITIALIZING_TRIES_COMPLETED, pnfe);
         }
         try
         {
@@ -8079,8 +8078,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           throw new ReplicationCliException(
               ERR_REPLICATION_INITIALIZING_TRIES_COMPLETED.get(
-                  pnfe.getMessageObject().toString()),
-              INITIALIZING_TRIES_COMPLETED, pnfe);
+                  pnfe.getMessageObject()), INITIALIZING_TRIES_COMPLETED, pnfe);
         }
         try
         {
@@ -9394,9 +9392,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (IOException ioe)
       {
-        println(
-            ERR_REPLICATION_ERROR_WRITING_EQUIVALENT_COMMAND_LINE.get(file,
-                ioe.toString()));
+        println(ERR_REPLICATION_ERROR_WRITING_EQUIVALENT_COMMAND_LINE.get(file, ioe));
       }
     }
   }

@@ -201,9 +201,7 @@ public class DataServerHandler extends ServerHandler
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      LocalizableMessage msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
-          Integer.toString(serverId), status.toString(), event.toString());
-      logger.error(msg);
+      logger.error(ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDN(), serverId, status, event));
       // Only change allowed is from NORMAL_STATUS to DEGRADED_STATUS and vice
       // versa. We may be trying to change the status while another status has
       // just been entered: e.g a full update has just been engaged.
@@ -328,14 +326,11 @@ public class DataServerHandler extends ServerHandler
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      LocalizableMessage msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
-          Integer.toString(serverId), status.toString(), event.toString());
-      logger.error(msg);
+      logger.error(ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDN(), serverId, status, event));
       return ServerStatus.INVALID_STATUS;
     }
 
     status = newStatus;
-
     return status;
   }
 
@@ -581,11 +576,8 @@ public class DataServerHandler extends ServerHandler
     // Sanity check: is it a valid initial status?
     if (!isValidInitialStatus(this.status))
     {
-      LocalizableMessage message = ERR_RS_INVALID_INIT_STATUS.get(
-          this.status.toString(),
-          getBaseDNString(),
-          Integer.toString(serverId));
-      throw new DirectoryException(ResultCode.OTHER, message);
+      throw new DirectoryException(ResultCode.OTHER,
+          ERR_RS_INVALID_INIT_STATUS.get( this.status, getBaseDN(), serverId));
     }
 
     this.refUrls = startSessionMsg.getReferralsURLs();

@@ -1582,10 +1582,8 @@ public class NetworkGroup
         LocalizableMessage message =
             ERR_REGISTER_WORKFLOW_BASE_DN_ALREADY_EXISTS.get(
                 workflowID, networkGroupID, node.getWorkflowImpl()
-                    .getWorkflowId(), workflowNode.getWorkflowImpl()
-                    .getBaseDN().toString());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-            message);
+                    .getWorkflowId(), workflowNode.getWorkflowImpl().getBaseDN());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
   }

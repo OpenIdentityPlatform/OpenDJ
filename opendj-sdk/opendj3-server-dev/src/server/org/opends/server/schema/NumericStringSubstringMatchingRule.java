@@ -167,7 +167,7 @@ class NumericStringSubstringMatchingRule
         {
           // This is an illegal character.  Either log it or reject it.
           LocalizableMessage message = WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(
-                  value.toString(), String.valueOf(c), pos);
+                  value, c, pos);
 
           switch (DirectoryServer.getSyntaxEnforcementPolicy())
           {

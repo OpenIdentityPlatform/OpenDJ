@@ -1180,8 +1180,7 @@ public final class DSConfig extends ConsoleApplication {
       }
       catch (IOException ioe)
       {
-        println(ERR_DSCFG_ERROR_WRITING_EQUIVALENT_COMMAND_LINE.get(file,
-            ioe.toString()));
+        println(ERR_DSCFG_ERROR_WRITING_EQUIVALENT_COMMAND_LINE.get(file, ioe));
       }
     }
   }

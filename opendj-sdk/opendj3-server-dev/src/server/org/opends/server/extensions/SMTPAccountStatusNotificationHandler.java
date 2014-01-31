@@ -47,6 +47,7 @@ import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Utils;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationProperty;
 import org.opends.server.types.AccountStatusNotificationType;
@@ -143,8 +144,7 @@ public class SMTPAccountStatusNotificationHandler
     List<Properties> propList = DirectoryServer.getMailServerPropertySets();
     if ((propList == null) || propList.isEmpty())
     {
-      throw new ConfigException(ERR_SMTP_ASNH_NO_MAIL_SERVERS_CONFIGURED.get(
-                                     configuration.dn().toString()));
+      throw new ConfigException(ERR_SMTP_ASNH_NO_MAIL_SERVERS_CONFIGURED.get(configuration.dn()));
     }
 
     // Make sure that either an explicit recipient list or a set of email
@@ -154,8 +154,7 @@ public class SMTPAccountStatusNotificationHandler
     if (((mailAttrs == null) || mailAttrs.isEmpty()) &&
         ((recipients == null) || recipients.isEmpty()))
     {
-      throw new ConfigException(ERR_SMTP_ASNH_NO_RECIPIENTS.get(
-                                     configuration.dn().toString()));
+      throw new ConfigException(ERR_SMTP_ASNH_NO_RECIPIENTS.get(configuration.dn()));
     }
   }
 
@@ -186,8 +185,7 @@ public class SMTPAccountStatusNotificationHandler
       int colonPos = s.indexOf(':');
       if (colonPos < 0)
       {
-        throw new ConfigException(ERR_SMTP_ASNH_SUBJECT_NO_COLON.get(s,
-                                       configuration.dn().toString()));
+        throw new ConfigException(ERR_SMTP_ASNH_SUBJECT_NO_COLON.get(s, configuration.dn()));
       }
 
       String notificationTypeName = s.substring(0, colonPos).trim();
@@ -195,16 +193,13 @@ public class SMTPAccountStatusNotificationHandler
            AccountStatusNotificationType.typeForName(notificationTypeName);
       if (t == null)
       {
-        throw new ConfigException(
-                       ERR_SMTP_ASNH_SUBJECT_INVALID_NOTIFICATION_TYPE.get(
-                            s, configuration.dn().toString(),
-                            notificationTypeName));
+        throw new ConfigException(ERR_SMTP_ASNH_SUBJECT_INVALID_NOTIFICATION_TYPE.get(
+            s, configuration.dn(), notificationTypeName));
       }
       else if (map.containsKey(t))
       {
         throw new ConfigException(ERR_SMTP_ASNH_SUBJECT_DUPLICATE_TYPE.get(
-                                       configuration.dn().toString(),
-                                       notificationTypeName));
+            configuration.dn(), notificationTypeName));
       }
 
       map.put(t, s.substring(colonPos+1).trim());
@@ -248,8 +243,7 @@ public class SMTPAccountStatusNotificationHandler
       int colonPos = s.indexOf(':');
       if (colonPos < 0)
       {
-        throw new ConfigException(ERR_SMTP_ASNH_TEMPLATE_NO_COLON.get(s,
-                                       configuration.dn().toString()));
+        throw new ConfigException(ERR_SMTP_ASNH_TEMPLATE_NO_COLON.get(s, configuration.dn()));
       }
 
       String notificationTypeName = s.substring(0, colonPos).trim();
@@ -257,16 +251,13 @@ public class SMTPAccountStatusNotificationHandler
            AccountStatusNotificationType.typeForName(notificationTypeName);
       if (t == null)
       {
-        throw new ConfigException(
-                       ERR_SMTP_ASNH_TEMPLATE_INVALID_NOTIFICATION_TYPE.get(
-                            s, configuration.dn().toString(),
-                            notificationTypeName));
+        throw new ConfigException(ERR_SMTP_ASNH_TEMPLATE_INVALID_NOTIFICATION_TYPE.get(
+            s, configuration.dn(), notificationTypeName));
       }
       else if (map.containsKey(t))
       {
         throw new ConfigException(ERR_SMTP_ASNH_TEMPLATE_DUPLICATE_TYPE.get(
-                                       configuration.dn().toString(),
-                                       notificationTypeName));
+            configuration.dn(), notificationTypeName));
       }
 
       String path = s.substring(colonPos+1).trim();
@@ -279,7 +270,7 @@ public class SMTPAccountStatusNotificationHandler
       if (! f.exists())
       {
         throw new ConfigException(ERR_SMTP_ASNH_TEMPLATE_NO_SUCH_FILE.get(
-                                       path, configuration.dn().toString()));
+                                       path, configuration.dn()));
       }
 
       map.put(t, parseTemplateFile(f));
@@ -480,19 +471,11 @@ public class SMTPAccountStatusNotificationHandler
       logger.traceException(e);
 
       throw new ConfigException(ERR_SMTP_ASNH_TEMPLATE_CANNOT_PARSE.get(
-                                     f.getAbsolutePath(),
-                                     currentConfig.dn().toString(),
-                                     getExceptionMessage(e)));
+          f.getAbsolutePath(), currentConfig.dn(), getExceptionMessage(e)));
     }
     finally
     {
-      try
-      {
-        if (reader != null)
-        {
-          reader.close();
-        }
-      } catch (Exception e) {}
+      Utils.closeSilently(reader);
     }
   }
 
@@ -672,9 +655,8 @@ public class SMTPAccountStatusNotificationHandler
     {
       logger.traceException(e);
 
-      logger.error(ERR_SMTP_ASNH_CANNOT_SEND_MESSAGE.get(notificationType.getName(),
-                    notification.getUserDN().toString(),
-                    getExceptionMessage(e)));
+      logger.error(ERR_SMTP_ASNH_CANNOT_SEND_MESSAGE.get(
+          notificationType.getName(), notification.getUserDN(), getExceptionMessage(e)));
     }
   }
 
@@ -695,8 +677,7 @@ public class SMTPAccountStatusNotificationHandler
     List<Properties> propList = DirectoryServer.getMailServerPropertySets();
     if ((propList == null) || propList.isEmpty())
     {
-      unacceptableReasons.add(ERR_SMTP_ASNH_NO_MAIL_SERVERS_CONFIGURED.get(
-                                   configuration.dn().toString()));
+      unacceptableReasons.add(ERR_SMTP_ASNH_NO_MAIL_SERVERS_CONFIGURED.get(configuration.dn()));
       configAcceptable = false;
     }
 
@@ -708,8 +689,7 @@ public class SMTPAccountStatusNotificationHandler
     if (((mailAttrs == null) || mailAttrs.isEmpty()) &&
         ((recipients == null) || recipients.isEmpty()))
     {
-      unacceptableReasons.add(ERR_SMTP_ASNH_NO_RECIPIENTS.get(
-                                   configuration.dn().toString()));
+      unacceptableReasons.add(ERR_SMTP_ASNH_NO_RECIPIENTS.get(configuration.dn()));
       configAcceptable = false;
     }
 

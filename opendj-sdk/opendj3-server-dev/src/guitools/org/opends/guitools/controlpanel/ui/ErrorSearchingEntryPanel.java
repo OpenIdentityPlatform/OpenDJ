@@ -117,12 +117,11 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
     if (t instanceof OpenDsException)
     {
       details = ERR_CTRL_PANEL_ERROR_SEARCHING_ENTRY.get(dn,
-      ((OpenDsException)t).getMessageObject().toString());
+      ((OpenDsException)t).getMessageObject());
     }
     else
     {
-      details = ERR_CTRL_PANEL_ERROR_SEARCHING_ENTRY.get(dn,
-          t.toString());
+      details = ERR_CTRL_PANEL_ERROR_SEARCHING_ENTRY.get(dn, t);
     }
     updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
         details, ColorAndFontConstants.defaultFont);
@@ -169,9 +168,7 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
             }
             else if (ex instanceof NameNotFoundException)
             {
-              msg =
-                ERR_CTRL_PANEL_COULD_NOT_FIND_PROVIDED_ENTRY_IN_REFERRAL.get(
-                    arg.toString(), hostPort);
+              msg = ERR_CTRL_PANEL_COULD_NOT_FIND_PROVIDED_ENTRY_IN_REFERRAL.get(arg, hostPort);
             }
             else
             {
@@ -186,9 +183,7 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
             }
             else if (ex instanceof NameNotFoundException)
             {
-              msg =
-           ERR_CTRL_PANEL_COULD_NOT_FIND_PROVIDED_ENTRY_IN_REFERRAL_NO_HOST.get(
-                    arg.toString());
+              msg = ERR_CTRL_PANEL_COULD_NOT_FIND_PROVIDED_ENTRY_IN_REFERRAL_NO_HOST.get(arg);
             }
             else
             {

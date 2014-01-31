@@ -715,8 +715,7 @@ implements BackendPopulatedListener
     }
     catch (LDAPException le)
     {
-      errors.add(INFO_CTRL_PANEL_INVALID_FILTER_DETAILS.get(
-          le.getMessageObject().toString()));
+      errors.add(INFO_CTRL_PANEL_INVALID_FILTER_DETAILS.get(le.getMessageObject()));
       setPrimaryInvalid(lFilter);
     }
     if (errors.isEmpty())
@@ -1409,15 +1408,13 @@ implements BackendPopulatedListener
         catch (NamingException ne)
         {
           errorTitle = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_DETAILS.get();
-          errorDetails = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_SUMMARY.get(
-              ne.toString());
+          errorDetails = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_SUMMARY.get(ne);
           displayErrorPane = true;
         }
         catch (ConfigReadException cre)
         {
           errorTitle = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_DETAILS.get();
-          errorDetails = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_SUMMARY.get(
-              cre.getMessageObject().toString());
+          errorDetails = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_SUMMARY.get(cre.getMessageObject());
           displayErrorPane = true;
         }
       }

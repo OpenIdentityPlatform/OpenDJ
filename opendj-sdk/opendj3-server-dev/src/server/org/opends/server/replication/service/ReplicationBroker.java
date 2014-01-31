@@ -2661,8 +2661,8 @@ public class ReplicationBroker
                       serverId, previousRsServerID, rs.replicationServer,
                       bestRsServerId,
                       baseDN.toNormalizedString(),
-                      evals.getEvaluation(previousRsServerID).toString(),
-                      evals.getEvaluation(bestRsServerId).toString());
+                      evals.getEvaluation(previousRsServerID),
+                      evals.getEvaluation(bestRsServerId));
                 }
                 logger.error(message);
                 if (logger.isTraceEnabled())

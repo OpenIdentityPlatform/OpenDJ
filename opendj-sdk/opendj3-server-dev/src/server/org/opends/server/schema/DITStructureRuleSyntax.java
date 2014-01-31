@@ -463,10 +463,8 @@ public class DITStructureRuleSyntax
         nameForm = schema.getNameForm(woidBuffer.toString());
         if ((nameForm == null) && (! allowUnknownElements))
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(
-              valueStr, woidBuffer.toString());
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(valueStr, woidBuffer));
         }
       }
       else if (lowerTokenName.equals("sup"))

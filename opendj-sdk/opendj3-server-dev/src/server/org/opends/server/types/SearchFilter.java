@@ -2329,11 +2329,8 @@ public final class SearchFilter
 
       default:
         // This is an invalid filter type.
-        LocalizableMessage message = ERR_SEARCH_FILTER_INVALID_FILTER_TYPE.
-            get(String.valueOf(entry.getName()), toString(),
-                filterType.toString());
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                     message);
+            ERR_SEARCH_FILTER_INVALID_FILTER_TYPE.get(entry.getName(), this, filterType));
     }
   }
 

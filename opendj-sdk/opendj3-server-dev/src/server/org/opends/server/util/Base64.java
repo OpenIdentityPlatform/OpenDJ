@@ -659,7 +659,7 @@ public final class Base64
         catch (Exception e)
         {
           System.err.println(ERR_BASE64_CANNOT_READ_RAW_DATA.get(
-                                  getExceptionMessage(e)).toString());
+                                  getExceptionMessage(e)));
           System.exit(1);
         }
       }
@@ -678,7 +678,7 @@ public final class Base64
         catch (Exception e)
         {
           System.err.println(ERR_BASE64_CANNOT_WRITE_ENCODED_DATA.get(
-                                  getExceptionMessage(e)).toString());
+                                  getExceptionMessage(e)));
           System.exit(1);
         }
       }
@@ -737,7 +737,7 @@ public final class Base64
         catch (Exception e)
         {
           System.err.println(ERR_BASE64_CANNOT_READ_ENCODED_DATA.get(
-                                  getExceptionMessage(e)).toString());
+                                  getExceptionMessage(e)));
           System.exit(1);
         }
       }
@@ -772,14 +772,14 @@ public final class Base64
       catch (Exception e)
       {
         System.err.println(ERR_BASE64_CANNOT_WRITE_RAW_DATA.get(
-                                getExceptionMessage(e)).toString());
+                                getExceptionMessage(e)));
         System.exit(1);
       }
     }
     else
     {
       System.err.println(ERR_BASE64_UNKNOWN_SUBCOMMAND.get(
-                              subCommand.getName()).toString());
+                              subCommand.getName()));
       System.exit(1);
     }
   }

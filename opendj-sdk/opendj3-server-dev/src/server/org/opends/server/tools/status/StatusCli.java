@@ -406,8 +406,7 @@ class StatusCli extends ConsoleApplication
             // This should not happen but this is useful information to
             // diagnose the error.
             println();
-            println(INFO_ERROR_READING_SERVER_CONFIGURATION.get(
-              ne.toString()));
+            println(INFO_ERROR_READING_SERVER_CONFIGURATION.get(ne));
             return ErrorReturnCode.ERROR_READING_CONFIGURATION_WITH_LDAP.
               getReturnCode();
           } catch (ConfigReadException cre) {

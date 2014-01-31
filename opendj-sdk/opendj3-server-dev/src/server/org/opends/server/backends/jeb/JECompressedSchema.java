@@ -357,10 +357,8 @@ public final class JECompressedSchema extends CompressedSchema
         }
         else
         {
-          final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_STATUS.get(status
-              .toString());
-          throw new DirectoryException(
-              DirectoryServer.getServerErrorResultCode(), m);
+          final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_STATUS.get(status);
+          throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m);
         }
       }
       catch (final LockConflictException ce)

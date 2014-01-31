@@ -509,7 +509,7 @@ public class ImportTask extends Task
           builder.append(" ");
         }
         LocalizableMessage message = ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND.get(
-            builder.toString(), typeClearBackend.getNameOrOID());
+            builder, typeClearBackend.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }

@@ -345,9 +345,8 @@ public final class ConfigEntry
 
     if (conflictingChild != null)
     {
-      LocalizableMessage message = ERR_CONFIG_ENTRY_CONFLICTING_CHILD.get(
-          conflictingChild.getDN().toString(), entry.getName().toString());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ENTRY_CONFLICTING_CHILD.get(
+          conflictingChild.getDN(), entry.getName()));
     }
   }
 
@@ -377,16 +376,14 @@ public final class ConfigEntry
         ConfigEntry childEntry = children.get(childDN);
         if (childEntry == null)
         {
-          LocalizableMessage message = ERR_CONFIG_ENTRY_NO_SUCH_CHILD.get(
-              childDN.toString(), entry.getName().toString());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_CONFIG_ENTRY_NO_SUCH_CHILD.get(
+              childDN, entry.getName()));
         }
 
         if (childEntry.hasChildren())
         {
-          LocalizableMessage message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_NONLEAF.get(
-              childDN.toString(), entry.getName().toString());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_CONFIG_ENTRY_CANNOT_REMOVE_NONLEAF.get(
+              childDN, entry.getName()));
         }
 
         children.remove(childDN);

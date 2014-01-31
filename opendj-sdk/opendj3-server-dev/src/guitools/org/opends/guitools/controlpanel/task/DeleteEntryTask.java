@@ -350,9 +350,8 @@ public class DeleteEntryTask extends Task
           getProgressDialog().setSummary(
               LocalizableMessage.raw(
                   Utilities.applyFont(
-                      INFO_CTRL_PANEL_DELETING_ENTRY_SUMMARY.get(
-                          lastDn.toString()).toString(),
-                          ColorAndFontConstants.defaultFont)));
+                      INFO_CTRL_PANEL_DELETING_ENTRY_SUMMARY.get(lastDn),
+                      ColorAndFontConstants.defaultFont)));
         }
       });
     }
@@ -452,9 +451,8 @@ public class DeleteEntryTask extends Task
         getProgressDialog().setSummary(
             LocalizableMessage.raw(
                 Utilities.applyFont(
-                    INFO_CTRL_PANEL_DELETING_ENTRY_SUMMARY.get(
-                        lastDn.toString()).toString(),
-                        ColorAndFontConstants.defaultFont)));
+                    INFO_CTRL_PANEL_DELETING_ENTRY_SUMMARY.get(lastDn),
+                    ColorAndFontConstants.defaultFont)));
       }
     });
     //  Use a copy of the dir context since we are using an specific

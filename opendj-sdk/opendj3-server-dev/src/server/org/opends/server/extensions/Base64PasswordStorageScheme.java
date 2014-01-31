@@ -163,9 +163,8 @@ public class Base64PasswordStorageScheme
       logger.traceException(e);
 
       LocalizableMessage message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
-          storedPassword.toString(), String.valueOf(e));
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   e);
+          storedPassword, e);
+      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message, e);
     }
   }
 

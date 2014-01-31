@@ -151,45 +151,17 @@ class BitStringEqualityMatchingRule
     int length = valueString.length();
     if (length < 3)
     {
-
-      LocalizableMessage message = WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(
-              value.toString());
-      switch (DirectoryServer.getSyntaxEnforcementPolicy())
-      {
-        case REJECT:
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
-        case WARN:
-          logger.error(message);
-          return ByteString.valueOf(valueString);
-        default:
-          return ByteString.valueOf(valueString);
-      }
+      return reportInvalidSyntax(valueString,
+          WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(value));
     }
-
 
     if ((valueString.charAt(0) != '\'') ||
         (valueString.charAt(length-2) != '\'') ||
         (valueString.charAt(length-1) != 'B'))
     {
-
-      LocalizableMessage message = WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(
-              value.toString());
-
-      switch (DirectoryServer.getSyntaxEnforcementPolicy())
-      {
-        case REJECT:
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
-        case WARN:
-          logger.error(
-                  message);
-          return ByteString.valueOf(valueString);
-        default:
-          return ByteString.valueOf(valueString);
-      }
+      return reportInvalidSyntax(valueString,
+          WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(value));
     }
-
 
     for (int i=1; i < (length-2); i++)
     {
@@ -201,24 +173,27 @@ class BitStringEqualityMatchingRule
           break;
         default:
 
-          LocalizableMessage message = WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(
-                  value.toString(), String.valueOf(valueString.charAt(i)));
-
-        switch (DirectoryServer.getSyntaxEnforcementPolicy())
-        {
-          case REJECT:
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message);
-          case WARN:
-            logger.error(message);
-            return ByteString.valueOf(valueString);
-          default:
-            return ByteString.valueOf(valueString);
-        }
+        return reportInvalidSyntax(valueString,
+            WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(value, valueString.charAt(i)));
       }
     }
 
     return ByteString.valueOf(valueString);
+  }
+
+  private ByteString reportInvalidSyntax(String valueString, LocalizableMessage message)
+      throws DirectoryException
+  {
+    switch (DirectoryServer.getSyntaxEnforcementPolicy())
+    {
+      case REJECT:
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      case WARN:
+        logger.error(message);
+        return ByteString.valueOf(valueString);
+      default:
+        return ByteString.valueOf(valueString);
+    }
   }
 }
 

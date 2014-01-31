@@ -178,9 +178,7 @@ public class IntegerOrderingMatchingRule
               }
               else
               {
-
-                LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
-                        value.toString());
+                LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(value);
 
                 switch (DirectoryServer.getSyntaxEnforcementPolicy())
                 {
@@ -201,9 +199,7 @@ public class IntegerOrderingMatchingRule
               // This is OK as long as the first character isn't a dash.
               if (buffer.charAt(0) == '-')
               {
-
-                LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
-                        value.toString());
+                LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(value);
 
                 switch (DirectoryServer.getSyntaxEnforcementPolicy())
                 {
@@ -266,8 +262,7 @@ public class IntegerOrderingMatchingRule
           }
           else
           {
-            LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_MISPLACED_DASH.get(
-                    value.toString());
+            LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_MISPLACED_DASH.get(value);
 
             switch (DirectoryServer.getSyntaxEnforcementPolicy())
             {
@@ -287,8 +282,7 @@ public class IntegerOrderingMatchingRule
           break;
         default:
           LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
-                  value.toString(),
-                  ((char) value.byteAt(i)), i);
+              value, ((char) value.byteAt(i)), i);
           switch (DirectoryServer.getSyntaxEnforcementPolicy())
           {
             case REJECT:
@@ -308,8 +302,7 @@ public class IntegerOrderingMatchingRule
 
     if (buffer.length() == 0)
     {
-      LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE.get(
-              value.toString());
+      LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE.get(value);
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
@@ -321,8 +314,7 @@ public class IntegerOrderingMatchingRule
           if (! logged)
           {
             logged = true;
-            logger.error(
-                    message);
+            logger.error(message);
           }
 
           buffer.append("0");
@@ -335,8 +327,7 @@ public class IntegerOrderingMatchingRule
     }
     else if ((buffer.length() == 1) && (buffer.charAt(0) == '-'))
     {
-      LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(
-              value.toString());
+      LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(value);
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
@@ -348,8 +339,7 @@ public class IntegerOrderingMatchingRule
           if (! logged)
           {
             logged = true;
-            logger.error(
-                    message);
+            logger.error(message);
           }
 
           buffer.setCharAt(0, '0');

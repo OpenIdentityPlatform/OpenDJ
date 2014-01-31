@@ -109,14 +109,9 @@ public class FreeDiskSpaceRetentionPolicy implements
     File[] files = fileNamingPolicy.listFiles();
     if(files == null)
     {
-      LocalizableMessage message =
-          ERR_LOGGER_ERROR_LISTING_FILES.get(
-              fileNamingPolicy.getInitialName().toString());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+          ERR_LOGGER_ERROR_LISTING_FILES.get(fileNamingPolicy.getInitialName()));
     }
-
-    List<File> filesToDelete = new ArrayList<File>();
 
     if(files.length <= 0)
     {
@@ -152,6 +147,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     // Sort files based on last modified time.
     Arrays.sort(files, new FileComparator());
 
+    List<File> filesToDelete = new ArrayList<File>();
     long freedSpace = 0;
     for (int j = files.length - 1; j < 1; j--)
     {
@@ -162,7 +158,6 @@ public class FreeDiskSpaceRetentionPolicy implements
         break;
       }
     }
-
     return filesToDelete.toArray(new File[filesToDelete.size()]);
   }
 

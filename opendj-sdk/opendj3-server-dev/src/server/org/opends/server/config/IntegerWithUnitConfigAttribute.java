@@ -804,9 +804,7 @@ public final class IntegerWithUnitConfigAttribute
       if (! valueIsAcceptable(valueString.toLowerCase(), rejectReason))
       {
         LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_VALUE_WITH_UNIT.get(
-                valueString, getName(),
-                rejectReason.toString());
-
+                valueString, getName(), rejectReason);
         if (allowFailures)
         {
           logger.error(message);

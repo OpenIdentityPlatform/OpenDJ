@@ -149,19 +149,8 @@ class UUIDEqualityMatchingRule
   {
     if (value.length() != 36)
     {
-      LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(
-              value.toString(), value.length());
-      switch (DirectoryServer.getSyntaxEnforcementPolicy())
-      {
-        case REJECT:
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
-        case WARN:
-          logger.error(message);
-          return value.toByteString();
-        default:
-          return value.toByteString();
-      }
+      return reportInvalidAttrSyntax(value,
+          WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(value, value.length()));
     }
 
     StringBuilder builder = new StringBuilder(36);
@@ -179,20 +168,8 @@ class UUIDEqualityMatchingRule
         case 23:
           if (c != '-')
           {
-            LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(
-                    value.toString(), i, String.valueOf(c));
-            switch (DirectoryServer.getSyntaxEnforcementPolicy())
-            {
-              case REJECT:
-                throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
-              case WARN:
-                logger.error(
-                        message);
-                return value.toByteString();
-              default:
-                return value.toByteString();
-            }
+            return reportInvalidAttrSyntax(value,
+                WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(value, i, c));
           }
           builder.append(c);
           break;
@@ -237,25 +214,28 @@ class UUIDEqualityMatchingRule
               builder.append('f');
               break;
             default:
-              LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(
-                      value.toString(), i, String.valueOf(value.byteAt(i)));
-              switch (DirectoryServer.getSyntaxEnforcementPolicy())
-              {
-                case REJECT:
-                  throw new DirectoryException(
-                                 ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
-                case WARN:
-                  logger.error(
-                          message);
-                  return value.toByteString();
-                default:
-                  return value.toByteString();
-              }
+            return reportInvalidAttrSyntax(value,
+                WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(value, i, value.byteAt(i)));
           }
       }
     }
 
     return ByteString.valueOf(builder.toString());
+  }
+
+  private ByteString reportInvalidAttrSyntax(ByteSequence value, LocalizableMessage message)
+      throws DirectoryException
+  {
+    switch (DirectoryServer.getSyntaxEnforcementPolicy())
+    {
+      case REJECT:
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      case WARN:
+        logger.error(message);
+        return value.toByteString();
+      default:
+        return value.toByteString();
+    }
   }
 }
 

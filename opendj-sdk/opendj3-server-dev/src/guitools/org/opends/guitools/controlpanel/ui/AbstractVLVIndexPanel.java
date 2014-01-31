@@ -603,7 +603,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
         confirm = displayConfirmationDialog(
             INFO_CTRL_PANEL_VLV_INDEXES_NOT_DEFINED_CONFIRMATION_TITLE.get(),
             INFO_CTRL_PANEL_VLV_INDEXES_NOT_DEFINED_CONFIRMATION_MSG.get(
-                getBackend().getBackendID(), sb.toString()));
+                getBackend().getBackendID(), sb));
       }
     }
     catch (Throwable t)
@@ -797,8 +797,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
       }
       catch (OpenDsException oe)
       {
-        errors.add(ERR_CTRL_PANEL_INVALID_BASE_DN_FOR_VLV_PROVIDED.get(
-            oe.getMessageObject().toString()));
+        errors.add(ERR_CTRL_PANEL_INVALID_BASE_DN_FOR_VLV_PROVIDED.get(oe.getMessageObject()));
         setPrimaryInvalid(lBaseDN);
       }
     }
@@ -817,8 +816,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
       }
       catch (LDAPException le)
       {
-        errors.add(ERR_CTRL_PANEL_INVALID_FILTER_FOR_VLV_PROVIDED.get(
-            le.getMessageObject().toString()));
+        errors.add(ERR_CTRL_PANEL_INVALID_FILTER_FOR_VLV_PROVIDED.get(le.getMessageObject()));
         setPrimaryInvalid(lFilter);
       }
     }

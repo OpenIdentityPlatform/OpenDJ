@@ -1784,7 +1784,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     {
       LocalizableMessage confirmationMsg =
         ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
-                getMessageFromCollection(exceptionMsgs, "\n").toString());
+                getMessageFromCollection(exceptionMsgs, "\n"));
       stopProcessing = !qs.displayConfirmation(confirmationMsg,
           INFO_CONFIRMATION_TITLE.get());
     }
@@ -2040,7 +2040,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
               "--"+ToolConstants.OPTION_LONG_BINDPWD,
               "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
               "--"+parser.forceOnErrorArg.getLongIdentifier(),
-              ae.getMessageObject().toString());
+              ae.getMessageObject());
           throw new ApplicationException(ae.getType(), msg, ae);
         }
         else
@@ -2178,10 +2178,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           "Error removing references in replication server on "+
           serverDisplay+": "+t, t));
       LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
-              serverDisplay, t.toString());
+              serverDisplay, t);
       throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR, errorMessage,
-          t);
+          ReturnCode.CONFIGURATION_ERROR, errorMessage, t);
     }
     ADSContext adsContext = new ADSContext(ctx);
 
@@ -2202,8 +2201,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       {
         throw new ApplicationException(
             ReturnCode.CONFIGURATION_ERROR,
-            INFO_REMOTE_ADS_EXCEPTION.get(
-                    serverDisplay, ace.toString()), ace);
+            INFO_REMOTE_ADS_EXCEPTION.get(serverDisplay, ace),
+            ace);
       }
       else
       {

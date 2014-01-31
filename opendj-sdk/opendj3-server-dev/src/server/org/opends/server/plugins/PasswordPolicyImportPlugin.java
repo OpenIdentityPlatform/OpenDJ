@@ -621,9 +621,7 @@ policyLoop:
 
 
         default:
-          LocalizableMessage message = ERR_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE.get(
-                  pluginType.toString());
-          unacceptableReasons.add(message);
+          unacceptableReasons.add(ERR_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE.get(pluginType));
           configAcceptable = false;
       }
     }

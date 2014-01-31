@@ -102,14 +102,9 @@ public class FileNumberRetentionPolicy implements
     File[] files = fileNamingPolicy.listFiles();
     if(files == null)
     {
-      LocalizableMessage message =
-          ERR_LOGGER_ERROR_LISTING_FILES.get(
-              fileNamingPolicy.getInitialName().toString());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+          ERR_LOGGER_ERROR_LISTING_FILES.get(fileNamingPolicy.getInitialName()));
     }
-
-    ArrayList<File> filesToDelete = new ArrayList<File>();
 
     if (files.length <= numFiles)
     {
@@ -119,11 +114,11 @@ public class FileNumberRetentionPolicy implements
     // Sort files based on last modified time.
     Arrays.sort(files, new FileComparator());
 
+    ArrayList<File> filesToDelete = new ArrayList<File>();
     for (int j = numFiles; j < files.length; j++)
     {
       filesToDelete.add(files[j]);
     }
-
     return filesToDelete.toArray(new File[0]);
   }
 

@@ -220,11 +220,9 @@ public final class TextAccessLogPublisher extends
     }
     catch (final Exception e)
     {
-      final LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
-          config.dn().toString(), stackTraceToSingleLineString(e));
       resultCode = DirectoryServer.getServerErrorResultCode();
-      messages.add(message);
-
+      messages.add(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+          config.dn(), stackTraceToSingleLineString(e)));
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
@@ -290,15 +288,13 @@ public final class TextAccessLogPublisher extends
     }
     catch (final DirectoryException e)
     {
-      final LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg
-          .dn().toString(), String.valueOf(e));
-      throw new InitializationException(message, e);
+      throw new InitializationException(
+          ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg.dn(), e), e);
     }
     catch (final IOException e)
     {
-      final LocalizableMessage message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
-          logFile.toString(), cfg.dn().toString(), String.valueOf(e));
-      throw new InitializationException(message, e);
+      throw new InitializationException(
+          ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(logFile, cfg.dn(), e), e);
 
     }
 

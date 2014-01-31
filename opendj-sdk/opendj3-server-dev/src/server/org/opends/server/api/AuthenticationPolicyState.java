@@ -156,8 +156,7 @@ public abstract class AuthenticationPolicyState
         }
 
         final LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_BOOLEAN
-            .get(valueString, attributeType.getNameOrOID(), entry.getName()
-                .toString());
+            .get(valueString, attributeType.getNameOrOID(), entry.getName());
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
             message);
       }

@@ -786,8 +786,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         File javaFile = getJavaFile(file);
         if (!javaFile.exists())
         {
-          javaHomeErrors.add(ERR_CTRL_PANEL_JAVA_BINARY_NOT_FOUND.get(
-              javaFile.toString()));
+          javaHomeErrors.add(ERR_CTRL_PANEL_JAVA_BINARY_NOT_FOUND.get(javaFile));
         }
       }
     }
@@ -871,14 +870,14 @@ public class JavaPropertiesPanel extends StatusGenericPanel
               {
                 confirmationMessage =
                   INFO_CTRL_PANEL_CONFIRM_NOT_WORKING_ARGUMENTS_DETAILS.get(
-                    javaFile.toString(),
+                    javaFile,
                     Utilities.getStringFromCollection(notWorkingArgs, "<br>-"));
               }
               else
               {
                 confirmationMessage =
              INFO_CTRL_PANEL_CONFIRM_NOT_WORKING_FALLBACK_ARGUMENTS_DETAILS.get(
-                    javaFile.toString(),
+                    javaFile,
                     Utilities.getStringFromCollection(notWorkingArgs, "<br>-"));
               }
               confirmationMessages.add(confirmationMessage);

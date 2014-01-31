@@ -263,14 +263,12 @@ public class LDAPModify
             attributes.add(new LDAPAttribute(a));
           }
           protocolOp = new AddRequestProtocolOp(asn1OctetStr, attributes);
-          out.println(INFO_PROCESSING_OPERATION.get(
-                  operationType, asn1OctetStr.toString()));
+          out.println(INFO_PROCESSING_OPERATION.get(operationType, asn1OctetStr));
           break;
         case DELETE:
           operationType = "DELETE";
           protocolOp = new DeleteRequestProtocolOp(asn1OctetStr);
-          out.println(INFO_PROCESSING_OPERATION.get(
-                  operationType, asn1OctetStr.toString()));
+          out.println(INFO_PROCESSING_OPERATION.get(operationType, asn1OctetStr));
           break;
         case MODIFY:
           operationType = "MODIFY";
@@ -278,8 +276,7 @@ public class LDAPModify
           ArrayList<RawModification> mods =
             new ArrayList<RawModification>(modEntry.getModifications());
           protocolOp = new ModifyRequestProtocolOp(asn1OctetStr, mods);
-          out.println(INFO_PROCESSING_OPERATION.get(
-                  operationType, asn1OctetStr.toString()));
+          out.println(INFO_PROCESSING_OPERATION.get(operationType, asn1OctetStr));
           break;
         case MODIFY_DN:
           operationType = "MODIFY DN";
@@ -299,8 +296,7 @@ public class LDAPModify
                  modDNEntry.deleteOldRDN());
           }
 
-          out.println(INFO_PROCESSING_OPERATION.get(
-                  operationType, asn1OctetStr.toString()));
+          out.println(INFO_PROCESSING_OPERATION.get(operationType, asn1OctetStr));
           break;
         default:
           break;
@@ -415,9 +411,7 @@ public class LDAPModify
           }
         } else
         {
-          LocalizableMessage msg = INFO_OPERATION_SUCCESSFUL.get(
-                  operationType, asn1OctetStr.toString());
-          out.println(msg);
+          out.println(INFO_OPERATION_SUCCESSFUL.get(operationType, asn1OctetStr));
 
           if (errorMessage != null)
           {
@@ -504,14 +498,13 @@ public class LDAPModify
             if(c instanceof LDAPControl)
             {
               // Don't really need to decode since its just an octet string.
-              out.println(INFO_CHANGE_NUMBER_CONTROL_RESULT.get(operationType,
-                  ((LDAPControl)c).getValue().toString()));
+              out.println(INFO_CHANGE_NUMBER_CONTROL_RESULT.get(
+                  operationType, ((LDAPControl)c).getValue()));
             }
             else
             {
               out.println(INFO_CHANGE_NUMBER_CONTROL_RESULT.get(operationType,
-                  ((ChangeNumberControlPlugin.ChangeNumberControl)c).
-                      getCSN().toString()));
+                  ((ChangeNumberControlPlugin.ChangeNumberControl)c).getCSN()));
             }
           }
         }

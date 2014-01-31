@@ -151,9 +151,7 @@ public class RegularExpressionIdentityMapper
         if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
         {
           throw new ConfigException(ERR_REGEXMAP_ATTR_UNINDEXED.get(
-                                         configuration.dn().toString(),
-                                         t.getNameOrOID(),
-                                         b.getBackendID()));
+              configuration.dn(), t.getNameOrOID(), b.getBackendID()));
         }
       }
     }
@@ -351,9 +349,7 @@ public class RegularExpressionIdentityMapper
         if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
         {
           unacceptableReasons.add(ERR_REGEXMAP_ATTR_UNINDEXED.get(
-                                       configuration.dn().toString(),
-                                       t.getNameOrOID(),
-                                       b.getBackendID()));
+              configuration.dn(), t.getNameOrOID(), b.getBackendID()));
           configAcceptable = false;
         }
       }
@@ -366,10 +362,8 @@ public class RegularExpressionIdentityMapper
     }
     catch (PatternSyntaxException pse)
     {
-      LocalizableMessage message = ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(
-                      configuration.getMatchPattern(),
-                                  pse.getMessage());
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(
+          configuration.getMatchPattern(), pse.getMessage()));
       configAcceptable = false;
     }
 
