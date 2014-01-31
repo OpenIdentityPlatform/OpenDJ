@@ -250,7 +250,7 @@ public class CharacterSetPasswordValidator
       int requiredOptionalCharacterSets;
       if (currentConfig.getMinCharacterSets() == null)
       {
-        requiredOptionalCharacterSets = 1;
+        requiredOptionalCharacterSets = 0;
       }
       else
       {
@@ -463,7 +463,7 @@ public class CharacterSetPasswordValidator
     {
       int minCharacterSets = configuration.getMinCharacterSets();
 
-      if (minCharacterSets <= mandatoryCharacterSets)
+      if (minCharacterSets < mandatoryCharacterSets)
       {
         LocalizableMessage message = ERR_CHARSET_VALIDATOR_MIN_CHAR_SETS_TOO_SMALL
             .get(minCharacterSets);
