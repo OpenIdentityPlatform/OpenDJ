@@ -26,64 +26,99 @@
  */
 
 package org.opends.server.loggers;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DebugLogCategory;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.DebugTargetCfg;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.DebugTargetCfgDefn;
-import org.opends.server.admin.std.server.DebugTargetCfg;
-
-import java.util.*;
 
 /**
  * This class encapsulates the trace settings in effect at a given traceing
  * scope.
  */
-public class TraceSettings
-    implements ConfigurationChangeListener<DebugTargetCfg>
+public class TraceSettings implements
+    ConfigurationChangeListener<DebugTargetCfg>
 {
   /** A TraceSettings object representing a fully disabled trace state. */
   public static final TraceSettings DISABLED =
-      new TraceSettings(DebugLogLevel.DISABLED);
+      new TraceSettings(Level.DISABLED);
 
   private static final String STACK_DUMP_KEYWORD = "stack";
   private static final String INCLUDE_CAUSE_KEYWORD = "cause";
   private static final String SUPPRESS_ARG_KEYWORD = "noargs";
   private static final String SUPPRESS_RETVAL_KEYWORD = "noretval";
-  private static final String INCLUDE_CATEGORY_KEYWORD = "category";
-  private static final String LEVEL_KEYWORD = "level";
+  private static final String ENABLED_KEYWORD = "enabled";
+  private static final String EXCEPTIONS_ONLY_KEYWORD = "exceptionsonly";
 
   /**
-   * The log level of this setting.
+   * Represents the level of trace.
    */
-  LogLevel level;
+  enum Level
+  {
+    /** Log nothing. **/
+    DISABLED,
+
+    /** Log only exceptions. **/
+    EXCEPTIONS_ONLY,
+
+    /** Log everything. */
+    ALL;
+
+    /**
+     * Returns the level corresponding to provided options.
+     *
+     * @param isEnabled
+     *          Indicates if tracer is enabled.
+     * @param isDebugExceptionsOnly
+     *          Indicates if tracer should log only exceptions.
+     * @return the level corresponding to options
+     */
+    static Level getLevel(boolean isEnabled, boolean isDebugExceptionsOnly)
+    {
+      if (isEnabled)
+      {
+        if (isDebugExceptionsOnly)
+        {
+          return Level.EXCEPTIONS_ONLY;
+        }
+        else
+        {
+          return Level.ALL;
+        }
+      }
+      return Level.DISABLED;
+    }
+
+  }
 
   /**
-   * The log categories for this setting.
+   * The level of this setting.
    */
-  Set<LogCategory> includeCategories;
+  private Level level;
 
   /**
    * Indicates if method arguments should be logged.
    */
-  boolean noArgs;
+  private boolean noArgs;
 
   /**
    * Indicates if method return values should be logged.
    */
-  boolean noRetVal;
+  private boolean noRetVal;
 
   /**
    * The level of stack frames to include.
    */
-  int stackDepth;
+  private int stackDepth;
 
   /**
    * Indicates if the cause exception is included in exception messages.
    */
-  boolean includeCause;
+  private boolean includeCause;
 
   private DebugTargetCfg currentConfig;
 
@@ -92,69 +127,42 @@ public class TraceSettings
    */
   public TraceSettings()
   {
-    this(DebugLogLevel.VERBOSE, null, false, false, 0, false);
+    this(Level.ALL, false, false, 0, false);
 
   }
 
   /**
-   * Construct new trace settings at the specified log level.
+   * Construct new trace settings at provided level.
    *
-   * @param level the log level for this setting.
+   * @param level
+   *          Level for this settings.
    */
-  public TraceSettings(LogLevel level)
+  public TraceSettings(Level level)
   {
-    this(level, null, false, false, 0, false);
+    this(level, false, false, 0, false);
 
   }
 
   /**
-   * Construct new trace settings at the specified log level and including
-   * the categories.
+   * Construct new trace settings at the specified level. Optionally turn off
+   * arguments, return value in entry and exit messages, and specifying the
+   * depth of stack traces and whether to include the cause of exceptions.
    *
-   * @param level the log level for this setting.
-   * @param includeCategories the categories to include in this setting.
+   * @param level
+   *          the level for this setting.
+   * @param noArgs
+   *          whether to include arguments in the log messages.
+   * @param noRetVal
+   *          whether to include return values in the log messages.
+   * @param stackDepth
+   *          the stack depth to display in log messages.
+   * @param includeCause
+   *          whether to include the cause of exceptions.
    */
-  public TraceSettings(LogLevel level, Set<LogCategory> includeCategories)
-  {
-    this(level, includeCategories, false, false, 0, false);
-
-  }
-
-  /**
-   * Construct new trace settings at the specified log level and including
-   * the categories. Optionally turn off arguments and return value in entry
-   * and exit messages.
-   *
-   * @param level the log level for this setting.
-   * @param includeCategories the categories to include in this setting.
-   * @param noArgs whether to include arguments in the log messages.
-   * @param noRetVal whether to include return values in the log messages.
-   */
-  public TraceSettings(LogLevel level, Set<LogCategory> includeCategories,
-                       boolean noArgs, boolean noRetVal)
-  {
-    this(level, includeCategories, noArgs, noRetVal, 0, false);
-  }
-
-  /**
-   * Construct new trace settings at the specified log level and including
-   * the categories. Optionally turn off arguments, return value in entry
-   * and exit messages, and specifying the depth of stack traces and whether
-   * to include the cause of exceptions.
-   *
-   * @param level the log level for this setting.
-   * @param includeCategories the categories to include in this setting.
-   * @param noArgs whether to include arguments in the log messages.
-   * @param noRetVal whether to include return values in the log messages.
-   * @param stackDepth the stack depth to display in log messages.
-   * @param includeCause whether to include the cause of exceptions.
-   */
-  public TraceSettings(LogLevel level, Set<LogCategory> includeCategories,
-                       boolean noArgs, boolean noRetVal, int stackDepth,
-                       boolean includeCause)
+  public TraceSettings(Level level, boolean noArgs,
+      boolean noRetVal, int stackDepth, boolean includeCause)
   {
     this.level = level;
-    this.includeCategories = includeCategories;
     this.noArgs = noArgs;
     this.noRetVal = noRetVal;
     this.stackDepth = stackDepth;
@@ -164,27 +172,14 @@ public class TraceSettings
   /**
    * Construct a new trace settings from the provided configuration.
    *
-   * @param config The debug target configuration that contains the information
-   *               to use to initialize this trace setting.
+   * @param config
+   *          The debug target configuration that contains the information to
+   *          use to initialize this trace setting.
    */
   public TraceSettings(DebugTargetCfg config)
   {
     this.level =
-        DebugLogLevel.parse(config.getDebugLevel().toString());
-
-    Set<LogCategory> logCategories = null;
-    if(!config.getDebugCategory().isEmpty())
-    {
-      logCategories =
-          new HashSet<LogCategory>(config.getDebugCategory().size());
-      for(DebugTargetCfgDefn.DebugCategory category :
-          config.getDebugCategory())
-      {
-        logCategories.add(DebugLogCategory.parse(category.toString()));
-      }
-    }
-
-    this.includeCategories = logCategories;
+        Level.getLevel(config.isEnabled(), config.isDebugExceptionsOnly());
     this.noArgs = config.isOmitMethodEntryArguments();
     this.noRetVal = config.isOmitMethodReturnValue();
     this.stackDepth = config.getThrowableStackFrames();
@@ -197,9 +192,8 @@ public class TraceSettings
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationChangeAcceptable(
-          DebugTargetCfg config,
-          List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(DebugTargetCfg config,
+      List<LocalizableMessage> unacceptableReasons)
   {
     // This should alwas be acceptable. We are assuing that the scope for this
     // trace setting is the same sine its part of the DN.
@@ -214,27 +208,14 @@ public class TraceSettings
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> messages =
+        new ArrayList<LocalizableMessage>();
 
     // We can assume that the target scope did not change since its the
     // naming attribute. Changing it would result in a modify DN.
 
     this.level =
-        DebugLogLevel.parse(config.getDebugLevel().toString());
-
-    Set<LogCategory> logCategories = null;
-    if(!config.getDebugCategory().isEmpty())
-    {
-      logCategories =
-          new HashSet<LogCategory>(config.getDebugCategory().size());
-      for(DebugTargetCfgDefn.DebugCategory category :
-          config.getDebugCategory())
-      {
-        logCategories.add(DebugLogCategory.parse(category.toString()));
-      }
-    }
-
-    this.includeCategories = logCategories;
+        Level.getLevel(config.isEnabled(), config.isDebugExceptionsOnly());
     this.noArgs = config.isOmitMethodEntryArguments();
     this.noRetVal = config.isOmitMethodReturnValue();
     this.stackDepth = config.getThrowableStackFrames();
@@ -248,18 +229,17 @@ public class TraceSettings
   /**
    * Parse trace settings from the string representation.
    *
-   * @param value the trace settings string to be parsed.
+   * @param value
+   *          the trace settings string to be parsed.
    * @return the trace settings parsed from the string.
    */
   protected static TraceSettings parseTraceSettings(String value)
   {
     TraceSettings settings = null;
-    if(value != null)
+    if (value != null)
     {
-      //Touch DebugLogLevel and DebugLogCategory so they are statically
-      //initialized or parse will not see all the levels/categories.
-      LogLevel level = DebugLogLevel.ERROR;
-      Set<LogCategory> includeCategories = null;
+      boolean enabled = false;
+      boolean exceptionsOnly = false;
       boolean noArgs = false;
       boolean noRetVal = false;
       int stackDepth = 0;
@@ -267,163 +247,113 @@ public class TraceSettings
 
       String[] keywords = value.split(",");
 
-      for(String keyword : keywords)
+      for (String keyword : keywords)
       {
         //See if stack dump keyword is included
-        if(keyword.startsWith(STACK_DUMP_KEYWORD))
+        if (keyword.startsWith(STACK_DUMP_KEYWORD))
         {
           //See if a stack depth is included
-          if(keyword.length() == STACK_DUMP_KEYWORD.length())
+          if (keyword.length() == STACK_DUMP_KEYWORD.length())
           {
             stackDepth = DebugStackTraceFormatter.COMPLETE_STACK;
           }
           else
           {
-            int depthStart= keyword.indexOf("=", STACK_DUMP_KEYWORD.length());
+            int depthStart = keyword.indexOf("=", STACK_DUMP_KEYWORD.length());
             if (depthStart == STACK_DUMP_KEYWORD.length())
             {
               try
               {
-                stackDepth = Integer.valueOf(keyword.substring(depthStart+1));
+                stackDepth = Integer.valueOf(keyword.substring(depthStart + 1));
               }
-              catch(NumberFormatException nfe)
+              catch (NumberFormatException nfe)
               { // TODO: i18n
-                System.err.println("The keyword " + STACK_DUMP_KEYWORD +
-                    " contains an invalid depth value. The complete stack " +
-                    "will be included.");
+                System.err.println("The keyword " + STACK_DUMP_KEYWORD
+                    + " contains an invalid depth value. The complete stack "
+                    + "will be included.");
               }
             }
           }
         }
         //See if to include cause in exception messages.
-        else if(keyword.equals(INCLUDE_CAUSE_KEYWORD))
+        else if (keyword.equals(INCLUDE_CAUSE_KEYWORD))
         {
           includeCause = true;
         }
         //See if to supress method arguments.
-        else if(keyword.equals(SUPPRESS_ARG_KEYWORD))
+        else if (keyword.equals(SUPPRESS_ARG_KEYWORD))
         {
           noArgs = true;
         }
         //See if to supress return values.
-        else if(keyword.equals(SUPPRESS_RETVAL_KEYWORD))
+        else if (keyword.equals(SUPPRESS_RETVAL_KEYWORD))
         {
           noRetVal = true;
         }
-        else if(keyword.startsWith(INCLUDE_CATEGORY_KEYWORD))
+        else if (keyword.equals(ENABLED_KEYWORD))
         {
-          int categoryStart =
-                keyword.indexOf("=", INCLUDE_CATEGORY_KEYWORD.length());
-
-          if(keyword.length() == INCLUDE_CATEGORY_KEYWORD.length() ||
-              categoryStart != INCLUDE_CATEGORY_KEYWORD.length())
-          { // TODO: i18n
-            System.err.println("The keyword " + INCLUDE_CATEGORY_KEYWORD +
-                " does not contain an equal sign to define the set of " +
-                "categories to include. All categories will be included.");
-          }
-          else
-          {
-            String[] categories =
-                keyword.substring(categoryStart+1).split("[|]");
-            includeCategories = new HashSet<LogCategory>();
-            for(String category : categories)
-            {
-              try
-              {
-                includeCategories.add(DebugLogCategory.parse(category));
-              }
-              catch(IllegalArgumentException iae)
-              { // TODO: i18n
-                System.err.println("The keyword " + INCLUDE_CATEGORY_KEYWORD +
-                    " contains an invalid debug log category: " +
-                    iae.toString() + ". It will be ignored.");
-              }
-            }
-
-          }
+          enabled = true;
         }
-        else if(keyword.startsWith(LEVEL_KEYWORD))
+        else if (keyword.equals(EXCEPTIONS_ONLY_KEYWORD))
         {
-          int levelStart =
-                keyword.indexOf("=", LEVEL_KEYWORD.length());
-
-          if(keyword.length() == LEVEL_KEYWORD.length() ||
-              levelStart != LEVEL_KEYWORD.length())
-          { // TODO: i18n
-            System.err.println("The keyword " + LEVEL_KEYWORD +
-                " does not contain an equal sign to specify the log level. " +
-                "Default level of " + level.toString() + " will be used.");
-          }
-          else
-          {
-            try
-            {
-              level = LogLevel.parse(keyword.substring(levelStart+1));
-            }
-            catch(IllegalArgumentException iae)
-            {  // TODO: i18n
-              System.err.println("The keyword " + LEVEL_KEYWORD +
-                  " contains an invalid debug log level: " +
-                  iae.toString() + ". Default level of " + level.toString() +
-                  " will be used.");
-            }
-          }
+          exceptionsOnly = true;
         }
-
       }
-      settings = new TraceSettings(level, includeCategories, noArgs, noRetVal,
-                                   stackDepth, includeCause);
+      settings =
+          new TraceSettings(Level.getLevel(enabled, exceptionsOnly),
+              noArgs, noRetVal, stackDepth, includeCause);
     }
 
     return settings;
   }
 
   /**
-   * Get the log level of this setting.
-   * @return the log level of this setting.
+   * Get the level of this setting.
+   *
+   * @return the level of this setting.
    */
-  public LogLevel getLevel() {
+  public Level getLevel()
+  {
     return level;
   }
 
   /**
-   * Get the log categories for this setting.
-   * @return the log categories for this setting.
-   */
-  public Set<LogCategory> getIncludeCategories() {
-    return Collections.unmodifiableSet(includeCategories);
-  }
-
-  /**
    * Get whether method arguments should be logged.
+   *
    * @return if method arguments should be logged.
    */
-  public boolean isNoArgs() {
+  public boolean isNoArgs()
+  {
     return noArgs;
   }
 
   /**
    * Get whether method return values should be logged.
+   *
    * @return if method return values should be logged.
    */
-  public boolean isNoRetVal() {
+  public boolean isNoRetVal()
+  {
     return noRetVal;
   }
 
   /**
    * Get the level of stack frames to include.
+   *
    * @return the level of stack frames to include.
    */
-  public int getStackDepth() {
+  public int getStackDepth()
+  {
     return stackDepth;
   }
 
   /**
    * Get whether the cause exception is included in exception messages.
+   *
    * @return if the cause exception is included in exception messages.
    */
-  public boolean isIncludeCause() {
+  public boolean isIncludeCause()
+  {
     return includeCause;
   }
 }

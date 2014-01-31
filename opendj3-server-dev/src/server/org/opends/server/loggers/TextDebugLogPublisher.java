@@ -26,15 +26,21 @@
  */
 package org.opends.server.loggers;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.DebugTargetCfg;
 import org.opends.server.admin.std.server.FileBasedDebugLogPublisherCfg;
 import org.opends.server.api.DebugLogPublisher;
@@ -42,12 +48,13 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.opends.server.types.*;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.FilePermission;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * The debug log publisher implementation that writes debug messages to files
@@ -190,26 +197,13 @@ public class TextDebugLogPublisher
     config.addDebugTargetAddListener(this);
     config.addDebugTargetDeleteListener(this);
 
-    //Get the default/global settings
-    LogLevel logLevel = LogLevel.ALL;
-    Set<LogCategory> logCategories = null;
-    if(!config.getDefaultDebugCategory().isEmpty())
-    {
-      logCategories =
-          new HashSet<LogCategory>(config.getDefaultDebugCategory().size());
-      for(DebugLogPublisherCfgDefn.DefaultDebugCategory category :
-          config.getDefaultDebugCategory())
-      {
-        logCategories.add(DebugLogCategory.parse(category.toString()));
-      }
-    }
-
     TraceSettings defaultSettings =
-        new TraceSettings(logLevel, logCategories,
-                          config.isDefaultOmitMethodEntryArguments(),
-                          config.isDefaultOmitMethodReturnValue(),
-                          config.getDefaultThrowableStackFrames(),
-                          config.isDefaultIncludeThrowableCause());
+        new TraceSettings(TraceSettings.Level.getLevel(true, config
+            .isDefaultDebugExceptionsOnly()), config
+            .isDefaultOmitMethodEntryArguments(), config
+            .isDefaultOmitMethodReturnValue(), config
+            .getDefaultThrowableStackFrames(), config
+            .isDefaultIncludeThrowableCause());
 
     addTraceSettings(null, defaultSettings);
 
@@ -270,27 +264,13 @@ public class TextDebugLogPublisher
     boolean adminActionRequired = false;
     List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
-    //Get the default/global settings
-    LogLevel logLevel =
-        DebugLogLevel.parse(config.getDefaultDebugLevel().toString());
-    Set<LogCategory> logCategories = null;
-    if(!config.getDefaultDebugCategory().isEmpty())
-    {
-      logCategories =
-          new HashSet<LogCategory>(config.getDefaultDebugCategory().size());
-      for(DebugLogPublisherCfgDefn.DefaultDebugCategory category :
-          config.getDefaultDebugCategory())
-      {
-        logCategories.add(DebugLogCategory.parse(category.toString()));
-      }
-    }
-
     TraceSettings defaultSettings =
-        new TraceSettings(logLevel, logCategories,
-                          config.isDefaultOmitMethodEntryArguments(),
-                          config.isDefaultOmitMethodReturnValue(),
-                          config.getDefaultThrowableStackFrames(),
-                          config.isDefaultIncludeThrowableCause());
+        new TraceSettings(TraceSettings.Level.getLevel(true, config
+            .isDefaultDebugExceptionsOnly()), config
+            .isDefaultOmitMethodEntryArguments(), config
+            .isDefaultOmitMethodReturnValue(), config
+            .getDefaultThrowableStackFrames(), config
+            .isDefaultIncludeThrowableCause());
 
     addTraceSettings(null, defaultSettings);
 
@@ -449,9 +429,9 @@ public class TextDebugLogPublisher
     if (stackTrace != null)
     {
       stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
-          settings.stackDepth);
+          settings.getStackDepth());
     }
-    publish(DebugLogCategory.MESSAGE, signature, sourceLocation, msg, stack);
+    publish(signature, sourceLocation, msg, stack);
   }
 
   /**
@@ -467,10 +447,10 @@ public class TextDebugLogPublisher
     String stack = null;
     if (stackTrace != null)
     {
-      stack = DebugStackTraceFormatter.formatStackTrace(ex, settings.stackDepth,
-          settings.includeCause);
+      stack = DebugStackTraceFormatter.formatStackTrace(ex, settings.getStackDepth(),
+          settings.isIncludeCause());
     }
-    publish(DebugLogCategory.CAUGHT, signature, sourceLocation, message, stack);
+    publish(signature, sourceLocation, message, stack);
   }
 
   /**
@@ -491,8 +471,8 @@ public class TextDebugLogPublisher
   // Publishes a record, optionally performing some "special" work:
   // - injecting a stack trace into the message
   // - format the message with argument values
-  private void publish(LogCategory category, String signature, String sourceLocation,
-                       String msg, String stack)
+  private void publish(String signature, String sourceLocation, String msg,
+                       String stack)
   {
     Thread thread = Thread.currentThread();
 
@@ -504,10 +484,6 @@ public class TextDebugLogPublisher
 
     // Emit the seq num
     buf.append(globalSequenceNumber++);
-    buf.append(" ");
-
-    // Emit debug category.
-    buf.append(category);
     buf.append(" ");
 
     // Emit the debug level.
@@ -552,20 +528,6 @@ public class TextDebugLogPublisher
     }
 
     writer.writeRecord(buf.toString());
-  }
-
-  private String buildDefaultEntryMessage(Object[] args)
-  {
-    StringBuilder format = new StringBuilder();
-    for (int i = 0; i < args.length; i++)
-    {
-      if (i != 0) format.append(", ");
-      format.append("arg");
-      format.append(i + 1);
-      format.append("={%s}");
-    }
-
-    return DebugMessageFormatter.format(format.toString(), args);
   }
 
   /**

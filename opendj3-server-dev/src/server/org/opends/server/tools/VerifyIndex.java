@@ -379,7 +379,7 @@ public class VerifyIndex
             TextDebugLogPublisher.getStartupTextDebugPublisher(
             new TextWriter.STREAM(out));
         debugLogPublisher.addTraceSettings(null,
-            new TraceSettings(DebugLogLevel.ERROR));
+            new TraceSettings());
         ErrorLogger.addErrorLogPublisher(errorLogPublisher);
         DebugLogger.addDebugLogPublisher(debugLogPublisher);
       }
