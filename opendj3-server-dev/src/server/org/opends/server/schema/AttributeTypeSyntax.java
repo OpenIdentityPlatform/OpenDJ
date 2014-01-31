@@ -552,11 +552,8 @@ public class AttributeTypeSyntax
               //hyphen is allowed but not as the first byte.
                 if (index==0)
                 {
-                  LocalizableMessage msg = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_DASH.
-                        get(value.toString());
-                  throw new DirectoryException(
-                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                               msg);
+                  throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                      ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_DASH.get(value));
                 }
                 break;
               case '_':
@@ -565,22 +562,15 @@ public class AttributeTypeSyntax
               // name exceptions option is enabled.
                 if (index==0)
                 {
-                  LocalizableMessage msg =
-                          ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_UNDERSCORE.
-                        get(value.toString(),
-                            ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
-                  throw new DirectoryException(
-                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                               msg);
+                  throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                      ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_UNDERSCORE.get(
+                          value, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS));
                 }
                 else if (!allowExceptions)
                 {
-                  LocalizableMessage msg = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_UNDERSCORE_CHAR.
-                        get(value.toString(),
-                            ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
-                  throw new DirectoryException(
-                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                               msg);
+                  throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                      ERR_ATTR_SYNTAX_ATTR_ILLEGAL_UNDERSCORE_CHAR.get(
+                          value, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS));
                 }
                 break;
 
@@ -589,12 +579,9 @@ public class AttributeTypeSyntax
               //can not be a digit.
                 if(index ==0 && isDigit(ch) && !allowExceptions)
                 {
-                  LocalizableMessage message = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_DIGIT.
-                    get(value.toString(), ch,
-                        ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
-                  throw new DirectoryException(
-                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                             message);
+                  throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                      ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_DIGIT.get(
+                          value, ch, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS));
                 }
                 else if(!((ch>='0' && ch<='9') || (ch>='A' && ch<='Z') ||
                         (ch>='a' && ch<='z')))

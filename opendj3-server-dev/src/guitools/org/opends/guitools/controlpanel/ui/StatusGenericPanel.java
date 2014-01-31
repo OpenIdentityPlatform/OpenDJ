@@ -1817,8 +1817,7 @@ implements ConfigChangeListener
             {
               LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
               mb.append(errorDetail);
-              mb.append(
-                  "  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t.toString()));
+              mb.append(INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t));
               summaryMsg = Utilities.getFormattedError(errorSummary,
                   ColorAndFontConstants.errorTitleFont,
                   mb.toMessage(), ColorAndFontConstants.defaultFont);

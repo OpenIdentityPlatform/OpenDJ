@@ -320,9 +320,7 @@ public class DataServerHandler extends ServerHandler
     StatusMachineEvent event = StatusMachineEvent.statusToEvent(reqStatus);
     if (event == StatusMachineEvent.INVALID_EVENT)
     {
-      LocalizableMessage msg = ERR_RS_INVALID_NEW_STATUS.get(reqStatus.toString(),
-          getBaseDNString(), Integer.toString(serverId));
-      logger.error(msg);
+      logger.error(ERR_RS_INVALID_NEW_STATUS.get(reqStatus, getBaseDN(), serverId));
       return ServerStatus.INVALID_STATUS;
     }
 

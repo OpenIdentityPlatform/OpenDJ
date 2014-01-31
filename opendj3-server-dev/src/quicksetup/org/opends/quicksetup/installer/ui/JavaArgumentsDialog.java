@@ -884,7 +884,7 @@ public class JavaArgumentsDialog extends JDialog
     {
       checkOptions(sb.toString(), errorMsgs,
           ls.toArray(new JLabel[ls.size()]),
-          ERR_GENERIC_JAVA_ARGUMENT.get(sb.toString()));
+          ERR_GENERIC_JAVA_ARGUMENT.get(sb));
     }
   }
 
@@ -910,7 +910,7 @@ public class JavaArgumentsDialog extends JDialog
     if (sb.length() > 0)
     {
       checkOptions(sb.toString(), errorMsgs, lOtherArguments,
-          ERR_GENERIC_JAVA_ARGUMENT.get(sb.toString()));
+          ERR_GENERIC_JAVA_ARGUMENT.get(sb));
     }
   }
 

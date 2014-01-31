@@ -370,9 +370,7 @@ public class ConfigFromFile extends ConfigReader
     catch (final Throwable t)
     {
       logger.warn(LocalizableMessage.raw("Error reading configuration: "+t, t));
-      OfflineUpdateException oue = new OfflineUpdateException(
-          ERR_READING_CONFIG_LDAP.get(t.getMessage().toString()), t);
-      ex.add(oue);
+      ex.add(new OfflineUpdateException(ERR_READING_CONFIG_LDAP.get(t.getMessage()), t));
     }
 
     if (ex.size() > 0)

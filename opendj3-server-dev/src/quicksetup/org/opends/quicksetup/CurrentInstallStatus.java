@@ -112,8 +112,7 @@ public class CurrentInstallStatus
           String cmd = Utils.isWindows() ?
               Installation.WINDOWS_SETUP_FILE_NAME :
                 Installation.UNIX_SETUP_FILE_NAME;
-          installationMsg =
-            INFO_INSTALLSTATUS_INSTALLED_CLI.get(cmd, buf.toString());
+          installationMsg = INFO_INSTALLSTATUS_INSTALLED_CLI.get(cmd, buf);
         }
         else
         {
@@ -125,7 +124,7 @@ public class CurrentInstallStatus
             buf.append("</li>");
           }
           buf.append("</ul>");
-          installationMsg = INFO_INSTALLSTATUS_INSTALLED.get( buf.toString() );
+          installationMsg = INFO_INSTALLSTATUS_INSTALLED.get(buf);
         }
       }
     }

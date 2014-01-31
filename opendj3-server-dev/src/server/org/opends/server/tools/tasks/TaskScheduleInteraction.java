@@ -284,7 +284,7 @@ public class TaskScheduleInteraction
       sb.append(entry.getId());
     }
     app.printlnProgress();
-    app.printProgress(INFO_AVAILABLE_DEFINED_TASKS.get(sb.toString()));
+    app.printProgress(INFO_AVAILABLE_DEFINED_TASKS.get(sb));
     app.printlnProgress();
     app.printlnProgress();
 

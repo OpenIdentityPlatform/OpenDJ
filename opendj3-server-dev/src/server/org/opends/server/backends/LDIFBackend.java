@@ -525,7 +525,7 @@ public class LDIFBackend
       DN entryDN = entry.getName();
       if (entryMap.containsKey(entryDN))
       {
-        LocalizableMessage m = ERR_LDIF_BACKEND_ADD_ALREADY_EXISTS.get(entryDN.toString());
+        LocalizableMessage m = ERR_LDIF_BACKEND_ADD_ALREADY_EXISTS.get(entryDN);
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, m);
       }
 
@@ -573,10 +573,8 @@ public class LDIFBackend
             }
           }
 
-          LocalizableMessage m =
-               ERR_LDIF_BACKEND_ADD_MISSING_PARENT.get(entryDN.toString());
-          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m, matchedDN,
-                                       null);
+          LocalizableMessage m = ERR_LDIF_BACKEND_ADD_MISSING_PARENT.get(entryDN);
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m, matchedDN, null);
         }
       }
     }
@@ -617,10 +615,8 @@ public class LDIFBackend
           parentDN = parentDN.getParentDNInSuffix();
         }
 
-        LocalizableMessage m =
-             ERR_LDIF_BACKEND_DELETE_NO_SUCH_ENTRY.get(entryDN.toString());
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m, matchedDN,
-                                     null);
+        LocalizableMessage m = ERR_LDIF_BACKEND_DELETE_NO_SUCH_ENTRY.get(entryDN);
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m, matchedDN, null);
       }
 
 
@@ -657,7 +653,7 @@ public class LDIFBackend
 
         if (! subtreeDelete)
         {
-          LocalizableMessage m = ERR_LDIF_BACKEND_DELETE_NONLEAF.get(entryDN.toString());
+          LocalizableMessage m = ERR_LDIF_BACKEND_DELETE_NONLEAF.get(entryDN);
           throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF, m);
         }
 
@@ -743,10 +739,8 @@ public class LDIFBackend
           parentDN = parentDN.getParentDNInSuffix();
         }
 
-        LocalizableMessage m =
-             ERR_LDIF_BACKEND_MODIFY_NO_SUCH_ENTRY.get(entryDN.toString());
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m, matchedDN,
-                                     null);
+        LocalizableMessage m = ERR_LDIF_BACKEND_MODIFY_NO_SUCH_ENTRY.get(entryDN);
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m, matchedDN, null);
       }
 
       entryMap.put(entryDN, newEntry.duplicate(false));

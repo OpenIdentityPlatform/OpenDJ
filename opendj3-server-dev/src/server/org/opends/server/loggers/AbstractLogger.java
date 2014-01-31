@@ -376,10 +376,7 @@ public abstract class AbstractLogger
       // The class is valid as far as we can tell.
       return publisher.isConfigurationAcceptable(config, unacceptableReasons);
     } catch (Exception e) {
-      LocalizableMessage message =
-          invalidLoggerClassErrorMessage.get(className, config.dn().toString(),
-              String.valueOf(e));
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(invalidLoggerClassErrorMessage.get(className, config.dn(), e));
       return false;
     }
   }
@@ -397,10 +394,8 @@ public abstract class AbstractLogger
     }
     catch (Exception e)
     {
-      LocalizableMessage message =
-          invalidLoggerClassErrorMessage.get(className, config.dn().toString(),
-              String.valueOf(e));
-      throw new ConfigException(message, e);
+      throw new ConfigException(
+          invalidLoggerClassErrorMessage.get(className, config.dn(), e), e);
     }
   }
 

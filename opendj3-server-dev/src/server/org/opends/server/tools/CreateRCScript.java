@@ -103,7 +103,7 @@ public class CreateRCScript
     OperatingSystem operatingSystem = DirectoryServer.getOperatingSystem();
     if (! OperatingSystem.isUNIXBased(operatingSystem))
     {
-      err.println(ERR_CREATERC_ONLY_RUNS_ON_UNIX.get().toString());
+      err.println(ERR_CREATERC_ONLY_RUNS_ON_UNIX.get());
       return 1;
     }
 
@@ -173,7 +173,7 @@ public class CreateRCScript
     }
     catch (ArgumentException ae)
     {
-      err.println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()).toString());
+      err.println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return 1;
     }
 

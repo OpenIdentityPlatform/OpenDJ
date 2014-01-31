@@ -38,8 +38,10 @@ import java.util.zip.DataFormatException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.*;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.api.AlertGenerator;
@@ -49,7 +51,6 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.Task;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
@@ -65,12 +66,11 @@ import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -2441,8 +2441,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           // Continue with the next change but the servers could now become
           // inconsistent.
           // Let the repair tool know about this.
-          LocalizableMessage message = ERR_LOOP_REPLAYING_OPERATION.get(op.toString(),
-            op.getErrorMessage().toString());
+          final LocalizableMessage message = ERR_LOOP_REPLAYING_OPERATION.get(
+              op, op.getErrorMessage());
           logger.error(message);
           numUnresolvedNamingConflicts.incrementAndGet();
           replayErrorMsg = message.toString();
@@ -3081,7 +3081,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   private void renameConflictEntry(Operation conflictOp, DN dn,
       String entryUUID)
   {
-    LocalizableMessage alertMessage = NOTE_UNRESOLVED_CONFLICT.get(dn.toString());
+    LocalizableMessage alertMessage = NOTE_UNRESOLVED_CONFLICT.get(dn);
     DirectoryServer.sendAlertNotification(this,
         ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT, alertMessage);
 
@@ -3140,7 +3140,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     // Generate an alert to let the administration know that some
     // conflict could not be solved.
-    LocalizableMessage alertMessage = NOTE_UNRESOLVED_CONFLICT.get(conflictDN.toString());
+    LocalizableMessage alertMessage = NOTE_UNRESOLVED_CONFLICT.get(conflictDN);
     DirectoryServer.sendAlertNotification(this,
         ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT, alertMessage);
   }
@@ -3926,7 +3926,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // Check that the base DN is configured as a base-dn of the directory server
     if (DirectoryServer.getBackend(dn) == null)
     {
-      unacceptableReasons.add(ERR_UNKNOWN_DN.get(dn.toString()));
+      unacceptableReasons.add(ERR_UNKNOWN_DN.get(dn));
       return false;
     }
 

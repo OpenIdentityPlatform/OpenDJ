@@ -1129,7 +1129,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
       addTask(taskInit, ResultCode.SUCCESS, null);
       waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR, 20000,
-          ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN.toString(), "20"));
+          ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN, "20"));
 
       // Test 2
       taskInit = TestCaseUtils.makeEntry(
@@ -1185,7 +1185,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
       addTask(taskInit, ResultCode.SUCCESS, null);
       waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR, 20000,
-          ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN.toString(), "0"));
+          ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN, "0"));
 
       if (replDomain != null)
       {

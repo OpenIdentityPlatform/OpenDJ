@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -183,7 +184,7 @@ public class VLVIndexTableModel extends AbstractIndexTableModel
     }
     if (sb.length() == 0)
     {
-      sb.append(INFO_NOT_APPLICABLE_LABEL.get().toString());
+      sb.append(INFO_NOT_APPLICABLE_LABEL.get());
     }
     return sb.toString();
   }

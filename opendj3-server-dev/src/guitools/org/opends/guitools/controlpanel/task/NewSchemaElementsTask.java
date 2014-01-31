@@ -359,7 +359,7 @@ public class NewSchemaElementsTask extends Task
     catch (NamingException ne)
     {
       throw new OnlineUpdateException(
-          ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne.toString()), ne);
+          ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne), ne);
     }
     notifyConfigurationElementCreated(attribute);
     SwingUtilities.invokeLater(new Runnable()
@@ -403,7 +403,7 @@ public class NewSchemaElementsTask extends Task
     catch (NamingException ne)
     {
       throw new OnlineUpdateException(
-          ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne.toString()), ne);
+          ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne), ne);
     }
     notifyConfigurationElementCreated(objectClass);
     SwingUtilities.invokeLater(new Runnable()
@@ -741,7 +741,7 @@ public class NewSchemaElementsTask extends Task
       catch (Throwable t)
       {
         throw new OfflineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(t.toString()), t);
+            ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(t), t);
       }
       finally
       {
@@ -777,7 +777,7 @@ public class NewSchemaElementsTask extends Task
       catch (Throwable t)
       {
         throw new OfflineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(t.toString()), t);
+            ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(t), t);
       }
       finally
       {

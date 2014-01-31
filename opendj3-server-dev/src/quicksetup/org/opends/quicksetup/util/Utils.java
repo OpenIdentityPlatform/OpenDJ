@@ -1827,7 +1827,7 @@ public class Utils
         }
         buf.append(suffix.getDN());
       }
-      msg = INFO_REVIEW_REPLICATE_SUFFIX.get(buf.toString());
+      msg = INFO_REVIEW_REPLICATE_SUFFIX.get(buf);
     }
     return msg.toString();
   }

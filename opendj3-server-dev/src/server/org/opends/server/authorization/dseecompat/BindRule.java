@@ -432,10 +432,8 @@ public class BindRule {
         case DAYOFWEEK:
             if ((op != EnumBindRuleType.EQUAL_BINDRULE_TYPE)
                     && (op != EnumBindRuleType.NOT_EQUAL_BINDRULE_TYPE)) {
-                LocalizableMessage message =
-                  WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD_OPERATOR_COMBO
-                          .get(keyword.toString(), op.toString());
-                throw new AciException(message);
+                throw new AciException(
+                    WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD_OPERATOR_COMBO.get(keyword, op));
             }
         }
     }

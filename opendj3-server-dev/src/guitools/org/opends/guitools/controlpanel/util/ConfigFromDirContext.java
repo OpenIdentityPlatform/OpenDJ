@@ -509,9 +509,7 @@ public class ConfigFromDirContext extends ConfigReader
     }
     catch (final Throwable t)
     {
-      OnlineUpdateException oupe = new OnlineUpdateException(
-          ERR_READING_CONFIG_LDAP.get(t.toString()), t);
-      ex.add(oupe);
+      ex.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(t), t));
     }
     for (OpenDsException oe : ex)
     {
@@ -527,9 +525,7 @@ public class ConfigFromDirContext extends ConfigReader
     catch (Throwable t)
     {
       logger.warn(LocalizableMessage.raw("Error reading monitoring: "+t, t));
-      OnlineUpdateException oupe = new OnlineUpdateException(
-          ERR_READING_CONFIG_LDAP.get(t.toString()), t);
-      ex.add(oupe);
+      ex.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(t), t));
     }
     try
     {
@@ -538,9 +534,7 @@ public class ConfigFromDirContext extends ConfigReader
     catch (Throwable t)
     {
       logger.warn(LocalizableMessage.raw("Error reading task information: "+t, t));
-      OnlineUpdateException oupe = new OnlineUpdateException(
-          ERR_READING_CONFIG_LDAP.get(t.toString()), t);
-      ex.add(oupe);
+      ex.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(t), t));
     }
     taskEntries = Collections.unmodifiableSet(ts);
     for (ConnectionHandlerDescriptor ch : getConnectionHandlers())
@@ -585,8 +579,7 @@ public class ConfigFromDirContext extends ConfigReader
       }
       catch (NamingException ne)
       {
-        throw new OnlineUpdateException(
-            ERR_READING_SCHEMA_LDAP.get(ne.toString()), ne);
+        throw new OnlineUpdateException(ERR_READING_SCHEMA_LDAP.get(ne), ne);
       }
       schema = loader.getSchema();
     }
@@ -837,9 +830,8 @@ public class ConfigFromDirContext extends ConfigReader
     }
     catch (NamingException ne)
     {
-      OnlineUpdateException oue = new OnlineUpdateException(
-          ERR_READING_CONFIG_LDAP.get(ne.getMessage().toString()), ne);
-      ex.add(oue);
+      ex.add(new OnlineUpdateException(
+          ERR_READING_CONFIG_LDAP.get(ne.getMessage()), ne));
     }
   }
 
@@ -884,9 +876,8 @@ public class ConfigFromDirContext extends ConfigReader
     }
     catch (NamingException ne)
     {
-      OnlineUpdateException oue = new OnlineUpdateException(
-          ERR_READING_CONFIG_LDAP.get(ne.getMessage().toString()), ne);
-      ex.add(oue);
+      ex.add(new OnlineUpdateException(
+          ERR_READING_CONFIG_LDAP.get(ne.getMessage()), ne));
     }
   }
 

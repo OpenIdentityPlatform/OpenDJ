@@ -202,22 +202,17 @@ public class ADSContextException extends OpenDsException {
   private static LocalizableMessage getMessage(ErrorType error, Throwable x)
   {
     LocalizableMessage msg;
-    if (x != null)
+    if (x instanceof OpenDsException)
     {
-      if (x instanceof OpenDsException)
-      {
-        msg = INFO_ADS_CONTEXT_EXCEPTION_WITH_DETAILS_MSG.get(error.toString(),
-            ((OpenDsException)x).getMessageObject());
-      }
-      else
-      {
-        msg = INFO_ADS_CONTEXT_EXCEPTION_WITH_DETAILS_MSG.get(error.toString(),
-            x.toString());
-      }
+      msg = INFO_ADS_CONTEXT_EXCEPTION_WITH_DETAILS_MSG.get(error,
+          ((OpenDsException)x).getMessageObject());
+    } else if (x != null)
+    {
+      msg = INFO_ADS_CONTEXT_EXCEPTION_WITH_DETAILS_MSG.get(error, x);
     }
     else
     {
-      msg = INFO_ADS_CONTEXT_EXCEPTION_MSG.get(error.toString());
+      msg = INFO_ADS_CONTEXT_EXCEPTION_MSG.get(error);
     }
     return msg;
   }

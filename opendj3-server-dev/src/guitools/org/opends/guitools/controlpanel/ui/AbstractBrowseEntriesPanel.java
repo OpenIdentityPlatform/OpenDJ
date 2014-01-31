@@ -700,7 +700,7 @@ implements BackendPopulatedListener
         }
         catch (Throwable t)
         {
-          errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(s, t.toString()));
+          errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(s, t));
         }
       }
     }

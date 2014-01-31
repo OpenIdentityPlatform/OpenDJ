@@ -1574,8 +1574,7 @@ public class LDAPConnectionConsoleInteraction {
             for (int i = 0; i < chain.length; i++)
             {
               app.println();
-              app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE
-                  .get(chain[i].toString()));
+              app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE.get(chain[i]));
             }
             continue;
           }

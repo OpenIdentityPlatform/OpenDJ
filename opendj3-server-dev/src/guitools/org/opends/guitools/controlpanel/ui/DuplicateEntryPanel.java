@@ -373,7 +373,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       }
       catch (IOException ioe)
       {
-        errors.add(ERR_CTRL_PANEL_ERROR_CHECKING_ENTRY.get(ioe.toString()));
+        errors.add(ERR_CTRL_PANEL_ERROR_CHECKING_ENTRY.get(ioe));
       }
       catch (LDIFException le)
       {

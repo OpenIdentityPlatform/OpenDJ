@@ -123,7 +123,7 @@ connIDLoop:
           catch (Exception e)
           {
             LocalizableMessage message =
-               ERR_TASK_DISCONNECT_INVALID_CONN_ID.get(v.getValue().toString());
+               ERR_TASK_DISCONNECT_INVALID_CONN_ID.get(v.getValue());
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, e);
           }

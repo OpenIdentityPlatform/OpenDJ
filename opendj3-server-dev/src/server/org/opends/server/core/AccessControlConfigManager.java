@@ -302,8 +302,7 @@ public final class AccessControlConfigManager
     } catch (Exception e) {
       logger.traceException(e);
       LocalizableMessage message = ERR_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER.
-              get(handlerClassName, String.valueOf(config.dn().toString()),
-                      stackTraceToSingleLineString(e));
+              get(handlerClassName, config.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
     return newHandler;

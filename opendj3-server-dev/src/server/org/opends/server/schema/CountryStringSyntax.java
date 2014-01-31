@@ -292,8 +292,7 @@ public class CountryStringSyntax
       if (stringValue.charAt(0) < 'A' || stringValue.charAt(0) > 'Z' ||
           stringValue.charAt(1) < 'A' || stringValue.charAt(1) > 'Z')
         {
-          invalidReason.append(ERR_ATTR_SYNTAX_COUNTRY_NO_VALID_ISO_CODE
-                 .get(value.toString()));
+          invalidReason.append(ERR_ATTR_SYNTAX_COUNTRY_NO_VALID_ISO_CODE.get(value));
           return false;
         }
     }

@@ -105,9 +105,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      LocalizableMessage message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
+      throw new ASN1Exception(ERR_ASN1_READ_ERROR.get(ioe), ioe);
     }
   }
 
@@ -138,9 +136,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      LocalizableMessage message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
+      throw new ASN1Exception(ERR_ASN1_READ_ERROR.get(ioe), ioe);
     }
   }
 
@@ -340,9 +336,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      LocalizableMessage message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
+      throw new ASN1Exception(ERR_ASN1_READ_ERROR.get(ioe), ioe);
     }
   }
 
@@ -369,9 +363,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      LocalizableMessage message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
+      throw new ASN1Exception(ERR_ASN1_READ_ERROR.get(ioe), ioe);
     }
   }
 
@@ -411,9 +403,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      LocalizableMessage message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
+      throw new ASN1Exception(ERR_ASN1_READ_ERROR.get(ioe), ioe);
     }
   }
 
@@ -507,9 +497,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      LocalizableMessage message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
+      throw new ASN1Exception(ERR_ASN1_READ_ERROR.get(ioe), ioe);
     }
   }
 
@@ -583,9 +571,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      LocalizableMessage message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
+      throw new ASN1Exception(ERR_ASN1_READ_ERROR.get(ioe), ioe);
     }
   }
 
@@ -639,9 +625,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      LocalizableMessage message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
+      throw new ASN1Exception(ERR_ASN1_READ_ERROR.get(ioe), ioe);
     }
 
     String str;
@@ -708,9 +692,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      LocalizableMessage message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
+      throw new ASN1Exception(ERR_ASN1_READ_ERROR.get(ioe), ioe);
     }
   }
 
@@ -786,9 +768,7 @@ final class ASN1InputStreamReader implements ASN1Reader
       }
       catch(IOException ioe)
       {
-        LocalizableMessage message =
-            ERR_ASN1_READ_ERROR.get(ioe.toString());
-        throw new ASN1Exception(message, ioe);
+        throw new ASN1Exception(ERR_ASN1_READ_ERROR.get(ioe), ioe);
       }
     }
 
@@ -839,9 +819,7 @@ final class ASN1InputStreamReader implements ASN1Reader
     }
     catch(IOException ioe)
     {
-      LocalizableMessage message =
-          ERR_ASN1_READ_ERROR.get(ioe.toString());
-      throw new ASN1Exception(message, ioe);
+      throw new ASN1Exception(ERR_ASN1_READ_ERROR.get(ioe), ioe);
     }
   }
 

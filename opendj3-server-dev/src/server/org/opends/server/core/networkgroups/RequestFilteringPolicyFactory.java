@@ -605,7 +605,7 @@ public final class RequestFilteringPolicyFactory implements
       {
         unacceptableReasons
             .add(ERR_CONFIG_NETWORKGROUPREQUESTFILTERINGPOLICY_INVALID_ATTRIBUTE
-                .get(allowedAttr, configuration.dn().toString()));
+                .get(allowedAttr, configuration.dn()));
         return false;
       }
     }
@@ -619,8 +619,7 @@ public final class RequestFilteringPolicyFactory implements
       {
         unacceptableReasons
             .add(ERR_CONFIG_NETWORKGROUPREQUESTFILTERINGPOLICY_INVALID_SUBTREE
-                .get(allowedSubtree.toString(), configuration.dn()
-                    .toString()));
+                .get(allowedSubtree, configuration.dn()));
         return false;
       }
     }

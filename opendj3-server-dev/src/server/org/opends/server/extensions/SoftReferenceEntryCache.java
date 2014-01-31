@@ -704,9 +704,9 @@ public class SoftReferenceEntryCache
     // date than idMap. Dont bother with copies either since this
     // is SoftReference based implementation.
     for(SoftReference<CacheEntry> ce : dnMap.values()) {
-      sb.append(ce.get().getDN().toString());
+      sb.append(ce.get().getDN());
       sb.append(":");
-      sb.append(Long.toString(ce.get().getEntryID()));
+      sb.append(ce.get().getEntryID());
       sb.append(":");
       sb.append(ce.get().getBackend().getBackendID());
       sb.append(ServerConstants.EOL);

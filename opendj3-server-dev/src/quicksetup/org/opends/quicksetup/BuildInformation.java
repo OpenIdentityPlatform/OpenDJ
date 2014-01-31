@@ -156,7 +156,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
             // We did not get the required information.
             throw new ApplicationException(
                 ReturnCode.START_ERROR,
-                INFO_ERROR_CREATING_BUILD_INFO_MSG.get(sb.toString()),
+                INFO_ERROR_CREATING_BUILD_INFO_MSG.get(sb),
                 null);
           }
         }

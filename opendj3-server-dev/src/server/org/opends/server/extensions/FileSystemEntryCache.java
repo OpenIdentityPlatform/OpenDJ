@@ -230,8 +230,7 @@ public class FileSystemEntryCache
           buffer.append(iterator.next());
         }
       }
-      LocalizableMessage message = ERR_FSCACHE_CANNOT_INITIALIZE.get(buffer.toString());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_FSCACHE_CANNOT_INITIALIZE.get(buffer));
     }
 
     // Set the cache type.
@@ -1453,10 +1452,9 @@ public class FileSystemEntryCache
 
     // Check dnMap first.
     for (String dn : dnMapCopy.keySet()) {
-      sb.append(dn.toString());
+      sb.append(dn);
       sb.append(":");
-      sb.append((dnMapCopy.get(dn) != null ?
-          dnMapCopy.get(dn).toString() : null));
+      sb.append(dnMapCopy.get(dn) != null ? dnMapCopy.get(dn) : null);
       sb.append(":");
       String backendID = null;
       Iterator<String> backendIterator = backendMapCopy.keySet().iterator();

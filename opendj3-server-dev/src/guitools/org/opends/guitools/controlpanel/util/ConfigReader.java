@@ -105,7 +105,7 @@ public abstract class ConfigReader
     catch (Throwable t)
     {
       environmentSettingException = new OfflineUpdateException(
-          ERR_CTRL_PANEL_SETTING_ENVIRONMENT.get(t.getMessage().toString()), t);
+          ERR_CTRL_PANEL_SETTING_ENVIRONMENT.get(t.getMessage()), t);
     }
     logger.debug(LocalizableMessage.raw("Environment initialized."));
   }

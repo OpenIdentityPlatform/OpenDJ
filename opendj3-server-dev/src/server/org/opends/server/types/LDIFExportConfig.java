@@ -275,9 +275,8 @@ public final class LDIFExportConfig extends OperationConfig
           catch (Exception e)
           {
             // The file could not be created with the correct permissions.
-            LocalizableMessage message =
-              WARN_EXPORT_LDIF_SET_PERMISSION_FAILED.get(f.toString(),
-                    stackTraceToSingleLineString(e));
+            LocalizableMessage message = WARN_EXPORT_LDIF_SET_PERMISSION_FAILED
+                .get(f, stackTraceToSingleLineString(e));
             throw new IOException(message.toString());
           }
         }

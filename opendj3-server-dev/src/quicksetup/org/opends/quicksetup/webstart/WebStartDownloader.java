@@ -148,16 +148,13 @@ public class WebStartDownloader implements DownloadServiceListener {
             }
             buf.append(jars[i]);
           }
-          ex =
-              new ApplicationException(
+          ex = new ApplicationException(
               ReturnCode.DOWNLOAD_ERROR,
-              getThrowableMsg(
-                      INFO_DOWNLOADING_ERROR.get(buf.toString()), ioe), ioe);
+              getThrowableMsg(INFO_DOWNLOADING_ERROR.get(buf), ioe), ioe);
         } catch (Throwable t)
         {
           // This is a bug
-          ex =
-              new ApplicationException(ReturnCode.BUG,
+          ex = new ApplicationException(ReturnCode.BUG,
                       getThrowableMsg(INFO_BUG_MSG.get(), t), t);
         }
       }
@@ -375,7 +372,7 @@ public class WebStartDownloader implements DownloadServiceListener {
     ex =
         new ApplicationException(
         ReturnCode.DOWNLOAD_ERROR,
-                INFO_DOWNLOADING_ERROR.get(url.toString()), null);
+                INFO_DOWNLOADING_ERROR.get(url), null);
   }
 
   /**

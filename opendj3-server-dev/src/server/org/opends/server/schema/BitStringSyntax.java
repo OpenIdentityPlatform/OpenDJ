@@ -209,8 +209,7 @@ public class BitStringSyntax
     int length = valueString.length();
     if (length < 3)
     {
-      invalidReason.append(
-              WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(value.toString()));
+      invalidReason.append(WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(value));
       return false;
     }
 
@@ -219,8 +218,7 @@ public class BitStringSyntax
         (valueString.charAt(length-2) != '\'') ||
         (valueString.charAt(length-1) != 'B'))
     {
-      invalidReason.append(
-              WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(value.toString()));
+      invalidReason.append(WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(value));
       return false;
     }
 

@@ -136,11 +136,8 @@ public final class PasswordPolicyImportPlugin
           // This is the only acceptable type.
           break;
 
-
         default:
-          LocalizableMessage message =
-              ERR_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE.get(t.toString());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE.get(t));
       }
     }
 

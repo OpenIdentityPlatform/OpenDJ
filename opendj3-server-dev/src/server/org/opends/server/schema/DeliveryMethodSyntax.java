@@ -296,8 +296,7 @@ public class DeliveryMethodSyntax
       String token = tokenizer.nextToken();
       if (! allowedValues.contains(token))
       {
-        invalidReason.append(ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT
-                .get(value.toString(), token));
+        invalidReason.append(ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT.get(value, token));
         return false;
       }
     }

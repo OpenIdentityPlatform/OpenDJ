@@ -497,9 +497,8 @@ public class ID2Entry extends DatabaseContainer
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_JEB_ENTRY_DATABASE_CORRUPT.get(id.toString());
-      throw new DirectoryException(
-          DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+          ERR_JEB_ENTRY_DATABASE_CORRUPT.get(id));
     }
   }
 

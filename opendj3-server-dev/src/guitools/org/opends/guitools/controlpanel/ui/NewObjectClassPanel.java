@@ -258,7 +258,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     }
     else if (!StaticUtils.isValidSchemaElement(n, 0, n.length(), err))
     {
-      errors.add(ERR_CTRL_PANEL_INVALID_OBJECTCLASS_NAME.get(err.toString()));
+      errors.add(ERR_CTRL_PANEL_INVALID_OBJECTCLASS_NAME.get(err));
       err = new LocalizableMessageBuilder();
     }
     else
@@ -276,7 +276,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     {
       if (!StaticUtils.isValidSchemaElement(n, 0, n.length(), err))
       {
-        errors.add(ERR_CTRL_PANEL_OID_NOT_VALID.get(err.toString()));
+        errors.add(ERR_CTRL_PANEL_OID_NOT_VALID.get(err));
         err = new LocalizableMessageBuilder();
       }
       else

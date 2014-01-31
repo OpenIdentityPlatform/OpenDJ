@@ -475,7 +475,7 @@ public final class LDIFConnectionHandler
           DN matchedDN = operation.getMatchedDN();
           if (matchedDN != null)
           {
-            m = INFO_LDIF_CONNHANDLER_MATCHED_DN.get(matchedDN.toString());
+            m = INFO_LDIF_CONNHANDLER_MATCHED_DN.get(matchedDN);
             writer.writeComment(m, 78);
           }
 

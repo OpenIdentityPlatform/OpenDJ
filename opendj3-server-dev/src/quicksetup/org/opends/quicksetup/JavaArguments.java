@@ -236,7 +236,7 @@ public class JavaArguments
           }
           sb.append(arg);
         }
-        lines.add(INFO_ADDITIONAL_ARGUMENTS.get(sb.toString()));
+        lines.add(INFO_ADDITIONAL_ARGUMENTS.get(sb));
       }
       if (lines.isEmpty())
       {

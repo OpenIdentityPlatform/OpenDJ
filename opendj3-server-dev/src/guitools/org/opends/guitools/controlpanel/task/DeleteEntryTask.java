@@ -532,6 +532,6 @@ public class DeleteEntryTask extends Task
     args.add(dn.toString());
     printEquivalentCommandLine(getCommandLinePath("ldapdelete"),
         args,
-        INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ENTRY.get(dn.toString()));
+        INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ENTRY.get(dn));
   }
 }

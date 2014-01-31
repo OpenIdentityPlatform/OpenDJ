@@ -649,13 +649,11 @@ public abstract class ConsoleApplication
       throws CLIException
   {
     String answer = null;
-    final LocalizableMessage messageToDisplay =
-        INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(), defaultValue);
     if (msgStyle == Style.TITLE)
     {
       println();
     }
-    print(messageToDisplay);
+    print(INFO_PROMPT_SINGLE_DEFAULT.get(prompt, defaultValue));
     out.print(" ");
 
     try
@@ -710,8 +708,7 @@ public abstract class ConsoleApplication
     {
       if (defaultValue != null)
       {
-        prompt =
-            INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(), defaultValue);
+        prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt, defaultValue);
       }
       String response = readLineOfInput(prompt);
 
@@ -863,9 +860,7 @@ public abstract class ConsoleApplication
 
     if (defaultValue != -1)
     {
-      prompt =
-          INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(), String
-              .valueOf(defaultValue));
+      prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt, defaultValue);
     }
 
     return readValidatedInput(prompt, callback, CONFIRMATION_MAX_TRIES);
@@ -1468,9 +1463,7 @@ public abstract class ConsoleApplication
 
     if (defaultValue != -1)
     {
-      prompt =
-          INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(), String
-              .valueOf(defaultValue));
+      prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt, defaultValue);
     }
 
     return readValidatedInput(prompt, callback, CONFIRMATION_MAX_TRIES);

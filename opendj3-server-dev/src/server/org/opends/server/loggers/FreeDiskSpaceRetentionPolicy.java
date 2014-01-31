@@ -132,7 +132,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     {
       logger.traceException(e);
       LocalizableMessage message =
-          ERR_LOGGER_ERROR_OBTAINING_FREE_SPACE.get(files[0].toString(),
+          ERR_LOGGER_ERROR_OBTAINING_FREE_SPACE.get(files[0],
               stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);

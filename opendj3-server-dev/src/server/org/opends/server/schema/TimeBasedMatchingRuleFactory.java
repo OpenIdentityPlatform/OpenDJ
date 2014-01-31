@@ -338,8 +338,7 @@ public final class TimeBasedMatchingRuleFactory
           if(containsTimeUnit)
           {
             //We already have time unit found by now.
-            message = WARN_ATTR_CONFLICTING_ASSERTION_FORMAT.
-                       get(value.toString());
+            message = WARN_ATTR_CONFLICTING_ASSERTION_FORMAT.get(value);
           }
           else
           {
@@ -361,9 +360,8 @@ public final class TimeBasedMatchingRuleFactory
                 week = number;
                 break;
               default:
-                  message =
-                          WARN_ATTR_INVALID_RELATIVE_TIME_ASSERTION_FORMAT.
-                          get(value.toString(),(char)value.byteAt(index));
+                  message = WARN_ATTR_INVALID_RELATIVE_TIME_ASSERTION_FORMAT.
+                          get(value,(char)value.byteAt(index));
             }
           }
           if(message !=null)
@@ -912,15 +910,11 @@ public final class TimeBasedMatchingRuleFactory
             case 'M':
                if(number == 0)
               {
-                message =
-                        WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.
-                        get(value.toString(),number);
+                message = WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.get(value, number);
               }
               else if(month > 0)
               {
-                message =
-                        WARN_ATTR_DUPLICATE_MONTH_ASSERTION_FORMAT.get(
-                        value.toString(),month);
+                message = WARN_ATTR_DUPLICATE_MONTH_ASSERTION_FORMAT.get(value, month);
               }
               else
               {
@@ -930,14 +924,11 @@ public final class TimeBasedMatchingRuleFactory
             case 'Y':
               if(number == 0)
               {
-                message =
-                        WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.
-                        get(value.toString(),number);
+                message = WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(value, number);
               }
               else if(year >0)
               {
-                message = WARN_ATTR_DUPLICATE_YEAR_ASSERTION_FORMAT.
-                        get(value.toString(),year);
+                message = WARN_ATTR_DUPLICATE_YEAR_ASSERTION_FORMAT.get(value, year);
               }
               else
               {
@@ -945,9 +936,8 @@ public final class TimeBasedMatchingRuleFactory
               }
               break;
             default:
-                message =
-                        WARN_ATTR_INVALID_PARTIAL_TIME_ASSERTION_FORMAT.
-                        get(value.toString(),(char)value.byteAt(index));
+                message = WARN_ATTR_INVALID_PARTIAL_TIME_ASSERTION_FORMAT.
+                        get(value,(char)value.byteAt(index));
           }
           if(message !=null)
           {
@@ -966,12 +956,9 @@ public final class TimeBasedMatchingRuleFactory
       if(year < 0)
       {
         //A future date is allowed.
-        LocalizableMessage message =
-                WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.
-                get(value.toString(),year);
+        LocalizableMessage message = WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(value, year);
         logger.warn(message);
-        throw new DirectoryException(
-                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
 
       switch(month)
@@ -1016,12 +1003,9 @@ public final class TimeBasedMatchingRuleFactory
           month = Calendar.DECEMBER;
           break;
         default:
-          LocalizableMessage message =
-                WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.
-                get(value.toString(),month);
+          LocalizableMessage message = WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.get(value, month);
           logger.warn(message);
-           throw new DirectoryException(
-                   ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
 
       boolean invalidDate = false;
@@ -1050,41 +1034,30 @@ public final class TimeBasedMatchingRuleFactory
       }
       if(invalidDate)
       {
-        LocalizableMessage message =
-            WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(value.toString(), date);
+        LocalizableMessage message = WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(value, date);
         logger.warn(message);
-        throw new DirectoryException(
-                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
 
       if(!(hour >=-1 && hour <=23))
       {
-         LocalizableMessage message =
-                WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.
-                get(value.toString(),date);
+         LocalizableMessage message = WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.get(value, date);
          logger.warn(message);
-        throw new DirectoryException(
-                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
 
       if(!(minute >=-1 && minute <=59))
       {
-            LocalizableMessage message =
-                WARN_ATTR_INVALID_MINUTE_ASSERTION_FORMAT.
-                get(value.toString(),date);
-                logger.warn(message);
-        throw new DirectoryException(
-                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        LocalizableMessage message = WARN_ATTR_INVALID_MINUTE_ASSERTION_FORMAT.get(value, date);
+        logger.warn(message);
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
 
       if(!(second >=-1 && second <=60)) //Consider leap seconds.
       {
-      LocalizableMessage message =
-                WARN_ATTR_INVALID_SECOND_ASSERTION_FORMAT.
-                get(value.toString(),date);
-         logger.warn(message);
-        throw new DirectoryException(
-                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        LocalizableMessage message = WARN_ATTR_INVALID_SECOND_ASSERTION_FORMAT.get(value, date);
+        logger.warn(message);
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
 
       /**

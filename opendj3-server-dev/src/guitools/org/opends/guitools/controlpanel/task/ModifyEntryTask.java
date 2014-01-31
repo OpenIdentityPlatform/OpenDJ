@@ -422,8 +422,7 @@ public class ModifyEntryTask extends Task
         printEquivalentRenameCommand(oldDN, newEntry.getName(), useAdminCtx);
         getProgressDialog().appendProgressHtml(
             Utilities.getProgressWithPoints(
-                INFO_CTRL_PANEL_RENAMING_ENTRY.get(oldDN.toString(),
-                    newEntry.getName().toString()),
+                INFO_CTRL_PANEL_RENAMING_ENTRY.get(oldDN, newEntry.getName()),
                 ColorAndFontConstants.progressFont));
       }
     });
@@ -461,7 +460,7 @@ public class ModifyEntryTask extends Task
           printEquivalentCommandToModify(dn, originalMods, useAdminCtx);
           getProgressDialog().appendProgressHtml(
               Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_MODIFYING_ENTRY.get(dn.toString()),
+                  INFO_CTRL_PANEL_MODIFYING_ENTRY.get(dn),
                   ColorAndFontConstants.progressFont));
         }
       });

@@ -778,9 +778,7 @@ public class EncodePassword
           }
           encodedPW = storageScheme.encodePasswordWithScheme(clearPW);
 
-          LocalizableMessage message =
-                  ERR_ENCPW_ENCODED_PASSWORD.get(encodedPW.toString());
-          out.println(message);
+          out.println(ERR_ENCPW_ENCODED_PASSWORD.get(encodedPW));
         }
         catch (DirectoryException de)
         {

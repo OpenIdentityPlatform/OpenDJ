@@ -363,9 +363,8 @@ public final class FractionalLDIFImportPlugin
             return PluginResult.ImportLDIF.stopEntryProcessing(null);
           }
 
-          LocalizableMessage message = NOTE_ERR_LDIF_IMPORT_FRACTIONAL_BAD_DATA_SET
-              .get(replicatedDomainBaseDn.toString());
-          return PluginResult.ImportLDIF.stopEntryProcessing(message);
+          return PluginResult.ImportLDIF.stopEntryProcessing(
+              NOTE_ERR_LDIF_IMPORT_FRACTIONAL_BAD_DATA_SET.get(replicatedDomainBaseDn));
         }
 
         // Local domain is fractional but remote domain has no config :
@@ -385,9 +384,8 @@ public final class FractionalLDIFImportPlugin
           return PluginResult.ImportLDIF.stopEntryProcessing(null);
         }
 
-        LocalizableMessage message = NOTE_ERR_LDIF_IMPORT_FRACTIONAL_DATA_SET_IS_FRACTIONAL
-            .get(replicatedDomainBaseDn.toString());
-        return PluginResult.ImportLDIF.stopEntryProcessing(message);
+        return PluginResult.ImportLDIF.stopEntryProcessing(
+            NOTE_ERR_LDIF_IMPORT_FRACTIONAL_DATA_SET_IS_FRACTIONAL.get(replicatedDomainBaseDn));
       }
     }
 

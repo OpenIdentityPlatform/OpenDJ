@@ -325,8 +325,7 @@ public class GSSAPISASLMechanismHandler extends
       principal.append("@").append(realm);
     }
     w.write(principal.toString());
-    LocalizableMessage msg = INFO_GSSAPI_PRINCIPAL_NAME.get(principal.toString());
-    logger.error(msg);
+    logger.error(INFO_GSSAPI_PRINCIPAL_NAME.get(principal));
     w.write("\" isInitiator=false;");
     w.newLine();
     w.write("};");

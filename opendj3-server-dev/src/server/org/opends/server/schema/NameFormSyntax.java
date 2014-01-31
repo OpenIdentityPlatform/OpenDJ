@@ -573,11 +573,8 @@ public class NameFormSyntax
               }
               else
               {
-                LocalizableMessage message =
-                    ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR.
-                      get(oid, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                             message);
+                    ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR.get(oid, woidBuffer));
               }
             }
 
@@ -618,10 +615,8 @@ public class NameFormSyntax
             }
             else
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR.
-                  get(oid, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message);
+                  ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR.get(oid, woidBuffer));
             }
           }
 
@@ -658,11 +653,8 @@ public class NameFormSyntax
               }
               else
               {
-                LocalizableMessage message =
-                    ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.
-                      get(oid, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                             message);
+                    ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.get(oid, woidBuffer));
               }
             }
 
@@ -703,10 +695,8 @@ public class NameFormSyntax
             }
             else
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.
-                  get(oid, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message);
+                  ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.get(oid, woidBuffer));
             }
           }
 

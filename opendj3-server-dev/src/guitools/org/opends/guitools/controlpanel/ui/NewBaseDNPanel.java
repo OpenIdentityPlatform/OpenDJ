@@ -1309,8 +1309,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       catch (IOException ioe)
       {
         throw new OfflineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe.toString()),
-            ioe);
+            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
       }
       finally
       {
@@ -1341,8 +1340,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       catch (IOException ioe)
       {
         throw new OfflineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe.toString()),
-            ioe);
+            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
       }
       finally
       {
@@ -1472,7 +1470,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       catch (Throwable t)
       {
         throw new OnlineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(t.toString()), t);
+            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(t), t);
       }
       finally
       {

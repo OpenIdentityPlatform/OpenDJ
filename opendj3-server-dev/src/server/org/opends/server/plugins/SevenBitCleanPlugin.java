@@ -108,11 +108,8 @@ public final class SevenBitCleanPlugin
           // These are acceptable.
           break;
 
-
         default:
-          LocalizableMessage message =
-              ERR_PLUGIN_7BIT_INVALID_PLUGIN_TYPE.get(t.toString());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_PLUGIN_7BIT_INVALID_PLUGIN_TYPE.get(t));
       }
     }
   }

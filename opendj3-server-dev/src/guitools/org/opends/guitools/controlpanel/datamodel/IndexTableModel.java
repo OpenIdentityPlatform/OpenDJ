@@ -178,7 +178,7 @@ public class IndexTableModel extends AbstractIndexTableModel
     }
     if (sb.length() == 0)
     {
-      sb.append(INFO_NOT_APPLICABLE_LABEL.get().toString());
+      sb.append(INFO_NOT_APPLICABLE_LABEL.get());
     }
     return sb.toString();
   }

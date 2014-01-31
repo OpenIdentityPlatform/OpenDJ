@@ -112,9 +112,7 @@ public final class NetworkGroupPlugin
           // These are acceptable
           break;
         default:
-          LocalizableMessage message =
-              ERR_PLUGIN_NETWORKGROUP_INVALID_PLUGIN_TYPE.get(t.toString());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_PLUGIN_NETWORKGROUP_INVALID_PLUGIN_TYPE.get(t));
       }
     }
   }

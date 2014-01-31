@@ -34,7 +34,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.*;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
@@ -511,7 +510,7 @@ public final class ReplicationServer
     catch (Exception e)
     {
       LocalizableMessage message =
-        NOTE_ERR_UNABLE_TO_ENABLE_ECL_VIRTUAL_ATTR.get(attrName, e.toString());
+        NOTE_ERR_UNABLE_TO_ENABLE_ECL_VIRTUAL_ATTR.get(attrName, e);
       throw new DirectoryException(ResultCode.OPERATIONS_ERROR, message, e);
     }
   }
@@ -987,10 +986,7 @@ public final class ReplicationServer
     }
     catch(Exception e)
     {
-      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-      mb.append(e.getLocalizedMessage());
-      LocalizableMessage msg = ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(mb.toString());
-      throw new ConfigException(msg, e);
+      throw new ConfigException(ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(e.getLocalizedMessage()), e);
     }
   }
 
@@ -1040,10 +1036,7 @@ public final class ReplicationServer
     }
     catch(Exception e)
     {
-      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-      mb.append(e.getLocalizedMessage());
-      LocalizableMessage msg = ERR_DELETE_REPL_BACKEND_FAILED.get(mb.toString());
-      logger.error(msg);
+      logger.error(ERR_DELETE_REPL_BACKEND_FAILED.get(e.getLocalizedMessage()));
     }
   }
 

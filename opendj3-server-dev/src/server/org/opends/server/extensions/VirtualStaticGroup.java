@@ -161,9 +161,7 @@ public class VirtualStaticGroup
             logger.traceException(de);
 
             LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET.
-                get(v.getValue().toString(),
-                    String.valueOf(groupEntry.getName()),
-                    de.getMessageObject());
+                get(v.getValue(), groupEntry.getName(), de.getMessageObject());
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, de);
           }

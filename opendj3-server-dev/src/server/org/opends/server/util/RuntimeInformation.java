@@ -124,8 +124,7 @@ import static org.opends.server.util.DynamicConstants.*;
              NOTE_JAVA_HOME.get(System.getProperty("java.home")));
      System.out.println(
              NOTE_JAVA_CLASSPATH.get(System.getProperty("java.class.path")));
-     System.out.println(
-             NOTE_JE_VERSION.get(JEVersion.CURRENT_VERSION.toString()));
+     System.out.println(NOTE_JE_VERSION.get(JEVersion.CURRENT_VERSION));
      System.out.println(
              NOTE_CURRENT_DIRECTORY.get(System.getProperty("user.dir")));
      String installDir = toCanonicalPath(DirectoryServer.getServerRoot());
