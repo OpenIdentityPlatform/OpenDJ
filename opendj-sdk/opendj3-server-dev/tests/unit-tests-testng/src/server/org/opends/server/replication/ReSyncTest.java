@@ -54,10 +54,7 @@ public class ReSyncTest extends ReplicationTestCase
   private void debugInfo(String s)
   {
     logger.error(LocalizableMessage.raw(s));
-    if (logger.isTraceEnabled())
-    {
-      logger.trace(s);
-    }
+    logger.trace(s);
   }
 
   private static final String EXAMPLE_DN = "dc=example,dc=com";

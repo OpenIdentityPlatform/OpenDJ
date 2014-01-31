@@ -1232,10 +1232,7 @@ public class ReplicationBroker
           logger.error(errorMessage);
         }
 
-        if (logger.isTraceEnabled())
-        {
-          logger.trace(errorMessage);
-        }
+        logger.trace(errorMessage);
       }
     }
     return setConnectedRS(ConnectedRS.noConnectedRS());

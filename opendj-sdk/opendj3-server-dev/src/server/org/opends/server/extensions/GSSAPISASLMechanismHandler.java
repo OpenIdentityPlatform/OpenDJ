@@ -381,8 +381,7 @@ private void clearProperties() {
         saslContext = SASLContext.createSASLContext(saslProps, serverFQDN,
                                   SASL_MECHANISM_GSSAPI, identityMapper);
       } catch (SaslException ex) {
-        if (logger.isTraceEnabled())
-          logger.traceException(ex);
+        logger.traceException(ex);
         LocalizableMessage msg;
         GSSException gex = (GSSException) ex.getCause();
         if(gex != null) {
@@ -404,8 +403,7 @@ private void clearProperties() {
     }
     catch (LoginException ex)
     {
-      if (logger.isTraceEnabled())
-        logger.traceException(ex);
+      logger.traceException(ex);
       LocalizableMessage message = ERR_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT
             .get(getExceptionMessage(ex));
       // Log a configuration error.
@@ -489,11 +487,9 @@ private void clearProperties() {
     }
     catch (UnknownHostException ex)
     {
-      if (logger.isTraceEnabled())
-        logger.traceException(ex);
-      LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
-          .valueOf(configEntryDN), getExceptionMessage(ex));
-      unacceptableReasons.add(message);
+      logger.traceException(ex);
+      unacceptableReasons.add(ERR_SASL_CANNOT_GET_SERVER_FQDN.get(
+          configEntryDN, getExceptionMessage(ex)));
       isAcceptable = false;
     }
 
@@ -543,26 +539,18 @@ private void clearProperties() {
       this.configuration = newConfiguration;
     }
     catch (InitializationException ex) {
-      if (logger.isTraceEnabled())
-        logger.traceException(ex);
-      LocalizableMessage message = ex.getMessageObject();
-      messages.add(message);
+      logger.traceException(ex);
+      messages.add(ex.getMessageObject());
       clearProperties();
       resultCode = ResultCode.OTHER;
     } catch (UnknownHostException ex) {
-      if (logger.isTraceEnabled())
-        logger.traceException(ex);
-        LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
-          .valueOf(configEntryDN), getExceptionMessage(ex));
-      messages.add(message);
+      logger.traceException(ex);
+      messages.add(ERR_SASL_CANNOT_GET_SERVER_FQDN.get(configEntryDN, getExceptionMessage(ex)));
       clearProperties();
       resultCode = ResultCode.OTHER;
     } catch (IOException ex) {
-      if (logger.isTraceEnabled())
-        logger.traceException(ex);
-      LocalizableMessage message = ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG
-        .get(getExceptionMessage(ex));
-      messages.add(message);
+      logger.traceException(ex);
+      messages.add(ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG.get(getExceptionMessage(ex)));
       clearProperties();
       resultCode = ResultCode.OTHER;
     }

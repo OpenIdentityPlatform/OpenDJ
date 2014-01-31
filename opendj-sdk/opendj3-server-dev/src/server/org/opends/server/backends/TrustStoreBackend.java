@@ -557,10 +557,7 @@ public class TrustStoreBackend
     }
     catch (Exception e)
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.traceException(e);
-      }
+      logger.traceException(e);
 
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_RETRIEVE_CERT.get(
           certAlias, trustStoreFile, e.getMessage());
@@ -756,11 +753,7 @@ public class TrustStoreBackend
           }
           catch (Exception e)
           {
-            if (logger.isTraceEnabled())
-            {
-              logger.traceException(e);
-            }
-
+            logger.traceException(e);
             continue;
           }
 
@@ -768,7 +761,6 @@ public class TrustStoreBackend
           {
             searchOperation.returnEntry(certEntry, null);
           }
-
         }
       }
     }

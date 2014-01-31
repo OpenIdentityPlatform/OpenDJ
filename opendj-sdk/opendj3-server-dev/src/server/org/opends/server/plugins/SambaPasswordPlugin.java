@@ -786,10 +786,7 @@ public final class SambaPasswordPlugin extends
        * This should never happen as we are processing the post-operation which
        * succeeded so the entry has to exist if we have reached this point.
        */
-      if (logger.isTraceEnabled())
-      {
-        logger.traceException(e);
-      }
+      logger.traceException(e);
     }
 
     return PluginResult.PostOperation.continueOperationProcessing();

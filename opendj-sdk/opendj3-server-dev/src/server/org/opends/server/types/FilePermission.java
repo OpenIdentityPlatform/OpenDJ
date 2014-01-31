@@ -264,17 +264,11 @@ public class FilePermission
     }
     catch (NoSuchMethodException e)
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.traceException(e);
-      }
+      logger.traceException(e);
     }
     catch (ClassNotFoundException e)
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.traceException(e);
-      }
+      logger.traceException(e);
     }
     finally
     {
