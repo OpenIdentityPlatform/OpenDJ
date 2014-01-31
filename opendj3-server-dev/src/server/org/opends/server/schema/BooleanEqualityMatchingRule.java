@@ -160,8 +160,7 @@ class BooleanEqualityMatchingRule
     }
     else
     {
-      LocalizableMessage message = WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(
-              value.toString());
+      LocalizableMessage message = WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(value);
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {

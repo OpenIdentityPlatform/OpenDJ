@@ -288,10 +288,9 @@ public class CharacterSetPasswordValidator
           }
         }
 
-        invalidReason
-            .append(ERR_CHARSET_VALIDATOR_TOO_FEW_OPTIONAL_CHAR_SETS
-                .get(requiredOptionalCharacterSets,
-                    builder.toString()));
+        invalidReason.append(
+            ERR_CHARSET_VALIDATOR_TOO_FEW_OPTIONAL_CHAR_SETS.get(
+                requiredOptionalCharacterSets, builder));
         return false;
       }
     }

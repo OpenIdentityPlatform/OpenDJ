@@ -376,10 +376,8 @@ public class ConfigFileHandler
       DN configRootDN = DN.valueOf(DN_CONFIG_ROOT);
       if (! entry.getName().equals(configRootDN))
       {
-        LocalizableMessage message = ERR_CONFIG_FILE_INVALID_BASE_DN.get(
-                               f.getAbsolutePath(), entry.getName().toString(),
-                               DN_CONFIG_ROOT);
-        throw new InitializationException(message);
+        throw new InitializationException(ERR_CONFIG_FILE_INVALID_BASE_DN.get(
+            f.getAbsolutePath(), entry.getName(), DN_CONFIG_ROOT));
       }
     }
     catch (InitializationException ie)
@@ -456,11 +454,8 @@ public class ConfigFileHandler
       {
         close(reader);
 
-        LocalizableMessage message = ERR_CONFIG_FILE_DUPLICATE_ENTRY.get(
-                               entryDN.toString(),
-                               String.valueOf(reader.getLastEntryLineNumber()),
-                               f.getAbsolutePath());
-        throw new InitializationException(message);
+        throw new InitializationException(ERR_CONFIG_FILE_DUPLICATE_ENTRY.get(
+            entryDN, reader.getLastEntryLineNumber(), f.getAbsolutePath()));
       }
 
 
@@ -470,11 +465,8 @@ public class ConfigFileHandler
       {
         close(reader);
 
-        LocalizableMessage message = ERR_CONFIG_FILE_UNKNOWN_PARENT.get(
-                               entryDN.toString(),
-                               reader.getLastEntryLineNumber(),
-                               f.getAbsolutePath());
-        throw new InitializationException(message);
+        throw new InitializationException(ERR_CONFIG_FILE_UNKNOWN_PARENT.get(
+            entryDN, reader.getLastEntryLineNumber(), f.getAbsolutePath()));
       }
 
       ConfigEntry parentEntry = configEntries.get(parentDN);
@@ -2306,7 +2298,7 @@ public class ConfigFileHandler
       logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_FILE_WRITE_ERROR.get(
-          configEntry.getDN().toString(), String.valueOf(e));
+          configEntry.getDN(), e);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }

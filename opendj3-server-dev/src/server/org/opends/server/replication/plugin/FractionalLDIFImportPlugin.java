@@ -143,10 +143,7 @@ public final class FractionalLDIFImportPlugin
           break;
 
         default:
-          LocalizableMessage message =
-            ERR_PLUGIN_FRACTIONAL_LDIF_IMPORT_INVALID_PLUGIN_TYPE.get(
-            t.toString());
-          throw new ConfigException(message);
+        throw new ConfigException(ERR_PLUGIN_FRACTIONAL_LDIF_IMPORT_INVALID_PLUGIN_TYPE.get(t));
       }
     }
   }
@@ -282,9 +279,8 @@ public final class FractionalLDIFImportPlugin
                 getStaticReplicationDomainFractionalConfig(entry);
             } catch (Exception ex)
             {
-              LocalizableMessage message = ERR_FRACTIONAL_COULD_NOT_RETRIEVE_CONFIG.get(
-                entry.toString());
-              return PluginResult.ImportLDIF.stopEntryProcessing(message);
+              return PluginResult.ImportLDIF.stopEntryProcessing(
+                  ERR_FRACTIONAL_COULD_NOT_RETRIEVE_CONFIG.get(entry));
             }
           } else
           {

@@ -441,9 +441,8 @@ public class IdentityMapperConfigManager
             }
           }
 
-          LocalizableMessage message = ERR_CONFIG_IDMAPPER_CONFIG_NOT_ACCEPTABLE.get(
-              String.valueOf(configuration.dn()), buffer.toString());
-          throw new InitializationException(message);
+          throw new InitializationException(
+              ERR_CONFIG_IDMAPPER_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), buffer));
         }
       }
 

@@ -1085,7 +1085,7 @@ public class LocalBackendAddOperation
               {
                 message = WARN_ADD_OP_INVALID_SYNTAX.
                     get(String.valueOf(entryDN),
-                        String.valueOf(v.getValue().toString()),
+                        String.valueOf(v.getValue()),
                         String.valueOf(a.getName()),
                         String.valueOf(invalidReason));
 

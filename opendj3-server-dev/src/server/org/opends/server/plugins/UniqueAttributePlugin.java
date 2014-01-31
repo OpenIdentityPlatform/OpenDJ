@@ -144,9 +144,7 @@ public class UniqueAttributePlugin
         if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
         {
           throw new ConfigException(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(
-                                         configuration.dn().toString(),
-                                         t.getNameOrOID(),
-                                         b.getBackendID()));
+              configuration.dn(), t.getNameOrOID(), b.getBackendID()));
         }
       }
     }
@@ -322,8 +320,7 @@ public class UniqueAttributePlugin
           uniqueAttrValue2Dn.remove(v2);
         }
         LocalizableMessage msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
-            t.getNameOrOID(), v.getValue().toString(),
-            conflictDN.toString());
+            t.getNameOrOID(), v.getValue(), conflictDN);
         return PluginResult.PreOperation.stopProcessing(
             ResultCode.CONSTRAINT_VIOLATION, msg);
       }
@@ -332,10 +329,8 @@ public class UniqueAttributePlugin
     {
       logger.traceException(de);
 
-      LocalizableMessage message =
-          ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR.get(
-                             de.getResultCode().toString(),
-                             de.getMessageObject());
+      LocalizableMessage message = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR.get(
+          de.getResultCode(), de.getMessageObject());
 
       // Try some cleanup before returning, to avoid memory leaks
       for (AttributeValue v2 : recordedValues)
@@ -555,9 +550,9 @@ public class UniqueAttributePlugin
                                t.getNameOrOID(),
                                operation.getConnectionID(),
                                operation.getOperationID(),
-                               v.getValue().toString(),
-                               updatedEntryDN.toString(),
-                               conflictDN.toString());
+                               v.getValue(),
+                               updatedEntryDN,
+                               conflictDN);
         DirectoryServer.sendAlertNotification(this,
                              ALERT_TYPE_UNIQUE_ATTR_SYNC_CONFLICT,
                              message);
@@ -570,8 +565,8 @@ public class UniqueAttributePlugin
       LocalizableMessage message = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR_SYNC.get(
                             operation.getConnectionID(),
                             operation.getOperationID(),
-                            updatedEntryDN.toString(),
-                            de.getResultCode().toString(),
+                            updatedEntryDN,
+                            de.getResultCode(),
                             de.getMessageObject());
       DirectoryServer.sendAlertNotification(this,
                            ALERT_TYPE_UNIQUE_ATTR_SYNC_ERROR, message);
@@ -731,9 +726,7 @@ public class UniqueAttributePlugin
           break;
 
         default:
-          LocalizableMessage message = ERR_PLUGIN_UNIQUEATTR_INVALID_PLUGIN_TYPE.get(
-                                 pluginType.toString());
-          unacceptableReasons.add(message);
+          unacceptableReasons.add(ERR_PLUGIN_UNIQUEATTR_INVALID_PLUGIN_TYPE.get(pluginType));
           configAcceptable = false;
       }
     }
@@ -752,8 +745,7 @@ public class UniqueAttributePlugin
         if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
         {
           unacceptableReasons.add(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(
-                                       configuration.dn().toString(),
-                                       t.getNameOrOID(), b.getBackendID()));
+              configuration.dn(), t.getNameOrOID(), b.getBackendID()));
           configAcceptable = false;
         }
       }

@@ -215,7 +215,7 @@ public class BackupBackend
       logger.traceException(e);
 
       LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
-          backupBaseDN.toString(), getExceptionMessage(e));
+          backupBaseDN, getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
   }

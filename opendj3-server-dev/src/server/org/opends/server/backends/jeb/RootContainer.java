@@ -287,9 +287,8 @@ public class RootContainer
     // another to be opened.
     if (ec1 != null)
     {
-      LocalizableMessage m = ERR_JEB_ENTRY_CONTAINER_ALREADY_REGISTERED.get(
-        ec1.getDatabasePrefix(), baseDN.toString());
-      throw new InitializationException(m);
+      throw new InitializationException(ERR_JEB_ENTRY_CONTAINER_ALREADY_REGISTERED.get(
+          ec1.getDatabasePrefix(), baseDN));
     }
 
     this.entryContainers.put(baseDN, entryContainer);
@@ -744,7 +743,6 @@ public class RootContainer
   @Override
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg cfg)
   {
-    ConfigChangeResult ccr;
     boolean adminActionRequired = false;
     ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
@@ -834,25 +832,21 @@ public class RootContainer
         {
           if(!backendDirectory.mkdirs())
           {
-            messages.add(ERR_JEB_CREATE_FAIL.get(
-                backendDirectory.getPath()));
-            ccr = new ConfigChangeResult(
+            messages.add(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
+            return new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(),
                 adminActionRequired,
                 messages);
-            return ccr;
           }
         }
         //Make sure the directory is valid.
         else if (!backendDirectory.isDirectory())
         {
-          messages.add(ERR_JEB_DIRECTORY_INVALID.get(
-              backendDirectory.getPath()));
-          ccr = new ConfigChangeResult(
+          messages.add(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
+          return new ConfigChangeResult(
               DirectoryServer.getServerErrorResultCode(),
               adminActionRequired,
               messages);
-          return ccr;
         }
 
         adminActionRequired = true;
@@ -872,13 +866,11 @@ public class RootContainer
         }
         catch(Exception e)
         {
-          messages.add(ERR_CONFIG_BACKEND_MODE_INVALID.get(
-              config.dn().toString()));
-          ccr = new ConfigChangeResult(
+          messages.add(ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn()));
+          return new ConfigChangeResult(
               DirectoryServer.getServerErrorResultCode(),
               adminActionRequired,
               messages);
-          return ccr;
         }
 
         //Make sure the mode will allow the server itself access to
@@ -889,11 +881,10 @@ public class RootContainer
         {
           messages.add(ERR_CONFIG_BACKEND_INSANE_MODE.get(
               cfg.getDBDirectoryPermissions()));
-          ccr = new ConfigChangeResult(
+          return new ConfigChangeResult(
               DirectoryServer.getServerErrorResultCode(),
               adminActionRequired,
               messages);
-          return ccr;
         }
 
         // Get the backend database backendDirectory permissions and apply
@@ -928,16 +919,12 @@ public class RootContainer
     catch (Exception e)
     {
       messages.add(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
-      ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+      return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
                                    adminActionRequired,
                                    messages);
-      return ccr;
     }
 
-
-    ccr = new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-                                 messages);
-    return ccr;
+    return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
   }
 
   /**

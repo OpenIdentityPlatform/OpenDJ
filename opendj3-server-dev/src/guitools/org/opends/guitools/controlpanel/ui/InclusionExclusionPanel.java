@@ -547,8 +547,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
       }
       catch (LDAPException le)
       {
-        errors.add(ERR_CTRL_PANEL_INVALID_FILTER_DETAILS_WITH_VALUE.get(s,
-            le.getMessageObject().toString()));
+        errors.add(ERR_CTRL_PANEL_INVALID_FILTER_DETAILS_WITH_VALUE.get(s, le.getMessageObject()));
         setPrimaryInvalid(lFilter);
       }
     }

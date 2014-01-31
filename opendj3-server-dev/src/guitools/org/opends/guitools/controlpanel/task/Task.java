@@ -1110,7 +1110,6 @@ public abstract class Task
       Task taskToBeLaunched)
   {
     return INFO_CTRL_PANEL_INCOMPATIBLE_TASKS.get(
-        taskRunning.getTaskDescription().toString(),
-        taskToBeLaunched.getTaskDescription().toString());
+        taskRunning.getTaskDescription(), taskToBeLaunched.getTaskDescription());
   }
 }

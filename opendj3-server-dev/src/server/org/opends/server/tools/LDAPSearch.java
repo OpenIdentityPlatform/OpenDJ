@@ -180,14 +180,11 @@ public class LDAPSearch
                         EntryChangeNotificationControl.DECODER
                         .decode(c.isCritical(), ((LDAPControl) c).getValue());
 
-                      out.println(INFO_LDAPSEARCH_PSEARCH_CHANGE_TYPE.get(
-                              ecn.getChangeType().toString()));
+                      out.println(INFO_LDAPSEARCH_PSEARCH_CHANGE_TYPE.get(ecn.getChangeType()));
                       DN previousDN = ecn.getPreviousDN();
                       if (previousDN != null)
                       {
-
-                        out.println(INFO_LDAPSEARCH_PSEARCH_PREVIOUS_DN.get(
-                                previousDN.toString()));
+                        out.println(INFO_LDAPSEARCH_PSEARCH_PREVIOUS_DN.get(previousDN));
                       }
                     } catch (Exception e) {}
                   }

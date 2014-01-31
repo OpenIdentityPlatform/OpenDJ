@@ -562,7 +562,7 @@ public class BackupPanel extends BackupListPanel
             else
             {
               initMsg = INFO_CTRL_PANEL_RUN_BACKUP_SUMMARY.get(
-                  backends.getSelectedItem().toString());
+                  backends.getSelectedItem());
             }
             launchOperation(newTask,
                 initMsg,

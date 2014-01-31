@@ -26,8 +26,6 @@
  */
 package org.opends.server.schema;
 
-
-
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -36,7 +34,6 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
@@ -48,8 +45,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ResultCode;
-
-
 
 /**
  * This class defines the objectIdentifierMatch matching rule defined in X.520
@@ -213,10 +208,9 @@ class ObjectIdentifierEqualityMatchingRule
         }
         else
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_OID_INVALID_VALUE.get(
-              lowerValue, invalidReason.toString());
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_OID_INVALID_VALUE.get(
+                  lowerValue, invalidReason));
         }
 
       case WARN:

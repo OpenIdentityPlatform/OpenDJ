@@ -213,7 +213,7 @@ public class MemoryBackend
         logger.traceException(e);
 
         LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
-            dn.toString(), getExceptionMessage(e));
+            dn, getExceptionMessage(e));
         throw new InitializationException(message, e);
       }
     }

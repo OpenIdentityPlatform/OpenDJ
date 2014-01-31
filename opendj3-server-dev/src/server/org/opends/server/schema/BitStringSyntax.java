@@ -233,7 +233,7 @@ public class BitStringSyntax
           break;
         default:
           invalidReason.append(WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(
-                  value.toString(), String.valueOf(valueString.charAt(i))));
+              value, valueString.charAt(i)));
           return false;
       }
     }

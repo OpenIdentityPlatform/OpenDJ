@@ -223,9 +223,8 @@ public class Branch
              templates.get(toLowerCase(subordinateTemplateNames[i]));
         if (subordinateTemplates[i] == null)
         {
-          LocalizableMessage message = ERR_MAKELDIF_UNDEFINED_BRANCH_SUBORDINATE.get(
-              branchDN.toString(), subordinateTemplateNames[i]);
-          throw new MakeLDIFException(message);
+          throw new MakeLDIFException(ERR_MAKELDIF_UNDEFINED_BRANCH_SUBORDINATE.get(
+              branchDN, subordinateTemplateNames[i]));
         }
       }
     }

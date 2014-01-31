@@ -754,8 +754,7 @@ public class DeleteBaseDNAndBackendTask extends Task
               args.add(getNoPropertiesFileArgument());
               printEquivalentCommandLine(
                   getConfigCommandLinePath(baseDN.getBackend()),
-                  args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_DOMAIN.get(
-                      baseDN.getDn().toString()));
+                  args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_DOMAIN.get(baseDN.getDn()));
               }
           });
         }
@@ -765,8 +764,7 @@ public class DeleteBaseDNAndBackendTask extends Task
           {
             getProgressDialog().appendProgressHtml(
                 Utilities.getProgressWithPoints(
-                    INFO_CTRL_PANEL_DELETING_DOMAIN.get(
-                        baseDN.getDn().toString()),
+                    INFO_CTRL_PANEL_DELETING_DOMAIN.get(baseDN.getDn()),
                     ColorAndFontConstants.progressFont));
           }
         });

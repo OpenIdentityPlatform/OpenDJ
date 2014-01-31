@@ -140,8 +140,7 @@ public class LogRetentionPolicyConfigManager implements
       logger.traceException(e);
 
       messages.add(ERR_CONFIG_RETENTION_POLICY_CANNOT_CREATE_POLICY.get(
-              String.valueOf(config.dn().toString()),
-              stackTraceToSingleLineString(e)));
+          config.dn(),stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
@@ -218,10 +217,8 @@ public class LogRetentionPolicyConfigManager implements
       theClass = pd.loadClass(className, RetentionPolicy.class);
       theClass.newInstance();
     } catch (Exception e) {
-      LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className,
-                                  config.dn().toString(),
-                                  String.valueOf(e));
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(
+          ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className, config.dn(), e));
       return false;
     }
     // Check that the implementation class implements the correct interface.
@@ -232,10 +229,8 @@ public class LogRetentionPolicyConfigManager implements
       theClass.getMethod("initializeLogRetentionPolicy", config
           .configurationClass());
     } catch (Exception e) {
-      LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className,
-                                  config.dn().toString(),
-                                  String.valueOf(e));
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(
+          ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className, config.dn(), e));
       return false;
     }
     // The class is valid as far as we can tell.
@@ -267,11 +262,11 @@ public class LogRetentionPolicyConfigManager implements
       // Rethrow the exceptions thrown be the invoked method.
       Throwable e = ite.getTargetException();
       LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(
-          className, config.dn().toString(), stackTraceToSingleLineString(e));
+          className, config.dn(), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     } catch (Exception e) {
       LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(
-          className, config.dn().toString(), String.valueOf(e));
+          className, config.dn(), e);
       throw new ConfigException(message, e);
     }
 

@@ -403,7 +403,7 @@ public class AddToGroupPanel extends StatusGenericPanel
         catch (OpenDsException ode)
         {
           errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(groupDn,
-              ode.getMessageObject().toString()));
+              ode.getMessageObject()));
         }
       }
     }

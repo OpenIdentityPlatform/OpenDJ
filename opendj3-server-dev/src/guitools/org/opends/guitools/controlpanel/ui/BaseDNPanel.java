@@ -139,8 +139,7 @@ public class BaseDNPanel extends StatusGenericPanel
       }
       catch (OpenDsException ode)
       {
-        errors.add(ERR_CTRL_PANEL_INVALID_BASE_DN_PROVIDED.get(
-            ode.getMessageObject().toString()));
+        errors.add(ERR_CTRL_PANEL_INVALID_BASE_DN_PROVIDED.get(ode.getMessageObject()));
       }
     }
 

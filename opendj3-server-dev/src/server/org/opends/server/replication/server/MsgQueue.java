@@ -125,10 +125,8 @@ public class MsgQueue
             // Adding 2 msgs with the same CSN is ok only when
             // the 2 msgs are the same
             bytesCount += (update.size() - msgSameCSN.size());
-            LocalizableMessage errMsg = ERR_RSQUEUE_DIFFERENT_MSGS_WITH_SAME_CN.get(
-                msgSameCSN.getCSN().toString(),
-                msgSameCSN.toString(), update.toString());
-            logger.error(errMsg);
+            logger.error(ERR_RSQUEUE_DIFFERENT_MSGS_WITH_SAME_CN.get(
+                msgSameCSN.getCSN(), msgSameCSN, update));
           }
         }
         catch(Exception e)

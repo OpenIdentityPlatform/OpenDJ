@@ -363,7 +363,7 @@ public class ProgressDialog extends GenericDialog
 
       errorPane.setVisible(true);
       errorPane.setText(Utilities.applyFont(
-              INFO_CTRL_PANEL_PLEASE_WAIT_SUMMARY.get().toString(),
+              INFO_CTRL_PANEL_PLEASE_WAIT_SUMMARY.get(),
               ColorAndFontConstants.defaultFont));
 
       gbc.anchor = GridBagConstraints.WEST;

@@ -873,7 +873,7 @@ public final class ECLServerHandler extends ServerHandler
       }
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
           ERR_RESYNC_REQUIRED_UNKNOWN_DOMAIN_IN_PROVIDED_COOKIE.get(
-              startStatesFromProvidedCookie.toString(), sb.toString()));
+              startStatesFromProvidedCookie, sb));
     }
 
     return results;

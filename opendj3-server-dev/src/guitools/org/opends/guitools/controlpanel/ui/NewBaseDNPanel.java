@@ -557,8 +557,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
             {
               if (backendName.equalsIgnoreCase(backend.getBackendID()))
               {
-                errors.add(ERR_BASE_DN_ANCESTOR_EXISTS.get(
-                    baseDN.getDn().toString()));
+                errors.add(ERR_BASE_DN_ANCESTOR_EXISTS.get(baseDN.getDn()));
                 setPrimaryInvalid(lDirectoryBaseDN);
                 baseDNAlreadyDefined = true;
                 break;
@@ -568,8 +567,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
             {
               if (backendName.equalsIgnoreCase(backend.getBackendID()))
               {
-                errors.add(ERR_BASE_DN_DN_IS_ANCESTOR_OF.get(
-                    baseDN.getDn().toString()));
+                errors.add(ERR_BASE_DN_DN_IS_ANCESTOR_OF.get(baseDN.getDn()));
                 setPrimaryInvalid(lDirectoryBaseDN);
                 baseDNAlreadyDefined = true;
                 break;
@@ -584,8 +582,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
       catch (OpenDsException oe)
       {
-        errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(dn,
-            oe.getMessageObject().toString()));
+        errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(dn, oe.getMessageObject()));
         setPrimaryInvalid(lDirectoryBaseDN);
       }
     }

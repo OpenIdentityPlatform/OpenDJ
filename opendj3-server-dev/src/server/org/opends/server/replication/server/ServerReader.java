@@ -130,15 +130,13 @@ public class ServerReader extends DirectoryThread
                 long referenceGenerationId = handler.getReferenceGenId();
                 if (dsStatus == BAD_GEN_ID_STATUS)
                   logger.warn(WARN_IGNORING_UPDATE_FROM_DS_BADGENID.get(handler.getReplicationServerId(),
-                      updateMsg.getCSN().toString(),
-                      handler.getBaseDNString(), handler.getServerId(),
+                      updateMsg.getCSN(), handler.getBaseDN(), handler.getServerId(),
                       session.getReadableRemoteAddress(),
                       handler.getGenerationId(),
                       referenceGenerationId));
                 if (dsStatus == FULL_UPDATE_STATUS)
                   logger.warn(WARN_IGNORING_UPDATE_FROM_DS_FULLUP.get(handler.getReplicationServerId(),
-                      updateMsg.getCSN().toString(),
-                      handler.getBaseDNString(), handler.getServerId(),
+                      updateMsg.getCSN(), handler.getBaseDN(), handler.getServerId(),
                       session.getReadableRemoteAddress()));
                 filtered = true;
               }
@@ -155,9 +153,7 @@ public class ServerReader extends DirectoryThread
                 logger.error(
                     WARN_IGNORING_UPDATE_FROM_RS.get(
                         handler.getReplicationServerId(),
-                        updateMsg.getCSN().toString(),
-                        handler.getBaseDNString(),
-                        handler.getServerId(),
+                        updateMsg.getCSN(), handler.getBaseDN(), handler.getServerId(),
                         session.getReadableRemoteAddress(),
                         handler.getGenerationId(),
                         referenceGenerationId));
@@ -195,11 +191,8 @@ public class ServerReader extends DirectoryThread
             }
             catch(Exception e)
             {
-              errMessage =
-                ERR_RECEIVED_CHANGE_STATUS_NOT_FROM_DS.get(
-                    handler.getBaseDNString(),
-                    Integer.toString(handler.getServerId()),
-                    csMsg.toString());
+              errMessage = ERR_RECEIVED_CHANGE_STATUS_NOT_FROM_DS.get(
+                  handler.getBaseDN(), handler.getServerId(), csMsg);
               logger.error(errMessage);
             }
           } else if (msg instanceof ChangeTimeHeartbeatMsg)
@@ -255,8 +248,7 @@ public class ServerReader extends DirectoryThread
        * The remote server has sent an unknown message,
        * close the connection.
        */
-      errMessage = NOTE_READER_EXCEPTION.get(
-          handler.toString(), stackTraceToSingleLineString(e));
+      errMessage = NOTE_READER_EXCEPTION.get(handler, stackTraceToSingleLineString(e));
       logger.error(errMessage);
     }
     finally

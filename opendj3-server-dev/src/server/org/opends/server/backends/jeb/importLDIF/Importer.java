@@ -3178,10 +3178,8 @@ public final class Importer implements DiskSpaceMonitorHandler
       suffix = Suffix.createSuffixContext(entryContainer, null, null, null);
       if (suffix == null)
       {
-        LocalizableMessage msg =
-            ERR_JEB_REBUILD_SUFFIX_ERROR.get(rebuildConfig.getBaseDN()
-                .toString());
-        throw new InitializationException(msg);
+        throw new InitializationException(
+            ERR_JEB_REBUILD_SUFFIX_ERROR.get(rebuildConfig.getBaseDN()));
       }
     }
 

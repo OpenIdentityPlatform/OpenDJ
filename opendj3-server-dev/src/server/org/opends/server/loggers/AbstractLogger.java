@@ -266,8 +266,7 @@ public abstract class AbstractLogger
       {
         logger.traceException(e);
         messages.add(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
-                String.valueOf(config.dn().toString()),
-                stackTraceToSingleLineString(e)));
+            config.dn(), stackTraceToSingleLineString(e)));
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
     }

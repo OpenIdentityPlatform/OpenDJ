@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -288,8 +288,7 @@ public class GenericDialog extends JDialog
     if (panel.getTitle() != null)
     {
       setTitle(INFO_CTRL_PANEL_GENERIC_TITLE.get(
-              DynamicConstants.PRODUCT_NAME,
-              panel.getTitle().toString()).toString());
+          DynamicConstants.PRODUCT_NAME, panel.getTitle()).toString());
     }
   }
 

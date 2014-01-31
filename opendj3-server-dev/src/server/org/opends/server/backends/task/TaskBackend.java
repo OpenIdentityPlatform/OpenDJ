@@ -260,7 +260,7 @@ public class TaskBackend
       logger.traceException(e);
 
       LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
-          taskRootDN.toString(), getExceptionMessage(e));
+          taskRootDN, getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
   }

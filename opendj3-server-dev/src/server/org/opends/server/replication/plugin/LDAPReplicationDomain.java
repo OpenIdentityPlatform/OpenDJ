@@ -776,7 +776,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // Should not happen as configuration in domain root entry is flushed
       // from valid configuration in local variables
       logger.error(NOTE_ERR_FRACTIONAL.get(
-          fractionalConfig.getBaseDn().toString(),
+          fractionalConfig.getBaseDn(),
           stackTraceToSingleLineString(e)));
       return false;
     }
@@ -810,7 +810,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // from valid configuration in local variables so both should have already
       // been checked
       logger.error(NOTE_ERR_FRACTIONAL.get(
-          fractionalConfig.getBaseDn().toString(),
+          fractionalConfig.getBaseDn(),
           stackTraceToSingleLineString(e)));
       return false;
     }
@@ -1646,7 +1646,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         if (fractionalFilterOperation(addOperation, false))
         {
           LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
-            getBaseDNString(), addOperation.toString());
+            getBaseDNString(), addOperation);
           return new SynchronizationProviderResult.StopProcessing(
             ResultCode.UNWILLING_TO_PERFORM, msg);
         }
@@ -1774,7 +1774,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         if (fractionalFilterOperation(modifyDNOperation, false))
         {
           LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
-            getBaseDNString(), modifyDNOperation.toString());
+            getBaseDNString(), modifyDNOperation);
           return new SynchronizationProviderResult.StopProcessing(
             ResultCode.UNWILLING_TO_PERFORM, msg);
         }
@@ -1907,7 +1907,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             // Some attributes not compliant with fractional configuration :
             // forbid the operation
             LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
-              getBaseDNString(), modifyOperation.toString());
+              getBaseDNString(), modifyOperation);
             return new SynchronizationProviderResult.StopProcessing(
               ResultCode.UNWILLING_TO_PERFORM, msg);
         }
@@ -2016,8 +2016,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         catch  (NoSuchElementException e)
         {
-          logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
-              op.toString(), curCSN.toString()));
+          logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING.get(op, curCSN));
           return;
         }
       }
@@ -2054,8 +2053,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         catch (NoSuchElementException e)
         {
-          logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
-              op.toString(), curCSN.toString()));
+          logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING.get(op, curCSN));
           return;
         }
         // If assured replication is enabled, this will wait for the matching
@@ -2068,7 +2066,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         {
           // This exception may only be raised if assured replication is enabled
           logger.error(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
-              Long.toString(getAssuredTimeout()), msg.toString()));
+              Long.toString(getAssuredTimeout()), msg));
         }
       }
 
@@ -2169,8 +2167,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        ResultCode res = newOp.getResultCode();
        if (res != ResultCode.SUCCESS)
        {
-        logger.error(ERR_COULD_NOT_SOLVE_CONFLICT.get(
-            entryDN.toString(), res.toString()));
+        logger.error(ERR_COULD_NOT_SOLVE_CONFLICT.get(entryDN, res));
        }
      }
    }
@@ -2469,7 +2466,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            */
           LocalizableMessage message =
               ERR_EXCEPTION_REPLAYING_OPERATION.get(
-                  stackTraceToSingleLineString(e), op.toString());
+                  stackTraceToSingleLineString(e), op);
           replayErrorMsg = message.toString();
           updateError(csn);
         } else
@@ -2700,8 +2697,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // The other type of errors can not be caused by naming conflicts.
       // Log a message for the repair tool.
       logger.error(ERR_ERROR_REPLAYING_OPERATION.get(
-          op.toString(), ctx.getCSN().toString(),
-          result.toString(), op.getErrorMessage().toString()));
+          op, ctx.getCSN(), result, op.getErrorMessage()));
       return true;
     }
   }
@@ -2769,8 +2765,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      // The other type of errors can not be caused by naming conflicts.
      // Log a message for the repair tool.
      logger.error(ERR_ERROR_REPLAYING_OPERATION.get(
-         op.toString(), ctx.getCSN().toString(),
-         result.toString(), op.getErrorMessage().toString()));
+         op, ctx.getCSN(), result, op.getErrorMessage()));
      return true;
    }
  }
@@ -2889,8 +2884,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // The other type of errors can not be caused by naming conflicts.
     // Log a message for the repair tool.
     logger.error(ERR_ERROR_REPLAYING_OPERATION.get(
-        op.toString(), ctx.getCSN().toString(),
-        result.toString(), op.getErrorMessage().toString()));
+        op, ctx.getCSN(), result, op.getErrorMessage()));
     return true;
   }
 }
@@ -2987,8 +2981,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // The other type of errors can not be caused by naming conflicts.
       // log a message for the repair tool.
       logger.error(ERR_ERROR_REPLAYING_OPERATION.get(
-          op.toString(), ctx.getCSN().toString(),
-          result.toString(), op.getErrorMessage().toString()));
+          op, ctx.getCSN(), result, op.getErrorMessage()));
       return true;
     }
   }

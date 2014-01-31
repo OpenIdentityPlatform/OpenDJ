@@ -758,11 +758,9 @@ monitorLoop:
 
     buffer.append(")");
 
-    LocalizableMessage message = ERR_CONFIG_JMX_NO_METHOD.get(
-        buffer.toString(), configEntryDN.toString());
+    LocalizableMessage message = ERR_CONFIG_JMX_NO_METHOD.get(buffer, configEntryDN);
     throw new MBeanException(
-                   new DirectoryException(ResultCode.NO_SUCH_OPERATION,
-                                          message));
+        new DirectoryException(ResultCode.NO_SUCH_OPERATION, message));
   }
 
 

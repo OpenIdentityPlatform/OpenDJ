@@ -544,10 +544,8 @@ public class MatchingRuleUseSyntax
               }
               else
               {
-                LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(
-                    oid, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                             message);
+                    ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(oid, woidBuffer));
               }
             }
 
@@ -589,10 +587,8 @@ public class MatchingRuleUseSyntax
             }
             else
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(
-                  oid, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message);
+                  ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(oid, woidBuffer));
             }
           }
 

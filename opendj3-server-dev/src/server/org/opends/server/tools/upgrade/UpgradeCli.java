@@ -470,9 +470,9 @@ public final class UpgradeCli extends ConsoleApplication implements
             == ConfirmationCallback.YES_NO_CANCEL_OPTION)
         {
           choices.addAll(yesNoDefaultResponses);
-          choices.addAll(StaticUtils
-              .arrayToList(new String[] { INFO_TASKINFO_CMD_CANCEL_CHAR.get()
-                  .toString() }));
+          choices.addAll(StaticUtils.arrayToList(
+              new String[] { INFO_TASKINFO_CMD_CANCEL_CHAR.get().toString() }
+          ));
 
           prompt.append(" ")
                 .append("(").append(INFO_PROMPT_YES_COMPLETE_ANSWER.get())

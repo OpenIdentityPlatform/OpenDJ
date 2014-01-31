@@ -1410,8 +1410,8 @@ public class LocalBackendModifyOperation
             {
               throw newDirectoryException(currentEntry,
                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                  ERR_MODIFY_ADD_INVALID_SYNTAX.get(String.valueOf(entryDN),
-                      attr.getName(), v.getValue().toString(), invalidReason));
+                  ERR_MODIFY_ADD_INVALID_SYNTAX.get(
+                      entryDN, attr.getName(), v.getValue(), invalidReason));
             }
           }
         }
@@ -1434,9 +1434,8 @@ public class LocalBackendModifyOperation
             }
             else
             {
-              logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX.get(String
-                  .valueOf(entryDN), attr.getName(), v.getValue().toString(),
-                  invalidReason));
+              logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX.get(
+                  entryDN, attr.getName(), v.getValue(), invalidReason));
             }
             invalidReason = new LocalizableMessageBuilder();
           }
@@ -1622,7 +1621,7 @@ public class LocalBackendModifyOperation
               throw newDirectoryException(currentEntry,
                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                   ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String.valueOf(entryDN),
-                      attr.getName(), v.getValue().toString(), invalidReason));
+                      attr.getName(), v.getValue(), invalidReason));
             }
           }
         }
@@ -1644,7 +1643,7 @@ public class LocalBackendModifyOperation
             else
             {
               logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String
-                  .valueOf(entryDN), attr.getName(), v.getValue().toString(),
+                  .valueOf(entryDN), attr.getName(), v.getValue(),
                   invalidReason));
             }
             invalidReason = new LocalizableMessageBuilder();
@@ -1732,7 +1731,7 @@ public class LocalBackendModifyOperation
 
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
           ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(String
-              .valueOf(entryDN), attr.getName(), v.getValue().toString()), e);
+              .valueOf(entryDN), attr.getName(), v.getValue()), e);
     }
 
     // Get the attribute that is to be incremented.
@@ -1763,7 +1762,7 @@ public class LocalBackendModifyOperation
             ResultCode.INVALID_ATTRIBUTE_SYNTAX,
             ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(String
                 .valueOf(entryDN), a.getName(),
-                existingValue.getValue().toString()),
+                existingValue.getValue()),
             e);
       }
 

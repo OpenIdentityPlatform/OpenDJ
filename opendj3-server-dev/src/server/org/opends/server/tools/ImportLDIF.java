@@ -1259,7 +1259,7 @@ public class ImportLDIF extends TaskTool {
         builder.append(backend.getBaseDNs()[i].toNormalizedString());
       }
       LocalizableMessage message = ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND.get(
-              builder.toString(), clearBackend.getLongIdentifier());
+              builder, clearBackend.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }

@@ -775,7 +775,7 @@ public class SchemaConfigManager
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
                     schemaFile,
-                    v.getValue().toString() + ":  " + getExceptionMessage(e));
+                    v.getValue() + ":  " + getExceptionMessage(e));
 
             if (failOnError)
             {
@@ -859,8 +859,7 @@ public class SchemaConfigManager
             logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
-                    schemaFile, v.getValue().toString() + ":  " +
-                    getExceptionMessage(e));
+                    schemaFile, v.getValue() + ":  " + getExceptionMessage(e));
             if (failOnError)
             {
               throw new ConfigException(message, e);
@@ -944,7 +943,7 @@ public class SchemaConfigManager
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
                     schemaFile,
-                    v.getValue().toString() + ":  " + getExceptionMessage(e));
+                    v.getValue() + ":  " + getExceptionMessage(e));
 
             if (failOnError)
             {
@@ -1025,8 +1024,7 @@ public class SchemaConfigManager
             logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
-                    schemaFile,  v.getValue().toString() + ":  " +
-                    getExceptionMessage(e));
+                    schemaFile,  v.getValue() + ":  " + getExceptionMessage(e));
 
             if (failOnError)
             {
@@ -1109,8 +1107,7 @@ public class SchemaConfigManager
             logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
-                    schemaFile,v.getValue().toString() + ":  " +
-                    getExceptionMessage(e));
+                    schemaFile,v.getValue() + ":  " + getExceptionMessage(e));
 
             if (failOnError)
             {
@@ -1193,8 +1190,7 @@ public class SchemaConfigManager
             logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
-                    schemaFile, v.getValue().toString() + ":  " +
-                                        getExceptionMessage(e));
+                    schemaFile, v.getValue() + ":  " + getExceptionMessage(e));
 
             if (failOnError)
             {
@@ -1278,8 +1274,7 @@ public class SchemaConfigManager
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
                     schemaFile,
-                    v.getValue().toString() + ":  " +
-                    getExceptionMessage(e));
+                    v.getValue() + ":  " + getExceptionMessage(e));
 
             if (failOnError)
             {

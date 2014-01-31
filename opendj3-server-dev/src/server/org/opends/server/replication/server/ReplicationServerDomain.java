@@ -240,11 +240,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         } else
         {
           // Unknown assured mode: should never happen
-          LocalizableMessage errorMsg = ERR_RS_UNKNOWN_ASSURED_MODE.get(
-            Integer.toString(localReplicationServer.getServerId()),
-            assuredMode.toString(), baseDN.toNormalizedString(),
-            update.toString());
-          logger.error(errorMsg);
+          logger.error(ERR_RS_UNKNOWN_ASSURED_MODE.get(
+              localReplicationServer.getServerId(), assuredMode, baseDN, update));
           assuredMessage = false;
         }
       } else
@@ -594,11 +591,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     if (safeDataLevel < (byte) 1)
     {
       // Should never happen
-      LocalizableMessage errorMsg = ERR_UNKNOWN_ASSURED_SAFE_DATA_LEVEL.get(
-        Integer.toString(localReplicationServer.getServerId()),
-        Byte.toString(safeDataLevel), baseDN.toNormalizedString(),
-        update.toString());
-      logger.error(errorMsg);
+      logger.error(ERR_UNKNOWN_ASSURED_SAFE_DATA_LEVEL.get(
+        localReplicationServer.getServerId(), Byte.toString(safeDataLevel), baseDN, update));
     } else if (sourceGroupId == groupId
     // Assured feature does not cross different group IDS
         && isSameGenerationId(sourceHandler.getGenerationId()))
@@ -749,7 +743,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             mb.append(ERR_RS_ERROR_SENDING_ACK.get(
               Integer.toString(localReplicationServer.getServerId()),
               Integer.toString(origServer.getServerId()),
-              csn.toString(), baseDN.toNormalizedString()));
+              csn, baseDN.toNormalizedString()));
             mb.append(" ");
             mb.append(stackTraceToSingleLineString(e));
             logger.error(mb.toMessage());
@@ -827,7 +821,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             mb.append(ERR_RS_ERROR_SENDING_ACK.get(
                 Integer.toString(localReplicationServer.getServerId()),
                 Integer.toString(origServer.getServerId()),
-                csn.toString(), baseDN.toNormalizedString()));
+                csn, baseDN.toNormalizedString()));
             mb.append(" ");
             mb.append(stackTraceToSingleLineString(e));
             logger.error(mb.toMessage());

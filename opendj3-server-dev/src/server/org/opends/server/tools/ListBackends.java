@@ -374,18 +374,14 @@ public class ListBackends
         String id = baseToIDMap.get(dn);
         if (id == null)
         {
-          LocalizableMessage message = INFO_LISTBACKENDS_NOT_BASE_DN.get(
-                  dn.toString());
-          out.println(message);
+          out.println(INFO_LISTBACKENDS_NOT_BASE_DN.get(dn));
 
           DN parentDN = dn.parent();
           while (true)
           {
             if (parentDN == null)
             {
-              message = INFO_LISTBACKENDS_NO_BACKEND_FOR_DN.get(
-                      dn.toString());
-              out.println(message);
+              out.println(INFO_LISTBACKENDS_NO_BACKEND_FOR_DN.get(dn));
               invalidDn = true;
               break;
             }
@@ -394,9 +390,7 @@ public class ListBackends
               id = baseToIDMap.get(parentDN);
               if (id != null)
               {
-                message = INFO_LISTBACKENDS_DN_BELOW_BASE.get(
-                        dn.toString(), parentDN.toString(), id);
-                out.println(message);
+                out.println(INFO_LISTBACKENDS_DN_BELOW_BASE.get(dn, parentDN, id));
                 break;
               }
             }
@@ -406,9 +400,7 @@ public class ListBackends
         }
         else
         {
-          LocalizableMessage message = INFO_LISTBACKENDS_BASE_FOR_ID.get(
-                  dn.toString(), id);
-          out.println(message);
+          out.println(INFO_LISTBACKENDS_BASE_FOR_ID.get(dn, id));
         }
       }
     }

@@ -856,9 +856,7 @@ public final class TimeBasedMatchingRuleFactory
             case 's':
               if(second >0)
               {
-                 message =
-                        WARN_ATTR_DUPLICATE_SECOND_ASSERTION_FORMAT.get(
-                        value.toString(),date);
+                 message = WARN_ATTR_DUPLICATE_SECOND_ASSERTION_FORMAT.get(value, date);
               }
               else
               {
@@ -868,9 +866,7 @@ public final class TimeBasedMatchingRuleFactory
             case 'm':
               if(minute >0)
               {
-                 message =
-                        WARN_ATTR_DUPLICATE_MINUTE_ASSERTION_FORMAT.get(
-                        value.toString(),date);
+                 message = WARN_ATTR_DUPLICATE_MINUTE_ASSERTION_FORMAT.get(value, date);
               }
               else
               {
@@ -880,9 +876,7 @@ public final class TimeBasedMatchingRuleFactory
             case 'h':
               if(hour >0)
               {
-                 message =
-                        WARN_ATTR_DUPLICATE_HOUR_ASSERTION_FORMAT.get(
-                        value.toString(),date);
+                 message = WARN_ATTR_DUPLICATE_HOUR_ASSERTION_FORMAT.get(value, date);
               }
               else
               {
@@ -892,15 +886,11 @@ public final class TimeBasedMatchingRuleFactory
             case 'D':
               if(number == 0)
               {
-                message =
-                        WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(
-                        value.toString(), number);
+                message = WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(value, number);
               }
               else if(date > 0)
               {
-                message =
-                        WARN_ATTR_DUPLICATE_DATE_ASSERTION_FORMAT.get(
-                        value.toString(),date);
+                message = WARN_ATTR_DUPLICATE_DATE_ASSERTION_FORMAT.get(value, date);
               }
               else
               {

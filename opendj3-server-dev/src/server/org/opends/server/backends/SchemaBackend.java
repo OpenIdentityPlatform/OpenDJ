@@ -395,7 +395,7 @@ public class SchemaBackend
         logger.traceException(e);
 
         LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
-            baseDN.toString(), getExceptionMessage(e));
+            baseDN, getExceptionMessage(e));
         throw new InitializationException(message, e);
       }
     }
@@ -1155,7 +1155,7 @@ public class SchemaBackend
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
-                    v.getValue().toString(), de.getMessageObject());
+                    v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1201,7 +1201,7 @@ public class SchemaBackend
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
-                    v.getValue().toString(), de.getMessageObject());
+                    v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1224,7 +1224,7 @@ public class SchemaBackend
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
-                    v.getValue().toString(), de.getMessageObject());
+                    v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1247,7 +1247,7 @@ public class SchemaBackend
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
-                    v.getValue().toString(), de.getMessageObject());
+                    v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1270,7 +1270,7 @@ public class SchemaBackend
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
-                    v.getValue().toString(), de.getMessageObject());
+                    v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1294,7 +1294,7 @@ public class SchemaBackend
 
                 LocalizableMessage message =
                     ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
-                        v.getValue().toString(), de.getMessageObject());
+                        v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1336,7 +1336,7 @@ public class SchemaBackend
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
-                    v.getValue().toString(), de.getMessageObject());
+                    v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1383,7 +1383,7 @@ public class SchemaBackend
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
-                    v.getValue().toString(), de.getMessageObject());
+                    v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1406,7 +1406,7 @@ public class SchemaBackend
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
-                    v.getValue().toString(), de.getMessageObject());
+                    v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1430,7 +1430,7 @@ public class SchemaBackend
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
-                    v.getValue().toString(), de.getMessageObject());
+                    v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1454,7 +1454,7 @@ public class SchemaBackend
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
-                    v.getValue().toString(), de.getMessageObject());
+                    v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1479,7 +1479,7 @@ public class SchemaBackend
 
                 LocalizableMessage message =
                     ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
-                        v.getValue().toString(), de.getMessageObject());
+                        v.getValue(), de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1838,7 +1838,7 @@ public class SchemaBackend
           logger.traceException(de);
 
           LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
-              v.getValue().toString(), de.getMessageObject());
+              v.getValue(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                          de);
@@ -2165,7 +2165,7 @@ public class SchemaBackend
           logger.traceException(de);
 
           LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.get(
-              v.getValue().toString(), de.getMessageObject());
+              v.getValue(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                          de);
@@ -2210,7 +2210,7 @@ public class SchemaBackend
         buffer.append("\t");
       }
       LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_OC_IN_NF.get(
-          removeClass.getNameOrOID(), buffer.toString());
+          removeClass.getNameOrOID(), buffer);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
@@ -2467,7 +2467,7 @@ public class SchemaBackend
           logger.traceException(de);
 
           LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
-              v.getValue().toString(), de.getMessageObject());
+              v.getValue(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                          de);
@@ -3010,7 +3010,7 @@ public class SchemaBackend
           logger.traceException(de);
 
           LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
-              v.getValue().toString(), de.getMessageObject());
+              v.getValue(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                          de);

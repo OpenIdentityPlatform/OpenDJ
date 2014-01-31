@@ -1092,7 +1092,7 @@ public final class IntegerConfigAttribute
               catch (Exception e)
               {
                 LocalizableMessage message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-                    v.getValue().toString(), a.getName(), String.valueOf(e));
+                    v.getValue(), a.getName(), e);
                 throw new ConfigException(message, e);
               }
 
@@ -1174,7 +1174,7 @@ public final class IntegerConfigAttribute
             catch (Exception e)
             {
               LocalizableMessage message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-                  v.getValue().toString(), a.getName(), String.valueOf(e));
+                  v.getValue(), a.getName(), e);
               throw new ConfigException(message, e);
             }
 

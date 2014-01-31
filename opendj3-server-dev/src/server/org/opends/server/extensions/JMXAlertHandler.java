@@ -369,8 +369,7 @@ public class JMXAlertHandler
 
     buffer.append(")");
 
-    LocalizableMessage message = ERR_CONFIG_JMX_NO_METHOD.get(
-        buffer.toString(), String.valueOf(configEntryDN));
+    LocalizableMessage message = ERR_CONFIG_JMX_NO_METHOD.get(buffer, configEntryDN);
     throw new MBeanException(new ConfigException(message));
   }
 

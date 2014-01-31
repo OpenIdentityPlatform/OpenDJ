@@ -124,9 +124,7 @@ public class ExactMatchIdentityMapper
         if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
         {
           throw new ConfigException(ERR_EXACTMAP_ATTR_UNINDEXED.get(
-                                         configuration.dn().toString(),
-                                         t.getNameOrOID(),
-                                         b.getBackendID()));
+              configuration.dn(), t.getNameOrOID(), b.getBackendID()));
         }
       }
     }
@@ -326,9 +324,7 @@ public class ExactMatchIdentityMapper
         if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
         {
           unacceptableReasons.add(ERR_EXACTMAP_ATTR_UNINDEXED.get(
-                                       configuration.dn().toString(),
-                                       t.getNameOrOID(),
-                                       b.getBackendID()));
+              configuration.dn(), t.getNameOrOID(), b.getBackendID()));
           configAcceptable = false;
         }
       }

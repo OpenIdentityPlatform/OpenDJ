@@ -856,9 +856,8 @@ public final class MultiChoiceConfigAttribute
               if (! allowedValues.contains(lowerValue))
               {
                 // This is illegal -- the value is not allowed.
-                LocalizableMessage message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
-                    v.getValue().toString(), a.getName());
-                throw new ConfigException(message);
+                throw new ConfigException(ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
+                    v.getValue(), a.getName()));
               }
 
               pendingValues.add(v.getValue().toString());
@@ -918,9 +917,8 @@ public final class MultiChoiceConfigAttribute
             if (! allowedValues.contains(lowerValue))
             {
               // This is illegal -- the value is not allowed.
-              LocalizableMessage message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
-                  v.getValue().toString(), a.getName());
-              throw new ConfigException(message);
+              throw new ConfigException(ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
+                  v.getValue(), a.getName()));
             }
 
             activeValues.add(v.getValue().toString());

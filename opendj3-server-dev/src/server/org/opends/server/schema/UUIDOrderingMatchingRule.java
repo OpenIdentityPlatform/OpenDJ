@@ -162,8 +162,7 @@ public class UUIDOrderingMatchingRule
   {
     if (value.length() != 36)
     {
-      LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(
-              value.toString(), value.length());
+      LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(value, value.length());
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
@@ -192,8 +191,7 @@ public class UUIDOrderingMatchingRule
         case 23:
           if (c != '-')
           {
-            LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(
-                    value.toString(), i, String.valueOf(c));
+            LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(value, i, c);
             switch (DirectoryServer.getSyntaxEnforcementPolicy())
             {
               case REJECT:
@@ -249,8 +247,7 @@ public class UUIDOrderingMatchingRule
               builder.append('f');
               break;
             default:
-              LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(
-                      value.toString(), i, String.valueOf(c));
+              LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(value, i, c);
               switch (DirectoryServer.getSyntaxEnforcementPolicy())
               {
                 case REJECT:

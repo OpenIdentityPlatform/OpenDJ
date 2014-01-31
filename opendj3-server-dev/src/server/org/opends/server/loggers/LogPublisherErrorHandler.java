@@ -68,10 +68,8 @@ class LogPublisherErrorHandler
   {
     if(!writeErroroccurred)
     {
-      LocalizableMessage msg = ERR_LOGGER_ERROR_WRITING_RECORD.get(
-              publisherConfigDN.toString(),
-              stackTraceToSingleLineString(ex));
-      System.err.println(msg);
+      System.err.println(ERR_LOGGER_ERROR_WRITING_RECORD.get(
+          publisherConfigDN, stackTraceToSingleLineString(ex)));
       writeErroroccurred = true;
     }
   }
@@ -95,10 +93,8 @@ class LogPublisherErrorHandler
    */
   public void handleCloseError(Throwable ex)
   {
-    LocalizableMessage msg = ERR_LOGGER_ERROR_CLOSING_FILE.get(
-            publisherConfigDN.toString(),
-            stackTraceToSingleLineString(ex));
-    System.err.println(msg);
+    System.err.println(ERR_LOGGER_ERROR_CLOSING_FILE.get(
+        publisherConfigDN, stackTraceToSingleLineString(ex)));
   }
 
   /**
@@ -108,23 +104,21 @@ class LogPublisherErrorHandler
    */
   public void handleFlushError(Throwable ex)
   {
-    LocalizableMessage msg = ERR_LOGGER_ERROR_FLUSHING_BUFFER.get(
-            publisherConfigDN.toString(),
-            stackTraceToSingleLineString(ex));
-    System.err.println(msg);
+    System.err.println(ERR_LOGGER_ERROR_FLUSHING_BUFFER.get(
+        publisherConfigDN, stackTraceToSingleLineString(ex)));
   }
 
   /**
-   * Handle an exception which occured while trying to list log files
+   * Handle an exception which occurred while trying to list log files
    * in a directory.
    * @param retentionPolicy - the retention policy being enforced when
-   *                          the exception occured.
+   *                          the exception occurred.
    * @param ex - the exception occurred.
    */
   public void handleDeleteError(RetentionPolicy retentionPolicy, Throwable ex)
   {
     LocalizableMessage msg = ERR_LOGGER_ERROR_ENFORCING_RETENTION_POLICY.get(
-            retentionPolicy.toString(), publisherConfigDN.toString(),
+            retentionPolicy, publisherConfigDN,
             stackTraceToSingleLineString(ex));
     System.err.println(msg);
   }

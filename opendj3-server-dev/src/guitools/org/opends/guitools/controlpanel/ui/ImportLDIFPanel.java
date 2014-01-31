@@ -723,8 +723,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       {
         newTask.setInitializeAll(initializeAll);
         launchOperation(newTask,
-            INFO_CTRL_PANEL_IMPORTING_LDIF_SUMMARY.get(
-                backends.getSelectedItem().toString()),
+            INFO_CTRL_PANEL_IMPORTING_LDIF_SUMMARY.get(backends.getSelectedItem()),
             INFO_CTRL_PANEL_IMPORTING_LDIF_SUCCESSFUL_SUMMARY.get(),
             INFO_CTRL_PANEL_IMPORTING_LDIF_SUCCESSFUL_DETAILS.get(),
             ERR_CTRL_PANEL_IMPORTING_LDIF_ERROR_SUMMARY.get(),

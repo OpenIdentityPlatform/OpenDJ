@@ -613,8 +613,7 @@ implements EntryReadListener
     }
     catch (OpenDsException ode)
     {
-      errors.add(ERR_CTRL_PANEL_INVALID_ENTRY.get(
-          ode.getMessageObject().toString()));
+      errors.add(ERR_CTRL_PANEL_INVALID_ENTRY.get(ode.getMessageObject()));
     }
     if (errors.size() > 0)
     {

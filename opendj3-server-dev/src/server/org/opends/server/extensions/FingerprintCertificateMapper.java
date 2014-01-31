@@ -377,8 +377,7 @@ public class FingerprintCertificateMapper
       if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
       {
         LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(
-            configuration.dn().toString(),
-            t.getNameOrOID(), b.getBackendID());
+            configuration.dn(), t.getNameOrOID(), b.getBackendID());
         messages.add(message);
         logger.error(message);
       }

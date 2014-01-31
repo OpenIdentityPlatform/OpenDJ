@@ -136,7 +136,7 @@ public class RestartServerTask extends StartStopTask
             INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_STOP_SERVER.get());
         dlg.setSummary(LocalizableMessage.raw(
             Utilities.applyFont(
-            INFO_CTRL_PANEL_STOPPING_SERVER_SUMMARY.get().toString(),
+            INFO_CTRL_PANEL_STOPPING_SERVER_SUMMARY.get(),
             ColorAndFontConstants.defaultFont)));
       }
     });
@@ -173,7 +173,7 @@ public class RestartServerTask extends StartStopTask
 
             dlg.setSummary(LocalizableMessage.raw(
                 Utilities.applyFont(
-                INFO_CTRL_PANEL_STARTING_SERVER_SUMMARY.get().toString(),
+                INFO_CTRL_PANEL_STARTING_SERVER_SUMMARY.get(),
                 ColorAndFontConstants.defaultFont)));
           }
         });

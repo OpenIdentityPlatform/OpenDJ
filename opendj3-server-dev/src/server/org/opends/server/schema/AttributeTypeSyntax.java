@@ -586,11 +586,8 @@ public class AttributeTypeSyntax
                 else if(!((ch>='0' && ch<='9') || (ch>='A' && ch<='Z') ||
                         (ch>='a' && ch<='z')))
                 {
-                  LocalizableMessage msg = ERR_ATTR_SYNTAX_ATTR_ILLEGAL_CHAR.get(
-                            value.toString(), ch, index);
-                  throw new DirectoryException(
-                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       msg);
+                  throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                      ERR_ATTR_SYNTAX_ATTR_ILLEGAL_CHAR.get(value, ch, index));
                 }
                 break;
             }

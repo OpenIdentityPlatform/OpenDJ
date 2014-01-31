@@ -463,9 +463,8 @@ public class AccountStatusNotificationHandlerConfigManager
             }
           }
 
-          LocalizableMessage message = ERR_CONFIG_ACCTNOTHANDLER_CONFIG_NOT_ACCEPTABLE.get(
-              String.valueOf(configuration.dn()), buffer.toString());
-          throw new InitializationException(message);
+          throw new InitializationException(
+              ERR_CONFIG_ACCTNOTHANDLER_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), buffer));
         }
       }
 
@@ -474,9 +473,7 @@ public class AccountStatusNotificationHandlerConfigManager
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_ACCTNOTHANDLER_INITIALIZATION_FAILED.get(
-              className,
-              String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
+              className, configuration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }
@@ -485,7 +482,7 @@ public class AccountStatusNotificationHandlerConfigManager
   /**
    * Remove a notification handler that has been installed in the server.
    *
-   * @param configEntryDN  the DN of the configuration enry associated to
+   * @param configEntryDN  the DN of the configuration entry associated to
    *                       the notification handler to remove
    */
   private void uninstallNotificationHandler(

@@ -575,10 +575,8 @@ public final class DN implements Comparable<DN>, Serializable
       // that would be invalid.
       if (dnReader.remaining() <= 0)
       {
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
-            dnString.toString(), attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+            ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, attributeName));
       }
 
 
@@ -593,10 +591,8 @@ public final class DN implements Comparable<DN>, Serializable
         // This means that we hit the end of the value before
         // finding a '='.  This is illegal because there is no
         // attribute-value separator.
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
-            dnString.toString(), attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-            message);
+            ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, attributeName));
       }
 
       // The next character must be an equal sign.  If it is not,
@@ -702,10 +698,9 @@ public final class DN implements Comparable<DN>, Serializable
       {
         // This should not happen.  At any rate, it's an illegal
         // character, so throw an exception.
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(
-            dnReader.toString(), (char) b, dnReader.position()-1);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+            ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(
+                dnReader, (char) b, dnReader.position()-1));
       }
 
 
@@ -730,10 +725,8 @@ public final class DN implements Comparable<DN>, Serializable
         // because that would be invalid.
         if (b == ' ')
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
-              dnString.toString(), attributeName.toString());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, attributeName));
         }
 
 
@@ -859,10 +852,9 @@ public final class DN implements Comparable<DN>, Serializable
         {
           // This should not happen.  At any rate, it's an illegal
           // character, so throw an exception.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(
-              dnString.toString(), (char) b, dnReader.position()-1);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-              message);
+              ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(
+                  dnString, (char) b, dnReader.position()-1));
         }
       }
     }
@@ -934,10 +926,8 @@ public final class DN implements Comparable<DN>, Serializable
       // that would be invalid.
       if (pos >= length)
       {
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
-            dnString, attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+            ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, attributeName));
       }
 
 
@@ -952,10 +942,8 @@ public final class DN implements Comparable<DN>, Serializable
           // This means that we hit the end of the value before
           // finding a '='.  This is illegal because there is no
           // attribute-value separator.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
-              dnString, attributeName.toString());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, attributeName));
         }
         else
         {
@@ -972,10 +960,8 @@ public final class DN implements Comparable<DN>, Serializable
       }
       else
       {
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(
-            dnString, attributeName.toString(), c);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+            ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(dnString, attributeName, c));
       }
 
 
@@ -1103,10 +1089,8 @@ public final class DN implements Comparable<DN>, Serializable
         // because that would be invalid.
         if (pos >= length)
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
-              dnString, attributeName.toString());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, attributeName));
         }
 
 
@@ -1139,10 +1123,8 @@ public final class DN implements Comparable<DN>, Serializable
         }
         else
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(
-              dnString, attributeName.toString(), c);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(dnString, attributeName, c));
         }
 
 
@@ -1279,10 +1261,8 @@ public final class DN implements Comparable<DN>, Serializable
       // know that there is at least one RDN component, and
       // therefore the last non-space character of the DN must
       // have been a comma. This is not acceptable.
-      LocalizableMessage message = ERR_ATTR_SYNTAX_DN_END_WITH_COMMA.get(
-          dnBytes.toString());
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-          message);
+          ERR_ATTR_SYNTAX_DN_END_WITH_COMMA.get(dnBytes));
     }
 
     dnBytes.skip(-1);
@@ -1326,10 +1306,7 @@ public final class DN implements Comparable<DN>, Serializable
         case ',':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          LocalizableMessage msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
-              dnBytes.toString(), (char) b, dnBytes.position()-1);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       msg);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, invalidChar(dnBytes, b));
 
 
         case '-':
@@ -1337,8 +1314,8 @@ public final class DN implements Comparable<DN>, Serializable
           // character in the attribute name.
           if (dnBytes.position() == nameStartPos + 1)
           {
-            msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DASH.get(dnBytes);
-            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, msg);
+            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+                ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DASH.get(dnBytes));
           }
           break;
 
@@ -1354,10 +1331,7 @@ public final class DN implements Comparable<DN>, Serializable
         case '/':
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
-              dnBytes.toString(), (char) b, dnBytes.position()-1);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       msg);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, invalidChar(dnBytes, b));
 
 
         case '0':
@@ -1383,10 +1357,7 @@ public final class DN implements Comparable<DN>, Serializable
         case '<':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
-              dnBytes.toString(), (char) b, dnBytes.position()-1);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       msg);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, invalidChar(dnBytes, b));
 
 
         case '=':
@@ -1400,10 +1371,7 @@ public final class DN implements Comparable<DN>, Serializable
         case '@':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
-              dnBytes.toString(), (char) b, dnBytes.position()-1);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       msg);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, invalidChar(dnBytes, b));
 
 
         case 'A':
@@ -1442,10 +1410,7 @@ public final class DN implements Comparable<DN>, Serializable
         case '^':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
-              dnBytes.toString(), (char) b, dnBytes.position()-1);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       msg);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, invalidChar(dnBytes, b));
 
 
         case '_':
@@ -1454,15 +1419,15 @@ public final class DN implements Comparable<DN>, Serializable
           // name exceptions option is enabled.
           if (dnBytes.position() == nameStartPos + 1)
           {
-            msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_UNDERSCORE.
-                  get(dnBytes, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
-            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, msg);
+            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+                ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_UNDERSCORE.get(
+                    dnBytes, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS));
           }
           else if (!allowExceptions)
           {
-            msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_UNDERSCORE_CHAR.
-                  get(dnBytes, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
-            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, msg);
+            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+                ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_UNDERSCORE_CHAR.get(
+                    dnBytes, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS));
           }
           break;
 
@@ -1470,10 +1435,7 @@ public final class DN implements Comparable<DN>, Serializable
         case '`':
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
-              dnBytes.toString(), (char) b, dnBytes.position()-1);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       msg);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, invalidChar(dnBytes, b));
 
 
         case 'a':
@@ -1509,10 +1471,7 @@ public final class DN implements Comparable<DN>, Serializable
         default:
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
-              dnBytes.toString(), (char) b, dnBytes.position()-1);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       msg);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, invalidChar(dnBytes, b));
       }
 
 
@@ -1607,10 +1566,8 @@ public final class DN implements Comparable<DN>, Serializable
 
       if (! validOID)
       {
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(
-            dnBytes.toString(), nameBytes.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+            ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(dnBytes, nameBytes));
       }
     }
     else if (isDigit((char)nameBytes.byteAt(0)) && (!allowExceptions))
@@ -1624,6 +1581,11 @@ public final class DN implements Comparable<DN>, Serializable
     return nameBytes;
   }
 
+  private static LocalizableMessage invalidChar(ByteSequenceReader dnBytes, byte b)
+  {
+    return ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+        dnBytes, (char) b, dnBytes.position()-1);
+  }
 
 
   /**
@@ -2006,13 +1968,10 @@ public final class DN implements Comparable<DN>, Serializable
         validOID = false;
       }
 
-
       if (! validOID)
       {
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(
-            dnString, attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+            ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(dnString, attributeName));
       }
     }
     else if (isDigit(attributeName.charAt(0)) &&
@@ -2021,10 +1980,8 @@ public final class DN implements Comparable<DN>, Serializable
       LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DIGIT.
           get(dnString, attributeName.charAt(0),
               ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
-
 
     return pos;
   }
@@ -2065,10 +2022,8 @@ public final class DN implements Comparable<DN>, Serializable
       StringBuilder hexString = new StringBuilder();
       if (dnBytes.remaining() < 2)
       {
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(
-            dnBytes.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+            ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnBytes));
       }
 
       for (int i=0; i < 2; i++)
@@ -2080,10 +2035,8 @@ public final class DN implements Comparable<DN>, Serializable
         }
         else
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(
-              dnBytes.toString(), (char) b);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnBytes, (char) b));
         }
       }
 
@@ -2107,15 +2060,14 @@ public final class DN implements Comparable<DN>, Serializable
             }
             else
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.
-                  get(dnBytes, (char) b);
-              throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
+              throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+                  ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnBytes, (char) b));
             }
           }
           else
           {
-            LocalizableMessage message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnBytes);
-            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
+            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+                ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnBytes));
           }
         }
         else if ((b == ' ') || (b == ',') || (b == ';') || (b == '+'))
@@ -2126,10 +2078,8 @@ public final class DN implements Comparable<DN>, Serializable
         }
         else
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(
-              dnBytes.toString(), (char) b);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnBytes, (char) b));
         }
       }
 
@@ -2139,15 +2089,14 @@ public final class DN implements Comparable<DN>, Serializable
       // octet string.
       try
       {
-        return ByteString.wrap(hexStringToByteArray(
-                                     hexString.toString()));
+        return ByteString.wrap(hexStringToByteArray(hexString.toString()));
       }
       catch (Exception e)
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(dnBytes, e);
-        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+            ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(dnBytes, e));
       }
     }
 
@@ -2165,10 +2114,8 @@ public final class DN implements Comparable<DN>, Serializable
         {
           // We hit the end of the DN before the closing quote.
           // That's an error.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(
-              dnBytes.toString());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(dnBytes));
         }
 
         if (dnBytes.get() == '"')
@@ -2180,8 +2127,7 @@ public final class DN implements Comparable<DN>, Serializable
 
       int valueEndPos = dnBytes.position();
       dnBytes.position(valueStartPos);
-      ByteString bs =
-          dnBytes.getByteString(valueEndPos - valueStartPos - 1);
+      ByteString bs = dnBytes.getByteString(valueEndPos - valueStartPos - 1);
       dnBytes.skip(1);
       return bs;
     }
@@ -2191,11 +2137,8 @@ public final class DN implements Comparable<DN>, Serializable
       //We don't allow an empty attribute value. So do not allow the
       // first character to be a '+' or ',' since it is not escaped
       // by the user.
-      LocalizableMessage message =
-             ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(
-                      dnBytes.toString(),dnBytes.position());
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+          ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(dnBytes, dnBytes.position()));
     }
 
     // Otherwise, use general parsing to find the end of the value.

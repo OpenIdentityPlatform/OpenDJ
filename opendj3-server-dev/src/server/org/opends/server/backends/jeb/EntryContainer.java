@@ -1647,8 +1647,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         parentID = dn2id.get(txn, parentDN, LockMode.DEFAULT);
         if (parentID == null)
         {
-          LocalizableMessage message = ERR_JEB_ADD_NO_SUCH_OBJECT.get(
-              entry.getName().toString());
+          LocalizableMessage message = ERR_JEB_ADD_NO_SUCH_OBJECT.get(entry.getName());
           DN matchedDN = getMatchedDN(baseDN);
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
               message, matchedDN, null);
@@ -2367,10 +2366,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       if (!currentDN.equals(entry.getName()) &&
           dn2id.get(txn, entry.getName(), LockMode.DEFAULT) != null)
       {
-        LocalizableMessage message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(
-            entry.getName().toString());
-        throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-            message);
+        LocalizableMessage message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(entry.getName());
+        throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
       }
 
       EntryID oldApexID = dn2id.get(txn, currentDN, LockMode.DEFAULT);
@@ -2409,9 +2406,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         EntryID newSuperiorID = dn2id.get(txn, newSuperiorDN, LockMode.DEFAULT);
         if (newSuperiorID == null)
         {
-          LocalizableMessage msg =
-            ERR_JEB_NEW_SUPERIOR_NO_SUCH_OBJECT.get(
-                newSuperiorDN.toString());
+          LocalizableMessage msg = ERR_JEB_NEW_SUPERIOR_NO_SUCH_OBJECT.get(newSuperiorDN);
           DN matchedDN = getMatchedDN(baseDN);
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
               msg, matchedDN, null);
@@ -2627,10 +2622,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   {
     if (!dn2id.insert(txn, newEntry.getName(), newID))
     {
-      LocalizableMessage message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(
-          newEntry.getName().toString());
-      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-                                   message);
+      LocalizableMessage message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(newEntry.getName());
+      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
     }
     id2entry.put(txn, newID, newEntry);
     dn2uri.addEntry(txn, newEntry);
@@ -2769,10 +2762,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
       if (!pluginResult.continueProcessing())
       {
-        LocalizableMessage message = ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN.get(
-            oldDN.toString(), newDN.toString());
-        throw new DirectoryException(
-            DirectoryServer.getServerErrorResultCode(), message);
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+            ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN.get(oldDN, newDN));
       }
 
       if (! modifications.isEmpty())
@@ -2782,10 +2773,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
             invalidReason))
         {
           LocalizableMessage message =
-            ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR.get(
-                oldDN.toString(),
-                newDN.toString(),
-                invalidReason.toString());
+            ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR.get(oldDN, newDN, invalidReason);
           throw new DirectoryException(
               DirectoryServer.getServerErrorResultCode(), message);
         }

@@ -600,9 +600,8 @@ public final class RDN
     // that would be invalid.
     if (pos >= length)
     {
-      LocalizableMessage message = ERR_RDN_END_WITH_ATTR_NAME.get(
-          rdnString, attributeName.toString());
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+          ERR_RDN_END_WITH_ATTR_NAME.get(rdnString, attributeName));
     }
 
 
@@ -615,9 +614,8 @@ public final class RDN
       {
         // This means that we hit the end of the string before finding a '='.
         // This is illegal because there is no attribute-value separator.
-        LocalizableMessage message = ERR_RDN_END_WITH_ATTR_NAME.get(
-            rdnString, attributeName.toString());
-        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+            ERR_RDN_END_WITH_ATTR_NAME.get(rdnString, attributeName));
       }
       else
       {
@@ -634,9 +632,8 @@ public final class RDN
     }
     else
     {
-      LocalizableMessage message = ERR_RDN_NO_EQUAL.get(
-          rdnString, attributeName.toString(), c);
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+          ERR_RDN_NO_EQUAL.get(rdnString, attributeName, c));
     }
 
 
@@ -739,9 +736,8 @@ public final class RDN
       // Make sure we're not at the end of the RDN.
       if (pos >= length)
       {
-        LocalizableMessage message = ERR_RDN_END_WITH_ATTR_NAME.get(
-            rdnString, attributeName.toString());
-        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+            ERR_RDN_END_WITH_ATTR_NAME.get(rdnString, attributeName));
       }
 
 
@@ -754,9 +750,8 @@ public final class RDN
         {
           // This means that we hit the end of the string before finding a '='.
           // This is illegal because there is no attribute-value separator.
-          LocalizableMessage message = ERR_RDN_END_WITH_ATTR_NAME.get(
-              rdnString, attributeName.toString());
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+              ERR_RDN_END_WITH_ATTR_NAME.get(rdnString, attributeName));
         }
         else
         {
@@ -772,9 +767,8 @@ public final class RDN
       }
       else
       {
-        LocalizableMessage message = ERR_RDN_NO_EQUAL.get(
-            rdnString, attributeName.toString(), c);
-        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+            ERR_RDN_NO_EQUAL.get(rdnString, attributeName, c));
       }
 
 

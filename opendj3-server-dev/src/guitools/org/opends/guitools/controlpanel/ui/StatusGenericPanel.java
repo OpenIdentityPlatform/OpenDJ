@@ -2214,8 +2214,7 @@ implements ConfigChangeListener
    */
   protected static LocalizableMessage getLabel(MonitoringAttributes attr)
   {
-    return INFO_CTRL_PANEL_OPERATION_NAME_AS_LABEL.get(
-        attr.getMessage().toString());
+    return INFO_CTRL_PANEL_OPERATION_NAME_AS_LABEL.get(attr.getMessage());
   }
 
   /**

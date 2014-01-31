@@ -368,8 +368,7 @@ public class BackUpDB extends TaskTool
       }
       if (repeatedBackends.length() > 0)
       {
-        LocalizableMessage message = ERR_BACKUPDB_REPEATED_BACKEND_ID.get(
-            repeatedBackends.toString());
+        LocalizableMessage message = ERR_BACKUPDB_REPEATED_BACKEND_ID.get(repeatedBackends);
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
         return 1;

@@ -266,8 +266,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
       LocalizableMessage elementType = NewAttributePanel.getSchemaElementType(n, schema);
       if (elementType != null)
       {
-        errors.add(ERR_CTRL_PANEL_OBJECTCLASS_NAME_ALREADY_IN_USE.get(n,
-            elementType.toString()));
+        errors.add(ERR_CTRL_PANEL_OBJECTCLASS_NAME_ALREADY_IN_USE.get(n, elementType));
       }
     }
 
@@ -284,8 +283,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
         LocalizableMessage elementType = NewAttributePanel.getSchemaElementType(n, schema);
         if (elementType != null)
         {
-          errors.add(ERR_CTRL_PANEL_OID_ALREADY_IN_USE.get(n,
-              elementType.toString()));
+          errors.add(ERR_CTRL_PANEL_OID_ALREADY_IN_USE.get(n, elementType));
         }
       }
     }
@@ -307,8 +305,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
                 alias, schema);
             if (elementType != null)
             {
-              errors.add(ERR_CTRL_PANEL_ALIAS_ALREADY_IN_USE.get(n,
-                  elementType.toString()));
+              errors.add(ERR_CTRL_PANEL_ALIAS_ALREADY_IN_USE.get(n, elementType));
             }
           }
         }

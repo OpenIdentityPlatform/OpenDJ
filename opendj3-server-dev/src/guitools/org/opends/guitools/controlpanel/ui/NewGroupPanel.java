@@ -239,8 +239,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
           catch (OpenDsException ode)
           {
             errorFound = true;
-            errors.add(ERR_CTRL_PANEL_MEMBER_VALUE_NOT_VALID.get(member,
-                ode.getMessageObject().toString()));
+            errors.add(ERR_CTRL_PANEL_MEMBER_VALUE_NOT_VALID.get(member, ode.getMessageObject()));
           }
         }
       }
@@ -278,8 +277,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
         }
         catch (OpenDsException ode)
         {
-          errors.add(ERR_CTRL_PANEL_GROUP_FILTER_NOT_VALID.get(
-              ode.getMessageObject().toString()));
+          errors.add(ERR_CTRL_PANEL_GROUP_FILTER_NOT_VALID.get(ode.getMessageObject()));
         }
       }
       if (errorFound)
@@ -309,8 +307,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
       catch (OpenDsException ode)
       {
         errorFound = true;
-        errors.add(ERR_CTRL_PANEL_REFERENCE_GROUP_NOT_VALID.get(
-            ode.getMessageObject().toString()));
+        errors.add(ERR_CTRL_PANEL_REFERENCE_GROUP_NOT_VALID.get(ode.getMessageObject()));
       }
       if (errorFound)
       {

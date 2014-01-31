@@ -26,8 +26,6 @@
  */
 package org.opends.server.schema;
 
-
-
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -35,7 +33,6 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -45,8 +42,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
-
-
 
 /**
  * This class defines the distinguishedNameMatch matching rule defined in X.520
@@ -179,10 +174,8 @@ class DistinguishedNameEqualityMatchingRule
       if (DirectoryServer.getSyntaxEnforcementPolicy() ==
           AcceptRejectWarn.REJECT)
       {
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID.get(
-            value.toString(), String.valueOf(e));
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message);
+            ERR_ATTR_SYNTAX_DN_INVALID.get(value, e));
       }
       else
       {
