@@ -157,8 +157,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
     catch (Exception e)
     {
-      if (logger.isTraceEnabled())
-        logger.traceException(e);
+      logger.traceException(e);
 
       final LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(e.getLocalizedMessage());
@@ -317,8 +316,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
     catch (ChangelogException e)
     {
-      if (logger.isTraceEnabled())
-        logger.traceException(e);
+      logger.traceException(e);
 
       logger.error(ERR_COULD_NOT_READ_DB.get(this.dbDirectory.getAbsolutePath(),
           e.getLocalizedMessage()));
@@ -462,8 +460,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
           {
             firstException = e;
           }
-          else if (logger.isTraceEnabled())
-            logger.traceException(e);
+          else logger.traceException(e);
         }
 
         cnIndexDB = null;
@@ -584,8 +581,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
           {
             firstException = e;
           }
-          else if (logger.isTraceEnabled())
-            logger.traceException(e);
+          else logger.traceException(e);
         }
       }
     }
@@ -601,8 +597,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       {
         firstException = e;
       }
-      else if (logger.isTraceEnabled())
-        logger.traceException(e);
+      else logger.traceException(e);
     }
 
     if (firstException != null)
@@ -699,8 +694,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
         }
         catch (Exception e)
         {
-          if (logger.isTraceEnabled())
-            logger.traceException(e);
+          logger.traceException(e);
           logger.error(ERR_CHANGENUMBER_DATABASE.get(e.getLocalizedMessage()));
         }
       }

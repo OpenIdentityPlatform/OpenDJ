@@ -1322,8 +1322,7 @@ public final class LDIFReader implements Closeable
         }
         rejectWriter.newLine();
       } catch (IOException ex) {
-        if (logger.isTraceEnabled())
-          logger.traceException(ex);
+        logger.traceException(ex);
       }
     }
   }

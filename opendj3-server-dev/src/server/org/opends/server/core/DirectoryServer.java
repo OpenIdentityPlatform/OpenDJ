@@ -1056,13 +1056,9 @@ public final class DirectoryServer
       }
       catch (Exception e)
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.traceException(e);
-        }
+        logger.traceException(e);
 
-        directoryServer.mBeanServer =
-          MBeanServerFactory.newMBeanServer();
+        directoryServer.mBeanServer = MBeanServerFactory.newMBeanServer();
       }
       directoryServer.mBeans = new ConcurrentHashMap<DN,JMXMBean>();
       registerAlertGenerator(directoryServer);

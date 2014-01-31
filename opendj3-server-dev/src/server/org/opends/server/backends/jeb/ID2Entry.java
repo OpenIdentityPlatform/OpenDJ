@@ -245,10 +245,7 @@ public class ID2Entry extends DatabaseContainer
       catch(IOException ioe)
       {
         // TODO: This should never happen with byte buffer.
-        if(logger.isTraceEnabled())
-        {
-          logger.traceException(ioe);
-        }
+        logger.traceException(ioe);
       }
     }
   }

@@ -497,8 +497,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
       }
       catch (ChangelogException e)
       {
-        if (logger.isTraceEnabled())
-          logger.traceException(e);
+        logger.traceException(e);
       }
       return 0;
     }

@@ -193,11 +193,7 @@ class CertificateExactMatchingRule
     catch (CertificateException ce)
     {
       // There seems to be a problem while parsing the certificate.
-      LocalizableMessage message = WARN_CERTIFICATE_MATCH_PARSE_ERROR.get(ce.getMessage());
-      if (logger.isTraceEnabled())
-      {
-         logger.trace(message);
-      }
+      logger.trace(WARN_CERTIFICATE_MATCH_PARSE_ERROR.get(ce.getMessage()));
 
       // return the raw bytes as a fall back
       return value.toByteString();

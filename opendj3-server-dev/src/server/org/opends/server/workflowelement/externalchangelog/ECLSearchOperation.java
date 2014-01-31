@@ -241,8 +241,7 @@ public class ECLSearchOperation
       }
       catch (DirectoryException de)
       {
-        if (logger.isTraceEnabled())
-          logger.traceException(de);
+        logger.traceException(de);
         setResponseData(de);
         break searchProcessing;
       }
@@ -254,8 +253,7 @@ public class ECLSearchOperation
       }
       catch (DirectoryException de)
       {
-        if (logger.isTraceEnabled())
-          logger.traceException(de);
+        logger.traceException(de);
         setResponseData(de);
         break searchProcessing;
       }
@@ -296,9 +294,7 @@ public class ECLSearchOperation
       }
       catch (DirectoryException de)
       {
-        if (logger.isTraceEnabled())
-          logger.traceException(de);
-
+        logger.traceException(de);
         setResponseData(de);
 
         if (persistentSearch != null)
@@ -320,8 +316,7 @@ public class ECLSearchOperation
       }
       catch (Exception e)
       {
-        if (logger.isTraceEnabled())
-          logger.traceException(e);
+        logger.traceException(e);
 
         setResultCode(DirectoryServer.getServerErrorResultCode());
         appendErrorMessage(ERR_SEARCH_BACKEND_EXCEPTION.get(

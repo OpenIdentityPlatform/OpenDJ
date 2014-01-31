@@ -376,8 +376,7 @@ public final class ReplicationServer
     }
     catch (Exception e)
     {
-      if (logger.isTraceEnabled())
-        logger.traceException(e);
+      logger.traceException(e);
       close(session);
       close(socket);
     }
@@ -691,10 +690,7 @@ public final class ReplicationServer
     }
     catch (ChangelogException ignored)
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.traceException(ignored);
-      }
+      logger.traceException(ignored);
     }
 
     // Remove this instance from the global instance list
@@ -777,8 +773,7 @@ public final class ReplicationServer
       }
       catch (ChangelogException e)
       {
-        if (logger.isTraceEnabled())
-          logger.traceException(e);
+        logger.traceException(e);
         resultCode = ResultCode.OPERATIONS_ERROR;
       }
     }
@@ -803,14 +798,12 @@ public final class ReplicationServer
       }
       catch (IOException e)
       {
-        if (logger.isTraceEnabled())
-          logger.traceException(e);
+        logger.traceException(e);
         logger.error(ERR_COULD_NOT_CLOSE_THE_SOCKET.get(e));
       }
       catch (InterruptedException e)
       {
-        if (logger.isTraceEnabled())
-          logger.traceException(e);
+        logger.traceException(e);
         logger.error(ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e));
       }
     }

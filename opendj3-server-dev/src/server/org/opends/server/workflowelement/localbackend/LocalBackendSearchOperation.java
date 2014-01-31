@@ -272,11 +272,7 @@ public class LocalBackendSearchOperation
     }
     catch (DirectoryException de)
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.traceException(de);
-      }
-
+      logger.traceException(de);
       setResponseData(de);
 
       if (persistentSearch != null)

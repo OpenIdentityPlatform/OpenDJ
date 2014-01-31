@@ -131,10 +131,7 @@ public class GetSymmetricKeyExtendedOperation
     }
     catch (ASN1Exception ae)
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.traceException(ae);
-      }
+      logger.traceException(ae);
 
       LocalizableMessage message = ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(
            ae.getMessage());
@@ -143,10 +140,7 @@ public class GetSymmetricKeyExtendedOperation
     }
     catch (Exception e)
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.traceException(e);
-      }
+      logger.traceException(e);
 
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
