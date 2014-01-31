@@ -192,7 +192,7 @@ public class PersistentServerState
       if (((search.getResultCode() != ResultCode.SUCCESS)) &&
           ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
       {
-        logger.error(ERR_ERROR_SEARCHING_RUV, search.getResultCode().getResultCodeName(), search.toString(),
+        logger.error(ERR_ERROR_SEARCHING_RUV, search.getResultCode().getResultCodeName(), search,
                 search.getErrorMessage(), baseDn.toString());
         return null;
       }
@@ -336,7 +336,7 @@ public class PersistentServerState
     op.run();
     if (op.getResultCode() != ResultCode.SUCCESS)
     {
-      logger.trace(DEBUG_ERROR_UPDATING_RUV, op.getResultCode().getResultCodeName().toString(),
+      logger.trace(DEBUG_ERROR_UPDATING_RUV, op.getResultCode().getResultCodeName(),
               op.toString(),
               op.getErrorMessage().toString(),
               baseDn.toString());
@@ -435,7 +435,7 @@ public class PersistentServerState
           // Update the serverState with the new maxCsn
           // present in the database
           this.update(dbMaxCsn);
-          logger.info(NOTE_SERVER_STATE_RECOVERY, baseDn.toNormalizedString(), dbMaxCsn.toString());
+          logger.info(NOTE_SERVER_STATE_RECOVERY, baseDn.toNormalizedString(), dbMaxCsn);
         }
       }
     }

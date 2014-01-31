@@ -206,7 +206,7 @@ public class ControlPanelLauncher
                 buf.append("Root cause:\n");
               }
             }
-            logger.warn(LocalizableMessage.raw(buf.toString()));
+            logger.warn(LocalizableMessage.raw(buf));
           }
         }
       }

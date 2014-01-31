@@ -249,7 +249,7 @@ public class StaticGroup
           {
             logger.traceException(de);
 
-            logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN, v.getValue().toString(),
+            logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN, v.getValue(),
                     someMemberAttributeType.getNameOrOID(),
                     String.valueOf(groupEntry.getName()),
                     de.getMessageObject());

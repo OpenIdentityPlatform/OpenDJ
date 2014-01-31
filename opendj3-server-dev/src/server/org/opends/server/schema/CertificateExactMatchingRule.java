@@ -196,7 +196,7 @@ class CertificateExactMatchingRule
       LocalizableMessage message = WARN_CERTIFICATE_MATCH_PARSE_ERROR.get(ce.getMessage());
       if (logger.isTraceEnabled())
       {
-         logger.trace(message.toString());
+         logger.trace(message);
       }
 
       // return the raw bytes as a fall back

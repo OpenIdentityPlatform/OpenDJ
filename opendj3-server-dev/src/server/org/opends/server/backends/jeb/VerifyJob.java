@@ -405,7 +405,7 @@ public class VerifyJob
               medianValue = values[x];
             }
 
-            logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_ROW, index.toString(), values.length, values[0],
+            logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_ROW, index, values.length, values[0],
                     values[values.length-1], medianValue);
           }
         }

@@ -293,7 +293,7 @@ public class RestoreTask extends Task
     catch (ConfigException e)
     {
       logger.traceException(e);
-      logger.error(ERR_RESTOREDB_NO_BACKENDS_FOR_DN, String.valueOf(backupDirectory), configEntryDN.toString());
+      logger.error(ERR_RESTOREDB_NO_BACKENDS_FOR_DN, String.valueOf(backupDirectory), configEntryDN);
       return TaskState.STOPPED_BY_ERROR;
     }
 

@@ -806,13 +806,13 @@ public final class ReplicationServer
       {
         if (logger.isTraceEnabled())
           logger.traceException(e);
-        logger.error(ERR_COULD_NOT_CLOSE_THE_SOCKET.get(e.toString()));
+        logger.error(ERR_COULD_NOT_CLOSE_THE_SOCKET.get(e));
       }
       catch (InterruptedException e)
       {
         if (logger.isTraceEnabled())
           logger.traceException(e);
-        logger.error(ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e.toString()));
+        logger.error(ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e));
       }
     }
 

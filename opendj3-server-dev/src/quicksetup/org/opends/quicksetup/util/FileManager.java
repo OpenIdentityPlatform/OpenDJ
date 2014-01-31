@@ -386,7 +386,7 @@ public class FileManager {
         application.notifyListeners(application.getFormattedWarning(
                 INFO_FILE_DOES_NOT_EXIST.get(String.valueOf(file))));
       }
-      logger.debug(LocalizableMessage.raw("file '" + file.toString() + "' does not exist"));
+      logger.debug(LocalizableMessage.raw("file '" + file + "' does not exist"));
     }
   }
 

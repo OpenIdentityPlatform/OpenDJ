@@ -280,7 +280,7 @@ public class SaltedSHA512PasswordStorageScheme
       saltLength = decodedBytes.length - SHA512_LENGTH;
       if (saltLength <= 0)
       {
-        logger.error(ERR_PWSCHEME_INVALID_BASE64_DECODED_STORED_PASSWORD, storedPassword.toString());
+        logger.error(ERR_PWSCHEME_INVALID_BASE64_DECODED_STORED_PASSWORD, storedPassword);
         return false;
       }
       saltBytes = new byte[saltLength];
@@ -291,8 +291,7 @@ public class SaltedSHA512PasswordStorageScheme
     catch (Exception e)
     {
       logger.traceException(e);
-
-      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD, storedPassword.toString(), String.valueOf(e));
+      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD, storedPassword, String.valueOf(e));
       return false;
     }
 

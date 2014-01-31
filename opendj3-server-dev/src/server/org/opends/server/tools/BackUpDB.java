@@ -973,7 +973,7 @@ public class BackUpDB extends TaskTool
       StringBuilder unsupportedReason = new StringBuilder();
       if (! b.supportsBackup(backupConfig, unsupportedReason))
       {
-        logger.error(ERR_BACKUPDB_CANNOT_BACKUP, b.getBackendID(), unsupportedReason.toString());
+        logger.error(ERR_BACKUPDB_CANNOT_BACKUP, b.getBackendID(), unsupportedReason);
         errorsEncountered = true;
 
         try

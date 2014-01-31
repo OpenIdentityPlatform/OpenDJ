@@ -256,7 +256,7 @@ public class MD5PasswordStorageScheme
     {
       logger.traceException(e);
 
-      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(storedPassword.toString(), String.valueOf(e)));
+      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(storedPassword, String.valueOf(e)));
 
       return false;
     }

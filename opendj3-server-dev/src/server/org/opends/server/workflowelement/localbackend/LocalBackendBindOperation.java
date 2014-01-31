@@ -1147,8 +1147,7 @@ public class LocalBackendBindOperation
         catch (Exception e)
         {
           logger.traceException(e);
-
-          logger.error(cannotProcessAttributeMessage.get(v.getValue().toString(),
+          logger.error(cannotProcessAttributeMessage.get(v.getValue(),
               String.valueOf(userEntry.getName())));
         }
       }

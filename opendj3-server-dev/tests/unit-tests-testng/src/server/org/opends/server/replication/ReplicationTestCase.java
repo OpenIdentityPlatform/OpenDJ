@@ -770,7 +770,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       logger.trace(logMessages.get(0));
       if (expectedMessage != null)
       {
-        logger.trace(expectedMessage.toString());
+        logger.trace(expectedMessage);
         assertTrue(logMessages.get(0).indexOf(expectedMessage.toString()) > 0);
       }
     }

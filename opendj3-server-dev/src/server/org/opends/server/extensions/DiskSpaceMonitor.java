@@ -291,8 +291,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
     }
     catch(Exception e)
     {
-      logger.error(ERR_DISK_SPACE_MONITOR_UPDATE_FAILED.get(directory.getPath(), e.toString()));
-
+      logger.error(ERR_DISK_SPACE_MONITOR_UPDATE_FAILED.get(directory.getPath(), e));
       logger.traceException(e);
     }
   }

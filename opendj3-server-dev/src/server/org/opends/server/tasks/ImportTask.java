@@ -720,7 +720,7 @@ public class ImportTask extends Task
           builder.append(" / ");
           builder.append(backend.getBaseDNs()[i].toNormalizedString());
         }
-        logger.error(ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND, builder.toString(), ATTR_IMPORT_CLEAR_BACKEND);
+        logger.error(ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND, builder, ATTR_IMPORT_CLEAR_BACKEND);
         return TaskState.STOPPED_BY_ERROR;
       }
     }

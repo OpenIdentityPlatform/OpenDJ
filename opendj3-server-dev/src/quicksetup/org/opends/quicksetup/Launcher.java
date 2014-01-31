@@ -227,7 +227,7 @@ public abstract class Launcher {
                 buf.append("Root cause:\n");
               }
             }
-            logger.warn(LocalizableMessage.raw(buf.toString()));
+            logger.warn(LocalizableMessage.raw(buf));
           }
         }
       }

@@ -626,7 +626,7 @@ public class RestoreDB extends TaskTool {
 
     if (backend == null)
     {
-      logger.error(ERR_RESTOREDB_NO_BACKENDS_FOR_DN, backupDirectory.getValue(), configEntryDN.toString());
+      logger.error(ERR_RESTOREDB_NO_BACKENDS_FOR_DN, backupDirectory.getValue(), configEntryDN);
       return 1;
     }
     else if (! backend.supportsRestore())

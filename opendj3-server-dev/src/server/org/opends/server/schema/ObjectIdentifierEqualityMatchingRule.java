@@ -224,7 +224,7 @@ class ObjectIdentifierEqualityMatchingRule
         if (! isValidSchemaElement(lowerValue, 0, lowerValue.length(),
                                    invalidReason))
         {
-          logger.error(ERR_ATTR_SYNTAX_OID_INVALID_VALUE, lowerValue, invalidReason.toString());
+          logger.error(ERR_ATTR_SYNTAX_OID_INVALID_VALUE, lowerValue, invalidReason);
         }
 
         return ByteString.valueOf(lowerValue);

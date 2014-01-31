@@ -655,7 +655,7 @@ public class SMTPAccountStatusNotificationHandler
     message.setBody(messageBody);
     if (logger.isTraceEnabled())
     {
-      logger.trace("Set message body of " + messageBody.toString());
+      logger.trace("Set message body of " + messageBody);
     }
 
 
