@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012-2013 ForgeRock AS
+ *      Copyright 2012-2014 ForgeRock AS
  *
  */
 
@@ -45,6 +45,7 @@ import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.SortKey;
+import org.forgerock.opendj.ldap.controls.ADNotificationRequestControl;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.AuthorizationIdentityRequestControl;
 import org.forgerock.opendj.ldap.controls.AuthorizationIdentityResponseControl;
@@ -123,6 +124,7 @@ public final class Controls {
 
             // Uncomment a method to run one of the examples.
 
+            //useADNotificationRequestControl(connection);
             //useAssertionControl(connection);
             useAuthorizationIdentityRequestControl(connection);
             // For the EntryChangeNotificationResponseControl see
@@ -153,6 +155,95 @@ public final class Controls {
                 connection.close();
             }
         }
+    }
+
+    /**
+     * Use the <a
+     * href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms676877(v=vs.85).aspx"
+     * >Microsoft LDAP Notification control</a>
+     * to register a change notification request for a search
+     * on Microsoft Active Directory.
+     * <p/>
+     * This client binds to Active Directory as
+     * {@code cn=Administrator,cn=users,dc=example,dc=com}
+     * with password {@code password},
+     * and expects entries under {@code dc=example,dc=com}.
+     *
+     * @param connection Active connection to Active Directory server.
+     * @throws ErrorResultException Operation failed.
+     */
+    static void useADNotificationRequestControl(Connection connection)
+            throws ErrorResultException {
+
+        // --- JCite ADNotification ---
+        final String user = "cn=Administrator,cn=users,dc=example,dc=com";
+        final char[] password = "password".toCharArray();
+        connection.bind(user, password);
+
+        final String[] attributes = {"cn",
+            ADNotificationRequestControl.IS_DELETED_ATTR,
+            ADNotificationRequestControl.WHEN_CHANGED_ATTR,
+            ADNotificationRequestControl.WHEN_CREATED_ATTR};
+
+        SearchRequest request =
+                Requests.newSearchRequest("dc=example,dc=com",
+                        SearchScope.WHOLE_SUBTREE, "(objectclass=*)", attributes)
+                        .addControl(ADNotificationRequestControl.newControl(true));
+
+        ConnectionEntryReader reader = connection.search(request);
+
+        try {
+            while (reader.hasNext()) {
+                if (!reader.isReference()) {
+                    SearchResultEntry entry = reader.readEntry(); // Updated entry
+                    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+
+                    Boolean isDeleted = entry.parseAttribute(
+                            ADNotificationRequestControl.IS_DELETED_ATTR
+                    ).asBoolean();
+                    if (isDeleted != null && isDeleted) {
+                        // Handle entry deletion
+                        writer.writeComment("Deleted entry: "
+                                + entry.getName().toString());
+                        writer.writeEntry(entry);
+                        writer.flush();
+                    }
+                    String whenCreated = entry.parseAttribute(
+                            ADNotificationRequestControl.WHEN_CREATED_ATTR)
+                            .asString();
+                    String whenChanged = entry.parseAttribute(
+                            ADNotificationRequestControl.WHEN_CHANGED_ATTR)
+                            .asString();
+                    if (whenCreated != null && whenChanged != null) {
+                        if (whenCreated.equals(whenChanged)) {
+                            // Handle entry addition
+                            writer.writeComment("Added entry: "
+                                    + entry.getName().toString());
+                            writer.writeEntry(entry);
+                            writer.flush();
+                        } else {
+                            // Handle entry modification
+                            writer.writeComment("Modified entry: "
+                                    + entry.getName().toString());
+                            writer.writeEntry(entry);
+                            writer.flush();
+                        }
+                    }
+                } else {
+                    reader.readReference(); // Read and ignore reference
+                }
+            }
+        } catch (final ErrorResultIOException e) {
+            System.err.println(e.getMessage());
+            System.exit(e.getCause().getResult().getResultCode().intValue());
+        } catch (final SearchResultReferenceIOException e) {
+            System.err.println("Got search reference(s): " + e.getReference()
+                    .getURIs().toString());
+        } catch (final IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
+        }
+        // --- JCite ADNotification ---
     }
 
     /**

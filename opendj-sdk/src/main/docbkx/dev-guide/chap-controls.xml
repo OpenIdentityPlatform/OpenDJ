@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-controls'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Working With Controls</title>
  <indexterm>
   <primary>Controls</primary>
@@ -348,6 +348,33 @@ dn: dc=references,dc=ref,dc=com</programlisting>
 dn: uid=bjensen,ou=People,dc=example,dc=com
 cn: Babs Jensen
 </programlisting>
+ </section>
+
+ <section xml:id="use-ad-notification-request-control">
+  <title>Microsoft LDAP Server Notification Control</title>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Microsoft LDAP Server Notification Control</secondary>
+  </indexterm>
+
+  <para>
+   The Microsoft <link xlink:show="new"
+   xlink:href="http://msdn.microsoft.com/en-us/library/windows/desktop/aa366983(v=vs.85).aspx"
+   >LDAP Server Notification Control</link>
+   with OID <literal>1.2.840.113556.1.4.528</literal>
+   can be used to register a change notification request
+   for a search on Microsoft Active Directory.
+  </para>
+
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite ADNotification ---]</programlisting>
+
+  <para>
+   When you run the search against Active Directory
+   and then create, update, and delete a new user
+   Active Directory notifies you of changes to directory data.
+  </para>
+
  </section>
 
  <section xml:id="use-password-expired-control">
@@ -837,79 +864,32 @@ sn: Jensen
   <literal>GenericControl</literal> class when adding the control to your
   request.</para>
 
-  <para>For example, the Microsoft <link xlink:show="new"
-  xlink:href="http://msdn.microsoft.com/en-us/library/windows/desktop/aa366983(v=vs.85).aspx"
-  >LDAP Server Notification Control</link> with OID
-  <literal>1.2.840.113556.1.4.528</literal> can be used to register a change
-  notification request for a search on Microsoft Active Directory. You can use
-  a <literal>GenericControl.newControl()</literal> static method to add the
-  request control to your search.</para>
+  <para>
+   The following example uses a <literal>GenericControl</literal>
+   to add a pre-read request control when replacing the description
+   on a user's entry.
+   OpenDJ LDAP SDK already implements the pre-read request control,
+   as shown in <xref linkend="use-pre-read-control" />.
+   The example is of interest mainly because it shows
+   that the values that you pass when using a <literal>GenericControl</literal>
+   must be prepared as indicated in the specification of the control.
+  </para>
 
   <programlisting language="java"
-  >[jcp:org.forgerock.opendj.examples.GetADChangeNotifications:--- JCite ---]</programlisting>
+  >[jcp:org.forgerock.opendj.examples.UseGenericControl:--- JCite ---]</programlisting>
 
-  <para>When you run the search against Active Directory and then create,
-  update, and delete a new user, in this example
-  <literal>CN=New User,CN=Users,DC=ad,DC=example,DC=com</literal>, Active
-  Directory notifies you of changes to directory data.</para>
+  <para>
+   When you run this example against a user entry in OpenDJ directory server,
+   you see something like the following result.
+  </para>
 
-  <programlisting language="ldif"
-  ># Search result entry: CN=RID Set,CN=WIN2008R2641,OU=Domain Controllers,
- DC=ad,DC=example,DC=com
-dn: CN=RID Set,CN=WIN2008R2641,OU=Domain Controllers,DC=ad,DC=example,DC=com
-objectClass: top
-objectClass: rIDSet
-objectGUID:: 178zQQic3EOoBOB1j2QVgQ==
-uSNChanged: 12446
+  <programlisting language="ldif"># Before modification
+dn: uid=bjensen,ou=People,dc=example,dc=com
+description: Original description
 
-# Search result entry: CN=New User,CN=Users,DC=ad,DC=example,DC=com
-dn: CN=New User,CN=Users,DC=ad,DC=example,DC=com
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: user
-objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
-uSNChanged: 12753
-
-# Search result entry: CN=New User,CN=Users,DC=ad,DC=example,DC=com
-dn: CN=New User,CN=Users,DC=ad,DC=example,DC=com
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: user
-objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
-uSNChanged: 12755
-
-# Search result entry: CN=New User,CN=Users,DC=ad,DC=example,DC=com
-dn: CN=New User,CN=Users,DC=ad,DC=example,DC=com
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: user
-objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
-uSNChanged: 12757
-
-# Search result entry: CN=New User,CN=Users,DC=ad,DC=example,DC=com
-dn: CN=New User,CN=Users,DC=ad,DC=example,DC=com
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: user
-objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
-uSNChanged: 12758
-
-# Search result entry: CN=New User\0ADEL:3a3f71ed-5d82-4a14-807a-0c008b678d94,
-# CN=Deleted Objects,DC=ad,DC=example,DC=com
-dn: CN=New User\0ADEL:3a3f71ed-5d82-4a14-807a-0c008b678d94,CN=Deleted Objects,
- DC=ad,DC=example,DC=com
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: user
-objectGUID:: 7XE/OoJdFEqAegwAi2eNlA==
-isDeleted: TRUE
-uSNChanged: 12759
-</programlisting>
+# After modification
+dn: uid=bjensen,ou=People,dc=example,dc=com
+description: A new description</programlisting>
 
   <para>The <literal>GenericControl</literal> class is useful with controls that
   do not require you to encode complex request values, or decode complex
