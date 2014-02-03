@@ -887,8 +887,7 @@ public class InitOnLineTest extends ReplicationTestCase
           "ds-task-initialize-domain-dn: " + baseDN,
           "ds-task-initialize-replica-server-id: -3");
       addTask(taskInit, ResultCode.OTHER,
-          ERR_INVALID_IMPORT_SOURCE.get(baseDN.toNormalizedString(),
-              Integer.toString(server1ID),"-3",""));
+          ERR_INVALID_IMPORT_SOURCE.get(baseDN.toNormalizedString(), server1ID,"-3",""));
 
       // Scope containing a serverID absent from the domain
       // createTask(taskInitTargetS2);
@@ -1140,7 +1139,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "ds-task-initialize-replica-server-id: " + server1ID);
 
       addTask(taskInit, ResultCode.OTHER, ERR_INVALID_IMPORT_SOURCE.get(
-          baseDN.toNormalizedString(), Integer.toString(server1ID),"20",""));
+          baseDN.toNormalizedString(), server1ID, "20", ""));
 
       if (replDomain != null)
       {

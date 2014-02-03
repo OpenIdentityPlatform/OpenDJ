@@ -382,10 +382,8 @@ public class ReplicationServerHandler extends ServerHandler
     catch (IOException e)
     {
       logger.traceException(e);
-      LocalizableMessage errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
-          Integer.toString(inReplServerStartMsg.getServerId()),
-          Integer.toString(replicationServer.getServerId()));
-      abortStart(errMessage);
+      abortStart(ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
+          inReplServerStartMsg.getServerId(), replicationServer.getServerId()));
     }
     catch (DirectoryException e)
     {

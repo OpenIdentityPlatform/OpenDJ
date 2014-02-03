@@ -549,8 +549,7 @@ public class ReferentialIntegrityPlugin
     if(interval == 0) {
       DirectoryServer.registerShutdownListener(this);
       interval=newInterval;
-      msgs.add(INFO_PLUGIN_REFERENT_BACKGROUND_PROCESSING_STARTING.
-              get(Long.toString(interval)));
+      msgs.add(INFO_PLUGIN_REFERENT_BACKGROUND_PROCESSING_STARTING.get(interval));
       setUpBackGroundProcessing();
     } else if(newInterval == 0) {
       LocalizableMessage message=
@@ -561,9 +560,7 @@ public class ReferentialIntegrityPlugin
     } else {
       interval=newInterval;
       backGroundThread.interrupt();
-      msgs.add(
-             INFO_PLUGIN_REFERENT_BACKGROUND_PROCESSING_UPDATE_INTERVAL_CHANGED.
-                      get(Long.toString(interval),Long.toString(newInterval)));
+      msgs.add(INFO_PLUGIN_REFERENT_BACKGROUND_PROCESSING_UPDATE_INTERVAL_CHANGED.get(interval, newInterval));
     }
   }
 

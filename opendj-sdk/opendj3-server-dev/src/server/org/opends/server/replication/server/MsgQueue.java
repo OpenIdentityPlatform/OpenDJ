@@ -30,7 +30,6 @@ import java.util.NavigableMap;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.TreeMap;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 
@@ -155,8 +154,7 @@ public class MsgQueue
       if ((map.size() == 0) && (bytesCount != 0))
       {
         // should never happen
-        LocalizableMessage msg = ERR_BYTE_COUNT.get(Integer.toString(bytesCount));
-        logger.error(msg);
+        logger.error(ERR_BYTE_COUNT, bytesCount);
         bytesCount = 0;
       }
       return update;

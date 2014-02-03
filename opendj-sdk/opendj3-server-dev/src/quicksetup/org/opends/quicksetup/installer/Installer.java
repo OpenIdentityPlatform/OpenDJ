@@ -1494,8 +1494,7 @@ public abstract class Installer extends GuiApplication {
           {
             ae = new ApplicationException(
                 ReturnCode.IMPORT_ERROR,
-                INFO_ERROR_IMPORT_LDIF_TOOL_RETURN_CODE.get(
-                    Integer.toString(result)), null);
+                INFO_ERROR_IMPORT_LDIF_TOOL_RETURN_CODE.get(result), null);
           }
         } catch (Throwable t)
         {

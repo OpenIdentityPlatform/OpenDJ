@@ -1012,10 +1012,9 @@ public class ReplicationBroker
         warn user and start heartbeat monitor to recover when a server
         with the right group id shows up.
         */
-        logger.warn(WARN_CONNECTED_TO_SERVER_WITH_WRONG_GROUP_ID.get(Byte
-            .toString(groupId), Integer.toString(rs.getServerId()), rsInfo
-            .getServerURL(), Byte.toString(rs.getGroupId()), baseDN
-            .toNormalizedString(), Integer.toString(getServerId())));
+        logger.warn(WARN_CONNECTED_TO_SERVER_WITH_WRONG_GROUP_ID.get(
+            groupId, rs.getServerId(), rsInfo.getServerURL(), rs.getGroupId(),
+            baseDN.toNormalizedString(), getServerId()));
       }
       startRSHeartBeatMonitoring(rs);
       if (rsInfo.getProtocolVersion() >=
@@ -2948,8 +2947,7 @@ public class ReplicationBroker
     } catch (IOException ex)
     {
       logger.error(ERR_EXCEPTION_SENDING_CS, getBaseDN().toNormalizedString(),
-        Integer.toString(getServerId()),
-        ex.getLocalizedMessage() + " " + stackTraceToSingleLineString(ex));
+        getServerId(), ex.getLocalizedMessage() + " " + stackTraceToSingleLineString(ex));
     }
   }
 

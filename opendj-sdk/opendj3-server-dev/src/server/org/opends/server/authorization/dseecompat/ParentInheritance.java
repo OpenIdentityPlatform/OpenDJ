@@ -165,8 +165,7 @@ public class ParentInheritance {
                         levels[numLevels++]=Integer.decode(v);
                     } else {
                         LocalizableMessage message =
-                        WARN_ACI_SYNTAX_MAX_USERATTR_INHERITANCE_LEVEL_EXCEEDED.
-                              get(pattern, Integer.toString(MAX_LEVELS));
+                        WARN_ACI_SYNTAX_MAX_USERATTR_INHERITANCE_LEVEL_EXCEEDED.get(pattern, MAX_LEVELS);
                         throw new AciException(message);
                     }
                 } catch (NumberFormatException ex) {
