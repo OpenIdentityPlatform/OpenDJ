@@ -26,14 +26,15 @@
  */
 package org.opends.quicksetup;
 
-import static org.opends.messages.QuickSetupMessages.*;
-
 import java.awt.Font;
 import java.util.ArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
+
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * A class used to describe the java arguments for a given command-line.
@@ -248,16 +249,7 @@ public class JavaArguments
       }
       else
       {
-        StringBuilder sb = new StringBuilder();
-        for (LocalizableMessage line : lines)
-        {
-          if (sb.length() > 0)
-          {
-            sb.append("<br>");
-          }
-          sb.append(line);
-        }
-        msg = LocalizableMessage.raw(sb.toString());
+        msg = LocalizableMessage.raw(collectionToString(lines, "<br>"));
       }
     }
     return msg;

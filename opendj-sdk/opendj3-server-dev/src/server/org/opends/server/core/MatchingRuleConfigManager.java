@@ -25,14 +25,12 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
-
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -55,16 +53,12 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-
-
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.MatchingRuleUse;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
-
 import static org.opends.server.util.StaticUtils.*;
-
 
 /**
  * This class defines a utility that will be used to manage the set of matching
@@ -625,20 +619,9 @@ public class MatchingRuleConfigManager
                                              unacceptableReasons);
         if (! acceptable)
         {
-          StringBuilder buffer = new StringBuilder();
-          if (! unacceptableReasons.isEmpty())
-          {
-            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
-            buffer.append(iterator.next());
-            while (iterator.hasNext())
-            {
-              buffer.append(".  ");
-              buffer.append(iterator.next());
-            }
-          }
-
+          String reasons = collectionToString(unacceptableReasons, ".  ");
           throw new InitializationException(
-              ERR_CONFIG_SCHEMA_MR_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), buffer));
+              ERR_CONFIG_SCHEMA_MR_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), reasons));
         }
       }
 

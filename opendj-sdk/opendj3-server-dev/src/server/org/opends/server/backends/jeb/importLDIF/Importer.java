@@ -26,13 +26,6 @@
  */
 package org.opends.server.backends.jeb.importLDIF;
 
-import static com.sleepycat.je.EnvironmentConfig.*;
-
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.util.DynamicConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -41,6 +34,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
@@ -51,15 +46,20 @@ import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DiskSpaceMonitor;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.Platform;
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
 import com.sleepycat.util.PackedInteger;
+
+import static com.sleepycat.je.EnvironmentConfig.*;
+
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.DynamicConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides the engine that performs both importing of LDIF files and
@@ -3184,16 +3184,6 @@ public final class Importer implements DiskSpaceMonitorHandler
      */
     public void printStartMessage() throws DatabaseException
     {
-      StringBuilder sb = new StringBuilder();
-      List<String> rebuildList = rebuildConfig.getRebuildList();
-      for (String index : rebuildList)
-      {
-        if (sb.length() > 0)
-        {
-          sb.append(", ");
-        }
-        sb.append(index);
-      }
       totalEntries = suffix.getID2Entry().getRecordCount();
 
       LocalizableMessage message = null;
@@ -3208,7 +3198,8 @@ public final class Importer implements DiskSpaceMonitorHandler
       default:
         if (!rebuildConfig.isClearDegradedState())
         {
-          message = NOTE_JEB_REBUILD_START.get(sb, totalEntries);
+          String indexes = collectionToString(rebuildConfig.getRebuildList(), ", ");
+          message = NOTE_JEB_REBUILD_START.get(indexes, totalEntries);
         }
         break;
       }
@@ -4134,7 +4125,6 @@ public final class Importer implements DiskSpaceMonitorHandler
       long deltaCount = (latestCount - previousCount);
       long latestTime = System.currentTimeMillis();
       long deltaTime = latestTime - previousTime;
-      LocalizableMessage message;
       if (deltaTime == 0)
       {
         return;
@@ -4267,7 +4257,6 @@ public final class Importer implements DiskSpaceMonitorHandler
       long deltaCount = (latestCount - previousCount);
       long latestTime = System.currentTimeMillis();
       long deltaTime = latestTime - previousTime;
-      LocalizableMessage message;
       if (deltaTime == 0)
       {
         return;
