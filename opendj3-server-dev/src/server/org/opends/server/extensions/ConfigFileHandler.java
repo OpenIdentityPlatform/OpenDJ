@@ -49,6 +49,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.Configuration;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
@@ -1369,7 +1370,7 @@ public class ConfigFileHandler
 
       if (resultCode != ResultCode.SUCCESS)
       {
-        String reasons = StaticUtils.collectionToString(messages, ".  ");
+        String reasons = Utils.joinAsString(".  ", messages);
         LocalizableMessage message = ERR_CONFIG_FILE_DELETE_APPLY_FAILED.get(reasons);
         throw new DirectoryException(resultCode, message);
       }

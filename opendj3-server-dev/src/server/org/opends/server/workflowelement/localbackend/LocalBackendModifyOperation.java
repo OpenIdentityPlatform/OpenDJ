@@ -52,6 +52,7 @@ import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 
 /**
  * This class defines an operation used to modify an entry in a local backend
@@ -1444,7 +1445,7 @@ public class LocalBackendModifyOperation
     modifiedEntry.addAttribute(attr, duplicateValues);
     if (!duplicateValues.isEmpty() && !permissiveModify)
     {
-      String duplicateValuesStr = collectionToString(duplicateValues, ", ");
+      String duplicateValuesStr = Utils.joinAsString(", ", duplicateValues);
 
       throw newDirectoryException(currentEntry,
           ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
@@ -1541,7 +1542,7 @@ public class LocalBackendModifyOperation
       {
         if (! permissiveModify)
         {
-          String missingValuesStr = collectionToString(missingValues, ", ");
+          String missingValuesStr = Utils.joinAsString(", ", missingValues);
 
           throw newDirectoryException(currentEntry,
               ResultCode.NO_SUCH_ATTRIBUTE,

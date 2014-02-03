@@ -29,6 +29,7 @@ package org.opends.guitools.uninstaller;
 
 import org.opends.quicksetup.*;
 
+import static org.forgerock.util.Utils.*;
 import static org.opends.quicksetup.Step.FINISHED;
 import static org.opends.quicksetup.Step.PROGRESS;
 import static org.opends.quicksetup.Step.REVIEW;
@@ -672,10 +673,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         String arg;
         if (isWindows()) {
           arg = installation.getUninstallBatFile() + getLineBreak().toString() +
-                  getTab() + getStringFromCollection(paths,
-                      getLineBreak().toString());
+                  getTab() + joinAsString(getLineBreak().toString(), paths);
         } else {
-          arg = getStringFromCollection(paths, getLineBreak().toString());
+          arg = joinAsString(getLineBreak().toString(), paths);
         }
         successMsg =
             INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_REMOVE_JARFILES_CLI
@@ -686,8 +686,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     } else {
       if (getUninstallUserData().getRemoveLibrariesAndTools()) {
         String formattedPath =
-          addWordBreaks(
-              getStringFromCollection(paths, getLineBreak().toString()), 60, 5);
+            addWordBreaks(joinAsString(getLineBreak().toString(), paths), 60, 5);
         successMsg =
             INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_REMOVE_JARFILES
             .get(formattedPath);

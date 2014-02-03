@@ -29,6 +29,7 @@ package org.opends.server.replication.plugin;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.*;
@@ -41,7 +42,6 @@ import org.opends.server.replication.plugin.LDAPReplicationDomain.*;
 import org.opends.server.types.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class implements a Directory Server plugin that is used in fractional
@@ -469,7 +469,7 @@ public final class FractionalLDIFImportPlugin
   {
     if (values.size() > 0)
     {
-      attrBuilder.add(className + ":" + collectionToString(values, ","));
+      attrBuilder.add(className + ":" + Utils.joinAsString(",", values));
       return true;
     }
     return false;

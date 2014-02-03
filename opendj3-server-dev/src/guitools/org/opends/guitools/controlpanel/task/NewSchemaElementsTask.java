@@ -27,6 +27,7 @@
 
 package org.opends.guitools.controlpanel.task;
 
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.io.File;
@@ -49,7 +50,6 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
@@ -178,19 +178,17 @@ public class NewSchemaElementsTask extends Task
       }
       if (ocNames.isEmpty())
       {
-        return INFO_CTRL_PANEL_NEW_ATTRIBUTES_TASK_DESCRIPTION.get(
-            Utils.getStringFromCollection(attrNames, ", "));
+        return INFO_CTRL_PANEL_NEW_ATTRIBUTES_TASK_DESCRIPTION.get(joinAsString(", ", attrNames));
       }
       else if (attrNames.isEmpty())
       {
-        return INFO_CTRL_PANEL_NEW_OBJECTCLASSES_TASK_DESCRIPTION.get(
-            Utils.getStringFromCollection(ocNames, ", "));
+        return INFO_CTRL_PANEL_NEW_OBJECTCLASSES_TASK_DESCRIPTION.get(joinAsString(", ", ocNames));
       }
       else
       {
         return INFO_CTRL_PANEL_NEW_SCHEMA_ELEMENTS_TASK_DESCRIPTION.get(
-            Utils.getStringFromCollection(attrNames, ", "),
-            Utils.getStringFromCollection(ocNames, ", "));
+            joinAsString(", ", attrNames),
+            joinAsString(", ", ocNames));
       }
     }
   }
@@ -602,7 +600,7 @@ public class NewSchemaElementsTask extends Task
       StringBuilder sb = new StringBuilder();
       sb.append(
           INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_SCHEMA_ELEMENT_OFFLINE.get(
-          Utils.getStringFromCollection(names, ", "),
+          joinAsString(", ", names),
           schemaFile))
         .append("<br><b>");
       for (AttributeType attribute : attributes)
@@ -624,7 +622,7 @@ public class NewSchemaElementsTask extends Task
     {
       StringBuilder sb = new StringBuilder();
       sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_SCHEMA_ENTRY_OFFLINE.get(
-          Utils.getStringFromCollection(names, ", "),
+          joinAsString(", ", names),
           schemaFile)).append("<br><b>");
       for (String line : getSchemaEntryLines())
       {

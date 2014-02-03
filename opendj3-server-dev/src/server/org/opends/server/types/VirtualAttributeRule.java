@@ -35,8 +35,8 @@ import org.opends.server.api.Group;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Utils;
 
-import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.util.Reject.*;
 
 /**
@@ -389,7 +389,7 @@ public final class VirtualAttributeRule
     if (!col.isEmpty())
     {
       buffer.append("\"");
-      buffer.append(collectionToString(col, "\", \""));
+      buffer.append(Utils.joinAsString("\", \"", col));
       buffer.append("\"");
     }
   }

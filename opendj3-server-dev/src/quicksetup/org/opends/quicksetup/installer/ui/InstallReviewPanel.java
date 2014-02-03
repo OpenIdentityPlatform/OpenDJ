@@ -29,6 +29,8 @@ package org.opends.quicksetup.installer.ui;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.admin.ads.ServerDescriptor;
@@ -892,7 +894,7 @@ public class InstallReviewPanel extends ReviewPanel {
     else if (linesToAdd.size() > 1)
     {
       String arg0 = getJavaPropertiesFilePath(userData);
-      String arg1 = Utils.getStringFromCollection(linesToAdd, "\n");
+      String arg1 = joinAsString("\n", linesToAdd);
       sb.append(
           formatter.getFormattedProgress(INFO_EDIT_JAVA_PROPERTIES_LINES.get(
               arg0, arg1)));

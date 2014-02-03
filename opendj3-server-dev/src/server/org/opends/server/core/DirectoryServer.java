@@ -87,6 +87,7 @@ import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
 import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 import org.opends.server.util.args.*;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.WorkflowElementConfigManager;
@@ -9650,8 +9651,7 @@ public final class DirectoryServer
         BUILD_JVM_VERSION);
     System.out.println(SetupUtils.BUILD_JVM_VENDOR+separator+BUILD_JVM_VENDOR);
     System.out.println(SetupUtils.INCOMPATIBILITY_EVENTS+separator+
-        StaticUtils.listToString(
-            VersionCompatibilityIssue.getAllEvents(), ","));
+        Utils.joinAsString(",", VersionCompatibilityIssue.getAllEvents()));
 
     // Print extensions' extra information
     String extensionInformation =

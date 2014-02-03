@@ -61,6 +61,7 @@ import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.util.Utils.*;
@@ -1304,14 +1305,14 @@ public abstract class Installer extends GuiApplication {
       if (isVerbose())
       {
         mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIFS.get(
-            getStringFromCollection(ldifPaths, ", "))));
+            joinAsString(", ", ldifPaths))));
         mb.append(getLineBreak());
       }
       else
       {
         mb.append(getFormattedProgress(
             INFO_PROGRESS_IMPORTING_LDIFS_NON_VERBOSE.get(
-            getStringFromCollection(ldifPaths, ", "))));
+            joinAsString(", ", ldifPaths))));
       }
     }
     else
@@ -1501,7 +1502,7 @@ public abstract class Installer extends GuiApplication {
           ae = new ApplicationException(
               ReturnCode.IMPORT_ERROR,
               getThrowableMsg(INFO_ERROR_IMPORT_AUTOMATICALLY_GENERATED.get(
-                  listToString(argList, " "), t.getLocalizedMessage()), t),
+                  joinAsString(" ", argList), t.getLocalizedMessage()), t),
                   t);
         }
         finally

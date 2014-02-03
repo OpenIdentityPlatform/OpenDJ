@@ -27,6 +27,7 @@
 package org.opends.server.core;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.util.Utils;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -445,7 +446,7 @@ public class AccountStatusNotificationHandlerConfigManager
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          String reasons = collectionToString(unacceptableReasons, ".  ");
+          String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(
               ERR_CONFIG_ACCTNOTHANDLER_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), reasons));
         }

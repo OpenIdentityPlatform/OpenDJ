@@ -27,6 +27,7 @@
 
 package org.opends.admin.ads;
 
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.io.File;
@@ -65,9 +66,7 @@ import javax.naming.ldap.LdapContext;
 
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.Constants;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.schema.SchemaConstants;
-
 
 /**
  * Class used to update and read the contents of the Administration Data.
@@ -2642,8 +2641,7 @@ public class ADSContext
       LocalizableMessage msg = ERR_ADS_ADMINISTRATOR_MERGE.get(
           ConnectionUtils.getHostPort(adsCtx.getDirContext()),
           ConnectionUtils.getHostPort(getDirContext()),
-          Utils.getStringFromCollection(notDefinedAdmins,
-              Constants.LINE_SEPARATOR),
+          joinAsString(Constants.LINE_SEPARATOR, notDefinedAdmins),
           ConnectionUtils.getHostPort(getDirContext()));
       throw new ADSContextException(ADSContextException.ErrorType.ERROR_MERGING,
           msg, null);

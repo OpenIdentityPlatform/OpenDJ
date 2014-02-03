@@ -24,7 +24,6 @@
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.uninstaller;
 
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
@@ -40,6 +39,7 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -60,7 +60,6 @@ import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.cli.MenuResult;
-
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -408,11 +407,9 @@ public class UninstallCliHelper extends ConsoleApplication {
                 INFO_CLI_UNINSTALL_CONFIRM_BACKUPS.get(),
                 INFO_CLI_UNINSTALL_CONFIRM_LDIFS.get(),
                 INFO_CLI_UNINSTALL_CONFIRM_OUTSIDEDBS.get(
-                        Utils.getStringFromCollection(outsideDbs,
-                                Constants.LINE_SEPARATOR)),
+                        joinAsString(Constants.LINE_SEPARATOR, outsideDbs)),
                 INFO_CLI_UNINSTALL_CONFIRM_OUTSIDELOGS.get(
-                        Utils.getStringFromCollection(outsideLogs,
-                                Constants.LINE_SEPARATOR)
+                        joinAsString(Constants.LINE_SEPARATOR, outsideLogs)
                 )
         };
 

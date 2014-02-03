@@ -26,6 +26,7 @@
  */
 package org.opends.quicksetup.util;
 
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.server.util.DynamicConstants.SHORT_NAME;
 
@@ -600,32 +601,6 @@ public class Utils
     {
       setPermissionsUnix(path, "600");
     }
-  }
-
-  /**
-   * This is a helper method that gets a String representation of the elements
-   * in the Collection. The String will display the different elements separated
-   * by the separator String.
-   *
-   * @param col
-   *          the collection containing the String.
-   * @param separator
-   *          the separator String to be used.
-   * @return the String representation for the collection.
-   */
-  public static String getStringFromCollection(Collection<String> col,
-      String separator)
-  {
-    StringBuilder msg = new StringBuilder();
-    for (String m : col)
-    {
-      if (msg.length() > 0)
-      {
-        msg.append(separator);
-      }
-      msg.append(m);
-    }
-    return msg.toString();
   }
 
   /**
@@ -1273,17 +1248,6 @@ public class Utils
    * elements in the <code>list</code> separated by <code>separator</code>.
    * @param list the list to print
    * @param separator to use in separating elements
-   * @return String representing the list
-   */
-  static public String listToString(List<?> list, String separator) {
-    return listToString(list, separator, null, null);
-  }
-
-  /**
-   * Creates a string consisting of the string representation of the
-   * elements in the <code>list</code> separated by <code>separator</code>.
-   * @param list the list to print
-   * @param separator to use in separating elements
    * @param prefix prepended to each individual element in the list before
    *        adding to the returned string.
    * @param suffix appended to each individual element in the list before
@@ -1805,7 +1769,7 @@ public class Utils
       else if (options.getBaseDns().size() > 1)
       {
         msg = INFO_REVIEW_CREATE_SUFFIX.get(
-            Utils.listToString(options.getBaseDns(), Constants.LINE_SEPARATOR),
+            joinAsString(Constants.LINE_SEPARATOR, options.getBaseDns()),
             arg2);
       }
       else

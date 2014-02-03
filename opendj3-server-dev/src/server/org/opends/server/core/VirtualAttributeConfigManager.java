@@ -43,6 +43,7 @@ import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Utils;
 import org.opends.server.types.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -462,7 +463,7 @@ public class VirtualAttributeConfigManager
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
         if (!provider.isConfigurationAcceptable(cfg, unacceptableReasons))
         {
-          String reasons = collectionToString(unacceptableReasons, ".  ");
+          String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           LocalizableMessage message = ERR_CONFIG_VATTR_CONFIG_NOT_ACCEPTABLE.get(cfg.dn(), reasons);
           throw new InitializationException(message);
         }

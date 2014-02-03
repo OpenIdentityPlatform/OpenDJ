@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.client.cli;
 
@@ -36,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.util.Utils;
 import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.backends.task.RecurringTask;
 import org.opends.server.types.DirectoryException;
@@ -141,9 +143,9 @@ public class TaskScheduleArgs
         OPTION_SHORT_FAILED_DEPENDENCY_ACTION,
         OPTION_LONG_FAILED_DEPENDENCY_ACTION, false, true, true,
         INFO_ACTION_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_TASK_FAILED_DEPENDENCY_ACTION.get(StaticUtils
-            .collectionToString(fdaValSet, ","), FailedDependencyAction
-            .defaultValue().name()));
+        INFO_DESCRIPTION_TASK_FAILED_DEPENDENCY_ACTION.get(
+            Utils.joinAsString(",", fdaValSet),
+            FailedDependencyAction.defaultValue().name()));
 
     for (Argument arg : getArguments())
     {
@@ -235,7 +237,7 @@ public class TaskScheduleArgs
         Set<FailedDependencyAction> fdaValSet =
           EnumSet.allOf(FailedDependencyAction.class);
         throw new ArgumentException(ERR_TASKTOOL_INVALID_FDA.get(fda,
-                        StaticUtils.collectionToString(fdaValSet, ",")));
+            Utils.joinAsString(",", fdaValSet)));
       }
     }
   }

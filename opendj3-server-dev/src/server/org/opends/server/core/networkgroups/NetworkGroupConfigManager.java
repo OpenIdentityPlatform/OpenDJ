@@ -26,8 +26,6 @@
  */
 package org.opends.server.core.networkgroups;
 
-
-
 import static org.opends.messages.ConfigMessages.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,13 +41,11 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Utils;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
-import org.opends.server.util.StaticUtils;
-
-
 
 /**
  * This class defines a utility that will be used to manage the
@@ -268,10 +264,8 @@ public class NetworkGroupConfigManager implements
       if (!NetworkGroup.isConfigurationAcceptable(configuration,
           unacceptableReasons))
       {
-        LocalizableMessage message =
-            ERR_CONFIG_NETWORK_GROUP_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), StaticUtils.listToString(
-                unacceptableReasons, ". "));
-        throw new InitializationException(message);
+        throw new InitializationException(ERR_CONFIG_NETWORK_GROUP_CONFIG_NOT_ACCEPTABLE.get(
+            configuration.dn(), Utils.joinAsString(". ", unacceptableReasons)));
       }
 
       if (configuration.isEnabled())

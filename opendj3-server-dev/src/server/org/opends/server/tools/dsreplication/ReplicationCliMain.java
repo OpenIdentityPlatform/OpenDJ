@@ -97,6 +97,7 @@ import java.util.*;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
+import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.ServerDescriptor.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -878,7 +879,7 @@ public class ReplicationCliMain extends ConsoleApplication
     printlnProgress();
     LocalizableMessage msg = formatter.getFormattedProgress(
         INFO_PROGRESS_PURGE_HISTORICAL.get(separator,
-            Utils.getStringFromCollection(uData.getBaseDNs(), separator)));
+            joinAsString(separator, uData.getBaseDNs())));
     printProgress(msg);
     printlnProgress();
 
@@ -1366,8 +1367,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         println();
         println(ERR_REPLICATION_PURGE_SUFFIXES_NOT_FOUND.get(
-                Utils.getStringFromCollection(notFound,
-                    Constants.LINE_SEPARATOR)));
+                joinAsString(Constants.LINE_SEPARATOR, notFound)));
       }
       if (interactive)
       {
@@ -4836,10 +4836,8 @@ public class ReplicationCliMain extends ConsoleApplication
       if (userProvidedReplicatedSuffixes.size() > 0)
       {
         println();
-        println(
-            INFO_ALREADY_REPLICATED_SUFFIXES.get(
-                Utils.getStringFromCollection(userProvidedReplicatedSuffixes,
-                    Constants.LINE_SEPARATOR)));
+        println(INFO_ALREADY_REPLICATED_SUFFIXES.get(
+            joinAsString(Constants.LINE_SEPARATOR, userProvidedReplicatedSuffixes)));
       }
       suffixes.clear();
     }
@@ -4886,15 +4884,13 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         println();
         println(ERR_REPLICATION_ENABLE_SUFFIXES_NOT_FOUND.get(
-              Utils.getStringFromCollection(notFound,
-                  Constants.LINE_SEPARATOR)));
+              joinAsString(Constants.LINE_SEPARATOR, notFound)));
       }
       if (alreadyReplicated.size() > 0)
       {
         println();
         println(INFO_ALREADY_REPLICATED_SUFFIXES.get(
-            Utils.getStringFromCollection(alreadyReplicated,
-                Constants.LINE_SEPARATOR)));
+            joinAsString(Constants.LINE_SEPARATOR, alreadyReplicated)));
       }
       if (interactive)
       {
@@ -5016,9 +5012,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         println();
         println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
-            Utils.getStringFromCollection(
-                userProvidedNotReplicatedSuffixes,
-                Constants.LINE_SEPARATOR)));
+            joinAsString(Constants.LINE_SEPARATOR, userProvidedNotReplicatedSuffixes)));
       }
       suffixes.clear();
     }
@@ -5065,15 +5059,13 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         println();
         println(ERR_REPLICATION_DISABLE_SUFFIXES_NOT_FOUND.get(
-                Utils.getStringFromCollection(notFound,
-                    Constants.LINE_SEPARATOR)));
+                joinAsString(Constants.LINE_SEPARATOR, notFound)));
       }
       if (alreadyNotReplicated.size() > 0 && displayErrors)
       {
         println();
         println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
-                Utils.getStringFromCollection(alreadyNotReplicated,
-                    Constants.LINE_SEPARATOR)));
+                joinAsString(Constants.LINE_SEPARATOR, alreadyNotReplicated)));
       }
       if (interactive)
       {
@@ -5205,9 +5197,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         println();
         println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
-            Utils.getStringFromCollection(
-                userProvidedNotReplicatedSuffixes,
-                Constants.LINE_SEPARATOR)));
+            joinAsString(Constants.LINE_SEPARATOR, userProvidedNotReplicatedSuffixes)));
       }
       suffixes.clear();
     }
@@ -5254,15 +5244,13 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         println();
         println(ERR_REPLICATION_INITIALIZE_LOCAL_SUFFIXES_NOT_FOUND.get(
-                Utils.getStringFromCollection(notFound,
-                    Constants.LINE_SEPARATOR)));
+                joinAsString(Constants.LINE_SEPARATOR, notFound)));
       }
       if (alreadyNotReplicated.size() > 0)
       {
         println();
         println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
-                Utils.getStringFromCollection(alreadyNotReplicated,
-                    Constants.LINE_SEPARATOR)));
+                joinAsString(Constants.LINE_SEPARATOR, alreadyNotReplicated)));
       }
       if (interactive)
       {
@@ -5414,8 +5402,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         println();
         println(ERR_SUFFIXES_CANNOT_BE_INITIALIZED.get(
-                Utils.getStringFromCollection(notFound,
-                    Constants.LINE_SEPARATOR)));
+                joinAsString(Constants.LINE_SEPARATOR, notFound)));
       }
       if (interactive)
       {
@@ -5604,8 +5591,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       LocalizableMessage errorMsg =
         ERR_REPLICATION_NO_REPLICATION_SERVER.get(
-            Utils.getStringFromCollection(baseDNsWithNoReplicationServer,
-                Constants.LINE_SEPARATOR));
+            joinAsString(Constants.LINE_SEPARATOR, baseDNsWithNoReplicationServer));
       throw new ReplicationCliException(
           errorMsg,
           ReplicationCliReturnCode.ERROR_USER_DATA, null);
@@ -5616,8 +5602,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         LocalizableMessage confirmMsg =
           INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_CONFIRM.get(
-              Utils.getStringFromCollection(baseDNsWithOneReplicationServer,
-                  Constants.LINE_SEPARATOR));
+              joinAsString(Constants.LINE_SEPARATOR, baseDNsWithOneReplicationServer));
         try
         {
           if (!confirmAction(confirmMsg, false))
@@ -5638,8 +5623,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         LocalizableMessage warningMsg =
           INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_WARNING.get(
-              Utils.getStringFromCollection(baseDNsWithOneReplicationServer,
-                  Constants.LINE_SEPARATOR));
+              joinAsString(Constants.LINE_SEPARATOR, baseDNsWithOneReplicationServer));
         println(warningMsg);
         println();
       }
@@ -6397,8 +6381,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         if (!baseDNs.isEmpty())
         {
-          String arg =
-            Utils.getStringFromCollection(baseDNs, Constants.LINE_SEPARATOR);
+          String arg = joinAsString(Constants.LINE_SEPARATOR, baseDNs);
           if (!isInteractive())
           {
             println(INFO_DISABLE_REPLICATION_ONE_POINT_OF_FAILURE.get(arg));
@@ -6484,8 +6467,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
         if (!suffixArg.isEmpty())
         {
-          String arg =
-            Utils.getStringFromCollection(suffixArg, Constants.LINE_SEPARATOR);
+          String arg = joinAsString(Constants.LINE_SEPARATOR, suffixArg);
           if (!isInteractive())
           {
             println(INFO_DISABLE_REPLICATION_DISABLE_IN_REMOTE.get(arg));

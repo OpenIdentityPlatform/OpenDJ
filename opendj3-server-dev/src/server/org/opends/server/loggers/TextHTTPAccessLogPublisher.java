@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FileBasedHTTPAccessLogPublisherCfg;
 import org.opends.server.api.HTTPAccessLogPublisher;
@@ -269,7 +270,7 @@ public final class TextHTTPAccessLogPublisher extends
     if (!unsupportedFields.isEmpty())
     { // there are some unsupported fields. List them.
       return WARN_CONFIG_LOGGING_UNSUPPORTED_FIELDS_IN_LOG_FORMAT.get(
-          cfg.dn(), collectionToString(unsupportedFields, ", "));
+          cfg.dn(), Utils.joinAsString(", ", unsupportedFields));
     }
     if (fields.size() == unsupportedFields.size())
     { // all fields are unsupported

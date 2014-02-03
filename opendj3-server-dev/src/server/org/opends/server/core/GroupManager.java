@@ -50,6 +50,7 @@ import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Utils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -462,7 +463,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          String reason = collectionToString(unacceptableReasons, ".  ");
+          String reason = Utils.joinAsString(".  ", unacceptableReasons);
           LocalizableMessage message = ERR_CONFIG_GROUP_CONFIG_NOT_ACCEPTABLE.get(
               configuration.dn(), reason);
           throw new InitializationException(message);
