@@ -361,7 +361,6 @@ public class IntegerArgument
     // it.
     if (hasUpperBound && (intValue > upperBound))
     {
-
       invalidReason.append(ERR_INTARG_VALUE_ABOVE_UPPER_BOUND.get(
               getName(), intValue, upperBound));
       return false;

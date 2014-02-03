@@ -233,7 +233,6 @@ public class NumericStringSyntax
     // It must have at least one digit or space.
     if (length == 0)
     {
-
       invalidReason.append(ERR_ATTR_SYNTAX_NUMERIC_STRING_EMPTY_VALUE.get());
       return false;
     }

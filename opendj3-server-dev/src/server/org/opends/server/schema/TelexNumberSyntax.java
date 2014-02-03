@@ -228,7 +228,6 @@ public class TelexNumberSyntax
 
     if (valueLength < 5)
     {
-
       invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TOO_SHORT.get(valueString));
       return false;
     }
@@ -265,7 +264,6 @@ public class TelexNumberSyntax
 
     if (pos >= valueLength)
     {
-
       invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TRUNCATED.get(valueString));
       return false;
     }
@@ -302,7 +300,6 @@ public class TelexNumberSyntax
 
     if (pos >= valueLength)
     {
-
       invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TRUNCATED.get(valueString));
       return false;
     }

@@ -1277,7 +1277,6 @@ public class AttributeIndex
           if (results.isDefined() &&
                results.size() <= IndexFilter.FILTER_CANDIDATE_THRESHOLD)
           {
-
             if(debugBuffer != null)
             {
               debugBuffer.append("[INDEX:");
@@ -1831,7 +1830,6 @@ public class AttributeIndex
           // already exists. Just update index entry limit.
           if(this.equalityIndex.setIndexEntryLimit(indexEntryLimit))
           {
-
             adminActionRequired = true;
             LocalizableMessage message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
@@ -2677,7 +2675,6 @@ public class AttributeIndex
 
     try
     {
-
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");

@@ -636,7 +636,6 @@ public class DN2URI extends DatabaseContainer
              status == OperationStatus.SUCCESS;
              status = cursor.getNextNoDup(key, data, LockMode.DEFAULT))
         {
-
           int cmp = dn2uriComparator.compare(key.getData(), end);
           if (cmp >= 0)
           {
@@ -685,7 +684,6 @@ public class DN2URI extends DatabaseContainer
               {
                 if (ldapurl.getBaseDN().isRootDN())
                 {
-
                   ldapurl.setBaseDN(dn);
                 }
                 ldapurl.getAttributes().clear();

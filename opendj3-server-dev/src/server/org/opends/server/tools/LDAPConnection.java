@@ -362,7 +362,6 @@ public class LDAPConnection
         }
         else if (c.getOID().equals(OID_NS_PASSWORD_EXPIRED))
         {
-
           LocalizableMessage message = INFO_BIND_PASSWORD_EXPIRED.get();
           out.println(message);
         }

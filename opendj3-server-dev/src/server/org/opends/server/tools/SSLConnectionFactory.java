@@ -216,7 +216,6 @@ public class SSLConnectionFactory
   {
     if(sslSocketFactory == null)
     {
-
       throw new SSLConnectionException(
               ERR_TOOLS_SSL_CONNECTION_NOT_INITIALIZED.get());
     }

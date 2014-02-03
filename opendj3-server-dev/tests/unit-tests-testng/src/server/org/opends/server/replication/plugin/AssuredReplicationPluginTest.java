@@ -315,7 +315,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     public FakeReplicationServer(byte groupId, int port, int serverId, boolean assured,
         String testcase)
     {
-
       this.groupId = groupId;
       this.port = port;
       this.serverId = serverId;

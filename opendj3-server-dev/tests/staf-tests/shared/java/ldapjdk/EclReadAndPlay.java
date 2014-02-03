@@ -77,8 +77,6 @@ class EclReadAndPlay {
     public static void main( String[] args )
 
    {
-
-        
         FileWriter out = null;
                 
         files = new HashMap<String,File>();

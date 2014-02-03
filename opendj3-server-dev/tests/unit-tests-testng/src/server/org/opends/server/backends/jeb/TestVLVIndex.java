@@ -253,8 +253,6 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if(vlvIndex.getName().contains("testvlvindex"))
       {
-
-
         SortValuesSet svs1 =
             vlvIndex.getSortValuesSet(null, 0,
                                       expectedSortedValues.first().getValues());
@@ -282,8 +280,6 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if(vlvIndex.getName().contains("testvlvindex"))
       {
-
-
         SortValuesSet svs1 =
             vlvIndex.getSortValuesSet(null, 0,
                                       expectedSortedValues.first().getValues());
@@ -316,8 +312,6 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if(vlvIndex.getName().contains("testvlvindex"))
       {
-
-
         SortValuesSet svs1 =
             vlvIndex.getSortValuesSet(null, 0,
                                       expectedSortedValues.first().getValues());

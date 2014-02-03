@@ -212,7 +212,6 @@ implements TableCellEditor
        */
       public void actionPerformed(ActionEvent ev)
       {
-
         if (editOcDlg == null)
         {
           editOcPanel = new ObjectClassEditorPanel();

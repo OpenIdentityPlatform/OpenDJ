@@ -1163,7 +1163,6 @@ public class VerifyJob
 
             Set<byte[]> dummySet = new AbstractSet<byte[]>()
             {
-
               public Iterator<byte[]> iterator()
               {
                 // The set is always empty.

@@ -122,7 +122,6 @@ public class BackendToolUtils
       String backendID;
       try
       {
-
         StringConfigAttribute idStub =
             new StringConfigAttribute(ATTR_BACKEND_ID,
                 INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get(), true,
@@ -154,7 +153,6 @@ public class BackendToolUtils
       String backendClassName;
       try
       {
-
         StringConfigAttribute classStub =
             new StringConfigAttribute(ATTR_BACKEND_CLASS,
                 INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS.get(), true, false,
@@ -213,7 +211,6 @@ public class BackendToolUtils
       List<DN> baseDNs = null;
       try
       {
-
         DNConfigAttribute baseDNStub =
             new DNConfigAttribute(ATTR_BACKEND_BASE_DN,
                 INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(), true,

@@ -438,7 +438,6 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     {
       if(line.startsWith(userCert))
       {
-
         builder.append("userCertificate:");
         builder.append(line.substring(userCert.length()+1, line.length()));
       }

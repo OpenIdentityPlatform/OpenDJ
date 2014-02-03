@@ -241,7 +241,6 @@ public class GuideSyntax
     int    ocLength = ocName.length();
     if (ocLength == 0)
     {
-
       invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_OC.get(valueStr));
       return false;
     }
@@ -322,7 +321,6 @@ public class GuideSyntax
               }
               else
               {
-
                 invalidReason.append(
                         ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(
                                 valueStr, criteria, c, (i+1)));

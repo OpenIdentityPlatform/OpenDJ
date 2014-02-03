@@ -3876,7 +3876,6 @@ public class SchemaBackend
       }
       else
       {
-
         LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED
                 .get(getExceptionMessage(e));
 

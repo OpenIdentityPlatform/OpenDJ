@@ -921,7 +921,6 @@ public class CoverageDiff extends Task {
       }
       else
       {
-
         final HTMLTable.ICell cell = row.newCell ();
         cell.setText (" ", true);
       }

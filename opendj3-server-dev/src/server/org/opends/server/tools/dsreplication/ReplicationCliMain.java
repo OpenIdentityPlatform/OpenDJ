@@ -3842,7 +3842,6 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         for (ReplicaDescriptor rep2 : replicas2)
         {
-
           switch (type)
           {
           case NOT_REPLICATED:
@@ -4134,7 +4133,6 @@ public class ReplicationCliMain extends ConsoleApplication
 
           if (!uData.configureReplicationServer1() && repPort1 > 0)
           {
-
             println(INFO_REPLICATION_SERVER_CONFIGURED_WARNING.get(
                 ConnectionUtils.getHostPort(ctx1), repPort1));
             println();
@@ -8815,7 +8813,6 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (replicationServer != null)
       {
-
         String s = String.valueOf(replicationServer.getReplicationPort());
         printProgress(formatter.getFormattedWithPoints(
             INFO_REPLICATION_DISABLING_REPLICATION_SERVER.get(s,

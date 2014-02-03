@@ -287,7 +287,6 @@ public class TaskBackend
 
     try
     {
-
       LocalizableMessage message = INFO_TASKBE_INTERRUPTED_BY_SHUTDOWN.get();
 
       taskScheduler.interruptRunningTasks(TaskState.STOPPED_BY_SHUTDOWN,
@@ -1954,7 +1953,6 @@ public class TaskBackend
           }
           else if (! p.exists())
           {
-
             unacceptableReasons.add(ERR_TASKBE_BACKING_FILE_MISSING_PARENT.get(
                     p.getPath(),
                     tmpBackingFile));
@@ -2007,7 +2005,6 @@ public class TaskBackend
           File f = getFileForPath(tmpBackingFile);
           if (f.exists())
           {
-
             messages.add(ERR_TASKBE_BACKING_FILE_EXISTS.get(tmpBackingFile));
             resultCode = ResultCode.CONSTRAINT_VIOLATION;
           }
@@ -2016,7 +2013,6 @@ public class TaskBackend
             File p = f.getParentFile();
             if (p == null)
             {
-
               messages.add(ERR_TASKBE_INVALID_BACKING_FILE_PATH.get(
                       tmpBackingFile));
               resultCode = ResultCode.CONSTRAINT_VIOLATION;

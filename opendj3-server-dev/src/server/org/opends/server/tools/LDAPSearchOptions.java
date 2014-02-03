@@ -133,7 +133,6 @@ public class LDAPSearchOptions extends LDAPToolOptions
         searchScope = SUBORDINATE_SUBTREE;
       } else
       {
-
         err.println(ERR_SEARCH_INVALID_SEARCH_SCOPE.get(scope));
         return false;
       }

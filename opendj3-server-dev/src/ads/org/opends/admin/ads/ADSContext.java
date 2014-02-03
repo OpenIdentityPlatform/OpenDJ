@@ -1881,7 +1881,6 @@ public class ADSContext
         if (attr.size() >= 1 &&
             MULTIVALUED_SERVER_GROUP_PROPERTIES.contains(prop))
         {
-
           Set<String> set = new HashSet<String>();
           NamingEnumeration<?> ae = attr.getAll();
           try
@@ -1954,7 +1953,6 @@ public class ADSContext
         }
         else
         {
-
           if (attr.size() >= 1 && MULTIVALUED_SERVER_PROPERTIES.contains(prop))
           {
             Set<String> set = new HashSet<String>();

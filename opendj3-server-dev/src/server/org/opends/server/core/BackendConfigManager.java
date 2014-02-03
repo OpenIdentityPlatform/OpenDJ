@@ -401,7 +401,6 @@ public class BackendConfigManager implements
       Class backendClass = DirectoryServer.loadClass(className);
       if (! Backend.class.isAssignableFrom(backendClass))
       {
-
         unacceptableReason.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
         return false;
       }
@@ -1131,7 +1130,6 @@ public class BackendConfigManager implements
     }
     else
     {
-
       messages.add(NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(backendDN));
       resultCode = ResultCode.UNWILLING_TO_PERFORM;
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);

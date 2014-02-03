@@ -903,7 +903,6 @@ public final class IntegerConfigAttribute
 
       if (hasLowerBound && (longValue < lowerBound))
       {
-
         LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
                 getName(), longValue, lowerBound);
         if (allowFailures)
@@ -1279,7 +1278,6 @@ public final class IntegerConfigAttribute
    */
   public javax.management.Attribute toJMXAttribute()
     {
-
         return _toJMXAttribute(false);
     }
 
