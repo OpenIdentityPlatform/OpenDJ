@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-pwd-policy'
@@ -1071,5 +1071,285 @@ in the server:  The provided password did not contain characters from at least
 
   <para>Validation does not affect existing passwords, but only takes effect
   when the password is updated.</para>
+ </section>
+
+ <section xml:id="sample-password-policies">
+  <title>Sample Password Policies</title>
+
+   <para>
+    The sample password policies in this section demonstrate
+    OpenDJ server based password policies for several common cases.
+   </para>
+
+  <indexterm>
+   <primary>Password policy</primary>
+   <secondary>Samples</secondary>
+  </indexterm>
+
+  <itemizedlist>
+   <listitem>
+    <para>
+     <xref linkend="example-enforce-regular-password-changes" />
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     <xref linkend="example-track-last-login" />
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     <xref linkend="example-deprecate-storage-scheme" />
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     <xref linkend="example-lock-idle-accounts" />
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     <xref linkend="example-allow-grace-login" />
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     <xref linkend="example-require-password-change-on-add-or-reset" />
+    </para>
+   </listitem>
+  </itemizedlist>
+
+  <example xml:id="example-enforce-regular-password-changes">
+   <?dbfo keep-together="auto"?>
+   <title>Enforce Regular Password Changes</title>
+
+   <para>
+    The following commands configure an OpenDJ server based password policy
+    that sets age limits on passwords, requiring that they change periodically.
+    It also sets the number of passwords to keep in the password history
+    of the entry, thereby preventing users from reusing the same password
+    on consecutive changes.
+   </para>
+
+   <screen>$ dsconfig create-password-policy
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --policy-name "Enforce Regular Password Changes"
+ --type password-policy
+ --set default-password-storage-scheme:"Salted SHA-1"
+ --set password-attribute:userPassword
+ --set max-password-age:13w
+ --set min-password-age:4w
+ --set password-history-count:7
+ --trustAll
+ --no-prompt</screen>
+
+   <para>
+    See also <xref linkend="assign-pwp" /> for instructions on using the policy.
+   </para>
+  </example>
+
+  <example xml:id="example-track-last-login">
+   <?dbfo keep-together="auto"?>
+   <title>Track Last Login Time</title>
+
+   <para>
+    The following commands configure an OpenDJ server based password policy
+    that keeps track of the last successful login.
+   </para>
+
+   <para>
+    First, set up an attribute to which OpenDJ directory server
+    can write a timestamp value on successful login.
+    For additional information also see the example, <link
+    xlink:href="admin-guide#configure-account-lockout"
+    xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+    ><citetitle>Search: List Active Accounts</citetitle></link>.
+   </para>
+
+   <screen>$ ldapmodify
+ --port 1389
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: ( lastLoginTime-oid
+  NAME 'lastLoginTime'
+  DESC 'Last time the user logged in'
+  EQUALITY generalizedTimeMatch
+  ORDERING generalizedTimeOrderingMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+  SINGLE-VALUE
+  NO-USER-MODIFICATION
+  USAGE directoryOperation
+  X-ORIGIN 'OpenDJ example documentation' )
+
+Processing MODIFY request for cn=schema
+MODIFY operation successful for DN cn=schema</screen>
+
+   <para>
+    Next, create the password policy that causes OpenDJ directory server
+    to write the timestamp to the attribute on successful login.
+   </para>
+
+   <screen>$ dsconfig create-password-policy
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --policy-name "Track Last Login Time"
+ --type password-policy
+ --set default-password-storage-scheme:"Salted SHA-1"
+ --set password-attribute:userPassword
+ --set last-login-time-attribute:lastLoginTime
+ --set last-login-time-format:"yyyyMMddHH'Z'"
+ --trustAll
+ --no-prompt</screen>
+
+   <para>
+    See also <xref linkend="assign-pwp" /> for instructions on using the policy.
+   </para>
+  </example>
+
+  <example xml:id="example-deprecate-storage-scheme">
+   <?dbfo keep-together="auto"?>
+   <title>Deprecate a Password Storage Scheme</title>
+
+   <para>
+    The following commands configure an OpenDJ server based password policy
+    that you can use when deprecating a password storage scheme.
+    This policy uses elements from
+    <xref linkend="example-enforce-regular-password-changes" />,
+    as OpenDJ directory server only employs the new password storage scheme
+    to hash or to encrypt passwords when a password changes.
+   </para>
+
+   <screen>$ dsconfig create-password-policy
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --policy-name "Deprecate a Password Storage Scheme"
+ --type password-policy
+ --set deprecated-password-storage-scheme:Crypt
+ --set default-password-storage-scheme:"Salted SHA-1"
+ --set password-attribute:userPassword
+ --set max-password-age:13w
+ --set min-password-age:4w
+ --set password-history-count:7
+ --trustAll
+ --no-prompt</screen>
+
+   <para>
+    See also <xref linkend="assign-pwp" /> for instructions on using the policy.
+   </para>
+  </example>
+
+  <example xml:id="example-lock-idle-accounts">
+   <?dbfo keep-together="auto"?>
+   <title>Lock Idle Accounts</title>
+
+   <para>
+    The following commands configure an OpenDJ server based password policy
+    that locks idle accounts.
+    This policy extends the example from
+    <xref linkend="example-track-last-login" />
+    as OpenDJ directory server must track last successful login time
+    in order to calculate how long the account has been idle.
+    You must first add the <literal>lastLoginTime</literal> attribute type
+    in order for OpenDJ directory server to accept this new password policy.
+   </para>
+
+   <screen>$ dsconfig create-password-policy
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --policy-name "Lock Idle Accounts"
+ --type password-policy
+ --set default-password-storage-scheme:"Salted SHA-1"
+ --set password-attribute:userPassword
+ --set last-login-time-attribute:lastLoginTime
+ --set last-login-time-format:"yyyyMMddHH'Z'"
+ --set idle-lockout-interval:13w
+ --trustAll
+ --no-prompt</screen>
+
+   <para>
+    See also <xref linkend="assign-pwp" />,
+    and <link xlink:href="admin-guide#configure-account-lockout"
+    xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+    ><citetitle>Configuring Account Lockout</citetitle></link>.
+   </para>
+  </example>
+
+  <example xml:id="example-allow-grace-login">
+   <?dbfo keep-together="auto"?>
+   <title>Allow Grace Login to Change Expired Password</title>
+
+   <para>
+    The following commands configure an OpenDJ server based password policy
+    that allows users to login after their password has expired
+    in order to choose a new password.
+   </para>
+
+   <screen>$ dsconfig create-password-policy
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --policy-name "Allow Grace Login"
+ --type password-policy
+ --set default-password-storage-scheme:"Salted SHA-1"
+ --set password-attribute:userPassword
+ --set grace-login-count:2
+ --trustAll
+ --no-prompt</screen>
+
+   <para>
+    See also <xref linkend="assign-pwp" /> for instructions on using the policy.
+   </para>
+  </example>
+
+  <example xml:id="example-require-password-change-on-add-or-reset">
+   <?dbfo keep-together="auto"?>
+   <title>Require Password Change on Add or Reset</title>
+
+   <para>
+    The following commands configure an OpenDJ server based password policy
+    that requires new users to change their password
+    after logging in for the first time,
+    and also requires users to change their password
+    after their password is reset.
+   </para>
+
+   <screen>$ dsconfig create-password-policy
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --policy-name "Require Password Change on Add or Reset"
+ --type password-policy
+ --set default-password-storage-scheme:"Salted SHA-1"
+ --set password-attribute:userPassword
+ --set force-change-on-add:true
+ --set force-change-on-reset:true
+ --trustAll
+ --no-prompt</screen>
+
+   <para>
+    See also <xref linkend="assign-pwp" /> for instructions on using the policy.
+   </para>
+  </example>
+
  </section>
 </chapter>
