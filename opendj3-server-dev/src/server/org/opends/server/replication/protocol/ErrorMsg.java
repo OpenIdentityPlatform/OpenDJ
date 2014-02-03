@@ -88,7 +88,7 @@ public class ErrorMsg extends RoutableMsg
     this.creationTime = System.currentTimeMillis();
 
     if (logger.isTraceEnabled())
-      logger.trace(this.toString());
+      logger.trace("new ErrorMsg=%s", this);
   }
 
   /**

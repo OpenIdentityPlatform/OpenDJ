@@ -545,9 +545,8 @@ public class SMTPAccountStatusNotificationHandler
             {
               if (logger.isTraceEnabled())
               {
-                logger.trace("Adding end user recipient " +
-                                 v.getValue().toString() + " from attr " +
-                                 a.getNameWithOptions());
+                logger.trace("Adding end user recipient %s from attr %s",
+                    v.getValue(), a.getNameWithOptions());
               }
 
               recipients.add(v.getValue().toString());

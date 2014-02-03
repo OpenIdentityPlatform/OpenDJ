@@ -207,9 +207,8 @@ public class RootContainer
 
     if (logger.isTraceEnabled())
     {
-      logger.trace("JE (%s) environment opened with the following " +
-          "config: %n%s", JEVersion.CURRENT_VERSION.toString(),
-                          env.getConfig().toString());
+      logger.trace("JE (%s) environment opened with the following config: %n%s",
+          JEVersion.CURRENT_VERSION, env.getConfig());
 
       // Get current size of heap in bytes
       long heapSize = Runtime.getRuntime().totalMemory();

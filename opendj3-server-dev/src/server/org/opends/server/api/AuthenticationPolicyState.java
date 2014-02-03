@@ -127,9 +127,8 @@ public abstract class AuthenticationPolicyState
         {
           if (logger.isTraceEnabled())
           {
-            logger.trace("Attribute %s resolves to true for user entry "
-                + "%s", attributeType.getNameOrOID(),
-                entry.getName().toString());
+            logger.trace("Attribute %s resolves to true for user entry %s",
+                attributeType.getNameOrOID(), entry.getName());
           }
 
           return ConditionResult.TRUE;
@@ -140,9 +139,8 @@ public abstract class AuthenticationPolicyState
         {
           if (logger.isTraceEnabled())
           {
-            logger.trace("Attribute %s resolves to false for user "
-                + "entry %s", attributeType.getNameOrOID(), entry.getName()
-                .toString());
+            logger.trace("Attribute %s resolves to false for user entry %s",
+                attributeType.getNameOrOID(), entry.getName());
           }
 
           return ConditionResult.FALSE;
@@ -152,7 +150,7 @@ public abstract class AuthenticationPolicyState
         {
           logger.trace("Unable to resolve value %s for attribute %s "
               + "in user entry %s as a Boolean.", valueString,
-              attributeType.getNameOrOID(), entry.getName().toString());
+              attributeType.getNameOrOID(), entry.getName());
         }
 
         final LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_BOOLEAN
@@ -165,8 +163,8 @@ public abstract class AuthenticationPolicyState
     if (logger.isTraceEnabled())
     {
       logger.trace("Returning %s because attribute %s does not exist "
-          + "in user entry %s", ConditionResult.UNDEFINED.toString(),
-          attributeType.getNameOrOID(), entry.getName().toString());
+          + "in user entry %s", ConditionResult.UNDEFINED,
+          attributeType.getNameOrOID(), entry.getName());
     }
 
     return ConditionResult.UNDEFINED;
@@ -215,10 +213,8 @@ public abstract class AuthenticationPolicyState
           if (logger.isTraceEnabled())
           {
             logger.traceException(e);
-
             logger.trace("Unable to decode value %s for attribute %s "
-                + "in user entry %s: %s", v.getValue().toString(),
-                attributeType.getNameOrOID(), entry.getName().toString(),
+                + "in user entry %s: %s", v.getValue(), attributeType.getNameOrOID(), entry.getName(),
                 stackTraceToSingleLineString(e));
           }
 
@@ -236,8 +232,7 @@ public abstract class AuthenticationPolicyState
       if (logger.isTraceEnabled())
       {
         logger.trace("Returning -1 because attribute %s does not "
-            + "exist in user entry %s", attributeType.getNameOrOID(), entry
-            .getName().toString());
+            + "exist in user entry %s", attributeType.getNameOrOID(), entry.getName());
       }
     }
     // FIXME: else to be consistent...
@@ -324,8 +319,8 @@ public abstract class AuthenticationPolicyState
       {
         logger.trace("User %s is considered administratively "
             + "disabled because an error occurred while "
-            + "attempting to make the determination: %s.", userEntry.getName()
-            .toString(), stackTraceToSingleLineString(e));
+            + "attempting to make the determination: %s.", userEntry.getName(),
+            stackTraceToSingleLineString(e));
       }
 
       return true;
@@ -337,17 +332,15 @@ public abstract class AuthenticationPolicyState
       if (logger.isTraceEnabled())
       {
         logger.trace("User %s is not administratively disabled since "
-            + "the attribute \"%s\" is not present in the entry.", userEntry
-            .getName().toString(), OP_ATTR_ACCOUNT_DISABLED);
+            + "the attribute \"%s\" is not present in the entry.", userEntry.getName(), OP_ATTR_ACCOUNT_DISABLED);
       }
       return false;
     }
 
     if (logger.isTraceEnabled())
     {
-      logger.trace("User %s %s administratively disabled.", userEntry
-          .getName().toString(), ((isDisabled == ConditionResult.TRUE) ? " is"
-          : " is not"));
+      logger.trace("User %s is%s administratively disabled.", userEntry.getName(),
+          (isDisabled == ConditionResult.TRUE ? "" : " not"));
     }
 
     return isDisabled == ConditionResult.TRUE;

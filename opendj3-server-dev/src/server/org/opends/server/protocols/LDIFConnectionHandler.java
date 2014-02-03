@@ -455,8 +455,7 @@ public final class LDIFConnectionHandler
         {
           if (logger.isTraceEnabled())
           {
-            logger.trace("Result Code:  " +
-                             operation.getResultCode().toString());
+            logger.trace("Result Code: %s", operation.getResultCode());
           }
 
           LocalizableMessage m = INFO_LDIF_CONNHANDLER_RESULT_CODE.get(

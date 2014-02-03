@@ -3318,8 +3318,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       else
       {
-        logger.info(NOTE_JEB_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, rebuildConfig
-                .getRebuildList().toString());
+        logger.info(NOTE_JEB_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, rebuildConfig.getRebuildList());
       }
 
       setRebuildListIndexesTrusted(true);

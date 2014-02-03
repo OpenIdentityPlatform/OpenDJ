@@ -2037,12 +2037,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
       sendTopoInfoToAllExcept(senderHandler);
 
-      logger.info(NOTE_DIRECTORY_SERVER_CHANGED_STATUS, senderHandler.getServerId(), baseDN.toNormalizedString(),
-          newStatus.toString());
+      logger.info(NOTE_DIRECTORY_SERVER_CHANGED_STATUS,
+          senderHandler.getServerId(), baseDN.toNormalizedString(), newStatus);
     }
     catch(Exception e)
     {
-      logger.error(LocalizableMessage.raw(          stackTraceToSingleLineString(e)));
+      logger.error(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
     }
     finally
     {

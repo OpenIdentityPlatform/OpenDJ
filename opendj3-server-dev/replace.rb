@@ -227,9 +227,7 @@ class Replace
     :extensions => ["java"],
     :replacements =>
       [
-        # Need to fix removing the last parentheses
-        /(logger\.\s*(trace|debug|warn|info|error)\s*\([^;]*)\s*String\s*\.\s*valueOf\s*\(/m,
-        /([A-Z0-9_]+\s*\.\s*get\s*\([^;]*)\.toString\(\)/m,
+        /(logger\.\s*(trace|debug|warn|info|error)\s*\([^;]*)\s*\.toString\(\)/m,
         '\1',
       ]
   }
@@ -258,8 +256,7 @@ class Replace
   }
 
   # List of replacements to run
-  REPLACEMENTS = [ LOGGER_STRING_VALUEOF ]
-  #REPLACEMENTS = [ MESSAGES, TYPES, DN_TYPES, EXCEPTIONS, LOGGERS, I18N_LOGGERS ]
+  REPLACEMENTS = [ LOGGER_TOSTRING ]
 
 
   ################################### Processing methods ########################################

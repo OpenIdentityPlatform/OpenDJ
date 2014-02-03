@@ -749,8 +749,7 @@ public class VerifyJob
               {
                 logger.trace("File id2children has ID %d with DN <%s> " +
                     "referencing ID %d with non-child DN <%s>%n",
-                           entryID.longValue(), entry.getName().toString(),
-                           id.longValue(), childEntry.getName().toString());
+                    entryID.longValue(), entry.getName(), id.longValue(), childEntry.getName());
               }
             }
           }
@@ -879,10 +878,8 @@ public class VerifyJob
               if (logger.isTraceEnabled())
               {
                 logger.trace("File id2subtree has ID %d with DN <%s> " +
-                    "referencing ID %d with non-subordinate " +
-                    "DN <%s>%n",
-                           entryID.longValue(), entry.getName().toString(),
-                           id.longValue(), subordEntry.getName().toString());
+                    "referencing ID %d with non-subordinate DN <%s>%n",
+                    entryID.longValue(), entry.getName(), id.longValue(), subordEntry.getName());
               }
             }
           }
@@ -1576,9 +1573,7 @@ public class VerifyJob
           {
             if(logger.isTraceEnabled())
             {
-              logger.trace("Missing entry %s in VLV index %s",
-                                entry.getName().toString(),
-                                vlvIndex.getName());
+              logger.trace("Missing entry %s in VLV index %s", entry.getName(), vlvIndex.getName());
             }
             errorCount++;
           }
@@ -1601,11 +1596,8 @@ public class VerifyJob
         if (logger.isTraceEnabled())
         {
           logger.traceException(e);
-
           logger.trace("Error reading VLV index %s for entry %s: %s",
-                     vlvIndex.getName(),
-                     entry.getName().toString(),
-                     StaticUtils.getBacktrace(e));
+              vlvIndex.getName(), entry.getName(), StaticUtils.getBacktrace(e));
         }
         errorCount++;
       }
@@ -1614,11 +1606,8 @@ public class VerifyJob
         if (logger.isTraceEnabled())
         {
           logger.traceException(e);
-
           logger.trace("Error reading VLV index %s for entry %s: %s",
-                     vlvIndex.getName(),
-                     entry.getName().toString(),
-                     StaticUtils.getBacktrace(e));
+              vlvIndex.getName(), entry.getName(), StaticUtils.getBacktrace(e));
         }
         errorCount++;
       }

@@ -239,7 +239,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
               logger.trace("Unable to decode value %s for attribute %s" +
                   "in user entry %s: %s",
-                  v.getValue().toString(), attributeType.getNameOrOID(),
+                  v.getValue(), attributeType.getNameOrOID(),
                   userDNString, stackTraceToSingleLineString(e));
             }
 
@@ -1484,11 +1484,9 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
           {
             reason.append("there is no last login time, but ");
           }
-          reason.append(
-              "the password changed time is in an acceptable window");
+          reason.append("the password changed time is in an acceptable window");
         }
-        logger.trace("Returning false for user %s because %s.",
-            userDNString, reason.toString());
+        logger.trace("Returning false for user %s because %s.", userDNString, reason);
       }
     }
     else
@@ -2779,8 +2777,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       {
         if (logger.isTraceEnabled())
         {
-          logger.trace("The password provided for user %s failed "
-              + "validation: %s", userDNString, invalidReason.toString());
+          logger.trace("The password provided for user %s failed validation: %s",
+              userDNString, invalidReason);
         }
         return false;
       }
@@ -3400,8 +3398,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
         if (logger.isTraceEnabled())
         {
-          logger.trace("Removing history value " +
-              v.getValue().toString() + " to preserve the history count.");
+          logger.trace("Removing history value %s to preserve the history count.", v.getValue());
         }
       }
 
@@ -3434,9 +3431,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
           if (logger.isTraceEnabled())
           {
-            logger.trace("Removing history value " +
-                v.getValue().toString() +
-                " to preserve the history duration.");
+            logger.trace("Removing history value %s to preserve the history duration.", v.getValue());
           }
         }
         else

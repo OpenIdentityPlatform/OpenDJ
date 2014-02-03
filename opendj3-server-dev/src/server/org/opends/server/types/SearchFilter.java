@@ -2751,11 +2751,8 @@ public final class SearchFilter
     {
       logger.trace(
           "Returning FALSE for equality component %s in filter " +
-          "%s because entry %s didn't have attribute type " +
-          "%s with value %s",
-                   this, completeFilter, entry.getName(),
-                   attributeType.getNameOrOID(),
-                   assertionValue.getValue().toString());
+          "%s because entry %s didn't have attribute type %s with value %s",
+          this, completeFilter, entry.getName(), attributeType.getNameOrOID(), assertionValue.getValue());
     }
     return ConditionResult.FALSE;
   }

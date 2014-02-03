@@ -452,9 +452,7 @@ public class Index extends DatabaseContainer
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
           logger.trace("Index entry exceeded in index %s. " +
               "Limit: %d. ID list size: %d.\nKey:%s",
-              name, indexEntryLimit, entryIDList.size(),
-              builder.toString());
-
+              name, indexEntryLimit, entryIDList.size(), builder);
         }
       }
 
@@ -503,9 +501,7 @@ public class Index extends DatabaseContainer
         {
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          logger.trace(
-                  "The expected key does not exist in the index %s.\nKey:%s ",
-                  name, builder.toString());
+          logger.trace("The expected key does not exist in the index %s.\nKey:%s ", name, builder);
         }
       }
 
@@ -559,9 +555,7 @@ public class Index extends DatabaseContainer
           {
             StringBuilder builder = new StringBuilder();
             StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-            logger.trace(
-                  "The expected key does not exist in the index %s.\nKey:%s ",
-                  name, builder.toString());
+            logger.trace("The expected key does not exist in the index %s.\nKey:%s ", name, builder);
           }
 
           setTrusted(txn, false);
@@ -632,8 +626,7 @@ public class Index extends DatabaseContainer
               StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
               logger.trace("Index entry exceeded in index %s. " +
                   "Limit: %d. ID list size: %d.\nKey:%s",
-                  name, indexEntryLimit, idCountDelta + addedIDs.size(),
-                  builder.toString());
+                  name, indexEntryLimit, idCountDelta + addedIDs.size(), builder);
 
             }
           }
@@ -682,9 +675,7 @@ public class Index extends DatabaseContainer
         {
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          logger.trace(
-                "The expected key does not exist in the index %s.\nKey:%s",
-                name, builder.toString());
+          logger.trace("The expected key does not exist in the index %s.\nKey:%s", name, builder);
         }
 
         setTrusted(txn, false);
@@ -788,9 +779,7 @@ public class Index extends DatabaseContainer
           {
             StringBuilder builder = new StringBuilder();
             StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-            logger.trace(
-                  "The expected key does not exist in the index %s.\nKey:%s",
-                  name, builder.toString());
+            logger.trace("The expected key does not exist in the index %s.\nKey:%s",name, builder);
           }
 
           setTrusted(txn, false);
@@ -838,8 +827,7 @@ public class Index extends DatabaseContainer
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
           logger.trace("The expected entry ID does not exist in " +
-                "the entry ID list for index %s.\nKey:%s",
-                name, builder.toString());
+                "the entry ID list for index %s.\nKey:%s", name, builder);
         }
 
         setTrusted(txn, false);
@@ -872,9 +860,7 @@ public class Index extends DatabaseContainer
         {
           StringBuilder builder = new StringBuilder();
           StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          logger.trace(
-                "The expected key does not exist in the index %s.\nKey:%s",
-                name, builder.toString());
+          logger.trace("The expected key does not exist in the index %s.\nKey:%s", name, builder);
         }
 
         setTrusted(txn, false);
