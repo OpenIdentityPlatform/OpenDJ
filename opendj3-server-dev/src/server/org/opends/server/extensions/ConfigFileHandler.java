@@ -1369,19 +1369,8 @@ public class ConfigFileHandler
 
       if (resultCode != ResultCode.SUCCESS)
       {
-        StringBuilder buffer = new StringBuilder();
-        if (! messages.isEmpty())
-        {
-          Iterator<LocalizableMessage> iterator = messages.iterator();
-          buffer.append(iterator.next());
-          while (iterator.hasNext())
-          {
-            buffer.append(".  ");
-            buffer.append(iterator.next());
-          }
-        }
-
-        LocalizableMessage message = ERR_CONFIG_FILE_DELETE_APPLY_FAILED.get(buffer);
+        String reasons = StaticUtils.collectionToString(messages, ".  ");
+        LocalizableMessage message = ERR_CONFIG_FILE_DELETE_APPLY_FAILED.get(reasons);
         throw new DirectoryException(resultCode, message);
       }
     }

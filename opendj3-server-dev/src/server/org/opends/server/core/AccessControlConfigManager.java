@@ -28,7 +28,6 @@ package org.opends.server.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -464,21 +463,10 @@ public final class AccessControlConfigManager
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          StringBuilder buffer = new StringBuilder();
-          if (! unacceptableReasons.isEmpty())
-          {
-            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
-            buffer.append(iterator.next());
-            while (iterator.hasNext())
-            {
-              buffer.append(".  ");
-              buffer.append(iterator.next());
-            }
-          }
-
-          // Bug: where in a section where configuration is null
+          String reasons = collectionToString(unacceptableReasons, ".  ");
+          // Bug: we are in a section where configuration is null
           throw new InitializationException(ERR_CONFIG_AUTHZ_CONFIG_NOT_ACCEPTABLE.get(
-                  null /* WAS: configuration.dn() */, buffer));
+                  null /* WAS: configuration.dn() */, reasons));
         }
       }
 
