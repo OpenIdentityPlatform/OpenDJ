@@ -918,8 +918,7 @@ public final class ECLServerHandler extends ServerHandler
     releaseCursor();
     for (DomainContext domainCtxt : domainCtxts) {
       if (!domainCtxt.unRegisterHandler()) {
-        logger.error(LocalizableMessage.raw(            this + " shutdown() - error when unregistering handler "
-                + domainCtxt.mh));
+        logger.error(LocalizableMessage.raw(this + " shutdown() - error when unregistering handler "+ domainCtxt.mh));
       }
       domainCtxt.stopServer();
     }

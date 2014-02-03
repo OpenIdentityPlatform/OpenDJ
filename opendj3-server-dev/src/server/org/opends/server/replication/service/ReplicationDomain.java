@@ -38,12 +38,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.backends.task.Task;
 import org.opends.server.config.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.tasks.InitializeTargetTask;
@@ -2191,7 +2191,7 @@ public abstract class ReplicationDomain
     catch(Exception e)
     {
       // Should not happen
-      errMsg = LocalizableMessage.raw(          e.getLocalizedMessage());
+      errMsg = LocalizableMessage.raw(e.getLocalizedMessage());
       logger.error(errMsg);
     }
 
