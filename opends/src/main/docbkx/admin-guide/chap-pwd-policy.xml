@@ -232,7 +232,7 @@ userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==</screen>
      password policy attributes.</para>
     </listitem>
    </itemizedlist>
-   
+
    <para>Values of the following properties are inherited from the default
    password policy for Internet-Draft based password policies.</para>
    <itemizedlist>
@@ -258,6 +258,65 @@ userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==</screen>
     <listitem><para><literal>skip-validation-for-administrators</literal></para></listitem>
     <listitem><para><literal>state-update-failure-policy</literal></para></listitem>
    </itemizedlist>
+
+   <para>
+    If you would rather specify password validators for your policy,
+    you can configure password validators for a subentry password policy
+    by adding the auxiliary object class <literal>pwdValidatorPolicy</literal>
+    and setting the multi-valued attribute,
+    <literal>ds-cfg-password-validator</literal>,
+    to the DNs of the password validator configuration entries.
+   </para>
+
+   <para>
+    The following example shows a subentry password policy
+    that references two password validator configuration entries.
+    The Character Set password validator determines
+    whether a proposed password is acceptable
+    by checking whether it contains a sufficient number of characters
+    from one or more user-defined character sets and ranges.
+    The Length-Based password validator determines
+    whether a proposed password is acceptable
+    based on whether the number of characters it contains
+    falls within an acceptable range of values.
+    Both are enabled in the default OpenDJ directory server configuration.
+   </para>
+
+   <programlisting language="ldif"
+   >dn: cn=Subentry Password Policy with Validators,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: pwdPolicy
+objectClass: pwdValidatorPolicy
+cn: Subentry Password Policy with Validators
+pwdAttribute: userPassword
+pwdLockout: TRUE
+pwdMaxFailure: 3
+pwdFailureCountInterval: 300
+pwdLockoutDuration: 300
+pwdAllowUserChange: TRUE
+pwdSafeModify: TRUE
+ds-cfg-password-validator: cn=Character Set,cn=Password Validators,cn=config
+ds-cfg-password-validator: cn=Length-Based Password Validator,
+ cn=Password Validators,cn=config
+subtreeSpecification: {base "ou=people", specificationFilter
+  "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }
+
+</programlisting>
+
+   <para>
+    If a referenced password validator cannot be found,
+    then OpenDJ directory server logs an error message
+    when the password policy is invoked.
+    This can occur for example when a subentry password policy is replicated
+    to a directory server where the password validator is not (yet) configured.
+    In that case when a user attempts to change their password,
+    the server fails to find the referenced password validator.
+   </para>
+
+   <para>
+    See also <xref linkend="create-repl-pwp" />.
+   </para>
   </section>
   
   <section xml:id="pwp-application">
@@ -1071,6 +1130,11 @@ in the server:  The provided password did not contain characters from at least
 
   <para>Validation does not affect existing passwords, but only takes effect
   when the password is updated.</para>
+
+  <para>
+   You can reference password validators from subentry password policies.
+   See <xref linkend="pwp-replicated" /> for an example.
+  </para>
  </section>
 
  <section xml:id="sample-password-policies">
