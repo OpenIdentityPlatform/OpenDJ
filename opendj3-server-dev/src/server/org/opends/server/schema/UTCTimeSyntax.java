@@ -310,8 +310,7 @@ public class UTCTimeSyntax
           // These are all fine.
           break;
         default:
-          LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_YEAR.get(
-                  valueString, String.valueOf(valueString.charAt(i)));
+          LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_YEAR.get(valueString, valueString.charAt(i));
           invalidReason.append(message);
           return false;
       }
@@ -519,8 +518,7 @@ public class UTCTimeSyntax
         // be a digit between 0 and 9.
         if (length < 11)
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(m1), 8);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString, m1, 8);
           invalidReason.append(message);
           return false;
         }
@@ -549,8 +547,7 @@ public class UTCTimeSyntax
         break;
 
       default:
-        LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(m1), 8);
+        LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString, m1, 8);
         invalidReason.append(message);
         return false;
     }
@@ -573,8 +570,7 @@ public class UTCTimeSyntax
         // be a digit between 0 and 9.
         if (length < 13)
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(s1), 10);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString, s1, 10);
           invalidReason.append(message);
           return false;
         }
@@ -606,9 +602,7 @@ public class UTCTimeSyntax
         // a 0.
         if (length < 13)
         {
-
-          LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(s1), 10);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString, s1, 10);
           invalidReason.append(message);
           return false;
         }
@@ -630,8 +624,7 @@ public class UTCTimeSyntax
         }
         else
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(s1), 10);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString, s1, 10);
           invalidReason.append(message);
           return false;
         }
@@ -646,15 +639,13 @@ public class UTCTimeSyntax
         }
         else
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(s1), 10);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString, s1, 10);
           invalidReason.append(message);
           return false;
         }
 
       default:
-        LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(s1), 10);
+        LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString, s1, 10);
         invalidReason.append(message);
         return false;
     }
@@ -673,7 +664,7 @@ public class UTCTimeSyntax
         else
         {
           LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(valueString.charAt(12)), 12);
+                  valueString, valueString.charAt(12), 12);
           invalidReason.append(message);
           return false;
         }
@@ -689,14 +680,14 @@ public class UTCTimeSyntax
         else
         {
           LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                  valueString, String.valueOf(valueString.charAt(12)), 12);
+                  valueString, valueString.charAt(12), 12);
           invalidReason.append(message);
           return false;
         }
 
       default:
         LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(valueString.charAt(12)), 12);
+                valueString, valueString.charAt(12), 12);
         invalidReason.append(message);
         return false;
     }
@@ -906,10 +897,8 @@ public class UTCTimeSyntax
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE.get(
-          valueString, String.valueOf(e));
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message, e);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE.get(valueString, e);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, e);
     }
   }
 

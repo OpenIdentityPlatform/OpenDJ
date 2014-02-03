@@ -192,13 +192,13 @@ public class LDAPModify
           }
 
           LocalizableMessage message = ERR_LDIF_FILE_INVALID_LDIF_ENTRY.get(
-              le.getLineNumber(), fileNameValue, String.valueOf(le));
+              le.getLineNumber(), fileNameValue, le);
           throw new IOException(message.toString());
         }
         else
         {
           LocalizableMessage message = ERR_LDIF_FILE_INVALID_LDIF_ENTRY.get(
-                  le.getLineNumber(), fileNameValue, String.valueOf(le));
+              le.getLineNumber(), fileNameValue, le);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           continue;
         }
@@ -217,14 +217,12 @@ public class LDAPModify
             logger.traceException(e2);
           }
 
-          LocalizableMessage message =
-              ERR_LDIF_FILE_READ_ERROR.get(fileNameValue, String.valueOf(e));
+          LocalizableMessage message = ERR_LDIF_FILE_READ_ERROR.get(fileNameValue, e);
           throw new IOException(message.toString());
         }
         else
         {
-          LocalizableMessage message = ERR_LDIF_FILE_READ_ERROR.get(
-              fileNameValue, String.valueOf(e));
+          LocalizableMessage message = ERR_LDIF_FILE_READ_ERROR.get(fileNameValue, e);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           continue;
         }
@@ -939,9 +937,7 @@ public class LDAPModify
       int versionNumber = version.getIntValue();
       if(versionNumber != 2 && versionNumber != 3)
       {
-
-        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(
-                String.valueOf(versionNumber)), MAX_LINE_WIDTH));
+        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(versionNumber), MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
       connectionOptions.setVersionNumber(versionNumber);

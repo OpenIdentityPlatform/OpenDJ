@@ -525,10 +525,8 @@ public class NameFormSyntax
           else
           {
             LocalizableMessage message =
-                ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS.
-                  get(String.valueOf(oid), String.valueOf(woidBuffer));
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
+                ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS.get(oid, woidBuffer);
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
         else if (structuralClass.getObjectClassType() !=
@@ -538,9 +536,9 @@ public class NameFormSyntax
           // structural.
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL.
-                get(String.valueOf(oid), String.valueOf(woidBuffer),
+                get(oid, woidBuffer,
                     structuralClass.getNameOrOID(),
-                    String.valueOf(structuralClass.getObjectClassType()));
+                    structuralClass.getObjectClassType());
           throw new DirectoryException(
                   ResultCode.CONSTRAINT_VIOLATION, message);
         }

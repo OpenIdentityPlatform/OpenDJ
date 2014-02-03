@@ -509,17 +509,13 @@ public abstract class GuiApplication extends Application {
         switch (downloadStatus)
         {
         case VALIDATING:
-          summary = INFO_VALIDATING_RATIO.get(
-                  String.valueOf(perc),
-                  String.valueOf(loader.getCurrentValidatingPercentage()));
+          summary = INFO_VALIDATING_RATIO.get(perc, loader.getCurrentValidatingPercentage());
           break;
         case UPGRADING:
-          summary = INFO_UPGRADING_RATIO.get(
-                  String.valueOf(perc),
-                  String.valueOf(loader.getCurrentUpgradingPercentage()));
+          summary = INFO_UPGRADING_RATIO.get(perc, loader.getCurrentValidatingPercentage());
           break;
         default:
-          summary = INFO_DOWNLOADING_RATIO.get(String.valueOf(perc));
+          summary = INFO_DOWNLOADING_RATIO.get(perc);
         }
         loader.setSummary(summary);
         notifyListeners(ratio, summary, null);

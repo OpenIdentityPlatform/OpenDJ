@@ -143,9 +143,7 @@ public final class ProfilerPlugin
     // Make sure that this plugin is only registered as a startup plugin.
     if (pluginTypes.isEmpty())
     {
-      LocalizableMessage message = ERR_PLUGIN_PROFILER_NO_PLUGIN_TYPES.get(
-          String.valueOf(configEntryDN));
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_PLUGIN_PROFILER_NO_PLUGIN_TYPES.get(configEntryDN));
     }
     else
     {
@@ -153,9 +151,7 @@ public final class ProfilerPlugin
       {
         if (t != PluginType.STARTUP)
         {
-          LocalizableMessage message = ERR_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE.get(
-              String.valueOf(configEntryDN), String.valueOf(t));
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE.get(configEntryDN, t));
         }
       }
     }
@@ -166,7 +162,7 @@ public final class ProfilerPlugin
     if (! (profileDirectory.exists() && profileDirectory.isDirectory()))
     {
       LocalizableMessage message = WARN_PLUGIN_PROFILER_INVALID_PROFILE_DIR.get(
-          profileDirectory.getAbsolutePath(), String.valueOf(configEntryDN));
+          profileDirectory.getAbsolutePath(), configEntryDN);
       throw new ConfigException(message);
     }
   }
@@ -254,9 +250,7 @@ public final class ProfilerPlugin
     // Make sure that the plugin is only registered as a startup plugin.
     if (configuration.getPluginType().isEmpty())
     {
-      LocalizableMessage message = ERR_PLUGIN_PROFILER_NO_PLUGIN_TYPES.get(
-              String.valueOf(cfgEntryDN));
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(ERR_PLUGIN_PROFILER_NO_PLUGIN_TYPES.get(cfgEntryDN));
       configAcceptable = false;
     }
     else
@@ -265,10 +259,7 @@ public final class ProfilerPlugin
       {
         if (t != PluginCfgDefn.PluginType.STARTUP)
         {
-          LocalizableMessage message = ERR_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE.get(
-                  String.valueOf(cfgEntryDN),
-                                      String.valueOf(t));
-          unacceptableReasons.add(message);
+          unacceptableReasons.add(ERR_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE.get(cfgEntryDN, t));
           configAcceptable = false;
           break;
         }
@@ -281,8 +272,7 @@ public final class ProfilerPlugin
     if (! (profileDirectory.exists() && profileDirectory.isDirectory()))
     {
       unacceptableReasons.add(WARN_PLUGIN_PROFILER_INVALID_PROFILE_DIR.get(
-              profileDirectory.getAbsolutePath(),
-              String.valueOf(cfgEntryDN)));
+          profileDirectory.getAbsolutePath(), cfgEntryDN));
       configAcceptable = false;
     }
 
@@ -322,13 +312,11 @@ public final class ProfilerPlugin
                  new ProfilerThread(configuration.getProfileSampleInterval());
             profilerThread.start();
 
-            messages.add(INFO_PLUGIN_PROFILER_STARTED_PROFILING.get(
-                    String.valueOf(configEntryDN)));
+            messages.add(INFO_PLUGIN_PROFILER_STARTED_PROFILING.get(configEntryDN));
           }
           else
           {
-            messages.add(INFO_PLUGIN_PROFILER_ALREADY_PROFILING.get(
-                    String.valueOf(configEntryDN)));
+            messages.add(INFO_PLUGIN_PROFILER_ALREADY_PROFILING.get(configEntryDN));
           }
         }
         break;
@@ -340,15 +328,13 @@ public final class ProfilerPlugin
         {
           if (profilerThread == null)
           {
-            messages.add(INFO_PLUGIN_PROFILER_NOT_RUNNING.get(
-                    String.valueOf(configEntryDN)));
+            messages.add(INFO_PLUGIN_PROFILER_NOT_RUNNING.get(configEntryDN));
           }
           else
           {
             profilerThread.stopProfiling();
 
-            messages.add(INFO_PLUGIN_PROFILER_STOPPED_PROFILING.get(
-                    String.valueOf(configEntryDN)));
+            messages.add(INFO_PLUGIN_PROFILER_STOPPED_PROFILING.get(configEntryDN));
 
             String filename =
                  getFileForPath(
@@ -359,17 +345,13 @@ public final class ProfilerPlugin
             {
               profilerThread.writeCaptureData(filename);
 
-              messages.add(INFO_PLUGIN_PROFILER_WROTE_PROFILE_DATA.get(
-                      String.valueOf(configEntryDN),
-                      filename));
+              messages.add(INFO_PLUGIN_PROFILER_WROTE_PROFILE_DATA.get(configEntryDN, filename));
             }
             catch (Exception e)
             {
               logger.traceException(e);
 
-              messages.add(ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA.get(
-                      String.valueOf(configEntryDN),
-                      filename,
+              messages.add(ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA.get(configEntryDN, filename,
                       stackTraceToSingleLineString(e)));
 
               resultCode = DirectoryConfig.getServerErrorResultCode();
@@ -387,15 +369,13 @@ public final class ProfilerPlugin
         {
           if (profilerThread == null)
           {
-            messages.add(INFO_PLUGIN_PROFILER_NOT_RUNNING.get(
-                    String.valueOf(configEntryDN)));
+            messages.add(INFO_PLUGIN_PROFILER_NOT_RUNNING.get(configEntryDN));
           }
           else
           {
             profilerThread.stopProfiling();
 
-            messages.add(INFO_PLUGIN_PROFILER_STOPPED_PROFILING.get(
-                    String.valueOf(configEntryDN)));
+            messages.add(INFO_PLUGIN_PROFILER_STOPPED_PROFILING.get(configEntryDN));
 
             profilerThread = null;
           }

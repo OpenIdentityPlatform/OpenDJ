@@ -102,10 +102,8 @@ public class EntryIDSetSorter
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_ENTRYIDSORTER_CANNOT_EXAMINE_ENTRY.get(
-            String.valueOf(id), getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
+        LocalizableMessage message = ERR_ENTRYIDSORTER_CANNOT_EXAMINE_ENTRY.get(id, getExceptionMessage(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
       }
     }
 

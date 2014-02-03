@@ -153,8 +153,7 @@ public class JMXAlertHandler
       {
         logger.traceException(e);
 
-        LocalizableMessage message =
-            ERR_JMX_ALERT_HANDLER_CANNOT_REGISTER.get(String.valueOf(e));
+        LocalizableMessage message = ERR_JMX_ALERT_HANDLER_CANNOT_REGISTER.get(e);
         throw new InitializationException(message, e);
       }
     }
@@ -269,8 +268,7 @@ public class JMXAlertHandler
          throws AttributeNotFoundException
   {
     // There are no attributes for this MBean.
-    LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
-        String.valueOf(configEntryDN), attribute);
+    LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(configEntryDN, attribute);
     throw new AttributeNotFoundException(message.toString());
   }
 
@@ -292,8 +290,7 @@ public class JMXAlertHandler
          throws AttributeNotFoundException, InvalidAttributeValueException
   {
     // There are no attributes for this MBean.
-    LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
-        String.valueOf(configEntryDN), String.valueOf(attribute));
+    LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(configEntryDN, attribute);
     throw new AttributeNotFoundException(message.toString());
   }
 

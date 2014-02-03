@@ -249,8 +249,7 @@ public class RegularExpressionIdentityMapper
 
         case SIZE_LIMIT_EXCEEDED:
           // Multiple entries matched the filter.  This is not acceptable.
-          LocalizableMessage message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(
-                          String.valueOf(processedID));
+          LocalizableMessage message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(processedID);
           throw new DirectoryException(
                   ResultCode.CONSTRAINT_VIOLATION, message);
 
@@ -258,16 +257,12 @@ public class RegularExpressionIdentityMapper
         case TIME_LIMIT_EXCEEDED:
         case ADMIN_LIMIT_EXCEEDED:
           // The search criteria was too inefficient.
-          message = ERR_REGEXMAP_INEFFICIENT_SEARCH.get(
-                           String.valueOf(processedID),
-                         String.valueOf(internalSearch.getErrorMessage()));
+          message = ERR_REGEXMAP_INEFFICIENT_SEARCH.get(processedID, internalSearch.getErrorMessage());
           throw new DirectoryException(internalSearch.getResultCode(), message);
 
         default:
           // Just pass on the failure that was returned for this search.
-          message = ERR_REGEXMAP_SEARCH_FAILED.get(
-                           String.valueOf(processedID),
-                         String.valueOf(internalSearch.getErrorMessage()));
+          message = ERR_REGEXMAP_SEARCH_FAILED.get(processedID, internalSearch.getErrorMessage());
           throw new DirectoryException(internalSearch.getResultCode(), message);
       }
 
@@ -281,18 +276,14 @@ public class RegularExpressionIdentityMapper
           matchingEntry = iterator.next();
           if (iterator.hasNext())
           {
-            LocalizableMessage message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(
-                            String.valueOf(processedID));
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
+            LocalizableMessage message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(processedID);
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
         else
         {
-          LocalizableMessage message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(
-                          String.valueOf(processedID));
-          throw new DirectoryException(
-                  ResultCode.CONSTRAINT_VIOLATION, message);
+          LocalizableMessage message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(processedID);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
         }
       }
     }

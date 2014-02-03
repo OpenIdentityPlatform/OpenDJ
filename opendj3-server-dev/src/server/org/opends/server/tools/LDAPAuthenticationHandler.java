@@ -399,17 +399,13 @@ public class LDAPAuthenticationHandler
         }
         else
         {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
-              String.valueOf(extendedResponse));
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    message);
+          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
+          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
-            String.valueOf(responseMessage.getProtocolOp()));
-        throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
+        throw new ClientException( LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -714,17 +710,13 @@ public class LDAPAuthenticationHandler
         }
         else
         {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
-              String.valueOf(extendedResponse));
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    message);
+          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
+          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
-            String.valueOf(responseMessage.getProtocolOp()));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                  message);
+        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -961,17 +953,13 @@ public class LDAPAuthenticationHandler
         }
         else
         {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
-              String.valueOf(extendedResponse));
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    message);
+          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
+          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
-            String.valueOf(responseMessage1.getProtocolOp()));
-        throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage1.getProtocolOp());
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -1117,17 +1105,13 @@ public class LDAPAuthenticationHandler
         }
         else
         {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
-              String.valueOf(extendedResponse));
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    message);
+          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
+          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
-            String.valueOf(responseMessage2.getProtocolOp()));
-        throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage2.getProtocolOp());
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -1548,17 +1532,13 @@ public class LDAPAuthenticationHandler
         }
         else
         {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
-              String.valueOf(extendedResponse));
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    message);
+          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
+          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
-            String.valueOf(responseMessage1.getProtocolOp()));
-        throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage1.getProtocolOp());
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -1873,17 +1853,13 @@ public class LDAPAuthenticationHandler
         }
         else
         {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
-              String.valueOf(extendedResponse));
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    message);
+          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
+          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
-            String.valueOf(responseMessage2.getProtocolOp()));
-        throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage2.getProtocolOp());
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -2541,17 +2517,13 @@ public class LDAPAuthenticationHandler
         }
         else
         {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
-              String.valueOf(extendedResponse));
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    message);
+          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
+          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
-            String.valueOf(responseMessage.getProtocolOp()));
-        throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -3139,17 +3111,13 @@ public class LDAPAuthenticationHandler
         }
         else
         {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
-              String.valueOf(extendedResponse));
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    message);
+          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
+          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
-            String.valueOf(responseMessage.getProtocolOp()));
-        throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -3366,17 +3334,13 @@ public class LDAPAuthenticationHandler
           }
           else
           {
-            LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
-                String.valueOf(extendedResponse));
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                      message);
+            LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
+            throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
           }
 
         default:
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
-              String.valueOf(responseMessage.getProtocolOp()));
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    message);
+          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
+          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
       }
 
 
@@ -3545,17 +3509,13 @@ public class LDAPAuthenticationHandler
               }
               else
               {
-                LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
-                    String.valueOf(extendedResponse));
-                throw new ClientException(
-                               LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+                LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
+                throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
               }
 
             default:
-              LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
-                  String.valueOf(responseMessage.getProtocolOp()));
-              throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                        message);
+              LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
+              throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
           }
         }
         else
@@ -3624,8 +3584,7 @@ public class LDAPAuthenticationHandler
         }
         else
         {
-          LocalizableMessage message =
-              ERR_LDAPAUTH_UNEXPECTED_GSSAPI_CALLBACK.get(String.valueOf(cb));
+          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_GSSAPI_CALLBACK.get(cb);
           throw new UnsupportedCallbackException(cb, message.toString());
         }
       }
@@ -3729,10 +3688,8 @@ public class LDAPAuthenticationHandler
     // If the protocol op isn't an extended response, then that's a problem.
     if (responseMessage.getProtocolOpType() != OP_TYPE_EXTENDED_RESPONSE)
     {
-      LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
-          String.valueOf(responseMessage.getProtocolOp()));
-      throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+      LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
+      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 

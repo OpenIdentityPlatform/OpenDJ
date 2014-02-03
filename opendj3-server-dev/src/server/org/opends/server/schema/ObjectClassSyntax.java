@@ -282,9 +282,8 @@ public class ObjectClassSyntax
     if (c != '(')
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS.
-          get(valueStr, (pos-1), String.valueOf(c));
-      throw new DirectoryException(
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+          get(valueStr, (pos-1), c);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -337,9 +336,8 @@ public class ObjectClassSyntax
           // This must have been an illegal character.
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                get(valueStr, String.valueOf(c), (pos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+                get(valueStr, c, (pos-1));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
         {
@@ -363,7 +361,7 @@ public class ObjectClassSyntax
           // This must have been an illegal character.
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_STRING_OID.
-                get(valueStr, String.valueOf(c), (pos-1));
+                get(valueStr, c, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -496,8 +494,7 @@ public class ObjectClassSyntax
         else
         {
           // This is an illegal character.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(
-              valueStr, String.valueOf(c), (pos-1));
+          LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -605,10 +602,8 @@ public class ObjectClassSyntax
                 // This is bad because we don't know what the superior oc
                 // is so we can't base this objectclass on it.
                 LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.
-                      get(String.valueOf(oid), String.valueOf(woidBuffer));
-                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                             message);
+                    WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.get(oid, woidBuffer);
+                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
               }
             }
 
@@ -623,8 +618,7 @@ public class ObjectClassSyntax
             }
             else if (c != '$')
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(
-                  valueStr, String.valueOf(c), (pos-1));
+              LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
             }
@@ -648,10 +642,8 @@ public class ObjectClassSyntax
               // This is bad because we don't know what the superior oc
               // is so we can't base this objectclass on it.
               LocalizableMessage message =
-                  WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.
-                    get(String.valueOf(oid), String.valueOf(woidBuffer));
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message);
+                  WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.get(oid, woidBuffer);
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
             }
           }
           listSupOCs.add(superiorClass);
@@ -726,8 +718,7 @@ public class ObjectClassSyntax
             }
             else if (c != '$')
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(
-                  valueStr, String.valueOf(c), (pos-1));
+              LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
             }
@@ -812,8 +803,7 @@ public class ObjectClassSyntax
             }
             else if (c != '$')
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(
-                  valueStr, String.valueOf(c), (pos-1));
+              LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
             }
@@ -1040,7 +1030,7 @@ public class ObjectClassSyntax
     if (c != '\'')
     {
       LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_QUOTE_AT_POS.get(
-          valueStr, startPos, String.valueOf(c));
+          valueStr,startPos, c);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1127,7 +1117,7 @@ public class ObjectClassSyntax
     if (c != '\'')
     {
       LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_QUOTE_AT_POS.get(
-          valueStr, startPos, String.valueOf(c));
+          valueStr,startPos, c);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1248,7 +1238,7 @@ public class ObjectClassSyntax
           // This must have been an illegal character.
           LocalizableMessage message =
             ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                get(lowerStr, String.valueOf(c), (startPos-1));
+                get(lowerStr, c, (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -1286,7 +1276,7 @@ public class ObjectClassSyntax
           // This must have been an illegal character.
           LocalizableMessage message =
             ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_STRING_OID.
-                get(lowerStr, String.valueOf(c), (startPos-1));
+                get(lowerStr, c, (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -1295,8 +1285,7 @@ public class ObjectClassSyntax
     else
     {
       LocalizableMessage message =
-          ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(
-                  lowerStr, String.valueOf(c), startPos);
+          ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(lowerStr, c, startPos);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1406,8 +1395,7 @@ public class ObjectClassSyntax
         else if (c == '(')
         {
           // This is an illegal character.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(
-              valueStr, String.valueOf(c), startPos);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, startPos);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }

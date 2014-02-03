@@ -252,8 +252,7 @@ public abstract class RawModification
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_MODIFICATION_DECODE_SEQUENCE.get(
-          String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_MODIFICATION_DECODE_SEQUENCE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -291,8 +290,7 @@ public abstract class RawModification
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_MODIFICATION_DECODE_MOD_TYPE.get(
-          String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_MODIFICATION_DECODE_MOD_TYPE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -306,8 +304,7 @@ public abstract class RawModification
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_LDAP_MODIFICATION_DECODE_ATTR.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_MODIFICATION_DECODE_ATTR.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -319,8 +316,7 @@ public abstract class RawModification
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_MODIFICATION_DECODE_SEQUENCE.get(
-          String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_MODIFICATION_DECODE_SEQUENCE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 

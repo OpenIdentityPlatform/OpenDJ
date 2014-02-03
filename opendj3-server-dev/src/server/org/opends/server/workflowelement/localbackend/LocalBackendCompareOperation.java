@@ -191,8 +191,7 @@ public class LocalBackendCompareOperation
       if (readLock == null)
       {
         setResultCode(ResultCode.BUSY);
-        appendErrorMessage(ERR_COMPARE_CANNOT_LOCK_ENTRY.get(
-            String.valueOf(entryDN)));
+        appendErrorMessage(ERR_COMPARE_CANNOT_LOCK_ENTRY.get(entryDN));
         return;
       }
 
@@ -203,8 +202,7 @@ public class LocalBackendCompareOperation
         if (entry == null)
         {
           setResultCode(ResultCode.NO_SUCH_OBJECT);
-          appendErrorMessage(ERR_COMPARE_NO_SUCH_ENTRY.get(String
-              .valueOf(entryDN)));
+          appendErrorMessage(ERR_COMPARE_NO_SUCH_ENTRY.get(entryDN));
 
           // See if one of the entry's ancestors exists.
           setMatchedDN(findMatchedDN(entryDN));
@@ -241,8 +239,7 @@ public class LocalBackendCompareOperation
         {
           setResultCodeAndMessageNoInfoDisclosure(entry, entryDN,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-              ERR_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(String
-                  .valueOf(entryDN)));
+              ERR_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(entryDN));
           return;
         }
       }
@@ -284,13 +281,11 @@ public class LocalBackendCompareOperation
         setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
         if (options == null)
         {
-          appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR.get(String
-              .valueOf(entryDN), getRawAttributeType()));
+          appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR.get(entryDN, getRawAttributeType()));
         }
         else
         {
-          appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR_WITH_OPTIONS.get(
-              String.valueOf(entryDN), getRawAttributeType()));
+          appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR_WITH_OPTIONS.get(entryDN, getRawAttributeType()));
         }
       }
       else
@@ -338,7 +333,7 @@ public class LocalBackendCompareOperation
   {
     return LocalBackendWorkflowElement.newDirectoryException(this, entry, null,
         resultCode, message, ResultCode.NO_SUCH_OBJECT,
-        ERR_COMPARE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
+        ERR_COMPARE_NO_SUCH_ENTRY.get(entryDN));
   }
 
   private void setResultCodeAndMessageNoInfoDisclosure(Entry entry, DN entryDN,
@@ -346,7 +341,7 @@ public class LocalBackendCompareOperation
   {
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
         entry, entryDN, realResultCode, realMessage, ResultCode.NO_SUCH_OBJECT,
-        ERR_COMPARE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
+        ERR_COMPARE_NO_SUCH_ENTRY.get(entryDN));
   }
 
   private DN findMatchedDN(DN entryDN)
@@ -403,9 +398,7 @@ public class LocalBackendCompareOperation
             logger.traceException(de);
 
             throw newDirectoryException(entry, de.getResultCode(),
-                           ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                                String.valueOf(entryDN),
-                                de.getMessageObject()));
+                ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
           }
 
           // Check if the current user has permission to make
@@ -423,8 +416,7 @@ public class LocalBackendCompareOperation
             if (!filter.matchesEntry(entry))
             {
               throw newDirectoryException(entry, ResultCode.ASSERTION_FAILED,
-                  ERR_COMPARE_ASSERTION_FAILED.get(String
-                      .valueOf(entryDN)));
+                  ERR_COMPARE_ASSERTION_FAILED.get(entryDN));
             }
           }
           catch (DirectoryException de)
@@ -437,9 +429,7 @@ public class LocalBackendCompareOperation
             logger.traceException(de);
 
             throw newDirectoryException(entry, de.getResultCode(),
-                           ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                                String.valueOf(entryDN),
-                                de.getMessageObject()));
+                ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
           }
         }
         else if (oid.equals(OID_PROXIED_AUTH_V1))
@@ -501,9 +491,8 @@ public class LocalBackendCompareOperation
           if ((backend == null) || (! backend.supportsControl(oid)))
           {
             throw new DirectoryException(
-                           ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                           ERR_COMPARE_UNSUPPORTED_CRITICAL_CONTROL.get(
-                                String.valueOf(entryDN), oid));
+                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+                ERR_COMPARE_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
           }
         }
       }

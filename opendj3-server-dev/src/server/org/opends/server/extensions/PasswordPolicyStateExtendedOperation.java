@@ -392,8 +392,7 @@ public class PasswordPolicyStateExtendedOperation
       if (!policy.isPasswordPolicy())
       {
         operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-        operation.appendErrorMessage(ERR_EXTOP_PWPSTATE_ACCOUNT_NOT_LOCAL
-            .get(String.valueOf(userEntry)));
+        operation.appendErrorMessage(ERR_EXTOP_PWPSTATE_ACCOUNT_NOT_LOCAL.get(userEntry));
         return;
       }
       pwpState = (PasswordPolicyState) policy
@@ -597,9 +596,7 @@ public class PasswordPolicyStateExtendedOperation
     }
     else if (matchingEntries.size() > 1)
     {
-      LocalizableMessage message = ERR_PWPSTATE_EXTOP_MULTIPLE_ENTRIES.get(
-              String.valueOf(targetDN));
-      operation.appendErrorMessage(message);
+      operation.appendErrorMessage(ERR_PWPSTATE_EXTOP_MULTIPLE_ENTRIES.get(targetDN));
       operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
       return null;
     }
@@ -1625,9 +1622,7 @@ public class PasswordPolicyStateExtendedOperation
         break;
 
       default:
-
-        operation.appendErrorMessage(ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE.get(
-            String.valueOf(opType)));
+        operation.appendErrorMessage(ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE.get(opType));
         operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
         return false;
     }

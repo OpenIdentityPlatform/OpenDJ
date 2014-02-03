@@ -181,8 +181,7 @@ public class CharacterSetPasswordValidator
       }
       if ((! found) && (! config.isAllowUnclassifiedCharacters()))
       {
-        invalidReason.append(ERR_CHARSET_VALIDATOR_ILLEGAL_CHARACTER.get(
-                String.valueOf(c)));
+        invalidReason.append(ERR_CHARSET_VALIDATOR_ILLEGAL_CHARACTER.get(c));
         return false;
       }
     }
@@ -361,9 +360,7 @@ public class CharacterSetPasswordValidator
         char c = characterSet.charAt(i);
         if (usedCharacters.contains(c))
         {
-          LocalizableMessage message = ERR_CHARSET_VALIDATOR_DUPLICATE_CHAR.get(
-              definition, String.valueOf(c));
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_CHARSET_VALIDATOR_DUPLICATE_CHAR.get(definition, c));
         }
 
         usedCharacters.add(c);

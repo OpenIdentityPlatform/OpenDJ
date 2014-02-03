@@ -484,10 +484,8 @@ public class SubCommandArgumentParser extends ArgumentParser
       if (globalShortIDMap.containsKey(shortID))
       {
         String name = globalShortIDMap.get(shortID).getName();
-
-        LocalizableMessage message = ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_SHORT_ID.get(
-            String.valueOf(shortID), argumentName, name);
-        throw new ArgumentException(message);
+        throw new ArgumentException(
+            ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_SHORT_ID.get(shortID, argumentName, name));
       }
 
       for (SubCommand s : subCommands.values())
@@ -497,9 +495,8 @@ public class SubCommandArgumentParser extends ArgumentParser
           String cmdName = s.getName();
           String name    = s.getArgument(shortID).getName();
 
-          LocalizableMessage message = ERR_SUBCMDPARSER_GLOBAL_ARG_SHORT_ID_CONFLICT.get(
-              String.valueOf(shortID), argumentName, name, cmdName);
-          throw new ArgumentException(message);
+          throw new ArgumentException(
+              ERR_SUBCMDPARSER_GLOBAL_ARG_SHORT_ID_CONFLICT.get(shortID, argumentName, name, cmdName));
         }
       }
     }
@@ -937,21 +934,17 @@ public class SubCommandArgumentParser extends ArgumentParser
               }
               else
               {
-                // -V is defined in another suncommand, so we can
+                // -V is defined in another subcommand, so we can
                 // accepted it as the version information argument
-                LocalizableMessage message =
-                    ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.
-                      get(String.valueOf(argCharacter));
-                throw new ArgumentException(message);
+                throw new ArgumentException(
+                    ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.get(argCharacter));
               }
             }
             else
             {
               // There is no such argument registered.
-              LocalizableMessage message =
-                  ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.
-                    get(String.valueOf(argCharacter));
-              throw new ArgumentException(message);
+              throw new ArgumentException(
+                  ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.get(argCharacter));
             }
           }
           else
@@ -979,9 +972,8 @@ public class SubCommandArgumentParser extends ArgumentParser
               else
               {
                 // There is no such argument registered.
-                LocalizableMessage message = ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID.get(
-                    String.valueOf(argCharacter));
-                throw new ArgumentException(message);
+                throw new ArgumentException(
+                    ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID.get(argCharacter));
               }
             }
           }
@@ -1005,10 +997,8 @@ public class SubCommandArgumentParser extends ArgumentParser
           {
             if ((i+1) == numArguments)
             {
-              LocalizableMessage message =
-                  ERR_SUBCMDPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID.
-                    get(String.valueOf(argCharacter));
-              throw new ArgumentException(message);
+              throw new ArgumentException(
+                  ERR_SUBCMDPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID.get(argCharacter));
             }
 
             argValue = rawArguments[++i];
@@ -1048,19 +1038,16 @@ public class SubCommandArgumentParser extends ArgumentParser
               {
                 if (subCommand == null)
                 {
-                  LocalizableMessage message =
-                      ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.
-                        get(String.valueOf(argCharacter));
-                  throw new ArgumentException(message);
+                  throw new ArgumentException(
+                      ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.get(argCharacter));
                 }
                 else
                 {
                   b = subCommand.getArgument(c);
                   if (b == null)
                   {
-                    LocalizableMessage message = ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID.
-                        get(String.valueOf(argCharacter));
-                    throw new ArgumentException(message);
+                    throw new ArgumentException(
+                        ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID.get(argCharacter));
                   }
                 }
               }
@@ -1069,10 +1056,8 @@ public class SubCommandArgumentParser extends ArgumentParser
               {
                 // This means we're in a scenario like "-abc" where b is a
                 // valid argument that takes a value.  We don't support that.
-                LocalizableMessage message = ERR_SUBCMDPARSER_CANT_MIX_ARGS_WITH_VALUES.
-                    get(String.valueOf(argCharacter), argValue,
-                        String.valueOf(c));
-                throw new ArgumentException(message);
+                throw new ArgumentException(
+                    ERR_SUBCMDPARSER_CANT_MIX_ARGS_WITH_VALUES.get(argCharacter, argValue, c));
               }
               else
               {

@@ -1829,9 +1829,7 @@ public class ReplicationCliMain extends ConsoleApplication
             if (replicationPort1 == port1)
             {
               println();
-              println(
-                  ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(
-                      host1, String.valueOf(replicationPort1)));
+              println(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host1, replicationPort1));
               println();
               replicationPort1 = -1;
             }
@@ -1842,8 +1840,8 @@ public class ReplicationCliMain extends ConsoleApplication
           try
           {
             secureReplication1 =
-              askConfirmation(INFO_REPLICATION_ENABLE_SECURE1_PROMPT.get(
-                String.valueOf(replicationPort1)), false, logger);
+              askConfirmation(INFO_REPLICATION_ENABLE_SECURE1_PROMPT.get(replicationPort1),
+                  false, logger);
           }
           catch (CLIException ce)
           {
@@ -1979,8 +1977,7 @@ public class ReplicationCliMain extends ConsoleApplication
           if (port1 == port2)
           {
             port2 = -1;
-            LocalizableMessage message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(
-                host1, String.valueOf(port1));
+            LocalizableMessage message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(host1, port1);
             println();
             println(message);
             println();
@@ -2122,9 +2119,7 @@ public class ReplicationCliMain extends ConsoleApplication
               if (replicationPort2 == port2)
               {
                 println();
-                println(
-                    ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(
-                        host2, String.valueOf(replicationPort2)));
+                println(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host2, replicationPort2));
                 replicationPort2 = -1;
               }
             }
@@ -2134,8 +2129,7 @@ public class ReplicationCliMain extends ConsoleApplication
                   (replicationPort1 == replicationPort2))
               {
                 println();
-                println(ERR_REPLICATION_SAME_REPLICATION_PORT.get(
-                    String.valueOf(replicationPort2), host1));
+                println(ERR_REPLICATION_SAME_REPLICATION_PORT.get(replicationPort2, host1));
                 println();
                 replicationPort2 = -1;
               }
@@ -2146,8 +2140,7 @@ public class ReplicationCliMain extends ConsoleApplication
             try
             {
               secureReplication2 =
-                askConfirmation(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(
-                    String.valueOf(replicationPort2)), false, logger);
+                askConfirmation(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(replicationPort2), false, logger);
             }
             catch (CLIException ce)
             {
@@ -3032,8 +3025,7 @@ public class ReplicationCliMain extends ConsoleApplication
           if (portSource == portDestination)
           {
             portDestination = -1;
-            LocalizableMessage message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
-                hostSource, String.valueOf(portSource));
+            LocalizableMessage message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(hostSource, portSource);
             println();
             println(message);
             println();
@@ -4085,8 +4077,7 @@ public class ReplicationCliMain extends ConsoleApplication
             (replPort1 == replPort2) &&
             (host1.equalsIgnoreCase(host2)))
         {
-          errorMessages.add(ERR_REPLICATION_SAME_REPLICATION_PORT.get(
-              String.valueOf(replPort1), host1));
+          errorMessages.add(ERR_REPLICATION_SAME_REPLICATION_PORT.get(replPort1, host1));
         }
 
         if (argParser.skipReplicationPortCheck())
@@ -4096,15 +4087,13 @@ public class ReplicationCliMain extends ConsoleApplication
           if (checkReplicationPort1 && replPort1 == port1)
           {
             errorMessages.add(
-                ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(
-                host1, String.valueOf(replPort1)));
+                ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host1, replPort1));
           }
 
           if (checkReplicationPort2 && replPort2 == port2)
           {
             errorMessages.add(
-                ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(
-                host2, String.valueOf(replPort2)));
+                ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host2, replPort2));
           }
         }
       }
@@ -4197,8 +4186,7 @@ public class ReplicationCliMain extends ConsoleApplication
           println(INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
               ConnectionUtils.getHostPort(ctx1),
               ConnectionUtils.getHostPort(ctx2),
-              String.valueOf(
-                  Installer.THRESHOLD_CLOCK_DIFFERENCE_WARNING)));
+              Installer.THRESHOLD_CLOCK_DIFFERENCE_WARNING));
         }
       }
       printlnProgress();
@@ -8412,8 +8400,7 @@ public class ReplicationCliMain extends ConsoleApplication
           if (processed + unprocessed > 0)
           {
             long perc = (100 * processed) / (processed + unprocessed);
-            msg = INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(sProcessed,
-                String.valueOf(perc));
+            msg = INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(sProcessed, perc);
           }
           else
           {

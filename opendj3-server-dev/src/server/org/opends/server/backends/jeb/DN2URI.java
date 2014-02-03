@@ -497,8 +497,7 @@ public class DN2URI extends DatabaseContainer
     }
 
     // Throw a directory referral exception containing the URIs.
-    LocalizableMessage msg =
-        NOTE_JEB_REFERRAL_RESULT_MESSAGE.get(String.valueOf(referralDN));
+    LocalizableMessage msg = NOTE_JEB_REFERRAL_RESULT_MESSAGE.get(referralDN);
     throw new DirectoryException(
             ResultCode.REFERRAL, msg, referralDN, URIList, null);
   }

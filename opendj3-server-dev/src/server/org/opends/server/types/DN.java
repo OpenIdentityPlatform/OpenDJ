@@ -2306,11 +2306,8 @@ public final class DN implements Comparable<DN>, Serializable
       {
         logger.traceException(e);
 
-        LocalizableMessage message =
-            ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
-              get(dnString, String.valueOf(e));
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+            ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(dnString, e));
       }
     }
 
@@ -2549,10 +2546,8 @@ public final class DN implements Comparable<DN>, Serializable
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
-          get(dnString, String.valueOf(e));
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message);
+          ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(dnString, e));
     }
   }
 

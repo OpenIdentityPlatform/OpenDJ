@@ -125,7 +125,7 @@ public class SaltedSHA384PasswordStorageScheme
       logger.traceException(e);
 
       LocalizableMessage message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
-          MESSAGE_DIGEST_ALGORITHM_SHA_384, String.valueOf(e));
+          MESSAGE_DIGEST_ALGORITHM_SHA_384, e);
       throw new InitializationException(message, e);
     }
 

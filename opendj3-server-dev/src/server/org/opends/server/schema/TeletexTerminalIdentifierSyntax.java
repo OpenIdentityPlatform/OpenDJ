@@ -275,9 +275,7 @@ public class TeletexTerminalIdentifierSyntax
     char c = valueString.charAt(0);
     if (! PrintableString.isPrintableCharacter(c))
     {
-
-      invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_NOT_PRINTABLE.get(
-              valueString, String.valueOf(c), 0));
+      invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_NOT_PRINTABLE.get(valueString, c, 0));
       return false;
     }
 
@@ -297,9 +295,7 @@ public class TeletexTerminalIdentifierSyntax
       {
         if (! PrintableString.isPrintableCharacter(c))
         {
-
-          invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_NOT_PRINTABLE.get(
-                  valueString, String.valueOf(c), pos));
+          invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_NOT_PRINTABLE.get(valueString, c, pos));
         }
       }
     }

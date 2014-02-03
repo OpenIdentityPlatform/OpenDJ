@@ -292,10 +292,7 @@ public class WaitForFileDelete extends ConsoleApplication
       }
       catch (Exception e)
       {
-        LocalizableMessage message = WARN_WAIT4DEL_CANNOT_OPEN_LOG_FILE.get(
-                logFilePath.getValue(), String.valueOf(e));
-        println(message);
-
+        println(WARN_WAIT4DEL_CANNOT_OPEN_LOG_FILE.get(logFilePath.getValue(), e));
         logFile = null;
       }
     }
@@ -321,10 +318,7 @@ public class WaitForFileDelete extends ConsoleApplication
         }
         catch (Exception e)
         {
-          LocalizableMessage message = WARN_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE.get(
-                  outputFilePath.getValue(), String.valueOf(e));
-          println(message);
-
+          println(WARN_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE.get(outputFilePath.getValue(), e));
           outputFile = null;
         }
       }

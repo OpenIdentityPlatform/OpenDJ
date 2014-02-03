@@ -273,8 +273,7 @@ public final class LDIFReader implements Closeable
                     "exclude branches.", entryDN);
           }
           entriesRead.incrementAndGet();
-          LocalizableMessage message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
-          logToSkipWriter(lines, message);
+          logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
           continue;
         }
         entryID = rootContainer.getNextEntryID();
@@ -288,8 +287,7 @@ public final class LDIFReader implements Closeable
                     "check." ,entryDN);
           }
           entriesRead.incrementAndGet();
-          LocalizableMessage message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
-          logToSkipWriter(lines, message);
+          logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
           continue;
         }
         entriesRead.incrementAndGet();
@@ -317,9 +315,7 @@ public final class LDIFReader implements Closeable
           logger.trace("Skipping entry %s because reading" +
                   "its attributes failed.", entryDN);
         }
-        LocalizableMessage message = ERR_LDIF_READ_ATTR_SKIP.get(String.valueOf(entryDN),
-                                                       e.getMessage());
-        logToSkipWriter(lines, message);
+        logToSkipWriter(lines, ERR_LDIF_READ_ATTR_SKIP.get(entryDN, e.getMessage()));
         suffix.removePending(entryDN);
         continue;
       }
@@ -344,8 +340,7 @@ public final class LDIFReader implements Closeable
                 "that should be included based on the include and exclude " +
                 "filters.", entryDN);
           }
-          LocalizableMessage message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
-          logToSkipWriter(lines, message);
+          logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
           suffix.removePending(entryDN);
           continue;
         }
@@ -354,10 +349,8 @@ public final class LDIFReader implements Closeable
       {
         logger.traceException(e);
         suffix.removePending(entryDN);
-        LocalizableMessage message = ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.
-            get(String.valueOf(entry.getName()), lastEntryLineNumber,
-                String.valueOf(e));
-        logToSkipWriter(lines, message);
+        logToSkipWriter(lines,
+            ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.get(entry.getName(), lastEntryLineNumber, e));
         suffix.removePending(entryDN);
         continue;
       }
@@ -374,13 +367,11 @@ public final class LDIFReader implements Closeable
           LocalizableMessage rejectMessage = pluginResult.getErrorMessage();
           if (rejectMessage == null)
           {
-            m = ERR_LDIF_REJECTED_BY_PLUGIN_NOMESSAGE.get(
-                     String.valueOf(entryDN));
+            m = ERR_LDIF_REJECTED_BY_PLUGIN_NOMESSAGE.get(entryDN);
           }
           else
           {
-            m = ERR_LDIF_REJECTED_BY_PLUGIN.get(String.valueOf(entryDN),
-                                                rejectMessage);
+            m = ERR_LDIF_REJECTED_BY_PLUGIN.get(entryDN, rejectMessage);
           }
 
           logToRejectWriter(lines, m);
@@ -496,8 +487,7 @@ public final class LDIFReader implements Closeable
                     entryDN);
         }
         entriesRead.incrementAndGet();
-        LocalizableMessage message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
-        logToSkipWriter(lines, message);
+        logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
         continue;
       }
       else
@@ -538,8 +528,7 @@ public final class LDIFReader implements Closeable
                 "that should be included based on the include and exclude " +
                 "filters.", entryDN);
           }
-          LocalizableMessage message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
-          logToSkipWriter(lines, message);
+          logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
           continue;
         }
       }
@@ -548,8 +537,7 @@ public final class LDIFReader implements Closeable
         logger.traceException(e);
 
         LocalizableMessage message = ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.
-            get(String.valueOf(entry.getName()), lastEntryLineNumber,
-                String.valueOf(e));
+            get(entry.getName(), lastEntryLineNumber, e);
         throw new LDIFException(message, lastEntryLineNumber, true, e);
       }
 
@@ -565,13 +553,11 @@ public final class LDIFReader implements Closeable
           LocalizableMessage rejectMessage = pluginResult.getErrorMessage();
           if (rejectMessage == null)
           {
-            m = ERR_LDIF_REJECTED_BY_PLUGIN_NOMESSAGE.get(
-                     String.valueOf(entryDN));
+            m = ERR_LDIF_REJECTED_BY_PLUGIN_NOMESSAGE.get(entryDN);
           }
           else
           {
-            m = ERR_LDIF_REJECTED_BY_PLUGIN.get(String.valueOf(entryDN),
-                                                rejectMessage);
+            m = ERR_LDIF_REJECTED_BY_PLUGIN.get(entryDN, rejectMessage);
           }
 
           logToRejectWriter(lines, m);
@@ -1068,7 +1054,8 @@ public final class LDIFReader implements Closeable
 
       if (objectClasses.containsKey(objectClass))
       {
-        logger.warn(WARN_LDIF_DUPLICATE_OBJECTCLASS.get(String.valueOf(entryDN), lastEntryLineNumber, ocName));
+        logger.warn(WARN_LDIF_DUPLICATE_OBJECTCLASS.get(
+            entryDN, lastEntryLineNumber, ocName));
       }
       else
       {
@@ -1100,7 +1087,7 @@ public final class LDIFReader implements Closeable
        if(attribute.hasOption("binary"))
         {
           LocalizableMessage message = ERR_LDIF_INVALID_ATTR_OPTION.get(
-            String.valueOf(entryDN),lastEntryLineNumber, attrName);
+            entryDN, lastEntryLineNumber, attrName);
           logToRejectWriter(lines, message);
           throw new LDIFException(message, lastEntryLineNumber,true);
         }
@@ -1164,8 +1151,7 @@ public final class LDIFReader implements Closeable
           if (attrType.isSingleValue() && (a.size() > 1)  && checkSchema)
           {
             LocalizableMessage message = ERR_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR
-                    .get(String.valueOf(entryDN),
-                            lastEntryLineNumber, attrName);
+                    .get(entryDN, lastEntryLineNumber, attrName);
             logToRejectWriter(lines, message);
             throw new LDIFException(message, lastEntryLineNumber, true);
           }
@@ -1790,9 +1776,7 @@ public final class LDIFReader implements Closeable
           logger.traceException(e);
 
           LocalizableMessage message = ERR_LDIF_COULD_NOT_BASE64_DECODE_ATTR.get(
-                  String.valueOf(entryDN),
-                  lastEntryLineNumber, line,
-                  String.valueOf(e));
+              entryDN, lastEntryLineNumber, line, e);
           logToRejectWriter(lines, message);
           throw new LDIFException(message, lastEntryLineNumber, true, e);
         }
@@ -1813,10 +1797,8 @@ public final class LDIFReader implements Closeable
           // The URL was malformed or had an invalid protocol.
           logger.traceException(e);
 
-          LocalizableMessage message = ERR_LDIF_INVALID_URL.get(String.valueOf(entryDN),
-                                      lastEntryLineNumber,
-                                      String.valueOf(attrName),
-                                      String.valueOf(e));
+          LocalizableMessage message = ERR_LDIF_INVALID_URL.get(
+              entryDN, lastEntryLineNumber, attrName, e);
           logToRejectWriter(lines, message);
           throw new LDIFException(message, lastEntryLineNumber, true, e);
         }
@@ -1837,11 +1819,8 @@ public final class LDIFReader implements Closeable
           // We were unable to read the contents of that URL for some reason.
           logger.traceException(e);
 
-          LocalizableMessage message = ERR_LDIF_URL_IO_ERROR.get(String.valueOf(entryDN),
-                                      lastEntryLineNumber,
-                                      String.valueOf(attrName),
-                                      String.valueOf(contentURL),
-                                      String.valueOf(e));
+          LocalizableMessage message = ERR_LDIF_URL_IO_ERROR.get(
+              entryDN, lastEntryLineNumber, attrName, contentURL, e);
           logToRejectWriter(lines, message);
           throw new LDIFException(message, lastEntryLineNumber, true, e);
         }

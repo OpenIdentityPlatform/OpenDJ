@@ -82,8 +82,7 @@ public class PagedResultsControl extends Control
       {
         logger.traceException(e);
 
-        LocalizableMessage message =
-            ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));
+        LocalizableMessage message = ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(e);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
       }
 
@@ -96,8 +95,7 @@ public class PagedResultsControl extends Control
       {
         logger.traceException(e);
 
-        LocalizableMessage message =
-            ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(String.valueOf(e));
+        LocalizableMessage message = ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(e);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
       }
 
@@ -110,8 +108,7 @@ public class PagedResultsControl extends Control
       {
         logger.traceException(e);
 
-        LocalizableMessage message =
-            ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE.get(String.valueOf(e));
+        LocalizableMessage message = ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE.get(e);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
       }
 
@@ -123,8 +120,7 @@ public class PagedResultsControl extends Control
       {
         logger.traceException(e);
 
-        LocalizableMessage message =
-            ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));
+        LocalizableMessage message = ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(e);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
       }
 

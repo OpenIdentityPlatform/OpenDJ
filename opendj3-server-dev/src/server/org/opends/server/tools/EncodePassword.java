@@ -591,9 +591,7 @@ public class EncodePassword
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_ENCPW_INVALID_ENCODED_AUTHPW.get(
-                  String.valueOf(e));
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(ERR_ENCPW_INVALID_ENCODED_AUTHPW.get(e), MAX_LINE_WIDTH));
           return OPERATIONS_ERROR;
         }
 
@@ -656,9 +654,7 @@ public class EncodePassword
           }
           catch (Exception e)
           {
-            LocalizableMessage message = ERR_ENCPW_INVALID_ENCODED_USERPW.get(
-                    String.valueOf(e));
-            err.println(wrapText(message, MAX_LINE_WIDTH));
+            err.println(wrapText(ERR_ENCPW_INVALID_ENCODED_USERPW.get(e), MAX_LINE_WIDTH));
             return OPERATIONS_ERROR;
           }
         }

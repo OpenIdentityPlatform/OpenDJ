@@ -620,7 +620,7 @@ public class ManageAccount
           LocalizableMessage message =
                ERR_PWPSTATE_REQUEST_FAILED.get(resultCode,
                           LDAPResultCode.toString(resultCode),
-                          String.valueOf(extendedResponse.getErrorMessage()));
+                          extendedResponse.getErrorMessage());
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return resultCode;
         }
@@ -776,8 +776,7 @@ public class ManageAccount
               break;
 
             default:
-              message = ERR_PWPSTATE_INVALID_RESPONSE_OP_TYPE.get(
-                  String.valueOf(opType));
+              message = ERR_PWPSTATE_INVALID_RESPONSE_OP_TYPE.get(opType);
               err.println(wrapText(message, MAX_LINE_WIDTH));
               break;
           }

@@ -268,8 +268,7 @@ public class LocalBackendAddOperation
       if (entryLock == null)
       {
         setResultCode(ResultCode.BUSY);
-        appendErrorMessage(ERR_ADD_CANNOT_LOCK_ENTRY.get(
-            String.valueOf(entryDN)));
+        appendErrorMessage(ERR_ADD_CANNOT_LOCK_ENTRY.get(entryDN));
         return;
       }
 
@@ -333,7 +332,7 @@ public class LocalBackendAddOperation
       {
         setResultCodeAndMessageNoInfoDisclosure(entryDN,
             ResultCode.ENTRY_ALREADY_EXISTS,
-            ERR_ADD_ENTRY_ALREADY_EXISTS.get(String.valueOf(entryDN)));
+            ERR_ADD_ENTRY_ALREADY_EXISTS.get(entryDN));
         return;
       }
 
@@ -353,15 +352,13 @@ public class LocalBackendAddOperation
           {
             // check whether matchedDN allows to disclose info
             setResultCodeAndMessageNoInfoDisclosure(matchedDN,
-                ResultCode.NO_SUCH_OBJECT, ERR_ADD_NO_PARENT.get(String
-                    .valueOf(entryDN), String.valueOf(parentDN)));
+                ResultCode.NO_SUCH_OBJECT, ERR_ADD_NO_PARENT.get(entryDN, parentDN));
           }
           else
           {
             // no matched DN either, so let's return normal error code
             setResultCode(ResultCode.NO_SUCH_OBJECT);
-            appendErrorMessage(ERR_ADD_NO_PARENT.get(String.valueOf(entryDN),
-                String.valueOf(parentDN)));
+            appendErrorMessage(ERR_ADD_NO_PARENT.get(entryDN, parentDN));
           }
           return;
         }
@@ -441,8 +438,7 @@ public class LocalBackendAddOperation
         {
           setResultCodeAndMessageNoInfoDisclosure(entryDN,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-              ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
-                  String.valueOf(entryDN)));
+              ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(entryDN));
           return;
         }
       }
@@ -590,8 +586,7 @@ public class LocalBackendAddOperation
         {
           setResultCodeAndMessageNoInfoDisclosure(entryDN,
               ResultCode.CONSTRAINT_VIOLATION,
-              ERR_ADD_ATTR_IS_NO_USER_MOD.get(
-                  String.valueOf(entryDN), at.getNameOrOID()));
+              ERR_ADD_ATTR_IS_NO_USER_MOD.get(entryDN, at.getNameOrOID()));
           return true;
         }
       }
@@ -604,7 +599,7 @@ public class LocalBackendAddOperation
   {
     return LocalBackendWorkflowElement.newDirectoryException(this, null,
         entryDN, resultCode, message, ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-        ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(String.valueOf(entryDN)));
+        ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(entryDN));
   }
 
   private void setResultCodeAndMessageNoInfoDisclosure(DN entryDN,
@@ -613,7 +608,7 @@ public class LocalBackendAddOperation
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
         null, entryDN, resultCode, message,
         ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-        ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(String.valueOf(entryDN)));
+        ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(entryDN));
   }
 
   /**
@@ -632,9 +627,7 @@ public class LocalBackendAddOperation
       if (parentLock == null)
       {
         throw newDirectoryException(parentDN, ResultCode.BUSY,
-            ERR_ADD_CANNOT_LOCK_PARENT.get(
-                String.valueOf(entryDN),
-                String.valueOf(parentDN)));
+            ERR_ADD_CANNOT_LOCK_PARENT.get(entryDN, parentDN));
       }
       return parentLock;
     }
@@ -656,7 +649,7 @@ public class LocalBackendAddOperation
       // The entry doesn't have a parent but isn't a suffix.  This is not
       // allowed.
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          ERR_ADD_ENTRY_NOT_SUFFIX.get(String.valueOf(entryDN)));
+          ERR_ADD_ENTRY_NOT_SUFFIX.get(entryDN));
     }
   }
 
@@ -708,8 +701,7 @@ public class LocalBackendAddOperation
       else
       {
         throw newDirectoryException(entryDN, ResultCode.CONSTRAINT_VIOLATION,
-                                     ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
-                                          String.valueOf(entryDN), n));
+            ERR_ADD_MISSING_RDN_ATTRIBUTE.get(entryDN, n));
       }
     }
     else
@@ -744,8 +736,7 @@ public class LocalBackendAddOperation
         else
         {
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                       ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
-                                            String.valueOf(entryDN), n));
+              ERR_ADD_MISSING_RDN_ATTRIBUTE.get(entryDN, n));
         }
       }
     }
@@ -920,11 +911,8 @@ public class LocalBackendAddOperation
             addPWPolicyControl(
                  PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
 
-            LocalizableMessage message = ERR_PWPOLICY_VALIDATION_FAILED.
-                get(passwordAttribute.getNameOrOID(),
-                    String.valueOf(invalidReason));
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
+                ERR_PWPOLICY_VALIDATION_FAILED.get(passwordAttribute.getNameOrOID(), invalidReason));
           }
         }
       }
@@ -1028,9 +1016,7 @@ public class LocalBackendAddOperation
       if (at.isObsolete())
       {
         throw newDirectoryException(entryDN, ResultCode.CONSTRAINT_VIOLATION,
-                                     WARN_ADD_ATTR_IS_OBSOLETE.get(
-                                          String.valueOf(entryDN),
-                                          at.getNameOrOID()));
+            WARN_ADD_ATTR_IS_OBSOLETE.get(entryDN, at.getNameOrOID()));
       }
     }
 
@@ -1039,9 +1025,7 @@ public class LocalBackendAddOperation
       if (at.isObsolete())
       {
         throw newDirectoryException(entryDN, ResultCode.CONSTRAINT_VIOLATION,
-                                     WARN_ADD_ATTR_IS_OBSOLETE.get(
-                                          String.valueOf(entryDN),
-                                          at.getNameOrOID()));
+            WARN_ADD_ATTR_IS_OBSOLETE.get(entryDN, at.getNameOrOID()));
       }
     }
 
@@ -1050,9 +1034,7 @@ public class LocalBackendAddOperation
       if (oc.isObsolete())
       {
         throw newDirectoryException(entryDN, ResultCode.CONSTRAINT_VIOLATION,
-                                     WARN_ADD_OC_IS_OBSOLETE.get(
-                                          String.valueOf(entryDN),
-                                          oc.getNameOrOID()));
+            WARN_ADD_OC_IS_OBSOLETE.get(entryDN, oc.getNameOrOID()));
       }
     }
   }
@@ -1077,18 +1059,12 @@ public class LocalBackendAddOperation
               {
                 // Value is not human-readable
                 message = WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.
-                    get(String.valueOf(entryDN),
-                        String.valueOf(a.getName()),
-                        String.valueOf(invalidReason));
+                    get(entryDN, a.getName(), invalidReason);
               }
               else
               {
                 message = WARN_ADD_OP_INVALID_SYNTAX.
-                    get(String.valueOf(entryDN),
-                        String.valueOf(v.getValue()),
-                        String.valueOf(a.getName()),
-                        String.valueOf(invalidReason));
-
+                    get(entryDN, v.getValue(), a.getName(), invalidReason);
               }
 
               switch (DirectoryServer.getSyntaxEnforcementPolicy())
@@ -1145,8 +1121,7 @@ public class LocalBackendAddOperation
 
             throw newDirectoryException(entryDN, de.getResultCode(),
                 ERR_ADD_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                    String.valueOf(entryDN),
-                    de.getMessageObject()));
+                    entryDN, de.getMessageObject()));
           }
 
           // Check if the current user has permission to make
@@ -1164,8 +1139,7 @@ public class LocalBackendAddOperation
             if (!filter.matchesEntry(entry))
             {
               throw newDirectoryException(entryDN, ResultCode.ASSERTION_FAILED,
-                  ERR_ADD_ASSERTION_FAILED.get(String
-                      .valueOf(entryDN)));
+                  ERR_ADD_ASSERTION_FAILED.get(entryDN));
             }
           }
           catch (DirectoryException de)
@@ -1179,8 +1153,7 @@ public class LocalBackendAddOperation
 
             throw newDirectoryException(entryDN, de.getResultCode(),
                 ERR_ADD_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                    String.valueOf(entryDN),
-                    de.getMessageObject()));
+                    entryDN, de.getMessageObject()));
           }
         }
         else if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
@@ -1258,12 +1231,10 @@ public class LocalBackendAddOperation
           {
             throw newDirectoryException(entryDN,
                            ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                           ERR_ADD_UNSUPPORTED_CRITICAL_CONTROL.get(
-                                String.valueOf(entryDN), oid));
+                           ERR_ADD_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
           }
         }
       }
     }
   }
 }
-

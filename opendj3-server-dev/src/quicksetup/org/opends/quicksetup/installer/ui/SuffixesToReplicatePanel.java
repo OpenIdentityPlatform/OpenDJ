@@ -363,8 +363,7 @@ implements Comparator<SuffixDescriptor>
 
     if (nEntries > 0)
     {
-      display = INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES.get(
-              serverDisplay, String.valueOf(nEntries));
+      display = INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES.get(serverDisplay, nEntries);
     }
     else if (nEntries == 0)
     {
@@ -372,8 +371,7 @@ implements Comparator<SuffixDescriptor>
     }
     else
     {
-      display = INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES_NOT_AVAILABLE.get(
-              serverDisplay);
+      display = INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES_NOT_AVAILABLE.get(serverDisplay);
     }
 
     return display;

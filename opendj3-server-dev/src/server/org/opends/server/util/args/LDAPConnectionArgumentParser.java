@@ -376,8 +376,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
     } catch (OpenDsException e) {
       if ((e.getCause() != null) && (e.getCause().getCause() != null) &&
         e.getCause().getCause() instanceof SSLException) {
-        err.println(ERR_TASKINFO_LDAP_EXCEPTION_SSL.get(ui.getHostName(),
-          String.valueOf(ui.getPortNumber())));
+        err.println(ERR_TASKINFO_LDAP_EXCEPTION_SSL.get(ui.getHostName(), ui.getPortNumber()));
       } else {
         err.println(e.getMessageObject());
       }

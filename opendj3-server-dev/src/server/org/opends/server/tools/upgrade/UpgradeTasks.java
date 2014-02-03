@@ -844,8 +844,7 @@ public final class UpgradeTasks
   {
     if (changeCount != 0)
     {
-      logger.debug(INFO_UPGRADE_CHANGE_DONE_IN_SPECIFIC_FILE.get(
-          fileName, String.valueOf(changeCount)));
+      logger.debug(INFO_UPGRADE_CHANGE_DONE_IN_SPECIFIC_FILE.get(fileName, changeCount));
     }
     else
     {

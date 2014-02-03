@@ -136,8 +136,7 @@ public class VirtualAttributeConfigManager
             if (provider.isMultiValued())
             {
               LocalizableMessage message = ERR_CONFIG_VATTR_SV_TYPE_WITH_MV_PROVIDER.
-                  get(String.valueOf(cfg.dn()),
-                      cfg.getAttributeType().getNameOrOID(), className);
+                  get(cfg.dn(), cfg.getAttributeType().getNameOrOID(), className);
               throw new ConfigException(message);
             }
             else if (cfg.getConflictBehavior() ==
@@ -145,8 +144,7 @@ public class VirtualAttributeConfigManager
                           MERGE_REAL_AND_VIRTUAL)
             {
               LocalizableMessage message = ERR_CONFIG_VATTR_SV_TYPE_WITH_MERGE_VALUES.
-                  get(String.valueOf(cfg.dn()),
-                      cfg.getAttributeType().getNameOrOID());
+                  get(cfg.dn(), cfg.getAttributeType().getNameOrOID());
               throw new ConfigException(message);
             }
           }
@@ -217,9 +215,7 @@ public class VirtualAttributeConfigManager
         logger.traceException(de);
 
         LocalizableMessage message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
-                filterString,
-                String.valueOf(cfg.dn()),
-                de.getMessageObject());
+            filterString, cfg.dn(), de.getMessageObject());
         unacceptableReasons.put(message, de);
       }
     }
@@ -467,8 +463,7 @@ public class VirtualAttributeConfigManager
         if (!provider.isConfigurationAcceptable(cfg, unacceptableReasons))
         {
           String reasons = collectionToString(unacceptableReasons, ".  ");
-          LocalizableMessage message = ERR_CONFIG_VATTR_CONFIG_NOT_ACCEPTABLE.get(
-              String.valueOf(cfg.dn()), reasons);
+          LocalizableMessage message = ERR_CONFIG_VATTR_CONFIG_NOT_ACCEPTABLE.get(cfg.dn(), reasons);
           throw new InitializationException(message);
         }
       }
@@ -478,8 +473,7 @@ public class VirtualAttributeConfigManager
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_VATTR_INITIALIZATION_FAILED.
-          get(className, String.valueOf(cfg.dn()),
-              stackTraceToSingleLineString(e));
+          get(className, cfg.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }

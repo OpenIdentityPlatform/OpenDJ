@@ -1636,7 +1636,7 @@ implements BackendPopulatedListener
           }
           final UserDataCertificateException udce =
             new UserDataCertificateException(null,
-                INFO_CERTIFICATE_EXCEPTION.get(h, String.valueOf(p)),
+                INFO_CERTIFICATE_EXCEPTION.get(h, p),
                 ne, h, p,
                 getInfo().getTrustManager().getLastRefusedChain(),
                 getInfo().getTrustManager().getLastRefusedAuthType(),

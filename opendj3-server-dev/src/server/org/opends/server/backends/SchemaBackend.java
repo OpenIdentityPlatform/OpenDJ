@@ -1075,9 +1075,8 @@ public class SchemaBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    LocalizableMessage message =
-        ERR_SCHEMA_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getName()));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_SCHEMA_ADD_NOT_SUPPORTED.get(entry.getName()));
   }
 
 
@@ -1089,9 +1088,8 @@ public class SchemaBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    LocalizableMessage message =
-        ERR_SCHEMA_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_SCHEMA_DELETE_NOT_SUPPORTED.get(entryDN));
   }
 
 
@@ -1501,10 +1499,8 @@ public class SchemaBackend
           if ((!m.isInternal()) &&
               (!modifyOperation.isSynchronizationOperation()))
           {
-            LocalizableMessage message = ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(
-                String.valueOf(m.getModificationType()));
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                message);
+                ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(m.getModificationType()));
           }
           else
           {
@@ -1523,10 +1519,8 @@ public class SchemaBackend
           break;
 
         default:
-          LocalizableMessage message = ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(
-              String.valueOf(m.getModificationType()));
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-              message);
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+              ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(m.getModificationType()));
       }
     }
 
@@ -4097,9 +4091,8 @@ public class SchemaBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    LocalizableMessage message =
-        ERR_SCHEMA_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_SCHEMA_MODIFY_DN_NOT_SUPPORTED.get(currentDN));
   }
 
 
@@ -4132,7 +4125,7 @@ public class SchemaBackend
 
     if (! found)
     {
-      LocalizableMessage message = ERR_SCHEMA_INVALID_BASE.get(String.valueOf(baseDN));
+      LocalizableMessage message = ERR_SCHEMA_INVALID_BASE.get(baseDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
               matchedDN, null);
     }
@@ -4273,10 +4266,8 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      LocalizableMessage message =
-          ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+          ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER.get(e), e);
     }
 
 
@@ -4297,11 +4288,9 @@ public class SchemaBackend
         {
           if (! le.canContinueReading())
           {
-            LocalizableMessage message =
-                ERR_MEMORYBACKEND_ERROR_READING_LDIF.get(String.valueOf(e));
             throw new DirectoryException(
-                           DirectoryServer.getServerErrorResultCode(),
-                           message, le);
+                DirectoryServer.getServerErrorResultCode(),
+                ERR_MEMORYBACKEND_ERROR_READING_LDIF.get(e), le);
           }
           else
           {
@@ -4322,10 +4311,8 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      LocalizableMessage message =
-          ERR_MEMORYBACKEND_ERROR_DURING_IMPORT.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+          ERR_MEMORYBACKEND_ERROR_DURING_IMPORT.get(e), e);
     }
     finally
     {
@@ -4730,8 +4717,7 @@ public class SchemaBackend
       logger.traceException(e);
 
       LocalizableMessage message = ERR_SCHEMA_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
-          get(String.valueOf(filename), backupDirectory.getPath(),
-              getExceptionMessage(e));
+          get(filename, backupDirectory.getPath(), getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }
@@ -5256,8 +5242,7 @@ public class SchemaBackend
       {
         LocalizableMessage message = ERR_SCHEMA_RESTORE_CANNOT_RENAME_CURRENT_DIRECTORY.
             get(backupID, schemaInstanceDirPath,
-                String.valueOf(backupInstanceDirPath),
-                stackTraceToSingleLineString(e));
+                backupInstanceDirPath, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
@@ -5557,8 +5542,7 @@ public class SchemaBackend
 
 
       messages.add(ERR_SCHEMA_CANNOT_DETERMINE_BASE_DN.get(
-              String.valueOf(configEntryDN),
-              getExceptionMessage(e)));
+          configEntryDN, getExceptionMessage(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
       newBaseDNs = null;
     }
@@ -5602,8 +5586,7 @@ public class SchemaBackend
       logger.traceException(e);
 
       messages.add(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
-              String.valueOf(configEntryDN),
-              stackTraceToSingleLineString(e)));
+          configEntryDN, stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
@@ -5633,16 +5616,13 @@ public class SchemaBackend
         try
         {
           DirectoryServer.deregisterBaseDN(dn);
-          messages.add(INFO_SCHEMA_DEREGISTERED_BASE_DN.get(
-                  String.valueOf(dn)));
+          messages.add(INFO_SCHEMA_DEREGISTERED_BASE_DN.get(dn));
         }
         catch (Exception e)
         {
           logger.traceException(e);
 
-          messages.add(ERR_SCHEMA_CANNOT_DEREGISTER_BASE_DN.get(
-                  String.valueOf(dn),
-                  getExceptionMessage(e)));
+          messages.add(ERR_SCHEMA_CANNOT_DEREGISTER_BASE_DN.get(dn, getExceptionMessage(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
@@ -5653,15 +5633,13 @@ public class SchemaBackend
         try
         {
           DirectoryServer.registerBaseDN(dn, this, true);
-          messages.add(INFO_SCHEMA_REGISTERED_BASE_DN.get(String.valueOf(dn)));
+          messages.add(INFO_SCHEMA_REGISTERED_BASE_DN.get(dn));
         }
         catch (Exception e)
         {
           logger.traceException(e);
 
-          messages.add(ERR_SCHEMA_CANNOT_REGISTER_BASE_DN.get(
-                  String.valueOf(dn),
-                  getExceptionMessage(e)));
+          messages.add(ERR_SCHEMA_CANNOT_REGISTER_BASE_DN.get(dn, getExceptionMessage(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }

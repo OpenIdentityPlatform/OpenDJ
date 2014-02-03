@@ -556,9 +556,7 @@ public final class IntegerWithUnitConfigAttribute
     int spacePos = value.indexOf(' ');
     if (spacePos <= 0)
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_NO_UNIT_DELIMITER.get(
-          String.valueOf(value), getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_NO_UNIT_DELIMITER.get(value, getName()));
     }
 
 
@@ -571,8 +569,7 @@ public final class IntegerWithUnitConfigAttribute
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
-          String.valueOf(value), getName(), String.valueOf(e));
+      LocalizableMessage message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(value, getName(), e);
       throw new ConfigException(message, e);
     }
 
@@ -689,8 +686,7 @@ public final class IntegerWithUnitConfigAttribute
     {
       logger.traceException(e);
 
-      rejectReason.append(ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-              lowerValue, getName(), String.valueOf(e)));
+      rejectReason.append(ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(lowerValue, getName(), e));
       return false;
     }
 
@@ -701,8 +697,7 @@ public final class IntegerWithUnitConfigAttribute
     double multiplier;
     if (! units.containsKey(unit))
     {
-      rejectReason.append(ERR_CONFIG_ATTR_INVALID_UNIT.get(unit,
-                                     getName()));
+      rejectReason.append(ERR_CONFIG_ATTR_INVALID_UNIT.get(unit, getName()));
       return false;
     }
     else
@@ -959,9 +954,8 @@ public final class IntegerWithUnitConfigAttribute
             }
             catch (Exception e)
             {
-              LocalizableMessage message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.
-                  get(valueString, a.getName(), String.valueOf(e));
-              throw new ConfigException(message);
+              throw new ConfigException(ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.
+                  get(valueString, a.getName(), e));
             }
 
 
@@ -1044,9 +1038,8 @@ public final class IntegerWithUnitConfigAttribute
           }
           catch (Exception e)
           {
-            LocalizableMessage message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
-                valueString, a.getName(), String.valueOf(e));
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
+                valueString, a.getName(), e));
           }
 
 
@@ -1232,9 +1225,8 @@ public final class IntegerWithUnitConfigAttribute
     }
     else
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_INT_WITH_UNIT_INVALID_TYPE.get(
-          String.valueOf(value), getName(), value.getClass().getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_INT_WITH_UNIT_INVALID_TYPE.get(
+          value, getName(), value.getClass().getName()));
     }
   }
 

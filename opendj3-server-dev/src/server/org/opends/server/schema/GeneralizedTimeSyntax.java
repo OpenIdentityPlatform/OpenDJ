@@ -480,9 +480,8 @@ public class GeneralizedTimeSyntax
 
         default:
           LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR.get(
-              valueString, String.valueOf(valueString.charAt(i)));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+              valueString, valueString.charAt(i));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
     }
 
@@ -932,10 +931,8 @@ public class GeneralizedTimeSyntax
         // be a digit between 0 and 9.
         if (length < 13)
         {
-          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-              valueString, String.valueOf(m1), 10);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, m1, 10);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
 
 
@@ -1011,18 +1008,14 @@ public class GeneralizedTimeSyntax
 
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
-            LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.
-                get(valueString, String.valueOf(e));
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, e);
+            LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(valueString, e);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, e);
           }
         }
         else
         {
-          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-              valueString, String.valueOf(m1), 10);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, m1, 10);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
 
       case '+':
@@ -1047,17 +1040,14 @@ public class GeneralizedTimeSyntax
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
             LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.
-                get(valueString, String.valueOf(e));
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, e);
+                get(valueString, e);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, e);
           }
         }
         else
         {
-          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-              valueString, String.valueOf(m1), 10);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, m1, 10);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
 
       case '.':
@@ -1066,10 +1056,8 @@ public class GeneralizedTimeSyntax
                                       minute, second, 3600000);
 
       default:
-        LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-            valueString, String.valueOf(m1), 10);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message);
+        LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, m1, 10);
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1090,10 +1078,8 @@ public class GeneralizedTimeSyntax
         // be a digit between 0 and 9.
         if (length < 15)
         {
-          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-              valueString, String.valueOf(s1), 12);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, s1, 12);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
 
 
@@ -1155,8 +1141,7 @@ public class GeneralizedTimeSyntax
         // a 0.
         if (length < 15)
         {
-          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-              valueString, String.valueOf(s1), 12);
+          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, s1, 12);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -1193,15 +1178,14 @@ public class GeneralizedTimeSyntax
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
             LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.
-                get(valueString, String.valueOf(e));
+                get(valueString, e);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, e);
           }
         }
         else
         {
-          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-              valueString, String.valueOf(s1), 12);
+          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, s1, 12);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -1228,15 +1212,14 @@ public class GeneralizedTimeSyntax
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
             LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.
-                get(valueString, String.valueOf(e));
+                get(valueString, e);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, e);
           }
         }
         else
         {
-          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-              valueString, String.valueOf(s1), 12);
+          LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, s1, 12);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -1247,8 +1230,7 @@ public class GeneralizedTimeSyntax
                                       minute, second, 60000);
 
       default:
-        LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-            valueString, String.valueOf(s1), 12);
+        LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, s1, 12);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                      message);
     }
@@ -1285,7 +1267,7 @@ public class GeneralizedTimeSyntax
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
             LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.
-                get(valueString, String.valueOf(e));
+                get(valueString, e);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, e);
           }
@@ -1293,7 +1275,7 @@ public class GeneralizedTimeSyntax
         else
         {
           LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-              valueString, String.valueOf(valueString.charAt(14)), 14);
+              valueString, valueString.charAt(14), 14);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -1320,7 +1302,7 @@ public class GeneralizedTimeSyntax
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
             LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.
-                get(valueString, String.valueOf(e));
+                get(valueString, e);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, e);
           }
@@ -1328,14 +1310,14 @@ public class GeneralizedTimeSyntax
         else
         {
           LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-              valueString, String.valueOf(valueString.charAt(14)), 14);
+              valueString, valueString.charAt(14), 14);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
 
       default:
         LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-            valueString, String.valueOf(valueString.charAt(14)), 14);
+            valueString, valueString.charAt(14), 14);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                      message);
     }
@@ -1406,7 +1388,7 @@ outerLoop:
           {
             LocalizableMessage message =
                 WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR.
-                  get(value, String.valueOf(c));
+                  get(value, c);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
           }
@@ -1422,7 +1404,7 @@ outerLoop:
         default:
           LocalizableMessage message =
               WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR.
-                get(value, String.valueOf(c));
+                get(value, c);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
       }
@@ -1462,8 +1444,7 @@ outerLoop:
 
       // This should only happen if the provided date wasn't legal
       // (e.g., September 31).
-      LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
-          value, String.valueOf(e));
+      LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(value, e);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                    message, e);
     }

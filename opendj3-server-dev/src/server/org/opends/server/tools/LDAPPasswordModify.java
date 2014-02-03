@@ -630,8 +630,7 @@ public class LDAPPasswordModify
       }
       catch (Exception e)
       {
-        LocalizableMessage message =
-                ERR_LDAPPWMOD_ERROR_INITIALIZING_SSL.get(String.valueOf(e));
+        LocalizableMessage message = ERR_LDAPPWMOD_ERROR_INITIALIZING_SSL.get(e);
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
@@ -769,8 +768,7 @@ public class LDAPPasswordModify
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_CANNOT_SEND_PWMOD_REQUEST.get(
-              String.valueOf(e));
+      LocalizableMessage message = ERR_LDAPPWMOD_CANNOT_SEND_PWMOD_REQUEST.get(e);
       err.println(wrapText(message, MAX_LINE_WIDTH));
 
       try
@@ -799,8 +797,7 @@ public class LDAPPasswordModify
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_CANNOT_READ_PWMOD_RESPONSE.get(
-              String.valueOf(e));
+      LocalizableMessage message = ERR_LDAPPWMOD_CANNOT_READ_PWMOD_RESPONSE.get(e);
       err.println(wrapText(message, MAX_LINE_WIDTH));
 
       try
@@ -947,8 +944,7 @@ public class LDAPPasswordModify
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_LDAPPWMOD_COULD_NOT_DECODE_RESPONSE_VALUE.get(
-                String.valueOf(e));
+        LocalizableMessage message = ERR_LDAPPWMOD_COULD_NOT_DECODE_RESPONSE_VALUE.get(e);
         err.println(wrapText(message, MAX_LINE_WIDTH));
 
         try

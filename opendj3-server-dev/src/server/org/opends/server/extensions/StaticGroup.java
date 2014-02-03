@@ -181,15 +181,13 @@ public class StaticGroup
       if (groupEntry.hasObjectClass(groupOfNamesClass))
       {
         LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
-            get(String.valueOf(groupEntry.getName()), OC_GROUP_OF_ENTRIES,
-                OC_GROUP_OF_NAMES);
+            get(groupEntry.getName(), OC_GROUP_OF_ENTRIES, OC_GROUP_OF_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
       else if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
       {
         LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
-            get(String.valueOf(groupEntry.getName()), OC_GROUP_OF_ENTRIES,
-                OC_GROUP_OF_UNIQUE_NAMES);
+            get(groupEntry.getName(), OC_GROUP_OF_ENTRIES, OC_GROUP_OF_UNIQUE_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
 
@@ -201,8 +199,7 @@ public class StaticGroup
       if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
       {
         LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
-            get(String.valueOf(groupEntry.getName()), OC_GROUP_OF_NAMES,
-                OC_GROUP_OF_UNIQUE_NAMES);
+            get(groupEntry.getName(), OC_GROUP_OF_NAMES, OC_GROUP_OF_UNIQUE_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
 
@@ -217,8 +214,7 @@ public class StaticGroup
     else
     {
       LocalizableMessage message = ERR_STATICGROUP_NO_VALID_OC.
-          get(String.valueOf(groupEntry.getName()), OC_GROUP_OF_NAMES,
-              OC_GROUP_OF_UNIQUE_NAMES);
+          get(groupEntry.getName(), OC_GROUP_OF_NAMES, OC_GROUP_OF_UNIQUE_NAMES);
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
@@ -400,10 +396,8 @@ public class StaticGroup
       if (nestedGroups.contains(nestedGroupDN))
       {
         LocalizableMessage msg = ERR_STATICGROUP_ADD_NESTED_GROUP_ALREADY_EXISTS.get(
-                String.valueOf(nestedGroupDN),
-                String.valueOf(groupEntryDN));
-        throw new DirectoryException(
-                ResultCode.ATTRIBUTE_OR_VALUE_EXISTS, msg);
+            nestedGroupDN, groupEntryDN);
+        throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS, msg);
       }
 
       Attribute attr = Attributes.create(memberAttributeType,
@@ -459,9 +453,7 @@ public class StaticGroup
       {
         throw new DirectoryException(
                 ResultCode.NO_SUCH_ATTRIBUTE,
-                ERR_STATICGROUP_REMOVE_NESTED_GROUP_NO_SUCH_GROUP.get(
-                  String.valueOf(nestedGroupDN),
-                  String.valueOf(groupEntryDN)));
+                ERR_STATICGROUP_REMOVE_NESTED_GROUP_NO_SUCH_GROUP.get(nestedGroupDN, groupEntryDN));
       }
 
       Attribute attr = Attributes.create(memberAttributeType,
@@ -486,9 +478,7 @@ public class StaticGroup
         throw new DirectoryException(
                 modifyOperation.getResultCode(),
                 ERR_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED.get(
-                        String.valueOf(nestedGroupDN),
-                        String.valueOf(groupEntryDN),
-                        modifyOperation.getErrorMessage()));
+                    nestedGroupDN, groupEntryDN, modifyOperation.getErrorMessage()));
       }
 
 
@@ -573,8 +563,7 @@ public class StaticGroup
         if(thisGroup == null) {
           throw new DirectoryException(
                   ResultCode.NO_SUCH_ATTRIBUTE,
-                  ERR_STATICGROUP_GROUP_INSTANCE_INVALID.get(
-                    String.valueOf(groupEntryDN)));
+                  ERR_STATICGROUP_GROUP_INSTANCE_INVALID.get(groupEntryDN));
         } else if(thisGroup != this) {
           LinkedHashSet<ByteString> newMemberDNs =
                   new LinkedHashSet<ByteString>();
@@ -667,10 +656,8 @@ public class StaticGroup
 
       if (memberDNs.contains(userDNString))
       {
-        LocalizableMessage message = ERR_STATICGROUP_ADD_MEMBER_ALREADY_EXISTS.get(
-            String.valueOf(userDN), String.valueOf(groupEntryDN));
-        throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-                                     message);
+        LocalizableMessage message = ERR_STATICGROUP_ADD_MEMBER_ALREADY_EXISTS.get(userDN, groupEntryDN);
+        throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS, message);
       }
 
       Attribute attr = Attributes.create(memberAttributeType, userDN
@@ -721,8 +708,7 @@ public class StaticGroup
     {
       if (! memberDNs.contains(userDNString))
       {
-        LocalizableMessage message = ERR_STATICGROUP_REMOVE_MEMBER_NO_SUCH_MEMBER.get(
-            String.valueOf(userDN), String.valueOf(groupEntryDN));
+        LocalizableMessage message = ERR_STATICGROUP_REMOVE_MEMBER_NO_SUCH_MEMBER.get(userDN, groupEntryDN);
         throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message);
       }
 

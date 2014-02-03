@@ -251,9 +251,7 @@ public class AttributeCleanupPlugin extends
       case PRE_PARSE_MODIFY:
         break;
       default:
-        final LocalizableMessage message = ERR_PLUGIN_ATTR_CLEANUP_INITIALIZE_PLUGIN
-            .get(String.valueOf(t));
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_PLUGIN_ATTR_CLEANUP_INITIALIZE_PLUGIN.get(t));
       }
     }
 

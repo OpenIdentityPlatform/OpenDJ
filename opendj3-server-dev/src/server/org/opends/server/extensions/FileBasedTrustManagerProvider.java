@@ -123,8 +123,7 @@ public class FileBasedTrustManagerProvider
     File f = getFileForPath(trustStoreFile);
     if (! (f.exists() && f.isFile()))
     {
-      LocalizableMessage message = ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(
-          String.valueOf(trustStoreFile), String.valueOf(configEntryDN));
+      LocalizableMessage message = ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(trustStoreFile, configEntryDN);
       throw new InitializationException(message);
     }
 
@@ -146,8 +145,7 @@ public class FileBasedTrustManagerProvider
       logger.traceException(kse);
 
       LocalizableMessage message = ERR_FILE_TRUSTMANAGER_INVALID_TYPE.
-          get(String.valueOf(trustStoreType), String.valueOf(configEntryDN),
-              getExceptionMessage(kse));
+          get(trustStoreType, configEntryDN, getExceptionMessage(kse));
       throw new InitializationException(message);
     }
 
@@ -186,8 +184,7 @@ public class FileBasedTrustManagerProvider
           File pinFile = getFileForPath(pinFilePath);
           if (! pinFile.exists())
           {
-            LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE.get(
-                String.valueOf(pinFilePath), String.valueOf(configEntryDN));
+            LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE.get(pinFilePath, configEntryDN);
             throw new InitializationException(message);
           }
           else
@@ -203,8 +200,7 @@ public class FileBasedTrustManagerProvider
             catch (IOException ioe)
             {
               LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ.
-                  get(String.valueOf(pinFilePath),
-                      String.valueOf(configEntryDN), getExceptionMessage(ioe));
+                  get(pinFilePath, configEntryDN, getExceptionMessage(ioe));
               throw new InitializationException(message, ioe);
             }
             finally
@@ -217,8 +213,7 @@ public class FileBasedTrustManagerProvider
 
             if (pinStr == null)
             {
-              LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_FILE_EMPTY.get(
-                  String.valueOf(pinFilePath), String.valueOf(configEntryDN));
+              LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_FILE_EMPTY.get(pinFilePath, configEntryDN);
               throw new InitializationException(message);
             }
             else
@@ -233,8 +228,7 @@ public class FileBasedTrustManagerProvider
         String pinStr = System.getenv(pinEnVar);
         if (pinStr == null)
         {
-          LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(
-              String.valueOf(pinProperty), String.valueOf(configEntryDN));
+          LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(pinProperty, configEntryDN);
           throw new InitializationException(message);
         }
         else
@@ -248,8 +242,7 @@ public class FileBasedTrustManagerProvider
       String pinStr = System.getProperty(pinProperty);
       if (pinStr == null)
       {
-        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(
-            String.valueOf(pinProperty), String.valueOf(configEntryDN));
+        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(pinProperty, configEntryDN);
         throw new InitializationException(message);
       }
       else
@@ -361,9 +354,7 @@ public class FileBasedTrustManagerProvider
       File f = getFileForPath(newTrustStoreFile);
       if (!(f.exists() && f.isFile()))
       {
-        unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(
-                String.valueOf(newTrustStoreFile),
-                String.valueOf(cfgEntryDN)));
+        unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(newTrustStoreFile, cfgEntryDN));
         configAcceptable = false;
       }
     }
@@ -371,9 +362,7 @@ public class FileBasedTrustManagerProvider
     {
       logger.traceException(e);
 
-      unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE.get(
-              String.valueOf(cfgEntryDN),
-              getExceptionMessage(e)));
+      unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE.get(cfgEntryDN, getExceptionMessage(e)));
       configAcceptable = false;
     }
 
@@ -390,11 +379,8 @@ public class FileBasedTrustManagerProvider
       {
         logger.traceException(kse);
 
-        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(
-                String.valueOf(storeType),
-                String.valueOf(cfgEntryDN),
-                getExceptionMessage(kse));
-        unacceptableReasons.add(message);
+        unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(
+            storeType, cfgEntryDN, getExceptionMessage(kse)));
         configAcceptable = false;
       }
     }
@@ -407,9 +393,7 @@ public class FileBasedTrustManagerProvider
     {
       if (System.getProperty(pinProp) == null)
       {
-        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(
-                String.valueOf(pinProp),
-                String.valueOf(cfgEntryDN));
+        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(pinProp, cfgEntryDN);
         unacceptableReasons.add(message);
         configAcceptable = false;
       }
@@ -423,9 +407,7 @@ public class FileBasedTrustManagerProvider
     {
       if (System.getenv(pinEnVar) == null)
       {
-        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(
-                String.valueOf(pinEnVar),
-                String.valueOf(cfgEntryDN));
+        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(pinEnVar, cfgEntryDN);
         unacceptableReasons.add(message);
         configAcceptable = false;
       }
@@ -449,11 +431,8 @@ public class FileBasedTrustManagerProvider
         }
         catch (IOException ioe)
         {
-          LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ.get(
-                  String.valueOf(pinFile),
-                  String.valueOf(cfgEntryDN),
-                  getExceptionMessage(ioe));
-          unacceptableReasons.add(message);
+          unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ.get(
+              pinFile, cfgEntryDN, getExceptionMessage(ioe)));
           configAcceptable = false;
         }
         finally
@@ -466,18 +445,14 @@ public class FileBasedTrustManagerProvider
 
         if (pinStr == null)
         {
-          LocalizableMessage message =  ERR_FILE_TRUSTMANAGER_PIN_FILE_EMPTY.get(
-                  String.valueOf(pinFile),
-                  String.valueOf(cfgEntryDN));
+          LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_FILE_EMPTY.get(pinFile, cfgEntryDN);
           unacceptableReasons.add(message);
           configAcceptable = false;
         }
       }
       else
       {
-        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE.get(
-                String.valueOf(pinFile),
-                String.valueOf(cfgEntryDN));
+        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE.get(pinFile, cfgEntryDN);
         unacceptableReasons.add(message);
         configAcceptable = false;
       }
@@ -505,9 +480,7 @@ public class FileBasedTrustManagerProvider
     {
       resultCode = DirectoryServer.getServerErrorResultCode();
 
-      messages.add(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(
-              String.valueOf(newTrustStoreFile),
-              String.valueOf(configEntryDN)));
+      messages.add(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(newTrustStoreFile, configEntryDN));
     }
 
 
@@ -527,11 +500,7 @@ public class FileBasedTrustManagerProvider
     {
       logger.traceException(kse);
 
-      messages.add(ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(
-              String.valueOf(newTrustStoreType),
-              String.valueOf(configEntryDN),
-              getExceptionMessage(kse)));
-
+      messages.add(ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(newTrustStoreType, configEntryDN, getExceptionMessage(kse)));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
@@ -573,9 +542,7 @@ public class FileBasedTrustManagerProvider
           {
             resultCode = DirectoryServer.getServerErrorResultCode();
 
-            messages.add(ERR_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE.get(
-                    String.valueOf(newPINFile),
-                    String.valueOf(configEntryDN)));
+            messages.add(ERR_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE.get(newPINFile, configEntryDN));
           }
           else
           {
@@ -590,11 +557,8 @@ public class FileBasedTrustManagerProvider
             catch (IOException ioe)
             {
               resultCode = DirectoryServer.getServerErrorResultCode();
-
               messages.add(ERR_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ.get(
-                      String.valueOf(newPINFile),
-                      String.valueOf(configEntryDN),
-                      getExceptionMessage(ioe)));
+                  newPINFile, configEntryDN, getExceptionMessage(ioe)));
             }
             finally
             {
@@ -608,9 +572,7 @@ public class FileBasedTrustManagerProvider
             {
               resultCode = DirectoryServer.getServerErrorResultCode();
 
-              messages.add(ERR_FILE_TRUSTMANAGER_PIN_FILE_EMPTY.get(
-                      String.valueOf(newPINFile),
-                      String.valueOf(configEntryDN)));
+              messages.add(ERR_FILE_TRUSTMANAGER_PIN_FILE_EMPTY.get(newPINFile, configEntryDN));
             }
             else
             {
@@ -626,9 +588,7 @@ public class FileBasedTrustManagerProvider
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
 
-          messages.add(ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(
-                  String.valueOf(newPINEnVar),
-                  String.valueOf(configEntryDN)));
+          messages.add(ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(newPINEnVar, configEntryDN));
         }
         else
         {
@@ -643,9 +603,7 @@ public class FileBasedTrustManagerProvider
       {
         resultCode = DirectoryServer.getServerErrorResultCode();
 
-        messages.add(ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(
-                String.valueOf(newPINProperty),
-                String.valueOf(configEntryDN)));
+        messages.add(ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(newPINProperty, configEntryDN));
       }
       else
       {

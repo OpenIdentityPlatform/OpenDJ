@@ -1260,7 +1260,7 @@ public class UninstallCliHelper extends ConsoleApplication {
               "--"+parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
               "--"+ToolConstants.OPTION_LONG_BINDPWD,
               "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
-              String.valueOf(exceptionMsg)));
+              exceptionMsg));
         }
         else
         {
@@ -1272,7 +1272,7 @@ public class UninstallCliHelper extends ConsoleApplication {
                   "--"+ToolConstants.OPTION_LONG_BINDPWD,
                   "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
                   "--"+parser.forceOnErrorArg.getLongIdentifier(),
-                  String.valueOf(exceptionMsg)));
+                  exceptionMsg));
         }
       }
       else

@@ -176,9 +176,7 @@ public final class LDAPADListPlugin
     // The set of plugin types must contain only the pre-parse search element.
     if (pluginTypes.isEmpty())
     {
-      LocalizableMessage message = ERR_PLUGIN_ADLIST_NO_PLUGIN_TYPES.get(
-          String.valueOf(configuration.dn()));
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_PLUGIN_ADLIST_NO_PLUGIN_TYPES.get(configuration.dn()));
     }
     else
     {
@@ -186,9 +184,7 @@ public final class LDAPADListPlugin
       {
         if (t != PluginType.PRE_PARSE_SEARCH)
         {
-          LocalizableMessage message = ERR_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE.get(
-              String.valueOf(configuration.dn()), String.valueOf(t));
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE.get(configuration.dn(), t));
         }
       }
     }
@@ -259,10 +255,7 @@ public final class LDAPADListPlugin
 
 
         default:
-          LocalizableMessage message = ERR_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE.get(
-                  String.valueOf(configuration.dn()),
-                  String.valueOf(pluginType));
-          unacceptableReasons.add(message);
+          unacceptableReasons.add(ERR_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE.get(configuration.dn(), pluginType));
           configAcceptable = false;
       }
     }

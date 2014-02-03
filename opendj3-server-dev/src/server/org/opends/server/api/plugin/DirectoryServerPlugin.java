@@ -244,9 +244,8 @@ public abstract class DirectoryServerPlugin
    */
   public PluginResult.Startup doStartup()
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
-        String.valueOf(pluginDN), PluginType.STARTUP.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.STARTUP.getName()).toString());
   }
 
 
@@ -262,9 +261,8 @@ public abstract class DirectoryServerPlugin
    */
   public void doShutdown(LocalizableMessage reason)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
-        String.valueOf(pluginDN), PluginType.SHUTDOWN.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.SHUTDOWN.getName()).toString());
   }
 
 
@@ -283,9 +281,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostConnect doPostConnect(ClientConnection
                                                     clientConnection)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
-        String.valueOf(pluginDN), PluginType.POST_CONNECT.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_CONNECT.getName()).toString());
   }
 
 
@@ -309,10 +306,8 @@ public abstract class DirectoryServerPlugin
                                DisconnectReason disconnectReason,
                                LocalizableMessage message)
   {
-    LocalizableMessage msg = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_DISCONNECT.getName());
-    throw new UnsupportedOperationException(msg.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_DISCONNECT.getName()).toString());
   }
 
 
@@ -331,9 +326,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.ImportLDIF
     doLDIFImport(LDIFImportConfig importConfig, Entry entry)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
-        String.valueOf(pluginDN), PluginType.LDIF_IMPORT.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.LDIF_IMPORT.getName()).toString());
   }
 
   /**
@@ -345,10 +339,8 @@ public abstract class DirectoryServerPlugin
    */
   public void doLDIFImportEnd(LDIFImportConfig importConfig)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
-        String.valueOf(pluginDN),
-        PluginType.LDIF_IMPORT_END.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.LDIF_IMPORT_END.getName()).toString());
   }
 
   /**
@@ -361,10 +353,8 @@ public abstract class DirectoryServerPlugin
    */
   public void doLDIFImportBegin(LDIFImportConfig importConfig)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
-        String.valueOf(pluginDN),
-        PluginType.LDIF_IMPORT_BEGIN.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.LDIF_IMPORT_BEGIN.getName()).toString());
   }
 
   /**
@@ -380,9 +370,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.ImportLDIF
     doLDIFExport(LDIFExportConfig exportConfig, Entry entry)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
-        String.valueOf(pluginDN), PluginType.LDIF_EXPORT.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.LDIF_EXPORT.getName()).toString());
   }
 
 
@@ -399,10 +388,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreParse
        doPreParse(PreParseAbandonOperation abandonOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_PARSE_ABANDON.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_PARSE_ABANDON.getName()).toString());
   }
 
 
@@ -420,10 +407,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostOperation
        doPostOperation(PostOperationAbandonOperation abandonOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_OPERATION_ABANDON.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_OPERATION_ABANDON.getName()).toString());
   }
 
 
@@ -442,9 +427,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreParse
        doPreParse(PreParseAddOperation addOperation)
        throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
-        String.valueOf(pluginDN), PluginType.PRE_PARSE_ADD.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_PARSE_ADD.getName()).toString());
   }
 
 
@@ -466,10 +450,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
       throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_OPERATION_ADD.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_OPERATION_ADD.getName()).toString());
   }
 
 
@@ -488,10 +470,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostOperation
        doPostOperation(PostOperationAddOperation addOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_OPERATION_ADD.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_OPERATION_ADD.getName()).toString());
   }
 
 
@@ -510,10 +490,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostResponse
        doPostResponse(PostResponseAddOperation addOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_RESPONSE_ADD.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_RESPONSE_ADD.getName()).toString());
   }
 
 
@@ -529,10 +507,8 @@ public abstract class DirectoryServerPlugin
   public void doPostSynchronization(
                    PostSynchronizationAddOperation addOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_SYNCHRONIZATION_ADD.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_SYNCHRONIZATION_ADD.getName()).toString());
   }
 
 
@@ -549,10 +525,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreParse
        doPreParse(PreParseBindOperation bindOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_PARSE_BIND.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_PARSE_BIND.getName()).toString());
   }
 
 
@@ -569,10 +543,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreOperation
        doPreOperation(PreOperationBindOperation bindOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_OPERATION_BIND.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_OPERATION_BIND.getName()).toString());
   }
 
 
@@ -591,10 +563,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostOperation
        doPostOperation(PostOperationBindOperation bindOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_OPERATION_BIND.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_OPERATION_BIND.getName()).toString());
   }
 
 
@@ -613,10 +583,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostResponse
        doPostResponse(PostResponseBindOperation bindOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_RESPONSE_BIND.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_RESPONSE_BIND.getName()).toString());
   }
 
 
@@ -636,10 +604,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreParse
        doPreParse(PreParseCompareOperation compareOperation)
        throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_PARSE_COMPARE.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_PARSE_COMPARE.getName()).toString());
   }
 
 
@@ -659,10 +625,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreOperation
        doPreOperation(PreOperationCompareOperation compareOperation)
       throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_OPERATION_COMPARE.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_OPERATION_COMPARE.getName()).toString());
   }
 
 
@@ -681,10 +645,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostOperation
        doPostOperation(PostOperationCompareOperation compareOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_OPERATION_COMPARE.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_OPERATION_COMPARE.getName()).toString());
   }
 
 
@@ -703,10 +665,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostResponse
        doPostResponse(PostResponseCompareOperation compareOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_RESPONSE_COMPARE.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_RESPONSE_COMPARE.getName()).toString());
   }
 
 
@@ -726,10 +686,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreParse
        doPreParse(PreParseDeleteOperation deleteOperation)
        throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_PARSE_DELETE.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_PARSE_DELETE.getName()).toString());
   }
 
 
@@ -751,10 +709,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreOperation
        doPreOperation(PreOperationDeleteOperation deleteOperation)
       throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_OPERATION_DELETE.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_OPERATION_DELETE.getName()).toString());
   }
 
 
@@ -773,10 +729,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostOperation
        doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_OPERATION_DELETE.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_OPERATION_DELETE.getName()).toString());
   }
 
 
@@ -795,10 +749,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostResponse
        doPostResponse(PostResponseDeleteOperation deleteOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_RESPONSE_DELETE.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_RESPONSE_DELETE.getName()).toString());
   }
 
 
@@ -814,10 +766,8 @@ public abstract class DirectoryServerPlugin
   public void doPostSynchronization(
                    PostSynchronizationDeleteOperation deleteOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_SYNCHRONIZATION_DELETE.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_SYNCHRONIZATION_DELETE.getName()).toString());
   }
 
 
@@ -837,10 +787,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreParse
        doPreParse(PreParseExtendedOperation extendedOperation)
        throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_PARSE_EXTENDED.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_PARSE_EXTENDED.getName()).toString());
   }
 
 
@@ -861,10 +809,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreOperation
        doPreOperation(PreOperationExtendedOperation extendedOperation)
       throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_OPERATION_EXTENDED.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_OPERATION_EXTENDED.getName()).toString());
   }
 
 
@@ -885,10 +831,8 @@ public abstract class DirectoryServerPlugin
        doPostOperation(PostOperationExtendedOperation
                             extendedOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_OPERATION_EXTENDED.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_OPERATION_EXTENDED.getName()).toString());
   }
 
 
@@ -907,10 +851,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostResponse
        doPostResponse(PostResponseExtendedOperation extendedOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_RESPONSE_EXTENDED.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_RESPONSE_EXTENDED.getName()).toString());
   }
 
 
@@ -930,10 +872,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreParse
        doPreParse(PreParseModifyOperation modifyOperation)
        throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_PARSE_MODIFY.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_PARSE_MODIFY.getName()).toString());
   }
 
 
@@ -955,10 +895,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
       throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_OPERATION_MODIFY.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_OPERATION_MODIFY.getName()).toString());
   }
 
 
@@ -977,10 +915,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostOperation
        doPostOperation(PostOperationModifyOperation modifyOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_OPERATION_MODIFY.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_OPERATION_MODIFY.getName()).toString());
   }
 
 
@@ -999,10 +935,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostResponse
        doPostResponse(PostResponseModifyOperation modifyOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_RESPONSE_MODIFY.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_RESPONSE_MODIFY.getName()).toString());
   }
 
 
@@ -1018,10 +952,8 @@ public abstract class DirectoryServerPlugin
   public void doPostSynchronization(
                    PostSynchronizationModifyOperation modifyOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_SYNCHRONIZATION_MODIFY.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_SYNCHRONIZATION_MODIFY.getName()).toString());
   }
 
 
@@ -1041,10 +973,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreParse
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
        throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_PARSE_MODIFY_DN.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_PARSE_MODIFY_DN.getName()).toString());
   }
 
 
@@ -1067,10 +997,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
       throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_OPERATION_MODIFY_DN.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_OPERATION_MODIFY_DN.getName()).toString());
   }
 
 
@@ -1107,10 +1035,8 @@ public abstract class DirectoryServerPlugin
                                   Entry oldEntry, Entry newEntry,
                                   List<Modification> modifications)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
-            String.valueOf(pluginDN),
-            PluginType.SUBORDINATE_MODIFY_DN.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.SUBORDINATE_MODIFY_DN.getName()).toString());
   }
 
 
@@ -1129,10 +1055,8 @@ public abstract class DirectoryServerPlugin
        processSubordinateDelete(DeleteOperation
          deleteOperation, Entry entry)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
-            String.valueOf(pluginDN),
-            PluginType.SUBORDINATE_MODIFY_DN.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.SUBORDINATE_MODIFY_DN.getName()).toString());
   }
 
 
@@ -1152,10 +1076,8 @@ public abstract class DirectoryServerPlugin
        doPostOperation(PostOperationModifyDNOperation
                             modifyDNOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_OPERATION_MODIFY_DN.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_OPERATION_MODIFY_DN.getName()).toString());
   }
 
 
@@ -1174,10 +1096,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostResponse
        doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_RESPONSE_MODIFY_DN.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_RESPONSE_MODIFY_DN.getName()).toString());
   }
 
 
@@ -1194,10 +1114,8 @@ public abstract class DirectoryServerPlugin
   public void doPostSynchronization(
               PostSynchronizationModifyDNOperation modifyDNOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_SYNCHRONIZATION_MODIFY_DN.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_SYNCHRONIZATION_MODIFY_DN.getName()).toString());
   }
 
 
@@ -1217,10 +1135,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreParse
        doPreParse(PreParseSearchOperation searchOperation)
        throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_PARSE_SEARCH.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_PARSE_SEARCH.getName()).toString());
   }
 
 
@@ -1240,10 +1156,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreOperation
        doPreOperation(PreOperationSearchOperation searchOperation)
       throws CanceledOperationException {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_OPERATION_SEARCH.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_OPERATION_SEARCH.getName()).toString());
   }
 
 
@@ -1268,10 +1182,8 @@ public abstract class DirectoryServerPlugin
        processSearchEntry(SearchEntrySearchOperation searchOperation,
                           SearchResultEntry searchEntry)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.SEARCH_RESULT_ENTRY.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.SEARCH_RESULT_ENTRY.getName()).toString());
   }
 
 
@@ -1293,10 +1205,8 @@ public abstract class DirectoryServerPlugin
                                    searchOperation,
                               SearchResultReference searchReference)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.SEARCH_RESULT_REFERENCE.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.SEARCH_RESULT_REFERENCE.getName()).toString());
   }
 
 
@@ -1315,10 +1225,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostOperation
        doPostOperation(PostOperationSearchOperation searchOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_OPERATION_SEARCH.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_OPERATION_SEARCH.getName()).toString());
   }
 
 
@@ -1337,10 +1245,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostResponse
        doPostResponse(PostResponseSearchOperation searchOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_RESPONSE_SEARCH.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_RESPONSE_SEARCH.getName()).toString());
   }
 
 
@@ -1357,10 +1263,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PreParse
        doPreParse(PreParseUnbindOperation unbindOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.PRE_PARSE_UNBIND.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.PRE_PARSE_UNBIND.getName()).toString());
   }
 
 
@@ -1378,10 +1282,8 @@ public abstract class DirectoryServerPlugin
   public PluginResult.PostOperation
        doPostOperation(PostOperationUnbindOperation unbindOperation)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.POST_OPERATION_UNBIND.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.POST_OPERATION_UNBIND.getName()).toString());
   }
 
 
@@ -1399,10 +1301,8 @@ public abstract class DirectoryServerPlugin
               processIntermediateResponse(
                    IntermediateResponse intermediateResponse)
   {
-    LocalizableMessage message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
-        get(String.valueOf(pluginDN),
-            PluginType.INTERMEDIATE_RESPONSE.getName());
-    throw new UnsupportedOperationException(message.toString());
+    throw new UnsupportedOperationException(ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        pluginDN, PluginType.INTERMEDIATE_RESPONSE.getName()).toString());
   }
 }
 

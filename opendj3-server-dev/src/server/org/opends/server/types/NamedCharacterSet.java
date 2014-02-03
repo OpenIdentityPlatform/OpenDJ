@@ -91,9 +91,7 @@ public final class NamedCharacterSet
     {
       if (! isAlpha(name.charAt(i)))
       {
-        LocalizableMessage message = ERR_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR.
-            get(String.valueOf(name.charAt(i)), i);
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR.get(name.charAt(i), i));
       }
     }
   }
@@ -130,9 +128,7 @@ public final class NamedCharacterSet
     {
       if (! isAlpha(name.charAt(i)))
       {
-        LocalizableMessage message = ERR_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR.
-            get(String.valueOf(name.charAt(i)), i);
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR.get(name.charAt(i), i));
       }
     }
   }
@@ -242,21 +238,15 @@ public final class NamedCharacterSet
       int colonPos = value.indexOf(':');
       if (colonPos < 0)
       {
-        LocalizableMessage message =
-            ERR_CHARSET_NO_COLON.get(String.valueOf(value));
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CHARSET_NO_COLON.get(value));
       }
       else if (colonPos == 0)
       {
-        LocalizableMessage message =
-            ERR_CHARSET_NO_NAME.get(String.valueOf(value));
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CHARSET_NO_NAME.get(value));
       }
       else if (colonPos == (value.length() - 1))
       {
-        LocalizableMessage message =
-            ERR_CHARSET_NO_CHARS.get(String.valueOf(value));
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CHARSET_NO_CHARS.get(value));
       }
       else
       {

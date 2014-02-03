@@ -306,10 +306,8 @@ public class AttributeTypeSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(
-          valueStr, (pos-1), String.valueOf(c));
-      throw new DirectoryException(
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(valueStr, (pos-1), c);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -361,10 +359,8 @@ public class AttributeTypeSyntax
         {
           // This must have been an illegal character.
           LocalizableMessage message =
-            ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                get(valueStr, String.valueOf(c), (pos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+            ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.get(valueStr, c, pos - 1);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
         {
@@ -389,10 +385,8 @@ public class AttributeTypeSyntax
         else
         {
           // This must have been an illegal character.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.
-              get(valueStr, String.valueOf(c), (pos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.get(valueStr, c, pos - 1);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
     }
@@ -526,11 +520,8 @@ public class AttributeTypeSyntax
         else
         {
           // This is an illegal character.
-          LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR.get(
-                      valueStr, String.valueOf(c), (pos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         //RFC 2251: A specification may also assign one or more textual names
         //for an attribute type.  These names MUST begin with a letter, and
@@ -628,10 +619,8 @@ public class AttributeTypeSyntax
           {
             // This is bad because we don't know what the superior attribute
             // type is so we can't base this attribute type on it.
-            LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE.
-                get(String.valueOf(oid), String.valueOf(woidBuffer));
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
+            LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE.get(oid, woidBuffer);
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
 
@@ -667,10 +656,8 @@ public class AttributeTypeSyntax
         {
           // This is bad because we have no idea what the equality matching
           // rule should be.
-          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR.get(
-              String.valueOf(oid), String.valueOf(woidBuffer));
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                       message);
+          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR.get(oid, woidBuffer);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
         }
         else
         {
@@ -689,10 +676,8 @@ public class AttributeTypeSyntax
         {
           // This is bad because we have no idea what the ordering matching
           // rule should be.
-          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR.get(
-              String.valueOf(oid), String.valueOf(woidBuffer));
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                       message);
+          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR.get(oid, woidBuffer);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
         }
         else
         {
@@ -711,10 +696,8 @@ public class AttributeTypeSyntax
         {
           // This is bad because we have no idea what the substring matching
           // rule should be.
-          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR.get(
-              String.valueOf(oid), String.valueOf(woidBuffer));
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                       message);
+          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR.get(oid, woidBuffer);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
         }
         else
         {
@@ -746,8 +729,7 @@ public class AttributeTypeSyntax
                       &&  (c = lowerStr.charAt(pos)) != ')')
               {
                 LocalizableMessage message =
-                  ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                      get(valueStr, String.valueOf(c), (pos-1));
+                  ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.get(valueStr, c, pos - 1);
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               }
@@ -757,8 +739,7 @@ public class AttributeTypeSyntax
             else if (! isDigit(c))
             {
               LocalizableMessage message =
-                ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                    get(valueStr, String.valueOf(c), (pos-1));
+                ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.get(valueStr, c, pos - 1);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
             }
@@ -805,8 +786,7 @@ public class AttributeTypeSyntax
             else
             {
               LocalizableMessage message =
-                ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                    get(valueStr, String.valueOf(c), (pos-1));
+                ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.get(valueStr, c, pos - 1);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
             }
@@ -816,8 +796,7 @@ public class AttributeTypeSyntax
         syntax = schema.getSyntax(oidBuffer.toString());
         if (syntax == null)
         {
-          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX.get(
-              String.valueOf(oid), String.valueOf(oidBuffer));
+          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX.get(oid, oidBuffer);
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                        message);
         }
@@ -908,10 +887,8 @@ public class AttributeTypeSyntax
           // This must be an illegal usage.
           attributeUsage = AttributeUsage.USER_APPLICATIONS;
 
-          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE.
-              get(String.valueOf(oid), usageStr);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE.get(oid, usageStr);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
       else
@@ -937,8 +914,7 @@ public class AttributeTypeSyntax
       {
         // This is bad because we have no idea what the approximate matching
         // rule should be.
-        LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR.get(
-            String.valueOf(oid), String.valueOf(ruleName));
+        LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR.get(oid, ruleName);
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
       else
@@ -956,7 +932,7 @@ public class AttributeTypeSyntax
       if (superiorType.getUsage() != attributeUsage)
       {
         LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE.get(
-            oid, String.valueOf(attributeUsage), superiorType.getNameOrOID());
+            oid, attributeUsage, superiorType.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
 
@@ -1102,10 +1078,8 @@ public class AttributeTypeSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS.get(
-          valueStr, startPos, String.valueOf(c));
-      throw new DirectoryException(
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS.get(valueStr, startPos, c);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1187,10 +1161,8 @@ public class AttributeTypeSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS.get(
-          valueStr, startPos, String.valueOf(c));
-      throw new DirectoryException(
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS.get(valueStr, startPos, c);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1303,10 +1275,8 @@ public class AttributeTypeSyntax
 
           // This must have been an illegal character.
           LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                get(lowerStr, String.valueOf(c), (startPos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.get(lowerStr, c, startPos-1);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
         {
@@ -1340,20 +1310,16 @@ public class AttributeTypeSyntax
           }
 
           // This must have been an illegal character.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.
-              get(lowerStr, String.valueOf(c), (startPos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.get(
+              lowerStr, c, (startPos-1));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
     }
     else
     {
-      LocalizableMessage message =
-          ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR.
-                  get(lowerStr, String.valueOf(c), startPos);
-      throw new DirectoryException(
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR.get(lowerStr, c, startPos);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 

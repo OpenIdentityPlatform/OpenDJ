@@ -941,15 +941,14 @@ public final class ServerManagementContext {
       logger.traceException(e);
 
       LocalizableMessage message = ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
-          String.valueOf(dn), stackTraceToSingleLineString(e));
+          dn, stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
 
     // The configuration handler is free to return null indicating
     // that the entry does not exist.
     if (configEntry == null) {
-      LocalizableMessage message = ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST
-          .get(String.valueOf(dn));
+      LocalizableMessage message = ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST.get(dn);
       throw new ConfigException(message);
     }
 

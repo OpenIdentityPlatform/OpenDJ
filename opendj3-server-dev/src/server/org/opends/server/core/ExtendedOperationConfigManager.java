@@ -211,9 +211,7 @@ public class ExtendedOperationConfigManager implements
           logger.traceException(e);
 
           messages.add(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
-                  String.valueOf(configuration.getJavaClass()),
-                  String.valueOf(dn),
-                  stackTraceToSingleLineString(e)));
+              configuration.getJavaClass(), dn, stackTraceToSingleLineString(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
@@ -293,9 +291,7 @@ public class ExtendedOperationConfigManager implements
         logger.traceException(e);
 
         messages.add(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
-                String.valueOf(configuration.getJavaClass()),
-                String.valueOf(dn),
-                stackTraceToSingleLineString(e)));
+            configuration.getJavaClass(), dn, stackTraceToSingleLineString(e)));
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
     }
@@ -346,11 +342,7 @@ public class ExtendedOperationConfigManager implements
     catch (Exception e)
     {
       logger.traceException(e);
-
-      LocalizableMessage message = ERR_CONFIG_EXTOP_INVALID_CLASS.
-          get(String.valueOf(className), String.valueOf(config.dn()),
-              String.valueOf(e));
-      throw new ConfigException(message, e);
+      throw new ConfigException(ERR_CONFIG_EXTOP_INVALID_CLASS.get(className, config.dn(), e), e);
     }
 
     // The handler has been successfully initialized.
@@ -393,10 +385,7 @@ public class ExtendedOperationConfigManager implements
     catch (Exception e)
     {
       logger.traceException(e);
-
-      unacceptableReasons.add(ERR_CONFIG_EXTOP_INVALID_CLASS.get(className,
-                              String.valueOf(config.dn()),
-                              String.valueOf(e)));
+      unacceptableReasons.add(ERR_CONFIG_EXTOP_INVALID_CLASS.get(className, config.dn(), e));
       return false;
     }
 

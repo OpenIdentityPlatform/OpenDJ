@@ -756,9 +756,7 @@ public class NetworkGroup
 
       unacceptableReasons
           .add(ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(
-              String.valueOf(className), String
-                  .valueOf(policyConfiguration.dn()),
-              stackTraceToSingleLineString(e)));
+              className, policyConfiguration.dn(), stackTraceToSingleLineString(e)));
       return false;
     }
 
@@ -1613,10 +1611,8 @@ public class NetworkGroup
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(String
-              .valueOf(className), String.valueOf(policyConfiguration
-              .dn()), stackTraceToSingleLineString(e));
+      LocalizableMessage message = ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(
+          className, policyConfiguration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
 
@@ -1653,10 +1649,8 @@ public class NetworkGroup
 
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(String
-              .valueOf(className), String.valueOf(policyConfiguration
-              .dn()), stackTraceToSingleLineString(e));
+      LocalizableMessage message = ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(
+          className, policyConfiguration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
 

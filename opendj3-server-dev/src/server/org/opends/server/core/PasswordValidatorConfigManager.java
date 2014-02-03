@@ -445,8 +445,7 @@ public class PasswordValidatorConfigManager
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_PWVALIDATOR_INITIALIZATION_FAILED.
-          get(className, String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
+          get(className, configuration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }

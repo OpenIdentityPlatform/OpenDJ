@@ -475,11 +475,9 @@ public class WorkflowElementConfigManager
         t = e.getCause();
       }
 
-      LocalizableMessage message =
-        ERR_CONFIG_WORKFLOW_ELEMENT_CANNOT_INITIALIZE.get(
-            className, String.valueOf(configuration.dn()),
-            t.getMessage());
-      throw new InitializationException(message);
+      throw new InitializationException(
+          ERR_CONFIG_WORKFLOW_ELEMENT_CANNOT_INITIALIZE.get(
+              className, configuration.dn(), t.getMessage()));
     }
   }
 

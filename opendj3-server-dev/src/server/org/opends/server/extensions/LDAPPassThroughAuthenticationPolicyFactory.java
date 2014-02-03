@@ -1003,16 +1003,13 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               // Multiple matching candidates.
               throw new DirectoryException(
                   ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN,
-                  ERR_LDAP_PTA_CONNECTION_SEARCH_SIZE_LIMIT.get(host, port,
-                      String.valueOf(cfg.dn()), String.valueOf(baseDN),
-                      String.valueOf(filter)));
+                  ERR_LDAP_PTA_CONNECTION_SEARCH_SIZE_LIMIT.get(host, port, cfg.dn(), baseDN, filter));
 
             default:
               // The search failed for some reason.
               throw new DirectoryException(resultCode,
                   ERR_LDAP_PTA_CONNECTION_SEARCH_FAILED.get(host, port,
-                      String.valueOf(cfg.dn()), String.valueOf(baseDN),
-                      String.valueOf(filter), resultCode.getIntValue(),
+                      cfg.dn(), baseDN, filter, resultCode.getIntValue(),
                       resultCode.getResultCodeName(),
                       searchResult.getErrorMessage()));
             }
@@ -1033,8 +1030,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           throw new DirectoryException(
               ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN,
               ERR_LDAP_PTA_CONNECTION_SEARCH_SIZE_LIMIT.get(host, port,
-                  String.valueOf(cfg.dn()), String.valueOf(baseDN),
-                  String.valueOf(filter)));
+                  cfg.dn(), baseDN, filter));
         }
 
         if (username == null)
@@ -1043,8 +1039,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           throw new DirectoryException(
               ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
               ERR_LDAP_PTA_CONNECTION_SEARCH_NO_MATCHES.get(host, port,
-                  String.valueOf(cfg.dn()), String.valueOf(baseDN),
-                  String.valueOf(filter)));
+                  cfg.dn(), baseDN, filter));
         }
 
         return username;
@@ -1085,7 +1080,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             // The bind failed for some reason.
             throw new DirectoryException(resultCode,
                 ERR_LDAP_PTA_CONNECTION_BIND_FAILED.get(host, port,
-                    String.valueOf(cfg.dn()), String.valueOf(username),
+                    cfg.dn(), username,
                     resultCode.getIntValue(), resultCode.getResultCodeName(),
                     bindResponse.getErrorMessage()));
           }
@@ -1141,7 +1136,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
             throw new DirectoryException(mappedResultCode,
                 ERR_LDAP_PTA_CONNECTION_DISCONNECTING.get(host, port,
-                    String.valueOf(cfg.dn()), resultCode.getIntValue(),
+                    cfg.dn(), resultCode.getIntValue(),
                     resultCode.getResultCodeName(),
                     extendedResponse.getErrorMessage()));
           }
@@ -1150,8 +1145,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         // Unexpected response type.
         throw new DirectoryException(ResultCode.CLIENT_SIDE_DECODING_ERROR,
             ERR_LDAP_PTA_CONNECTION_WRONG_RESPONSE.get(host, port,
-                String.valueOf(cfg.dn()),
-                String.valueOf(responseMessage.getProtocolOp())));
+                cfg.dn(), responseMessage.getProtocolOp()));
       }
 
 
@@ -1170,46 +1164,40 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           if (e.getCause() instanceof SocketTimeoutException)
           {
             throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
-                ERR_LDAP_PTA_CONNECTION_TIMEOUT.get(host, port,
-                    String.valueOf(cfg.dn())), e);
+                ERR_LDAP_PTA_CONNECTION_TIMEOUT.get(host, port, cfg.dn()), e);
           }
           else if (e.getCause() instanceof IOException)
           {
             throw new DirectoryException(ResultCode.CLIENT_SIDE_SERVER_DOWN,
-                ERR_LDAP_PTA_CONNECTION_OTHER_ERROR.get(host, port,
-                    String.valueOf(cfg.dn()), e.getMessage()), e);
+                ERR_LDAP_PTA_CONNECTION_OTHER_ERROR.get(host, port, cfg.dn(), e.getMessage()), e);
           }
           else
           {
             throw new DirectoryException(ResultCode.CLIENT_SIDE_DECODING_ERROR,
-                ERR_LDAP_PTA_CONNECTION_DECODE_ERROR.get(host, port,
-                    String.valueOf(cfg.dn()), e.getMessage()), e);
+                ERR_LDAP_PTA_CONNECTION_DECODE_ERROR.get(host, port, cfg.dn(), e.getMessage()), e);
           }
         }
         catch (final LDAPException e)
         {
           throw new DirectoryException(ResultCode.CLIENT_SIDE_DECODING_ERROR,
               ERR_LDAP_PTA_CONNECTION_DECODE_ERROR.get(host, port,
-                  String.valueOf(cfg.dn()), e.getMessage()), e);
+                  cfg.dn(), e.getMessage()), e);
         }
         catch (final SocketTimeoutException e)
         {
           throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
-              ERR_LDAP_PTA_CONNECTION_TIMEOUT.get(host, port,
-                  String.valueOf(cfg.dn())), e);
+              ERR_LDAP_PTA_CONNECTION_TIMEOUT.get(host, port, cfg.dn()), e);
         }
         catch (final IOException e)
         {
           throw new DirectoryException(ResultCode.CLIENT_SIDE_SERVER_DOWN,
-              ERR_LDAP_PTA_CONNECTION_OTHER_ERROR.get(host, port,
-                  String.valueOf(cfg.dn()), e.getMessage()), e);
+              ERR_LDAP_PTA_CONNECTION_OTHER_ERROR.get(host, port, cfg.dn(), e.getMessage()), e);
         }
 
         if (responseMessage == null)
         {
           throw new DirectoryException(ResultCode.CLIENT_SIDE_SERVER_DOWN,
-              ERR_LDAP_PTA_CONNECTION_CLOSED.get(host, port,
-                  String.valueOf(cfg.dn())));
+              ERR_LDAP_PTA_CONNECTION_CLOSED.get(host, port, cfg.dn()));
         }
         return responseMessage;
       }
@@ -1229,8 +1217,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         catch (final IOException e)
         {
           throw new DirectoryException(ResultCode.CLIENT_SIDE_SERVER_DOWN,
-              ERR_LDAP_PTA_CONNECTION_OTHER_ERROR.get(host, port,
-                  String.valueOf(cfg.dn()), e.getMessage()), e);
+              ERR_LDAP_PTA_CONNECTION_OTHER_ERROR.get(host, port, cfg.dn(), e.getMessage()), e);
         }
       }
     }
@@ -1411,38 +1398,32 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       {
         logger.traceException(e);
         throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
-            ERR_LDAP_PTA_CONNECT_UNKNOWN_HOST.get(host, port,
-                String.valueOf(cfg.dn()), host), e);
+            ERR_LDAP_PTA_CONNECT_UNKNOWN_HOST.get(host, port, cfg.dn(), host), e);
       }
       catch (final ConnectException e)
       {
         logger.traceException(e);
         throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
-            ERR_LDAP_PTA_CONNECT_ERROR.get(host, port,
-                String.valueOf(cfg.dn()), port), e);
+            ERR_LDAP_PTA_CONNECT_ERROR.get(host, port, cfg.dn(), port), e);
       }
       catch (final SocketTimeoutException e)
       {
         logger.traceException(e);
         throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
-            ERR_LDAP_PTA_CONNECT_TIMEOUT.get(host, port,
-                String.valueOf(cfg.dn())), e);
+            ERR_LDAP_PTA_CONNECT_TIMEOUT.get(host, port, cfg.dn()), e);
       }
       catch (final SSLException e)
       {
         logger.traceException(e);
         throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
-            ERR_LDAP_PTA_CONNECT_SSL_ERROR.get(host, port,
-                String.valueOf(cfg.dn()), e.getMessage()), e);
+            ERR_LDAP_PTA_CONNECT_SSL_ERROR.get(host, port, cfg.dn(), e.getMessage()), e);
       }
       catch (final Exception e)
       {
         logger.traceException(e);
         throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
-            ERR_LDAP_PTA_CONNECT_OTHER_ERROR.get(host, port,
-                String.valueOf(cfg.dn()), e.getMessage()), e);
+            ERR_LDAP_PTA_CONNECT_OTHER_ERROR.get(host, port, cfg.dn(), e.getMessage()), e);
       }
-
     }
   }
 
@@ -1725,8 +1706,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                */
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                   ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(
-                      String.valueOf(userEntry.getName()),
-                      String.valueOf(cfg.dn()),
+                      userEntry.getName(), cfg.dn(),
                       mappedAttributesAsString(cfg.getMappedAttribute())));
             }
 
@@ -1764,8 +1744,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                */
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                   ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(
-                      String.valueOf(userEntry.getName()),
-                      String.valueOf(cfg.dn()),
+                      userEntry.getName(), cfg.dn(),
                       mappedAttributesAsString(cfg.getMappedAttribute())));
             }
 
@@ -1802,17 +1781,14 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                   // More than one matching entry was returned.
                   throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                       ERR_LDAP_PTA_MAPPED_SEARCH_TOO_MANY_CANDIDATES.get(
-                          String.valueOf(userEntry.getName()),
-                          String.valueOf(cfg.dn()), String.valueOf(baseDN),
-                          String.valueOf(filter)));
+                          userEntry.getName(), cfg.dn(), baseDN, filter));
                 default:
                   // We don't want to propagate this internal error to the
                   // client. We should log it and map it to a more appropriate
                   // error.
                   throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                       ERR_LDAP_PTA_MAPPED_SEARCH_FAILED.get(
-                          String.valueOf(userEntry.getName()),
-                          String.valueOf(cfg.dn()), e.getMessageObject()), e);
+                          userEntry.getName(), cfg.dn(), e.getMessageObject()), e);
                 }
               }
               finally
@@ -1831,8 +1807,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                */
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                   ERR_LDAP_PTA_MAPPED_SEARCH_NO_CANDIDATES.get(
-                      String.valueOf(userEntry.getName()),
-                      String.valueOf(cfg.dn()), String.valueOf(filter)));
+                      userEntry.getName(), cfg.dn(), filter));
             }
 
             break;
@@ -1864,8 +1839,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               // error.
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                   ERR_LDAP_PTA_MAPPED_BIND_FAILED.get(
-                      String.valueOf(userEntry.getName()),
-                      String.valueOf(cfg.dn()), e.getMessageObject()), e);
+                      userEntry.getName(), cfg.dn(), e.getMessageObject()), e);
             }
           }
           finally
@@ -2351,8 +2325,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       password = System.getProperty(propertyName);
       if (password == null)
       {
-        unacceptableReasons.add(ERR_LDAP_PTA_PWD_PROPERTY_NOT_SET.get(
-            String.valueOf(cfg.dn()), String.valueOf(propertyName)));
+        unacceptableReasons.add(ERR_LDAP_PTA_PWD_PROPERTY_NOT_SET.get(cfg.dn(), propertyName));
       }
     }
     else if (cfg.getMappedSearchBindPasswordEnvironmentVariable() != null)
@@ -2361,8 +2334,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       password = System.getenv(envVarName);
       if (password == null)
       {
-        unacceptableReasons.add(ERR_LDAP_PTA_PWD_ENVAR_NOT_SET.get(
-            String.valueOf(cfg.dn()), String.valueOf(envVarName)));
+        unacceptableReasons.add(ERR_LDAP_PTA_PWD_ENVAR_NOT_SET.get(cfg.dn(), envVarName));
       }
     }
     else if (cfg.getMappedSearchBindPasswordFile() != null)
@@ -2371,8 +2343,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       File passwordFile = getFileForPath(fileName);
       if (!passwordFile.exists())
       {
-        unacceptableReasons.add(ERR_LDAP_PTA_PWD_NO_SUCH_FILE.get(
-            String.valueOf(cfg.dn()), String.valueOf(fileName)));
+        unacceptableReasons.add(ERR_LDAP_PTA_PWD_NO_SUCH_FILE.get(cfg.dn(), fileName));
       }
       else
       {
@@ -2383,15 +2354,13 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           password = br.readLine();
           if (password == null)
           {
-            unacceptableReasons.add(ERR_LDAP_PTA_PWD_FILE_EMPTY.get(
-                String.valueOf(cfg.dn()), String.valueOf(fileName)));
+            unacceptableReasons.add(ERR_LDAP_PTA_PWD_FILE_EMPTY.get(cfg.dn(), fileName));
           }
         }
         catch (IOException e)
         {
           unacceptableReasons.add(ERR_LDAP_PTA_PWD_FILE_CANNOT_READ.get(
-              String.valueOf(cfg.dn()), String.valueOf(fileName),
-              getExceptionMessage(e)));
+              cfg.dn(), fileName, getExceptionMessage(e)));
         }
         finally
         {
@@ -2413,8 +2382,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     else
     {
       // Password wasn't defined anywhere.
-      unacceptableReasons
-          .add(ERR_LDAP_PTA_NO_PWD.get(String.valueOf(cfg.dn())));
+      unacceptableReasons.add(ERR_LDAP_PTA_NO_PWD.get(cfg.dn()));
     }
 
     return password;
@@ -2436,9 +2404,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     {
       if (unacceptableReasons != null)
       {
-        final LocalizableMessage msg = ERR_LDAP_PTA_INVALID_PORT_NUMBER.get(
-            String.valueOf(configuration.dn()), hostPort);
-        unacceptableReasons.add(msg);
+        unacceptableReasons.add(ERR_LDAP_PTA_INVALID_PORT_NUMBER.get(configuration.dn(), hostPort));
       }
       return false;
     }

@@ -149,9 +149,8 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
       }
       catch (Throwable t)
       {
-        LocalizableMessage message = ERR_CONFIG_FILE_CANNOT_OPEN_FOR_READ.get(
-            f.getAbsolutePath(), String.valueOf(t));
-        throw new InitializationException(message, t);
+        throw new InitializationException(
+            ERR_CONFIG_FILE_CANNOT_OPEN_FOR_READ.get(f.getAbsolutePath(), t), t);
       }
 
       if (! f.exists())
@@ -223,16 +222,13 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
       }
       catch (LDIFException le)
       {
-        LocalizableMessage message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
-            le.getLineNumber(), f.getAbsolutePath(),
-            String.valueOf(le));
-        throw new InitializationException(message, le);
+        throw new InitializationException(
+            ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(le.getLineNumber(), f.getAbsolutePath(), le), le);
       }
       catch (Throwable t)
       {
-        LocalizableMessage message = ERR_CONFIG_FILE_READ_ERROR.get(f.getAbsolutePath(),
-            String.valueOf(t));
-        throw new InitializationException(message, t);
+        throw new InitializationException(
+            ERR_CONFIG_FILE_READ_ERROR.get(f.getAbsolutePath(), t), t);
       }
 
 

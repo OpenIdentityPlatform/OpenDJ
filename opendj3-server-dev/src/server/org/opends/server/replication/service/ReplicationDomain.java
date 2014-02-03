@@ -1858,9 +1858,7 @@ public abstract class ReplicationDomain
             if (++ieCtx.msgCnt != entryMsg.getMsgId())
             {
               ieCtx.setExceptionIfNoneSet(new DirectoryException(
-                  ResultCode.OTHER, ERR_INIT_BAD_MSG_ID_SEQ_DURING_IMPORT.get(
-                      String.valueOf(ieCtx.msgCnt),
-                      String.valueOf(entryMsg.getMsgId()))));
+                  ResultCode.OTHER, ERR_INIT_BAD_MSG_ID_SEQ_DURING_IMPORT.get(ieCtx.msgCnt, entryMsg.getMsgId())));
               return null;
             }
 
@@ -2424,8 +2422,7 @@ public abstract class ReplicationDomain
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      logger.error(ERR_DS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
-          String.valueOf(getServerId()), status, event));
+      logger.error(ERR_DS_CANNOT_CHANGE_STATUS.get(getBaseDN(), getServerId(), status, event));
       return;
     }
 
@@ -3222,9 +3219,7 @@ public abstract class ReplicationDomain
       }
       else if (getAssuredMode() != AssuredMode.SAFE_DATA_MODE)
       {
-        logger.error(ERR_DS_UNKNOWN_ASSURED_MODE.get(String.valueOf(getServerId()),
-            msg.getAssuredMode(), getBaseDNString(),
-            msg));
+        logger.error(ERR_DS_UNKNOWN_ASSURED_MODE, getServerId(), msg.getAssuredMode(), getBaseDN(), msg);
       }
         // Nothing to do in Assured safe data mode, only RS ack updates.
     }

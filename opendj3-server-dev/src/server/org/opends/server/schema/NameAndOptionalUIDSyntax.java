@@ -268,8 +268,7 @@ public class NameAndOptionalUIDSyntax
         {
 
           invalidReason.append(
-                  ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT.get(
-                          valueString, String.valueOf(c), i));
+                  ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT.get(valueString, c, i));
           return false;
         }
       }

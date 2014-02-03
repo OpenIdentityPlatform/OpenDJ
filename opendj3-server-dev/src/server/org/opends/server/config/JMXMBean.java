@@ -480,8 +480,7 @@ public final class JMXMBean
       logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
-          get(String.valueOf(attributeName), String.valueOf(configEntryDN),
-              getExceptionMessage(e));
+          get(attributeName, configEntryDN, getExceptionMessage(e));
       throw new AttributeNotFoundException(message.toString());
     }
 
@@ -506,8 +505,7 @@ public final class JMXMBean
        clientConnection = null ;
 
        LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
-         get(String.valueOf(attributeName), String.valueOf(configEntryDN),
-             String.valueOf(op.getErrorMessage()));
+         get(attributeName, configEntryDN, op.getErrorMessage());
        throw new AttributeNotFoundException(message.toString());
     }
 
@@ -519,7 +517,7 @@ public final class JMXMBean
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(String.valueOf(configEntryDN), attributeName);
+      LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(configEntryDN, attributeName);
       logger.error(message);
       throw new AttributeNotFoundException(message.toString());
     }

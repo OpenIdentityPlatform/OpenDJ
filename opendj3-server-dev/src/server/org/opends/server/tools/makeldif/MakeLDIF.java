@@ -248,8 +248,7 @@ public class MakeLDIF
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_MAKELDIF_CANNOT_INITIALIZE_JMX.get(
-            String.valueOf(configFile.getValue()), e.getMessage());
+        LocalizableMessage message = ERR_MAKELDIF_CANNOT_INITIALIZE_JMX.get(configFile.getValue(), e.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -261,8 +260,7 @@ public class MakeLDIF
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_MAKELDIF_CANNOT_INITIALIZE_CONFIG.get(
-            String.valueOf(configFile.getValue()), e.getMessage());
+        LocalizableMessage message = ERR_MAKELDIF_CANNOT_INITIALIZE_CONFIG.get(configFile.getValue(), e.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -276,8 +274,7 @@ public class MakeLDIF
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_MAKELDIF_CANNOT_INITIALIZE_SCHEMA.get(
-            String.valueOf(configFile.getValue()), e.getMessage());
+        LocalizableMessage message = ERR_MAKELDIF_CANNOT_INITIALIZE_SCHEMA.get(configFile.getValue(), e.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -359,8 +356,7 @@ public class MakeLDIF
     }
     catch (IOException ioe)
     {
-      LocalizableMessage message = ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get(
-              ldifFile.getValue(), String.valueOf(ioe));
+      LocalizableMessage message = ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get(ldifFile.getValue(), ioe);
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -465,7 +461,7 @@ public class MakeLDIF
     catch (Exception e)
     {
       LocalizableMessage message = ERR_MAKELDIF_CANNOT_WRITE_ENTRY.get(
-          String.valueOf(entry.getDN()), stackTraceToSingleLineString(e));
+          entry.getDN(), stackTraceToSingleLineString(e));
       throw new MakeLDIFException(message, e);
     }
   }

@@ -945,8 +945,7 @@ public final class SambaPasswordPlugin extends
       case POSTOPERATIONEXTENDED:
         break;
       default:
-        messages.add(ERR_PLUGIN_SAMBA_SYNC_INVALID_PLUGIN_TYPE.get(String
-            .valueOf(t)));
+        messages.add(ERR_PLUGIN_SAMBA_SYNC_INVALID_PLUGIN_TYPE.get(t));
         return false;
       }
     }

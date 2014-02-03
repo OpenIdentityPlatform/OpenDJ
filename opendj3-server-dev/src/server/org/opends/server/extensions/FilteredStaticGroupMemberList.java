@@ -159,8 +159,7 @@ public class FilteredStaticGroupMemberList
         logger.traceException(de);
 
         LocalizableMessage message = ERR_STATICMEMBERS_CANNOT_DECODE_DN.
-            get(String.valueOf(nextDN), String.valueOf(groupDN),
-                String.valueOf(de.getMessageObject()));
+            get(nextDN, groupDN, de.getMessageObject());
         nextMembershipException =
              new MembershipException(message, true, de);
         return;
@@ -210,8 +209,7 @@ public class FilteredStaticGroupMemberList
         Entry memberEntry = DirectoryConfig.getEntry(nextDN);
         if (memberEntry == null)
         {
-          LocalizableMessage message = ERR_STATICMEMBERS_NO_SUCH_ENTRY.get(
-              String.valueOf(nextDN), String.valueOf(groupDN));
+          LocalizableMessage message = ERR_STATICMEMBERS_NO_SUCH_ENTRY.get(nextDN, groupDN);
           nextMembershipException =
                new MembershipException(message, true);
           return;
@@ -240,8 +238,7 @@ public class FilteredStaticGroupMemberList
         logger.traceException(de);
 
         LocalizableMessage message = ERR_STATICMEMBERS_CANNOT_GET_ENTRY.
-            get(String.valueOf(nextDN), String.valueOf(groupDN),
-                String.valueOf(de.getMessageObject()));
+            get(nextDN, groupDN, de.getMessageObject());
         nextMembershipException =
              new MembershipException(message, true, de);
         return;

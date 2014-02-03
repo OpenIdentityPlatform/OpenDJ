@@ -236,8 +236,7 @@ public class LDAPCompare
     if (!isScriptFriendly())
     {
       out.println(INFO_PROCESSING_COMPARE_OPERATION.get(
-          attributeType, String.valueOf(attrValOctetStr),
-          String.valueOf(dnOctetStr)));
+          attributeType, attrValOctetStr, dnOctetStr));
     }
 
     if(!compareOptions.showOperations())
@@ -771,9 +770,8 @@ public class LDAPCompare
         catch (Exception e)
         {
           err.println(wrapText(
-                  INFO_COMPARE_CANNOT_READ_ASSERTION_VALUE_FROM_FILE.get(
-                          String.valueOf(e)),
-                          MAX_LINE_WIDTH));
+              INFO_COMPARE_CANNOT_READ_ASSERTION_VALUE_FROM_FILE.get(e),
+              MAX_LINE_WIDTH));
           return CLIENT_SIDE_PARAM_ERROR;
         }
       } else
@@ -803,9 +801,7 @@ public class LDAPCompare
       int versionNumber = version.getIntValue();
       if(versionNumber != 2 && versionNumber != 3)
       {
-
-        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(
-                String.valueOf(versionNumber)), MAX_LINE_WIDTH));
+        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(versionNumber), MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
       connectionOptions.setVersionNumber(versionNumber);

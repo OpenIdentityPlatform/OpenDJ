@@ -120,9 +120,7 @@ public class WorkQueueConfigManager
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_WORK_QUEUE_INITIALIZATION_FAILED.
-          get(workQueueConfig.getJavaClass(),
-              String.valueOf(workQueueConfig.dn()),
-              stackTraceToSingleLineString(e));
+          get(workQueueConfig.getJavaClass(), workQueueConfig.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }

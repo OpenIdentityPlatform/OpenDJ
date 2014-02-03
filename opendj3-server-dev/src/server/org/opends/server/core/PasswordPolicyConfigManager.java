@@ -135,14 +135,11 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     if (null == DirectoryServer.getDefaultPasswordPolicy())
     {
       DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
-      LocalizableMessage message = ERR_CONFIG_PWPOLICY_MISSING_DEFAULT_POLICY.get(String
-          .valueOf(defaultPolicyDN));
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_PWPOLICY_MISSING_DEFAULT_POLICY.get(defaultPolicyDN));
     }
 
     // Process and register any password policy subentries.
-    List<SubEntry> pwpSubEntries = DirectoryServer.getSubentryManager()
-        .getSubentries();
+    List<SubEntry> pwpSubEntries = DirectoryServer.getSubentryManager().getSubentries();
     if ((pwpSubEntries != null) && (!pwpSubEntries.isEmpty()))
     {
       for (SubEntry subentry : pwpSubEntries)
@@ -221,27 +218,18 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     }
     catch (ConfigException ce)
     {
-      messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-          String.valueOf(configuration.dn()), ce.getMessage()));
-
-      return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false,
-          messages);
+      messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(configuration.dn(), ce.getMessage()));
+      return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false, messages);
     }
     catch (InitializationException ie)
     {
-      messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-          String.valueOf(configuration.dn()), ie.getMessage()));
-
-      return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-          false, messages);
+      messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(configuration.dn(), ie.getMessage()));
+      return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(), false, messages);
     }
     catch (Exception e)
     {
-      messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-          String.valueOf(configuration.dn()), stackTraceToSingleLineString(e)));
-
-      return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-          false, messages);
+      messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(configuration.dn(), stackTraceToSingleLineString(e)));
+      return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(), false, messages);
     }
   }
 
@@ -260,9 +248,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
     if ((defaultPolicyDN != null) && defaultPolicyDN.equals(configuration.dn()))
     {
-      LocalizableMessage message = WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY
-          .get(String.valueOf(defaultPolicyDN));
-      unacceptableReason.add(message);
+      unacceptableReason.add(WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY.get(defaultPolicyDN));
       return false;
     }
     else
@@ -288,14 +274,11 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
     if ((defaultPolicyDN != null) && defaultPolicyDN.equals(policyDN))
     {
-      messages.add(WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY.get(String
-          .valueOf(defaultPolicyDN)));
-      return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false,
-          messages);
+      messages.add(WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY.get(defaultPolicyDN));
+      return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false, messages);
     }
     DirectoryServer.deregisterAuthenticationPolicy(policyDN);
-    messages.add(INFO_CONFIG_PWPOLICY_REMOVED_POLICY.get(String
-        .valueOf(policyDN)));
+    messages.add(INFO_CONFIG_PWPOLICY_REMOVED_POLICY.get(policyDN));
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false, messages);
   }
@@ -473,8 +456,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     {
       if (!(policyConfiguration instanceof PasswordPolicyCfg))
       {
-        LocalizableMessage msg = ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE
-            .get(String.valueOf(policyConfiguration.dn()));
+        LocalizableMessage msg = ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE.get(policyConfiguration.dn());
         throw new ConfigException(msg);
       }
     }
@@ -497,8 +479,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-          String.valueOf(policyConfiguration.dn()),
-          stackTraceToSingleLineString(e));
+          policyConfiguration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
 
@@ -534,13 +515,11 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-          String.valueOf(policyConfiguration.dn()),
-          stackTraceToSingleLineString(e));
+          policyConfiguration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
 
-    DirectoryServer.registerAuthenticationPolicy(policyConfiguration.dn(),
-        policy);
+    DirectoryServer.registerAuthenticationPolicy(policyConfiguration.dn(), policy);
   }
 
 
@@ -558,8 +537,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     {
       if (!(policyConfiguration instanceof PasswordPolicyCfg))
       {
-        LocalizableMessage msg = ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE
-            .get(String.valueOf(policyConfiguration.dn()));
+        LocalizableMessage msg = ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE.get(policyConfiguration.dn());
         unacceptableReasons.add(msg);
         return false;
       }
@@ -592,8 +570,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       logger.traceException(e);
 
       unacceptableReasons.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-          String.valueOf(policyConfiguration.dn()),
-          stackTraceToSingleLineString(e)));
+          policyConfiguration.dn(), stackTraceToSingleLineString(e)));
       return false;
     }
   }

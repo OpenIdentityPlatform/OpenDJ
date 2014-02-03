@@ -398,8 +398,7 @@ public final class ConfigEntry
         logger.traceException(e);
 
         LocalizableMessage message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_CHILD.
-            get(String.valueOf(childDN), String.valueOf(entry.getName()),
-                stackTraceToSingleLineString(e));
+            get(childDN, entry.getName(), stackTraceToSingleLineString(e));
         throw new ConfigException(message, e);
       }
     }

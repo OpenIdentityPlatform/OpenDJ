@@ -186,7 +186,7 @@ public class FingerprintCertificateMapper
       logger.traceException(e);
 
       LocalizableMessage message = ERR_FCM_PEER_CERT_NOT_X509.get(
-          String.valueOf(certificateChain[0].getType()));
+          certificateChain[0].getType());
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
@@ -263,17 +263,13 @@ public class FingerprintCertificateMapper
         case TIME_LIMIT_EXCEEDED:
         case ADMIN_LIMIT_EXCEEDED:
           // The search criteria was too inefficient.
-          message = ERR_FCM_INEFFICIENT_SEARCH.get(
-                         fingerprintString,
-                         String.valueOf(searchOperation.getErrorMessage()));
+          message = ERR_FCM_INEFFICIENT_SEARCH.get(fingerprintString, searchOperation.getErrorMessage());
           throw new DirectoryException(searchOperation.getResultCode(),
               message);
 
         default:
           // Just pass on the failure that was returned for this search.
-          message = ERR_FCM_SEARCH_FAILED.get(
-                         fingerprintString,
-                         String.valueOf(searchOperation.getErrorMessage()));
+          message = ERR_FCM_SEARCH_FAILED.get(fingerprintString, searchOperation.getErrorMessage());
           throw new DirectoryException(searchOperation.getResultCode(),
               message);
       }
@@ -287,8 +283,7 @@ public class FingerprintCertificateMapper
         else
         {
           LocalizableMessage message = ERR_FCM_MULTIPLE_MATCHING_ENTRIES.
-              get(fingerprintString, String.valueOf(userEntry.getName()),
-                  String.valueOf(entry.getName()));
+              get(fingerprintString, userEntry.getName(), entry.getName());
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
         }
       }

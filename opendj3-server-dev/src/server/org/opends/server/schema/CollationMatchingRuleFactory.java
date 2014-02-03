@@ -361,8 +361,7 @@ public final class CollationMatchingRuleFactory extends
     catch (DirectoryException de)
     {
       LocalizableMessage message =
-          WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(String
-              .valueOf(configuration.dn()), de.getMessageObject());
+          WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(configuration.dn(), de.getMessageObject());
       adminActionRequired = true;
       messages.add(message);
     }

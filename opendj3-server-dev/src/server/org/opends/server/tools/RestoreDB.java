@@ -506,36 +506,27 @@ public class RestoreDB extends TaskTool {
                 backupInfo.getBackupID());
         out.println(message);
 
-
         message = INFO_RESTOREDB_LIST_BACKUP_DATE.get(
                 dateFormat.format(backupInfo.getBackupDate()));
         out.println(message);
 
-
-        message = INFO_RESTOREDB_LIST_INCREMENTAL.get(
-                String.valueOf(backupInfo.isIncremental()));
+        message = INFO_RESTOREDB_LIST_INCREMENTAL.get(backupInfo.isIncremental());
         out.println(message);
 
-
-        message = INFO_RESTOREDB_LIST_COMPRESSED.get(
-                String.valueOf(backupInfo.isCompressed()));
+        message = INFO_RESTOREDB_LIST_COMPRESSED.get(backupInfo.isCompressed());
         out.println(message);
 
-
-        message = INFO_RESTOREDB_LIST_ENCRYPTED.get(
-                String.valueOf(backupInfo.isEncrypted()));
+        message = INFO_RESTOREDB_LIST_ENCRYPTED.get(backupInfo.isEncrypted());
         out.println(message);
 
         byte[] hash = backupInfo.getUnsignedHash();
 
-        message = INFO_RESTOREDB_LIST_HASHED.get(
-                String.valueOf(hash != null));
+        message = INFO_RESTOREDB_LIST_HASHED.get(hash != null);
         out.println(message);
 
         byte[] signature = backupInfo.getSignedHash();
 
-        message = INFO_RESTOREDB_LIST_SIGNED.get(
-                String.valueOf(signature != null));
+        message = INFO_RESTOREDB_LIST_SIGNED.get(signature != null);
         out.println(message);
 
         StringBuilder dependencyList = new StringBuilder();

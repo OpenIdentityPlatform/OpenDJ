@@ -374,8 +374,7 @@ public class LDAPSearch
                   }
                 }
                 // FIXME - throw exception?
-                LocalizableMessage msg = INFO_SEARCH_OPERATION_INVALID_PROTOCOL.get(
-                        String.valueOf(opType));
+                LocalizableMessage msg = INFO_SEARCH_OPERATION_INVALID_PROTOCOL.get(opType);
                 err.println(wrapText(msg, MAX_LINE_WIDTH));
             }
 
@@ -1188,9 +1187,7 @@ public class LDAPSearch
       int versionNumber = version.getIntValue();
       if(versionNumber != 2 && versionNumber != 3)
       {
-
-        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(
-                String.valueOf(versionNumber)), MAX_LINE_WIDTH));
+        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(versionNumber), MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
       connectionOptions.setVersionNumber(versionNumber);
@@ -1355,8 +1352,7 @@ public class LDAPSearch
         String token = tokenizer.nextToken();
         if (! token.equals("ps"))
         {
-          LocalizableMessage message = ERR_PSEARCH_DOESNT_START_WITH_PS.get(
-                  String.valueOf(infoString));
+          LocalizableMessage message = ERR_PSEARCH_DOESNT_START_WITH_PS.get(infoString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return CLIENT_SIDE_PARAM_ERROR;
         }
@@ -1394,8 +1390,7 @@ public class LDAPSearch
           }
           else
           {
-            LocalizableMessage message =
-                    ERR_PSEARCH_INVALID_CHANGE_TYPE.get(String.valueOf(token));
+            LocalizableMessage message = ERR_PSEARCH_INVALID_CHANGE_TYPE.get(token);
             err.println(wrapText(message, MAX_LINE_WIDTH));
             return CLIENT_SIDE_PARAM_ERROR;
           }
@@ -1424,8 +1419,7 @@ public class LDAPSearch
         }
         else
         {
-          LocalizableMessage message = ERR_PSEARCH_INVALID_CHANGESONLY.get(
-                  String.valueOf(token));
+          LocalizableMessage message = ERR_PSEARCH_INVALID_CHANGESONLY.get(token);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return CLIENT_SIDE_PARAM_ERROR;
         }
@@ -1445,8 +1439,7 @@ public class LDAPSearch
         }
         else
         {
-          LocalizableMessage message = ERR_PSEARCH_INVALID_RETURN_ECS.get(
-                  String.valueOf(token));
+          LocalizableMessage message = ERR_PSEARCH_INVALID_RETURN_ECS.get(token);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return CLIENT_SIDE_PARAM_ERROR;
         }

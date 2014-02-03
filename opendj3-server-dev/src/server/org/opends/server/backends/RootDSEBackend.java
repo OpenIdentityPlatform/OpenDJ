@@ -1049,9 +1049,8 @@ public class RootDSEBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    LocalizableMessage message =
-        ERR_ROOTDSE_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getName()));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_ROOTDSE_ADD_NOT_SUPPORTED.get(entry.getName()));
   }
 
 
@@ -1063,9 +1062,8 @@ public class RootDSEBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    LocalizableMessage message =
-        ERR_ROOTDSE_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_ROOTDSE_DELETE_NOT_SUPPORTED.get(entryDN));
   }
 
 
@@ -1077,9 +1075,8 @@ public class RootDSEBackend
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
-    LocalizableMessage message = ERR_ROOTDSE_MODIFY_NOT_SUPPORTED.get(
-        String.valueOf(newEntry.getName()), String.valueOf(configEntryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_ROOTDSE_MODIFY_NOT_SUPPORTED.get(newEntry.getName(), configEntryDN));
   }
 
 
@@ -1092,9 +1089,8 @@ public class RootDSEBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    LocalizableMessage message =
-        ERR_ROOTDSE_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_ROOTDSE_MODIFY_DN_NOT_SUPPORTED.get(currentDN));
   }
 
 
@@ -1109,8 +1105,7 @@ public class RootDSEBackend
     if (! baseDN.isRootDN())
     {
       LocalizableMessage message = ERR_ROOTDSE_INVALID_SEARCH_BASE.
-          get(searchOperation.getConnectionID(),
-              searchOperation.getOperationID(), String.valueOf(baseDN));
+          get(searchOperation.getConnectionID(), searchOperation.getOperationID(), baseDN);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
@@ -1218,7 +1213,7 @@ public class RootDSEBackend
         LocalizableMessage message = ERR_ROOTDSE_INVALID_SEARCH_SCOPE.
             get(searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
-                String.valueOf(searchOperation.getScope()));
+                searchOperation.getScope());
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
   }
@@ -1457,9 +1452,7 @@ public class RootDSEBackend
           Backend backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
           {
-            LocalizableMessage message = WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(
-                    String.valueOf(baseDN));
-            unacceptableReasons.add(message);
+            unacceptableReasons.add(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
             configIsAcceptable = false;
           }
         }
@@ -1469,9 +1462,8 @@ public class RootDSEBackend
     {
       logger.traceException(e);
 
-      LocalizableMessage message = WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
-              stackTraceToSingleLineString(e));
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
+          stackTraceToSingleLineString(e)));
       configIsAcceptable = false;
     }
 
@@ -1511,9 +1503,7 @@ public class RootDSEBackend
           if (backend == null)
           {
             // This is not fine.  We can't use a suffix that doesn't exist.
-            LocalizableMessage message = WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(
-                    String.valueOf(baseDN));
-            messages.add(message);
+            messages.add(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
 
             if (resultCode == ResultCode.SUCCESS)
             {
@@ -1581,8 +1571,7 @@ public class RootDSEBackend
       logger.traceException(e);
 
       messages.add(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
-              String.valueOf(configEntryDN),
-              stackTraceToSingleLineString(e)));
+              configEntryDN, stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
@@ -1616,16 +1605,13 @@ public class RootDSEBackend
       if (showAllAttributes != newShowAll)
       {
         showAllAttributes = newShowAll;
-        LocalizableMessage message = INFO_ROOTDSE_UPDATED_SHOW_ALL_ATTRS.get(
-                ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
-                String.valueOf(showAllAttributes));
-        messages.add(message);
+        messages.add(INFO_ROOTDSE_UPDATED_SHOW_ALL_ATTRS.get(
+                ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES, showAllAttributes));
       }
 
 
       userDefinedAttributes = userAttrs;
-      LocalizableMessage message = INFO_ROOTDSE_USING_NEW_USER_ATTRS.get();
-      messages.add(message);
+      messages.add(INFO_ROOTDSE_USING_NEW_USER_ATTRS.get());
     }
 
 

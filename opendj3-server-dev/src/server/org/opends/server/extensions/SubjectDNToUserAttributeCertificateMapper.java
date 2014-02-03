@@ -172,8 +172,7 @@ public class SubjectDNToUserAttributeCertificateMapper
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_SDTUACM_PEER_CERT_NOT_X509.get(
-          String.valueOf(certificateChain[0].getType()));
+      LocalizableMessage message = ERR_SDTUACM_PEER_CERT_NOT_X509.get(certificateChain[0].getType());
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
@@ -230,19 +229,13 @@ public class SubjectDNToUserAttributeCertificateMapper
         case TIME_LIMIT_EXCEEDED:
         case ADMIN_LIMIT_EXCEEDED:
           // The search criteria was too inefficient.
-          message = ERR_SDTUACM_INEFFICIENT_SEARCH.get(
-                         peerName,
-                         String.valueOf(searchOperation.getErrorMessage()));
-          throw new DirectoryException(searchOperation.getResultCode(),
-              message);
+          message = ERR_SDTUACM_INEFFICIENT_SEARCH.get(peerName, searchOperation.getErrorMessage());
+          throw new DirectoryException(searchOperation.getResultCode(), message);
 
         default:
           // Just pass on the failure that was returned for this search.
-          message = ERR_SDTUACM_SEARCH_FAILED.get(
-                         peerName,
-                         String.valueOf(searchOperation.getErrorMessage()));
-          throw new DirectoryException(searchOperation.getResultCode(),
-              message);
+          message = ERR_SDTUACM_SEARCH_FAILED.get(peerName, searchOperation.getErrorMessage());
+          throw new DirectoryException(searchOperation.getResultCode(), message);
       }
 
       for (SearchResultEntry entry : searchOperation.getSearchEntries())
@@ -254,8 +247,7 @@ public class SubjectDNToUserAttributeCertificateMapper
         else
         {
           LocalizableMessage message = ERR_SDTUACM_MULTIPLE_MATCHING_ENTRIES.
-              get(peerName, String.valueOf(userEntry.getName()),
-                  String.valueOf(entry.getName()));
+              get(peerName, userEntry.getName(), entry.getName());
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
         }
       }

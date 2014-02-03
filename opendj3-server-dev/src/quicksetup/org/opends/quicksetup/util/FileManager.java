@@ -384,7 +384,7 @@ public class FileManager {
       // Just tell that the file/directory does not exist.
       if (application != null) {
         application.notifyListeners(application.getFormattedWarning(
-                INFO_FILE_DOES_NOT_EXIST.get(String.valueOf(file))));
+                INFO_FILE_DOES_NOT_EXIST.get(file)));
       }
       logger.debug(LocalizableMessage.raw("file '" + file + "' does not exist"));
     }

@@ -156,8 +156,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
     // explicitly created and registered by the LDAP connection handler
     // or an LDAP client connection.
     LocalizableMessage message =
-        ERR_LDAP_STATS_INVALID_MONITOR_INITIALIZATION.get(String
-            .valueOf(configuration.dn()));
+        ERR_LDAP_STATS_INVALID_MONITOR_INITIALIZATION.get(configuration.dn());
     throw new ConfigException(message);
   }
 

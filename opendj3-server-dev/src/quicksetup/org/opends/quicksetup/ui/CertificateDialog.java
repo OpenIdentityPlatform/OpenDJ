@@ -283,16 +283,16 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     if (ce.getType() == UserDataCertificateException.Type.NOT_TRUSTED)
     {
       text = INFO_CERTIFICATE_NOT_TRUSTED_TEXT.get(
-          ce.getHost(), String.valueOf(ce.getPort()),
-          ce.getHost(), String.valueOf(ce.getPort()));
+          ce.getHost(), ce.getPort(),
+          ce.getHost(), ce.getPort());
     }
     else
     {
       text = INFO_CERTIFICATE_NAME_MISMATCH_TEXT.get(
-              ce.getHost(), String.valueOf(ce.getPort()),
+              ce.getHost(), ce.getPort(),
               ce.getHost(),
-              ce.getHost(), String.valueOf(ce.getPort()),
-              ce.getHost(), String.valueOf(ce.getPort()));
+              ce.getHost(), ce.getPort(),
+              ce.getHost(), ce.getPort());
     }
     JPanel p = UIFactory.makeJPanel();
     p.setLayout(new GridBagLayout());

@@ -225,24 +225,20 @@ public class ExactMatchIdentityMapper
 
         case SIZE_LIMIT_EXCEEDED:
           // Multiple entries matched the filter.  This is not acceptable.
-          LocalizableMessage message =
-              ERR_EXACTMAP_MULTIPLE_MATCHING_ENTRIES.get(String.valueOf(id));
-          throw new DirectoryException(
-                  ResultCode.CONSTRAINT_VIOLATION, message);
+          LocalizableMessage message = ERR_EXACTMAP_MULTIPLE_MATCHING_ENTRIES.get(id);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
 
         case TIME_LIMIT_EXCEEDED:
         case ADMIN_LIMIT_EXCEEDED:
           // The search criteria was too inefficient.
           message = ERR_EXACTMAP_INEFFICIENT_SEARCH.
-              get(String.valueOf(id),
-                  String.valueOf(internalSearch.getErrorMessage()));
+              get(id, internalSearch.getErrorMessage());
           throw new DirectoryException(internalSearch.getResultCode(), message);
 
         default:
           // Just pass on the failure that was returned for this search.
           message = ERR_EXACTMAP_SEARCH_FAILED.
-              get(String.valueOf(id),
-                  String.valueOf(internalSearch.getErrorMessage()));
+              get(id, internalSearch.getErrorMessage());
           throw new DirectoryException(internalSearch.getResultCode(), message);
       }
 
@@ -256,18 +252,14 @@ public class ExactMatchIdentityMapper
           matchingEntry = iterator.next();
           if (iterator.hasNext())
           {
-            LocalizableMessage message =
-                ERR_EXACTMAP_MULTIPLE_MATCHING_ENTRIES.get(String.valueOf(id));
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
+            LocalizableMessage message = ERR_EXACTMAP_MULTIPLE_MATCHING_ENTRIES.get(id);
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
         else
         {
-          LocalizableMessage message =
-              ERR_EXACTMAP_MULTIPLE_MATCHING_ENTRIES.get(String.valueOf(id));
-          throw new DirectoryException(
-                  ResultCode.CONSTRAINT_VIOLATION, message);
+          LocalizableMessage message = ERR_EXACTMAP_MULTIPLE_MATCHING_ENTRIES.get(id);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
         }
       }
     }

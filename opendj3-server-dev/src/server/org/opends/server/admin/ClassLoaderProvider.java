@@ -561,12 +561,8 @@ public final class ClassLoaderProvider {
       }
 
       if (!extensionsPath.isDirectory()) {
-        // The extensions directory is not a directory. This is more
-        // critical.
-        LocalizableMessage message =
-            ERR_ADMIN_EXTENSIONS_DIR_NOT_DIRECTORY.get(
-                    String.valueOf(extensionsPath));
-        throw new InitializationException(message);
+        // The extensions directory is not a directory. This is more critical.
+        throw new InitializationException(ERR_ADMIN_EXTENSIONS_DIR_NOT_DIRECTORY.get(extensionsPath));
       }
 
       // Get each extension file name.
@@ -595,7 +591,7 @@ public final class ClassLoaderProvider {
       logger.traceException(e);
 
       LocalizableMessage message = ERR_ADMIN_EXTENSIONS_CANNOT_LIST_FILES.get(
-          String.valueOf(extensionsPath), stackTraceToSingleLineString(e));
+          extensionsPath, stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }
@@ -707,9 +703,8 @@ public final class ClassLoaderProvider {
       try {
         className = reader.readLine();
       } catch (IOException e) {
-        LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_READ_MANIFEST_FILE.get(String
-            .valueOf(e.getMessage()));
-        throw new InitializationException(msg, e);
+        throw new InitializationException(
+            ERR_CLASS_LOADER_CANNOT_READ_MANIFEST_FILE.get(e.getMessage()), e);
       }
 
       // Break out when the end of the manifest is reached.
@@ -735,9 +730,8 @@ public final class ClassLoaderProvider {
       try {
         theClass = Class.forName(className, true, loader);
       } catch (Exception e) {
-        LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_LOAD_CLASS.get(className, String
-            .valueOf(e.getMessage()));
-        throw new InitializationException(msg, e);
+        throw new InitializationException(
+            ERR_CLASS_LOADER_CANNOT_LOAD_CLASS.get(className, e.getMessage()), e);
       }
       if (AbstractManagedObjectDefinition.class.isAssignableFrom(theClass)) {
         // We need to instantiate it using its getInstance() static method.
@@ -745,9 +739,8 @@ public final class ClassLoaderProvider {
         try {
           method = theClass.getMethod("getInstance");
         } catch (Exception e) {
-          LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_FIND_GET_INSTANCE_METHOD.get(
-              className, String.valueOf(e.getMessage()));
-          throw new InitializationException(msg, e);
+          throw new InitializationException(
+              ERR_CLASS_LOADER_CANNOT_FIND_GET_INSTANCE_METHOD.get(className, e.getMessage()), e);
         }
 
         // Get the definition instance.
@@ -755,9 +748,8 @@ public final class ClassLoaderProvider {
         try {
           d = (AbstractManagedObjectDefinition<?, ?>) method.invoke(null);
         } catch (Exception e) {
-          LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_INVOKE_GET_INSTANCE_METHOD.get(
-              className, String.valueOf(e.getMessage()));
-          throw new InitializationException(msg, e);
+          throw new InitializationException(
+              ERR_CLASS_LOADER_CANNOT_INVOKE_GET_INSTANCE_METHOD.get(className, e.getMessage()), e);
         }
         definitions.add(d);
       }
@@ -768,9 +760,9 @@ public final class ClassLoaderProvider {
       try {
         d.initialize();
       } catch (Exception e) {
-        LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_INITIALIZE_DEFN.get(d.getName(),
-            d.getClass().getName(), String.valueOf(e.getMessage()));
-        throw new InitializationException(msg, e);
+        throw new InitializationException(
+            ERR_CLASS_LOADER_CANNOT_INITIALIZE_DEFN.get(
+                d.getName(), d.getClass().getName(), e.getMessage()), e);
       }
     }
   }

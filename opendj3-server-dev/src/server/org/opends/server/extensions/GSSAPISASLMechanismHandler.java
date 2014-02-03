@@ -136,8 +136,7 @@ public class GSSAPISASLMechanismHandler extends
     catch (UnknownHostException unhe)
     {
       logger.traceException(unhe);
-      LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
-          .valueOf(configEntryDN), getExceptionMessage(unhe));
+      LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(configEntryDN, getExceptionMessage(unhe));
       throw new InitializationException(message, unhe);
     }
     catch (IOException ioe)

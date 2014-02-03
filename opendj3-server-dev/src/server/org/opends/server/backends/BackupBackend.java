@@ -462,8 +462,8 @@ public class BackupBackend
     DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
-      LocalizableMessage message = ERR_BACKUP_INVALID_BASE.get(String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+          ERR_BACKUP_INVALID_BASE.get(entryDN));
     }
     else if (parentDN.equals(backupBaseDN))
     {
@@ -475,7 +475,7 @@ public class BackupBackend
     }
     else
     {
-      LocalizableMessage message = ERR_BACKUP_INVALID_BASE.get(String.valueOf(entryDN));
+      LocalizableMessage message = ERR_BACKUP_INVALID_BASE.get(entryDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
               message, backupBaseDN, null);
     }
@@ -506,7 +506,7 @@ public class BackupBackend
     if (v == null)
     {
       LocalizableMessage message =
-          ERR_BACKUP_DN_DOES_NOT_SPECIFY_DIRECTORY.get(String.valueOf(entryDN));
+          ERR_BACKUP_DN_DOES_NOT_SPECIFY_DIRECTORY.get(entryDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                    backupBaseDN, null);
     }
@@ -525,9 +525,8 @@ public class BackupBackend
     {
       logger.traceException(ce);
 
-      LocalizableMessage message = ERR_BACKUP_INVALID_BACKUP_DIRECTORY.get(
-          String.valueOf(entryDN), ce.getMessage());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+          ERR_BACKUP_INVALID_BACKUP_DIRECTORY.get(entryDN, ce.getMessage()));
     }
     catch (Exception e)
     {
@@ -591,8 +590,7 @@ public class BackupBackend
         true);
     AttributeValue idValue = entryDN.rdn().getAttributeValue(idType);
     if (idValue == null) {
-      LocalizableMessage message = ERR_BACKUP_NO_BACKUP_ID_IN_DN.get(String
-          .valueOf(entryDN));
+      LocalizableMessage message = ERR_BACKUP_NO_BACKUP_ID_IN_DN.get(entryDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     String backupID = idValue.getValue().toString();
@@ -600,8 +598,7 @@ public class BackupBackend
     // Next, get the backup directory from the parent DN.
     DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null) {
-      LocalizableMessage message = ERR_BACKUP_NO_BACKUP_PARENT_DN.get(String
-          .valueOf(entryDN));
+      LocalizableMessage message = ERR_BACKUP_NO_BACKUP_PARENT_DN.get(entryDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -609,8 +606,7 @@ public class BackupBackend
         ATTR_BACKUP_DIRECTORY_PATH, true);
     AttributeValue v = parentDN.rdn().getAttributeValue(t);
     if (v == null) {
-      LocalizableMessage message = ERR_BACKUP_NO_BACKUP_DIR_IN_DN.get(String
-          .valueOf(entryDN));
+      LocalizableMessage message = ERR_BACKUP_NO_BACKUP_DIR_IN_DN.get(entryDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -621,8 +617,7 @@ public class BackupBackend
     } catch (ConfigException ce) {
       logger.traceException(ce);
 
-      LocalizableMessage message = ERR_BACKUP_INVALID_BACKUP_DIRECTORY.get(String
-          .valueOf(entryDN), ce.getMessageObject());
+      LocalizableMessage message = ERR_BACKUP_INVALID_BACKUP_DIRECTORY.get(entryDN, ce.getMessageObject());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     } catch (Exception e) {
       logger.traceException(e);
@@ -956,9 +951,7 @@ public class BackupBackend
       if ((parentDN == null)
           || (! backupBaseDN.equals(parentDN.getParentDNInSuffix())))
       {
-        LocalizableMessage message = ERR_BACKUP_NO_SUCH_ENTRY.get(
-                String.valueOf(backupBaseDN)
-        );
+        LocalizableMessage message = ERR_BACKUP_NO_SUCH_ENTRY.get(backupBaseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
 
@@ -968,8 +961,7 @@ public class BackupBackend
         Entry backupEntry = getBackupEntry(baseDN);
         if (backupEntry == null)
         {
-          LocalizableMessage message = ERR_BACKUP_NO_SUCH_ENTRY.get(
-                  String.valueOf(backupBaseDN));
+          LocalizableMessage message = ERR_BACKUP_NO_SUCH_ENTRY.get(backupBaseDN);
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
         }
 

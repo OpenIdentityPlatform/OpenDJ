@@ -178,8 +178,7 @@ public class LDAPDelete
 
     protocolOp = new DeleteRequestProtocolOp(asn1OctetStr);
 
-    out.println(INFO_PROCESSING_OPERATION.get(
-            "DELETE", String.valueOf(asn1OctetStr)));
+    out.println(INFO_PROCESSING_OPERATION.get("DELETE", asn1OctetStr));
     if(!deleteOptions.showOperations())
     {
       LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
@@ -611,9 +610,7 @@ public class LDAPDelete
       int versionNumber = version.getIntValue();
       if(versionNumber != 2 && versionNumber != 3)
       {
-
-        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(
-                String.valueOf(versionNumber)), MAX_LINE_WIDTH));
+        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(versionNumber), MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
       connectionOptions.setVersionNumber(versionNumber);

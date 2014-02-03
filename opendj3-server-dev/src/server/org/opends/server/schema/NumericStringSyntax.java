@@ -246,9 +246,7 @@ public class NumericStringSyntax
       char c = valueString.charAt(i);
       if (! (isDigit(c) || (c == ' ')))
       {
-
-        invalidReason.append(WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(
-                valueString, String.valueOf(c), i));
+        invalidReason.append(WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(valueString, c, i));
         return false;
       }
     }

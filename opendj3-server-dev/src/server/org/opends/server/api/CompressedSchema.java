@@ -26,8 +26,6 @@
  */
 package org.opends.server.api;
 
-
-
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
@@ -44,7 +42,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
@@ -57,8 +54,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ObjectClass;
-
-
 
 /**
  * This class provides a utility for interacting with compressed representations
@@ -123,10 +118,8 @@ public class CompressedSchema
     Entry<AttributeType, Set<String>> ad = adDecodeMap.get(id);
     if (ad == null)
     {
-      final LocalizableMessage message = ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN
-          .get(String.valueOf(id));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          message);
+          ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN.get(id));
     }
 
     // Before returning the attribute, make sure that the attribute type is not
@@ -209,10 +202,8 @@ public class CompressedSchema
     }
     else
     {
-      final LocalizableMessage message = ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(String
-          .valueOf(id));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          message);
+          ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(id));
     }
   }
 

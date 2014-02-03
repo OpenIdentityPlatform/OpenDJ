@@ -268,9 +268,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     recursiveDelete(tempDir);
     if (!tempDir.exists() && !tempDir.mkdirs())
     {
-      LocalizableMessage message =
-          ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(String.valueOf(tempDir));
-      throw new InitializationException(message);
+      throw new InitializationException(ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(tempDir));
     }
     this.skipDNValidation = true;
     initializeDBEnv(envConfig);
@@ -336,9 +334,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     recursiveDelete(tempDir);
     if (!tempDir.exists() && !tempDir.mkdirs())
     {
-      LocalizableMessage message =
-          ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(String.valueOf(tempDir));
-      throw new InitializationException(message);
+      throw new InitializationException(ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(tempDir));
     }
     skipDNValidation = importConfiguration.getSkipDNValidation();
     initializeDBEnv(envConfig);

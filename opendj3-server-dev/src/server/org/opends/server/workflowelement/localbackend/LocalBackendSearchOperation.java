@@ -194,8 +194,7 @@ public class LocalBackendSearchOperation
           .isAllowed(this))
       {
         setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-        appendErrorMessage(ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-            .get(String.valueOf(baseDN)));
+        appendErrorMessage(ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(baseDN));
         return;
       }
     }
@@ -234,8 +233,7 @@ public class LocalBackendSearchOperation
     if (backend == null)
     {
       setResultCode(ResultCode.NO_SUCH_OBJECT);
-      appendErrorMessage(ERR_SEARCH_BASE_DOESNT_EXIST.get(String
-          .valueOf(baseDN)));
+      appendErrorMessage(ERR_SEARCH_BASE_DOESNT_EXIST.get(baseDN));
       return;
     }
 

@@ -128,19 +128,14 @@ public class ConnectionHandlerConfigManager implements
         resultCode = DirectoryServer.getServerErrorResultCode();
       } catch (Exception e) {
         logger.traceException(e);
-
-
         messages.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
-                String.valueOf(configuration.getJavaClass()),
-                String.valueOf(dn),
-            stackTraceToSingleLineString(e)));
+            configuration.getJavaClass(), dn, stackTraceToSingleLineString(e)));
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
     }
 
     // Return the configuration result.
-    return new ConfigChangeResult(resultCode, adminActionRequired,
-        messages);
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
 
@@ -185,9 +180,7 @@ public class ConnectionHandlerConfigManager implements
           logger.traceException(e);
 
           messages.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
-                  String.valueOf(configuration
-              .getJavaClass()), String.valueOf(dn),
-              stackTraceToSingleLineString(e)));
+              configuration.getJavaClass(), dn, stackTraceToSingleLineString(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
@@ -402,9 +395,8 @@ public class ConnectionHandlerConfigManager implements
     } catch (Exception e) {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.
-          get(String.valueOf(className), String.valueOf(config.dn()),
-              stackTraceToSingleLineString(e));
+      LocalizableMessage message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
+          className, config.dn(), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
 
@@ -421,9 +413,8 @@ public class ConnectionHandlerConfigManager implements
     } catch (Exception e) {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.
-          get(String.valueOf(className), String.valueOf(config.dn()),
-              stackTraceToSingleLineString(e));
+      LocalizableMessage message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
+          className, config.dn(), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
 
@@ -459,9 +450,7 @@ public class ConnectionHandlerConfigManager implements
 
       unacceptableReasons.add(
               ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
-                      String.valueOf(className),
-                      String.valueOf(config.dn()),
-                      stackTraceToSingleLineString(e)));
+                      className, config.dn(), stackTraceToSingleLineString(e)));
       return false;
     }
 
@@ -485,8 +474,7 @@ public class ConnectionHandlerConfigManager implements
       logger.traceException(e);
 
       unacceptableReasons.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
-              String.valueOf(className), String.valueOf(config.dn()),
-              stackTraceToSingleLineString(e)));
+          className, config.dn(), stackTraceToSingleLineString(e)));
       return false;
     }
 

@@ -575,14 +575,12 @@ public class ListBackends
       }
       catch (ConfigException ce)
       {
-        LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
-            String.valueOf(configEntry.getDN()), ce.getMessage());
+        LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(configEntry.getDN(), ce.getMessage());
         throw new ConfigException(message, ce);
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
-            String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(configEntry.getDN(), getExceptionMessage(e));
         throw new ConfigException(message, e);
       }
 
@@ -606,7 +604,7 @@ public class ListBackends
       catch (Exception e)
       {
         LocalizableMessage message = ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND.get(
-            String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+            configEntry.getDN(), getExceptionMessage(e));
         throw new ConfigException(message, e);
       }
 

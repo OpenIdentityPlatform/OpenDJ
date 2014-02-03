@@ -328,8 +328,7 @@ public class CRAMMD5SASLMechanismHandler
       if (readLock == null)
       {
         bindOperation.setResultCode(ResultCode.BUSY);
-        bindOperation.setAuthFailureReason(INFO_SASLCRAMMD5_CANNOT_LOCK_ENTRY
-            .get(String.valueOf(userDN)));
+        bindOperation.setAuthFailureReason(INFO_SASLCRAMMD5_CANNOT_LOCK_ENTRY.get(userDN));
         return;
       }
 
@@ -343,8 +342,7 @@ public class CRAMMD5SASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_GET_ENTRY_BY_DN.get(
-                String.valueOf(userDN), de.getMessageObject());
+        LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_GET_ENTRY_BY_DN.get(userDN, de.getMessageObject());
         bindOperation.setAuthFailureReason(message);
         return;
       }
@@ -371,8 +369,7 @@ public class CRAMMD5SASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_MAP_USERNAME.get(
-                String.valueOf(userName), de.getMessageObject());
+        LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_MAP_USERNAME.get(userName, de.getMessageObject());
         bindOperation.setAuthFailureReason(message);
         return;
       }
@@ -405,7 +402,7 @@ public class CRAMMD5SASLMechanismHandler
       {
         bindOperation.setResultCode(ResultCode.INAPPROPRIATE_AUTHENTICATION);
         LocalizableMessage message = ERR_SASL_ACCOUNT_NOT_LOCAL
-            .get(SASL_MECHANISM_CRAM_MD5, String.valueOf(userEntry.getName()));
+            .get(SASL_MECHANISM_CRAM_MD5, userEntry.getName());
         bindOperation.setAuthFailureReason(message);
         return;
       }
@@ -416,8 +413,7 @@ public class CRAMMD5SASLMechanismHandler
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        LocalizableMessage message = ERR_SASLCRAMMD5_NO_REVERSIBLE_PASSWORDS.get(
-                String.valueOf(userEntry.getName()));
+        LocalizableMessage message = ERR_SASLCRAMMD5_NO_REVERSIBLE_PASSWORDS.get(userEntry.getName());
         bindOperation.setAuthFailureReason(message);
         return;
       }
@@ -426,9 +422,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_GET_REVERSIBLE_PASSWORDS.get(
-              String.valueOf(userEntry.getName()),
-              String.valueOf(e));
+      LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_GET_REVERSIBLE_PASSWORDS.get( userEntry.getName(), e);
       bindOperation.setAuthFailureReason(message);
       return;
     }

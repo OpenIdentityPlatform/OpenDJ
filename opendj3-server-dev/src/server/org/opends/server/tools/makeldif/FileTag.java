@@ -228,7 +228,7 @@ public class FileTag
     catch (IOException ioe)
     {
       LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_READ_FILE.get(
-          arguments[0], getName(), lineNumber, String.valueOf(ioe));
+          arguments[0], getName(), lineNumber, ioe);
       throw new InitializationException(message, ioe);
     }
   }

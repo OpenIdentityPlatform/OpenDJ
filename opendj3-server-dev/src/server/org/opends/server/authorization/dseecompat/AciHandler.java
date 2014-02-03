@@ -923,11 +923,8 @@ public final class AciHandler extends
             }
             catch (AciException ex)
             {
-              LocalizableMessage message =
-                  WARN_ACI_MODIFY_FAILED_DECODE.get(String.valueOf(dn),
-                      ex.getMessage());
-              throw new DirectoryException(
-                  ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                  WARN_ACI_MODIFY_FAILED_DECODE.get(dn, ex.getMessage()));
             }
           }
         }
@@ -1257,9 +1254,8 @@ public final class AciHandler extends
     catch (Exception e)
     {
       logger.traceException(e);
-      LocalizableMessage message = INFO_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI.get(
-          String.valueOf(configuration.dn()));
-      throw new InitializationException(message, e);
+      throw new InitializationException(
+          INFO_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI.get(configuration.dn()), e);
     }
   }
 
@@ -1467,10 +1463,9 @@ public final class AciHandler extends
           }
           catch (AciException ex)
           {
-            LocalizableMessage message = WARN_ACI_ADD_FAILED_DECODE.get(
-                String.valueOf(entry.getName()), ex.getMessage());
             throw new DirectoryException(
-                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+                ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                WARN_ACI_ADD_FAILED_DECODE.get(entry.getName(), ex.getMessage()));
           }
         }
       }

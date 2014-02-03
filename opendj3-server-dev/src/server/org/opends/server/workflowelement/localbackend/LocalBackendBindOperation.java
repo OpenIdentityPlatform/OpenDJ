@@ -443,8 +443,7 @@ public class LocalBackendBindOperation
     if (userLock == null)
     {
       throw new DirectoryException(ResultCode.BUSY,
-                                   ERR_BIND_OPERATION_CANNOT_LOCK_USER.get(
-                                        String.valueOf(bindDN)));
+          ERR_BIND_OPERATION_CANNOT_LOCK_USER.get(bindDN));
     }
 
     try
@@ -901,8 +900,7 @@ public class LocalBackendBindOperation
       if (! DirectoryServer.isRootDN(userEntry.getName()))
       {
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                       ERR_BIND_OPERATION_WRITABILITY_DISABLED.get(
-                            String.valueOf(userEntry.getName())));
+            ERR_BIND_OPERATION_WRITABILITY_DISABLED.get(userEntry.getName()));
       }
     }
 
@@ -917,9 +915,7 @@ public class LocalBackendBindOperation
         if (! saslHandler.isSecure(saslMechanism))
         {
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                         ERR_BIND_OPERATION_INSECURE_SASL_BIND.get(
-                              saslMechanism,
-                              String.valueOf(userEntry.getName())));
+              ERR_BIND_OPERATION_INSECURE_SASL_BIND.get(saslMechanism, userEntry.getName()));
         }
       }
       else

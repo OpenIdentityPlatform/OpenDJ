@@ -461,17 +461,13 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
       if (configEntry != null) {
         return configEntry;
       } else {
-        LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST
-            .get(String.valueOf(dn));
-        logger.error(message);
+        logger.error(AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST.get(dn));
       }
     } catch (ConfigException e) {
       // The dependent entry could not be retrieved.
       logger.traceException(e);
-
-      LocalizableMessage message = AdminMessages.ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
-          String.valueOf(dn), StaticUtils.getExceptionMessage(e));
-      logger.error(message);
+      logger.error(AdminMessages.ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
+          dn, StaticUtils.getExceptionMessage(e)));
     }
 
     return null;

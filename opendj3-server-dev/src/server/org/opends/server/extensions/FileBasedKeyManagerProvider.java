@@ -119,15 +119,13 @@ public class FileBasedKeyManagerProvider
     try {
       File f = getFileForPath(keyStoreFile);
       if (!(f.exists() && f.isFile())) {
-        LocalizableMessage message = ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(
-            String.valueOf(keyStoreFile), String.valueOf(configEntryDN));
-        throw new InitializationException(message);
+        throw new InitializationException(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(keyStoreFile, configEntryDN));
       }
     } catch (SecurityException e) {
       logger.traceException(e);
 
       LocalizableMessage message = ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(
-          String.valueOf(configEntryDN), getExceptionMessage(e));
+          configEntryDN, getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
 
@@ -141,8 +139,7 @@ public class FileBasedKeyManagerProvider
         logger.traceException(kse);
 
         LocalizableMessage message = ERR_FILE_KEYMANAGER_INVALID_TYPE.
-            get(String.valueOf(configuration.getKeyStoreType()),
-                String.valueOf(configEntryDN), getExceptionMessage(kse));
+            get(configuration.getKeyStoreType(), configEntryDN, getExceptionMessage(kse));
         throw new InitializationException(message);
       }
     } else {
@@ -168,7 +165,7 @@ public class FileBasedKeyManagerProvider
 
       if (pinStr == null) {
         LocalizableMessage message = ERR_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(
-            String.valueOf(propertyName), String.valueOf(configEntryDN));
+            propertyName, configEntryDN);
         throw new InitializationException(message);
       }
 
@@ -180,7 +177,7 @@ public class FileBasedKeyManagerProvider
 
       if (pinStr == null) {
         LocalizableMessage message = ERR_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET.get(
-            String.valueOf(enVarName), String.valueOf(configEntryDN));
+            enVarName, configEntryDN);
         throw new InitializationException(message);
       }
 
@@ -191,7 +188,7 @@ public class FileBasedKeyManagerProvider
 
       if (!pinFile.exists()) {
         LocalizableMessage message = ERR_FILE_KEYMANAGER_PIN_NO_SUCH_FILE.get(
-            String.valueOf(fileName), String.valueOf(configEntryDN));
+            fileName, configEntryDN);
         throw new InitializationException(message);
       }
 
@@ -203,14 +200,12 @@ public class FileBasedKeyManagerProvider
         br.close();
       } catch (IOException ioe) {
         LocalizableMessage message = ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.
-            get(String.valueOf(fileName), String.valueOf(configEntryDN),
-                getExceptionMessage(ioe));
+            get(fileName, configEntryDN, getExceptionMessage(ioe));
         throw new InitializationException(message, ioe);
       }
 
       if (pinStr == null) {
-        LocalizableMessage message = ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(
-            String.valueOf(fileName), String.valueOf(configEntryDN));
+        LocalizableMessage message = ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(fileName, configEntryDN);
         throw new InitializationException(message);
       }
 
@@ -319,9 +314,7 @@ public class FileBasedKeyManagerProvider
       File f = getFileForPath(newKeyStoreFile);
       if (!(f.exists() && f.isFile()))
       {
-        unacceptableReasons.add(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(
-                String.valueOf(newKeyStoreFile),
-                String.valueOf(cfgEntryDN)));
+        unacceptableReasons.add(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(newKeyStoreFile, cfgEntryDN));
         configAcceptable = false;
       }
     }
@@ -329,9 +322,7 @@ public class FileBasedKeyManagerProvider
     {
       logger.traceException(e);
 
-      unacceptableReasons.add(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(
-              String.valueOf(cfgEntryDN),
-              getExceptionMessage(e)));
+      unacceptableReasons.add(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(cfgEntryDN, getExceptionMessage(e)));
       configAcceptable = false;
     }
 
@@ -347,8 +338,7 @@ public class FileBasedKeyManagerProvider
         logger.traceException(kse);
 
         unacceptableReasons.add(ERR_FILE_KEYMANAGER_INVALID_TYPE.get(
-                String.valueOf(configuration.getKeyStoreType()),
-               String.valueOf(cfgEntryDN), getExceptionMessage(kse)));
+            configuration.getKeyStoreType(), cfgEntryDN, getExceptionMessage(kse)));
         configAcceptable = false;
       }
     }
@@ -372,9 +362,7 @@ public class FileBasedKeyManagerProvider
 
       if (pinStr == null)
       {
-        unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(
-                String.valueOf(propertyName),
-                String.valueOf(cfgEntryDN)));
+        unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(propertyName, cfgEntryDN));
         configAcceptable = false;
       }
     }
@@ -385,9 +373,7 @@ public class FileBasedKeyManagerProvider
 
       if (pinStr == null)
       {
-        unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET.get(
-                String.valueOf(enVarName),
-                String.valueOf(cfgEntryDN)));
+        unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET.get(enVarName, cfgEntryDN));
         configAcceptable = false;
       }
     }
@@ -398,9 +384,7 @@ public class FileBasedKeyManagerProvider
 
       if (!pinFile.exists())
       {
-        unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_NO_SUCH_FILE.get(
-                String.valueOf(fileName),
-                String.valueOf(cfgEntryDN)));
+        unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_NO_SUCH_FILE.get(fileName, cfgEntryDN));
         configAcceptable = false;
       }
       else
@@ -414,9 +398,7 @@ public class FileBasedKeyManagerProvider
         catch (IOException ioe)
         {
           unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(
-                  String.valueOf(fileName),
-                  String.valueOf(cfgEntryDN),
-                  getExceptionMessage(ioe)));
+              fileName, cfgEntryDN, getExceptionMessage(ioe)));
           configAcceptable = false;
         }
         finally
@@ -429,9 +411,7 @@ public class FileBasedKeyManagerProvider
 
         if (pinStr == null)
         {
-          unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(
-                  String.valueOf(fileName),
-                  String.valueOf(cfgEntryDN)));
+          unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(fileName, cfgEntryDN));
           configAcceptable = false;
         }
       }
@@ -441,10 +421,7 @@ public class FileBasedKeyManagerProvider
       String pinStr = configuration.getKeyStorePin();
       if (pinStr == null)
       {
-        unacceptableReasons.add(
-            ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR.get(
-              String.valueOf(cfgEntryDN),
-              "null"));
+        unacceptableReasons.add(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR.get(cfgEntryDN, null));
         configAcceptable = false;
       }
     }
@@ -475,8 +452,7 @@ public class FileBasedKeyManagerProvider
         resultCode = DirectoryServer.getServerErrorResultCode();
 
         messages.add(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(
-                String.valueOf(newKeyStoreFile),
-                String.valueOf(configEntryDN)));
+            newKeyStoreFile, configEntryDN));
       }
     }
     catch (Exception e)
@@ -486,8 +462,7 @@ public class FileBasedKeyManagerProvider
       resultCode = DirectoryServer.getServerErrorResultCode();
 
       messages.add(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(
-              String.valueOf(configEntryDN),
-              getExceptionMessage(e)));
+          configEntryDN, getExceptionMessage(e)));
     }
 
     // Get the keystore type. If none is specified, then use the default type.
@@ -506,9 +481,7 @@ public class FileBasedKeyManagerProvider
         resultCode = DirectoryServer.getServerErrorResultCode();
 
         messages.add(ERR_FILE_KEYMANAGER_INVALID_TYPE.get(
-                String.valueOf(configuration.getKeyStoreType()),
-                String.valueOf(configEntryDN),
-                getExceptionMessage(kse)));
+            configuration.getKeyStoreType(), configEntryDN, getExceptionMessage(kse)));
       }
     }
 
@@ -535,8 +508,7 @@ public class FileBasedKeyManagerProvider
         resultCode = DirectoryServer.getServerErrorResultCode();
 
         messages.add(ERR_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(
-                String.valueOf(propertyName),
-                String.valueOf(configEntryDN)));
+            propertyName, configEntryDN));
       }
       else
       {
@@ -553,8 +525,7 @@ public class FileBasedKeyManagerProvider
         resultCode = DirectoryServer.getServerErrorResultCode();
 
         messages.add(ERR_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET.get(
-                String.valueOf(enVarName),
-                String.valueOf(configEntryDN)));
+            enVarName, configEntryDN));
       }
       else
       {
@@ -571,8 +542,7 @@ public class FileBasedKeyManagerProvider
         resultCode = DirectoryServer.getServerErrorResultCode();
 
         messages.add(ERR_FILE_KEYMANAGER_PIN_NO_SUCH_FILE.get(
-                String.valueOf(fileName),
-                String.valueOf(configEntryDN)));
+            fileName, configEntryDN));
       }
       else
       {
@@ -587,9 +557,7 @@ public class FileBasedKeyManagerProvider
           resultCode = DirectoryServer.getServerErrorResultCode();
 
           messages.add(ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(
-                  String.valueOf(fileName),
-                  String.valueOf(configEntryDN),
-                  getExceptionMessage(ioe)));
+              fileName, configEntryDN, getExceptionMessage(ioe)));
         }
         finally
         {
@@ -604,8 +572,7 @@ public class FileBasedKeyManagerProvider
           resultCode = DirectoryServer.getServerErrorResultCode();
 
           messages.add(ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(
-                  String.valueOf(fileName),
-                  String.valueOf(configEntryDN)));
+              fileName, configEntryDN));
         }
         else
         {

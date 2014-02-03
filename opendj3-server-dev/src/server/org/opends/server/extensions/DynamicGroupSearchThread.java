@@ -143,11 +143,11 @@ public class DynamicGroupSearchThread
         {
           LocalizableMessage message =
                ERR_DYNAMICGROUP_INTERNAL_SEARCH_FAILED.get(
-                       String.valueOf(baseDNs[searchCounter]),
-                       String.valueOf(searchFilters[searchCounter]),
-                       String.valueOf(memberList.getDynamicGroupDN()),
-                       String.valueOf(resultCode),
-                       String.valueOf(searchOperation.getErrorMessage()));
+                       baseDNs[searchCounter],
+                       searchFilters[searchCounter],
+                       memberList.getDynamicGroupDN(),
+                       resultCode,
+                       searchOperation.getErrorMessage());
           if (! memberList.addResult(
                      new MembershipException(message, true)))
           {
@@ -177,10 +177,8 @@ public class DynamicGroupSearchThread
         if (! memberList.addResult(searchEntry))
         {
           LocalizableMessage message = ERR_DYNAMICGROUP_CANNOT_RETURN_ENTRY.
-              get(String.valueOf(searchEntry.getName()),
-                  String.valueOf(memberList.getDynamicGroupDN()));
-          throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(), message);
+              get(searchEntry.getName(), memberList.getDynamicGroupDN());
+          throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
         }
 
         return;

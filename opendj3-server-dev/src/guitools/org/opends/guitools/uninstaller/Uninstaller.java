@@ -1769,7 +1769,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             }
             UserDataCertificateException exc =
               new UserDataCertificateException(Step.REPLICATION_OPTIONS,
-                INFO_CERTIFICATE_EXCEPTION.get(h, String.valueOf(p)),
+                INFO_CERTIFICATE_EXCEPTION.get(h, p),
                 e.getCause(), h, p,
                 e.getTrustManager().getLastRefusedChain(),
                 e.getTrustManager().getLastRefusedAuthType(), excType);

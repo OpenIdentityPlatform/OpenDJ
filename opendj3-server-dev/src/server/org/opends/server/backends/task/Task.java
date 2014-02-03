@@ -192,9 +192,7 @@ public abstract class Task
     {
       if (recurringTaskID == null)
       {
-        LocalizableMessage message = ERR_TASK_MISSING_ATTR.get(
-            String.valueOf(taskEntry.getName()), ATTR_TASK_ID);
-        throw new InitializationException(message);
+        throw new InitializationException(ERR_TASK_MISSING_ATTR.get(taskEntry.getName(), ATTR_TASK_ID));
       }
       else
       {
@@ -375,9 +373,7 @@ public abstract class Task
     {
       if (isRequired)
       {
-        LocalizableMessage message = ERR_TASK_MISSING_ATTR.get(
-            String.valueOf(taskEntry.getName()), attributeName);
-        throw new InitializationException(message);
+        throw new InitializationException(ERR_TASK_MISSING_ATTR.get(taskEntry.getName(), attributeName));
       }
       else
       {
@@ -387,9 +383,7 @@ public abstract class Task
 
     if (attrList.size() > 1)
     {
-      LocalizableMessage message = ERR_TASK_MULTIPLE_ATTRS_FOR_TYPE.get(
-          attributeName, String.valueOf(taskEntry.getName()));
-      throw new InitializationException(message);
+      throw new InitializationException(ERR_TASK_MULTIPLE_ATTRS_FOR_TYPE.get(attributeName, taskEntry.getName()));
     }
 
     Iterator<AttributeValue> iterator = attrList.get(0).iterator();
@@ -397,9 +391,7 @@ public abstract class Task
     {
       if (isRequired)
       {
-        LocalizableMessage message = ERR_TASK_NO_VALUES_FOR_ATTR.get(
-            attributeName, String.valueOf(taskEntry.getName()));
-        throw new InitializationException(message);
+        throw new InitializationException(ERR_TASK_NO_VALUES_FOR_ATTR.get(attributeName, taskEntry.getName()));
       }
       else
       {
@@ -410,9 +402,7 @@ public abstract class Task
     AttributeValue value = iterator.next();
     if (iterator.hasNext())
     {
-      LocalizableMessage message = ERR_TASK_MULTIPLE_VALUES_FOR_ATTR.get(
-          attributeName, String.valueOf(taskEntry.getName()));
-      throw new InitializationException(message);
+      throw new InitializationException(ERR_TASK_MULTIPLE_VALUES_FOR_ATTR.get(attributeName, taskEntry.getName()));
     }
 
     return value.getValue().toString();
@@ -447,9 +437,7 @@ public abstract class Task
 
     if (attrList.size() > 1)
     {
-      LocalizableMessage message = ERR_TASK_MULTIPLE_ATTRS_FOR_TYPE.get(
-          attributeName, String.valueOf(taskEntry.getName()));
-      throw new InitializationException(message);
+      throw new InitializationException(ERR_TASK_MULTIPLE_ATTRS_FOR_TYPE.get(attributeName, taskEntry.getName()));
     }
 
     Iterator<AttributeValue> iterator = attrList.get(0).iterator();
@@ -1231,10 +1219,8 @@ public abstract class Task
         String actualStartDate = new Date(actualStartTime).toString();
         String completionDate  = new Date(completionTime).toString();
 
-        message.setBody(INFO_TASK_COMPLETION_BODY.get(taskID,
-                                   String.valueOf(taskState),
-                                   scheduledStartDate, actualStartDate,
-                                   completionDate));
+        message.setBody(INFO_TASK_COMPLETION_BODY.get(
+            taskID, taskState, scheduledStartDate, actualStartDate, completionDate));
 
         for (String logMessage : logMessages)
         {

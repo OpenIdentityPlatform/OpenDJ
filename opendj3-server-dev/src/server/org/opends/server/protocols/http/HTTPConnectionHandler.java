@@ -597,8 +597,7 @@ public class HTTPConnectionHandler extends
       catch (IOException e)
       {
         logger.traceException(e);
-        return ERR_CONNHANDLER_CANNOT_BIND.get("HTTP", String
-            .valueOf(configEntryDN), a.getHostAddress(), listenPort,
+        return ERR_CONNHANDLER_CANNOT_BIND.get("HTTP", configEntryDN, a.getHostAddress(), listenPort,
             getExceptionMessage(e));
       }
     }
@@ -725,7 +724,7 @@ public class HTTPConnectionHandler extends
         logger.traceException(e);
 
         logger.error(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(friendlyName,
-            String.valueOf(currentConfig.dn()), getExceptionMessage(e)));
+            currentConfig.dn(), getExceptionMessage(e)));
 
         if (lastIterationFailed)
         {
@@ -735,8 +734,7 @@ public class HTTPConnectionHandler extends
           // log an error.
           LocalizableMessage message =
               ERR_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES.get(friendlyName,
-                  String.valueOf(currentConfig.dn()),
-                  stackTraceToSingleLineString(e));
+                  currentConfig.dn(), stackTraceToSingleLineString(e));
           logger.error(message);
 
           DirectoryServer.sendAlertNotification(this,

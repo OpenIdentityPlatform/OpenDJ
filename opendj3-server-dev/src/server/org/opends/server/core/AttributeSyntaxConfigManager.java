@@ -219,9 +219,8 @@ public class AttributeSyntaxConfigManager
       }
       catch (DirectoryException de)
       {
-        LocalizableMessage message = WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
-                String.valueOf(configuration.dn()), de.getMessageObject());
-        messages.add(message);
+        messages.add(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
+                configuration.dn(), de.getMessageObject()));
 
         if (resultCode == ResultCode.SUCCESS)
         {
@@ -412,10 +411,8 @@ public class AttributeSyntaxConfigManager
       }
       catch (DirectoryException de)
       {
-        LocalizableMessage message = WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
-                String.valueOf(configuration.dn()),
-                de.getMessageObject());
-        messages.add(message);
+        messages.add(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
+                configuration.dn(), de.getMessageObject()));
 
         if (resultCode == ResultCode.SUCCESS)
         {

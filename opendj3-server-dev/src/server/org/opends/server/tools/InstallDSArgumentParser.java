@@ -544,9 +544,7 @@ public class InstallDSArgumentParser extends ArgumentParser
 
       if (ports.contains(adminConnectorPortArg.getIntValue()))
       {
-        LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
-            String.valueOf(adminConnectorPortArg.getIntValue()));
-        errorMessages.add(message);
+        errorMessages.add(ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(adminConnectorPortArg.getIntValue()));
       }
       else
       {
@@ -557,9 +555,7 @@ public class InstallDSArgumentParser extends ArgumentParser
       {
         if (ports.contains(jmxPortArg.getIntValue()))
         {
-          LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
-                  String.valueOf(jmxPortArg.getIntValue()));
-          errorMessages.add(message);
+          errorMessages.add(ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(jmxPortArg.getIntValue()));
         }
         else
         {
@@ -570,9 +566,7 @@ public class InstallDSArgumentParser extends ArgumentParser
       {
         if (ports.contains(ldapsPortArg.getIntValue()))
         {
-          LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
-                  String.valueOf(ldapsPortArg.getIntValue()));
-          errorMessages.add(message);
+          errorMessages.add(ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(ldapsPortArg.getIntValue()));
         }
         else
         {

@@ -241,8 +241,7 @@ public abstract class RawAttribute
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_LDAP_ATTRIBUTE_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_ATTRIBUTE_DECODE_SEQUENCE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -256,8 +255,7 @@ public abstract class RawAttribute
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_LDAP_ATTRIBUTE_DECODE_TYPE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_ATTRIBUTE_DECODE_TYPE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -277,8 +275,7 @@ public abstract class RawAttribute
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_LDAP_ATTRIBUTE_DECODE_VALUES.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_ATTRIBUTE_DECODE_VALUES.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -290,8 +287,7 @@ public abstract class RawAttribute
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_LDAP_ATTRIBUTE_DECODE_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_ATTRIBUTE_DECODE_SEQUENCE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 

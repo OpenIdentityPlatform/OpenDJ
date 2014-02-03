@@ -178,13 +178,8 @@ public class RootDNConfigManager
       DN existingRootDN = DirectoryServer.getActualRootBindDN(altBindDN);
       if (existingRootDN != null)
       {
-
-        LocalizableMessage message = ERR_CONFIG_ROOTDN_CONFLICTING_MAPPING.get(
-                String.valueOf(altBindDN),
-                String.valueOf(configuration.dn()),
-                String.valueOf(existingRootDN));
-        unacceptableReasons.add(message);
-
+        unacceptableReasons.add(ERR_CONFIG_ROOTDN_CONFLICTING_MAPPING.get(
+            altBindDN, configuration.dn(), existingRootDN));
         configAcceptable = false;
       }
     }
@@ -293,12 +288,8 @@ public class RootDNConfigManager
       if ((existingRootDN != null) &&
           (! existingRootDN.equals(configuration.dn())))
       {
-        LocalizableMessage message = ERR_CONFIG_ROOTDN_CONFLICTING_MAPPING.get(
-                String.valueOf(altBindDN),
-                String.valueOf(configuration.dn()),
-                String.valueOf(existingRootDN));
-        unacceptableReasons.add(message);
-
+        unacceptableReasons.add(ERR_CONFIG_ROOTDN_CONFLICTING_MAPPING.get(
+            altBindDN, configuration.dn(), existingRootDN));
         configAcceptable = false;
       }
     }

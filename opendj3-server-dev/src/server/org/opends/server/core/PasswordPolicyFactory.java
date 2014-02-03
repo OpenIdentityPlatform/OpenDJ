@@ -129,27 +129,20 @@ public final class PasswordPolicyFactory implements
       }
       catch (ConfigException ce)
       {
-        messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-            String.valueOf(configuration.dn()), ce.getMessage()));
-
-        return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false,
-            messages);
+        messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(configuration.dn(), ce.getMessage()));
+        return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false, messages);
       }
       catch (InitializationException ie)
       {
         messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-            String.valueOf(configuration.dn()), ie.getMessage()));
-
+            configuration.dn(), ie.getMessage()));
         return new ConfigChangeResult(
             DirectoryServer.getServerErrorResultCode(), false, messages);
       }
       catch (Exception e)
       {
-        messages
-            .add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-                String.valueOf(configuration.dn()),
-                stackTraceToSingleLineString(e)));
-
+        messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+            configuration.dn(), stackTraceToSingleLineString(e)));
         return new ConfigChangeResult(
             DirectoryServer.getServerErrorResultCode(), false, messages);
       }
@@ -170,22 +163,21 @@ public final class PasswordPolicyFactory implements
       catch (ConfigException ce)
       {
         LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-            String.valueOf(configuration.dn()), ce.getMessage());
+            configuration.dn(), ce.getMessage());
         unacceptableReasons.add(message);
         return false;
       }
       catch (InitializationException ie)
       {
         LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-            String.valueOf(configuration.dn()), ie.getMessage());
+            configuration.dn(), ie.getMessage());
         unacceptableReasons.add(message);
         return false;
       }
       catch (Exception e)
       {
         LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG
-            .get(String.valueOf(configuration.dn()),
-                stackTraceToSingleLineString(e));
+            .get(configuration.dn(), stackTraceToSingleLineString(e));
         unacceptableReasons.add(message);
         return false;
       }
@@ -247,10 +239,8 @@ public final class PasswordPolicyFactory implements
           syntax = syntaxOID;
         }
 
-        LocalizableMessage message = ERR_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX.get(
-            String.valueOf(configEntryDN), passwordAttribute.getNameOrOID(),
-            String.valueOf(syntax));
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX.get(
+            configEntryDN, passwordAttribute.getNameOrOID(), syntax));
       }
 
       // Get the default storage schemes. They must all reference valid storage
@@ -264,9 +254,8 @@ public final class PasswordPolicyFactory implements
 
         if (authPasswordSyntax && (!scheme.supportsAuthPasswordSyntax()))
         {
-          LocalizableMessage message = ERR_PWPOLICY_SCHEME_DOESNT_SUPPORT_AUTH.get(
-              String.valueOf(schemeDN), passwordAttribute.getNameOrOID());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_PWPOLICY_SCHEME_DOESNT_SUPPORT_AUTH.get(
+              schemeDN, passwordAttribute.getNameOrOID()));
         }
 
         defaultStorageSchemes.add(scheme);
@@ -287,15 +276,13 @@ public final class PasswordPolicyFactory implements
           }
           else
           {
-            LocalizableMessage message = ERR_PWPOLICY_DEPRECATED_SCHEME_NOT_AUTH.get(
-                String.valueOf(configEntryDN), String.valueOf(schemeDN));
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_PWPOLICY_DEPRECATED_SCHEME_NOT_AUTH.get(
+                configEntryDN, schemeDN));
           }
         }
         else
         {
-          deprecatedStorageSchemes.add(toLowerCase(scheme
-              .getStorageSchemeName()));
+          deprecatedStorageSchemes.add(toLowerCase(scheme.getStorageSchemeName()));
         }
       }
 
@@ -333,8 +320,7 @@ public final class PasswordPolicyFactory implements
           && (configuration.getPasswordExpirationWarningInterval() <= 0))
       {
         LocalizableMessage message =
-          ERR_PWPOLICY_MUST_HAVE_WARNING_IF_NOT_EXPIRE_WITHOUT_WARNING
-            .get(String.valueOf(configEntryDN));
+          ERR_PWPOLICY_MUST_HAVE_WARNING_IF_NOT_EXPIRE_WITHOUT_WARNING.get(configEntryDN);
         throw new ConfigException(message);
       }
 
@@ -369,7 +355,7 @@ public final class PasswordPolicyFactory implements
         logger.traceException(e);
 
         LocalizableMessage message = ERR_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CHANGE_BY_TIME
-            .get(String.valueOf(configEntryDN), getExceptionMessage(e));
+            .get(configEntryDN, getExceptionMessage(e));
         throw new InitializationException(message, e);
       }
 
@@ -386,8 +372,7 @@ public final class PasswordPolicyFactory implements
         {
           logger.traceException(e);
 
-          LocalizableMessage message = ERR_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT.get(
-              String.valueOf(configEntryDN), String.valueOf(formatString));
+          LocalizableMessage message = ERR_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT.get(configEntryDN, formatString);
           throw new ConfigException(message);
         }
       }
@@ -409,8 +394,7 @@ public final class PasswordPolicyFactory implements
             logger.traceException(e);
 
             LocalizableMessage message =
-              ERR_PWPOLICY_INVALID_PREVIOUS_LAST_LOGIN_TIME_FORMAT
-                .get(String.valueOf(configEntryDN), String.valueOf(s));
+              ERR_PWPOLICY_INVALID_PREVIOUS_LAST_LOGIN_TIME_FORMAT.get(configEntryDN, s);
             throw new ConfigException(message);
           }
         }
@@ -431,15 +415,13 @@ public final class PasswordPolicyFactory implements
               .getMaxPasswordAge())
           {
             LocalizableMessage message =
-              ERR_PWPOLICY_MIN_AGE_PLUS_WARNING_GREATER_THAN_MAX_AGE
-                .get(String.valueOf(configEntryDN));
+              ERR_PWPOLICY_MIN_AGE_PLUS_WARNING_GREATER_THAN_MAX_AGE.get(configEntryDN);
             throw new ConfigException(message);
           }
         }
         else if (warnInterval >= configuration.getMaxPasswordAge())
         {
-          LocalizableMessage message = ERR_PWPOLICY_WARNING_INTERVAL_LARGER_THAN_MAX_AGE
-              .get(String.valueOf(configEntryDN));
+          LocalizableMessage message = ERR_PWPOLICY_WARNING_INTERVAL_LARGER_THAN_MAX_AGE.get(configEntryDN);
           throw new ConfigException(message);
         }
       }

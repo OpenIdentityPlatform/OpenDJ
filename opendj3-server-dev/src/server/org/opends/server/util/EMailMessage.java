@@ -395,8 +395,7 @@ public final class EMailMessage
       {
         logger.traceException(me);
 
-        LocalizableMessage msg = ERR_EMAILMSG_INVALID_SENDER_ADDRESS.get(
-            String.valueOf(sender), me.getMessage());
+        LocalizableMessage msg = ERR_EMAILMSG_INVALID_SENDER_ADDRESS.get(sender, me.getMessage());
         throw new MessagingException(msg.toString(), me);
       }
 
@@ -417,8 +416,7 @@ public final class EMailMessage
         {
           logger.traceException(me);
 
-          LocalizableMessage msg = ERR_EMAILMSG_INVALID_RECIPIENT_ADDRESS.get(
-              String.valueOf(recipient), me.getMessage());
+          LocalizableMessage msg = ERR_EMAILMSG_INVALID_RECIPIENT_ADDRESS.get(recipient, me.getMessage());
           throw new MessagingException(msg.toString(), me);
         }
       }

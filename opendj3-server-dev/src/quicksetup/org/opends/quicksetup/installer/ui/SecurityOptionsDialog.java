@@ -914,21 +914,18 @@ public class SecurityOptionsDialog extends JDialog
             (port > Installer.MAX_PORT_VALUE))
         {
           errorMsgs.add(INFO_INVALID_SECURE_PORT_VALUE_RANGE.get(
-                  String.valueOf(Installer.MIN_PORT_VALUE),
-                  String.valueOf(Installer.MAX_PORT_VALUE)));
+              Installer.MIN_PORT_VALUE, Installer.MAX_PORT_VALUE));
 
         }
         else if (!Utils.canUseAsPort(port))
         {
           if (Utils.isPriviledgedPort(port))
           {
-            errorMsgs.add(INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(
-              String.valueOf(port)));
+            errorMsgs.add(INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(port));
           }
           else
           {
-            errorMsgs.add(INFO_CANNOT_BIND_PORT.get(
-              String.valueOf(port)));
+            errorMsgs.add(INFO_CANNOT_BIND_PORT.get(port));
           }
 
         }
@@ -937,8 +934,7 @@ public class SecurityOptionsDialog extends JDialog
       catch (NumberFormatException nfe)
       {
         errorMsgs.add(INFO_INVALID_SECURE_PORT_VALUE_RANGE.get(
-                String.valueOf(Installer.MIN_PORT_VALUE),
-                String.valueOf(Installer.MAX_PORT_VALUE)));
+            Installer.MIN_PORT_VALUE, Installer.MAX_PORT_VALUE));
       }
     }
     setValidLater(cbEnableSSL, errorMsgs.size() == 0);

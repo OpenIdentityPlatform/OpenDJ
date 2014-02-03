@@ -138,9 +138,7 @@ public class LoggerConfigManager implements
       }
       else
       {
-        LocalizableMessage message = ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(
-            String.valueOf(config.dn()));
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(config.dn()));
       }
     }
 
@@ -197,8 +195,7 @@ public class LoggerConfigManager implements
     }
     else
     {
-      messages.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(String
-          .valueOf(config.dn())));
+      messages.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(config.dn()));
       return null;
     }
   }

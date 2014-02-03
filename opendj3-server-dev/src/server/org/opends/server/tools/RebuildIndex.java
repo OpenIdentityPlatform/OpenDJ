@@ -638,8 +638,7 @@ public class RebuildIndex extends TaskTool
         final StringBuilder failureReason = new StringBuilder();
         if (!LockFileManager.releaseLock(lockFile, failureReason))
         {
-          logger.warn(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend
-              .getBackendID(), String.valueOf(failureReason)));
+          logger.warn(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
         }
       }
       catch (Exception e)

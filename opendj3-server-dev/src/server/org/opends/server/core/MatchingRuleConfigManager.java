@@ -228,10 +228,8 @@ public class MatchingRuleConfigManager
       }
       catch (DirectoryException de)
       {
-        LocalizableMessage message = WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(
-                String.valueOf(configuration.dn()),
-                de.getMessageObject());
-        messages.add(message);
+        messages.add(WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(
+            configuration.dn(), de.getMessageObject()));
 
         if (resultCode == ResultCode.SUCCESS)
         {
@@ -553,9 +551,7 @@ public class MatchingRuleConfigManager
       }
       catch (DirectoryException de)
       {
-        LocalizableMessage message = WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(
-                String.valueOf(configuration.dn()), de.getMessageObject());
-        messages.add(message);
+        messages.add(WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(configuration.dn(), de.getMessageObject()));
 
         if (resultCode == ResultCode.SUCCESS)
         {
@@ -652,8 +648,7 @@ public class MatchingRuleConfigManager
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_SCHEMA_MR_CANNOT_INITIALIZE.
-          get(className, String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
+          get(className, configuration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }

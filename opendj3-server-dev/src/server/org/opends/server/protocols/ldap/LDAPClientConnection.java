@@ -788,8 +788,7 @@ public final class LDAPClientConnection extends ClientConnection implements
           referralsStr.append(iterator.next());
         }
 
-        errorMessage.append(ERR_LDAPV2_REFERRALS_OMITTED.get(String
-            .valueOf(referralsStr)));
+        errorMessage.append(ERR_LDAPV2_REFERRALS_OMITTED.get(referralsStr));
       }
     }
     else
@@ -827,8 +826,8 @@ public final class LDAPClientConnection extends ClientConnection implements
       // If this an LDAPv2 client, then we can't send this.
       if (ldapVersion == 2)
       {
-        logger.error(ERR_LDAPV2_SKIPPING_EXTENDED_RESPONSE.get(getConnectionID(), operation.getOperationID(), String
-                .valueOf(operation)));
+        logger.error(ERR_LDAPV2_SKIPPING_EXTENDED_RESPONSE.get(
+            getConnectionID(), operation.getOperationID(), operation));
         return null;
       }
 
@@ -856,9 +855,8 @@ public final class LDAPClientConnection extends ClientConnection implements
     default:
       // This must be a type of operation that doesn't have a response.
       // This shouldn't happen, so log a message and return.
-      logger.error(ERR_LDAP_CLIENT_SEND_RESPONSE_INVALID_OP.get(String
-          .valueOf(operation.getOperationType()), getConnectionID(),
-          operation.getOperationID(), String.valueOf(operation)));
+      logger.error(ERR_LDAP_CLIENT_SEND_RESPONSE_INVALID_OP.get(operation.getOperationType(), getConnectionID(),
+          operation.getOperationID(), operation));
       return null;
     }
 
@@ -1586,8 +1584,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       {
         // The connection failed, but there was an unread partial message so
         // interpret this as an IO error.
-        LocalizableMessage m = ERR_LDAP_CLIENT_IO_ERROR_DURING_READ.get(String
-            .valueOf(e));
+        LocalizableMessage m = ERR_LDAP_CLIENT_IO_ERROR_DURING_READ.get(e);
         disconnect(DisconnectReason.IO_ERROR, true, m);
       }
       else
@@ -1723,8 +1720,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
       LocalizableMessage msg =
           ERR_LDAP_DISCONNECT_DUE_TO_PROCESSING_FAILURE.get(message
-              .getProtocolOpName(), message.getMessageID(), String
-              .valueOf(e));
+              .getProtocolOpName(), message.getMessageID(), e);
       disconnect(DisconnectReason.SERVER_ERROR, true, msg);
       return false;
     }
@@ -1936,7 +1932,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       // request must result in terminating the connection.
       LocalizableMessage msg =
           ERR_LDAP_INVALID_BIND_AUTH_TYPE.get(message.getMessageID(),
-              String.valueOf(protocolOp.getAuthenticationType()));
+              protocolOp.getAuthenticationType());
       disconnect(DisconnectReason.PROTOCOL_ERROR, true, msg);
       return false;
     }

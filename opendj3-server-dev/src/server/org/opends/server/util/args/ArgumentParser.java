@@ -613,10 +613,8 @@ public class ArgumentParser
     if (shortID != null && shortIDMap.containsKey(shortID))
     {
       String conflictingName = shortIDMap.get(shortID).getName();
-
-      LocalizableMessage message = ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(
-          argument.getName(), String.valueOf(shortID), conflictingName);
-      throw new ArgumentException(message);
+      throw new ArgumentException(ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(
+          argument.getName(), shortID, conflictingName));
     }
 
     if (versionArgument != null
@@ -984,9 +982,8 @@ public class ArgumentParser
           else
           {
             // There is no such argument registered.
-            LocalizableMessage message = ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(
-                String.valueOf(argCharacter));
-            throw new ArgumentException(message);
+            throw new ArgumentException(
+                ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(argCharacter));
           }
         }
         else
@@ -1011,10 +1008,8 @@ public class ArgumentParser
           {
             if ((i+1) == numArguments)
             {
-              LocalizableMessage message =
-                  ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID.
-                    get(String.valueOf(argCharacter));
-              throw new ArgumentException(message);
+              throw new ArgumentException(
+                  ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID.get(argCharacter));
             }
 
             argValue = rawArguments[++i];
@@ -1053,17 +1048,15 @@ public class ArgumentParser
               if (b == null)
               {
                 // There is no such argument registered.
-                LocalizableMessage message = ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(
-                    String.valueOf(argCharacter));
-                throw new ArgumentException(message);
+                throw new ArgumentException(
+                    ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(argCharacter));
               }
               else if (b.needsValue())
               {
                 // This means we're in a scenario like "-abc" where b is a
                 // valid argument that takes a value.  We don't support that.
-                LocalizableMessage message = ERR_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES.get(
-                    String.valueOf(argCharacter), argValue, String.valueOf(c));
-                throw new ArgumentException(message);
+                throw new ArgumentException(
+                    ERR_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES.get(argCharacter, argValue, c));
               }
               else
               {
@@ -1283,8 +1276,8 @@ public class ArgumentParser
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(String
-          .valueOf(propertiesFilePath), getExceptionMessage(e));
+      LocalizableMessage message = ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(
+          propertiesFilePath, getExceptionMessage(e));
       throw new ArgumentException(message, e);
     }
     return argumentProperties;

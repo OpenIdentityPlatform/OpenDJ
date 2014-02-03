@@ -181,10 +181,7 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(Exception e)
       {
-        LocalizableMessage msg =
-            ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
-                    String.valueOf(sortKeys[i]), name);
-        throw new ConfigException(msg);
+        throw new ConfigException(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], name));
       }
 
       AttributeType attrType =
@@ -1735,10 +1732,7 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(Exception e)
       {
-        LocalizableMessage msg =
-                ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
-                        String.valueOf(sortKeys[i]), name);
-        unacceptableReasons.add(msg);
+        unacceptableReasons.add(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], name));
         return false;
       }
 
@@ -1848,9 +1842,7 @@ public class VLVIndex extends DatabaseContainer
         }
         catch(Exception e)
         {
-          LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
-                  String.valueOf(String.valueOf(sortKeys[i])), name);
-          messages.add(msg);
+          messages.add(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], name));
           if(resultCode == ResultCode.SUCCESS)
           {
             resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
@@ -1861,9 +1853,7 @@ public class VLVIndex extends DatabaseContainer
             DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
         if(attrType == null)
         {
-          LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
-                  String.valueOf(String.valueOf(sortKeys[i])), name);
-          messages.add(msg);
+          messages.add(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], name));
           if(resultCode == ResultCode.SUCCESS)
           {
             resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;

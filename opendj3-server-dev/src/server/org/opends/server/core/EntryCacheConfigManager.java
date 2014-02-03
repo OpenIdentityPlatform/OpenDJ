@@ -200,8 +200,7 @@ public class EntryCacheConfigManager
         if (cacheOrderMap.containsKey(configuration.getCacheLevel())) {
           // Log error and skip this cache.
           logger.error(ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
-            String.valueOf(configuration.dn()),
-            configuration.getCacheLevel()));
+            configuration.dn(), configuration.getCacheLevel()));
           continue;
         }
       }
@@ -276,8 +275,7 @@ public class EntryCacheConfigManager
         (cacheOrderMap.containsKey(configuration.getCacheLevel()))) {
         unacceptableReasons.add(
           ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
-            String.valueOf(configuration.dn()),
-            configuration.getCacheLevel()));
+            configuration.dn(), configuration.getCacheLevel()));
         status = false;
       }
     }
@@ -391,8 +389,7 @@ public class EntryCacheConfigManager
       if (cacheOrderMap.containsKey(configuration.getCacheLevel())) {
         unacceptableReasons.add(
           ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
-            String.valueOf(configuration.dn()),
-            configuration.getCacheLevel()));
+            configuration.dn(), configuration.getCacheLevel()));
         status = false;
         return status;
       }
@@ -671,7 +668,7 @@ public class EntryCacheConfigManager
           throw (InitializationException) e;
         } else {
           LocalizableMessage message = ERR_CONFIG_ENTRYCACHE_CONFIG_NOT_ACCEPTABLE.get(
-            String.valueOf(configuration.dn()), e.getCause() != null ?
+            configuration.dn(), e.getCause() != null ?
               e.getCause().getMessage() : stackTraceToSingleLineString(e));
           throw new InitializationException(message);
         }

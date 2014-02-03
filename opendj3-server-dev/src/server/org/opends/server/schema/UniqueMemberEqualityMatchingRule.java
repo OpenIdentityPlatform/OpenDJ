@@ -226,8 +226,7 @@ class UniqueMemberEqualityMatchingRule
         {
           // There was an invalid binary digit.  We'll either throw an exception
           // or log a message and continue, based on the server's configuration.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT.get(
-                  valueString, String.valueOf(c), i);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT.get(valueString, c, i);
 
           switch (DirectoryServer.getSyntaxEnforcementPolicy())
           {

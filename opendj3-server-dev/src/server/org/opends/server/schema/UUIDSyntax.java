@@ -237,9 +237,8 @@ public class UUIDSyntax
         case 23:
           if (valueString.charAt(i) != '-')
           {
-
             invalidReason.append(WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(
-                    valueString, i, String.valueOf(valueString.charAt(i))));
+                    valueString, i, valueString.charAt(i)));
             return false;
           }
           break;
@@ -270,9 +269,8 @@ public class UUIDSyntax
             case 'F':
               break;
             default:
-
               invalidReason.append(WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(
-                      valueString, i, String.valueOf(valueString.charAt(i))));
+                      valueString, i, valueString.charAt(i)));
               return false;
           }
       }

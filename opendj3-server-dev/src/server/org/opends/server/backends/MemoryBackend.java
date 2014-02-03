@@ -404,9 +404,8 @@ public class MemoryBackend
     DN entryDN = e.getName();
     if (entryMap.containsKey(entryDN))
     {
-      LocalizableMessage message =
-          ERR_MEMORYBACKEND_ENTRY_ALREADY_EXISTS.get(String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
+      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
+          ERR_MEMORYBACKEND_ENTRY_ALREADY_EXISTS.get(entryDN));
     }
 
 
@@ -422,15 +421,13 @@ public class MemoryBackend
     DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
-      LocalizableMessage message =
-          ERR_MEMORYBACKEND_ENTRY_DOESNT_BELONG.get(String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+          ERR_MEMORYBACKEND_ENTRY_DOESNT_BELONG.get(entryDN));
     }
     else if (! entryMap.containsKey(parentDN))
     {
-      LocalizableMessage message = ERR_MEMORYBACKEND_PARENT_DOESNT_EXIST.get(
-          String.valueOf(entryDN), String.valueOf(parentDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+          ERR_MEMORYBACKEND_PARENT_DOESNT_EXIST.get(entryDN, parentDN));
     }
 
     entryMap.put(entryDN, e);
@@ -457,9 +454,8 @@ public class MemoryBackend
     // Make sure the entry exists.  If not, then throw an exception.
     if (! entryMap.containsKey(entryDN))
     {
-      LocalizableMessage message =
-          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(entryDN));
     }
 
 
@@ -500,10 +496,8 @@ public class MemoryBackend
       // an exception.
       if ((children != null) && (! children.isEmpty()))
       {
-        LocalizableMessage message = ERR_MEMORYBACKEND_CANNOT_DELETE_ENTRY_WITH_CHILDREN.
-            get(String.valueOf(entryDN));
-        throw new DirectoryException(
-                ResultCode.NOT_ALLOWED_ON_NONLEAF, message);
+        throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF,
+            ERR_MEMORYBACKEND_CANNOT_DELETE_ENTRY_WITH_CHILDREN.get(entryDN));
       }
     }
 
@@ -543,9 +537,8 @@ public class MemoryBackend
     DN entryDN = e.getName();
     if (! entryMap.containsKey(entryDN))
     {
-      LocalizableMessage message =
-          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(entryDN));
     }
 
 
@@ -568,9 +561,8 @@ public class MemoryBackend
     // Make sure that the target entry exists.
     if (! entryMap.containsKey(currentDN))
     {
-      LocalizableMessage message =
-          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String.valueOf(currentDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(currentDN));
     }
 
 
@@ -584,10 +576,8 @@ public class MemoryBackend
       }
       else
       {
-        LocalizableMessage message = ERR_MEMORYBACKEND_CANNOT_RENAME_ENRY_WITH_CHILDREN.
-            get(String.valueOf(currentDN));
-        throw new DirectoryException(
-                ResultCode.NOT_ALLOWED_ON_NONLEAF, message);
+        throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF,
+            ERR_MEMORYBACKEND_CANNOT_RENAME_ENRY_WITH_CHILDREN.get(currentDN));
       }
     }
 
@@ -595,9 +585,8 @@ public class MemoryBackend
     // Make sure that no entry exists with the new DN.
     if (entryMap.containsKey(e.getName()))
     {
-      LocalizableMessage message = ERR_MEMORYBACKEND_ENTRY_ALREADY_EXISTS.get(
-          String.valueOf(e.getName()));
-      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
+      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
+          ERR_MEMORYBACKEND_ENTRY_ALREADY_EXISTS.get(e.getName()));
     }
 
 
@@ -614,9 +603,8 @@ public class MemoryBackend
 
     if (! matchFound)
     {
-      LocalizableMessage message = ERR_MEMORYBACKEND_CANNOT_RENAME_TO_ANOTHER_BACKEND.get(
-          String.valueOf(currentDN));
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          ERR_MEMORYBACKEND_CANNOT_RENAME_TO_ANOTHER_BACKEND.get(currentDN));
     }
 
 
@@ -624,9 +612,8 @@ public class MemoryBackend
     DN parentDN = e.getName().getParentDNInSuffix();
     if ((parentDN == null) || (! entryMap.containsKey(parentDN)))
     {
-      LocalizableMessage message = ERR_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST.get(
-          String.valueOf(currentDN), String.valueOf(parentDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+          ERR_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST.get(currentDN, parentDN));
     }
 
 
@@ -665,8 +652,7 @@ public class MemoryBackend
         matchedDN = matchedDN.getParentDNInSuffix();
       }
 
-      LocalizableMessage message =
-          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String.valueOf(baseDN));
+      LocalizableMessage message = ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(baseDN);
       throw new DirectoryException(
               ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
     }
@@ -752,10 +738,8 @@ public class MemoryBackend
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_WRITER.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+          ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_WRITER.get(e), e);
     }
 
 
@@ -771,10 +755,8 @@ public class MemoryBackend
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_MEMORYBACKEND_CANNOT_WRITE_ENTRY_TO_LDIF.get(
-          String.valueOf(entryDN), String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+          ERR_MEMORYBACKEND_CANNOT_WRITE_ENTRY_TO_LDIF.get(entryDN, e), e);
     }
     finally
     {
@@ -818,10 +800,8 @@ public class MemoryBackend
     }
     catch (Exception e)
     {
-      LocalizableMessage message =
-          ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+          ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER.get(e), e);
     }
 
 
@@ -842,11 +822,8 @@ public class MemoryBackend
         {
           if (! le.canContinueReading())
           {
-            LocalizableMessage message =
-                ERR_MEMORYBACKEND_ERROR_READING_LDIF.get(String.valueOf(e));
-            throw new DirectoryException(
-                           DirectoryServer.getServerErrorResultCode(),
-                           message, le);
+            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                ERR_MEMORYBACKEND_ERROR_READING_LDIF.get(e), le);
           }
           else
           {
@@ -874,10 +851,8 @@ public class MemoryBackend
     }
     catch (Exception e)
     {
-      LocalizableMessage message =
-          ERR_MEMORYBACKEND_ERROR_DURING_IMPORT.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+          ERR_MEMORYBACKEND_ERROR_DURING_IMPORT.get(e), e);
     }
     finally
     {
