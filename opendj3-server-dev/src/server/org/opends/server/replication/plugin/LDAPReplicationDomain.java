@@ -1499,11 +1499,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
     case IMPORT_ERROR_MESSAGE_BAD_REMOTE:
       msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_BAD_REMOTE.get(
-          getBaseDNString(), Integer.toString(ieCtx.getImportSource()));
+          getBaseDNString(), ieCtx.getImportSource());
       break;
     case IMPORT_ERROR_MESSAGE_REMOTE_IS_FRACTIONAL:
       msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_REMOTE_IS_FRACTIONAL.get(
-          getBaseDNString(), Integer.toString(ieCtx.getImportSource()));
+          getBaseDNString(), ieCtx.getImportSource());
       break;
     }
     ieCtx.setException(new DirectoryException(UNWILLING_TO_PERFORM, msg));
@@ -1525,7 +1525,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     if (target == RoutableMsg.ALL_SERVERS && fractionalConfig.isFractional())
     {
       LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_FULL_UPDATE_FRACTIONAL.get(
-            getBaseDNString(), Integer.toString(getServerId()));
+            getBaseDNString(), getServerId());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
@@ -2065,8 +2065,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         } catch (TimeoutException ex)
         {
           // This exception may only be raised if assured replication is enabled
-          logger.error(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
-              Long.toString(getAssuredTimeout()), msg));
+          logger.error(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(), getAssuredTimeout(), msg));
         }
       }
 
@@ -4522,13 +4521,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     catch (Exception e)
     {
       LocalizableMessage message = ERR_INVALID_IMPORT_SOURCE.get(
-          getBaseDNString(), Integer.toString(getServerId()),
-          sourceString, stackTraceToSingleLineString(e));
+          getBaseDNString(), getServerId(), sourceString, stackTraceToSingleLineString(e));
       throw new DirectoryException(ResultCode.OTHER, message, e);
     }
 
-    LocalizableMessage message = ERR_INVALID_IMPORT_SOURCE.get(getBaseDNString(),
-        Integer.toString(getServerId()), Integer.toString(source), "");
+    LocalizableMessage message = ERR_INVALID_IMPORT_SOURCE.get(
+        getBaseDNString(), getServerId(), source, "");
     throw new DirectoryException(ResultCode.OTHER, message);
   }
 

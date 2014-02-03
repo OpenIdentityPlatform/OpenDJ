@@ -103,11 +103,8 @@ public class DataServerHandler extends ServerHandler
     {
       // Prevent useless error message (full update status cannot lead to bad
       // gen status)
-      logger.info(NOTE_BAD_GEN_ID_IN_FULL_UPDATE, Integer.toString(replicationServer.getServerId()),
-              getBaseDNString(),
-              Integer.toString(serverId),
-              Long.toString(generationId),
-              Long.toString(newGenId));
+      logger.info(NOTE_BAD_GEN_ID_IN_FULL_UPDATE, replicationServer.getServerId(),
+              getBaseDNString(), serverId, generationId, newGenId);
       return;
     }
 
@@ -451,8 +448,7 @@ public class DataServerHandler extends ServerHandler
       catch(IOException e)
       {
         LocalizableMessage errMessage = ERR_DS_DISCONNECTED_DURING_HANDSHAKE.get(
-          Integer.toString(inServerStartMsg.getServerId()),
-          Integer.toString(replicationServer.getServerId()));
+            inServerStartMsg.getServerId(), replicationServer.getServerId());
         throw new DirectoryException(ResultCode.OTHER, errMessage);
       }
       catch (Exception e)

@@ -341,8 +341,7 @@ public abstract class ReplicationDomain
     // Sanity check: is it a valid initial status?
     if (!isValidInitialStatus(initStatus))
     {
-      logger.error(ERR_DS_INVALID_INIT_STATUS.get(initStatus,
-          getBaseDNString(), Integer.toString(getServerId())));
+      logger.error(ERR_DS_INVALID_INIT_STATUS.get(initStatus, getBaseDNString(), getServerId()));
     }
     else
     {
@@ -370,8 +369,7 @@ public abstract class ReplicationDomain
     StatusMachineEvent event = StatusMachineEvent.statusToEvent(reqStatus);
     if (event == StatusMachineEvent.INVALID_EVENT)
     {
-      logger.error(ERR_DS_INVALID_REQUESTED_STATUS.get(reqStatus,
-          getBaseDNString(), Integer.toString(getServerId())));
+      logger.error(ERR_DS_INVALID_REQUESTED_STATUS.get(reqStatus, getBaseDNString(), getServerId()));
       return;
     }
 
@@ -1551,9 +1549,7 @@ public abstract class ReplicationDomain
     if (!ieCtx.failureList.isEmpty() && exportRootException == null)
     {
       exportRootException = new DirectoryException(ResultCode.OTHER,
-              ERR_INIT_NO_SUCCESS_END_FROM_SERVERS.get(
-                  Long.toString(getGenerationID()),
-                  ieCtx.failureList));
+              ERR_INIT_NO_SUCCESS_END_FROM_SERVERS.get(getGenerationID(), ieCtx.failureList));
     }
 
     // Don't forget to release IEcontext acquired at beginning.
@@ -1910,11 +1906,8 @@ public abstract class ReplicationDomain
           if (msg instanceof TopologyMsg
               && isRemoteDSConnected(ieCtx.importSource) == null)
           {
-            LocalizableMessage errMsg =
-              LocalizableMessage.raw(                  ERR_INIT_EXPORTER_DISCONNECTION.get(
-                      getBaseDNString(),
-                      Integer.toString(getServerId()),
-                      Integer.toString(ieCtx.importSource)));
+            LocalizableMessage errMsg = ERR_INIT_EXPORTER_DISCONNECTION.get(
+                getBaseDNString(), getServerId(), ieCtx.importSource);
             ieCtx.setExceptionIfNoneSet(new DirectoryException(
                 ResultCode.OTHER, errMsg));
             return null;
@@ -2006,8 +1999,7 @@ public abstract class ReplicationDomain
       if (isRemoteDSConnected(slowestServerId)==null)
       {
         ieCtx.setException(new DirectoryException(ResultCode.OTHER,
-            ERR_INIT_HEARTBEAT_LOST_DURING_EXPORT.get(
-                Integer.toString(ieCtx.getSlowestServer()))));
+            ERR_INIT_HEARTBEAT_LOST_DURING_EXPORT.get(ieCtx.getSlowestServer())));
 
         throw new IOException("IOException with nested DirectoryException",
             ieCtx.getException());
@@ -2035,8 +2027,7 @@ public abstract class ReplicationDomain
         {
           // publish failed - store the error in the ieContext ...
           DirectoryException de = new DirectoryException(ResultCode.OTHER,
-              ERR_INIT_RS_DISCONNECTION_DURING_EXPORT.get(
-                  Integer.toString(broker.getRsServerId())));
+              ERR_INIT_RS_DISCONNECTION_DURING_EXPORT.get(broker.getRsServerId()));
           ieCtx.setExceptionIfNoneSet(de);
           // .. and abandon the export by throwing an exception.
           throw new IOException(de.getMessage());
@@ -2063,8 +2054,7 @@ public abstract class ReplicationDomain
     {
       // publish failed - store the error in the ieContext ...
       DirectoryException de = new DirectoryException(ResultCode.OTHER,
-          ERR_INIT_RS_DISCONNECTION_DURING_EXPORT.get(
-              Integer.toString(broker.getRsServerId())));
+          ERR_INIT_RS_DISCONNECTION_DURING_EXPORT.get(broker.getRsServerId()));
       ieCtx.setExceptionIfNoneSet(de);
       // .. and abandon the export by throwing an exception.
       throw new IOException(de.getMessage());
@@ -2567,8 +2557,7 @@ public abstract class ReplicationDomain
     if (!isConnected())
     {
       LocalizableMessage message = ERR_RESET_GENERATION_CONN_ERR_ID.get(getBaseDNString(),
-          Integer.toString(getServerId()),
-          Long.toString(genIdMessage.getGenerationId()));
+          getServerId(), genIdMessage.getGenerationId());
       throw new DirectoryException(ResultCode.OTHER, message);
     }
     broker.publish(genIdMessage);
@@ -3427,8 +3416,7 @@ public abstract class ReplicationDomain
     } catch (TimeoutException ex)
     {
       // This exception may only be raised if assured replication is enabled
-      logger.error(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
-          Long.toString(getAssuredTimeout()), update));
+      logger.error(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(), getAssuredTimeout(), update));
     }
   }
 

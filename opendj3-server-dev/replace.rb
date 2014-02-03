@@ -243,6 +243,19 @@ class Replace
       ]
   }
 
+  LOGGER_MSG_ARGN_PRIMITIVE_TOSTRING = {
+    :dirs => JAVA_DIRS,
+    :extensions => ["java"],
+    :replacements =>
+      [
+        /(logger\.\s*(trace|debug|warn|info|error)\s*\([^;]*)\s*(Character|Byte|Boolean|Short|Integer|Long|Float|Double)\s*\.\s*toString\s*\(/m,
+        '\1',
+        # Need to fix removing the last parentheses
+        /([A-Z0-9_]+\s*\.\s*get\s*\([^;]*)\s*(Character|Byte|Boolean|Short|Integer|Long|Float|Double)\s*\.\s*toString\s*\(/m,
+        '\1',
+      ]
+  }
+
   LOGGER_ISTRACEENABLED_TRACEEXCEPTION = {
     :dirs => JAVA_DIRS,
     :extensions => ["java"],
@@ -256,7 +269,7 @@ class Replace
   }
 
   # List of replacements to run
-  REPLACEMENTS = [ LOGGER_TOSTRING ]
+  REPLACEMENTS = [ LOGGER_MSG_ARGN_PRIMITIVE_TOSTRING ]
 
 
   ################################### Processing methods ########################################
