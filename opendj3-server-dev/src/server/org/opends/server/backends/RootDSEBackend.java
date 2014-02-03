@@ -232,7 +232,7 @@ public class RootDSEBackend
           Backend backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
           {
-            logger.warn(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE, String.valueOf(baseDN));
+            logger.warn(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE, baseDN);
           }
           else
           {
@@ -476,7 +476,7 @@ public class RootDSEBackend
 
     // This method should never be used to get anything other than the root DSE.
     // If we got here, then that appears to be the case, so log a message.
-    logger.warn(WARN_ROOTDSE_GET_ENTRY_NONROOT, String.valueOf(entryDN));
+    logger.warn(WARN_ROOTDSE_GET_ENTRY_NONROOT, entryDN);
 
 
     // Go ahead and check the subordinate backends to see if we can find the

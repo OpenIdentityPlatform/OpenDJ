@@ -126,7 +126,7 @@ public class InitializeTargetTask extends Task
       logger.traceException(e);
 
       // This log will go to the task log message
-      logger.error(ERR_TASK_EXECUTE_FAILED, String.valueOf(getTaskEntryDN()), stackTraceToSingleLineString(e));
+      logger.error(ERR_TASK_EXECUTE_FAILED, getTaskEntryDN(), stackTraceToSingleLineString(e));
 
       return TaskState.STOPPED_BY_ERROR;
     }

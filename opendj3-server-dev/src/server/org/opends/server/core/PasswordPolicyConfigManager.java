@@ -156,8 +156,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
           {
             // Just log a message instead of failing the server initialization.
             // This will allow the administrator to fix any problems.
-            logger.error(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG, String.valueOf(subentry.getDN()),
-                stackTraceToSingleLineString(e));
+            logger.error(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG, subentry.getDN(), stackTraceToSingleLineString(e));
           }
         }
       }

@@ -1100,8 +1100,7 @@ public class TaskScheduler
           DN parentDN = entryDN.getParentDNInSuffix();
           if (parentDN == null)
           {
-            logger.error(ERR_TASKSCHED_ENTRY_HAS_NO_PARENT, String.valueOf(entryDN),
-                    String.valueOf(taskBackend.getTaskRootDN()));
+            logger.error(ERR_TASKSCHED_ENTRY_HAS_NO_PARENT, entryDN, taskBackend.getTaskRootDN());
           }
           else if (parentDN.equals(taskBackend.getScheduledTasksParentDN()))
           {
@@ -1113,7 +1112,7 @@ public class TaskScheduler
                 String id = task.getTaskID();
                 if (tasks.containsKey(id))
                 {
-                  logger.warn(WARN_TASKSCHED_DUPLICATE_TASK_ID, String.valueOf(id));
+                  logger.warn(WARN_TASKSCHED_DUPLICATE_TASK_ID, id);
                 }
                 else
                 {
@@ -1129,9 +1128,7 @@ public class TaskScheduler
             catch (DirectoryException de)
             {
               logger.traceException(de);
-
-              logger.error(ERR_TASKSCHED_CANNOT_SCHEDULE_TASK_FROM_ENTRY,
-                  String.valueOf(entryDN), de.getMessageObject());
+              logger.error(ERR_TASKSCHED_CANNOT_SCHEDULE_TASK_FROM_ENTRY, entryDN, de.getMessageObject());
             }
           }
           else if (parentDN.equals(taskBackend.getRecurringTasksParentDN()))
@@ -1144,15 +1141,12 @@ public class TaskScheduler
             catch (DirectoryException de)
             {
               logger.traceException(de);
-
-              logger.error(
-                  ERR_TASKSCHED_CANNOT_SCHEDULE_RECURRING_TASK_FROM_ENTRY,
-                  String.valueOf(entryDN), de.getMessageObject());
+              logger.error(ERR_TASKSCHED_CANNOT_SCHEDULE_RECURRING_TASK_FROM_ENTRY, entryDN, de.getMessageObject());
             }
           }
           else
           {
-            logger.error(ERR_TASKSCHED_INVALID_TASK_ENTRY_DN, String.valueOf(entryDN), backingFilePath);
+            logger.error(ERR_TASKSCHED_INVALID_TASK_ENTRY_DN, entryDN, backingFilePath);
           }
         }
       }

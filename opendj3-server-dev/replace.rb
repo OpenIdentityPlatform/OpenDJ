@@ -222,7 +222,30 @@ class Replace
       ]
   }
 
-  LOG_ISTRACEENABLED_TRACEEXCEPTION = {
+  LOGGER_TOSTRING = {
+    :dirs => JAVA_DIRS,
+    :extensions => ["java"],
+    :replacements =>
+      [
+        # Need to fix removing the last parentheses
+        /(logger\.\s*(trace|debug|warn|info|error)\s*\([^;]*)\s*String\s*\.\s*valueOf\s*\(/m,
+        /([A-Z0-9_]+\s*\.\s*get\s*\([^;]*)\.toString\(\)/m,
+        '\1',
+      ]
+  }
+
+  LOGGER_STRING_VALUEOF = {
+    :dirs => JAVA_DIRS,
+    :extensions => ["java"],
+    :replacements =>
+      [
+        # Need to fix removing the last parentheses
+        /(logger\.\s*(trace|debug|warn|info|error)\s*\([^;]*)\s*String\s*\.\s*valueOf\s*\(/m,
+        '\1',
+      ]
+  }
+
+  LOGGER_ISTRACEENABLED_TRACEEXCEPTION = {
     :dirs => JAVA_DIRS,
     :extensions => ["java"],
     :replacements =>
@@ -235,7 +258,7 @@ class Replace
   }
 
   # List of replacements to run
-  REPLACEMENTS = [ MSG_ARGN_STRING_VALUEOF ]
+  REPLACEMENTS = [ LOGGER_STRING_VALUEOF ]
   #REPLACEMENTS = [ MESSAGES, TYPES, DN_TYPES, EXCEPTIONS, LOGGERS, I18N_LOGGERS ]
 
 

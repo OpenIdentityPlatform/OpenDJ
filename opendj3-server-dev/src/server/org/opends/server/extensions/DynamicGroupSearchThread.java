@@ -135,8 +135,8 @@ public class DynamicGroupSearchThread
       {
         if (resultCode == ResultCode.NO_SUCH_OBJECT)
         {
-          logger.warn(WARN_DYNAMICGROUP_NONEXISTENT_BASE_DN, String.valueOf(baseDNs[searchCounter]),
-                  String.valueOf(memberList.getDynamicGroupDN()));
+          logger.warn(WARN_DYNAMICGROUP_NONEXISTENT_BASE_DN, baseDNs[searchCounter],
+                  memberList.getDynamicGroupDN());
           continue;
         }
         else

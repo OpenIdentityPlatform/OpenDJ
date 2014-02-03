@@ -352,8 +352,7 @@ policyLoop:
                 .getAuthenticationPolicy(policyDN);
             if (authPolicy == null)
             {
-              logger.warn(WARN_PLUGIN_PWIMPORT_NO_SUCH_POLICY, String
-                  .valueOf(entry.getName()), String.valueOf(policyDN));
+              logger.warn(WARN_PLUGIN_PWIMPORT_NO_SUCH_POLICY, entry.getName(), policyDN);
             }
             else if (authPolicy.isPasswordPolicy())
             {
@@ -364,8 +363,7 @@ policyLoop:
           }
           catch (DirectoryException de)
           {
-            logger.warn(WARN_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN, String
-                .valueOf(entry.getName()), de.getMessageObject());
+            logger.warn(WARN_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN, entry.getName(), de.getMessageObject());
             break policyLoop;
           }
         }
@@ -409,8 +407,7 @@ policyLoop:
                     logger.traceException(e);
 
                     logger.error(ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD,
-                        policy.getPasswordAttribute().getNameOrOID(), String
-                            .valueOf(entry.getName()),
+                        policy.getPasswordAttribute().getNameOrOID(), entry.getName(),
                         stackTraceToSingleLineString(e));
                     gotError = true;
                     break;
@@ -439,8 +436,7 @@ policyLoop:
                     logger.traceException(e);
 
                     logger.error(ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD,
-                        policy.getPasswordAttribute().getNameOrOID(), String
-                            .valueOf(entry.getName()),
+                        policy.getPasswordAttribute().getNameOrOID(), entry.getName(),
                         stackTraceToSingleLineString(e));
                     gotError = true;
                     break;
@@ -497,10 +493,8 @@ policyLoop:
             catch (Exception e)
             {
               logger.traceException(e);
-
-              logger.error(ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD, t
-                  .getNameOrOID(), String.valueOf(entry.getName()),
-                  stackTraceToSingleLineString(e));
+              logger.error(ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD,
+                  t.getNameOrOID(), entry.getName(), stackTraceToSingleLineString(e));
               gotError = true;
               break;
             }
@@ -551,10 +545,8 @@ policyLoop:
             catch (Exception e)
             {
               logger.traceException(e);
-
-              logger.error(ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD, t
-                  .getNameOrOID(), String.valueOf(entry.getName()),
-                  stackTraceToSingleLineString(e));
+              logger.error(ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD,
+                  t.getNameOrOID(), entry.getName(), stackTraceToSingleLineString(e));
               gotError = true;
               break;
             }

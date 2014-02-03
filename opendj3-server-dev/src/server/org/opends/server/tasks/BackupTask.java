@@ -514,7 +514,7 @@ public class BackupTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        logger.error(ERR_BACKUPDB_CANNOT_LOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
+        logger.error(ERR_BACKUPDB_CANNOT_LOCK_BACKEND, b.getBackendID(), failureReason);
         return false;
       }
     }
@@ -540,7 +540,7 @@ public class BackupTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
+        logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
         return false;
       }
     }

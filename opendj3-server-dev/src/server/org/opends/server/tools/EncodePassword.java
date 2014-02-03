@@ -901,8 +901,7 @@ public class EncodePassword
             backend = (Backend) backendClass.newInstance();
           } catch (Exception e) {
             logger.traceException(e);
-            logger.error(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE, String.valueOf(className),
-                  String.valueOf(backendCfg.dn()),
+            logger.error(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE, className, backendCfg.dn(),
                   stackTraceToSingleLineString(e));
             continue;
           }
@@ -913,8 +912,7 @@ public class EncodePassword
             backend.initializeBackend();
           } catch (Exception e) {
             logger.traceException(e);
-            logger.error(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE, String.valueOf(className),
-                  String.valueOf(backendCfg.dn()),
+            logger.error(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE, className, backendCfg.dn(),
                   stackTraceToSingleLineString(e));
           }
           try {

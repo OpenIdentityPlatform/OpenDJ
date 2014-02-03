@@ -211,8 +211,8 @@ public class CryptoManagerSync
     ResultCode resultCode = searchOperation.getResultCode();
     if (resultCode != ResultCode.SUCCESS)
     {
-      logger.debug(INFO_TRUSTSTORESYNC_ADMIN_SUFFIX_SEARCH_FAILED, String.valueOf(adminSuffixDN),
-                searchOperation.getErrorMessage().toString());
+      logger.debug(INFO_TRUSTSTORESYNC_ADMIN_SUFFIX_SEARCH_FAILED, adminSuffixDN,
+                searchOperation.getErrorMessage());
     }
 
     for (SearchResultEntry searchEntry : searchOperation.getSearchEntries())
@@ -425,8 +425,7 @@ public class CryptoManagerSync
 
     if (delOperation.getResultCode() != ResultCode.SUCCESS)
     {
-      logger.debug(INFO_TRUSTSTORESYNC_DELETE_FAILED, String.valueOf(dstDN),
-           String.valueOf(delOperation.getErrorMessage()));
+      logger.debug(INFO_TRUSTSTORESYNC_DELETE_FAILED, dstDN, delOperation.getErrorMessage());
     }
   }
 
@@ -466,8 +465,7 @@ public class CryptoManagerSync
     AddOperation addOperation = conn.processAdd(addEntry);
     if (addOperation.getResultCode() != ResultCode.SUCCESS)
     {
-      logger.debug(INFO_TRUSTSTORESYNC_ADD_FAILED, String.valueOf(dstDN),
-           String.valueOf(addOperation.getErrorMessage()));
+      logger.debug(INFO_TRUSTSTORESYNC_ADD_FAILED, dstDN, addOperation.getErrorMessage());
     }
   }
 

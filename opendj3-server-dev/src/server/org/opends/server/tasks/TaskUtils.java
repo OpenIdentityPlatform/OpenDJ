@@ -90,12 +90,12 @@ public class TaskUtils
     }
     catch (ConfigException ce)
     {
-      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, String.valueOf(configEntry.getDN()), ce.getMessage());
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), ce.getMessage());
       return null;
     }
     catch (Exception e)
     {
-      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), getExceptionMessage(e));
       return null;
     }
   }
@@ -173,12 +173,12 @@ public class TaskUtils
       }
       catch (ConfigException ce)
       {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, String.valueOf(configEntry.getDN()), ce.getMessage());
+        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), ce.getMessage());
         continue;
       }
       catch (Exception e)
       {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), getExceptionMessage(e));
         continue;
       }
 

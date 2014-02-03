@@ -827,7 +827,7 @@ public class BackUpDB extends TaskTool
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
         {
-          logger.error(ERR_BACKUPDB_CANNOT_LOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
+          logger.error(ERR_BACKUPDB_CANNOT_LOCK_BACKEND, b.getBackendID(), failureReason);
           errorsEncountered = true;
           continue;
         }
@@ -890,7 +890,7 @@ public class BackUpDB extends TaskTool
               StringBuilder failureReason = new StringBuilder();
               if (! LockFileManager.releaseLock(lockFile, failureReason))
               {
-                logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
+                logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
               }
             }
             catch (Exception e)
@@ -911,7 +911,7 @@ public class BackUpDB extends TaskTool
               StringBuilder failureReason = new StringBuilder();
               if (! LockFileManager.releaseLock(lockFile, failureReason))
               {
-                logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
+                logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
               }
             }
             catch (Exception e2)
@@ -944,7 +944,7 @@ public class BackUpDB extends TaskTool
             StringBuilder failureReason = new StringBuilder();
             if (! LockFileManager.releaseLock(lockFile, failureReason))
             {
-              logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
+              logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
             }
           }
           catch (Exception e2)
@@ -981,7 +981,7 @@ public class BackUpDB extends TaskTool
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
+            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
           }
         }
         catch (Exception e2)
@@ -1009,7 +1009,7 @@ public class BackUpDB extends TaskTool
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
+            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
           }
         }
         catch (Exception e)
@@ -1030,7 +1030,7 @@ public class BackUpDB extends TaskTool
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
+            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
           }
         }
         catch (Exception e2)
@@ -1049,7 +1049,7 @@ public class BackUpDB extends TaskTool
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), String.valueOf(failureReason));
+          logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
           errorsEncountered = true;
         }
       }

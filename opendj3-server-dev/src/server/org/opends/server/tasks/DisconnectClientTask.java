@@ -221,7 +221,7 @@ disconnectMessageLoop:
     // terminate it.
     if (clientConnection == null)
     {
-      logger.error(ERR_TASK_DISCONNECT_NO_SUCH_CONNECTION, String.valueOf(connectionID));
+      logger.error(ERR_TASK_DISCONNECT_NO_SUCH_CONNECTION, connectionID);
 
       return TaskState.COMPLETED_WITH_ERRORS;
     }

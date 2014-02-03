@@ -212,9 +212,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       catch (Exception e)
       {
         logger.traceException(e);
-
-        logger.error(ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR, String.valueOf(TraditionalWorkQueueMonitor.class),
-            String.valueOf(e));
+        logger.error(ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR, TraditionalWorkQueueMonitor.class, e);
       }
     }
     finally

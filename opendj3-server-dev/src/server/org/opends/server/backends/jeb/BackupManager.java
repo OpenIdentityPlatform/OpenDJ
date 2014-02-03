@@ -488,7 +488,7 @@ public class BackupManager
 
           Arrays.sort(logFiles);
 
-          logger.info(NOTE_JEB_BACKUP_CLEANER_ACTIVITY, String.valueOf(logFiles.length));
+          logger.info(NOTE_JEB_BACKUP_CLEANER_ACTIVITY, logFiles.length);
         }
         else
         {

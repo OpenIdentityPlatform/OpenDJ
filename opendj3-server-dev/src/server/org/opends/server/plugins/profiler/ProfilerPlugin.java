@@ -195,7 +195,7 @@ public final class ProfilerPlugin
         {
           logger.traceException(e);
 
-          logger.error(ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA, String.valueOf(configEntryDN), filename,
+          logger.error(ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA, configEntryDN, filename,
                   stackTraceToSingleLineString(e));
         }
       }

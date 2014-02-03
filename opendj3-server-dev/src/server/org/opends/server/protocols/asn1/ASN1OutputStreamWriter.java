@@ -316,9 +316,8 @@ final class ASN1OutputStreamWriter implements ASN1Writer
 
     if(logger.isTraceEnabled())
     {
-      logger.trace(
-          String.format("WRITE ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)",
-              type, 1, String.valueOf(booleanValue)));
+      logger.trace("WRITE ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)",
+          type, 1, booleanValue);
     }
     return this;
   }

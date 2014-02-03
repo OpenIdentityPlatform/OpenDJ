@@ -26,9 +26,8 @@
  */
 package org.opends.server.admin;
 
-
-
 import static org.opends.messages.AdminMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.util.Reject.*;
 
 import java.util.Collection;
@@ -63,9 +62,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
-import org.opends.server.util.StaticUtils;
-
-
 
 /**
  * Aggregation property definition.
@@ -309,10 +305,8 @@ public final class AggregationPropertyDefinition
       } catch (ConfigException e) {
         // The condition could not be evaluated.
         logger.traceException(e);
-
-        logger.error(ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION, mo
-            .getManagedObjectDefinition().getUserFriendlyName(), String
-            .valueOf(mo.getDN()), StaticUtils.getExceptionMessage(e));
+        logger.error(ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION,
+            mo.getManagedObjectDefinition().getUserFriendlyName(), mo.getDN(), getExceptionMessage(e));
         unacceptableReasons.add(message);
         return false;
       }

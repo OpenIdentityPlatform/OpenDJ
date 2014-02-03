@@ -149,8 +149,7 @@ public class MatchingRuleConfigManager
           }
           catch (DirectoryException de)
           {
-            logger.warn(WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR, String
-                .valueOf(mrConfiguration.dn()), de.getMessageObject());
+            logger.warn(WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR, mrConfiguration.dn(), de.getMessageObject());
             continue;
           }
         }

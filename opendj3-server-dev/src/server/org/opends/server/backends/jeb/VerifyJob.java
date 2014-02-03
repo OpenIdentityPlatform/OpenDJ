@@ -1560,9 +1560,7 @@ public class VerifyJob
 
           logger.trace("Error normalizing values of attribute %s in " +
               "entry <%s>: %s.%n",
-                     attrIndex.getAttributeType().toString(),
-                     entry.getName().toString(),
-                     String.valueOf(e.getMessageObject()));
+                     attrIndex.getAttributeType(), entry.getName(), e.getMessageObject());
         }
       }
     }
@@ -1594,9 +1592,7 @@ public class VerifyJob
 
           logger.trace("Error checking entry %s against filter or " +
               "base DN for VLV index %s: %s",
-                     entry.getName().toString(),
-                     vlvIndex.getName(),
-                     String.valueOf(e.getMessageObject()));
+                     entry.getName(), vlvIndex.getName(), e.getMessageObject());
         }
         errorCount++;
       }

@@ -140,14 +140,12 @@ public class BackendToolUtils
       }
       catch (ConfigException ce)
       {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, String.valueOf(configEntry
-                .getDN()), ce.getMessage());
+        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), ce.getMessage());
         return 1;
       }
       catch (Exception e)
       {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, String.valueOf(configEntry
-                .getDN()), getExceptionMessage(e));
+        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), getExceptionMessage(e));
         return 1;
       }
 
@@ -174,14 +172,12 @@ public class BackendToolUtils
       }
       catch (ConfigException ce)
       {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, String.valueOf(configEntry
-                .getDN()), ce.getMessage());
+        logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, configEntry.getDN(), ce.getMessage());
         return 1;
       }
       catch (Exception e)
       {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, String.valueOf(configEntry
-                .getDN()), getExceptionMessage(e));
+        logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, configEntry.getDN(), getExceptionMessage(e));
         return 1;
       }
 
@@ -192,8 +188,7 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        logger.error(ERR_CANNOT_LOAD_BACKEND_CLASS, backendClassName, String
-                .valueOf(configEntry.getDN()), getExceptionMessage(e));
+        logger.error(ERR_CANNOT_LOAD_BACKEND_CLASS, backendClassName, configEntry.getDN(), getExceptionMessage(e));
         return 1;
       }
 
@@ -208,8 +203,8 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        logger.error(ERR_CANNOT_INSTANTIATE_BACKEND_CLASS, backendClassName, String
-                .valueOf(configEntry.getDN()), getExceptionMessage(e));
+        logger.error(ERR_CANNOT_INSTANTIATE_BACKEND_CLASS,
+            backendClassName, configEntry.getDN(), getExceptionMessage(e));
         return 1;
       }
 
@@ -227,7 +222,7 @@ public class BackendToolUtils
             (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
         if (baseDNAttr == null)
         {
-          logger.error(ERR_NO_BASES_FOR_BACKEND, String.valueOf(configEntry.getDN()));
+          logger.error(ERR_NO_BASES_FOR_BACKEND, configEntry.getDN());
         }
         else
         {
@@ -236,8 +231,7 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        logger.error(ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND, String
-                .valueOf(configEntry.getDN()), getExceptionMessage(e));
+        logger.error(ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND, configEntry.getDN(), getExceptionMessage(e));
         return 1;
       }
 
