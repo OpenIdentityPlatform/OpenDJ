@@ -171,12 +171,6 @@ public class DatabaseEnvironmentMonitor
       // Invoke all the getters returning integer values.
       if (method.getName().startsWith("get"))
       {
-        // Temporary workaround for issue OPENDJ-1243.
-        if (method.getName().startsWith("getAvgBatch"))
-        {
-          continue;
-        }
-
         Class<?> returnType = method.getReturnType();
         if (returnType.equals(int.class) || returnType.equals(long.class))
         {
