@@ -983,8 +983,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
       if (logger.isTraceEnabled())
       {
-        logger.trace(
-          message.toString());
+        logger.trace("LDAPMessage=%s", message);
       }
 
       if (keepStats)

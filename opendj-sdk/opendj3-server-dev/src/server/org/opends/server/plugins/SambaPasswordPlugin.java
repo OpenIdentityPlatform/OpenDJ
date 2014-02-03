@@ -776,7 +776,7 @@ public final class SambaPasswordPlugin extends
 
       if (logger.isTraceEnabled())
       {
-        logger.trace(modifyOperation.getResultCode().toString());
+        logger.trace("rc=%s", modifyOperation.getResultCode());
       }
     }
     catch (final DirectoryException e)
@@ -857,8 +857,7 @@ public final class SambaPasswordPlugin extends
     {
       if (logger.isTraceEnabled())
       {
-        logger.trace("Skipping '" + modifyOperation.getEntryDN().toString()
-            + "' because it does not have Samba object class.");
+        logger.trace("Skipping '%s' because it does not have Samba object class.", modifyOperation.getEntryDN());
       }
       return PluginResult.PreOperation.continueOperationProcessing();
     }

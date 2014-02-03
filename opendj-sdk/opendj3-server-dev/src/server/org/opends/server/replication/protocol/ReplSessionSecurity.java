@@ -263,8 +263,7 @@ public final class ReplSessionSecurity
       // This is probably a connection attempt from an unexpected client
       // log that to warn the administrator.
       logger.debug(INFO_SSL_SERVER_CON_ATTEMPT_ERROR, socket.getRemoteSocketAddress(),
-          socket.getLocalSocketAddress().toString(),
-          e.getLocalizedMessage());
+          socket.getLocalSocketAddress(), e.getLocalizedMessage());
       return null;
     }
     finally

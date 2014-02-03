@@ -193,7 +193,7 @@ public class PersistentServerState
           ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
       {
         logger.error(ERR_ERROR_SEARCHING_RUV, search.getResultCode().getResultCodeName(), search,
-                search.getErrorMessage(), baseDn.toString());
+                search.getErrorMessage(), baseDn);
         return null;
       }
 
@@ -336,10 +336,8 @@ public class PersistentServerState
     op.run();
     if (op.getResultCode() != ResultCode.SUCCESS)
     {
-      logger.trace(DEBUG_ERROR_UPDATING_RUV, op.getResultCode().getResultCodeName(),
-              op.toString(),
-              op.getErrorMessage().toString(),
-              baseDn.toString());
+      logger.trace(DEBUG_ERROR_UPDATING_RUV,
+          op.getResultCode().getResultCodeName(), op, op.getErrorMessage(), baseDn);
     }
     return op.getResultCode();
   }

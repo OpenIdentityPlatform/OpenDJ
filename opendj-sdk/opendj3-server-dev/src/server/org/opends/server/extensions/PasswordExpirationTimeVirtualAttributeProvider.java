@@ -148,10 +148,8 @@ public class PasswordExpirationTimeVirtualAttributeProvider
 
       if (logger.isTraceEnabled())
       {
-        logger.trace("Failed to retrieve password " +
-              "policy for user %s: %s",
-              entry.getName().toString(),
-              stackTraceToSingleLineString(de));
+        logger.trace("Failed to retrieve password policy for user %s: %s",
+            entry.getName(), stackTraceToSingleLineString(de));
       }
     }
 
@@ -161,8 +159,7 @@ public class PasswordExpirationTimeVirtualAttributeProvider
       // entries should have at least the default password policy.
       if (logger.isTraceEnabled())
       {
-        logger.trace("No applicable password policy for user %s", entry
-            .getName().toString());
+        logger.trace("No applicable password policy for user %s", entry.getName());
       }
     }
     else if (policy.isPasswordPolicy())
@@ -180,10 +177,8 @@ public class PasswordExpirationTimeVirtualAttributeProvider
 
         if (logger.isTraceEnabled())
         {
-          logger.trace("Failed to retrieve password " +
-                "policy state for user %s: %s",
-                entry.getName().toString(),
-                stackTraceToSingleLineString(de));
+          logger.trace("Failed to retrieve password policy state for user %s: %s",
+              entry.getName(), stackTraceToSingleLineString(de));
         }
       }
 
@@ -195,9 +190,8 @@ public class PasswordExpirationTimeVirtualAttributeProvider
       // Not a password policy, could be PTA, etc.
       if (logger.isTraceEnabled())
       {
-        logger.trace("Authentication policy %s found for user %s is "
-            + "not a password policy", policy.getDN().toString(), entry
-            .getName().toString());
+        logger.trace("Authentication policy %s found for user %s is not a password policy",
+            policy.getDN(), entry.getName());
       }
     }
 

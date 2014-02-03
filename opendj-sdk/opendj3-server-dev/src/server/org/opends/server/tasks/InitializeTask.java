@@ -168,11 +168,7 @@ public class InitializeTask extends Task
       initState = TaskState.STOPPED_BY_ERROR;
     }
 
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("[IE] InitializeTask is ending with state:%s",
-          initState.toString());
-    }
+    logger.trace("[IE] InitializeTask is ending with state: %s", initState);
     return initState;
   }
 

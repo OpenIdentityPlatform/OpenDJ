@@ -75,9 +75,8 @@ public abstract class ServerHandler extends MessageHandler
     if (providedMsg != null)
     {
       if (logger.isTraceEnabled())
-        logger.trace("In " +
-          ((handler != null) ? handler.toString() : "Replication Server") +
-          " closing session with err=" + providedMsg);
+        logger.trace("In %s closing session with err=%s",
+            ((handler != null) ? handler : "Replication Server"), providedMsg);
       logger.error(providedMsg);
     }
 

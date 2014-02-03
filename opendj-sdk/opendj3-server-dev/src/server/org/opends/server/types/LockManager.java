@@ -131,18 +131,15 @@ public final class LockManager
           ReentrantReadWriteLock lock = oldTable.get(dn);
           if (lock.isWriteLocked())
           {
-            logger.trace("Found stale write lock on " +
-                                dn.toString());
+            logger.trace("Found stale write lock on %s", dn);
           }
           else if (lock.getReadLockCount() > 0)
           {
-            logger.trace("Found stale read lock on " +
-                                dn.toString());
+            logger.trace("Found stale read lock on %s", dn);
           }
           else
           {
-            logger.trace("Found stale unheld lock on " +
-                                dn.toString());
+            logger.trace("Found stale unheld lock on %s", dn);
           }
         }
         catch (Exception e)

@@ -505,8 +505,7 @@ final class UpgradeUtils
         if (dn != null // This is an ADD
             && entry.getName().equals(DN.valueOf(dn)))
         {
-          logger.debug(LocalizableMessage.raw(String.format("Entry %s found", entry.getName()
-              .toString())));
+          logger.debug(LocalizableMessage.raw(String.format("Entry %s found", entry.getName())));
           alreadyExist = true;
         }
         writer.writeEntry(entry);
@@ -611,8 +610,7 @@ final class UpgradeUtils
           destinationSchemaEntry.getAttribute("attributeTypes").add(
               attributeType);
           changeCount++;
-          logger.debug(LocalizableMessage.raw(String.format("Added %s", attributeType
-              .toString())));
+          logger.debug(LocalizableMessage.raw(String.format("Added %s", attributeType)));
         }
       }
 
@@ -624,8 +622,7 @@ final class UpgradeUtils
               getSchemaElement(templateSchemaEntry, "objectClasses", oc);
           destinationSchemaEntry.getAttribute("objectClasses").add(objectClass);
           changeCount++;
-          logger.debug(LocalizableMessage.raw(
-              String.format("Added %s", objectClass.toString())));
+          logger.trace("Added %s", objectClass);
         }
       }
 

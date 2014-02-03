@@ -808,8 +808,7 @@ public class ReplicationDB
            * TODO : This should be handled by the repair functionality.
            */
           logger.error(ERR_REPLICATIONDB_CANNOT_PROCESS_CHANGE_RECORD, replicationServer.getServerId(),
-                  (csn == null ? "" : csn.toString()),
-                  e.getMessage());
+                  csn, e.getMessage());
         }
       }
       return currentChange;
