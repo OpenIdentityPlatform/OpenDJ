@@ -158,8 +158,7 @@ public final class JMXMBean
       } catch (Exception e)
       {
         logger.traceException(e);
-
-          logger.error(ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN, configEntryDN, String.valueOf(e));
+        logger.error(ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN, configEntryDN, e);
       }
       return nameStr ;
   }
@@ -206,7 +205,7 @@ public final class JMXMBean
             catch (Exception e)
             {
               logger.traceException(e);
-              logger.error(ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN, configEntryDN, String.valueOf(e));
+              logger.error(ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN, configEntryDN, e);
             }
         }
     }

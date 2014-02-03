@@ -819,8 +819,7 @@ public final class AciHandler extends
           && !operation.getClientConnection().hasPrivilege(
               Privilege.MODIFY_ACL, operation))
       {
-        logger.debug(INFO_ACI_MODIFY_FAILED_PRIVILEGE, String.valueOf(container
-                .getResourceDN()), String.valueOf(container.getClientDN()));
+        logger.debug(INFO_ACI_MODIFY_FAILED_PRIVILEGE, container.getResourceDN(), container.getClientDN());
         return false;
       }
       // This access check handles the case where all attributes of this
@@ -994,8 +993,7 @@ public final class AciHandler extends
     final Lock entryLock = LockManager.lockRead(superiorDN);
     if (entryLock == null)
     {
-      logger.warn(WARN_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER, String
-              .valueOf(superiorDN));
+      logger.warn(WARN_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER, superiorDN);
       return false;
     }
 
@@ -1210,8 +1208,7 @@ public final class AciHandler extends
           {
             aciListenerMgr.logMsgsSetLockDownMode(failedACIMsgs);
           }
-          logger.debug(INFO_ACI_ADD_LIST_ACIS, Integer.toString(validAcis),
-                String.valueOf(baseDN));
+          logger.debug(INFO_ACI_ADD_LIST_ACIS, validAcis, baseDN);
         }
       }
       catch (Exception e)
@@ -1448,7 +1445,7 @@ public final class AciHandler extends
       if (!operation.getClientConnection().hasPrivilege(
           Privilege.MODIFY_ACL, operation))
       {
-        logger.debug(INFO_ACI_ADD_FAILED_PRIVILEGE, String.valueOf(entry.getName()), String.valueOf(clientDN));
+        logger.debug(INFO_ACI_ADD_FAILED_PRIVILEGE, entry.getName(), clientDN);
         return false;
       }
       List<Attribute> attributeList =

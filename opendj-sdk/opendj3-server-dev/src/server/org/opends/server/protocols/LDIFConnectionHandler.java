@@ -390,8 +390,7 @@ public final class LDIFConnectionHandler
           changeRecord = reader.readChangeRecord(false);
           if (logger.isTraceEnabled())
           {
-            logger.trace("Read change record entry " +
-                             String.valueOf(changeRecord));
+            logger.trace("Read change record entry %s", changeRecord);
           }
         }
         catch (LDIFException le)

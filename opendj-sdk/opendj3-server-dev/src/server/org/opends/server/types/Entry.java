@@ -4069,9 +4069,7 @@ public class Entry
       {
         if (logger.isTraceEnabled())
         {
-          logger.trace(
-              "Skipping entry %s because of the export " +
-                  "configuration.", String.valueOf(dn));
+          logger.trace("Skipping entry %s because of the export configuration.", dn);
         }
         return false;
       }
@@ -4132,9 +4130,7 @@ public class Entry
     {
       if (logger.isTraceEnabled())
       {
-        logger.trace(
-            "Skipping objectclasses for entry %s because of " +
-            "the export configuration.", String.valueOf(dn));
+        logger.trace("Skipping objectclasses for entry %s because of the export configuration.", dn);
       }
     }
 
@@ -4156,8 +4152,7 @@ public class Entry
       {
         logger.trace(
             "Skipping all operational attributes for entry %s " +
-            "because of the export configuration.",
-            String.valueOf(dn));
+            "because of the export configuration.", dn);
       }
     }
 
@@ -4236,8 +4231,7 @@ public class Entry
         if (logger.isTraceEnabled())
         {
           logger.trace("Skipping %s attribute %s for entry %s "
-              + "because of the export configuration.", attributeType, attrType
-              .getNameOrOID(), String.valueOf(dn));
+              + "because of the export configuration.", attributeType, attrType.getNameOrOID(), dn);
         }
       }
     }

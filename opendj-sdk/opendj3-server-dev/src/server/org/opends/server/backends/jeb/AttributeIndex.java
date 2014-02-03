@@ -262,7 +262,7 @@ public class AttributeIndex
                                                     toLowerCase(ruleName));
         if(rule == null)
         {
-          logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, String.valueOf(attrType),ruleName);
+          logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attrType, ruleName);
           continue;
         }
         Map<String,Index> indexMap = new HashMap<String,Index>();
@@ -2138,7 +2138,7 @@ public class AttributeIndex
                                             toLowerCase(ruleName));
            if(rule == null)
           {
-            logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, String.valueOf(attrType),ruleName);
+            logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attrType, ruleName);
             continue;
           }
           validRules.add(rule);

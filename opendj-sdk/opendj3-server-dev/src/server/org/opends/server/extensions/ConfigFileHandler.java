@@ -3261,19 +3261,16 @@ public class ConfigFileHandler
 
     if (resultCode != ResultCode.SUCCESS)
     {
-      logger.error(ERR_CONFIG_CHANGE_RESULT_ERROR, String.valueOf(className), String.valueOf(methodName),
-              String.valueOf(entryDN), String.valueOf(resultCode),
-              adminActionRequired, messageBuffer.toString());
+      logger.error(ERR_CONFIG_CHANGE_RESULT_ERROR, className, methodName,
+              entryDN, resultCode, adminActionRequired, messageBuffer);
     }
     else if (adminActionRequired)
     {
-      logger.warn(WARN_CONFIG_CHANGE_RESULT_ACTION_REQUIRED, String.valueOf(className), String.valueOf(methodName),
-              String.valueOf(entryDN), messageBuffer.toString());
+      logger.warn(WARN_CONFIG_CHANGE_RESULT_ACTION_REQUIRED, className, methodName, entryDN, messageBuffer);
     }
     else if (messageBuffer.length() > 0)
     {
-      logger.debug(INFO_CONFIG_CHANGE_RESULT_MESSAGES, String.valueOf(className), String.valueOf(methodName),
-              String.valueOf(entryDN), messageBuffer.toString());
+      logger.debug(INFO_CONFIG_CHANGE_RESULT_MESSAGES, className, methodName, entryDN, messageBuffer);
     }
   }
 

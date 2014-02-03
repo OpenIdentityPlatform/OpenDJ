@@ -8044,8 +8044,7 @@ public final class DirectoryServer
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK,
-                backend.getBackendID(), String.valueOf(failureReason));
+            logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend.getBackendID(), failureReason);
             // FIXME -- Do we need to send an admin alert?
           }
         }

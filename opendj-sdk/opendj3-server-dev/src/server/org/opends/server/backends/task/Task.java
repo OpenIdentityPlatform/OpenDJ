@@ -1172,7 +1172,7 @@ public abstract class Task
 
       taskState = TaskState.STOPPED_BY_ERROR;
 
-      logger.error(ERR_TASK_EXECUTE_FAILED, String.valueOf(taskEntry.getName()), stackTraceToSingleLineString(e));
+      logger.error(ERR_TASK_EXECUTE_FAILED, taskEntry.getName(), stackTraceToSingleLineString(e));
     }
 
     return taskState;

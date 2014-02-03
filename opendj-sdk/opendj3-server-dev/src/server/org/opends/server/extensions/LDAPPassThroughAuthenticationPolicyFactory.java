@@ -1625,9 +1625,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               {
                 logger.trace(
                     "An error occurred while trying to update the LDAP PTA "
-                        + "cached password for user %s: %s", userEntry.getName()
-                        .toString(), String.valueOf(internalModify
-                        .getErrorMessage()));
+                        + "cached password for user %s: %s",
+                        userEntry.getName(), internalModify.getErrorMessage());
               }
             }
 

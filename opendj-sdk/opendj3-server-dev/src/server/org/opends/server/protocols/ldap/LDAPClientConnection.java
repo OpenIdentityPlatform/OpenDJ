@@ -922,8 +922,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     if (ldapVersion == 2)
     {
       logger.error(ERR_LDAPV2_SKIPPING_SEARCH_REFERENCE, getConnectionID(),
-              searchOperation.getOperationID(), String
-                  .valueOf(searchReference));
+              searchOperation.getOperationID(), searchReference);
       return false;
     }
 

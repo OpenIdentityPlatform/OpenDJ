@@ -141,8 +141,7 @@ public class AttributeSyntaxConfigManager
           }
           catch (DirectoryException de)
           {
-            logger.warn(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX, String
-                .valueOf(syntaxConfiguration.dn()), de.getMessageObject());
+            logger.warn(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX, syntaxConfiguration.dn(), de.getMessageObject());
             continue;
           }
         }

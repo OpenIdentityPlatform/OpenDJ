@@ -556,7 +556,7 @@ public final class ClassLoaderProvider {
       if (!extensionsPath.exists()) {
         // The extensions directory does not exist. This is not a
         // critical problem.
-        logger.error(ERR_ADMIN_NO_EXTENSIONS_DIR, String.valueOf(extensionsPath));
+        logger.error(ERR_ADMIN_NO_EXTENSIONS_DIR, extensionsPath);
         return;
       }
 

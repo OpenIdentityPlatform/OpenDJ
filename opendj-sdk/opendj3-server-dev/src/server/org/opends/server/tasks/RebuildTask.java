@@ -234,8 +234,7 @@ public class RebuildTask extends Task
       {
         if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
         {
-          logger.error(ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND, backend
-                  .getBackendID(), String.valueOf(failureReason));
+          logger.error(ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND, backend.getBackendID(), failureReason);
           return TaskState.STOPPED_BY_ERROR;
         }
       }
@@ -253,8 +252,7 @@ public class RebuildTask extends Task
       {
         if (!LockFileManager.acquireSharedLock(lockFile, failureReason))
         {
-          logger.error(ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND, backend
-                  .getBackendID(), String.valueOf(failureReason));
+          logger.error(ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND, backend.getBackendID(), failureReason);
           return TaskState.STOPPED_BY_ERROR;
         }
       }
@@ -301,8 +299,7 @@ public class RebuildTask extends Task
         failureReason = new StringBuilder();
         if (!LockFileManager.releaseLock(lockFile, failureReason))
         {
-          logger.warn(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND, backend
-                  .getBackendID(), String.valueOf(failureReason));
+          logger.warn(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), failureReason);
           returnCode = TaskState.COMPLETED_WITH_ERRORS;
         }
       }

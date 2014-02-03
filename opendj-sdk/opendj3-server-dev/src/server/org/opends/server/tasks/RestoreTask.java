@@ -175,7 +175,7 @@ public class RestoreTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        logger.error(ERR_RESTOREDB_CANNOT_LOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
+        logger.error(ERR_RESTOREDB_CANNOT_LOCK_BACKEND, backend.getBackendID(), failureReason);
         return false;
       }
     }
@@ -200,7 +200,7 @@ public class RestoreTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        logger.warn(WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
+        logger.warn(WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), failureReason);
         return false;
       }
     }
@@ -251,7 +251,7 @@ public class RestoreTask extends Task
     }
     catch (Exception e)
     {
-      logger.error(ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY, String.valueOf(backupDirectory), getExceptionMessage(e));
+      logger.error(ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY, backupDirectory, getExceptionMessage(e));
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -263,7 +263,7 @@ public class RestoreTask extends Task
       BackupInfo backupInfo = backupDir.getBackupInfo(backupID);
       if (backupInfo == null)
       {
-        logger.error(ERR_RESTOREDB_INVALID_BACKUP_ID, backupID, String.valueOf(backupDirectory));
+        logger.error(ERR_RESTOREDB_INVALID_BACKUP_ID, backupID, backupDirectory);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -272,7 +272,7 @@ public class RestoreTask extends Task
       BackupInfo latestBackup = backupDir.getLatestBackup();
       if (latestBackup == null)
       {
-        logger.error(ERR_RESTOREDB_NO_BACKUPS_IN_DIRECTORY, String.valueOf(backupDirectory));
+        logger.error(ERR_RESTOREDB_NO_BACKUPS_IN_DIRECTORY, backupDirectory);
         return TaskState.STOPPED_BY_ERROR;
       }
       else
@@ -293,7 +293,7 @@ public class RestoreTask extends Task
     catch (ConfigException e)
     {
       logger.traceException(e);
-      logger.error(ERR_RESTOREDB_NO_BACKENDS_FOR_DN, String.valueOf(backupDirectory), configEntryDN);
+      logger.error(ERR_RESTOREDB_NO_BACKENDS_FOR_DN, backupDirectory, configEntryDN);
       return TaskState.STOPPED_BY_ERROR;
     }
 

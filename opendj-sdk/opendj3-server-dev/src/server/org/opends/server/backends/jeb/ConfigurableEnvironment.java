@@ -337,9 +337,8 @@ public class ConfigurableEnvironment
           int cpus = Runtime.getRuntime().availableProcessors();
           value = Integer.valueOf(Math.max(24, cpus * 2));
 
-          logger.debug(INFO_ERGONOMIC_SIZING_OF_JE_CLEANER_THREADS, String
-                  .valueOf(cfg.dn().rdn().getAttributeValue(0)),
-                  (Number) value);
+          logger.debug(INFO_ERGONOMIC_SIZING_OF_JE_CLEANER_THREADS,
+              cfg.dn().rdn().getAttributeValue(0), (Number) value);
         }
         else if (attrName.equals(ATTR_NUM_LOCK_TABLES)
             && value == null)
@@ -353,9 +352,7 @@ public class ConfigurableEnvironment
           BigInteger tmp = BigInteger.valueOf((cleaners + workers) * 2);
           value = tmp.nextProbablePrime();
 
-          logger.debug(INFO_ERGONOMIC_SIZING_OF_JE_LOCK_TABLES, String
-                  .valueOf(cfg.dn().rdn().getAttributeValue(0)),
-                  (Number) value);
+          logger.debug(INFO_ERGONOMIC_SIZING_OF_JE_LOCK_TABLES, cfg.dn().rdn().getAttributeValue(0), (Number) value);
         }
 
         return String.valueOf(value);

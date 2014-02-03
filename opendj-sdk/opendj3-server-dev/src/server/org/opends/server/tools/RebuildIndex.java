@@ -601,8 +601,7 @@ public class RebuildIndex extends TaskTool
       final StringBuilder failureReason = new StringBuilder();
       if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        logger.error(ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND, backend
-                .getBackendID(), String.valueOf(failureReason));
+        logger.error(ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND, backend.getBackendID(), failureReason);
         return 1;
       }
     }

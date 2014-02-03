@@ -197,9 +197,7 @@ public class TaskThread extends DirectoryThread
         logger.traceException(e);
 
         Task task = getAssociatedTask();
-
-        logger.error(ERR_TASK_EXECUTE_FAILED, String.valueOf(task.getTaskEntry().getName()),
-                stackTraceToSingleLineString(e));
+        logger.error(ERR_TASK_EXECUTE_FAILED, task.getTaskEntry().getName(), stackTraceToSingleLineString(e));
         task.setTaskState(TaskState.STOPPED_BY_ERROR);
       }
 

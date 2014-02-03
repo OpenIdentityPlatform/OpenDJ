@@ -1143,14 +1143,12 @@ public class LocalBackendBindOperation
         catch (Exception e)
         {
           logger.traceException(e);
-          logger.error(cannotProcessAttributeMessage.get(v.getValue(),
-              String.valueOf(userEntry.getName())));
+          logger.error(cannotProcessAttributeMessage.get(v.getValue(), userEntry.getName()));
         }
       }
       else if (a.size() > 1)
       {
-        logger.error(nonUniqueAttributeMessage.get(String
-            .valueOf(userEntry.getName())));
+        logger.error(nonUniqueAttributeMessage.get(userEntry.getName()));
       }
     }
     return null;

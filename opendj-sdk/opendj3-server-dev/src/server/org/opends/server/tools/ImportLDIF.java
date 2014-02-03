@@ -1463,7 +1463,7 @@ public class ImportLDIF extends TaskTool {
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        logger.error(ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
+        logger.error(ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND, backend.getBackendID(), failureReason);
         return 1;
       }
     }
@@ -1521,7 +1521,7 @@ public class ImportLDIF extends TaskTool {
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        logger.warn(WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
+        logger.warn(WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), failureReason);
         retCode = 1;
       }
     }

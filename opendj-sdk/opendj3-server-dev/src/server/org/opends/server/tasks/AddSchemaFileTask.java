@@ -187,7 +187,7 @@ public class AddSchemaFileTask
     final Lock schemaLock = LockManager.lockWrite(schemaDN);
     if (schemaLock == null)
     {
-      logger.error(ERR_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA, String.valueOf(schemaDN));
+      logger.error(ERR_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA, schemaDN);
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -233,17 +233,13 @@ public class AddSchemaFileTask
         catch (ConfigException ce)
         {
           logger.traceException(ce);
-
-          logger.error(ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE, String
-              .valueOf(schemaFile), ce.getMessage());
+          logger.error(ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE, schemaFile, ce.getMessage());
           return TaskState.STOPPED_BY_ERROR;
         }
         catch (InitializationException ie)
         {
           logger.traceException(ie);
-
-          logger.error(ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE, String
-              .valueOf(schemaFile), ie.getMessage());
+          logger.error(ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE, schemaFile, ie.getMessage());
           return TaskState.STOPPED_BY_ERROR;
         }
       }

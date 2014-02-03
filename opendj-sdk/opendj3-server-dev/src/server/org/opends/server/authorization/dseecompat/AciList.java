@@ -448,7 +448,7 @@ public class AciList {
               //This should never happen since only a copy of the
               //ACI with a new DN is being made. Log a message if it does and
               //keep going.
-              logger.warn(WARN_ACI_ADD_LIST_FAILED_DECODE, aci, String.valueOf(relocateDN), ex.getMessage());
+              logger.warn(WARN_ACI_ADD_LIST_FAILED_DECODE, aci, relocateDN, ex.getMessage());
             }
           }
           tempAciList.put(relocateDN, acis);

@@ -471,13 +471,10 @@ public class AciListenerManager implements
       }
       if (!internalSearch.getSearchEntries().isEmpty())
       {
-        int validAcis =
-            aciList.addAci(internalSearch.getSearchEntries(),
-                failedACIMsgs);
+        int validAcis = aciList.addAci(internalSearch.getSearchEntries(), failedACIMsgs);
         if (!failedACIMsgs.isEmpty())
           logMsgsSetLockDownMode(failedACIMsgs);
-        logger.debug(INFO_ACI_ADD_LIST_ACIS, Integer.toString(validAcis),
-                String.valueOf(baseDN));
+        logger.debug(INFO_ACI_ADD_LIST_ACIS, validAcis, baseDN);
       }
     }
   }

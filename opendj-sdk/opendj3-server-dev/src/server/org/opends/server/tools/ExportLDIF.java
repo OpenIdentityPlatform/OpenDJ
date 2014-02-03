@@ -948,7 +948,7 @@ public class ExportLDIF extends TaskTool {
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        logger.error(ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
+        logger.error(ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND, backend.getBackendID(), failureReason);
         return 1;
       }
     }
@@ -984,7 +984,7 @@ public class ExportLDIF extends TaskTool {
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        logger.warn(WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), String.valueOf(failureReason));
+        logger.warn(WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), failureReason);
       }
     }
     catch (Exception e)

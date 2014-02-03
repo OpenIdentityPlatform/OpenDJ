@@ -167,7 +167,7 @@ public class ParallelWorkerThread
         {
           logger.trace(
             "Uncaught exception in worker thread while processing " +
-                "operation %s: %s", String.valueOf(operation), t);
+                "operation %s: %s", operation, t);
 
           logger.traceException(t);
         }

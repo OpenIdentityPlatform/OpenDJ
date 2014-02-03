@@ -100,16 +100,14 @@ public final class ExpirationCheckTrustManager
       }
       catch (CertificateExpiredException cee)
       {
-        logger.error(ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_EXPIRED, c
-            .getSubjectDN().getName(), String.valueOf(c.getNotAfter()));
-
+        logger.error(ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_EXPIRED,
+            c.getSubjectDN().getName(), c.getNotAfter());
         throw cee;
       }
       catch (CertificateNotYetValidException cnyve)
       {
-        logger.error(ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_NOT_YET_VALID, c
-            .getSubjectDN().getName(), String.valueOf(c.getNotBefore()));
-
+        logger.error(ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_NOT_YET_VALID,
+            c.getSubjectDN().getName(), c.getNotBefore());
         throw cnyve;
       }
     }
@@ -143,16 +141,14 @@ public final class ExpirationCheckTrustManager
       }
       catch (CertificateExpiredException cee)
       {
-        logger.error(ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_EXPIRED, c
-            .getSubjectDN().getName(), String.valueOf(c.getNotAfter()));
-
+        logger.error(ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_EXPIRED,
+            c.getSubjectDN().getName(), c.getNotAfter());
         throw cee;
       }
       catch (CertificateNotYetValidException cnyve)
       {
-        logger.error(ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_NOT_YET_VALID, c
-            .getSubjectDN().getName(), String.valueOf(c.getNotBefore()));
-
+        logger.error(ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_NOT_YET_VALID,
+            c.getSubjectDN().getName(), c.getNotBefore());
         throw cnyve;
       }
     }

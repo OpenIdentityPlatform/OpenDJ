@@ -282,7 +282,7 @@ public class PBKDF2PasswordStorageScheme
     catch (Exception e)
     {
       logger.traceException(e);
-      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD, storedPassword, String.valueOf(e));
+      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD, storedPassword, e);
       return false;
     }
 

@@ -393,9 +393,8 @@ final class ASN1InputStreamReader implements ASN1Reader
 
       if(logger.isTraceEnabled())
       {
-        logger.trace(
-            String.format("READ ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)",
-                peekType, peekLength, String.valueOf(readByte != 0x00)));
+        logger.trace("READ ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)",
+            peekType, peekLength, readByte != 0x00);
       }
 
       state = ELEMENT_READ_STATE_NEED_TYPE;

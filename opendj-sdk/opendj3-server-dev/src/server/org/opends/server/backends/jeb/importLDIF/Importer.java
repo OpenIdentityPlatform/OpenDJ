@@ -1270,8 +1270,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           DatabaseEntry data = new DatabaseEntry();
           LockMode lockMode = LockMode.DEFAULT;
           OperationStatus status;
-          logger.info(NOTE_JEB_IMPORT_MIGRATION_START, "excluded", String
-                  .valueOf(suffix.getBaseDN()));
+          logger.info(NOTE_JEB_IMPORT_MIGRATION_START, "excluded", suffix.getBaseDN());
           Cursor cursor =
               entryContainer.getDN2ID().openCursor(null,
                   CursorConfig.READ_COMMITTED);
@@ -1360,8 +1359,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           DatabaseEntry data = new DatabaseEntry();
           LockMode lockMode = LockMode.DEFAULT;
           OperationStatus status;
-          logger.info(NOTE_JEB_IMPORT_MIGRATION_START, "existing", String
-                  .valueOf(suffix.getBaseDN()));
+          logger.info(NOTE_JEB_IMPORT_MIGRATION_START, "existing", suffix.getBaseDN());
           Cursor cursor = entryContainer.getDN2ID().openCursor(null, null);
           try
           {

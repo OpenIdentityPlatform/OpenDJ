@@ -244,11 +244,8 @@ public class StaticGroup
           catch (DirectoryException de)
           {
             logger.traceException(de);
-
             logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN, v.getValue(),
-                    someMemberAttributeType.getNameOrOID(),
-                    String.valueOf(groupEntry.getName()),
-                    de.getMessageObject());
+                someMemberAttributeType.getNameOrOID(), groupEntry.getName(), de.getMessageObject());
           }
         }
       }
