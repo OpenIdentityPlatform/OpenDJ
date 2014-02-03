@@ -171,7 +171,6 @@ public final class JMXMBean
    */
   public JMXMBean(DN configEntryDN)
     {
-
         this.configEntryDN = configEntryDN;
 
         alertGenerators = new CopyOnWriteArrayList<AlertGenerator>();

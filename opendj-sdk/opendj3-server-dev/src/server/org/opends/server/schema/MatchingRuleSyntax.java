@@ -301,7 +301,6 @@ public class MatchingRuleSyntax
         {
           if (lastWasPeriod)
           {
-
             invalidReason.append(
                     ERR_ATTR_SYNTAX_MR_DOUBLE_PERIOD_IN_NUMERIC_OID.get(
                             valueStr, (pos-1)));
@@ -349,7 +348,6 @@ public class MatchingRuleSyntax
     // description.  Otherwise, parse out the OID.
     if (pos >= length)
     {
-
       invalidReason.append(ERR_ATTR_SYNTAX_MR_TRUNCATED_VALUE.get(valueStr));
       return false;
     }
@@ -408,7 +406,6 @@ public class MatchingRuleSyntax
         // We must be at the end of the value.  If not, then that's a problem.
         if (pos < length)
         {
-
           invalidReason.append(
                   ERR_ATTR_SYNTAX_MR_UNEXPECTED_CLOSE_PARENTHESIS.get(
                           valueStr, (pos-1)));
@@ -587,7 +584,6 @@ public class MatchingRuleSyntax
     // Make sure that a syntax was specified.
     if (syntax == null)
     {
-
       invalidReason.append(ERR_ATTR_SYNTAX_MR_NO_SYNTAX.get(valueStr));
       return false;
     }

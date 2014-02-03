@@ -288,7 +288,6 @@ public class LDAPSyntaxDescriptionSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-
       LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(valueStr, (pos-1), c);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,

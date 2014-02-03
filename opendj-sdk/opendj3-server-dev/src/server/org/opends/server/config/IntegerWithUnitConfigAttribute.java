@@ -1122,7 +1122,6 @@ public final class IntegerWithUnitConfigAttribute
    */
   public javax.management.Attribute toJMXAttributePending()
     {
-
         return new javax.management.Attribute(getName() + ";"
                 + OPTION_PENDING_VALUES, pendingIntValue + " " + pendingUnit);
     }

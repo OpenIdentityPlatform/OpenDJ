@@ -184,7 +184,6 @@ public class AttributeValuePasswordValidator
             (config.isCheckSubstrings() &&
                 containsSubstring(password, minSubstringLength, a)))
         {
-
           invalidReason.append(ERR_ATTRVALUE_VALIDATOR_PASSWORD_IN_ENTRY.get());
           return false;
         }

@@ -715,7 +715,6 @@ public class LDAPCompare
     // If no DNs were provided, then exit with an error.
     if (dnStrings.isEmpty() && (! filename.isPresent()) )
     {
-
       err.println(wrapText(ERR_LDAPCOMPARE_NO_DNS.get(), MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
     }

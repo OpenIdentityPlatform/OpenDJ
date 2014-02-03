@@ -1605,7 +1605,6 @@ public class Utilities
     StringBuilder msg = new StringBuilder();
     for (String m : col)
     {
-
       if (msg.length() > 0)
       {
         msg.append(separator);

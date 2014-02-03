@@ -219,7 +219,6 @@ public class UUIDSyntax
     String valueString = value.toString();
     if (valueString.length() != 36)
     {
-
       invalidReason.append(WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(valueString,
                                       valueString.length()));
       return false;

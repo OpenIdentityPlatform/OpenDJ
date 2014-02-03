@@ -1367,7 +1367,6 @@ public final class Importer implements DiskSpaceMonitorHandler
             while (status == OperationStatus.SUCCESS
                 && !importConfiguration.isCancelled() && !isCanceled)
             {
-
               boolean found = false;
               for (byte[] includeBranch : includeBranches)
               {

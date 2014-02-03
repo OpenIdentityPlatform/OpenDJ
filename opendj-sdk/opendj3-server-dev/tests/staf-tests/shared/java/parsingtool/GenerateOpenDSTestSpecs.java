@@ -211,11 +211,9 @@ public class GenerateOpenDSTestSpecs
       
       for(int k = 0; k < arrayTests.size(); k++)
       {
-
         ArrayData testSuitePath = (ArrayData)(arrayTests.get(k));
         if(testSuitePath.size() > 0)
-        {   
- 
+        {
           String specPath=testSuitePath.getTestSuite(0);
           
           String specName = (new File(specPath)).getName();

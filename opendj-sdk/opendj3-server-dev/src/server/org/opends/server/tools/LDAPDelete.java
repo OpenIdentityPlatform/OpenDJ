@@ -198,7 +198,6 @@ public class LDAPDelete
         }
         else
         {
-
           LocalizableMessage msg = INFO_OPERATION_FAILED.get("DELETE");
           err.println(wrapText(msg, MAX_LINE_WIDTH));
           err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
@@ -220,13 +219,11 @@ public class LDAPDelete
       {
         if(resultCode != SUCCESS && resultCode != REFERRAL)
         {
-
           LocalizableMessage msg = INFO_OPERATION_FAILED.get("DELETE");
           LDAPToolUtils.printErrorMessage(err, msg, resultCode, errorMessage,
                                           op.getMatchedDN());
         } else
         {
-
           LocalizableMessage msg = INFO_OPERATION_SUCCESSFUL.get("DELETE", line);
           out.println(msg);
         }

@@ -4275,7 +4275,6 @@ public abstract class Installer extends GuiApplication {
             ServerDescriptor.ServerProperty.IS_REPLICATION_SERVER);
         if (!Boolean.TRUE.equals(v))
         {
-
           AuthenticationData authData = new AuthenticationData();
           authData.setPort(Constants.DEFAULT_REPLICATION_PORT);
           authData.setUseSecureConnection(false);

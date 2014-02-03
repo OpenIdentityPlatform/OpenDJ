@@ -235,7 +235,6 @@ public class FileBasedArgument
     // If the line read is null, then that means the file was empty.
     if (line == null)
     {
-
       invalidReason.append(ERR_FILEARG_EMPTY_FILE.get(valueString, getName()));
       return false;
     }

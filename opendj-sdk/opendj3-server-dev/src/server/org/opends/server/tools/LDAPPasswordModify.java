@@ -830,7 +830,6 @@ public class LDAPPasswordModify
       LocalizableMessage errorMessage = extendedResponse.getErrorMessage();
       if ((errorMessage != null) && (errorMessage.length() > 0))
       {
-
         message = ERR_LDAPPWMOD_FAILURE_ERROR_MESSAGE.get(errorMessage);
         err.println(wrapText(message, MAX_LINE_WIDTH));
       }
@@ -838,7 +837,6 @@ public class LDAPPasswordModify
       DN matchedDN = extendedResponse.getMatchedDN();
       if (matchedDN != null)
       {
-
         message = ERR_LDAPPWMOD_FAILURE_MATCHED_DN.get(matchedDN);
         err.println(wrapText(message, MAX_LINE_WIDTH));
       }
@@ -867,7 +865,6 @@ public class LDAPPasswordModify
       LocalizableMessage additionalInfo = extendedResponse.getErrorMessage();
       if ((additionalInfo != null) && (additionalInfo.length() > 0))
       {
-
         message = INFO_LDAPPWMOD_ADDITIONAL_INFO.get(additionalInfo);
         out.println(wrapText(message, MAX_LINE_WIDTH));
       }

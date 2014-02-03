@@ -241,7 +241,6 @@ public class PrintableStringSyntax
     // acceptable.
     if (value == null)
     {
-
       invalidReason.append(WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE.get());
       return false;
     }
@@ -253,7 +252,6 @@ public class PrintableStringSyntax
     int    valueLength = valueString.length();
     if (valueLength == 0)
     {
-
       invalidReason.append(WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE.get());
       return false;
     }

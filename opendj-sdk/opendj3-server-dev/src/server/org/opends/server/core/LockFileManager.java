@@ -85,7 +85,6 @@ public class LockFileManager
       // then we can't get a shared lock on it.
       if (exclusiveLocks.containsKey(lockFile))
       {
-
         failureReason.append(
                 ERR_FILELOCKER_LOCK_SHARED_REJECTED_BY_EXCLUSIVE.get(lockFile));
         return false;

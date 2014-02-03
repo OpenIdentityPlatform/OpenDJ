@@ -558,7 +558,6 @@ public final class Platform
 
     static
     {
-
       Method normalize = null;
       Object formNFKC = null;
       try

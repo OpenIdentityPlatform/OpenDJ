@@ -385,7 +385,6 @@ public class ConnectionUtils
           result.addToEnvironment(STARTTLS_PROPERTY, "true");
           if (fDn != null)
           {
-
             result.addToEnvironment(Context.SECURITY_AUTHENTICATION , "simple");
             result.addToEnvironment(Context.SECURITY_PRINCIPAL, fDn);
             if (fPwd != null)

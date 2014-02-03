@@ -220,7 +220,6 @@ public class OtherMailboxSyntax
     // acceptable.
     if (value == null)
     {
-
       invalidReason.append(ERR_ATTR_SYNTAX_OTHER_MAILBOX_EMPTY_VALUE.get());
       return false;
     }
@@ -232,7 +231,6 @@ public class OtherMailboxSyntax
     int    valueLength = valueString.length();
     if (valueLength == 0)
     {
-
       invalidReason.append(ERR_ATTR_SYNTAX_OTHER_MAILBOX_EMPTY_VALUE.get());
       return false;
     }
@@ -248,7 +246,6 @@ public class OtherMailboxSyntax
       {
         if (pos == 0)
         {
-
           invalidReason.append(ERR_ATTR_SYNTAX_OTHER_MAILBOX_NO_MBTYPE.get(
                   valueString));
           return false;
@@ -269,7 +266,6 @@ public class OtherMailboxSyntax
     // Make sure there is at least one character left for the mailbox.
     if (pos >= valueLength)
     {
-
       invalidReason.append(ERR_ATTR_SYNTAX_OTHER_MAILBOX_NO_MAILBOX.get(
               valueString));
       return false;

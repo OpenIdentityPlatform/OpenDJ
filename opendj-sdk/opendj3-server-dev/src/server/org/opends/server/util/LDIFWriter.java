@@ -148,7 +148,6 @@ outerLoop:
           {
             if (startPos + breakColumn >= l.length())
             {
-
               writer.write("# ");
               writer.write(l.substring(startPos));
               writer.newLine();

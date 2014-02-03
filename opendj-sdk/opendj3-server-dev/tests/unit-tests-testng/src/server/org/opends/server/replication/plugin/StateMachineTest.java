@@ -447,7 +447,6 @@ public class StateMachineTest extends ReplicationTestCase
 
     try
     {
-
       int DEGRADED_STATUS_THRESHOLD = 1;
 
       // RS1 starts with 1 message as degraded status threshold value

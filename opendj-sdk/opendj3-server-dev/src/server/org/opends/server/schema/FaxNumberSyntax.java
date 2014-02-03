@@ -264,7 +264,6 @@ public class FaxNumberSyntax
     // The value must contain at least one character.
     if (valueLength == 0)
     {
-
       invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_EMPTY.get());
       return false;
     }
@@ -305,7 +304,6 @@ public class FaxNumberSyntax
       // character was a dollar sign.
       if (c == '$')
       {
-
         invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_END_WITH_DOLLAR.get(
                 valueString));
         return false;
@@ -328,7 +326,6 @@ public class FaxNumberSyntax
         String paramStr = valueString.substring(paramStartPos, pos);
         if (! ALLOWED_FAX_PARAMETERS.contains(paramStr))
         {
-
           invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER.get(
                   valueString, paramStr, paramStartPos, (pos-1)));
           return false;

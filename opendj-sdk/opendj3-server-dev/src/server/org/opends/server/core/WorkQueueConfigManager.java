@@ -156,7 +156,6 @@ public class WorkQueueConfigManager
     String workQueueClass = configuration.getJavaClass();
     if (! workQueueClass.equals(workQueue.getClass().getName()))
     {
-
       messages.add(INFO_CONFIG_WORK_QUEUE_CLASS_CHANGE_REQUIRES_RESTART.get(
               workQueue.getClass().getName(),
               workQueueClass));

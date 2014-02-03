@@ -90,7 +90,6 @@ public class StartWindowsService
     String serviceName = ConfigureWindowsService.getServiceName();
     if (serviceName == null)
     {
-
       LocalizableMessage message = ERR_WINDOWS_SERVICE_NOT_FOUND.get();
       err.println(message);
       returnValue = SERVICE_NOT_FOUND;
@@ -132,7 +131,6 @@ public class StartWindowsService
       }
       catch (Throwable t)
       {
-
         LocalizableMessage message = ERR_WINDOWS_SERVICE_START_ERROR.get();
         err.println(message);
         err.println("Exception:" + t.toString());

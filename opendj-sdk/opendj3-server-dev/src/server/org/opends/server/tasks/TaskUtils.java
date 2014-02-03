@@ -78,7 +78,6 @@ public class TaskUtils
   {
     try
     {
-
       StringConfigAttribute idStub =
            new StringConfigAttribute(
                    ATTR_BACKEND_ID,
@@ -154,7 +153,6 @@ public class TaskUtils
       String backendID;
       try
       {
-
         StringConfigAttribute idStub =
              new StringConfigAttribute(
                      ATTR_BACKEND_ID,

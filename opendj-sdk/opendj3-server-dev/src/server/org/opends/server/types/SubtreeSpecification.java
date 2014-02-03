@@ -83,7 +83,6 @@ public final class SubtreeSpecification
      */
     public AndRefinement(final Collection<Refinement> refinementSet)
     {
-
       this.refinementSet = refinementSet;
     }
 
@@ -95,7 +94,6 @@ public final class SubtreeSpecification
     @Override
     public boolean equals(final Object obj)
     {
-
       if (this == obj)
       {
         return true;
@@ -119,7 +117,6 @@ public final class SubtreeSpecification
     @Override
     public int hashCode()
     {
-
       return refinementSet.hashCode();
     }
 
@@ -197,7 +194,6 @@ public final class SubtreeSpecification
      */
     public FilterRefinement(final SearchFilter filter)
     {
-
       this.filter = filter;
     }
 
@@ -209,7 +205,6 @@ public final class SubtreeSpecification
     @Override
     public boolean equals(final Object obj)
     {
-
       if (this == obj)
       {
         return true;
@@ -232,7 +227,6 @@ public final class SubtreeSpecification
     @Override
     public int hashCode()
     {
-
       return filter.hashCode();
     }
 
@@ -294,7 +288,6 @@ public final class SubtreeSpecification
      */
     public ItemRefinement(final String objectClass)
     {
-
       this.objectClass = objectClass;
       this.normalizedObjectClass = StaticUtils
           .toLowerCase(objectClass.trim());
@@ -308,7 +301,6 @@ public final class SubtreeSpecification
     @Override
     public boolean equals(final Object obj)
     {
-
       if (this == obj)
       {
         return true;
@@ -333,7 +325,6 @@ public final class SubtreeSpecification
     @Override
     public int hashCode()
     {
-
       return normalizedObjectClass.hashCode();
     }
 
@@ -395,7 +386,6 @@ public final class SubtreeSpecification
      */
     public NotRefinement(final Refinement refinement)
     {
-
       this.refinement = refinement;
     }
 
@@ -407,7 +397,6 @@ public final class SubtreeSpecification
     @Override
     public boolean equals(final Object obj)
     {
-
       if (this == obj)
       {
         return true;
@@ -431,7 +420,6 @@ public final class SubtreeSpecification
     @Override
     public int hashCode()
     {
-
       return refinement.hashCode();
     }
 
@@ -482,7 +470,6 @@ public final class SubtreeSpecification
      */
     public OrRefinement(final Collection<Refinement> refinementSet)
     {
-
       this.refinementSet = refinementSet;
     }
 
@@ -494,7 +481,6 @@ public final class SubtreeSpecification
     @Override
     public boolean equals(final Object obj)
     {
-
       if (this == obj)
       {
         return true;
@@ -518,7 +504,6 @@ public final class SubtreeSpecification
     @Override
     public int hashCode()
     {
-
       return refinementSet.hashCode();
     }
 
@@ -1679,7 +1664,6 @@ public final class SubtreeSpecification
     if ((chopBefore.iterator().hasNext())
         || (chopAfter.iterator().hasNext()))
     {
-
       if (!isFirstElement)
       {
         builder.append(",");

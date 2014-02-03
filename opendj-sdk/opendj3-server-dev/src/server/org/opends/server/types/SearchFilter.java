@@ -3539,7 +3539,6 @@ public final class SearchFilter
             if ((attributeType == null) ||
                 attributeType.equals(rdn.getAttributeType(i)))
             {
-
               AttributeValue v = rdn.getAttributeValue(i);
               ByteString nv =
                    matchingRule.normalizeValue(v.getValue());

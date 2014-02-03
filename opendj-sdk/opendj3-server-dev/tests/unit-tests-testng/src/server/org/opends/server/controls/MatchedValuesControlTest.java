@@ -383,7 +383,6 @@ public class MatchedValuesControlTest
     // Check null, null
     try
     {
-
       mvf = MatchedValuesFilter.createGreaterOrEqualFilter((String) null,
           (ByteString) null);
       assertTrue(false, "Expected NullPointerException");

@@ -187,7 +187,6 @@ public class VerifyIndex
     }
     catch (ArgumentException ae)
     {
-
       LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -202,7 +201,6 @@ public class VerifyIndex
     }
     catch (ArgumentException ae)
     {
-
       LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));

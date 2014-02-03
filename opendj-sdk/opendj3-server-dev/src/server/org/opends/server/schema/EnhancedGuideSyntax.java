@@ -235,7 +235,6 @@ public class EnhancedGuideSyntax
     int sharpPos = valueStr.indexOf('#');
     if (sharpPos < 0)
     {
-
       invalidReason.append(
               ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SHARP.get(valueStr));
       return false;
@@ -247,7 +246,6 @@ public class EnhancedGuideSyntax
     int    ocLength = ocName.length();
     if (ocLength == 0)
     {
-
       invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_OC.get(valueStr));
       return false;
     }
@@ -262,7 +260,6 @@ public class EnhancedGuideSyntax
     int lastSharpPos = valueStr.lastIndexOf('#');
     if (lastSharpPos == sharpPos)
     {
-
       invalidReason.append(
               ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_FINAL_SHARP.get(valueStr));
       return false;
@@ -275,13 +272,11 @@ public class EnhancedGuideSyntax
     {
       if (scopeStr.length() == 0)
       {
-
         invalidReason.append(
                 ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SCOPE.get(valueStr));
       }
       else
       {
-
         invalidReason.append(
                 ERR_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE.get(
                         valueStr, scopeStr));
@@ -297,7 +292,6 @@ public class EnhancedGuideSyntax
     int    criteriaLength = criteria.length();
     if (criteriaLength == 0)
     {
-
       invalidReason.append(
               ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_CRITERIA.get(valueStr));
       return false;

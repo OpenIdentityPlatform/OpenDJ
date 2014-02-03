@@ -199,7 +199,6 @@ public class LDAPSearch
                       out.println(INFO_LDAPSEARCH_ACCTUSABLE_HEADER.get());
                       if (acrc.isUsable())
                       {
-
                         out.println(INFO_LDAPSEARCH_ACCTUSABLE_IS_USABLE.get());
                         if (acrc.getSecondsBeforeExpiration() > 0)
                         {
@@ -213,12 +212,10 @@ public class LDAPSearch
                       }
                       else
                       {
-
                         out.println(
                                 INFO_LDAPSEARCH_ACCTUSABLE_NOT_USABLE.get());
                         if (acrc.isInactive())
                         {
-
                           out.println(
                                INFO_LDAPSEARCH_ACCTUSABLE_ACCT_INACTIVE.get());
                         }
@@ -229,13 +226,11 @@ public class LDAPSearch
                         }
                         if (acrc.isExpired())
                         {
-
                           out.println(
                                   INFO_LDAPSEARCH_ACCTUSABLE_PW_EXPIRED.get());
 
                           if (acrc.getRemainingGraceLogins() > 0)
                           {
-
                             out.println(
                                     INFO_LDAPSEARCH_ACCTUSABLE_REMAINING_GRACE
                                          .get(acrc.getRemainingGraceLogins()));
@@ -243,7 +238,6 @@ public class LDAPSearch
                         }
                         if (acrc.isLocked())
                         {
-
                           out.println(INFO_LDAPSEARCH_ACCTUSABLE_LOCKED.get());
                           if (acrc.getSecondsBeforeUnlock() > 0)
                           {
@@ -1073,7 +1067,6 @@ public class LDAPSearch
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
-
       LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -1664,7 +1657,6 @@ public class LDAPSearch
 
     if(filters.isEmpty())
     {
-
       err.println(wrapText(ERR_SEARCH_NO_FILTERS.get(), MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
       return CLIENT_SIDE_PARAM_ERROR;

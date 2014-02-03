@@ -819,7 +819,6 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
       // -----------------------
       else if (subCmd.getName().equals(listMembershipSubCmd.getName()))
       {
-
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {

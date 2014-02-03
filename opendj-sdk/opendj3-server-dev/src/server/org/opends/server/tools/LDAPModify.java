@@ -478,7 +478,6 @@ public class LDAPModify
             }
             catch (DirectoryException de)
             {
-
               err.println(wrapText(
                       ERR_LDAPMODIFY_POSTREAD_CANNOT_DECODE_VALUE.get(
                               de.getMessage()),
