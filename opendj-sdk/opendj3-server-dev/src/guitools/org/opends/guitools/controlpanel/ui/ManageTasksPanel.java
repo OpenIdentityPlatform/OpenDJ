@@ -27,6 +27,7 @@
 
 package org.opends.guitools.controlpanel.ui;
 
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
@@ -73,7 +74,6 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.renderer.TaskCellRenderer;
 import org.opends.guitools.controlpanel.util.ConfigFromFile;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.Attribute;
@@ -484,7 +484,7 @@ public class ManageTasksPanel extends StatusGenericPanel
           gbc.gridx = 1;
           gbc.insets.right = 10;
 
-          String s = Utils.getStringFromCollection(values, "\n");
+          String s = joinAsString("\n", values);
           detailsSubpanel.add(
               Utilities.makeHtmlPane(s, ColorAndFontConstants.defaultFont),
               gbc);

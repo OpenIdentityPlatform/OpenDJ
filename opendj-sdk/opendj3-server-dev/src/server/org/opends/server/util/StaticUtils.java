@@ -43,17 +43,17 @@ import java.util.*;
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 
-import org.forgerock.util.Reject;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.util.Reject;
 import org.opends.messages.ToolMessages;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 
@@ -3376,50 +3376,6 @@ public final class StaticUtils
     stringList.toArray(stringArray);
     return stringArray;
   }
-
-  /**
-   * Creates a string representation of the elements in the
-   * <code>list</code> separated by <code>separator</code>.
-   *
-   * @param list the list to print
-   * @param separator to use between elements
-   *
-   * @return String representing the list
-   */
-  static public String listToString(List<?> list, String separator)
-  {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < list.size(); i++) {
-      sb.append(list.get(i));
-      if (i < list.size() - 1) {
-        sb.append(separator);
-      }
-    }
-    return sb.toString();
-  }
-
-  /**
-   * Creates a string representation of the elements in the
-   * <code>collection</code> separated by <code>separator</code>.
-   *
-   * @param collection to print
-   * @param separator to use between elements
-   *
-   * @return String representing the collection
-   */
-  static public String collectionToString(Collection<?> collection,
-                                          String separator)
-  {
-    StringBuilder sb = new StringBuilder();
-    for (Iterator<?> iter = collection.iterator(); iter.hasNext();) {
-      sb.append(iter.next());
-      if (iter.hasNext()) {
-        sb.append(separator);
-      }
-    }
-    return sb.toString();
-  }
-
 
   /**
    * Retrieves an array list containing the contents of the provided array.

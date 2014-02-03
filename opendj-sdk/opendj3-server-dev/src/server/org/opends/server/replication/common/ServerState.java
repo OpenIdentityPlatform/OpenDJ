@@ -37,7 +37,7 @@ import java.util.zip.DataFormatException;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.util.StaticUtils;
+import org.forgerock.util.Utils;
 
 /**
  * This class is used to associate serverIds with {@link CSN}s.
@@ -317,7 +317,7 @@ public class ServerState implements Iterable<CSN>
   @Override
   public String toString()
   {
-    return StaticUtils.collectionToString(serverIdToCSN.values(), " ");
+    return Utils.joinAsString(" ", serverIdToCSN.values());
   }
 
   /**

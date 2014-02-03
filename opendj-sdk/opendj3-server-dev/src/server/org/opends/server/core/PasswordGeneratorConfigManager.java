@@ -28,6 +28,7 @@ package org.opends.server.core;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Utils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -406,7 +407,7 @@ public class PasswordGeneratorConfigManager
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          String reasons = collectionToString(unacceptableReasons, ".  ");
+          String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(
               ERR_CONFIG_PWGENERATOR_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), reasons));
         }

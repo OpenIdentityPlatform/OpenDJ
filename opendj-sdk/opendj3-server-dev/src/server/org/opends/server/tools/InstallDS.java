@@ -27,6 +27,7 @@
  */
 package org.opends.server.tools;
 
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -771,8 +772,7 @@ public class InstallDS extends ConsoleApplication
       }
       if (nonExistingFiles.size() > 0)
       {
-        errorMessages.add(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(
-            Utils.getStringFromCollection(nonExistingFiles, ", ")));
+        errorMessages.add(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(joinAsString(", ", nonExistingFiles)));
       }
       String rejectedFile = argParser.rejectedImportFileArg.getValue();
       if (rejectedFile != null)
@@ -1278,8 +1278,7 @@ public class InstallDS extends ConsoleApplication
       if (nonExistingFiles.size() > 0)
       {
         println();
-        println(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(
-            Utils.getStringFromCollection(nonExistingFiles, ", ")));
+        println(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(joinAsString(", ", nonExistingFiles)));
       }
       while (importLDIFFiles.isEmpty())
       {
@@ -1942,8 +1941,7 @@ public class InstallDS extends ConsoleApplication
         else if (certManager.hasRealAliases())
         {
           Collections.addAll(nicknameList, aliases);
-          String aliasString = Utils.getStringFromCollection(nicknameList,
-              ", ");
+          String aliasString = joinAsString(", ", nicknameList);
           if (certNickname != null)
           {
             // Check if the certificate alias is in the list.

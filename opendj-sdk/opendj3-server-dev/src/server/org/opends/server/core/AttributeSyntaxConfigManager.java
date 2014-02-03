@@ -43,6 +43,7 @@ import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.config.ConfigException;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.util.Utils;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
@@ -475,7 +476,7 @@ public class AttributeSyntaxConfigManager
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          String reasons = collectionToString(unacceptableReasons, ".  ");
+          String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(
               ERR_CONFIG_SCHEMA_SYNTAX_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), reasons));
         }

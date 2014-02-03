@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -463,7 +464,7 @@ public final class AccessControlConfigManager
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          String reasons = collectionToString(unacceptableReasons, ".  ");
+          String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           // Bug: we are in a section where configuration is null
           throw new InitializationException(ERR_CONFIG_AUTHZ_CONFIG_NOT_ACCEPTABLE.get(
                   null /* WAS: configuration.dn() */, reasons));

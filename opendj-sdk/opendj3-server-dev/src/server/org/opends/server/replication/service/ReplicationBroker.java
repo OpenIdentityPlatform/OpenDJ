@@ -47,6 +47,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Utils;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
@@ -937,9 +938,8 @@ public class ReplicationBroker
 
           if (replicationServerInfos.size() > 0)
           {
-            logger.warn(WARN_COULD_NOT_FIND_CHANGELOG.get(serverId, baseDN
-                .toNormalizedString(), collectionToString(
-                replicationServerInfos.keySet(), ", ")));
+            logger.warn(WARN_COULD_NOT_FIND_CHANGELOG.get(serverId, baseDN.toNormalizedString(),
+                Utils.joinAsString(", ", replicationServerInfos.keySet())));
           }
           else
           {

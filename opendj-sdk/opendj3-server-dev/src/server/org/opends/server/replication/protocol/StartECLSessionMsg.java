@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -33,8 +33,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.DataFormatException;
 
+import org.forgerock.util.Utils;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.util.StaticUtils;
 
 /**
  * This class specifies the parameters of a search request on the ECL.
@@ -244,8 +244,7 @@ public class StartECLSessionMsg extends ReplicationMsg
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    String excludedBaseDNsString =
-        StaticUtils.collectionToString(excludedBaseDNs, ";");
+    String excludedBaseDNsString = Utils.joinAsString(";", excludedBaseDNs);
 
     try
     {

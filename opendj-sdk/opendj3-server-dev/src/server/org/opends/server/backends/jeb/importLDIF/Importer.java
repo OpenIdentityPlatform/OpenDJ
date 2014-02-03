@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
@@ -3198,7 +3199,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       default:
         if (!rebuildConfig.isClearDegradedState())
         {
-          String indexes = collectionToString(rebuildConfig.getRebuildList(), ", ");
+          String indexes = Utils.joinAsString(", ", rebuildConfig.getRebuildList());
           message = NOTE_JEB_REBUILD_START.get(indexes, totalEntries);
         }
         break;

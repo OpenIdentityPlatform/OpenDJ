@@ -40,7 +40,7 @@ import org.opends.server.replication.common.ServerStatus;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.util.StaticUtils;
+import org.forgerock.util.Utils;
 
 /**
  * This message is used by DS to confirm a RS he wants to connect to him (open
@@ -371,7 +371,7 @@ public class StartSessionMsg extends ReplicationMsg
   @Override
   public String toString()
   {
-    String urls = StaticUtils.collectionToString(referralsURLs, " | ");
+    String urls = Utils.joinAsString(" | ", referralsURLs);
     return "StartSessionMsg content:\nstatus: " + status +
       "\nassuredFlag: " + assuredFlag +
       "\nassuredMode: " + assuredMode +

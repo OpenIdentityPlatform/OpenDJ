@@ -33,8 +33,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * A class used to describe the java arguments for a given command-line.
@@ -249,7 +249,7 @@ public class JavaArguments
       }
       else
       {
-        msg = LocalizableMessage.raw(collectionToString(lines, "<br>"));
+        msg = LocalizableMessage.raw(joinAsString("<br>", lines));
       }
     }
     return msg;
@@ -277,7 +277,7 @@ public class JavaArguments
     {
       l.add(Utils.escapeCommandLineValue(arg));
     }
-    return Utils.getStringFromCollection(l, " ");
+    return joinAsString(" ", l);
   }
 
   /**

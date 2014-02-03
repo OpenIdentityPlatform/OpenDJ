@@ -26,6 +26,7 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 
@@ -40,7 +41,6 @@ import java.util.TreeSet;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.tools.tasks.TaskEntry;
 
@@ -405,7 +405,7 @@ implements Comparator<TaskEntry>
     }
     else
     {
-      String s = Utils.getStringFromCollection(values, "<br>");
+      String s = joinAsString("<br>", values);
       if (values.size() > 1)
       {
         msg = LocalizableMessage.raw(
