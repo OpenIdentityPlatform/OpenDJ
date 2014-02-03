@@ -169,8 +169,7 @@ public class LDIFModify
           // The entry must not exist in the add list.
           if (adds.containsKey(changeDN))
           {
-            errorList.add(ERR_LDIFMODIFY_CANNOT_ADD_ENTRY_TWICE.get(
-                    String.valueOf(changeDN)));
+            errorList.add(ERR_LDIFMODIFY_CANNOT_ADD_ENTRY_TWICE.get(changeDN));
             continue;
           }
           else
@@ -185,8 +184,7 @@ public class LDIFModify
           // them.
           if (adds.containsKey(changeDN))
           {
-            errorList.add(ERR_LDIFMODIFY_CANNOT_DELETE_AFTER_ADD.get(
-                    String.valueOf(changeDN)));
+            errorList.add(ERR_LDIFMODIFY_CANNOT_DELETE_AFTER_ADD.get(changeDN));
             continue;
           }
           else
@@ -200,8 +198,7 @@ public class LDIFModify
           // The entry must not exist in the add or delete lists.
           if (adds.containsKey(changeDN) || deletes.containsKey(changeDN))
           {
-            errorList.add(ERR_LDIFMODIFY_CANNOT_MODIFY_ADDED_OR_DELETED.get(
-                    String.valueOf(changeDN)));
+            errorList.add(ERR_LDIFMODIFY_CANNOT_MODIFY_ADDED_OR_DELETED.get(changeDN));
             continue;
           }
           else
@@ -231,14 +228,11 @@ public class LDIFModify
           break;
 
         case MODIFY_DN:
-          errorList.add(ERR_LDIFMODIFY_MODDN_NOT_SUPPORTED.get(
-                  String.valueOf(changeDN)));
+          errorList.add(ERR_LDIFMODIFY_MODDN_NOT_SUPPORTED.get(changeDN));
           continue;
 
         default:
-          errorList.add(ERR_LDIFMODIFY_UNKNOWN_CHANGETYPE.get(
-                  String.valueOf(changeDN),
-               String.valueOf(changeRecord.getChangeOperationType())));
+          errorList.add(ERR_LDIFMODIFY_UNKNOWN_CHANGETYPE.get(changeDN, changeRecord.getChangeOperationType()));
           continue;
       }
     }
@@ -285,9 +279,7 @@ public class LDIFModify
       // exists.
       if (adds.remove(entryDN) != null)
       {
-
-        errorList.add(ERR_LDIFMODIFY_ADD_ALREADY_EXISTS.get(
-                String.valueOf(entryDN)));
+        errorList.add(ERR_LDIFMODIFY_ADD_ALREADY_EXISTS.get(entryDN));
         continue;
       }
 
@@ -372,8 +364,7 @@ public class LDIFModify
     {
       for (DN dn : deletes.keySet())
       {
-        errorList.add(
-                ERR_LDIFMODIFY_DELETE_NO_SUCH_ENTRY.get(String.valueOf(dn)));
+        errorList.add(ERR_LDIFMODIFY_DELETE_NO_SUCH_ENTRY.get(dn));
       }
     }
 
@@ -381,8 +372,7 @@ public class LDIFModify
     {
       for (DN dn : modifications.keySet())
       {
-        errorList.add(ERR_LDIFMODIFY_MODIFY_NO_SUCH_ENTRY.get(
-                String.valueOf(dn)));
+        errorList.add(ERR_LDIFMODIFY_MODIFY_NO_SUCH_ENTRY.get(dn));
       }
     }
     return targetWriter.writeEntries(ldifEntries.values()) &&
@@ -551,10 +541,7 @@ public class LDIFModify
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_LDIFMODIFY_CANNOT_INITIALIZE_JMX.get(
-                  String.valueOf(configFile.getValue()),
-                                      e.getMessage());
-          err.println(message);
+          err.println(ERR_LDIFMODIFY_CANNOT_INITIALIZE_JMX.get(configFile.getValue(), e.getMessage()));
           return 1;
         }
 
@@ -565,10 +552,7 @@ public class LDIFModify
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_LDIFMODIFY_CANNOT_INITIALIZE_CONFIG.get(
-                  String.valueOf(configFile.getValue()),
-                                      e.getMessage());
-          err.println(message);
+          err.println(ERR_LDIFMODIFY_CANNOT_INITIALIZE_CONFIG.get(configFile.getValue(), e.getMessage()));
           return 1;
         }
 
@@ -578,10 +562,7 @@ public class LDIFModify
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_LDIFMODIFY_CANNOT_INITIALIZE_SCHEMA.get(
-                  String.valueOf(configFile.getValue()),
-                                      e.getMessage());
-          err.println(message);
+          err.println(ERR_LDIFMODIFY_CANNOT_INITIALIZE_SCHEMA.get(configFile.getValue(), e.getMessage()));
           return 1;
         }
       }
@@ -606,10 +587,7 @@ public class LDIFModify
     }
     catch (IOException ioe)
     {
-      LocalizableMessage message = ERR_LDIFMODIFY_CANNOT_OPEN_SOURCE.get(
-              sourceFile.getValue(),
-                                  String.valueOf(ioe));
-      err.println(message);
+      err.println(ERR_LDIFMODIFY_CANNOT_OPEN_SOURCE.get(sourceFile.getValue(), ioe));
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
     }
 
@@ -617,9 +595,7 @@ public class LDIFModify
     File changes = new File(changesFile.getValue());
     if (! changes.exists())
     {
-      LocalizableMessage message = ERR_LDIFMODIFY_CHANGES_DOES_NOT_EXIST.get(
-              changesFile.getValue());
-      err.println(message);
+      err.println(ERR_LDIFMODIFY_CHANGES_DOES_NOT_EXIST.get(changesFile.getValue()));
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -665,10 +641,7 @@ public class LDIFModify
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDIFMODIFY_ERROR_PROCESSING_LDIF.get(
-              String.valueOf(e));
-      err.println(message);
-
+      err.println(ERR_LDIFMODIFY_ERROR_PROCESSING_LDIF.get(e));
       successful = false;
     }
 

@@ -568,7 +568,7 @@ public class MatchedValuesFilter
       case NOT:
         // These filter types cannot be used in a matched values filter.
         LocalizableMessage message = ERR_MVFILTER_INVALID_LDAP_FILTER_TYPE.get(
-            String.valueOf(filter), String.valueOf(filter.getFilterType()));
+            filter, filter.getFilterType());
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
 
 
@@ -617,8 +617,7 @@ public class MatchedValuesFilter
         if (filter.getDNAttributes())
         {
           // This cannot be represented in a matched values filter.
-          message = ERR_MVFILTER_INVALID_DN_ATTRIBUTES_FLAG.get(
-              String.valueOf(filter));
+          message = ERR_MVFILTER_INVALID_DN_ATTRIBUTES_FLAG.get(filter);
           throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
         }
         else
@@ -631,8 +630,7 @@ public class MatchedValuesFilter
 
 
       default:
-        message = ERR_MVFILTER_INVALID_LDAP_FILTER_TYPE.get(
-            String.valueOf(filter), String.valueOf(filter.getFilterType()));
+        message = ERR_MVFILTER_INVALID_LDAP_FILTER_TYPE.get(filter, filter.getFilterType());
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
   }

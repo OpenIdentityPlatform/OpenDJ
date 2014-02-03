@@ -403,9 +403,8 @@ public class LDIFBackend
         }
         else
         {
-          LocalizableMessage m = ERR_LDIF_BACKEND_HAS_SUBORDINATES_NO_SUCH_ENTRY.get(
-                           String.valueOf(entryDN));
-          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m);
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+              ERR_LDIF_BACKEND_HAS_SUBORDINATES_NO_SUCH_ENTRY.get(entryDN));
         }
       }
       else
@@ -441,9 +440,8 @@ public class LDIFBackend
         }
         else
         {
-          LocalizableMessage m = ERR_LDIF_BACKEND_NUM_SUBORDINATES_NO_SUCH_ENTRY.get(
-                           String.valueOf(entryDN));
-          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m);
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+              ERR_LDIF_BACKEND_NUM_SUBORDINATES_NO_SUCH_ENTRY.get(entryDN));
         }
       }
       else
@@ -794,9 +792,8 @@ public class LDIFBackend
       DN newParentDN = newDN.getParentDNInSuffix();
       if (! entryMap.containsKey(newParentDN))
       {
-        LocalizableMessage m = ERR_LDIF_BACKEND_MODDN_NEW_PARENT_DOESNT_EXIST.get(
-                         String.valueOf(newParentDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m);
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+            ERR_LDIF_BACKEND_MODDN_NEW_PARENT_DOESNT_EXIST.get(newParentDN));
       }
 
       // Remove the entry from the list of children for the old parent and
@@ -923,8 +920,7 @@ public class LDIFBackend
           matchedDN = matchedDN.getParentDNInSuffix();
         }
 
-        LocalizableMessage m = ERR_LDIF_BACKEND_SEARCH_NO_SUCH_BASE.get(
-                         String.valueOf(baseDN));
+        LocalizableMessage m = ERR_LDIF_BACKEND_SEARCH_NO_SUCH_BASE.get(baseDN);
         throw new DirectoryException(
                 ResultCode.NO_SUCH_OBJECT, m, matchedDN, null);
       }
@@ -1030,8 +1026,7 @@ public class LDIFBackend
       catch (Exception e)
       {
         LocalizableMessage m = ERR_LDIF_BACKEND_CANNOT_WRITE_ENTRY_TO_LDIF.get(
-                         String.valueOf(entryDN),
-                         stackTraceToSingleLineString(e));
+            entryDN, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      m, e);
       }

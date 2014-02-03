@@ -302,10 +302,8 @@ public class RecurringTask
       logger.traceException(e);
 
       LocalizableMessage message = ERR_RECURRINGTASK_CANNOT_LOAD_CLASS.
-          get(String.valueOf(taskClassName), ATTR_TASK_CLASS,
-              getExceptionMessage(e));
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   e);
+          get(taskClassName, ATTR_TASK_CLASS, getExceptionMessage(e));
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message, e);
     }
 
 
@@ -319,9 +317,8 @@ public class RecurringTask
       logger.traceException(e);
 
       LocalizableMessage message = ERR_RECURRINGTASK_CANNOT_INSTANTIATE_CLASS_AS_TASK.get(
-          String.valueOf(taskClassName), Task.class.getName());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   e);
+          taskClassName, Task.class.getName());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message, e);
     }
 
 
@@ -335,10 +332,8 @@ public class RecurringTask
     {
       logger.traceException(ie);
 
-      LocalizableMessage message = ERR_RECURRINGTASK_CANNOT_INITIALIZE_INTERNAL.get(
-          String.valueOf(taskClassName), ie.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, ie);
+      LocalizableMessage message = ERR_RECURRINGTASK_CANNOT_INITIALIZE_INTERNAL.get( taskClassName, ie.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, ie);
     }
 
     task.initializeTask();

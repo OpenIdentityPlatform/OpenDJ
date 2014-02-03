@@ -108,7 +108,7 @@ public class MD5PasswordStorageScheme
       logger.traceException(e);
 
       LocalizableMessage message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
-          MESSAGE_DIGEST_ALGORITHM_MD5, String.valueOf(e));
+          MESSAGE_DIGEST_ALGORITHM_MD5, e);
       throw new InitializationException(message, e);
     }
 
@@ -255,9 +255,7 @@ public class MD5PasswordStorageScheme
     catch (Exception e)
     {
       logger.traceException(e);
-
-      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(storedPassword, String.valueOf(e)));
-
+      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(storedPassword, e));
       return false;
     }
 

@@ -278,8 +278,7 @@ public class BackupManager
       logger.traceException(e);
 
       LocalizableMessage message = ERR_JEB_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
-          get(String.valueOf(archiveFilename), backupDir.getPath(),
-              stackTraceToSingleLineString(e));
+          get(archiveFilename, backupDir.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }

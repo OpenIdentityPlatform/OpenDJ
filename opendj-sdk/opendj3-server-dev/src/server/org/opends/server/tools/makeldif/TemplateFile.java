@@ -827,8 +827,7 @@ public class TemplateFile
         DN branchDN = b.getBranchDN();
         if (templateFileBranches.containsKey(branchDN))
         {
-          LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_BRANCH_DN.get(
-              String.valueOf(branchDN), startLineNumber);
+          LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_BRANCH_DN.get(branchDN, startLineNumber);
           throw new MakeLDIFException(message);
         }
         else
@@ -871,8 +870,7 @@ public class TemplateFile
         String lowerName = toLowerCase(t.getName());
         if (templateFileTemplates.containsKey(lowerName))
         {
-          LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_TEMPLATE_NAME.get(
-              String.valueOf(t.getName()), startLineNumber);
+          LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_TEMPLATE_NAME.get(t.getName(), startLineNumber);
           throw new MakeLDIFException(message);
         }
         else
@@ -1307,7 +1305,7 @@ public class TemplateFile
       else
       {
         LocalizableMessage message = ERR_MAKELDIF_NO_COLON_IN_BRANCH_EXTRA_LINE.get(
-            lineNumber, String.valueOf(branch.getBranchDN()));
+            lineNumber, branch.getBranchDN());
         throw new MakeLDIFException(message);
       }
     }
@@ -1322,7 +1320,7 @@ public class TemplateFile
       else
       {
         LocalizableMessage message = ERR_MAKELDIF_NO_ATTR_IN_BRANCH_EXTRA_LINE.get(
-            lineNumber, String.valueOf(branch.getBranchDN()));
+            lineNumber, branch.getBranchDN());
         throw new MakeLDIFException(message);
       }
     }
@@ -1369,7 +1367,7 @@ public class TemplateFile
       else
       {
         LocalizableMessage message = WARN_MAKELDIF_NO_VALUE_IN_BRANCH_EXTRA_LINE.get(
-                lineNumber, String.valueOf(branch.getBranchDN()));
+                lineNumber, branch.getBranchDN());
         warnings.add(message);
       }
     }
@@ -1565,9 +1563,7 @@ public class TemplateFile
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG.get(
-          tagName, lineNumber, String.valueOf(e));
-      throw new MakeLDIFException(message, e);
+      throw new MakeLDIFException(ERR_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG.get(tagName, lineNumber, e), e);
     }
 
 

@@ -716,9 +716,7 @@ public class ReferentialIntegrityPlugin
         return;
 
       default:
-        LocalizableMessage message1 = ERR_PLUGIN_REFERENT_SEARCH_FAILED.
-                get(String.valueOf(operation.getErrorMessage()));
-        logger.error(message1);
+        logger.error(ERR_PLUGIN_REFERENT_SEARCH_FAILED.get(operation.getErrorMessage()));
         return;
     }
 
@@ -812,8 +810,7 @@ public class ReferentialIntegrityPlugin
             conn.processModify(entryDN, mods);
     if(modifyOperation.getResultCode() != ResultCode.SUCCESS)
     {
-      logger.error(ERR_PLUGIN_REFERENT_MODIFY_FAILED.get(entryDN,
-                      String.valueOf(modifyOperation.getErrorMessage())));
+      logger.error(ERR_PLUGIN_REFERENT_MODIFY_FAILED.get(entryDN, modifyOperation.getErrorMessage()));
     }
   }
 

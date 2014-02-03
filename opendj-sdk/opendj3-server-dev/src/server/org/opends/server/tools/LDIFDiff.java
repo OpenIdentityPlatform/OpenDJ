@@ -59,6 +59,7 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -303,11 +304,7 @@ public class LDIFDiff
         }
         catch (Exception e)
         {
-
-          LocalizableMessage message = ERR_LDIFDIFF_CANNOT_INITIALIZE_JMX.get(
-                  String.valueOf(configFile.getValue()),
-                                      e.getMessage());
-          err.println(message);
+          err.println(ERR_LDIFDIFF_CANNOT_INITIALIZE_JMX.get(configFile.getValue(), e.getMessage()));
           return OPERATIONS_ERROR;
         }
 
@@ -318,10 +315,7 @@ public class LDIFDiff
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_LDIFDIFF_CANNOT_INITIALIZE_CONFIG.get(
-                  String.valueOf(configFile.getValue()),
-                                      e.getMessage());
-          err.println(message);
+          err.println(ERR_LDIFDIFF_CANNOT_INITIALIZE_CONFIG.get(configFile.getValue(), e.getMessage()));
           return OPERATIONS_ERROR;
         }
 
@@ -331,10 +325,7 @@ public class LDIFDiff
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_LDIFDIFF_CANNOT_INITIALIZE_SCHEMA.get(
-                  String.valueOf(configFile.getValue()),
-                  e.getMessage());
-          err.println(message);
+          err.println(ERR_LDIFDIFF_CANNOT_INITIALIZE_SCHEMA.get(configFile.getValue(), e.getMessage()));
           return OPERATIONS_ERROR;
         }
       }
@@ -360,19 +351,12 @@ public class LDIFDiff
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ATTRIBS.get(
-                ignoreAttrsFile.getValue(),
-                String.valueOf(e));
-        err.println(message);
+        err.println(ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ATTRIBS.get(ignoreAttrsFile.getValue(), e));
         return OPERATIONS_ERROR;
       }
       finally
       {
-        try
-        {
-          ignReader.close();
-        }
-        catch (Exception e) {}
+        StaticUtils.close(ignReader);
       }
     }
 
@@ -401,19 +385,12 @@ public class LDIFDiff
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ENTRIES.get(
-                ignoreEntriesFile.getValue(),
-                String.valueOf(e));
-        err.println(message);
+        err.println(ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ENTRIES.get(ignoreEntriesFile.getValue(), e));
         return OPERATIONS_ERROR;
       }
       finally
       {
-        try
-        {
-          ignReader.close();
-        }
-        catch (Exception e) {}
+        StaticUtils.close(ignReader);
       }
     }
 
@@ -426,10 +403,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDIFDIFF_CANNOT_OPEN_SOURCE_LDIF.get(
-              sourceLDIF.getValue(),
-              String.valueOf(e));
-      err.println(message);
+      err.println(ERR_LDIFDIFF_CANNOT_OPEN_SOURCE_LDIF.get(sourceLDIF.getValue(), e));
       return OPERATIONS_ERROR;
     }
 
@@ -452,18 +426,12 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDIFDIFF_ERROR_READING_SOURCE_LDIF.get(
-              sourceLDIF.getValue(),
-              String.valueOf(e));
-      err.println(message);
+      err.println(ERR_LDIFDIFF_ERROR_READING_SOURCE_LDIF.get(sourceLDIF.getValue(), e));
       return OPERATIONS_ERROR;
     }
     finally
     {
-      try
-      {
-        reader.close();
-      } catch (Exception e) {}
+      StaticUtils.close(reader);
     }
 
 
@@ -475,10 +443,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDIFDIFF_CANNOT_OPEN_TARGET_LDIF.get(
-              targetLDIF.getValue(),
-              String.valueOf(e));
-      err.println(message);
+      err.println(ERR_LDIFDIFF_CANNOT_OPEN_TARGET_LDIF.get(targetLDIF.getValue(), e));
       return OPERATIONS_ERROR;
     }
 
@@ -501,18 +466,12 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDIFDIFF_ERROR_READING_TARGET_LDIF.get(
-              targetLDIF.getValue(),
-              String.valueOf(e));
-      err.println(message);
+      err.println(ERR_LDIFDIFF_ERROR_READING_TARGET_LDIF.get(targetLDIF.getValue(), e));
       return OPERATIONS_ERROR;
     }
     finally
     {
-      try
-      {
-        reader.close();
-      } catch (Exception e) {}
+      StaticUtils.close(reader);
     }
 
 
@@ -543,8 +502,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDIFDIFF_CANNOT_OPEN_OUTPUT.get(String.valueOf(e));
-      err.println(message);
+      err.println(ERR_LDIFDIFF_CANNOT_OPEN_OUTPUT.get(e));
       return OPERATIONS_ERROR;
     }
 
@@ -720,17 +678,12 @@ public class LDIFDiff
     }
     catch (IOException e)
     {
-      LocalizableMessage message =
-              ERR_LDIFDIFF_ERROR_WRITING_OUTPUT.get(String.valueOf(e));
-      err.println(message);
+      err.println(ERR_LDIFDIFF_ERROR_WRITING_OUTPUT.get(e));
       return OPERATIONS_ERROR;
     }
     finally
     {
-      try
-      {
-        writer.close();
-      } catch (Exception e) {}
+      StaticUtils.close(writer);
     }
 
 

@@ -126,8 +126,7 @@ public class LDAPRequestHandler
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_REQHANDLER_OPEN_SELECTOR_FAILED.get(
-          handlerName, String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_REQHANDLER_OPEN_SELECTOR_FAILED.get(handlerName, e);
       throw new InitializationException(message, e);
     }
 
@@ -148,8 +147,7 @@ public class LDAPRequestHandler
             (ste.getMethodName().indexOf("poll") >= 0) &&
             ioe.getMessage().equalsIgnoreCase("Invalid argument"))
         {
-          LocalizableMessage message = ERR_LDAP_REQHANDLER_DETECTED_JVM_ISSUE_CR6322825.
-              get(String.valueOf(ioe));
+          LocalizableMessage message = ERR_LDAP_REQHANDLER_DETECTED_JVM_ISSUE_CR6322825.get(ioe);
           throw new InitializationException(message, ioe);
         }
       }
@@ -255,8 +253,7 @@ public class LDAPRequestHandler
             logger.traceException(e);
 
             c.disconnect(DisconnectReason.SERVER_ERROR, true,
-                ERR_LDAP_REQHANDLER_CANNOT_REGISTER.get(handlerName,
-                    String.valueOf(e)));
+                ERR_LDAP_REQHANDLER_CANNOT_REGISTER.get(handlerName, e));
           }
         }
       }

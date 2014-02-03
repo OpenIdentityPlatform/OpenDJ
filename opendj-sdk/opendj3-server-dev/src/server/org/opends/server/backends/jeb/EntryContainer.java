@@ -344,8 +344,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         catch(Exception e)
         {
           LocalizableMessage msg =
-            ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
-                String.valueOf(sortKeys[i]), cfg.getName());
+            ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], cfg.getName());
           unacceptableReasons.add(msg);
           return false;
         }

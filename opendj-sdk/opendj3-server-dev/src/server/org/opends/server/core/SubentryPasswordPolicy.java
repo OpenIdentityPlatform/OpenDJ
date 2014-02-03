@@ -206,8 +206,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         }
 
         LocalizableMessage message = ERR_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX.get(
-            String.valueOf(passwordPolicySubentryDN),
-            pPasswordAttribute.getNameOrOID(), String.valueOf(syntax));
+            passwordPolicySubentryDN, pPasswordAttribute.getNameOrOID(), syntax);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }

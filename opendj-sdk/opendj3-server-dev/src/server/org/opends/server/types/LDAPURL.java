@@ -333,13 +333,12 @@ public final class LDAPURL
     int schemeEndPos = url.indexOf("://");
     if (schemeEndPos < 0)
     {
-      LocalizableMessage message =
-          ERR_LDAPURL_NO_COLON_SLASH_SLASH.get(String.valueOf(url));
+      LocalizableMessage message = ERR_LDAPURL_NO_COLON_SLASH_SLASH.get(url);
       throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
     }
     else if (schemeEndPos == 0)
     {
-      LocalizableMessage message = ERR_LDAPURL_NO_SCHEME.get(String.valueOf(url));
+      LocalizableMessage message = ERR_LDAPURL_NO_SCHEME.get(url);
       throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
     }
     else
@@ -385,12 +384,12 @@ public final class LDAPURL
       }
       else if (colonPos == 0)
       {
-        LocalizableMessage message = ERR_LDAPURL_NO_HOST.get(String.valueOf(url));
+        LocalizableMessage message = ERR_LDAPURL_NO_HOST.get(url);
         throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
       }
       else if (colonPos == (hostPort.length() - 1))
       {
-        LocalizableMessage message = ERR_LDAPURL_NO_PORT.get(String.valueOf(url));
+        LocalizableMessage message = ERR_LDAPURL_NO_PORT.get(url);
         throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
       }
       else
@@ -404,13 +403,12 @@ public final class LDAPURL
         catch (NumberFormatException e)
         {
           LocalizableMessage message = ERR_LDAPURL_CANNOT_DECODE_PORT.get(
-              String.valueOf(url), hostPort.substring(colonPos+1));
+              url, hostPort.substring(colonPos+1));
           throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
         }
         catch (IllegalArgumentException e)
         {
-          LocalizableMessage message =
-              ERR_LDAPURL_INVALID_PORT.get(String.valueOf(url), port);
+          LocalizableMessage message = ERR_LDAPURL_INVALID_PORT.get(url, port);
           throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
@@ -553,8 +551,7 @@ public final class LDAPURL
     }
     else
     {
-      LocalizableMessage message = ERR_LDAPURL_INVALID_SCOPE_STRING.get(
-          String.valueOf(url), String.valueOf(scopeString));
+      LocalizableMessage message = ERR_LDAPURL_INVALID_SCOPE_STRING.get(url, scopeString);
       throw new DirectoryException(
                      ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -677,8 +674,7 @@ public final class LDAPURL
         // a problem.
         if (i+2 > length)
         {
-          LocalizableMessage message = ERR_LDAPURL_PERCENT_TOO_CLOSE_TO_END.get(
-              String.valueOf(s), i);
+          LocalizableMessage message = ERR_LDAPURL_PERCENT_TOO_CLOSE_TO_END.get(s, i);
           throw new DirectoryException(
                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
@@ -741,11 +737,8 @@ public final class LDAPURL
             b = (byte) 0xF0;
             break;
           default:
-            LocalizableMessage message = ERR_LDAPURL_INVALID_HEX_BYTE.get(
-                String.valueOf(s), i);
-            throw new DirectoryException(
-                           ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                           message);
+            LocalizableMessage message = ERR_LDAPURL_INVALID_HEX_BYTE.get(s, i);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
 
         switch (stringBytes[++i])
@@ -804,11 +797,8 @@ public final class LDAPURL
             b |= 0x0F;
             break;
           default:
-            LocalizableMessage message = ERR_LDAPURL_INVALID_HEX_BYTE.get(
-                String.valueOf(s), i);
-            throw new DirectoryException(
-                           ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                           message);
+            LocalizableMessage message = ERR_LDAPURL_INVALID_HEX_BYTE.get(s, i);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
 
         decodedBytes[pos++] = b;

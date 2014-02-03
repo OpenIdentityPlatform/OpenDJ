@@ -1447,15 +1447,13 @@ public abstract class Installer extends GuiApplication {
     if (isVerbose() || (nEntries > THRESHOLD_AUTOMATIC_DATA_VERBOSE))
     {
       mb.append(getFormattedProgress(
-            INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED.get(
-                    String.valueOf(nEntries))));
+            INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED.get(nEntries)));
       mb.append(getLineBreak());
     }
     else
     {
       mb.append(getFormattedProgress(
-          INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED_NON_VERBOSE.get(
-                  String.valueOf(nEntries))));
+          INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED_NON_VERBOSE.get(nEntries)));
     }
     notifyListeners(mb.toMessage());
 
@@ -2018,8 +2016,7 @@ public abstract class Installer extends GuiApplication {
             notifyListeners(getFormattedWarning(
                 INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
                     localServerDisplay, ConnectionUtils.getHostPort(ctx),
-                    String.valueOf(
-                        THRESHOLD_CLOCK_DIFFERENCE_WARNING))));
+                    THRESHOLD_CLOCK_DIFFERENCE_WARNING)));
           }
         }
 
@@ -3043,7 +3040,7 @@ public abstract class Installer extends GuiApplication {
           {
             long requiredInMb = getRequiredInstallSpace() / (1024 * 1024);
             errorMsgs.add(INFO_NOT_ENOUGH_DISK_SPACE.get(
-                    existingParentDirectory, String.valueOf(requiredInMb)));
+                    existingParentDirectory, requiredInMb));
             qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
           }
           else
@@ -3069,8 +3066,7 @@ public abstract class Installer extends GuiApplication {
       } else if (!hasEnoughSpace(serverLocation, getRequiredInstallSpace()))
       {
         long requiredInMb = getRequiredInstallSpace() / (1024 * 1024);
-        errorMsgs.add(INFO_NOT_ENOUGH_DISK_SPACE.get(
-                serverLocation, String.valueOf(requiredInMb)));
+        errorMsgs.add(INFO_NOT_ENOUGH_DISK_SPACE.get(serverLocation, requiredInMb));
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
       } else if (isWindows() && (serverLocation.contains("%")))
       {
@@ -3105,9 +3101,7 @@ public abstract class Installer extends GuiApplication {
       port = Integer.parseInt(sPort);
       if ((port < MIN_PORT_VALUE) || (port > MAX_PORT_VALUE))
       {
-        errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(
-                String.valueOf(MIN_PORT_VALUE),
-                String.valueOf(MAX_PORT_VALUE)));
+        errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(MIN_PORT_VALUE, MAX_PORT_VALUE));
         qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
       } else if (!canUseAsPort(port))
       {
@@ -3118,11 +3112,9 @@ public abstract class Installer extends GuiApplication {
         getUserData().setServerPort(port);
         qs.displayFieldInvalid(FieldName.SERVER_PORT, false);
       }
-
     } catch (NumberFormatException nfe)
     {
-      errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(
-              String.valueOf(MIN_PORT_VALUE), String.valueOf(MAX_PORT_VALUE)));
+      errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(MIN_PORT_VALUE, MAX_PORT_VALUE));
       qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
     }
 
@@ -3135,9 +3127,7 @@ public abstract class Installer extends GuiApplication {
       if ((adminConnectorPort < MIN_PORT_VALUE) ||
           (adminConnectorPort > MAX_PORT_VALUE))
       {
-        errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(
-                String.valueOf(MIN_PORT_VALUE),
-                String.valueOf(MAX_PORT_VALUE)));
+        errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(MIN_PORT_VALUE, MAX_PORT_VALUE));
         qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, true);
       } else if (!canUseAsPort(adminConnectorPort))
       {
@@ -3157,8 +3147,7 @@ public abstract class Installer extends GuiApplication {
       }
     } catch (NumberFormatException nfe)
     {
-      errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(
-              String.valueOf(MIN_PORT_VALUE), String.valueOf(MAX_PORT_VALUE)));
+      errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(MIN_PORT_VALUE, MAX_PORT_VALUE));
       qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, true);
     }
 
@@ -3170,9 +3159,7 @@ public abstract class Installer extends GuiApplication {
     {
       if ((securePort < MIN_PORT_VALUE) || (securePort > MAX_PORT_VALUE))
       {
-        errorMsgs.add(INFO_INVALID_SECURE_PORT_VALUE_RANGE.get(
-                String.valueOf(MIN_PORT_VALUE),
-                String.valueOf(MAX_PORT_VALUE)));
+        errorMsgs.add(INFO_INVALID_SECURE_PORT_VALUE_RANGE.get(MIN_PORT_VALUE, MAX_PORT_VALUE));
         qs.displayFieldInvalid(FieldName.SECURITY_OPTIONS, true);
       } else if (!canUseAsPort(securePort))
       {
@@ -3244,8 +3231,7 @@ public abstract class Installer extends GuiApplication {
     }
     if (pwd1.length() < MIN_DIRECTORY_MANAGER_PWD)
     {
-      errorMsgs.add(INFO_PWD_TOO_SHORT.get(
-              String.valueOf(MIN_DIRECTORY_MANAGER_PWD)));
+      errorMsgs.add(INFO_PWD_TOO_SHORT.get(MIN_DIRECTORY_MANAGER_PWD));
       qs.displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD, true);
       if ((pwd2 == null) || (pwd2.length() < MIN_DIRECTORY_MANAGER_PWD))
       {
@@ -3286,9 +3272,9 @@ public abstract class Installer extends GuiApplication {
   {
     if (isPriviledgedPort(port))
     {
-      return INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(String.valueOf(port));
+      return INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(port);
     }
-    return INFO_CANNOT_BIND_PORT.get(String.valueOf(port));
+    return INFO_CANNOT_BIND_PORT.get(port);
   }
 
   /**
@@ -3434,9 +3420,7 @@ public abstract class Installer extends GuiApplication {
       if ((replicationPort < MIN_PORT_VALUE) ||
           (replicationPort > MAX_PORT_VALUE))
       {
-        errorMsgs.add(INFO_INVALID_REPLICATION_PORT_VALUE_RANGE.get(
-                String.valueOf(MIN_PORT_VALUE),
-                String.valueOf(MAX_PORT_VALUE)));
+        errorMsgs.add(INFO_INVALID_REPLICATION_PORT_VALUE_RANGE.get(MIN_PORT_VALUE, MAX_PORT_VALUE));
         qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
       } else if (!canUseAsPort(replicationPort))
       {
@@ -3462,8 +3446,7 @@ public abstract class Installer extends GuiApplication {
 
     } catch (NumberFormatException nfe)
     {
-      errorMsgs.add(INFO_INVALID_REPLICATION_PORT_VALUE_RANGE.get(
-              String.valueOf(MIN_PORT_VALUE), String.valueOf(MAX_PORT_VALUE)));
+      errorMsgs.add(INFO_INVALID_REPLICATION_PORT_VALUE_RANGE.get(MIN_PORT_VALUE, MAX_PORT_VALUE));
       qs.displayFieldInvalid(FieldName.REPLICATION_PORT, true);
     }
     return replicationPort;
@@ -3614,8 +3597,7 @@ public abstract class Installer extends GuiApplication {
                 }
                 throw new UserDataCertificateException(
                         Step.REPLICATION_OPTIONS,
-                        INFO_CERTIFICATE_EXCEPTION.get(
-                                h, String.valueOf(p)),
+                        INFO_CERTIFICATE_EXCEPTION.get(h, p),
                         e.getCause(), h, p,
                         e.getTrustManager().getLastRefusedChain(),
                         e.getTrustManager().getLastRefusedAuthType(), excType);
@@ -3667,7 +3649,7 @@ public abstract class Installer extends GuiApplication {
         if (excType != null)
         {
           throw new UserDataCertificateException(Step.REPLICATION_OPTIONS,
-              INFO_CERTIFICATE_EXCEPTION.get(host, String.valueOf(port)), t,
+              INFO_CERTIFICATE_EXCEPTION.get(host, port), t,
               host, port, trustManager.getLastRefusedChain(),
               trustManager.getLastRefusedAuthType(), excType);
         }
@@ -3754,8 +3736,7 @@ public abstract class Installer extends GuiApplication {
     }
     if (pwd1.length() < MIN_DIRECTORY_MANAGER_PWD)
     {
-      errorMsgs.add(INFO_PWD_TOO_SHORT.get(
-              String.valueOf(MIN_DIRECTORY_MANAGER_PWD)));
+      errorMsgs.add(INFO_PWD_TOO_SHORT.get(MIN_DIRECTORY_MANAGER_PWD));
       qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_PWD, true);
       if ((pwd2 == null) || (pwd2.length() < MIN_DIRECTORY_MANAGER_PWD))
       {
@@ -3872,9 +3853,7 @@ public abstract class Installer extends GuiApplication {
             (replicationPort > MAX_PORT_VALUE))
         {
           errorMsgs.add(INFO_INVALID_REMOTE_REPLICATION_PORT_VALUE_RANGE.get(
-                  getHostPort(server),
-                  String.valueOf(MIN_PORT_VALUE),
-                  String.valueOf(MAX_PORT_VALUE)));
+              getHostPort(server), MIN_PORT_VALUE, MAX_PORT_VALUE));
         }
         if (hostName.equalsIgnoreCase(getUserData().getHostName()))
         {
@@ -3901,8 +3880,7 @@ public abstract class Installer extends GuiApplication {
       } catch (NumberFormatException nfe)
       {
         errorMsgs.add(INFO_INVALID_REMOTE_REPLICATION_PORT_VALUE_RANGE.get(
-                hostName, String.valueOf(MIN_PORT_VALUE),
-                String.valueOf(MAX_PORT_VALUE)));
+            hostName, MIN_PORT_VALUE, MAX_PORT_VALUE));
       }
     }
 
@@ -4016,8 +3994,7 @@ public abstract class Installer extends GuiApplication {
           if (!nEntriesValid)
           {
             errorMsgs.add(INFO_INVALID_NUMBER_ENTRIES_RANGE.get(
-                String.valueOf(MIN_NUMBER_ENTRIES),
-                String.valueOf(MAX_NUMBER_ENTRIES)));
+                MIN_NUMBER_ENTRIES, MAX_NUMBER_ENTRIES));
             qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, true);
           } else
           {
@@ -4507,8 +4484,7 @@ public abstract class Installer extends GuiApplication {
           if (processed + unprocessed > 0)
           {
             long perc = (100 * processed) / (processed + unprocessed);
-            msg = INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(sProcessed,
-                String.valueOf(perc));
+            msg = INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(sProcessed, perc);
           }
           else
           {

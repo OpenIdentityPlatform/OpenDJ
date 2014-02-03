@@ -290,8 +290,7 @@ public class LDAPSyntaxDescriptionSyntax
     {
 
       LocalizableMessage message =
-              ERR_ATTR_SYNTAX_LDAPSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
-                      valueStr, (pos-1), String.valueOf(c));
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(valueStr, (pos-1), c);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
     }
@@ -342,7 +341,7 @@ public class LDAPSyntaxDescriptionSyntax
           // This must have been an illegal character.
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                get(valueStr, String.valueOf(c), (pos-1));
+                get(valueStr, c, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -371,7 +370,7 @@ public class LDAPSyntaxDescriptionSyntax
           // This must have been an illegal character.
           LocalizableMessage message =
                   ERR_ATTR_SYNTAX_LDAPSYNTAX_ILLEGAL_CHAR_IN_STRING_OID.
-              get(valueStr, String.valueOf(c), (pos-1));
+              get(valueStr, c, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -468,10 +467,8 @@ public class LDAPSyntaxDescriptionSyntax
         AttributeSyntax<?> subSyntax = schema.getSyntax(syntaxOID);
         if (subSyntax == null)
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_SYNTAX.get(
-              String.valueOf(oid), syntaxOID);
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                       message);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_SYNTAX.get(oid, syntaxOID);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
         }
         syntax = new SubstitutionSyntax(subSyntax,valueStr,description,oid);
       }
@@ -715,8 +712,7 @@ public class LDAPSyntaxDescriptionSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_EXPECTED_QUOTE_AT_POS.get(
-          valueStr, startPos, String.valueOf(c));
+      LocalizableMessage message = ERR_ATTR_SYNTAX_LDAPSYNTAX_EXPECTED_QUOTE_AT_POS.get(valueStr, startPos, c);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }

@@ -292,8 +292,7 @@ public class TelephoneNumberSyntax
         }
         else if (! isSeparator(c))
         {
-          LocalizableMessage message = ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR.get(
-                  valueStr, String.valueOf(c), i);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR.get(valueStr, c, i);
           invalidReason.append(message);
           return false;
         }

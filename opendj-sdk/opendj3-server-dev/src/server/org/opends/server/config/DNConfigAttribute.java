@@ -445,8 +445,7 @@ public final class DNConfigAttribute
       if (valueSet.contains(attrValue))
       {
         LocalizableMessage message =
-            ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(
-                    getName(), String.valueOf(value));
+            ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value);
         throw new ConfigException(message);
       }
 
@@ -660,10 +659,7 @@ public final class DNConfigAttribute
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-                valueString, getName(),
-                String.valueOf(e));
-
+        LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(valueString, getName(), e);
         if (allowFailures)
         {
           logger.error(message);
@@ -1186,8 +1182,7 @@ public final class DNConfigAttribute
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-            (String) value, getName(), String.valueOf(e));
+        LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(value, getName(), e);
         throw new ConfigException(message, e);
       }
 
@@ -1197,7 +1192,6 @@ public final class DNConfigAttribute
     {
       String componentType = value.getClass().getComponentType().getName();
       int length = Array.getLength(value);
-
 
       if (componentType.equals(DN.class.getName()))
       {
@@ -1227,8 +1221,7 @@ public final class DNConfigAttribute
             {
               logger.traceException(e);
 
-              LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-                  valueStr, getName(), String.valueOf(e));
+              LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(valueStr, getName(), e);
               throw new ConfigException(message, e);
             }
 
@@ -1248,24 +1241,21 @@ public final class DNConfigAttribute
           logger.traceException(e);
 
           LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_DN_VALUE.get(
-              getName(), String.valueOf(value), String.valueOf(e));
+              getName(), value, e);
           throw new ConfigException(message, e);
         }
       }
       else
       {
         LocalizableMessage message =
-            ERR_CONFIG_ATTR_DN_INVALID_ARRAY_TYPE.get(
-                    String.valueOf(jmxAttribute),
-                    String.valueOf(componentType));
+            ERR_CONFIG_ATTR_DN_INVALID_ARRAY_TYPE.get(jmxAttribute, componentType);
         throw new ConfigException(message);
       }
     }
     else
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_DN_INVALID_TYPE.get(
-          String.valueOf(value), getName(), value.getClass().getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_DN_INVALID_TYPE.get(
+          value, getName(), value.getClass().getName()));
     }
   }
 

@@ -83,8 +83,7 @@ public class BaseDnRegistry {
     if (existingBackend != null)
     {
       LocalizableMessage message = ERR_REGISTER_BASEDN_ALREADY_EXISTS.
-          get(String.valueOf(baseDN), backend.getBackendID(),
-              existingBackend.getBackendID());
+          get(baseDN, backend.getBackendID(), existingBackend.getBackendID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
@@ -103,10 +102,8 @@ public class BaseDnRegistry {
         if (baseDN.isAncestorOf(dn) || baseDN.isDescendantOf(dn))
         {
           LocalizableMessage message = ERR_REGISTER_BASEDN_HIERARCHY_CONFLICT.
-              get(String.valueOf(baseDN), backend.getBackendID(),
-                  String.valueOf(dn));
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                       message);
+              get(baseDN, backend.getBackendID(), dn);
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
         }
       }
     }
@@ -130,10 +127,8 @@ public class BaseDnRegistry {
           if (! dn.isDescendantOf(superiorBaseDN))
           {
             LocalizableMessage message = ERR_REGISTER_BASEDN_DIFFERENT_PARENT_BASES.
-                get(String.valueOf(baseDN), backend.getBackendID(),
-                    String.valueOf(dn));
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
+                get(baseDN, backend.getBackendID(), dn);
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
         }
 
@@ -148,10 +143,8 @@ public class BaseDnRegistry {
       if (backend.getParentBackend() != null)
       {
         LocalizableMessage message = ERR_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE.
-            get(String.valueOf(baseDN), backend.getBackendID(),
-                backend.getParentBackend().getBackendID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                     message);
+            get(baseDN, backend.getBackendID(), backend.getParentBackend().getBackendID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -198,10 +191,8 @@ public class BaseDnRegistry {
     {
       if (superiorBackend.entryExists(baseDN))
       {
-        LocalizableMessage message = WARN_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS.
-            get(superiorBackend.getBackendID(), String.valueOf(baseDN),
-                backend.getBackendID());
-        errors.add(message);
+        errors.add(WARN_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS.
+            get(superiorBackend.getBackendID(), baseDN, backend.getBackendID()));
       }
     }
 
@@ -283,7 +274,7 @@ public class BaseDnRegistry {
     if (backend == null)
     {
       LocalizableMessage message =
-          ERR_DEREGISTER_BASEDN_NOT_REGISTERED.get(String.valueOf(baseDN));
+          ERR_DEREGISTER_BASEDN_NOT_REGISTERED.get(baseDN);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
@@ -379,9 +370,8 @@ public class BaseDnRegistry {
       {
         // Suppress this warning message on server shutdown.
         if (!DirectoryServer.getInstance().isShuttingDown()) {
-          LocalizableMessage message = WARN_DEREGISTER_BASEDN_MISSING_HIERARCHY.get(
-            String.valueOf(baseDN), backend.getBackendID());
-          errors.add(message);
+          errors.add(WARN_DEREGISTER_BASEDN_MISSING_HIERARCHY.get(
+              baseDN, backend.getBackendID()));
         }
 
         if (!testOnly)

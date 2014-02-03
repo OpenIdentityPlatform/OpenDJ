@@ -269,8 +269,7 @@ public class NetworkGroupConfigManager implements
           unacceptableReasons))
       {
         LocalizableMessage message =
-            ERR_CONFIG_NETWORK_GROUP_CONFIG_NOT_ACCEPTABLE.get(String
-                .valueOf(configuration.dn()), StaticUtils.listToString(
+            ERR_CONFIG_NETWORK_GROUP_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), StaticUtils.listToString(
                 unacceptableReasons, ". "));
         throw new InitializationException(message);
       }

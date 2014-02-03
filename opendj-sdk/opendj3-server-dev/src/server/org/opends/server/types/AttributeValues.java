@@ -175,8 +175,7 @@ public final class AttributeValues
             .getEqualityMatchingRule();
         if (equalityMatchingRule == null)
         {
-          LocalizableMessage message = ERR_ATTR_TYPE_NORMALIZE_NO_MR.get(String
-              .valueOf(value), attributeType.getNameOrOID());
+          LocalizableMessage message = ERR_ATTR_TYPE_NORMALIZE_NO_MR.get(value, attributeType.getNameOrOID());
           throw new DirectoryException(
               ResultCode.INAPPROPRIATE_MATCHING, message);
         }

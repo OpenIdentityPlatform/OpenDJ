@@ -175,8 +175,7 @@ public class TraditionalWorkerThread
         try
         {
           LocalizableMessage message =
-              ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(getName(), String
-                  .valueOf(operation), stackTraceToSingleLineString(t));
+              ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(getName(), operation, stackTraceToSingleLineString(t));
           logger.error(message);
 
           // Ensure that the client receives some kind of result so that it does
@@ -200,12 +199,10 @@ public class TraditionalWorkerThread
 
         try
         {
-          LocalizableMessage message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(getName(),
-                                      String.valueOf(operation),
-                                      stackTraceToSingleLineString(t));
+          LocalizableMessage message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(
+              getName(), operation, stackTraceToSingleLineString(t));
 
-          operation.disconnectClient(DisconnectReason.SERVER_ERROR,
-                                     true, message);
+          operation.disconnectClient(DisconnectReason.SERVER_ERROR, true, message);
         }
         catch (Throwable t2)
         {

@@ -681,7 +681,7 @@ public final class LDAPConnectionHandler extends
       logger.traceException(e);
 
       LocalizableMessage message = ERR_LDAP_CONNHANDLER_OPEN_SELECTOR_FAILED.get(
-          String.valueOf(config.dn()), stackTraceToSingleLineString(e));
+          config.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
 
@@ -863,8 +863,7 @@ public final class LDAPConnectionHandler extends
       catch (IOException e)
       {
         logger.traceException(e);
-        return ERR_CONNHANDLER_CANNOT_BIND.get("LDAP", String
-            .valueOf(configEntryDN), a.getHostAddress(), listenPort,
+        return ERR_CONNHANDLER_CANNOT_BIND.get("LDAP", configEntryDN, a.getHostAddress(), listenPort,
             getExceptionMessage(e));
       }
     }
@@ -1004,8 +1003,7 @@ public final class LDAPConnectionHandler extends
         // administrative action before trying again.
         if (numRegistered == 0)
         {
-          logger.error(ERR_LDAP_CONNHANDLER_NO_ACCEPTORS.get(String
-              .valueOf(currentConfig.dn())));
+          logger.error(ERR_LDAP_CONNHANDLER_NO_ACCEPTORS.get(currentConfig.dn()));
 
           enabled = false;
           continue;
@@ -1029,7 +1027,7 @@ public final class LDAPConnectionHandler extends
             logger.traceException(e);
 
             logger.error(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(friendlyName,
-                String.valueOf(currentConfig.dn()), getExceptionMessage(e)));
+                currentConfig.dn(), getExceptionMessage(e)));
 
             if (lastIterationFailed)
             {
@@ -1039,8 +1037,7 @@ public final class LDAPConnectionHandler extends
               // log an error.
               LocalizableMessage message =
                   ERR_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES.get(friendlyName,
-                      String.valueOf(currentConfig.dn()),
-                      stackTraceToSingleLineString(e));
+                      currentConfig.dn(), stackTraceToSingleLineString(e));
               logger.error(message);
 
               DirectoryServer.sendAlertNotification(this,
@@ -1075,8 +1072,7 @@ public final class LDAPConnectionHandler extends
         // and disable the selector until an administrator can figure
         // out what's going on.
         LocalizableMessage message =
-            ERR_LDAP_CONNHANDLER_UNCAUGHT_ERROR.get(String
-                .valueOf(currentConfig.dn()), stackTraceToSingleLineString(e));
+            ERR_LDAP_CONNHANDLER_UNCAUGHT_ERROR.get(currentConfig.dn(), stackTraceToSingleLineString(e));
         logger.error(message);
 
         DirectoryServer.sendAlertNotification(this,
@@ -1160,8 +1156,7 @@ public final class LDAPConnectionHandler extends
       {
         logger.traceException(e);
 
-        logger.error(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED.get(String
-            .valueOf(currentConfig.dn()), a.getHostAddress(), listenPort,
+        logger.error(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED.get(currentConfig.dn(), a.getHostAddress(), listenPort,
             stackTraceToSingleLineString(e)));
       }
     }

@@ -3653,7 +3653,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     if (resultCode != ResultCode.SUCCESS)
     {
       LocalizableMessage message = ERR_PWPSTATE_CANNOT_UPDATE_USER_ENTRY.get(userDNString,
-                            String.valueOf(internalModify.getErrorMessage()));
+                            internalModify.getErrorMessage());
 
       // If this is a root user, or if the password policy says that we should
       // ignore these problems, then log a warning message.  Otherwise, cause

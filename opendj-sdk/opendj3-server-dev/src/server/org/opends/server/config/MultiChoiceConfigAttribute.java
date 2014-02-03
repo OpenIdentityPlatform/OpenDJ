@@ -1213,9 +1213,7 @@ public final class MultiChoiceConfigAttribute
         {
           logger.traceException(e);
 
-          LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_STRING_VALUE.get(
-              getName(), String.valueOf(value), String.valueOf(e));
-          throw new ConfigException(message, e);
+          throw new ConfigException(ERR_CONFIG_ATTR_INVALID_STRING_VALUE.get(getName(), value, e), e);
         }
       }
       else
@@ -1228,9 +1226,7 @@ public final class MultiChoiceConfigAttribute
     }
     else
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_STRING_INVALID_TYPE.get(
-          String.valueOf(value), getName(), value.getClass().getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_STRING_INVALID_TYPE.get(value, getName(), value.getClass().getName()));
     }
   }
 

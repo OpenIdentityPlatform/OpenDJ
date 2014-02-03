@@ -146,10 +146,8 @@ public class VirtualStaticGroup
         {
           if (targetDN != null)
           {
-            LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_MULTIPLE_TARGETS.get(
-                String.valueOf(groupEntry.getName()));
-            throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                         message);
+            LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_MULTIPLE_TARGETS.get(groupEntry.getName());
+            throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
           }
 
           try
@@ -171,8 +169,7 @@ public class VirtualStaticGroup
 
     if (targetDN == null)
     {
-      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET.get(
-          String.valueOf(groupEntry.getName()));
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET.get(groupEntry.getName());
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
@@ -315,15 +312,12 @@ public class VirtualStaticGroup
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
-      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
-          String.valueOf(targetGroupDN), String.valueOf(groupEntryDN));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(targetGroupDN, groupEntryDN);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
-      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
-          String.valueOf(groupEntryDN), String.valueOf(targetGroupDN));
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(groupEntryDN, targetGroupDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     else
@@ -350,15 +344,12 @@ public class VirtualStaticGroup
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
-      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
-          String.valueOf(targetGroupDN), String.valueOf(groupEntryDN));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(targetGroupDN, groupEntryDN);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
-      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
-          String.valueOf(groupEntryDN), String.valueOf(targetGroupDN));
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(groupEntryDN, targetGroupDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     else
@@ -380,15 +371,12 @@ public class VirtualStaticGroup
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
-      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
-          String.valueOf(targetGroupDN), String.valueOf(groupEntryDN));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(targetGroupDN, groupEntryDN);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
-      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
-          String.valueOf(groupEntryDN), String.valueOf(targetGroupDN));
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(groupEntryDN, targetGroupDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     else
@@ -411,15 +399,12 @@ public class VirtualStaticGroup
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
-      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
-          String.valueOf(targetGroupDN), String.valueOf(groupEntryDN));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(targetGroupDN, groupEntryDN);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
-      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
-          String.valueOf(groupEntryDN), String.valueOf(targetGroupDN));
+      LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(groupEntryDN, targetGroupDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     else
@@ -449,8 +434,7 @@ public class VirtualStaticGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Virtual static groups don't support altering the member list.
-    LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED.
-        get(String.valueOf(groupEntryDN));
+    LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED.get(groupEntryDN);
     throw new UnsupportedOperationException(message.toString());
   }
 
@@ -464,8 +448,7 @@ public class VirtualStaticGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Virtual static groups don't support altering the member list.
-    LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED.
-        get(String.valueOf(groupEntryDN));
+    LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED.get(groupEntryDN);
     throw new UnsupportedOperationException(message.toString());
   }
 

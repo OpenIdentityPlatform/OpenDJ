@@ -126,8 +126,7 @@ public class DigestMD5SASLMechanismHandler
                   this);
       } catch (UnknownHostException unhe) {
           logger.traceException(unhe);
-          LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(
-                  String.valueOf(configEntryDN), getExceptionMessage(unhe));
+          LocalizableMessage message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(configEntryDN, getExceptionMessage(unhe));
           throw new InitializationException(message, unhe);
       }
   }
@@ -256,10 +255,8 @@ public class DigestMD5SASLMechanismHandler
       } catch (UnknownHostException unhe) {
           logger.traceException(unhe);
           resultCode = ResultCode.OPERATIONS_ERROR;
-          messages.add(ERR_SASL_CANNOT_GET_SERVER_FQDN.get(
-                  String.valueOf(configEntryDN), getExceptionMessage(unhe)));
-          return new ConfigChangeResult(resultCode,adminActionRequired,
-                  messages);
+          messages.add(ERR_SASL_CANNOT_GET_SERVER_FQDN.get(configEntryDN, getExceptionMessage(unhe)));
+          return new ConfigChangeResult(resultCode,adminActionRequired, messages);
       }
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }

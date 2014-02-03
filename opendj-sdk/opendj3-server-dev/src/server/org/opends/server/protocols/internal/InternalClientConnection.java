@@ -288,7 +288,7 @@ public final class InternalClientConnection
     if (userEntry == null)
     {
       LocalizableMessage m =
-           ERR_INTERNALCONN_NO_SUCH_USER.get(String.valueOf(userDN));
+           ERR_INTERNALCONN_NO_SUCH_USER.get(userDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m);
     }
 

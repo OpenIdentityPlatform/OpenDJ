@@ -340,8 +340,7 @@ public final class TextAccessLogPublisher extends
     }
     catch (final Exception e)
     {
-      final LocalizableMessage message = ERR_CONFIG_LOGGING_INVALID_TIME_FORMAT.get(String
-          .valueOf(formatString));
+      final LocalizableMessage message = ERR_CONFIG_LOGGING_INVALID_TIME_FORMAT.get(formatString);
       unacceptableReasons.add(message);
       return false;
     }
@@ -361,9 +360,7 @@ public final class TextAccessLogPublisher extends
     }
     catch (final DirectoryException e)
     {
-      final LocalizableMessage message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
-          config.getLogFilePermissions(), String.valueOf(e));
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(ERR_CONFIG_LOGGING_MODE_INVALID.get(config.getLogFilePermissions(), e));
       return false;
     }
 

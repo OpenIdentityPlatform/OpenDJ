@@ -204,8 +204,7 @@ public class SynchronizationProviderConfigManager
           logger.traceException(e);
 
           messages.add(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
-                  String.valueOf(configuration.getJavaClass()),
-                  String.valueOf(configuration.dn())));
+              configuration.getJavaClass(), configuration.dn()));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
@@ -308,8 +307,7 @@ public class SynchronizationProviderConfigManager
         logger.traceException(e);
 
         messages.add(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
-                String.valueOf(configuration.getJavaClass()),
-                           String.valueOf(configuration.dn())));
+            configuration.getJavaClass(), configuration.dn()));
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
     }
@@ -370,8 +368,7 @@ public class SynchronizationProviderConfigManager
     {
        // Handle the exception: put a message in the unacceptable reasons.
        LocalizableMessage message = ERR_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS.
-           get(String.valueOf(className), String.valueOf(configuration.dn()),
-               stackTraceToSingleLineString(e));
+           get(className, configuration.dn(), stackTraceToSingleLineString(e));
        throw new ConfigException(message, e);
     }
     try
@@ -382,8 +379,7 @@ public class SynchronizationProviderConfigManager
     {
       // Handle the exception: put a message in the unacceptable reasons.
       LocalizableMessage message = ERR_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER.
-          get(String.valueOf(className), String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
+          get(className, configuration.dn(), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
     try
@@ -401,7 +397,7 @@ public class SynchronizationProviderConfigManager
 
       // Handle the exception: put a message in the unacceptable reasons.
       LocalizableMessage message = ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
-              String.valueOf(className), String.valueOf(configuration.dn()));
+              className, configuration.dn());
       throw new ConfigException(message, e);
     }
     return provider;
@@ -439,9 +435,7 @@ public class SynchronizationProviderConfigManager
     {
        // Handle the exception: put a message in the unacceptable reasons.
        LocalizableMessage message = ERR_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS.get(
-               String.valueOf(className),
-               String.valueOf(configuration.dn()),
-               stackTraceToSingleLineString(e));
+           className, configuration.dn(), stackTraceToSingleLineString(e));
        unacceptableReasons.add(message);
        return false;
     }
@@ -465,9 +459,7 @@ public class SynchronizationProviderConfigManager
     {
       // Handle the exception: put a message in the unacceptable reasons.
       LocalizableMessage message = ERR_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER.get(
-              String.valueOf(className),
-              String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
+          className, configuration.dn(), stackTraceToSingleLineString(e));
       unacceptableReasons.add(message);
       return false;
     }

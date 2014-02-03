@@ -1192,11 +1192,8 @@ public class PatternDN
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(
-            dnString, String.valueOf(e));
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+            ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(dnString, e));
       }
     }
 
@@ -1433,11 +1430,8 @@ public class PatternDN
     catch (Exception e)
     {
       logger.traceException(e);
-
-      LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(
-          dnString, String.valueOf(e));
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message);
+          ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(dnString, e));
     }
   }
 }

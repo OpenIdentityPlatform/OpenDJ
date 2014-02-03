@@ -241,7 +241,7 @@ public class ProxiedAuthV2Control
         if (entryLock == null)
         {
           throw new DirectoryException(ResultCode.BUSY,
-              ERR_PROXYAUTH2_CANNOT_LOCK_USER.get(String.valueOf(authzDN)));
+              ERR_PROXYAUTH2_CANNOT_LOCK_USER.get(authzDN));
         }
 
         try
@@ -319,8 +319,7 @@ public class ProxiedAuthV2Control
 
     if (state.isDisabled())
     {
-      LocalizableMessage message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(String
-          .valueOf(userEntry.getName()));
+      LocalizableMessage message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(userEntry.getName());
       throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
     }
 
@@ -333,10 +332,8 @@ public class ProxiedAuthV2Control
           pwpState.lockedDueToMaximumResetAge() ||
           pwpState.isPasswordExpired())
       {
-        LocalizableMessage message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(String
-            .valueOf(userEntry.getName()));
-        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-            message);
+        LocalizableMessage message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(userEntry.getName());
+        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
       }
     }
   }

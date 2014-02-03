@@ -182,17 +182,11 @@ public final class PasswordPolicyImportPlugin
              DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultAuthPasswordSchemes[i] == null)
         {
-          LocalizableMessage message =
-              ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(
-                   String.valueOf(schemeDN));
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(schemeDN));
         }
         else if (! defaultAuthPasswordSchemes[i].supportsAuthPasswordSyntax())
         {
-          LocalizableMessage message =
-              ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(
-                   String.valueOf(schemeDN));
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(schemeDN));
         }
         i++;
       }
@@ -238,10 +232,7 @@ public final class PasswordPolicyImportPlugin
              DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultUserPasswordSchemes[i] == null)
         {
-          LocalizableMessage message =
-              ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(
-                   String.valueOf(schemeDN));
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(schemeDN));
         }
         i++;
       }
@@ -657,18 +648,12 @@ policyLoop:
              DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultAuthSchemes[i] == null)
         {
-          LocalizableMessage message =
-              ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(
-                   String.valueOf(schemeDN));
-          unacceptableReasons.add(message);
+          unacceptableReasons.add(ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(schemeDN));
           configAcceptable = false;
         }
         else if (! defaultAuthSchemes[i].supportsAuthPasswordSyntax())
         {
-          LocalizableMessage message =
-              ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(
-                   String.valueOf(schemeDN));
-          unacceptableReasons.add(message);
+          unacceptableReasons.add(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(schemeDN));
           configAcceptable = false;
         }
         i++;
@@ -706,9 +691,7 @@ policyLoop:
              DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultUserSchemes[i] == null)
         {
-          LocalizableMessage message = ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(
-                                 String.valueOf(schemeDN));
-          unacceptableReasons.add(message);
+          unacceptableReasons.add(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(schemeDN));
           configAcceptable = false;
         }
         i++;
@@ -774,18 +757,12 @@ policyLoop:
         if (defaultAuthSchemes[i] == null)
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
-
-          messages.add(
-               ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(
-                    String.valueOf(schemeDN)));
+          messages.add(ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(schemeDN));
         }
         else if (! defaultAuthSchemes[i].supportsAuthPasswordSyntax())
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
-
-          messages.add(
-               ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(
-                    String.valueOf(schemeDN)));
+          messages.add(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(schemeDN));
         }
         i++;
       }
@@ -832,9 +809,7 @@ policyLoop:
         if (defaultUserSchemes[i] == null)
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
-
-          messages.add(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(
-                            String.valueOf(schemeDN)));
+          messages.add(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(schemeDN));
         }
         i++;
       }

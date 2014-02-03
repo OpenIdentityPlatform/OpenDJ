@@ -202,8 +202,7 @@ public class SASLContext implements CallbackHandler,
       }
       else
       {
-        final LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK.get(mechanism,
-            String.valueOf(callback));
+        final LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK.get(mechanism, callback);
         throw new UnsupportedCallbackException(callback, message.toString());
       }
     }
@@ -726,8 +725,7 @@ public class SASLContext implements CallbackHandler,
         {
           if ((authzEntry = DirectoryServer.getEntry(authzDN)) == null)
           {
-            setCallbackMsg(ERR_SASL_AUTHZID_NO_SUCH_ENTRY.get(String
-                .valueOf(authzDN)));
+            setCallbackMsg(ERR_SASL_AUTHZID_NO_SUCH_ENTRY.get(authzDN));
             callback.setAuthorized(false);
             return;
           }
@@ -735,8 +733,7 @@ public class SASLContext implements CallbackHandler,
         catch (final DirectoryException e)
         {
           logger.traceException(e);
-          setCallbackMsg(ERR_SASL_AUTHZID_CANNOT_GET_ENTRY.get(
-              String.valueOf(authzDN), e.getMessageObject()));
+          setCallbackMsg(ERR_SASL_AUTHZID_CANNOT_GET_ENTRY.get(authzDN, e.getMessageObject()));
           callback.setAuthorized(false);
           return;
         }
@@ -867,7 +864,7 @@ public class SASLContext implements CallbackHandler,
     final Lock readLock = LockManager.lockRead(userDN);
     if (readLock == null)
     {
-      setCallbackMsg(INFO_SASL_CANNOT_LOCK_ENTRY.get(String.valueOf(userDN)));
+      setCallbackMsg(INFO_SASL_CANNOT_LOCK_ENTRY.get(userDN));
       return;
     }
 
@@ -879,8 +876,7 @@ public class SASLContext implements CallbackHandler,
     {
       logger.traceException(e);
       setCallbackMsg(ERR_SASL_CANNOT_GET_ENTRY_BY_DN.get(
-          String.valueOf(userDN), SASL_MECHANISM_DIGEST_MD5,
-          e.getMessageObject()));
+          userDN, SASL_MECHANISM_DIGEST_MD5, e.getMessageObject()));
     }
     finally
     {
@@ -961,8 +957,7 @@ public class SASLContext implements CallbackHandler,
     if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
         .mayProxy(authInfo.getAuthenticationEntry(), e, bindOp))
     {
-      setCallbackMsg(ERR_SASL_AUTHZID_INSUFFICIENT_ACCESS.get(String
-          .valueOf(authEntry.getName())));
+      setCallbackMsg(ERR_SASL_AUTHZID_INSUFFICIENT_ACCESS.get(authEntry.getName()));
       ret = false;
     }
 
@@ -987,8 +982,7 @@ public class SASLContext implements CallbackHandler,
         authInfo);
     if (!tempConn.hasPrivilege(Privilege.PROXIED_AUTH, bindOp))
     {
-      setCallbackMsg(ERR_SASL_AUTHZID_INSUFFICIENT_PRIVILEGES.get(String
-          .valueOf(authEntry.getName())));
+      setCallbackMsg(ERR_SASL_AUTHZID_INSUFFICIENT_PRIVILEGES.get(authEntry.getName()));
       ret = false;
     }
     return ret;
@@ -1096,8 +1090,7 @@ public class SASLContext implements CallbackHandler,
       catch (final DirectoryException e)
       {
         logger.traceException(e);
-        setCallbackMsg(ERR_SASLDIGESTMD5_CANNOT_MAP_USERNAME.get(
-            String.valueOf(userName), e.getMessageObject()));
+        setCallbackMsg(ERR_SASLDIGESTMD5_CANNOT_MAP_USERNAME.get(userName, e.getMessageObject()));
       }
     }
     /*
@@ -1134,8 +1127,7 @@ public class SASLContext implements CallbackHandler,
 
       if (!authState.isPasswordPolicy())
       {
-        final LocalizableMessage message = ERR_SASL_ACCOUNT_NOT_LOCAL.get(mechanism,
-            String.valueOf(authEntry.getName()));
+        final LocalizableMessage message = ERR_SASL_ACCOUNT_NOT_LOCAL.get(mechanism,authEntry.getName());
         setCallbackMsg(ResultCode.INAPPROPRIATE_AUTHENTICATION, message);
         return;
       }
@@ -1145,16 +1137,14 @@ public class SASLContext implements CallbackHandler,
       clearPasswords = pwPolicyState.getClearPasswords();
       if ((clearPasswords == null) || clearPasswords.isEmpty())
       {
-        setCallbackMsg(ERR_SASL_NO_REVERSIBLE_PASSWORDS.get(mechanism,
-            String.valueOf(authEntry.getName())));
+        setCallbackMsg(ERR_SASL_NO_REVERSIBLE_PASSWORDS.get(mechanism, authEntry.getName()));
         return;
       }
     }
     catch (final Exception e)
     {
       logger.traceException(e);
-      setCallbackMsg(ERR_SASL_CANNOT_GET_REVERSIBLE_PASSWORDS.get(
-          String.valueOf(authEntry.getName()), mechanism, String.valueOf(e)));
+      setCallbackMsg(ERR_SASL_CANNOT_GET_REVERSIBLE_PASSWORDS.get(authEntry.getName(), mechanism, e));
       return;
     }
 

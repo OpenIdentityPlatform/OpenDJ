@@ -229,8 +229,7 @@ public class ECLSearchOperation
       if (replicationServer == null)
       {
         setResultCode(ResultCode.OPERATIONS_ERROR);
-        appendErrorMessage(ERR_SEARCH_BASE_DOESNT_EXIST.get(
-            String.valueOf(baseDN)));
+        appendErrorMessage(ERR_SEARCH_BASE_DOESNT_EXIST.get(baseDN));
         break searchProcessing;
       }
 

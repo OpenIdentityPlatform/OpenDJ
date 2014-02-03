@@ -1198,9 +1198,7 @@ public class InstallDS extends ConsoleApplication
         {
           if (usedPorts.contains(portNumber))
           {
-            LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
-                String.valueOf(portNumber));
-            println(message);
+            println(ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(portNumber));
             println();
             portNumber = -1;
           }
@@ -2127,8 +2125,7 @@ public class InstallDS extends ConsoleApplication
           if (nPasswordPrompts > LIMIT_KEYSTORE_PASSWORD_PROMPT)
           {
             throw new UserDataException(null,
-                ERR_INSTALLDS_TOO_MANY_KEYSTORE_PASSWORD_TRIES.get(
-                    String.valueOf(LIMIT_KEYSTORE_PASSWORD_PROMPT)));
+                ERR_INSTALLDS_TOO_MANY_KEYSTORE_PASSWORD_TRIES.get(LIMIT_KEYSTORE_PASSWORD_PROMPT));
           }
           pwd = readPassword(
                 INFO_INSTALLDS_PROMPT_KEYSTORE_PASSWORD.get(), logger);

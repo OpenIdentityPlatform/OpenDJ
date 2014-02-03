@@ -111,8 +111,7 @@ public class RandomPasswordGenerator
 
       if (encodedCharacterSets.size() == 0)
       {
-        LocalizableMessage message =
-            ERR_RANDOMPWGEN_NO_CHARSETS.get(String.valueOf(configEntryDN));
+        LocalizableMessage message = ERR_RANDOMPWGEN_NO_CHARSETS.get(configEntryDN);
         throw new ConfigException(message);
       }
       for (NamedCharacterSet s : NamedCharacterSet
@@ -120,8 +119,7 @@ public class RandomPasswordGenerator
       {
         if (charsets.containsKey(s.getName()))
         {
-          LocalizableMessage message = ERR_RANDOMPWGEN_CHARSET_NAME_CONFLICT.get(
-              String.valueOf(configEntryDN), s.getName());
+          LocalizableMessage message = ERR_RANDOMPWGEN_CHARSET_NAME_CONFLICT.get(configEntryDN, s.getName());
           throw new ConfigException(message);
         }
         else
@@ -168,9 +166,7 @@ public class RandomPasswordGenerator
           NamedCharacterSet charset = charsets.get(name);
           if (charset == null)
           {
-            LocalizableMessage message = ERR_RANDOMPWGEN_UNKNOWN_CHARSET.get(
-                String.valueOf(formatString), String.valueOf(name));
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_RANDOMPWGEN_UNKNOWN_CHARSET.get(formatString, name));
           }
           else
           {
@@ -186,8 +182,7 @@ public class RandomPasswordGenerator
         {
           logger.traceException(e);
 
-          LocalizableMessage message = ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(
-              String.valueOf(formatString));
+          LocalizableMessage message = ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(formatString);
           throw new ConfigException(message, e);
         }
       }
@@ -296,9 +291,7 @@ public class RandomPasswordGenerator
       SortedSet<String> currentPasSet = configuration.getPasswordCharacterSet();
       if (currentPasSet.size() == 0)
       {
-        LocalizableMessage message =
-            ERR_RANDOMPWGEN_NO_CHARSETS.get(String.valueOf(cfgEntryDN));
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_RANDOMPWGEN_NO_CHARSETS.get(cfgEntryDN));
       }
 
       for (NamedCharacterSet s : NamedCharacterSet
@@ -306,9 +299,7 @@ public class RandomPasswordGenerator
       {
         if (charsets.containsKey(s.getName()))
         {
-          LocalizableMessage message = ERR_RANDOMPWGEN_CHARSET_NAME_CONFLICT.get(
-                  String.valueOf(cfgEntryDN), s.getName());
-          unacceptableReasons.add(message);
+          unacceptableReasons.add(ERR_RANDOMPWGEN_CHARSET_NAME_CONFLICT.get(cfgEntryDN, s.getName()));
           return false;
         }
         else
@@ -348,14 +339,11 @@ public class RandomPasswordGenerator
           {
             int    colonPos = token.indexOf(':');
             String name     = token.substring(0, colonPos);
-            int    count    = Integer.parseInt(token.substring(colonPos+1));
 
             NamedCharacterSet charset = charsets.get(name);
             if (charset == null)
             {
-              LocalizableMessage message = ERR_RANDOMPWGEN_UNKNOWN_CHARSET.get(
-                      String.valueOf(formatString), String.valueOf(name));
-              unacceptableReasons.add(message);
+              unacceptableReasons.add(ERR_RANDOMPWGEN_UNKNOWN_CHARSET.get(formatString, name));
               return false;
             }
           }
@@ -363,9 +351,7 @@ public class RandomPasswordGenerator
           {
             logger.traceException(e);
 
-            LocalizableMessage message = ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(
-                    String.valueOf(formatString));
-            unacceptableReasons.add(message);
+            unacceptableReasons.add(ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(formatString));
             return false;
           }
         }
@@ -408,8 +394,7 @@ public class RandomPasswordGenerator
       newEncodedCharacterSets = configuration.getPasswordCharacterSet();
       if (newEncodedCharacterSets.size() == 0)
       {
-        messages.add(ERR_RANDOMPWGEN_NO_CHARSETS.get(
-                String.valueOf(configEntryDN)));
+        messages.add(ERR_RANDOMPWGEN_NO_CHARSETS.get(configEntryDN));
 
         if (resultCode == ResultCode.SUCCESS)
         {
@@ -423,9 +408,7 @@ public class RandomPasswordGenerator
         {
           if (charsets.containsKey(s.getName()))
           {
-            messages.add(ERR_RANDOMPWGEN_CHARSET_NAME_CONFLICT.get(
-                    String.valueOf(configEntryDN),
-                    s.getName()));
+            messages.add(ERR_RANDOMPWGEN_CHARSET_NAME_CONFLICT.get(configEntryDN, s.getName()));
 
             if (resultCode == ResultCode.SUCCESS)
             {
@@ -487,9 +470,7 @@ public class RandomPasswordGenerator
           NamedCharacterSet charset = charsets.get(name);
           if (charset == null)
           {
-            messages.add(ERR_RANDOMPWGEN_UNKNOWN_CHARSET.get(
-                    String.valueOf(newFormatString),
-                    String.valueOf(name)));
+            messages.add(ERR_RANDOMPWGEN_UNKNOWN_CHARSET.get(newFormatString, name));
 
             if (resultCode == ResultCode.SUCCESS)
             {
@@ -506,8 +487,7 @@ public class RandomPasswordGenerator
         {
           logger.traceException(e);
 
-          messages.add(ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(
-                  String.valueOf(newFormatString)));
+          messages.add(ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(newFormatString));
 
           if (resultCode == ResultCode.SUCCESS)
           {

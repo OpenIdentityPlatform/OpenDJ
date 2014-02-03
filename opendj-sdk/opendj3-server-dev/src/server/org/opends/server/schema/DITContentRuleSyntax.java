@@ -278,10 +278,8 @@ public class DITContentRuleSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.get(
-          valueStr, (pos-1), String.valueOf(c));
-      throw new DirectoryException(
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.get(valueStr, (pos-1), c);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -330,10 +328,8 @@ public class DITContentRuleSyntax
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
-              valueStr, String.valueOf(c), (pos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(valueStr, c, (pos-1));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
         {
@@ -355,10 +351,8 @@ public class DITContentRuleSyntax
         else
         {
           // This must have been an illegal character.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_STRING_OID.get(
-              valueStr, String.valueOf(c), (pos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_STRING_OID.get(valueStr, c, (pos-1));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
     }
@@ -399,7 +393,7 @@ public class DITContentRuleSyntax
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL.
           get(valueStr, oid, structuralClass.getNameOrOID(),
-              String.valueOf(structuralClass.getObjectClassType()));
+              structuralClass.getObjectClassType());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -511,11 +505,8 @@ public class DITContentRuleSyntax
         else
         {
           // This is an illegal character.
-          LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
-                      valueStr, String.valueOf(c), (pos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
       else if (lowerTokenName.equals("desc"))
@@ -589,10 +580,8 @@ public class DITContentRuleSyntax
             else if (c != '$')
             {
               LocalizableMessage message =
-                  ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
-                          valueStr, String.valueOf(c), (pos-1));
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message);
+                  ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
             }
           }
         }
@@ -676,10 +665,8 @@ public class DITContentRuleSyntax
             else if (c != '$')
             {
               LocalizableMessage message =
-                  ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
-                          valueStr, String.valueOf(c), (pos-1));
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message);
+                  ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
             }
           }
         }
@@ -757,10 +744,8 @@ public class DITContentRuleSyntax
             else if (c != '$')
             {
               LocalizableMessage message =
-                  ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
-                          valueStr, String.valueOf(c), (pos-1));
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message);
+                  ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
             }
           }
         }
@@ -839,10 +824,8 @@ public class DITContentRuleSyntax
             else if (c != '$')
             {
               LocalizableMessage message =
-                  ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
-                          valueStr, String.valueOf(c), (pos-1));
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message);
+                  ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
             }
           }
         }
@@ -1017,8 +1000,7 @@ public class DITContentRuleSyntax
     if (c != '\'')
     {
       LocalizableMessage message =
-          ERR_ATTR_SYNTAX_DCR_EXPECTED_QUOTE_AT_POS.get(
-                  valueStr, startPos, String.valueOf(c));
+          ERR_ATTR_SYNTAX_DCR_EXPECTED_QUOTE_AT_POS.get(valueStr, startPos, c);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1103,8 +1085,7 @@ public class DITContentRuleSyntax
     if (c != '\'')
     {
       LocalizableMessage message =
-          ERR_ATTR_SYNTAX_DCR_EXPECTED_QUOTE_AT_POS.get(
-                  valueStr, startPos, String.valueOf(c));
+          ERR_ATTR_SYNTAX_DCR_EXPECTED_QUOTE_AT_POS.get(valueStr, startPos, c);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1218,9 +1199,8 @@ public class DITContentRuleSyntax
 
           // This must have been an illegal character.
           LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
-              lowerStr, String.valueOf(c), (startPos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+              lowerStr, c, (startPos-1));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
         {
@@ -1256,19 +1236,15 @@ public class DITContentRuleSyntax
 
           // This must have been an illegal character.
           LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_STRING_OID.get(
-              lowerStr, String.valueOf(c), (startPos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+              lowerStr, c, (startPos-1));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
     }
     else
     {
-      LocalizableMessage message =
-          ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
-                  lowerStr, String.valueOf(c), startPos);
-      throw new DirectoryException(
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(lowerStr, c, startPos);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1378,10 +1354,8 @@ public class DITContentRuleSyntax
         {
           // This is an illegal character.
           LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(
-                      valueStr, String.valueOf(c), startPos);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_DCR_ILLEGAL_CHAR.get(valueStr, c, startPos);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else if (c == '\'')
         {

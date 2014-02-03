@@ -1792,7 +1792,7 @@ public class Utils
 
       case IMPORT_AUTOMATICALLY_GENERATED_DATA:
         arg2 = INFO_REVIEW_IMPORT_AUTOMATICALLY_GENERATED.get(
-                String.valueOf(options.getNumberEntries()));
+                options.getNumberEntries());
         break;
 
       default:
@@ -1872,7 +1872,7 @@ public class Utils
             buf.append("\n");
           }
         }
-        buf.append(INFO_ENABLE_SSL.get(String.valueOf(ops.getSslPort())));
+        buf.append(INFO_ENABLE_SSL.get(ops.getSslPort()));
       }
       if (html)
       {

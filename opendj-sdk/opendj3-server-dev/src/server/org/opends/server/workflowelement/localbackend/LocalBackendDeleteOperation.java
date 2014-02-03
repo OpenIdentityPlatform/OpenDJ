@@ -231,8 +231,7 @@ public class LocalBackendDeleteOperation
       if (entryLock == null)
       {
         setResultCode(ResultCode.BUSY);
-        appendErrorMessage(ERR_DELETE_CANNOT_LOCK_ENTRY.get(
-            String.valueOf(entryDN)));
+        appendErrorMessage(ERR_DELETE_CANNOT_LOCK_ENTRY.get(entryDN));
         return;
       }
 
@@ -241,8 +240,7 @@ public class LocalBackendDeleteOperation
       if (entry == null)
       {
         setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY
-            .get(String.valueOf(entryDN)));
+        appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY.get(entryDN));
 
         setMatchedDN(findMatchedDN(entryDN));
         return;
@@ -273,8 +271,7 @@ public class LocalBackendDeleteOperation
         {
           setResultCodeAndMessageNoInfoDisclosure(entry,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-              ERR_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(String
-                  .valueOf(entryDN)));
+              ERR_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(entryDN));
           return;
         }
       }
@@ -310,8 +307,7 @@ public class LocalBackendDeleteOperation
       if (backend == null)
       {
         setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY
-            .get(String.valueOf(entryDN)));
+        appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY.get(entryDN));
         return;
       }
 
@@ -332,8 +328,7 @@ public class LocalBackendDeleteOperation
           {
             setResultCodeAndMessageNoInfoDisclosure(entry,
                 ResultCode.NOT_ALLOWED_ON_NONLEAF,
-                ERR_DELETE_HAS_SUB_BACKEND.get(String.valueOf(entryDN),
-                    String.valueOf(dn)));
+                ERR_DELETE_HAS_SUB_BACKEND.get(entryDN, dn));
             return;
           }
         }
@@ -384,7 +379,7 @@ public class LocalBackendDeleteOperation
     return LocalBackendWorkflowElement.newDirectoryException(this, entry,
         entryDN,
         resultCode, message, ResultCode.NO_SUCH_OBJECT,
-        ERR_DELETE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
+        ERR_DELETE_NO_SUCH_ENTRY.get(entryDN));
   }
 
   private void setResultCodeAndMessageNoInfoDisclosure(Entry entry,
@@ -392,7 +387,7 @@ public class LocalBackendDeleteOperation
   {
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
         entry, entryDN, resultCode, message, ResultCode.NO_SUCH_OBJECT,
-        ERR_DELETE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
+        ERR_DELETE_NO_SUCH_ENTRY.get(entryDN));
   }
 
   private DN findMatchedDN(DN entryDN)
@@ -448,9 +443,7 @@ public class LocalBackendDeleteOperation
             logger.traceException(de);
 
             throw newDirectoryException(entry, de.getResultCode(),
-                           ERR_DELETE_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                                String.valueOf(entryDN),
-                                de.getMessageObject()));
+                ERR_DELETE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
           }
 
           // Check if the current user has permission to make
@@ -468,7 +461,7 @@ public class LocalBackendDeleteOperation
             if (!filter.matchesEntry(entry))
             {
               throw newDirectoryException(entry, ResultCode.ASSERTION_FAILED,
-                  ERR_DELETE_ASSERTION_FAILED.get(String.valueOf(entryDN)));
+                  ERR_DELETE_ASSERTION_FAILED.get(entryDN));
             }
           }
           catch (DirectoryException de)
@@ -481,9 +474,7 @@ public class LocalBackendDeleteOperation
             logger.traceException(de);
 
             throw newDirectoryException(entry, de.getResultCode(),
-                           ERR_DELETE_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                                String.valueOf(entryDN),
-                                de.getMessageObject()));
+                ERR_DELETE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
           }
         }
         else if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
@@ -555,9 +546,8 @@ public class LocalBackendDeleteOperation
           if ((backend == null) || (! backend.supportsControl(oid)))
           {
             throw newDirectoryException(entry,
-                           ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                           ERR_DELETE_UNSUPPORTED_CRITICAL_CONTROL.get(
-                                String.valueOf(entryDN), oid));
+                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+                ERR_DELETE_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
           }
         }
       }

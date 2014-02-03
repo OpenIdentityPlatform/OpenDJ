@@ -479,7 +479,7 @@ public class LoginDialog extends JDialog
               }
               UserDataCertificateException udce =
               new UserDataCertificateException(Step.REPLICATION_OPTIONS,
-                  INFO_CERTIFICATE_EXCEPTION.get(h, String.valueOf(p)),
+                  INFO_CERTIFICATE_EXCEPTION.get(h, p),
                   throwable, h, p,
                   getTrustManager().getLastRefusedChain(),
                   getTrustManager().getLastRefusedAuthType(), excType);

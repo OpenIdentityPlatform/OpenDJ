@@ -265,10 +265,8 @@ public class PrintableStringSyntax
       char c = valueString.charAt(i);
       if (! PrintableString.isPrintableCharacter(c))
       {
-
         invalidReason.append(
-                WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER.get(
-                        valueString, String.valueOf(c), i));
+                WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER.get(valueString, c, i));
         return false;
       }
     }

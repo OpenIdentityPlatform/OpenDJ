@@ -363,7 +363,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } catch (IOException ioe) {
-        LocalizableMessage message = ERR_TASK_TOOL_IO_ERROR.get(String.valueOf(ioe));
+        LocalizableMessage message = ERR_TASK_TOOL_IO_ERROR.get(ioe);
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } catch (ASN1Exception ae) {

@@ -464,7 +464,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
         {
           String reason = collectionToString(unacceptableReasons, ".  ");
           LocalizableMessage message = ERR_CONFIG_GROUP_CONFIG_NOT_ACCEPTABLE.get(
-              String.valueOf(configuration.dn()), reason);
+              configuration.dn(), reason);
           throw new InitializationException(message);
         }
       }
@@ -474,8 +474,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_GROUP_INITIALIZATION_FAILED.
-          get(className, String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
+          get(className, configuration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }
@@ -589,8 +588,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
         filter = groupImplementation.getGroupDefinitionFilter();
         if (backend.getEntryCount() > 0 && ! backend.isIndexed(filter))
         {
-          logger.warn(WARN_GROUP_FILTER_NOT_INDEXED.get(String.valueOf(filter),
-                        String.valueOf(configEntryDN), backend.getBackendID()));
+          logger.warn(WARN_GROUP_FILTER_NOT_INDEXED.get(filter, configEntryDN, backend.getBackendID()));
         }
       }
       catch (Exception e)

@@ -1006,8 +1006,7 @@ public class FilePermission
   {
     if ((modeString == null) || (modeString.length() != 3))
     {
-      LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
-          String.valueOf(modeString));
+      LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(modeString);
       throw new DirectoryException(ResultCode.OTHER, message);
     }
 
@@ -1039,8 +1038,7 @@ public class FilePermission
                              OWNER_EXECUTABLE;
         break;
       default:
-      LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
-          String.valueOf(modeString));
+      LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(modeString);
       throw new DirectoryException(ResultCode.OTHER, message);
     }
 
@@ -1071,8 +1069,7 @@ public class FilePermission
                              GROUP_EXECUTABLE;
         break;
       default:
-      LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
-          String.valueOf(modeString));
+      LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(modeString);
       throw new DirectoryException(ResultCode.OTHER, message);
     }
 
@@ -1103,8 +1100,7 @@ public class FilePermission
                              OTHER_EXECUTABLE;
         break;
       default:
-      LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
-          String.valueOf(modeString));
+      LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(modeString);
       throw new DirectoryException(ResultCode.OTHER, message);
     }
 

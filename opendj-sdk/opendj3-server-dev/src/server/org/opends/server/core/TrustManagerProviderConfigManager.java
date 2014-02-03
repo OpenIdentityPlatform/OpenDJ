@@ -441,8 +441,7 @@ public class TrustManagerProviderConfigManager
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_TRUSTMANAGER_INITIALIZATION_FAILED.
-          get(className, String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
+          get(className, configuration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }

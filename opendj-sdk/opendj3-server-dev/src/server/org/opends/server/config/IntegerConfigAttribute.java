@@ -800,7 +800,7 @@ public final class IntegerConfigAttribute
       logger.traceException(e);
 
       rejectReason.append(ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(
-              getName(), stringValue, String.valueOf(e)));
+              getName(), stringValue, e));
       return false;
     }
 
@@ -888,9 +888,7 @@ public final class IntegerConfigAttribute
         logger.traceException(e);
 
         LocalizableMessage message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-                valueString, getName(),
-                String.valueOf(e));
-
+                valueString, getName(), e);
         if (allowFailures)
         {
           logger.error(message);
@@ -1480,8 +1478,7 @@ public final class IntegerConfigAttribute
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-            String.valueOf(value), getName(), String.valueOf(e));
+        LocalizableMessage message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(value, getName(), e);
         throw new ConfigException(message, e);
       }
     }
@@ -1545,15 +1542,14 @@ public final class IntegerConfigAttribute
         logger.traceException(e);
 
         LocalizableMessage message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-            componentType + "[" + length + "]", getName(), String.valueOf(e));
+            componentType + "[" + length + "]", getName(), e);
         throw new ConfigException(message, e);
       }
     }
     else
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_INT_INVALID_TYPE.get(
-          String.valueOf(value), getName(), value.getClass().getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_INT_INVALID_TYPE.get(
+          value, getName(), value.getClass().getName()));
     }
   }
 

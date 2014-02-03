@@ -616,17 +616,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-        printMessage(message);
+        printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-      printMessage(message);
+      printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -695,16 +691,12 @@ public class DBTest
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-        LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-          printMessage(message);
+          printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
         }
       }
       catch (Exception e)
       {
-      LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-        printMessage(message);
+        printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       }
     }
   }
@@ -752,17 +744,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-        printMessage(message);
+        printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-      printMessage(message);
+      printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -870,16 +858,12 @@ public class DBTest
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
-              backend.getBackendID(), String.valueOf(failureReason));
-          printMessage(message);
+          printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
         }
       }
       catch (Exception e)
       {
-        LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
-            backend.getBackendID(), getExceptionMessage(e));
-        printMessage(message);
+        printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       }
     }
   }
@@ -927,17 +911,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-        printMessage(message);
+        printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-      printMessage(message);
+      printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -1126,16 +1106,12 @@ public class DBTest
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-        LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-          printMessage(message);
+          printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
         }
       }
       catch (Exception e)
       {
-      LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-        printMessage(message);
+        printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       }
     }
   }
@@ -1183,17 +1159,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
-        printMessage(message);
+        printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_DBTEST_CANNOT_LOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-      printMessage(message);
+      printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -1725,16 +1697,12 @@ public class DBTest
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
-              backend.getBackendID(), String.valueOf(failureReason));
-          printMessage(message);
+          printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
         }
       }
       catch (Exception e)
       {
-        LocalizableMessage message = WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(
-            backend.getBackendID(), getExceptionMessage(e));
-        printMessage(message);
+        printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       }
     }
   }

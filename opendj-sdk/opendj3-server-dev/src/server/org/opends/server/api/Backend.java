@@ -1085,11 +1085,8 @@ public abstract class Backend
           {
             if (subBaseDNs.length > 1)
             {
-              LocalizableMessage message =
-                      ERR_BACKEND_CANNOT_REMOVE_MULTIBASE_SUB_SUFFIX.
-                              get(String.valueOf(subSuffixDN),
-                                      String.valueOf(parentDN));
-              throw new ConfigException(message);
+              throw new ConfigException(
+                  ERR_BACKEND_CANNOT_REMOVE_MULTIBASE_SUB_SUFFIX.get(subSuffixDN, parentDN));
             }
 
             thisMatches = true;

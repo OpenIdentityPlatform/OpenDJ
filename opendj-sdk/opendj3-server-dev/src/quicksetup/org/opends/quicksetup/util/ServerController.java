@@ -260,9 +260,8 @@ public class ServerController {
                */
               throw new ApplicationException(
                   ReturnCode.STOP_ERROR,
-                  INFO_ERROR_STOPPING_SERVER_CODE.get(
-                      String.valueOf(returnValue)),
-                      null);
+                  INFO_ERROR_STOPPING_SERVER_CODE.get(returnValue),
+                  null);
             }
           } else {
             if (application != null) {
@@ -380,8 +379,8 @@ public class ServerController {
         if (returnValue != 0)
         {
           throw new ApplicationException(ReturnCode.START_ERROR,
-              INFO_ERROR_STARTING_SERVER_CODE.get(
-                  String.valueOf(returnValue)), null);
+              INFO_ERROR_STARTING_SERVER_CODE.get(returnValue),
+              null);
         }
         if (outputReader.isFinished())
         {
@@ -521,17 +520,15 @@ public class ServerController {
             {
               throw new ApplicationException(
                   ReturnCode.START_ERROR,
-                  INFO_ERROR_STARTING_SERVER_IN_WINDOWS.get(
-                      String.valueOf(port)),
-                      null);
+                  INFO_ERROR_STARTING_SERVER_IN_WINDOWS.get(port),
+                  null);
             }
             else
             {
               throw new ApplicationException(
                   ReturnCode.START_ERROR,
-                  INFO_ERROR_STARTING_SERVER_IN_UNIX.get(
-                      String.valueOf(port)),
-                      null);
+                  INFO_ERROR_STARTING_SERVER_IN_UNIX.get(port),
+                  null);
             }
           }
         }

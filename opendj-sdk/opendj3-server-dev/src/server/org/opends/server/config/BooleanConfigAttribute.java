@@ -727,10 +727,8 @@ public final class BooleanConfigAttribute
     }
     else
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(
-          getName(), value.getClass().getName() + ":" +
-                                       String.valueOf(value));
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(
+          getName(), value.getClass().getName() + ":" + value));
     }
   }
 

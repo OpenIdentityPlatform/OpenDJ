@@ -634,8 +634,7 @@ public class ModifyDNOperationBasis
   private void updateOperationErrMsgAndResCode()
   {
     setResultCode(ResultCode.NO_SUCH_OBJECT);
-    appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY.get(
-            String.valueOf(entryDN)));
+    appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY.get(entryDN));
   }
 
 
@@ -700,7 +699,7 @@ public class ModifyDNOperationBasis
       if ((parentDN == null) || parentDN.isRootDN())
       {
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-        appendErrorMessage(ERR_MODDN_NO_PARENT.get(String.valueOf(entryDN)));
+        appendErrorMessage(ERR_MODDN_NO_PARENT.get(entryDN));
       }
       newDN = parentDN.child(getNewRDN());
     }

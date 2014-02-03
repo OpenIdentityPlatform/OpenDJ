@@ -157,8 +157,7 @@ public class PasswordModifyExtendedOperation
       identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
       if (identityMapper == null)
       {
-        LocalizableMessage message = ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(
-            String.valueOf(identityMapperDN), String.valueOf(config.dn()));
+        LocalizableMessage message = ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(identityMapperDN, config.dn());
         throw new ConfigException(message);
       }
     }
@@ -166,7 +165,7 @@ public class PasswordModifyExtendedOperation
     {
       logger.traceException(e);
       LocalizableMessage message = ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(
-          String.valueOf(config.dn()), getExceptionMessage(e));
+          config.dn(), getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
 
@@ -304,8 +303,7 @@ public class PasswordModifyExtendedOperation
         if (userLock == null)
         {
           operation.setResultCode(ResultCode.BUSY);
-          operation.appendErrorMessage(ERR_EXTOP_PASSMOD_CANNOT_LOCK_USER_ENTRY
-              .get(String.valueOf(userDN)));
+          operation.appendErrorMessage(ERR_EXTOP_PASSMOD_CANNOT_LOCK_USER_ENTRY.get(userDN));
           return;
         }
 
@@ -429,8 +427,7 @@ public class PasswordModifyExtendedOperation
         if (!policy.isPasswordPolicy())
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-          operation.appendErrorMessage(ERR_EXTOP_PASSMOD_ACCOUNT_NOT_LOCAL
-              .get(String.valueOf(userDN)));
+          operation.appendErrorMessage(ERR_EXTOP_PASSMOD_ACCOUNT_NOT_LOCAL.get(userDN));
           return;
         }
         pwPolicyState = (PasswordPolicyState) policy
@@ -442,9 +439,7 @@ public class PasswordModifyExtendedOperation
 
         operation.setResultCode(DirectoryServer.getServerErrorResultCode());
         operation.appendErrorMessage(
-                ERR_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY.get(
-                        String.valueOf(userDN),
-                        de.getMessageObject()));
+                ERR_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY.get(userDN, de.getMessageObject()));
         return;
       }
 
@@ -750,8 +745,7 @@ public class PasswordModifyExtendedOperation
 
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               operation.appendErrorMessage(
-                      ERR_EXTOP_PASSMOD_UNACCEPTABLE_PW.get(
-                              String.valueOf(invalidReason)));
+                      ERR_EXTOP_PASSMOD_UNACCEPTABLE_PW.get(invalidReason));
               return;
             }
           }
@@ -987,8 +981,8 @@ public class PasswordModifyExtendedOperation
           // At this point, the user's password is already changed so there's
           // not much point in returning a non-success result.  However, we
           // should at least log that something went wrong.
-          logger.warn(WARN_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE.get(String.valueOf(userDN),
-                  String.valueOf(modOp.getResultCode()),
+          logger.warn(WARN_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE.get(userDN,
+                  modOp.getResultCode(),
                   modOp.getErrorMessage()));
         }
       }
@@ -1133,8 +1127,7 @@ public class PasswordModifyExtendedOperation
       {
         operation.setResultCode(ResultCode.NO_SUCH_OBJECT);
         operation.appendErrorMessage(
-                ERR_EXTOP_PASSMOD_NO_USER_ENTRY_BY_AUTHZID.get(
-                        String.valueOf(entryDN)));
+                ERR_EXTOP_PASSMOD_NO_USER_ENTRY_BY_AUTHZID.get(entryDN));
 
         // See if one of the entry's ancestors exists.
         operation.setMatchedDN(findMatchedDN(entryDN));
@@ -1218,10 +1211,7 @@ public class PasswordModifyExtendedOperation
       IdentityMapper<?> mapper = DirectoryServer.getIdentityMapper(mapperDN);
       if (mapper == null)
       {
-        LocalizableMessage message = ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(
-                String.valueOf(mapperDN),
-                String.valueOf(config.dn()));
-        unacceptableReasons.add(message);
+        unacceptableReasons.add(ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(mapperDN, config.dn()));
         return false;
       }
     }
@@ -1229,10 +1219,7 @@ public class PasswordModifyExtendedOperation
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(
-              String.valueOf(config.dn()),
-              getExceptionMessage(e));
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(config.dn(), getExceptionMessage(e)));
       return false;
     }
 
@@ -1277,9 +1264,7 @@ public class PasswordModifyExtendedOperation
       {
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
 
-        messages.add(ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(
-                String.valueOf(mapperDN),
-                String.valueOf(config.dn())));
+        messages.add(ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(mapperDN, config.dn()));
       }
     }
     catch (Exception e)
@@ -1288,9 +1273,7 @@ public class PasswordModifyExtendedOperation
 
       resultCode = DirectoryServer.getServerErrorResultCode();
 
-      messages.add(ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(
-              String.valueOf(config.dn()),
-              getExceptionMessage(e)));
+      messages.add(ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(config.dn(), getExceptionMessage(e)));
     }
 
 

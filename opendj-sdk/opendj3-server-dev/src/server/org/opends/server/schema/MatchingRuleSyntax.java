@@ -269,9 +269,7 @@ public class MatchingRuleSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-
-      invalidReason.append(ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS.get(
-              valueStr, (pos-1), String.valueOf(c)));
+      invalidReason.append(ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS.get(valueStr, (pos-1), c));
       return false;
     }
 
@@ -317,10 +315,7 @@ public class MatchingRuleSyntax
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
-
-          invalidReason.append(
-                  ERR_ATTR_SYNTAX_MR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
-                          valueStr, String.valueOf(c), (pos-1)));
+          invalidReason.append(ERR_ATTR_SYNTAX_MR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(valueStr, c, pos-1));
           return false;
         }
         else
@@ -343,10 +338,7 @@ public class MatchingRuleSyntax
         else
         {
           // This must have been an illegal character.
-
-          invalidReason.append(
-                  ERR_ATTR_SYNTAX_MR_ILLEGAL_CHAR_IN_STRING_OID.get(
-                          valueStr, String.valueOf(c), (pos-1)));
+          invalidReason.append(ERR_ATTR_SYNTAX_MR_ILLEGAL_CHAR_IN_STRING_OID.get(valueStr, c, (pos-1)));
           return false;
         }
       }
@@ -510,9 +502,7 @@ public class MatchingRuleSyntax
         else
         {
           // This is an illegal character.
-
-          invalidReason.append(ERR_ATTR_SYNTAX_MR_ILLEGAL_CHAR.get(
-                  valueStr, String.valueOf(c), (pos-1)));
+          invalidReason.append(ERR_ATTR_SYNTAX_MR_ILLEGAL_CHAR.get(valueStr, c, (pos-1)));
           return false;
         }
       }
@@ -706,11 +696,8 @@ public class MatchingRuleSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      LocalizableMessage message =
-          ERR_ATTR_SYNTAX_MR_EXPECTED_QUOTE_AT_POS.get(
-                  valueStr, startPos, String.valueOf(c));
-      throw new DirectoryException(
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EXPECTED_QUOTE_AT_POS.get(valueStr, startPos, c);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -792,9 +779,7 @@ public class MatchingRuleSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      LocalizableMessage message =
-          ERR_ATTR_SYNTAX_MR_EXPECTED_QUOTE_AT_POS.get(
-                  valueStr, startPos, String.valueOf(c));
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EXPECTED_QUOTE_AT_POS.get(valueStr, startPos, c);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -909,11 +894,9 @@ public class MatchingRuleSyntax
           }
 
           // This must have been an illegal character.
-          LocalizableMessage message =
-                  ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
-                          lowerStr, String.valueOf(c), (startPos - 1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
+              lowerStr, c, (startPos - 1));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
         {
@@ -947,21 +930,16 @@ public class MatchingRuleSyntax
           }
 
           // This must have been an illegal character.
-          LocalizableMessage message =
-                  ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_STRING_OID.
-                          get(lowerStr, String.valueOf(c), (startPos - 1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_STRING_OID.get(
+              lowerStr, c, (startPos - 1));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
     }
     else
     {
-      LocalizableMessage message =
-          ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(
-                  lowerStr, String.valueOf(c), startPos);
-      throw new DirectoryException(
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(lowerStr, c, startPos);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1071,11 +1049,8 @@ public class MatchingRuleSyntax
         else if (c == '(')
         {
           // This is an illegal character.
-          LocalizableMessage message =
-              ERR_ATTR_SYNTAX_MR_ILLEGAL_CHAR.get(
-                      valueStr, String.valueOf(c), startPos);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_MR_ILLEGAL_CHAR.get(valueStr, c, startPos);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else if (c == '\'')
         {

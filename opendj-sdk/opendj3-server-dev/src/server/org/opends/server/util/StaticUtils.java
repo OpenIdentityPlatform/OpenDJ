@@ -2420,8 +2420,7 @@ public final class StaticUtils
     // throw an exception.
     if (! mayUseExec())
     {
-      LocalizableMessage message = ERR_EXEC_DISABLED.get(String.valueOf(command));
-      throw new SecurityException(message.toString());
+      throw new SecurityException(ERR_EXEC_DISABLED.get(command).toString());
     }
 
 

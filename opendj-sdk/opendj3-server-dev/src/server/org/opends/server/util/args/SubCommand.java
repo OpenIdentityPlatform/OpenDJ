@@ -300,18 +300,15 @@ public class SubCommand
     {
       if (shortIDMap.containsKey(shortID))
       {
-        LocalizableMessage message = ERR_ARG_SUBCOMMAND_DUPLICATE_SHORT_ID.
-            get(argumentName, name, String.valueOf(shortID),
-                shortIDMap.get(shortID).getName());
-        throw new ArgumentException(message);
+        throw new ArgumentException(ERR_ARG_SUBCOMMAND_DUPLICATE_SHORT_ID.get(
+            argumentName, name, shortID, shortIDMap.get(shortID).getName()));
       }
 
       Argument arg = parser.getGlobalArgumentForShortID(shortID);
       if (arg != null)
       {
-        LocalizableMessage message = ERR_ARG_SUBCOMMAND_ARGUMENT_SHORT_ID_GLOBAL_CONFLICT.
-            get(argumentName, name, String.valueOf(shortID), arg.getName());
-        throw new ArgumentException(message);
+        throw new ArgumentException(ERR_ARG_SUBCOMMAND_ARGUMENT_SHORT_ID_GLOBAL_CONFLICT.get(
+            argumentName, name, shortID, arg.getName()));
       }
     }
 

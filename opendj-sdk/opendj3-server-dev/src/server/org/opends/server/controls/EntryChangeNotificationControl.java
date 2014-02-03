@@ -87,10 +87,8 @@ public class EntryChangeNotificationControl
         {
           if (changeType != PersistentSearchChangeType.MODIFY_DN)
           {
-            LocalizableMessage message =
-                ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String.valueOf(changeType));
-            throw new DirectoryException(
-                ResultCode.PROTOCOL_ERROR, message);
+            LocalizableMessage message = ERR_ECN_ILLEGAL_PREVIOUS_DN.get(changeType);
+            throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
           }
 
           previousDN = DN.valueOf(reader.readOctetStringAsString());

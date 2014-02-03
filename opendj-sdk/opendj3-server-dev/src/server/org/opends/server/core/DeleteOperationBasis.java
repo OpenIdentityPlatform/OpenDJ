@@ -415,8 +415,7 @@ public class DeleteOperationBasis
   private void updateOperationErrMsgAndResCode()
   {
     setResultCode(ResultCode.NO_SUCH_OBJECT);
-    appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY.get(
-            String.valueOf(getEntryDN())));
+    appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY.get(getEntryDN()));
   }
 
 

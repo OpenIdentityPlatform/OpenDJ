@@ -115,8 +115,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       int colonPos = lowerMap.indexOf(':');
       if (colonPos <= 0)
       {
-        LocalizableMessage message = ERR_SATUACM_INVALID_MAP_FORMAT.get(
-            String.valueOf(configEntryDN), mapStr);
+        LocalizableMessage message = ERR_SATUACM_INVALID_MAP_FORMAT.get(configEntryDN, mapStr);
         throw new ConfigException(message);
       }
 
@@ -124,8 +123,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       String userAttrName = lowerMap.substring(colonPos+1).trim();
       if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
       {
-        LocalizableMessage message = ERR_SATUACM_INVALID_MAP_FORMAT.get(
-            String.valueOf(configEntryDN), mapStr);
+        LocalizableMessage message = ERR_SATUACM_INVALID_MAP_FORMAT.get(configEntryDN, mapStr);
         throw new ConfigException(message);
       }
 
@@ -135,8 +133,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
       if (attributeMap.containsKey(certAttrName))
       {
-        LocalizableMessage message = ERR_SATUACM_DUPLICATE_CERT_ATTR.get(
-            String.valueOf(configEntryDN), certAttrName);
+        LocalizableMessage message = ERR_SATUACM_DUPLICATE_CERT_ATTR.get(configEntryDN, certAttrName);
         throw new ConfigException(message);
       }
 
@@ -144,8 +141,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
            DirectoryServer.getAttributeType(userAttrName, false);
       if (userAttrType == null)
       {
-        LocalizableMessage message = ERR_SATUACM_NO_SUCH_ATTR.get(
-            mapStr, String.valueOf(configEntryDN), userAttrName);
+        LocalizableMessage message = ERR_SATUACM_NO_SUCH_ATTR.get(mapStr, configEntryDN, userAttrName);
         throw new ConfigException(message);
       }
 
@@ -153,9 +149,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       {
         if (attrType.equals(userAttrType))
         {
-          LocalizableMessage message = ERR_SATUACM_DUPLICATE_USER_ATTR.get(
-              String.valueOf(configEntryDN), attrType.getNameOrOID());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_SATUACM_DUPLICATE_USER_ATTR.get(configEntryDN, attrType.getNameOrOID()));
         }
       }
 
@@ -234,8 +228,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_SATUACM_PEER_CERT_NOT_X509.get(
-          String.valueOf(certificateChain[0].getType()));
+      LocalizableMessage message = ERR_SATUACM_PEER_CERT_NOT_X509.get(certificateChain[0].getType());
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
@@ -279,8 +272,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
     if (filterComps.isEmpty())
     {
-      LocalizableMessage message = ERR_SATUACM_NO_MAPPABLE_ATTRIBUTES.get(
-           String.valueOf(peerDN));
+      LocalizableMessage message = ERR_SATUACM_NO_MAPPABLE_ATTRIBUTES.get(peerDN);
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
@@ -321,28 +313,19 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
         case SIZE_LIMIT_EXCEEDED:
           // Multiple entries matched the filter.  This is not acceptable.
-          LocalizableMessage message = ERR_SATUACM_MULTIPLE_SEARCH_MATCHING_ENTRIES.get(
-                        String.valueOf(peerDN));
-          throw new DirectoryException(
-                  ResultCode.INVALID_CREDENTIALS, message);
-
+          LocalizableMessage message = ERR_SATUACM_MULTIPLE_SEARCH_MATCHING_ENTRIES.get(peerDN);
+          throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
 
         case TIME_LIMIT_EXCEEDED:
         case ADMIN_LIMIT_EXCEEDED:
           // The search criteria was too inefficient.
-          message = ERR_SATUACM_INEFFICIENT_SEARCH.get(
-                         String.valueOf(peerDN),
-                         String.valueOf(searchOperation.getErrorMessage()));
-          throw new DirectoryException(searchOperation.getResultCode(),
-              message);
+          message = ERR_SATUACM_INEFFICIENT_SEARCH.get(peerDN, searchOperation.getErrorMessage());
+          throw new DirectoryException(searchOperation.getResultCode(), message);
 
         default:
           // Just pass on the failure that was returned for this search.
-          message = ERR_SATUACM_SEARCH_FAILED.get(
-                         String.valueOf(peerDN),
-                         String.valueOf(searchOperation.getErrorMessage()));
-          throw new DirectoryException(searchOperation.getResultCode(),
-              message);
+          message = ERR_SATUACM_SEARCH_FAILED.get(peerDN, searchOperation.getErrorMessage());
+          throw new DirectoryException(searchOperation.getResultCode(), message);
       }
 
       for (SearchResultEntry entry : searchOperation.getSearchEntries())
@@ -354,8 +337,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         else
         {
           LocalizableMessage message = ERR_SATUACM_MULTIPLE_MATCHING_ENTRIES.
-              get(String.valueOf(peerDN), String.valueOf(userEntry.getName()),
-                  String.valueOf(entry.getName()));
+              get(peerDN, userEntry.getName(), entry.getName());
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
         }
       }
@@ -405,9 +387,7 @@ mapLoop:
       int colonPos = lowerMap.indexOf(':');
       if (colonPos <= 0)
       {
-        unacceptableReasons.add(ERR_SATUACM_INVALID_MAP_FORMAT.get(
-                String.valueOf(cfgEntryDN),
-                mapStr));
+        unacceptableReasons.add(ERR_SATUACM_INVALID_MAP_FORMAT.get(cfgEntryDN, mapStr));
         configAcceptable = false;
         break;
       }
@@ -416,9 +396,7 @@ mapLoop:
       String userAttrName = lowerMap.substring(colonPos+1).trim();
       if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
       {
-        unacceptableReasons.add(ERR_SATUACM_INVALID_MAP_FORMAT.get(
-                String.valueOf(cfgEntryDN),
-                mapStr));
+        unacceptableReasons.add(ERR_SATUACM_INVALID_MAP_FORMAT.get(cfgEntryDN, mapStr));
         configAcceptable = false;
         break;
       }
@@ -428,9 +406,7 @@ mapLoop:
 
       if (newAttributeMap.containsKey(certAttrName))
       {
-        unacceptableReasons.add(ERR_SATUACM_DUPLICATE_CERT_ATTR.get(
-                String.valueOf(cfgEntryDN),
-                certAttrName));
+        unacceptableReasons.add(ERR_SATUACM_DUPLICATE_CERT_ATTR.get(cfgEntryDN, certAttrName));
         configAcceptable = false;
         break;
       }
@@ -439,10 +415,7 @@ mapLoop:
            DirectoryServer.getAttributeType(userAttrName, false);
       if (userAttrType == null)
       {
-        unacceptableReasons.add(ERR_SATUACM_NO_SUCH_ATTR.get(
-                mapStr,
-                String.valueOf(cfgEntryDN),
-                userAttrName));
+        unacceptableReasons.add(ERR_SATUACM_NO_SUCH_ATTR.get(mapStr, cfgEntryDN, userAttrName));
         configAcceptable = false;
         break;
       }
@@ -451,9 +424,7 @@ mapLoop:
       {
         if (attrType.equals(userAttrType))
         {
-          unacceptableReasons.add(ERR_SATUACM_DUPLICATE_USER_ATTR.get(
-                  String.valueOf(cfgEntryDN),
-                  attrType.getNameOrOID()));
+          unacceptableReasons.add(ERR_SATUACM_DUPLICATE_USER_ATTR.get(cfgEntryDN, attrType.getNameOrOID()));
           configAcceptable = false;
           break mapLoop;
         }
@@ -496,8 +467,7 @@ mapLoop:
         }
 
 
-        messages.add(ERR_SATUACM_INVALID_MAP_FORMAT.get(
-                String.valueOf(configEntryDN), mapStr));
+        messages.add(ERR_SATUACM_INVALID_MAP_FORMAT.get(configEntryDN, mapStr));
         break;
       }
 
@@ -511,8 +481,7 @@ mapLoop:
         }
 
 
-        messages.add(ERR_SATUACM_INVALID_MAP_FORMAT.get(
-                String.valueOf(configEntryDN), mapStr));
+        messages.add(ERR_SATUACM_INVALID_MAP_FORMAT.get(configEntryDN, mapStr));
         break;
       }
 
@@ -527,9 +496,7 @@ mapLoop:
         }
 
 
-        messages.add(ERR_SATUACM_DUPLICATE_CERT_ATTR.get(
-                String.valueOf(configEntryDN),
-                certAttrName));
+        messages.add(ERR_SATUACM_DUPLICATE_CERT_ATTR.get(configEntryDN, certAttrName));
         break;
       }
 
@@ -543,9 +510,7 @@ mapLoop:
         }
 
 
-        messages.add(ERR_SATUACM_NO_SUCH_ATTR.get(
-                mapStr, String.valueOf(configEntryDN),
-                userAttrName));
+        messages.add(ERR_SATUACM_NO_SUCH_ATTR.get(mapStr, configEntryDN, userAttrName));
         break;
       }
 
@@ -559,9 +524,7 @@ mapLoop:
           }
 
 
-          messages.add(ERR_SATUACM_DUPLICATE_USER_ATTR.get(
-                  String.valueOf(configEntryDN),
-                  attrType.getNameOrOID()));
+          messages.add(ERR_SATUACM_DUPLICATE_USER_ATTR.get(configEntryDN, attrType.getNameOrOID()));
           break mapLoop;
         }
       }

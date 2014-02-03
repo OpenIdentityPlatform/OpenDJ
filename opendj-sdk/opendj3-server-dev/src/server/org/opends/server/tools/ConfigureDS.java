@@ -421,8 +421,7 @@ public class ConfigureDS
       {
         if (ports.contains(adminConnectorPort.getIntValue()))
         {
-          LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
-                  String.valueOf(adminConnectorPort.getIntValue()));
+          LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(adminConnectorPort.getIntValue());
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
           return 1;
@@ -436,8 +435,7 @@ public class ConfigureDS
       {
         if (ports.contains(ldapsPort.getIntValue()))
         {
-          LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
-                  String.valueOf(ldapsPort.getIntValue()));
+          LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(ldapsPort.getIntValue());
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
           return 1;
@@ -451,8 +449,7 @@ public class ConfigureDS
       {
         if (ports.contains(jmxPort.getIntValue()))
         {
-          LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
-                  String.valueOf(jmxPort.getIntValue()));
+          LocalizableMessage message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(jmxPort.getIntValue());
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
           return 1;
@@ -491,9 +488,7 @@ public class ConfigureDS
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_CONFIGDS_CANNOT_INITIALIZE_JMX.get(
-              String.valueOf(configFile.getValue()),
-              e.getMessage());
+      LocalizableMessage message = ERR_CONFIGDS_CANNOT_INITIALIZE_JMX.get(configFile.getValue(), e.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -505,9 +500,7 @@ public class ConfigureDS
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_CONFIGDS_CANNOT_INITIALIZE_CONFIG.get(
-              String.valueOf(configFile.getValue()),
-              e.getMessage());
+      LocalizableMessage message = ERR_CONFIGDS_CANNOT_INITIALIZE_CONFIG.get(configFile.getValue(), e.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -518,9 +511,7 @@ public class ConfigureDS
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_CONFIGDS_CANNOT_INITIALIZE_SCHEMA.get(
-              String.valueOf(configFile.getValue()),
-              e.getMessage());
+      LocalizableMessage message = ERR_CONFIGDS_CANNOT_INITIALIZE_SCHEMA.get(configFile.getValue(), e.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -533,9 +524,7 @@ public class ConfigureDS
     if (! LockFileManager.acquireExclusiveLock(serverLockFileName,
                                                failureReason))
     {
-      LocalizableMessage message = ERR_CONFIGDS_CANNOT_ACQUIRE_SERVER_LOCK.get(
-              String.valueOf(serverLockFileName),
-              String.valueOf(failureReason));
+      LocalizableMessage message = ERR_CONFIGDS_CANNOT_ACQUIRE_SERVER_LOCK.get(serverLockFileName, failureReason);
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -557,9 +546,7 @@ public class ConfigureDS
           }
           catch (DirectoryException de)
           {
-            LocalizableMessage message = ERR_CONFIGDS_CANNOT_PARSE_BASE_DN.get(
-                    String.valueOf(dnString),
-                    de.getMessageObject());
+            LocalizableMessage message = ERR_CONFIGDS_CANNOT_PARSE_BASE_DN.get(dnString, de.getMessageObject());
             err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
@@ -580,8 +567,7 @@ public class ConfigureDS
         catch (DirectoryException de)
         {
           LocalizableMessage message = ERR_CONFIGDS_CANNOT_PARSE_ROOT_DN.get(
-                  String.valueOf(rootDNString.getValue()),
-                  de.getMessageObject());
+              rootDNString.getValue(), de.getMessageObject());
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -657,9 +643,7 @@ public class ConfigureDS
           }
           catch (Exception e)
           {
-            LocalizableMessage message =
-              ERR_CONFIG_KEYMANAGER_CANNOT_CREATE_JCEKS_PROVIDER.get(
-                String.valueOf(e));
+            LocalizableMessage message = ERR_CONFIG_KEYMANAGER_CANNOT_CREATE_JCEKS_PROVIDER.get(e);
             err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
@@ -672,8 +656,7 @@ public class ConfigureDS
           }
           catch (Exception e)
           {
-            LocalizableMessage message = ERR_CONFIG_KEYMANAGER_CANNOT_GET_BASE.get(
-                String.valueOf(e));
+            LocalizableMessage message = ERR_CONFIG_KEYMANAGER_CANNOT_GET_BASE.get(e);
             err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
@@ -725,8 +708,7 @@ public class ConfigureDS
           }
           catch (Exception e)
           {
-            LocalizableMessage message = ERR_CONFIG_KEYMANAGER_CANNOT_GET_BASE.get(
-                String.valueOf(e));
+            LocalizableMessage message = ERR_CONFIG_KEYMANAGER_CANNOT_GET_BASE.get(e);
             err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
@@ -739,8 +721,7 @@ public class ConfigureDS
           }
           catch (Exception e)
           {
-            LocalizableMessage message = ERR_CONFIG_TRUSTMANAGER_CANNOT_GET_BASE.get(
-                String.valueOf(e));
+            LocalizableMessage message = ERR_CONFIG_TRUSTMANAGER_CANNOT_GET_BASE.get(e);
             err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
@@ -778,8 +759,7 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_BASE_DN.get(
-                  String.valueOf(e));
+          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_BASE_DN.get(e);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -805,8 +785,7 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_LDAP_PORT.get(
-                  String.valueOf(e));
+          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_LDAP_PORT.get(e);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -833,8 +812,7 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_ADMIN_CONNECTOR_PORT.get(
-                  String.valueOf(e));
+          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_ADMIN_CONNECTOR_PORT.get(e);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -865,8 +843,7 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_LDAPS_PORT.get(
-                  String.valueOf(e));
+          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_LDAPS_PORT.get(e);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -897,8 +874,7 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_JMX_PORT.get(
-                  String.valueOf(e));
+          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_JMX_PORT.get(e);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -922,8 +898,7 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_CONFIGDS_CANNOT_ENABLE_STARTTLS.get(
-                  String.valueOf(e));
+          LocalizableMessage message = ERR_CONFIGDS_CANNOT_ENABLE_STARTTLS.get(e);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -948,8 +923,7 @@ public class ConfigureDS
           }
           catch (Exception e)
           {
-            LocalizableMessage message = ERR_CONFIGDS_CANNOT_ENABLE_KEYMANAGER.get(
-                    String.valueOf(e));
+            LocalizableMessage message = ERR_CONFIGDS_CANNOT_ENABLE_KEYMANAGER.get(e);
             err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
@@ -988,8 +962,7 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_KEYMANAGER_REFERENCE.get(
-                  String.valueOf(e));
+          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_KEYMANAGER_REFERENCE.get(e);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -1034,8 +1007,7 @@ public class ConfigureDS
           }
           catch (Exception e)
           {
-            LocalizableMessage message = ERR_CONFIGDS_CANNOT_ENABLE_TRUSTMANAGER.get(
-                    String.valueOf(e));
+            LocalizableMessage message = ERR_CONFIGDS_CANNOT_ENABLE_TRUSTMANAGER.get(e);
             err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
@@ -1075,9 +1047,7 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          LocalizableMessage message =
-                  ERR_CONFIGDS_CANNOT_UPDATE_TRUSTMANAGER_REFERENCE.get(
-                          String.valueOf(e));
+          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_TRUSTMANAGER_REFERENCE.get(e);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -1139,8 +1109,7 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME.get(
-                  String.valueOf(e));
+          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME.get(e);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -1173,8 +1142,7 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME.get(
-                  String.valueOf(e));
+          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME.get(e);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -1207,8 +1175,7 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_ROOT_USER.get(
-                  String.valueOf(e));
+          LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_ROOT_USER.get(e);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -1226,8 +1193,7 @@ public class ConfigureDS
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_DIGEST_MD5_FQDN.get(String
-            .valueOf(e));
+        LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_DIGEST_MD5_FQDN.get(e);
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -1276,8 +1242,7 @@ public class ConfigureDS
             }
             catch (Exception e)
             {
-              LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_CRYPTO_MANAGER.get(
-                  String.valueOf(e));
+              LocalizableMessage message = ERR_CONFIGDS_CANNOT_UPDATE_CRYPTO_MANAGER.get(e);
               err.println(wrapText(message, MAX_LINE_WIDTH));
               return 1;
             }

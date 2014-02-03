@@ -156,9 +156,7 @@ public class AttributeIndex
     {
       if (attrType.getEqualityMatchingRule() == null)
       {
-        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-            String.valueOf(attrType), "equality");
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "equality"));
       }
 
       Indexer equalityIndexer = new EqualityIndexer(attrType);
@@ -191,9 +189,7 @@ public class AttributeIndex
     {
       if (attrType.getSubstringMatchingRule() == null)
       {
-        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-            String.valueOf(attrType), "substring");
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "substring"));
       }
 
       Indexer substringIndexer = new SubstringIndexer(attrType,
@@ -213,9 +209,7 @@ public class AttributeIndex
     {
       if (attrType.getOrderingMatchingRule() == null)
       {
-        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-            String.valueOf(attrType), "ordering");
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "ordering"));
       }
 
       Indexer orderingIndexer = new OrderingIndexer(attrType);
@@ -233,9 +227,7 @@ public class AttributeIndex
     {
       if (attrType.getApproximateMatchingRule() == null)
       {
-        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-            String.valueOf(attrType), "approximate");
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "approximate"));
       }
 
       Indexer approximateIndexer = new ApproximateIndexer(attrType);
@@ -255,9 +247,7 @@ public class AttributeIndex
               indexConfig.getIndexExtensibleMatchingRule();
       if(extensibleRules == null || extensibleRules.isEmpty())
       {
-        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-            String.valueOf(attrType), "extensible");
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "extensible"));
       }
       extensibleIndexes = new ExtensibleMatchingRuleIndex();
       //Iterate through the Set and create the index only if necessary.
@@ -1750,9 +1740,7 @@ public class AttributeIndex
     {
       if (equalityIndex == null && attrType.getEqualityMatchingRule() == null)
       {
-        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-                String.valueOf(String.valueOf(attrType)), "equality");
-        unacceptableReasons.add(message);
+        unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "equality"));
         return false;
       }
     }
@@ -1761,9 +1749,7 @@ public class AttributeIndex
     {
       if (substringIndex == null && attrType.getSubstringMatchingRule() == null)
       {
-        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-                String.valueOf(attrType), "substring");
-        unacceptableReasons.add(message);
+        unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "substring"));
         return false;
       }
 
@@ -1773,9 +1759,7 @@ public class AttributeIndex
     {
       if (orderingIndex == null && attrType.getOrderingMatchingRule() == null)
       {
-        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-                String.valueOf(attrType), "ordering");
-        unacceptableReasons.add(message);
+        unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "ordering"));
         return false;
       }
     }
@@ -1784,9 +1768,7 @@ public class AttributeIndex
       if (approximateIndex == null &&
           attrType.getApproximateMatchingRule() == null)
       {
-        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-                String.valueOf(attrType), "approximate");
-        unacceptableReasons.add(message);
+        unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "approximate"));
         return false;
       }
     }
@@ -1796,9 +1778,7 @@ public class AttributeIndex
               cfg.getIndexExtensibleMatchingRule();
       if (newRules == null || newRules.isEmpty())
       {
-        LocalizableMessage message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-                String.valueOf(attrType), "extensible");
-        unacceptableReasons.add(message);
+        unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "extensible"));
         return false;
       }
     }

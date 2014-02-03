@@ -134,22 +134,18 @@ public class PromptTrustManager
 
       if (currentDate.after(notAfterDate))
       {
-        LocalizableMessage message = WARN_PROMPTTM_CERT_EXPIRED.get(
-                String.valueOf(notAfterDate));
-        System.err.println(message);
+        System.err.println(WARN_PROMPTTM_CERT_EXPIRED.get(notAfterDate));
       }
       else if (currentDate.before(notBeforeDate))
       {
-        LocalizableMessage message = WARN_PROMPTTM_CERT_NOT_YET_VALID.get(
-                String.valueOf(notBeforeDate));
-        System.err.println(message);
+        System.err.println(WARN_PROMPTTM_CERT_NOT_YET_VALID.get(notBeforeDate));
       }
 
       System.out.println(INFO_PROMPTTM_SERVER_CERT.get(
               chain[0].getSubjectDN().getName(),
               chain[0].getIssuerDN().getName(),
-              String.valueOf(notBeforeDate),
-              String.valueOf(notAfterDate)));
+              notBeforeDate,
+              notAfterDate));
     }
 
 

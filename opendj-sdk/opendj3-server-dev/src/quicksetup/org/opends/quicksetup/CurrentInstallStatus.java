@@ -75,8 +75,7 @@ public class CurrentInstallStatus
 
       if (installation.getStatus().isServerRunning())
       {
-        msgs.add(INFO_INSTALLSTATUS_SERVERRUNNING.get(
-                String.valueOf(getPort())));
+        msgs.add(INFO_INSTALLSTATUS_SERVERRUNNING.get(getPort()));
       }
 
       if (dbFilesExist())

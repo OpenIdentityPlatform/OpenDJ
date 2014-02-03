@@ -154,7 +154,7 @@ public class HistoricalCsnOrderingMatchingRule
       // This should never occur in practice since these attributes are managed
       // internally.
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-          WARN_INVALID_SYNC_HIST_VALUE.get(String.valueOf(value)), e);
+          WARN_INVALID_SYNC_HIST_VALUE.get(value), e);
     }
   }
 

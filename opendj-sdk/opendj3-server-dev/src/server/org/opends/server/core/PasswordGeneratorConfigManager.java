@@ -433,8 +433,7 @@ public class PasswordGeneratorConfigManager
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_PWGENERATOR_INITIALIZATION_FAILED.
-          get(className, String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
+          get(className, configuration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }

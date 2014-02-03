@@ -511,10 +511,7 @@ public class ConfigurableEnvironment
     }
     catch (Exception e)
     {
-      throw new ConfigException(
-              ERR_JEB_INVALID_LOGGING_LEVEL.get(
-              String.valueOf(cfg.getDBLoggingLevel()),
-              String.valueOf(cfg.dn())));
+      throw new ConfigException(ERR_JEB_INVALID_LOGGING_LEVEL.get(cfg.getDBLoggingLevel(), cfg.dn()));
     }
 
     final Level level = cfg.isDBLoggingFileHandlerOn() ? Level.ALL : Level.OFF;

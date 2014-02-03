@@ -253,9 +253,7 @@ public class ModifyOperationBasis
              if(attr.hasOption("binary"))
              {
                throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
-                       ERR_ADD_ATTR_IS_INVALID_OPTION.get(
-                       String.valueOf(entryDN),
-                       attr.getName()));
+                       ERR_ADD_ATTR_IS_INVALID_OPTION.get(entryDN, attr.getName()));
              }
            }
 
@@ -532,8 +530,7 @@ public class ModifyOperationBasis
   private void updateOperationErrMsgAndResCode()
   {
     setResultCode(ResultCode.NO_SUCH_OBJECT);
-    appendErrorMessage(
-            ERR_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(getEntryDN())));
+    appendErrorMessage(ERR_MODIFY_NO_SUCH_ENTRY.get(getEntryDN()));
   }
 
 

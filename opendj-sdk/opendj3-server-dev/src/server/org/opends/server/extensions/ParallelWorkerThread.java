@@ -175,8 +175,7 @@ public class ParallelWorkerThread
         try
         {
           LocalizableMessage message =
-              ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(getName(), String
-                  .valueOf(operation), stackTraceToSingleLineString(t));
+              ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(getName(), operation, stackTraceToSingleLineString(t));
           logger.error(message);
 
           operation.setResultCode(DirectoryServer.getServerErrorResultCode());
@@ -198,12 +197,9 @@ public class ParallelWorkerThread
 
         try
         {
-          LocalizableMessage message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(getName(),
-                                      String.valueOf(operation),
-                                      stackTraceToSingleLineString(t));
-
-          operation.disconnectClient(DisconnectReason.SERVER_ERROR,
-                                     true, message);
+          LocalizableMessage message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(
+              getName(), operation, stackTraceToSingleLineString(t));
+          operation.disconnectClient(DisconnectReason.SERVER_ERROR, true, message);
         }
         catch (Throwable t2)
         {

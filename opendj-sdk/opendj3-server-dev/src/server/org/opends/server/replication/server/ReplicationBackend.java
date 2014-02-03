@@ -462,10 +462,8 @@ public class ReplicationBackend extends Backend
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-        ERR_BACKEND_CANNOT_CREATE_LDIF_WRITER.get(String.valueOf(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          message, e);
+      LocalizableMessage message = ERR_BACKEND_CANNOT_CREATE_LDIF_WRITER.get(e);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
     }
 
     exportRootChanges(exportedDomains, exportConfig, ldifWriter);
@@ -588,7 +586,7 @@ public class ReplicationBackend extends Backend
       catch (Exception e)
       {
         logger.traceException(e);
-        logger.error(ERR_BACKEND_EXPORT_ENTRY.get(dnString, String.valueOf(e)));
+        logger.error(ERR_BACKEND_EXPORT_ENTRY.get(dnString, e));
       }
     }
   }
@@ -864,7 +862,7 @@ public class ReplicationBackend extends Backend
       LocalizableMessage message;
       if (isExport)
       {
-        message = ERR_BACKEND_EXPORT_ENTRY.get(dnStr, String.valueOf(e));
+        message = ERR_BACKEND_EXPORT_ENTRY.get(dnStr, e);
       }
       else
       {
@@ -1150,8 +1148,7 @@ public class ReplicationBackend extends Backend
         matchedDN = matchedDN.getParentDNInSuffix();
       }
 
-      LocalizableMessage message = ERR_REPLICATIONBACKEND_ENTRY_DOESNT_EXIST.
-        get(String.valueOf(searchBaseDN));
+      LocalizableMessage message = ERR_REPLICATIONBACKEND_ENTRY_DOESNT_EXIST.get(searchBaseDN);
       throw new DirectoryException(
           ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
     }
@@ -1163,8 +1160,7 @@ public class ReplicationBackend extends Backend
       {
         if (!baseDNSet.contains(searchBaseDN))
         {
-          LocalizableMessage message = ERR_REPLICATIONBACKEND_ENTRY_DOESNT_EXIST.get(
-              String.valueOf(searchBaseDN));
+          LocalizableMessage message = ERR_REPLICATIONBACKEND_ENTRY_DOESNT_EXIST.get(searchBaseDN);
           throw new DirectoryException(
               ResultCode.NO_SUCH_OBJECT, message, null, null);
         }

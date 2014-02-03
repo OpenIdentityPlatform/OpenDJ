@@ -175,10 +175,8 @@ public final class PropertyException extends RuntimeException
   // Create the message.
   private static LocalizableMessage createMessage(PropertyDefinition<?> pd, Object value)
   {
-    PropertyDefinitionUsageBuilder builder = new PropertyDefinitionUsageBuilder(
-        true);
-    return ERR_ILLEGAL_PROPERTY_VALUE_EXCEPTION.get(String.valueOf(value),
-        pd.getName(), builder.getUsage(pd));
+    PropertyDefinitionUsageBuilder builder = new PropertyDefinitionUsageBuilder(true);
+    return ERR_ILLEGAL_PROPERTY_VALUE_EXCEPTION.get(value, pd.getName(), builder.getUsage(pd));
   }
 
 

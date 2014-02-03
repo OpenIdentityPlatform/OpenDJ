@@ -306,10 +306,7 @@ public class BackendImpl
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
-            String.valueOf(dn), String.valueOf(e));
-        throw new InitializationException(message, e);
+        throw new InitializationException(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(dn, e), e);
       }
     }
 
@@ -1233,10 +1230,7 @@ public class BackendImpl
     try {
       Level.parse(cfg.getDBLoggingLevel());
     } catch (Exception e) {
-      LocalizableMessage message = ERR_JEB_INVALID_LOGGING_LEVEL.get(
-              String.valueOf(cfg.getDBLoggingLevel()),
-              String.valueOf(cfg.dn()));
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(ERR_JEB_INVALID_LOGGING_LEVEL.get(cfg.getDBLoggingLevel(), cfg.dn()));
       return false;
     }
 
@@ -1299,11 +1293,7 @@ public class BackendImpl
               logger.traceException(e);
 
               resultCode = DirectoryServer.getServerErrorResultCode();
-
-
-              messages.add(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
-                      String.valueOf(baseDN),
-                      String.valueOf(e)));
+              messages.add(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseDN, e));
               return new ConfigChangeResult(resultCode, false, messages);
             }
           }

@@ -92,8 +92,7 @@ public class ShutdownTask
     Entry taskEntry = getTaskEntry();
 
     restart         = false;
-    shutdownMessage = INFO_TASK_SHUTDOWN_DEFAULT_MESSAGE.get(
-        String.valueOf(taskEntry.getName()));
+    shutdownMessage = INFO_TASK_SHUTDOWN_DEFAULT_MESSAGE.get(taskEntry.getName());
 
     AttributeType attrType =
          DirectoryServer.getAttributeType(ATTR_SHUTDOWN_MESSAGE, true);
@@ -103,11 +102,8 @@ public class ShutdownTask
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty())
       {
-        String valueString = attr.iterator().next()
-            .getValue().toString();
-
-        shutdownMessage = INFO_TASK_SHUTDOWN_CUSTOM_MESSAGE.get(String
-            .valueOf(taskEntry.getName()), String.valueOf(valueString));
+        String valueString = attr.iterator().next().getValue().toString();
+        shutdownMessage = INFO_TASK_SHUTDOWN_CUSTOM_MESSAGE.get(taskEntry.getName(), valueString);
       }
     }
 

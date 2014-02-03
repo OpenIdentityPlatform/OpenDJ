@@ -227,7 +227,7 @@ public class AuthenticatedUsers
       for (ClientConnection conn : connectionSet)
       {
         LocalizableMessage message = WARN_CLIENTCONNECTION_DISCONNECT_DUE_TO_DELETE.get(
-                String.valueOf(entry.getName()));
+                entry.getName());
 
         conn.disconnect(DisconnectReason.INVALID_CREDENTIALS, true, message);
       }

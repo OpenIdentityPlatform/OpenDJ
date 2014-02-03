@@ -426,8 +426,7 @@ public class InstallReviewPanel extends ReviewPanel {
       if (userInstallData.getReplicationOptions().useSecureReplication())
       {
         s = INFO_SECURE_REPLICATION_PORT_LABEL.get(
-            String.valueOf(userInstallData.getReplicationOptions()
-                .getReplicationPort())).toString();
+            userInstallData.getReplicationOptions().getReplicationPort()).toString();
       }
       else
       {
@@ -450,8 +449,7 @@ public class InstallReviewPanel extends ReviewPanel {
         AuthenticationData repPort = remotePorts.get(server);
         if (repPort.useSecureConnection())
         {
-          s = INFO_SECURE_REPLICATION_PORT_LABEL.get(
-              String.valueOf(repPort.getPort())).toString();
+          s = INFO_SECURE_REPLICATION_PORT_LABEL.get(repPort.getPort()).toString();
         }
         else
         {

@@ -24,13 +24,11 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 ForgeRock AS.
  */
-
 package org.opends.server.core.networkgroups;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
@@ -142,9 +140,7 @@ public class NetworkGroupStatistics
     // dynamically loaded from the configuration.  Rather, it should be
     // explicitly created and registered by the LDAP connection handler or an
     // LDAP client connection.
-    LocalizableMessage message = ERR_LDAP_STATS_INVALID_MONITOR_INITIALIZATION.get(
-        String.valueOf(configuration.dn()));
-    throw new ConfigException(message);
+    throw new ConfigException(ERR_LDAP_STATS_INVALID_MONITOR_INITIALIZATION.get(configuration.dn()));
   }
 
   /**

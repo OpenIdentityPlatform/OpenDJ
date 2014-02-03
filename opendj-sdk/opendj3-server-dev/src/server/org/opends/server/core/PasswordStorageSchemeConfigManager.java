@@ -246,9 +246,7 @@ public class PasswordStorageSchemeConfigManager
     DN configEntryDN = configuration.dn();
     if (storageSchemes.containsKey(configEntryDN))
     {
-      LocalizableMessage message = ERR_CONFIG_PWSCHEME_EXISTS.get(
-              String.valueOf(configEntryDN));
-      unacceptableReasons.add (message);
+      unacceptableReasons.add (ERR_CONFIG_PWSCHEME_EXISTS.get(configEntryDN));
       status = false;
     }
     // If configuration is enabled then check that password storage scheme
@@ -460,9 +458,7 @@ public class PasswordStorageSchemeConfigManager
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_PWSCHEME_INITIALIZATION_FAILED.get(className,
-          String.valueOf(configuration.dn()),
-          stackTraceToSingleLineString(e)
-          );
+          configuration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }

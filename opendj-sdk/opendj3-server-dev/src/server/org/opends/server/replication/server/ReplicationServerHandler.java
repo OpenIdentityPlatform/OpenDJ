@@ -259,7 +259,7 @@ public class ReplicationServerHandler extends ServerHandler
     {
       logger.traceException(e);
       LocalizableMessage errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
-          String.valueOf(getReplicationServerId()),
+          getReplicationServerId(),
           session.getReadableRemoteAddress());
       abortStart(errMessage);
     }

@@ -304,8 +304,7 @@ public class Entry
       ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
       if (oc == null)
       {
-        LocalizableMessage message =
-            ERR_ENTRY_ADD_UNKNOWN_OC.get(name, String.valueOf(dn));
+        LocalizableMessage message = ERR_ENTRY_ADD_UNKNOWN_OC.get(name, dn);
         throw new DirectoryException(OBJECTCLASS_VIOLATION, message);
       }
 
@@ -337,8 +336,7 @@ public class Entry
 
     if (objectClasses.containsKey(oc))
     {
-      LocalizableMessage message = ERR_ENTRY_ADD_DUPLICATE_OC.get(
-          oc.getNameOrOID(), String.valueOf(dn));
+      LocalizableMessage message = ERR_ENTRY_ADD_DUPLICATE_OC.get(oc.getNameOrOID(), dn);
       throw new DirectoryException(OBJECTCLASS_VIOLATION, message);
     }
 
@@ -1683,8 +1681,7 @@ public class Entry
           throw new DirectoryException(CONSTRAINT_VIOLATION, message);
 
         default:
-          message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(
-              String.valueOf(mod.getModificationType()));
+          message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(mod.getModificationType());
           throw new DirectoryException(UNWILLING_TO_PERFORM, message);
       }
 
@@ -1722,8 +1719,7 @@ public class Entry
         break;
 
       default:
-        LocalizableMessage message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(
-            String.valueOf(mod.getModificationType()));
+        LocalizableMessage message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(mod.getModificationType());
         throw new DirectoryException(UNWILLING_TO_PERFORM, message);
     }
   }
@@ -1839,7 +1835,7 @@ public class Entry
         {
           LocalizableMessage message =
                   ERR_ENTRY_SCHEMA_MULTIPLE_STRUCTURAL_CLASSES.get(
-                    String.valueOf(dn),
+                    dn,
                     structuralClass.getNameOrOID(),
                     oc.getNameOrOID());
 
@@ -1863,9 +1859,7 @@ public class Entry
     DITStructureRule ditStructureRule = null;
     if (structuralClass == null)
     {
-      LocalizableMessage message = ERR_ENTRY_SCHEMA_NO_STRUCTURAL_CLASS.get(
-              String.valueOf(dn));
-
+      LocalizableMessage message = ERR_ENTRY_SCHEMA_NO_STRUCTURAL_CLASS.get(dn);
       if (structuralPolicy == AcceptRejectWarn.REJECT)
       {
         invalidReason.append(message);
@@ -1988,8 +1982,7 @@ public class Entry
     {
       if (DirectoryServer.getObjectClass(o.getOID()) == null)
       {
-        LocalizableMessage message = ERR_ENTRY_SCHEMA_UNKNOWN_OC.get(
-                String.valueOf(dn), o.getNameOrOID());
+        LocalizableMessage message = ERR_ENTRY_SCHEMA_UNKNOWN_OC.get(dn, o.getNameOrOID());
         invalidReason.append(message);
         return false;
       }
@@ -2000,7 +1993,7 @@ public class Entry
       {
         LocalizableMessage message =
                 ERR_ENTRY_SCHEMA_DISALLOWED_AUXILIARY_CLASS.get(
-                  String.valueOf(dn),
+                  dn,
                   o.getNameOrOID(),
                   ditContentRule.getName());
         if (structuralPolicy == AcceptRejectWarn.REJECT)
@@ -2022,7 +2015,7 @@ public class Entry
         {
           LocalizableMessage message =
                   ERR_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_OC.get(
-                    String.valueOf(dn),
+                    dn,
                     t.getNameOrOID(),
                     o.getNameOrOID());
           invalidReason.append(message);
@@ -2056,9 +2049,7 @@ public class Entry
       if (! found)
       {
         LocalizableMessage message =
-                ERR_ENTRY_SCHEMA_DISALLOWED_USER_ATTR_FOR_OC.get(
-                  String.valueOf(dn),
-                  t.getNameOrOID());
+                ERR_ENTRY_SCHEMA_DISALLOWED_USER_ATTR_FOR_OC.get( dn, t.getNameOrOID());
         invalidReason.append(message);
         return false;
       }
@@ -2070,20 +2061,12 @@ public class Entry
         {
           if (a.isEmpty())
           {
-            LocalizableMessage message = ERR_ENTRY_SCHEMA_ATTR_NO_VALUES.get(
-                    String.valueOf(dn),
-                    t.getNameOrOID());
-
-            invalidReason.append(message);
+            invalidReason.append(ERR_ENTRY_SCHEMA_ATTR_NO_VALUES.get(dn, t.getNameOrOID()));
             return false;
           }
           else if (t.isSingleValue() && (a.size() != 1))
           {
-            LocalizableMessage message = ERR_ENTRY_SCHEMA_ATTR_SINGLE_VALUED.get(
-                    String.valueOf(dn),
-                    t.getNameOrOID());
-
-            invalidReason.append(message);
+            invalidReason.append(ERR_ENTRY_SCHEMA_ATTR_SINGLE_VALUED.get(dn, t.getNameOrOID()));
             return false;
           }
         }
@@ -2104,12 +2087,7 @@ public class Entry
           {
             if (a.size() > 1)
             {
-              LocalizableMessage message =
-                      ERR_ENTRY_SCHEMA_ATTR_SINGLE_VALUED.get(
-                        String.valueOf(dn),
-                        t.getNameOrOID());
-
-              invalidReason.append(message);
+              invalidReason.append(ERR_ENTRY_SCHEMA_ATTR_SINGLE_VALUED.get(dn, t.getNameOrOID()));
               return false;
             }
           }
@@ -2151,7 +2129,7 @@ public class Entry
           {
             LocalizableMessage message =
                     ERR_ENTRY_SCHEMA_RDN_MISSING_REQUIRED_ATTR.get(
-                      String.valueOf(dn),
+                      dn,
                       t.getNameOrOID(),
                       nameForm.getNameOrOID());
 
@@ -2176,7 +2154,7 @@ public class Entry
             {
               LocalizableMessage message =
                       ERR_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR.get(
-                        String.valueOf(dn),
+                        dn,
                         t.getNameOrOID(),
                         nameForm.getNameOrOID());
 
@@ -2225,7 +2203,7 @@ public class Entry
       {
         LocalizableMessage message =
                 ERR_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_DCR.get(
-                  String.valueOf(dn),
+                  dn,
                   t.getNameOrOID(),
                   ditContentRule.getName());
 
@@ -2249,7 +2227,7 @@ public class Entry
       {
         LocalizableMessage message =
                 ERR_ENTRY_SCHEMA_PROHIBITED_ATTR_FOR_DCR.get(
-                  String.valueOf(dn),
+                  dn,
                   t.getNameOrOID(),
                   ditContentRule.getName());
 
@@ -2331,9 +2309,7 @@ public class Entry
           final Lock lock = LockManager.lockRead(parentDN);
           if (lock == null)
           {
-            LocalizableMessage message =
-                    ERR_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT.get(
-                      String.valueOf(dn), String.valueOf(parentDN));
+            LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT.get(dn, parentDN);
 
             if (structuralPolicy == AcceptRejectWarn.REJECT)
             {
@@ -2352,10 +2328,7 @@ public class Entry
               parentEntry = DirectoryServer.getEntry(parentDN);
               if (parentEntry == null)
               {
-                LocalizableMessage message =
-                     ERR_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY.get(
-                             String.valueOf(dn),
-                             String.valueOf(parentDN));
+                LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY.get(dn, parentDN);
 
                 if (structuralPolicy == AcceptRejectWarn.REJECT)
                 {
@@ -2387,7 +2360,7 @@ public class Entry
 
               LocalizableMessage message =
                    ERR_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR.get(
-                           String.valueOf(dn),
+                           dn,
                            ditStructureRule.getNameOrRuleID(),
                            getExceptionMessage(e));
 
@@ -2431,9 +2404,7 @@ public class Entry
           if (lock == null)
           {
             LocalizableMessage message =
-                    ERR_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT.get(
-                      String.valueOf(dn),
-                      String.valueOf(parentDN));
+                ERR_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT.get(dn, parentDN);
 
             if (structuralPolicy == AcceptRejectWarn.REJECT)
             {
@@ -2454,8 +2425,7 @@ public class Entry
               {
                 LocalizableMessage message =
                      ERR_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY.get(
-                             String.valueOf(dn),
-                             String.valueOf(parentDN));
+                         dn, parentDN);
 
                 if (structuralPolicy == AcceptRejectWarn.REJECT)
                 {
@@ -2479,8 +2449,7 @@ public class Entry
 
               LocalizableMessage message =
                    ERR_ENTRY_SCHEMA_COULD_NOT_CHECK_PARENT_DSR.get(
-                           String.valueOf(dn),
-                           getExceptionMessage(e));
+                       dn, getExceptionMessage(e));
 
               if (structuralPolicy == AcceptRejectWarn.REJECT)
               {
@@ -2505,8 +2474,7 @@ public class Entry
         if (parentStructuralClass == null)
         {
           LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_NO_PARENT_OC.get(
-                  String.valueOf(dn),
-                  String.valueOf(parentEntry.getName()));
+              dn, parentEntry.getName());
 
           if (structuralPolicy == AcceptRejectWarn.REJECT)
           {
@@ -2533,9 +2501,7 @@ public class Entry
                 if (parentDSR != null && !parentDSR.isObsolete())
                 {
                   LocalizableMessage message =
-                       ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR.get(
-                               String.valueOf(dn),
-                               String.valueOf(parentEntry.getName()));
+                       ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR.get(dn, parentEntry.getName());
 
                   if (structuralPolicy == AcceptRejectWarn.REJECT)
                   {
@@ -2588,8 +2554,7 @@ public class Entry
     if (oc == null)
     {
       LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_NO_PARENT_OC.get(
-              String.valueOf(dn),
-              String.valueOf(parentEntry.getName()));
+          dn, parentEntry.getName());
 
       if (structuralPolicy == AcceptRejectWarn.REJECT)
       {
@@ -2615,7 +2580,7 @@ public class Entry
     {
       LocalizableMessage message =
               ERR_ENTRY_SCHEMA_DSR_DISALLOWED_SUPERIOR_OC.get(
-                String.valueOf(dn),
+                dn,
                 dsr.getNameOrRuleID(),
                 structuralClass.getNameOrOID(),
                 oc.getNameOrOID());
@@ -4114,11 +4079,7 @@ public class Entry
     catch (Exception e)
     {
       logger.traceException(e);
-
-      LocalizableMessage message =
-          ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_EXPORT.
-            get(String.valueOf(dn), String.valueOf(e));
-      throw new LDIFException(message, e);
+      throw new LDIFException(ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_EXPORT.get(dn, e), e);
     }
 
 

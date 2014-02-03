@@ -320,7 +320,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
             ")");
       if (backend.getEntryCount() > 0 && ! backend.isIndexed(filter))
       {
-        logger.warn(WARN_SUBENTRY_FILTER_NOT_INDEXED.get(String.valueOf(filter), backend.getBackendID()));
+        logger.warn(WARN_SUBENTRY_FILTER_NOT_INDEXED.get(filter, backend.getBackendID()));
       }
     }
     catch (Exception e)

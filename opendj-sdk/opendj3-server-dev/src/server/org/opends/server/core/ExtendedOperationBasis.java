@@ -311,8 +311,7 @@ public class ExtendedOperationBasis
       if (handler == null)
       {
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-        appendErrorMessage(ERR_EXTENDED_NO_HANDLER.get(
-                String.valueOf(requestOID)));
+        appendErrorMessage(ERR_EXTENDED_NO_HANDLER.get(requestOID));
         return;
       }
 
@@ -363,11 +362,7 @@ public class ExtendedOperationBasis
           else if (! handler.supportsControl(c.getOID()))
           {
             setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
-
-            appendErrorMessage(ERR_EXTENDED_UNSUPPORTED_CRITICAL_CONTROL.get(
-                    String.valueOf(requestOID),
-                    c.getOID()));
-
+            appendErrorMessage(ERR_EXTENDED_UNSUPPORTED_CRITICAL_CONTROL.get(requestOID, c.getOID()));
             return;
           }
         }
@@ -386,8 +381,7 @@ public class ExtendedOperationBasis
             .getAccessControlHandler().isAllowed(this) == false)
         {
           setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-          appendErrorMessage(ERR_EXTENDED_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-              .get(String.valueOf(requestOID)));
+          appendErrorMessage(ERR_EXTENDED_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(requestOID));
           return;
         }
       }

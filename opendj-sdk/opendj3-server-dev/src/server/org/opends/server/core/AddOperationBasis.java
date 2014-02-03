@@ -373,9 +373,7 @@ public class AddOperationBasis
               && !isSynchronizationOperation())
           {
             throw new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
-                ERR_ADD_ATTR_IS_NO_USER_MOD.get(
-                    String.valueOf(entryDN),
-                    attr.getName()));
+                ERR_ADD_ATTR_IS_NO_USER_MOD.get(entryDN, attr.getName()));
           }
 
           if(attrType.isBinary())
@@ -394,9 +392,7 @@ public class AddOperationBasis
             if(attr.hasOption("binary"))
             {
               throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
-                      ERR_ADD_ATTR_IS_INVALID_OPTION.get(
-                      String.valueOf(entryDN),
-                      attr.getName()));
+                  ERR_ADD_ATTR_IS_INVALID_OPTION.get(entryDN, attr.getName()));
             }
           }
 
@@ -794,14 +790,12 @@ public class AddOperationBasis
       // The entry doesn't have a parent but isn't a suffix.  This is not
       // allowed.
       setResultCode(ResultCode.NO_SUCH_OBJECT);
-      appendErrorMessage(ERR_ADD_ENTRY_NOT_SUFFIX.get(
-        String.valueOf(entryDN)));
+      appendErrorMessage(ERR_ADD_ENTRY_NOT_SUFFIX.get(entryDN));
       return;
     }
     // The suffix does not exist
     setResultCode(ResultCode.NO_SUCH_OBJECT);
-    appendErrorMessage(ERR_ADD_ENTRY_UNKNOWN_SUFFIX.get(
-      String.valueOf(entryDN)));
+    appendErrorMessage(ERR_ADD_ENTRY_UNKNOWN_SUFFIX.get(entryDN));
   }
 
 

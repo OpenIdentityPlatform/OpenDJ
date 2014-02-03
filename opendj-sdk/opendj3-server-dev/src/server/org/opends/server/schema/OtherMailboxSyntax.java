@@ -259,10 +259,8 @@ public class OtherMailboxSyntax
       }
       else if (! PrintableString.isPrintableCharacter(c))
       {
-
         invalidReason.append(
-                ERR_ATTR_SYNTAX_OTHER_MAILBOX_ILLEGAL_MBTYPE_CHAR.get(
-                        valueString, String.valueOf(c), pos));
+                ERR_ATTR_SYNTAX_OTHER_MAILBOX_ILLEGAL_MBTYPE_CHAR.get(valueString, c, pos));
         return false;
       }
     }
@@ -284,9 +282,7 @@ public class OtherMailboxSyntax
       char c = valueString.charAt(pos);
       if (c != (c & 0x7F))
       {
-
-        invalidReason.append(ERR_ATTR_SYNTAX_OTHER_MAILBOX_ILLEGAL_MB_CHAR.get(
-                valueString, String.valueOf(c), pos));
+        invalidReason.append(ERR_ATTR_SYNTAX_OTHER_MAILBOX_ILLEGAL_MB_CHAR.get(valueString, c, pos));
         return false;
       }
     }

@@ -154,7 +154,7 @@ public class IdentityMapperConfigManager
     }
     else if (! identityMappers.containsKey(mapperDN))
     {
-      logger.error(ERR_CONFIG_IDMAPPER_INVALID_PROXY_MAPPER_DN.get(String.valueOf(mapperDN)));
+      logger.error(ERR_CONFIG_IDMAPPER_INVALID_PROXY_MAPPER_DN.get(mapperDN));
     }
   }
 
@@ -451,8 +451,7 @@ public class IdentityMapperConfigManager
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_IDMAPPER_INITIALIZATION_FAILED.
-          get(className, String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
+          get(className, configuration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }

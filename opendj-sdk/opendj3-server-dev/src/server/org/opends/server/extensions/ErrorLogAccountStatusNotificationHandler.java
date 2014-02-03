@@ -120,7 +120,7 @@ public class ErrorLogAccountStatusNotificationHandler
                    AccountStatusNotification notification)
   {
     logger.info(NOTE_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION.get(notification.getNotificationType().getName(),
-                  String.valueOf(notification.getUserDN()),
+                  notification.getUserDN(),
                   notification.getMessage().ordinal(),
                   notification.getMessage()));
   }

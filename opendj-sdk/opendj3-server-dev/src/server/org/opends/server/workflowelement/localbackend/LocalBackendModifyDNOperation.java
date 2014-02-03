@@ -275,8 +275,7 @@ public class LocalBackendModifyDNOperation
       if (newSuperior.isDescendantOf(entryDN))
       {
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-        appendErrorMessage(ERR_MODDN_NEW_SUPERIOR_IN_SUBTREE.get(String
-            .valueOf(entryDN), String.valueOf(newSuperior)));
+        appendErrorMessage(ERR_MODDN_NEW_SUPERIOR_IN_SUBTREE.get(entryDN, newSuperior));
         return;
       }
       parentDN = newSuperior;
@@ -285,7 +284,7 @@ public class LocalBackendModifyDNOperation
     if (parentDN == null || parentDN.isRootDN())
     {
       setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-      appendErrorMessage(ERR_MODDN_NO_PARENT.get(String.valueOf(entryDN)));
+      appendErrorMessage(ERR_MODDN_NO_PARENT.get(entryDN));
       return;
     }
 
@@ -297,8 +296,7 @@ public class LocalBackendModifyDNOperation
     if (currentBackend == null)
     {
       setResultCode(ResultCode.NO_SUCH_OBJECT);
-      appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY.get(String
-          .valueOf(entryDN)));
+      appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY.get(entryDN));
       return;
     }
 
@@ -306,15 +304,13 @@ public class LocalBackendModifyDNOperation
     if (newBackend == null)
     {
       setResultCode(ResultCode.NO_SUCH_OBJECT);
-      appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_NEW_ENTRY.get(String
-          .valueOf(entryDN), String.valueOf(newDN)));
+      appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_NEW_ENTRY.get(entryDN, newDN));
       return;
     }
     else if (!currentBackend.equals(newBackend))
     {
       setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-      appendErrorMessage(ERR_MODDN_DIFFERENT_BACKENDS.get(String
-          .valueOf(entryDN), String.valueOf(newDN)));
+      appendErrorMessage(ERR_MODDN_DIFFERENT_BACKENDS.get(entryDN, newDN));
       return;
     }
 
@@ -330,8 +326,7 @@ public class LocalBackendModifyDNOperation
       if (currentLock == null)
       {
         setResultCode(ResultCode.BUSY);
-        appendErrorMessage(ERR_MODDN_CANNOT_LOCK_CURRENT_DN.get(
-            String.valueOf(entryDN)));
+        appendErrorMessage(ERR_MODDN_CANNOT_LOCK_CURRENT_DN.get(entryDN));
         return;
       }
 
@@ -341,8 +336,7 @@ public class LocalBackendModifyDNOperation
         if (newLock == null)
         {
           setResultCode(ResultCode.BUSY);
-          appendErrorMessage(ERR_MODDN_CANNOT_LOCK_NEW_DN.get(
-              String.valueOf(entryDN), String.valueOf(newDN)));
+          appendErrorMessage(ERR_MODDN_CANNOT_LOCK_NEW_DN.get(entryDN, newDN));
           return;
         }
       }
@@ -352,8 +346,7 @@ public class LocalBackendModifyDNOperation
 
         setResultCodeAndMessageNoInfoDisclosure(null, newDN,
             DirectoryServer.getServerErrorResultCode(),
-            ERR_MODDN_EXCEPTION_LOCKING_NEW_DN.get(String.valueOf(entryDN),
-                String.valueOf(newDN), getExceptionMessage(e)));
+            ERR_MODDN_EXCEPTION_LOCKING_NEW_DN.get(entryDN, newDN, getExceptionMessage(e)));
         return;
       }
 
@@ -370,8 +363,7 @@ public class LocalBackendModifyDNOperation
         setMatchedDN(findMatchedDN(entryDN));
 
         setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(ERR_MODDN_NO_CURRENT_ENTRY.get(String
-            .valueOf(entryDN)));
+        appendErrorMessage(ERR_MODDN_NO_CURRENT_ENTRY.get(entryDN));
         return;
       }
 
@@ -396,8 +388,7 @@ public class LocalBackendModifyDNOperation
         {
           setResultCodeAndMessageNoInfoDisclosure(currentEntry, entryDN,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-              ERR_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(String
-                  .valueOf(entryDN)));
+              ERR_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(entryDN));
           return;
         }
       }
@@ -525,7 +516,7 @@ public class LocalBackendModifyDNOperation
   {
     return LocalBackendWorkflowElement.newDirectoryException(this, entry, null,
         resultCode, message, ResultCode.NO_SUCH_OBJECT,
-        ERR_MODDN_NO_CURRENT_ENTRY.get(String.valueOf(entryDN)));
+        ERR_MODDN_NO_CURRENT_ENTRY.get(entryDN));
   }
 
   private void setResultCodeAndMessageNoInfoDisclosure(Entry entry, DN entryDN,
@@ -533,7 +524,7 @@ public class LocalBackendModifyDNOperation
   {
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
         entry, entryDN, realResultCode, realMessage, ResultCode.NO_SUCH_OBJECT,
-        ERR_MODDN_NO_CURRENT_ENTRY.get(String.valueOf(entryDN)));
+        ERR_MODDN_NO_CURRENT_ENTRY.get(entryDN));
   }
 
   private DN findMatchedDN(DN entryDN)
@@ -591,9 +582,7 @@ public class LocalBackendModifyDNOperation
             logger.traceException(de);
 
             throw newDirectoryException(currentEntry, de.getResultCode(),
-                ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                    String.valueOf(entryDN),
-                    de.getMessageObject()));
+                ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
           }
 
           // Check if the current user has permission to make
@@ -612,8 +601,7 @@ public class LocalBackendModifyDNOperation
             {
               throw newDirectoryException(currentEntry,
                   ResultCode.ASSERTION_FAILED,
-                  ERR_MODDN_ASSERTION_FAILED.get(String
-                      .valueOf(entryDN)));
+                  ERR_MODDN_ASSERTION_FAILED.get(entryDN));
             }
           }
           catch (DirectoryException de)
@@ -626,9 +614,7 @@ public class LocalBackendModifyDNOperation
             logger.traceException(de);
 
             throw newDirectoryException(currentEntry, de.getResultCode(),
-                ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                    String.valueOf(entryDN),
-                    de.getMessageObject()));
+                ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
           }
         }
         else if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
@@ -714,9 +700,8 @@ public class LocalBackendModifyDNOperation
           if ((backend == null) || (! backend.supportsControl(oid)))
           {
             throw new DirectoryException(
-                           ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                           ERR_MODDN_UNSUPPORTED_CRITICAL_CONTROL.get(
-                                String.valueOf(entryDN), oid));
+                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+                ERR_MODDN_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
           }
         }
       }
@@ -756,8 +741,7 @@ public class LocalBackendModifyDNOperation
           if (! (isInternalOperation() || isSynchronizationOperation()))
           {
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                           ERR_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD.get(
-                                String.valueOf(entryDN), a.getName()));
+                ERR_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD.get(entryDN, a.getName()));
           }
         }
 
@@ -793,8 +777,7 @@ public class LocalBackendModifyDNOperation
           if (! (isInternalOperation() || isSynchronizationOperation()))
           {
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                           ERR_MODDN_NEW_RDN_ATTR_IS_NO_USER_MOD.get(
-                                String.valueOf(entryDN), a.getName()));
+                ERR_MODDN_NEW_RDN_ATTR_IS_NO_USER_MOD.get(entryDN, a.getName()));
           }
         }
         else
@@ -814,9 +797,7 @@ public class LocalBackendModifyDNOperation
                                       invalidReason))
       {
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                     ERR_MODDN_VIOLATES_SCHEMA.get(
-                                          String.valueOf(entryDN),
-                                          String.valueOf(invalidReason)));
+            ERR_MODDN_VIOLATES_SCHEMA.get(entryDN, invalidReason));
       }
 
       for (int i=0; i < newRDNValues; i++)
@@ -825,9 +806,7 @@ public class LocalBackendModifyDNOperation
         if (at.isObsolete())
         {
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                       ERR_MODDN_NEWRDN_ATTR_IS_OBSOLETE.get(
-                                            String.valueOf(entryDN),
-                                            at.getNameOrOID()));
+              ERR_MODDN_NEWRDN_ATTR_IS_OBSOLETE.get(entryDN, at.getNameOrOID()));
         }
       }
     }
@@ -891,9 +870,7 @@ public class LocalBackendModifyDNOperation
                                       invalidReason))
       {
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                     ERR_MODDN_PREOP_VIOLATES_SCHEMA.get(
-                                          String.valueOf(entryDN),
-                                          String.valueOf(invalidReason)));
+            ERR_MODDN_PREOP_VIOLATES_SCHEMA.get(entryDN, invalidReason));
       }
     }
   }

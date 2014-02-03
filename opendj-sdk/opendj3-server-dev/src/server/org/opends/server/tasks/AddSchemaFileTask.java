@@ -98,8 +98,7 @@ public class AddSchemaFileTask
     if ((attrList == null) || attrList.isEmpty())
     {
       LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_NO_FILENAME.get(
-          ATTR_TASK_ADDSCHEMAFILE_FILENAME,
-          String.valueOf(taskEntry.getName()));
+          ATTR_TASK_ADDSCHEMAFILE_FILENAME, taskEntry.getName());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -158,7 +157,7 @@ public class AddSchemaFileTask
         logger.traceException(ce);
 
         LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(
-            String.valueOf(schemaFile), ce.getMessage());
+            schemaFile, ce.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, ce);
       }
@@ -167,7 +166,7 @@ public class AddSchemaFileTask
         logger.traceException(ie);
 
         LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(
-            String.valueOf(schemaFile), ie.getMessage());
+            schemaFile, ie.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, ie);
       }

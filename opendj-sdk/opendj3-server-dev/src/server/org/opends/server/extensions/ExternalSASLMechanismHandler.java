@@ -233,8 +233,7 @@ public class ExternalSASLMechanismHandler
           {
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            LocalizableMessage message = ERR_SASLEXTERNAL_NO_CERT_IN_ENTRY.get(
-                    String.valueOf(userEntry.getName()));
+            LocalizableMessage message = ERR_SASLEXTERNAL_NO_CERT_IN_ENTRY.get(userEntry.getName());
             bindOperation.setAuthFailureReason(message);
             return;
           }
@@ -262,8 +261,7 @@ public class ExternalSASLMechanismHandler
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              LocalizableMessage message = ERR_SASLEXTERNAL_PEER_CERT_NOT_FOUND.get(
-                      String.valueOf(userEntry.getName()));
+              LocalizableMessage message = ERR_SASLEXTERNAL_PEER_CERT_NOT_FOUND.get(userEntry.getName());
               bindOperation.setAuthFailureReason(message);
               return;
             }
@@ -275,8 +273,7 @@ public class ExternalSASLMechanismHandler
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
             LocalizableMessage message = ERR_SASLEXTERNAL_CANNOT_VALIDATE_CERT.get(
-                    String.valueOf(userEntry.getName()),
-                    getExceptionMessage(e));
+                userEntry.getName(), getExceptionMessage(e));
             bindOperation.setAuthFailureReason(message);
             return;
           }
@@ -307,8 +304,7 @@ public class ExternalSASLMechanismHandler
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              LocalizableMessage message = ERR_SASLEXTERNAL_PEER_CERT_NOT_FOUND.get(
-                      String.valueOf(userEntry.getName()));
+              LocalizableMessage message = ERR_SASLEXTERNAL_PEER_CERT_NOT_FOUND.get(userEntry.getName());
               bindOperation.setAuthFailureReason(message);
               return;
             }
@@ -320,8 +316,7 @@ public class ExternalSASLMechanismHandler
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
             LocalizableMessage message = ERR_SASLEXTERNAL_CANNOT_VALIDATE_CERT.get(
-                    String.valueOf(userEntry.getName()),
-                    getExceptionMessage(e));
+                    userEntry.getName(), getExceptionMessage(e));
             bindOperation.setAuthFailureReason(message);
             return;
           }

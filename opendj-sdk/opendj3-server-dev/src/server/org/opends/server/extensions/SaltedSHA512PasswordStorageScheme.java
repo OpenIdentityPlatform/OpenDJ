@@ -125,7 +125,7 @@ public class SaltedSHA512PasswordStorageScheme
       logger.traceException(e);
 
       LocalizableMessage message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
-          MESSAGE_DIGEST_ALGORITHM_SHA_512, String.valueOf(e));
+          MESSAGE_DIGEST_ALGORITHM_SHA_512, e);
       throw new InitializationException(message, e);
     }
 
@@ -537,7 +537,7 @@ public class SaltedSHA512PasswordStorageScheme
     catch (Exception e)
     {
       LocalizableMessage message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
-          MESSAGE_DIGEST_ALGORITHM_SHA_512, String.valueOf(e));
+          MESSAGE_DIGEST_ALGORITHM_SHA_512, e);
       throw new DirectoryException(ResultCode.OTHER, message, e);
     }
 

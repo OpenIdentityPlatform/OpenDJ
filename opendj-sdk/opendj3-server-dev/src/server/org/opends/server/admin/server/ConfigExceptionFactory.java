@@ -25,18 +25,13 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin.server;
-import org.forgerock.i18n.LocalizableMessage;
 
-
-
+import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.config.ConfigException;
-import org.opends.messages.AdminMessages;
 import org.opends.server.types.DN;
-
-
 
 /**
  * A utility class for converting admin exceptions to config exceptions.
@@ -78,9 +73,8 @@ final class ConfigExceptionFactory {
    */
   public ConfigException createDecodingExceptionAdaptor(DN dn,
       DefinitionDecodingException e) {
-    LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.
-        get(String.valueOf(dn), stackTraceToSingleLineString(e));
-    return new ConfigException(message, e);
+    return new ConfigException(
+        ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(dn, stackTraceToSingleLineString(e)), e);
   }
 
 
@@ -97,11 +91,8 @@ final class ConfigExceptionFactory {
   public ConfigException createDecodingExceptionAdaptor(
       ServerManagedObjectDecodingException e) {
     DN dn = e.getPartialManagedObject().getDN();
-    LocalizableMessage message =
-            AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(
-                    String.valueOf(dn),
-        stackTraceToSingleLineString(e));
-    return new ConfigException(message, e);
+    return new ConfigException(
+        ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(dn, stackTraceToSingleLineString(e)), e);
   }
 
 
@@ -117,9 +108,8 @@ final class ConfigExceptionFactory {
   public ConfigException createDecodingExceptionAdaptor(
       ConstraintViolationException e) {
     DN dn = e.getManagedObject().getDN();
-    LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM
-        .get(String.valueOf(dn), stackTraceToSingleLineString(e));
-    return new ConfigException(message, e);
+    return new ConfigException(
+        ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(dn, stackTraceToSingleLineString(e)), e);
   }
 
 
@@ -140,9 +130,7 @@ final class ConfigExceptionFactory {
 
   public ConfigException createClassLoadingExceptionAdaptor(DN dn,
       String className, Exception e) {
-    LocalizableMessage message = AdminMessages.ERR_ADMIN_CANNOT_INSTANTIATE_CLASS.
-        get(String.valueOf(className), String.valueOf(dn),
-            stackTraceToSingleLineString(e));
-    return new ConfigException(message, e);
+    return new ConfigException(
+        ERR_ADMIN_CANNOT_INSTANTIATE_CLASS.get(className, dn, stackTraceToSingleLineString(e)), e);
   }
 }

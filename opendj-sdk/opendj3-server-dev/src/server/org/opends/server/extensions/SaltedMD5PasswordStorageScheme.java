@@ -120,8 +120,7 @@ public class SaltedMD5PasswordStorageScheme
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
-          MESSAGE_DIGEST_ALGORITHM_MD5, String.valueOf(e));
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(MESSAGE_DIGEST_ALGORITHM_MD5, e);
       throw new InitializationException(message, e);
     }
 

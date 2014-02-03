@@ -1108,25 +1108,20 @@ public final class StringConfigAttribute
         {
           logger.traceException(e);
 
-          LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_STRING_VALUE.get(
-              getName(), String.valueOf(value), String.valueOf(e));
-          throw new ConfigException(message, e);
+          throw new ConfigException(ERR_CONFIG_ATTR_INVALID_STRING_VALUE.get(getName(), value, e), e);
         }
       }
       else
       {
         LocalizableMessage message =
-            ERR_CONFIG_ATTR_STRING_INVALID_ARRAY_TYPE.get(
-                    String.valueOf(jmxAttribute),
-                    String.valueOf(componentType));
+            ERR_CONFIG_ATTR_STRING_INVALID_ARRAY_TYPE.get(jmxAttribute, componentType);
         throw new ConfigException(message);
       }
     }
     else
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_STRING_INVALID_TYPE.get(
-          String.valueOf(value), getName(), value.getClass().getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_STRING_INVALID_TYPE.get(
+          value, getName(), value.getClass().getName()));
     }
   }
 

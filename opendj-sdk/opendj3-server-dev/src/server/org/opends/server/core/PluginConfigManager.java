@@ -401,8 +401,7 @@ public class PluginConfigManager
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_PLUGIN_CANNOT_INITIALIZE.
-          get(className, String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
+          get(className, configuration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }
@@ -1456,23 +1455,20 @@ public class PluginConfigManager
         logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_STARTUP_PLUGIN_EXCEPTION.get(
-                String.valueOf(p.getPluginEntryDN()),
-                stackTraceToSingleLineString(e));
-
+                p.getPluginEntryDN(), stackTraceToSingleLineString(e));
         return PluginResult.Startup.stopStartup(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_STARTUP_PLUGIN_RETURNED_NULL.get(
-            String.valueOf(p.getPluginEntryDN()));
+        LocalizableMessage message = ERR_PLUGIN_STARTUP_PLUGIN_RETURNED_NULL.get(p.getPluginEntryDN());
         logger.error(message);
         return PluginResult.Startup.stopStartup(message);
       }
       else if (! result.continueProcessing())
       {
         LocalizableMessage message = ERR_PLUGIN_STARTUP_PLUGIN_FAIL_ABORT.
-            get(String.valueOf(p.getPluginEntryDN()),
+            get(p.getPluginEntryDN(),
                 result.getErrorMessage(),
                 result.getErrorMessage().ordinal());
         logger.error(message);
@@ -1511,8 +1507,7 @@ public class PluginConfigManager
         logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_SHUTDOWN_PLUGIN_EXCEPTION.
-            get(String.valueOf(p.getPluginEntryDN()),
-                stackTraceToSingleLineString(e));
+            get(p.getPluginEntryDN(), stackTraceToSingleLineString(e));
         logger.error(message);
       }
     }
@@ -1544,7 +1539,7 @@ public class PluginConfigManager
         logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_POST_CONNECT_PLUGIN_EXCEPTION.
-            get(String.valueOf(p.getPluginEntryDN()),
+            get(p.getPluginEntryDN(),
                 clientConnection.getConnectionID(),
                 clientConnection.getClientAddress(),
                 stackTraceToSingleLineString(e));
@@ -1558,9 +1553,7 @@ public class PluginConfigManager
       if (result == null)
       {
         LocalizableMessage message = ERR_PLUGIN_POST_CONNECT_PLUGIN_RETURNED_NULL.
-            get(String.valueOf(p.getPluginEntryDN()),
-                clientConnection.getConnectionID(),
-                clientConnection.getClientAddress());
+            get(p.getPluginEntryDN(), clientConnection.getConnectionID(), clientConnection.getClientAddress());
         logger.error(message);
 
         return PluginResult.PostConnect.disconnectClient(
@@ -1615,7 +1608,7 @@ public class PluginConfigManager
         logger.traceException(e);
 
         LocalizableMessage msg = ERR_PLUGIN_POST_DISCONNECT_PLUGIN_EXCEPTION.
-            get(String.valueOf(p.getPluginEntryDN()),
+            get(p.getPluginEntryDN(),
                 clientConnection.getConnectionID(),
                 clientConnection.getClientAddress(),
                 stackTraceToSingleLineString(e));
@@ -1626,7 +1619,7 @@ public class PluginConfigManager
       if (result == null)
       {
         LocalizableMessage msg = ERR_PLUGIN_POST_DISCONNECT_PLUGIN_RETURNED_NULL.
-            get(String.valueOf(p.getPluginEntryDN()),
+            get(p.getPluginEntryDN(),
                 clientConnection.getConnectionID(),
                 clientConnection.getClientAddress());
         logger.error(msg);
@@ -1675,9 +1668,8 @@ public class PluginConfigManager
         logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_LDIF_IMPORT_PLUGIN_EXCEPTION.
-            get(String.valueOf(p.getPluginEntryDN()),
-                String.valueOf(entry.getName()),
-                stackTraceToSingleLineString(e));
+get(p.getPluginEntryDN(),
+                entry.getName(), stackTraceToSingleLineString(e));
         logger.error(message);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
@@ -1686,8 +1678,7 @@ public class PluginConfigManager
       if (result == null)
       {
         LocalizableMessage message = ERR_PLUGIN_LDIF_IMPORT_PLUGIN_RETURNED_NULL.
-            get(String.valueOf(p.getPluginEntryDN()),
-                String.valueOf(entry.getName()));
+            get(p.getPluginEntryDN(), entry.getName());
         logger.error(message);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
@@ -1772,8 +1763,8 @@ public class PluginConfigManager
         logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_LDIF_EXPORT_PLUGIN_EXCEPTION.
-            get(String.valueOf(p.getPluginEntryDN()),
-                String.valueOf(entry.getName()),
+            get(p.getPluginEntryDN(),
+                entry.getName(),
                 stackTraceToSingleLineString(e));
         logger.error(message);
 
@@ -1783,8 +1774,7 @@ public class PluginConfigManager
       if (result == null)
       {
         LocalizableMessage message = ERR_PLUGIN_LDIF_EXPORT_PLUGIN_RETURNED_NULL.
-            get(String.valueOf(p.getPluginEntryDN()),
-                String.valueOf(entry.getName()));
+            get(p.getPluginEntryDN(), entry.getName());
         logger.error(message);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
@@ -1866,7 +1856,7 @@ public class PluginConfigManager
 
     LocalizableMessage message =
         ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.get(operation.getOperationType()
-            .getOperationName(), String.valueOf(plugin.getPluginEntryDN()),
+            .getOperationName(), plugin.getPluginEntryDN(),
             operation.getConnectionID(), operation.getOperationID(),
             stackTraceToSingleLineString(e));
     logger.error(message);
@@ -1880,9 +1870,8 @@ public class PluginConfigManager
   {
     LocalizableMessage message =
         ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.get(operation
-            .getOperationType().getOperationName(), String.valueOf(plugin
-            .getPluginEntryDN()), operation.getConnectionID(), String
-            .valueOf(operation.getOperationID()));
+            .getOperationType().getOperationName(), plugin
+            .getPluginEntryDN(), operation.getConnectionID(), operation.getOperationID());
     logger.error(message);
 
     return PluginResult.PreParse.stopProcessing(DirectoryServer
@@ -2665,8 +2654,8 @@ public class PluginConfigManager
 
     LocalizableMessage message =
         ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.get(operation
-            .getOperationType().getOperationName(), String.valueOf(plugin
-            .getPluginEntryDN()), operation.getConnectionID(), operation
+            .getOperationType().getOperationName(), plugin
+            .getPluginEntryDN(), operation.getConnectionID(), operation
             .getOperationID(), stackTraceToSingleLineString(e));
     logger.error(message);
 
@@ -2682,8 +2671,8 @@ public class PluginConfigManager
   {
     LocalizableMessage message =
         ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.get(operation
-            .getOperationType().getOperationName(), String.valueOf(plugin
-            .getPluginEntryDN()), operation.getConnectionID(), operation
+            .getOperationType().getOperationName(), plugin
+            .getPluginEntryDN(), operation.getConnectionID(), operation
             .getOperationID());
     logger.error(message);
 
@@ -2989,7 +2978,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(abandonOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 abandonOperation.getConnectionID(),
                 abandonOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -3000,7 +2989,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
             get(abandonOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 abandonOperation.getConnectionID(),
                 abandonOperation.getOperationID());
         logger.error(message);
@@ -3074,7 +3063,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(addOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 addOperation.getConnectionID(), addOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logger.error(message);
@@ -3084,7 +3073,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
             get(addOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 addOperation.getConnectionID(), addOperation.getOperationID());
         logger.error(message);
       }
@@ -3157,7 +3146,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(bindOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 bindOperation.getConnectionID(), bindOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logger.error(message);
@@ -3167,7 +3156,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
             get(bindOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 bindOperation.getConnectionID(),
                 bindOperation.getOperationID());
         logger.error(message);
@@ -3241,7 +3230,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(compareOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -3252,7 +3241,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
             get(compareOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID());
         logger.error(message);
@@ -3326,7 +3315,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(deleteOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -3337,7 +3326,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
             get(deleteOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID());
         logger.error(message);
@@ -3411,7 +3400,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(extendedOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -3422,7 +3411,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
             get(extendedOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID());
         logger.error(message);
@@ -3496,7 +3485,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(modifyOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -3507,7 +3496,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
             get(modifyOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID());
         logger.error(message);
@@ -3580,7 +3569,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(modifyDNOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -3591,7 +3580,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
             get(modifyDNOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID());
         logger.error(message);
@@ -3665,7 +3654,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(searchOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -3676,7 +3665,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
             get(searchOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID());
         logger.error(message);
@@ -3750,7 +3739,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
             get(unbindOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 unbindOperation.getConnectionID(),
                 unbindOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -3761,7 +3750,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
             get(unbindOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 unbindOperation.getConnectionID(),
                 unbindOperation.getOperationID());
         logger.error(message);
@@ -3826,7 +3815,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(addOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 addOperation.getConnectionID(), addOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logger.error(message);
@@ -3836,7 +3825,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
             get(addOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 addOperation.getConnectionID(), addOperation.getOperationID());
         logger.error(message);
       }
@@ -3890,7 +3879,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(bindOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 bindOperation.getConnectionID(), bindOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logger.error(message);
@@ -3900,7 +3889,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
             get(bindOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 bindOperation.getConnectionID(),
                 bindOperation.getOperationID());
         logger.error(message);
@@ -3955,7 +3944,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(compareOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -3966,7 +3955,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
             get(compareOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID());
         logger.error(message);
@@ -4021,7 +4010,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(deleteOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -4032,7 +4021,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
             get(deleteOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID());
         logger.error(message);
@@ -4086,7 +4075,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(extendedOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -4097,7 +4086,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
             get(extendedOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID());
         logger.error(message);
@@ -4152,7 +4141,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(modifyOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -4163,7 +4152,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
             get(modifyOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID());
         logger.error(message);
@@ -4218,7 +4207,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(modifyDNOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -4229,7 +4218,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
             get(modifyDNOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID());
         logger.error(message);
@@ -4284,7 +4273,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
             get(searchOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -4295,7 +4284,7 @@ public class PluginConfigManager
       {
         LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
             get(searchOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID());
         logger.error(message);
@@ -4340,7 +4329,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
             get(addOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 addOperation.getConnectionID(), addOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logger.error(message);
@@ -4372,7 +4361,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
             get(deleteOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -4405,7 +4394,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
             get(modifyOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -4438,7 +4427,7 @@ public class PluginConfigManager
 
         LocalizableMessage message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
             get(modifyDNOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -4482,10 +4471,10 @@ public class PluginConfigManager
         logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_SEARCH_ENTRY_PLUGIN_EXCEPTION.
-            get(String.valueOf(p.getPluginEntryDN()),
+            get(p.getPluginEntryDN(),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
-                String.valueOf(searchEntry.getName()),
+                searchEntry.getName(),
                 stackTraceToSingleLineString(e));
         logger.error(message);
 
@@ -4496,10 +4485,10 @@ public class PluginConfigManager
       if (result == null)
       {
         LocalizableMessage message = ERR_PLUGIN_SEARCH_ENTRY_PLUGIN_RETURNED_NULL.
-            get(String.valueOf(p.getPluginEntryDN()),
+            get(p.getPluginEntryDN(),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
-                String.valueOf(searchEntry.getName()));
+                searchEntry.getName());
         logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing(false,
@@ -4557,7 +4546,7 @@ public class PluginConfigManager
         logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_SEARCH_REFERENCE_PLUGIN_EXCEPTION.
-            get(String.valueOf(p.getPluginEntryDN()),
+            get(p.getPluginEntryDN(),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
                 searchReference.getReferralURLString(),
@@ -4571,7 +4560,7 @@ public class PluginConfigManager
       if (result == null)
       {
         LocalizableMessage message = ERR_PLUGIN_SEARCH_REFERENCE_PLUGIN_RETURNED_NULL.
-            get(String.valueOf(p.getPluginEntryDN()),
+            get(p.getPluginEntryDN(),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
                 searchReference.getReferralURLString());
@@ -4639,7 +4628,7 @@ public class PluginConfigManager
 
         LocalizableMessage message =
             ERR_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_EXCEPTION.get(
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -4653,9 +4642,9 @@ public class PluginConfigManager
       {
         LocalizableMessage message =
             ERR_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_RETURNED_NULL.get(
-                        String.valueOf(p.getPluginEntryDN()),
+                        p.getPluginEntryDN(),
                         modifyDNOperation.getConnectionID(),
-                        String.valueOf(modifyDNOperation.getOperationID()));
+                        modifyDNOperation.getOperationID());
         logger.error(message);
 
         return PluginResult.SubordinateModifyDN.stopProcessing(
@@ -4712,7 +4701,7 @@ public class PluginConfigManager
 
         LocalizableMessage message =
             ERR_PLUGIN_SUBORDINATE_DELETE_PLUGIN_EXCEPTION.get(
-                String.valueOf(p.getPluginEntryDN()),
+                p.getPluginEntryDN(),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
@@ -4726,9 +4715,9 @@ public class PluginConfigManager
       {
         LocalizableMessage message =
             ERR_PLUGIN_SUBORDINATE_DELETE_PLUGIN_RETURNED_NULL.get(
-                        String.valueOf(p.getPluginEntryDN()),
+                        p.getPluginEntryDN(),
                         deleteOperation.getConnectionID(),
-                        String.valueOf(deleteOperation.getOperationID()));
+                        deleteOperation.getOperationID());
         logger.error(message);
 
         return PluginResult.SubordinateDelete.stopProcessing(
@@ -4779,7 +4768,7 @@ public class PluginConfigManager
         logger.traceException(e);
 
         LocalizableMessage message = ERR_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_EXCEPTION.
-            get(String.valueOf(p.getPluginEntryDN()),
+            get(p.getPluginEntryDN(),
                 operation.getConnectionID(), operation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logger.error(message);
@@ -4791,7 +4780,7 @@ public class PluginConfigManager
       if (result == null)
       {
         LocalizableMessage message = ERR_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_RETURNED_NULL.
-            get(String.valueOf(p.getPluginEntryDN()),
+            get(p.getPluginEntryDN(),
                 operation.getConnectionID(), operation.getOperationID());
         logger.error(message);
 

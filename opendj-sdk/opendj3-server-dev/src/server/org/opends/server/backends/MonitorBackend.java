@@ -112,9 +112,8 @@ public class MonitorBackend extends Backend implements
   public void addEntry(final Entry entry, final AddOperation addOperation)
       throws DirectoryException
   {
-    final LocalizableMessage message = ERR_MONITOR_ADD_NOT_SUPPORTED.get(String
-        .valueOf(entry.getName()));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_MONITOR_ADD_NOT_SUPPORTED.get(entry.getName()));
   }
 
 
@@ -163,7 +162,7 @@ public class MonitorBackend extends Backend implements
       logger.traceException(e);
 
       messages.add(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
-          String.valueOf(configEntryDN), stackTraceToSingleLineString(e)));
+          configEntryDN, stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
@@ -285,9 +284,8 @@ public class MonitorBackend extends Backend implements
   public void deleteEntry(final DN entryDN,
       final DeleteOperation deleteOperation) throws DirectoryException
   {
-    final LocalizableMessage message = ERR_MONITOR_DELETE_NOT_SUPPORTED.get(String
-        .valueOf(entryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_MONITOR_DELETE_NOT_SUPPORTED.get(entryDN));
   }
 
 
@@ -450,9 +448,8 @@ public class MonitorBackend extends Backend implements
     final Map<DN, MonitorProvider<?>> dit = getDIT();
     if (!dit.containsKey(entryDN))
     {
-      final LocalizableMessage message = ERR_MONITOR_INVALID_BASE.get(
-          String.valueOf(entryDN), String.valueOf(baseMonitorDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+          ERR_MONITOR_INVALID_BASE.get(entryDN, baseMonitorDN));
     }
 
     // The DN is associated with a valid monitor/glue entry.
@@ -667,9 +664,8 @@ public class MonitorBackend extends Backend implements
   public void renameEntry(final DN currentDN, final Entry entry,
       final ModifyDNOperation modifyDNOperation) throws DirectoryException
   {
-    final LocalizableMessage message = ERR_MONITOR_MODIFY_DN_NOT_SUPPORTED.get(String
-        .valueOf(currentDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_MONITOR_MODIFY_DN_NOT_SUPPORTED.get(currentDN));
   }
 
 
@@ -681,9 +677,8 @@ public class MonitorBackend extends Backend implements
   public void replaceEntry(final Entry oldEntry, final Entry newEntry,
       final ModifyOperation modifyOperation) throws DirectoryException
   {
-    final LocalizableMessage message = ERR_MONITOR_MODIFY_NOT_SUPPORTED.get(
-        String.valueOf(newEntry.getName()), String.valueOf(configEntryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_MONITOR_MODIFY_NOT_SUPPORTED.get(newEntry.getName(), configEntryDN));
   }
 
 
@@ -730,8 +725,7 @@ public class MonitorBackend extends Backend implements
         }
         matchedDN = matchedDN.parent();
       }
-      final LocalizableMessage message = ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String
-          .valueOf(baseDN));
+      final LocalizableMessage message = ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(baseDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
           matchedDN, null);
     }

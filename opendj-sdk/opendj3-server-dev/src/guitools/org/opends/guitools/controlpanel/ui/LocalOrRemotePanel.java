@@ -704,7 +704,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
                 }
                 UserDataCertificateException udce =
                   new UserDataCertificateException(null,
-                      INFO_CERTIFICATE_EXCEPTION.get(h, String.valueOf(p)),
+                      INFO_CERTIFICATE_EXCEPTION.get(h, p),
                       throwable, h, p,
                       getInfo().getTrustManager().getLastRefusedChain(),
                       getInfo().getTrustManager().getLastRefusedAuthType(),

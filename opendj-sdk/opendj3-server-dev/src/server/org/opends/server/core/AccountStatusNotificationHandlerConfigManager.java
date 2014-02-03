@@ -253,9 +253,7 @@ public class AccountStatusNotificationHandlerConfigManager
     DN configEntryDN = configuration.dn();
     if (notificationHandlers.containsKey(configEntryDN))
     {
-      LocalizableMessage message = ERR_CONFIG_ACCTNOTHANDLER_EXISTS.get(
-              String.valueOf(configEntryDN));
-      unacceptableReasons.add (message);
+      unacceptableReasons.add(ERR_CONFIG_ACCTNOTHANDLER_EXISTS.get(configEntryDN));
       status = false;
     }
     // If configuration is enabled then check that notification class

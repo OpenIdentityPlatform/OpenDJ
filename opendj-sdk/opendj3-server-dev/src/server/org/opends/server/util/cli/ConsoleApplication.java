@@ -1190,8 +1190,7 @@ public abstract class ConsoleApplication
                   || (e.getCause() instanceof SSLHandshakeException))
               {
                 LocalizableMessage message =
-                    ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
-                        hostName, String.valueOf(portNumber));
+                    ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber);
                 throw new ClientException(
                     LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
               }
@@ -1199,8 +1198,7 @@ public abstract class ConsoleApplication
             if (e.getCause() instanceof SSLException)
             {
               LocalizableMessage message =
-                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
-                      hostName, String.valueOf(portNumber));
+                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(hostName, portNumber);
               throw new ClientException(
                   LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
@@ -1259,15 +1257,13 @@ public abstract class ConsoleApplication
             else
             {
               LocalizableMessage message =
-                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, String
-                      .valueOf(portNumber));
+                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
               throw new ClientException(
                   LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
           }
           LocalizableMessage message =
-              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, String
-                  .valueOf(portNumber));
+              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
               message);
         }
@@ -1289,8 +1285,7 @@ public abstract class ConsoleApplication
         catch (NamingException e)
         {
           LocalizableMessage message =
-              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, String
-                  .valueOf(portNumber));
+              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
               message);
         }

@@ -392,8 +392,7 @@ public class LocalBackendModifyOperation
     if (modifications.isEmpty())
     {
       setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-      appendErrorMessage(ERR_MODIFY_NO_MODIFICATIONS.get(String
-          .valueOf(entryDN)));
+      appendErrorMessage(ERR_MODIFY_NO_MODIFICATIONS.get(entryDN));
       return;
     }
 
@@ -408,8 +407,7 @@ public class LocalBackendModifyOperation
       if (entryLock == null)
       {
         setResultCode(ResultCode.BUSY);
-        appendErrorMessage(ERR_MODIFY_CANNOT_LOCK_ENTRY.get(
-            String.valueOf(entryDN)));
+        appendErrorMessage(ERR_MODIFY_CANNOT_LOCK_ENTRY.get(entryDN));
         return;
       }
 
@@ -422,8 +420,7 @@ public class LocalBackendModifyOperation
       if (currentEntry == null)
       {
         setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(ERR_MODIFY_NO_SUCH_ENTRY
-            .get(String.valueOf(entryDN)));
+        appendErrorMessage(ERR_MODIFY_NO_SUCH_ENTRY.get(entryDN));
 
         // See if one of the entry's ancestors exists.
         setMatchedDN(findMatchedDN(entryDN));
@@ -457,7 +454,7 @@ public class LocalBackendModifyOperation
             pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
             setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD
-                .get(authzDN != null ? String.valueOf(authzDN) : "anonymous"));
+                .get(authzDN != null ? authzDN : "anonymous"));
             return;
           }
         }
@@ -500,8 +497,7 @@ public class LocalBackendModifyOperation
         {
           setResultCodeAndMessageNoInfoDisclosure(modifiedEntry,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-              ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(String
-                  .valueOf(entryDN)));
+              ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(entryDN));
           return;
         }
       }
@@ -522,7 +518,7 @@ public class LocalBackendModifyOperation
         pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
         setResultCode(ResultCode.CONSTRAINT_VIOLATION);
         appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD
-            .get(authzDN != null ? String.valueOf(authzDN) : "anonymous"));
+            .get(authzDN != null ? authzDN : "anonymous"));
         return;
       }
 
@@ -536,8 +532,7 @@ public class LocalBackendModifyOperation
             invalidReason))
         {
           setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
-          appendErrorMessage(ERR_MODIFY_VIOLATES_SCHEMA.get(String
-              .valueOf(entryDN), invalidReason));
+          appendErrorMessage(ERR_MODIFY_VIOLATES_SCHEMA.get(entryDN, invalidReason));
           return;
         }
       }
@@ -568,8 +563,7 @@ public class LocalBackendModifyOperation
       if (backend == null)
       {
         setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(ERR_MODIFY_NO_BACKEND_FOR_ENTRY.get(String
-            .valueOf(entryDN)));
+        appendErrorMessage(ERR_MODIFY_NO_BACKEND_FOR_ENTRY.get(entryDN));
         return;
       }
 
@@ -628,7 +622,7 @@ public class LocalBackendModifyOperation
   {
     return LocalBackendWorkflowElement.newDirectoryException(this, entry,
         entryDN, resultCode, message, ResultCode.NO_SUCH_OBJECT,
-        ERR_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
+        ERR_MODIFY_NO_SUCH_ENTRY.get(entryDN));
   }
 
   private void setResultCodeAndMessageNoInfoDisclosure(Entry entry,
@@ -636,7 +630,7 @@ public class LocalBackendModifyOperation
   {
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
         entry, entryDN, realResultCode, realMessage, ResultCode.NO_SUCH_OBJECT,
-        ERR_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
+        ERR_MODIFY_NO_SUCH_ENTRY.get(entryDN));
   }
 
   private DN findMatchedDN(DN entryDN)
@@ -694,9 +688,8 @@ public class LocalBackendModifyOperation
             logger.traceException(de);
 
             throw newDirectoryException(currentEntry, de.getResultCode(),
-                           ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                                String.valueOf(entryDN),
-                                de.getMessageObject()));
+                ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                    entryDN, de.getMessageObject()));
           }
 
           // Check if the current user has permission to make
@@ -715,7 +708,7 @@ public class LocalBackendModifyOperation
             {
               throw newDirectoryException(currentEntry,
                   ResultCode.ASSERTION_FAILED,
-                  ERR_MODIFY_ASSERTION_FAILED.get(String.valueOf(entryDN)));
+                  ERR_MODIFY_ASSERTION_FAILED.get(entryDN));
             }
           }
           catch (DirectoryException de)
@@ -728,9 +721,8 @@ public class LocalBackendModifyOperation
             logger.traceException(de);
 
             throw newDirectoryException(currentEntry, de.getResultCode(),
-                           ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                                String.valueOf(entryDN),
-                                de.getMessageObject()));
+                ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                    entryDN, de.getMessageObject()));
           }
         }
         else if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
@@ -822,9 +814,8 @@ public class LocalBackendModifyOperation
           if ((backend == null) || (! backend.supportsControl(oid)))
           {
             throw newDirectoryException(currentEntry,
-                           ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                           ERR_MODIFY_UNSUPPORTED_CRITICAL_CONTROL.get(
-                                String.valueOf(entryDN), oid));
+                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+                ERR_MODIFY_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
           }
         }
       }
@@ -856,8 +847,7 @@ public class LocalBackendModifyOperation
         {
           throw newDirectoryException(currentEntry,
               ResultCode.CONSTRAINT_VIOLATION,
-              ERR_MODIFY_ATTR_IS_NO_USER_MOD.get(
-                          String.valueOf(entryDN), a.getName()));
+              ERR_MODIFY_ATTR_IS_NO_USER_MOD.get(entryDN, a.getName()));
         }
       }
 
@@ -874,8 +864,7 @@ public class LocalBackendModifyOperation
           {
             throw newDirectoryException(currentEntry,
                 ResultCode.CONSTRAINT_VIOLATION,
-                ERR_MODIFY_ATTR_IS_OBSOLETE.get(
-                            String.valueOf(entryDN), a.getName()));
+                ERR_MODIFY_ATTR_IS_OBSOLETE.get(entryDN, a.getName()));
           }
         }
       }
@@ -1078,8 +1067,8 @@ public class LocalBackendModifyOperation
 
           default:
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(String.valueOf(m
-                    .getModificationType()), a.getName()));
+                ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(
+                    m.getModificationType(), a.getName()));
           }
 
           // Password processing may have changed the attribute in
@@ -1378,8 +1367,7 @@ public class LocalBackendModifyOperation
     if (attr.isEmpty())
     {
       throw newDirectoryException(currentEntry, ResultCode.PROTOCOL_ERROR,
-          ERR_MODIFY_ADD_NO_VALUES.get(String.valueOf(entryDN),
-              attr.getName()));
+          ERR_MODIFY_ADD_NO_VALUES.get(entryDN, attr.getName()));
     }
 
     // If the server is configured to check schema and the operation
@@ -1403,8 +1391,7 @@ public class LocalBackendModifyOperation
               // Value is not human-readable
               throw newDirectoryException(currentEntry,
                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                  ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE.get(
-                      String.valueOf(entryDN), attr.getName(), invalidReason));
+                  ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE.get(entryDN, attr.getName(), invalidReason));
             }
             else
             {
@@ -1429,8 +1416,7 @@ public class LocalBackendModifyOperation
             if (!syntax.isHumanReadable() || syntax.isBinary())
             {
               // Value is not human-readable
-              logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE.get(String
-                  .valueOf(entryDN), attr.getName(), invalidReason));
+              logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE.get(entryDN, attr.getName(), invalidReason));
             }
             else
             {
@@ -1462,8 +1448,7 @@ public class LocalBackendModifyOperation
 
       throw newDirectoryException(currentEntry,
           ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-          ERR_MODIFY_ADD_DUPLICATE_VALUE.get(
-              String.valueOf(entryDN), attr.getName(), duplicateValuesStr));
+          ERR_MODIFY_ADD_DUPLICATE_VALUE.get(entryDN, attr.getName(), duplicateValuesStr));
     }
   }
 
@@ -1503,14 +1488,14 @@ public class LocalBackendModifyOperation
       {
         throw newDirectoryException(currentEntry,
             ResultCode.OBJECTCLASS_VIOLATION,
-            ERR_ENTRY_ADD_UNKNOWN_OC.get(name, String.valueOf(entryDN)));
+            ERR_ENTRY_ADD_UNKNOWN_OC.get(name, entryDN));
       }
 
       if (oc.isObsolete())
       {
         throw newDirectoryException(currentEntry,
             ResultCode.CONSTRAINT_VIOLATION,
-            ERR_ENTRY_ADD_OBSOLETE_OC.get(name, String.valueOf(entryDN)));
+            ERR_ENTRY_ADD_OBSOLETE_OC.get(name, entryDN));
       }
     }
   }
@@ -1549,8 +1534,7 @@ public class LocalBackendModifyOperation
         {
           throw newDirectoryException(currentEntry,
               ResultCode.NOT_ALLOWED_ON_RDN,
-              ERR_MODIFY_DELETE_RDN_ATTR.get(
-                  String.valueOf(entryDN), attr.getName()));
+              ERR_MODIFY_DELETE_RDN_ATTR.get(entryDN, attr.getName()));
         }
       }
       else
@@ -1561,8 +1545,7 @@ public class LocalBackendModifyOperation
 
           throw newDirectoryException(currentEntry,
               ResultCode.NO_SUCH_ATTRIBUTE,
-              ERR_MODIFY_DELETE_MISSING_VALUES.get(
-                  String.valueOf(entryDN), attr.getName(), missingValuesStr));
+              ERR_MODIFY_DELETE_MISSING_VALUES.get(entryDN, attr.getName(), missingValuesStr));
         }
       }
     }
@@ -1571,8 +1554,7 @@ public class LocalBackendModifyOperation
       if (! permissiveModify)
       {
         throw newDirectoryException(currentEntry, ResultCode.NO_SUCH_ATTRIBUTE,
-                     ERR_MODIFY_DELETE_NO_SUCH_ATTR.get(
-                          String.valueOf(entryDN), attr.getName()));
+            ERR_MODIFY_DELETE_NO_SUCH_ATTR.get(entryDN, attr.getName()));
       }
     }
   }
@@ -1613,15 +1595,14 @@ public class LocalBackendModifyOperation
               // Value is not human-readable
               throw newDirectoryException(currentEntry,
                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                  ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE.get(
-                      String.valueOf(entryDN), attr.getName(), invalidReason));
+                  ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE.get(entryDN, attr.getName(), invalidReason));
             }
             else
             {
               throw newDirectoryException(currentEntry,
                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                  ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String.valueOf(entryDN),
-                      attr.getName(), v.getValue(), invalidReason));
+                  ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(
+                      entryDN, attr.getName(), v.getValue(), invalidReason));
             }
           }
         }
@@ -1637,14 +1618,13 @@ public class LocalBackendModifyOperation
             if (!syntax.isHumanReadable() || syntax.isBinary())
             {
               // Value is not human-readable
-              logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE.get(String
-                  .valueOf(entryDN), attr.getName(), invalidReason));
+              logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE.get(
+                  entryDN, attr.getName(), invalidReason));
             }
             else
             {
-              logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String
-                  .valueOf(entryDN), attr.getName(), v.getValue(),
-                  invalidReason));
+              logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(
+                  entryDN, attr.getName(), v.getValue(), invalidReason));
             }
             invalidReason = new LocalizableMessageBuilder();
           }
@@ -1672,8 +1652,7 @@ public class LocalBackendModifyOperation
             .getAttributeValue(t))))
     {
       throw newDirectoryException(modifiedEntry, ResultCode.NOT_ALLOWED_ON_RDN,
-          ERR_MODIFY_DELETE_RDN_ATTR.get(String.valueOf(entryDN), attr
-              .getName()));
+          ERR_MODIFY_DELETE_RDN_ATTR.get(entryDN, attr.getName()));
     }
   }
 
@@ -1698,8 +1677,7 @@ public class LocalBackendModifyOperation
     if ((rdn != null) && rdn.hasAttributeType(t))
     {
       throw newDirectoryException(modifiedEntry, ResultCode.NOT_ALLOWED_ON_RDN,
-          ERR_MODIFY_INCREMENT_RDN.get(String.valueOf(entryDN),
-              attr.getName()));
+          ERR_MODIFY_INCREMENT_RDN.get(entryDN, attr.getName()));
     }
 
     // The provided attribute must have a single value, and it must be
@@ -1707,15 +1685,13 @@ public class LocalBackendModifyOperation
     if (attr.isEmpty())
     {
       throw newDirectoryException(modifiedEntry, ResultCode.PROTOCOL_ERROR,
-          ERR_MODIFY_INCREMENT_REQUIRES_VALUE.get(String.valueOf(entryDN), attr
-              .getName()));
+          ERR_MODIFY_INCREMENT_REQUIRES_VALUE.get(entryDN, attr.getName()));
     }
 
     if (attr.size() > 1)
     {
       throw newDirectoryException(modifiedEntry, ResultCode.PROTOCOL_ERROR,
-          ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(String
-              .valueOf(entryDN), attr.getName()));
+          ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(entryDN, attr.getName()));
     }
 
     AttributeValue v = attr.iterator().next();
@@ -1730,8 +1706,7 @@ public class LocalBackendModifyOperation
       logger.traceException(e);
 
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-          ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(String
-              .valueOf(entryDN), attr.getName(), v.getValue()), e);
+          ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(entryDN, attr.getName(), v.getValue()), e);
     }
 
     // Get the attribute that is to be incremented.
@@ -1740,8 +1715,7 @@ public class LocalBackendModifyOperation
     {
       throw newDirectoryException(modifiedEntry,
           ResultCode.CONSTRAINT_VIOLATION,
-          ERR_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE.get(String
-              .valueOf(entryDN), attr.getName()));
+          ERR_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE.get(entryDN, attr.getName()));
     }
 
     // Increment each attribute value by the specified amount.
@@ -1760,9 +1734,8 @@ public class LocalBackendModifyOperation
 
         throw new DirectoryException(
             ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-            ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(String
-                .valueOf(entryDN), a.getName(),
-                existingValue.getValue()),
+            ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(
+                entryDN, a.getName(), existingValue.getValue()),
             e);
       }
 

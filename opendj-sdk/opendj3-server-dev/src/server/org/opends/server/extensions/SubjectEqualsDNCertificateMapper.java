@@ -121,8 +121,7 @@ public class SubjectEqualsDNCertificateMapper
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_SEDCM_PEER_CERT_NOT_X509.get(
-          String.valueOf(certificateChain[0].getType()));
+      LocalizableMessage message = ERR_SEDCM_PEER_CERT_NOT_X509.get(certificateChain[0].getType());
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
@@ -138,8 +137,7 @@ public class SubjectEqualsDNCertificateMapper
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_SEDCM_CANNOT_DECODE_SUBJECT_AS_DN.get(
-          String.valueOf(peerPrincipal), getExceptionMessage(e));
+      LocalizableMessage message = ERR_SEDCM_CANNOT_DECODE_SUBJECT_AS_DN.get(peerPrincipal, getExceptionMessage(e));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
@@ -149,8 +147,7 @@ public class SubjectEqualsDNCertificateMapper
     final Lock readLock = LockManager.lockRead(subjectDN);
     if (readLock == null)
     {
-      throw new DirectoryException(ResultCode.BUSY, ERR_SEDCM_CANNOT_LOCK_ENTRY
-          .get(String.valueOf(subjectDN)));
+      throw new DirectoryException(ResultCode.BUSY, ERR_SEDCM_CANNOT_LOCK_ENTRY.get(subjectDN));
     }
 
 
@@ -164,19 +161,15 @@ public class SubjectEqualsDNCertificateMapper
     {
       logger.traceException(de);
 
-      LocalizableMessage message = ERR_SEDCM_CANNOT_GET_ENTRY.get(
-          String.valueOf(subjectDN), de.getMessageObject());
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   de);
+      LocalizableMessage message = ERR_SEDCM_CANNOT_GET_ENTRY.get(subjectDN, de.getMessageObject());
+      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message, de);
     }
     catch (Exception e)
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_SEDCM_CANNOT_GET_ENTRY.get(
-          String.valueOf(subjectDN), getExceptionMessage(e));
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   e);
+      LocalizableMessage message = ERR_SEDCM_CANNOT_GET_ENTRY.get(subjectDN, getExceptionMessage(e));
+      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message, e);
     }
     finally
     {
@@ -186,7 +179,7 @@ public class SubjectEqualsDNCertificateMapper
 
     if (userEntry == null)
     {
-      LocalizableMessage message = ERR_SEDCM_NO_USER_FOR_DN.get(String.valueOf(subjectDN));
+      LocalizableMessage message = ERR_SEDCM_NO_USER_FOR_DN.get(subjectDN);
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
     else

@@ -201,8 +201,41 @@ class Replace
      ]
   }
 
+  MSG_ARGN_TOSTRING = {
+    :dirs => JAVA_DIRS,
+    :extensions => ["java"],
+    :replacements =>
+      [
+        /([A-Z0-9_]+\s*\.\s*get\s*\([^;]*)\.toString\(\)/m,
+        '\1',
+      ]
+  }
+
+  MSG_ARGN_STRING_VALUEOF = {
+    :dirs => JAVA_DIRS,
+    :extensions => ["java"],
+    :replacements =>
+      [
+        # Need to fix removing the last parentheses
+        /([A-Z0-9_]+\s*\.\s*get\s*\([^;]*)\s*String\s*\.\s*valueOf\s*\(/m,
+        '\1',
+      ]
+  }
+
+  LOG_ISTRACEENABLED_TRACEEXCEPTION = {
+    :dirs => JAVA_DIRS,
+    :extensions => ["java"],
+    :replacements =>
+      [
+        /if\s*\(\s*logger\s*\.\s*isTraceEnabled\s*\(\s*\)\s*\)\s*(logger\s*\.\s*trace(Exception)?\s*\(\s*\w+\s*\)\s*;)/,
+        '\1',
+        /if\s*\(\s*logger\s*\.\s*isTraceEnabled\s*\(\s*\)\s*\)\s*\{\s*(logger\s*\.\s*trace(Exception)?\s*\(\s*\w+\s*\)\s*;)\s*\}/,
+        '\1',
+      ]
+  }
+
   # List of replacements to run
-  REPLACEMENTS = [ LOGGERS ]
+  REPLACEMENTS = [ MSG_ARGN_STRING_VALUEOF ]
   #REPLACEMENTS = [ MESSAGES, TYPES, DN_TYPES, EXCEPTIONS, LOGGERS, I18N_LOGGERS ]
 
 
@@ -244,8 +277,11 @@ class Replace
       (0..replacements.size-1).step(2).each { |index|
         pattern, replace = replacements[index], replacements[index+1]
         replace = replace.gsub('{CLASSNAME}', classname(file))
-        is_replaced = contents.gsub!(pattern, replace)
-        if is_replaced then count += 1 end
+        is_replaced = true
+        while is_replaced
+          is_replaced = contents.gsub!(pattern, replace)
+          if is_replaced then count += 1 end
+        end
       }
       File.open(file + ".copy", "w+") { |f| f.write(contents) }
     }
@@ -386,5 +422,5 @@ end
 
 # Launch all replacements defined in the REPLACEMENTS constant
 #Replace.new.messages("src/messages/messages/admin.properties")
-Replace.new.run_messages
-#Replace.new.run
+#Replace.new.run_messages
+Replace.new.run

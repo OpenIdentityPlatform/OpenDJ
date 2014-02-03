@@ -238,9 +238,7 @@ public class TelexNumberSyntax
     char c = valueString.charAt(0);
     if (! PrintableString.isPrintableCharacter(c))
     {
-
-      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(
-              valueString, String.valueOf(c), 0));
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(valueString, c, 0));
       return false;
     }
 
@@ -260,9 +258,7 @@ public class TelexNumberSyntax
       {
         if (! PrintableString.isPrintableCharacter(c))
         {
-
-          invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(
-                  valueString, String.valueOf(c), pos));
+          invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(valueString, c, pos));
         }
       }
     }
@@ -279,9 +275,7 @@ public class TelexNumberSyntax
     c = valueString.charAt(pos++);
     if (! PrintableString.isPrintableCharacter(c))
     {
-
-      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(
-              valueString, String.valueOf(c), (pos-1)));
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(valueString, c, (pos-1)));
       return false;
     }
 
@@ -300,9 +294,7 @@ public class TelexNumberSyntax
       {
         if (! PrintableString.isPrintableCharacter(c))
         {
-
-          invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(
-                  valueString, String.valueOf(c), pos));
+          invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(valueString, c, pos));
           return false;
         }
       }
@@ -320,9 +312,7 @@ public class TelexNumberSyntax
     c = valueString.charAt(pos++);
     if (! PrintableString.isPrintableCharacter(c))
     {
-
-      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(
-              valueString, String.valueOf(c), (pos-1)));
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(valueString, c, (pos-1)));
       return false;
     }
 
@@ -334,13 +324,10 @@ public class TelexNumberSyntax
       c = valueString.charAt(pos);
       if (! PrintableString.isPrintableCharacter(c))
       {
-
-        invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(
-                valueString, String.valueOf(c), pos));
+        invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(valueString, c, pos));
         return false;
       }
     }
-
 
     // If we've gotten here, then we're at the end of the value and it is
     // acceptable.

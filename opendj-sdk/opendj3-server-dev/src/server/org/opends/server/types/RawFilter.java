@@ -650,8 +650,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_COMPOUND_COMPONENTS.
-          get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_COMPOUND_COMPONENTS.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -689,8 +688,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_LDAP_FILTER_DECODE_NOT_COMPONENT.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_NOT_COMPONENT.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -760,8 +758,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_LDAP_FILTER_DECODE_TV_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_TV_SEQUENCE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -774,8 +771,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_LDAP_FILTER_DECODE_TV_TYPE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_TV_TYPE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -789,8 +785,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_LDAP_FILTER_DECODE_TV_VALUE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_TV_VALUE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -802,8 +797,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_LDAP_FILTER_DECODE_TV_SEQUENCE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_TV_SEQUENCE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -836,8 +830,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE.get(
-          String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -851,8 +844,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_TYPE.get(
-          String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_TYPE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -864,8 +856,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS.get(
-          String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -912,8 +903,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_VALUES.get(
-          String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_VALUES.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -925,8 +915,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS.get(
-          String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -938,11 +927,9 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE.get(
-          String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
-
 
     return new LDAPFilter(FilterType.SUBSTRING, null, null,
                           attributeType, null, subInitialElement,
@@ -974,8 +961,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_LDAP_FILTER_DECODE_PRESENCE_TYPE.get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_PRESENCE_TYPE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -1008,8 +994,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE.
-          get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -1040,8 +1025,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_ELEMENTS.
-          get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_ELEMENTS.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
@@ -1053,8 +1037,7 @@ public abstract class RawFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE.
-          get(String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE.get(e);
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 

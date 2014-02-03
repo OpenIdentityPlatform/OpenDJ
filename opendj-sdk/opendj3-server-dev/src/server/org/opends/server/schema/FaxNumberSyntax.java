@@ -274,9 +274,7 @@ public class FaxNumberSyntax
     char c = valueString.charAt(0);
     if (! PrintableString.isPrintableCharacter(c))
     {
-
-      invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE.get(
-              valueString, String.valueOf(c), 0));
+      invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE.get(valueString, c, 0));
       return false;
     }
 
@@ -296,9 +294,7 @@ public class FaxNumberSyntax
       {
         if (! PrintableString.isPrintableCharacter(c))
         {
-
-          invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE.get(
-                  valueString, String.valueOf(c), pos));
+          invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE.get(valueString, c, pos));
         }
       }
     }

@@ -1067,8 +1067,7 @@ public final class DirectoryServer
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CANNOT_CREATE_MBEAN_SERVER.get(String.valueOf(e));
-      throw new InitializationException(message, e);
+      throw new InitializationException(ERR_CANNOT_CREATE_MBEAN_SERVER.get(e), e);
     }
   }
 
@@ -1149,9 +1148,7 @@ public final class DirectoryServer
       logger.traceException(e);
 
       LocalizableMessage message =
-          ERR_CANNOT_INSTANTIATE_CONFIG_HANDLER.get(
-                  String.valueOf(configClass),
-                  e.getLocalizedMessage());
+          ERR_CANNOT_INSTANTIATE_CONFIG_HANDLER.get(configClass, e.getLocalizedMessage());
       throw new InitializationException(message, e);
     }
 
@@ -1182,9 +1179,7 @@ public final class DirectoryServer
 
       LocalizableMessage message =
           ERR_CANNOT_INITIALIZE_CONFIG_HANDLER.get(
-                  String.valueOf(configClass),
-                  String.valueOf(configFile),
-                  e.getLocalizedMessage());
+              configClass, configFile, e.getLocalizedMessage());
       throw new InitializationException(message, e);
     }
   }
@@ -1259,7 +1254,7 @@ public final class DirectoryServer
           if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
           {
             LocalizableMessage message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(
-                lockFile, String.valueOf(failureReason));
+                lockFile, failureReason);
             throw new InitializationException(message);
           }
 
@@ -1813,12 +1808,8 @@ public final class DirectoryServer
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_CANNOT_INITIALIZE_CONFIG_HANDLER.get(
-                  String.valueOf(configClass),
-                  String.valueOf(configFile),
-                  e.getLocalizedMessage());
-      throw new InitializationException(message);
+      throw new InitializationException(ERR_CANNOT_INITIALIZE_CONFIG_HANDLER.get(
+          configClass, configFile, e.getLocalizedMessage()));
     }
 
 
@@ -5658,8 +5649,7 @@ public final class DirectoryServer
         && !existingRootEntryDN.equals(actualRootEntryDN))
     {
       LocalizableMessage message = ERR_CANNOT_REGISTER_DUPLICATE_ALTERNATE_ROOT_BIND_DN.
-          get(String.valueOf(alternateRootBindDN),
-              String.valueOf(existingRootEntryDN));
+          get(alternateRootBindDN, existingRootEntryDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
   }
@@ -9063,9 +9053,7 @@ public final class DirectoryServer
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        LocalizableMessage message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
-                                    String.valueOf(failureReason));
-        System.err.println(message);
+        System.err.println(ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile, failureReason));
         System.exit(1);
       }
     }
@@ -9073,9 +9061,8 @@ public final class DirectoryServer
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
-                                  stackTraceToSingleLineString(e));
-      System.err.println(message);
+      System.err.println(ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(
+          lockFile, stackTraceToSingleLineString(e)));
       System.exit(1);
     }
     serverLocked = true;
@@ -9398,9 +9385,7 @@ public final class DirectoryServer
       else
       {
         // The server's already running.
-        LocalizableMessage message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
-            String.valueOf(failureReason));
-        System.err.println(message);
+        System.err.println(ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile, failureReason));
         isServerRunning = true;
       }
     }

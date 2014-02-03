@@ -221,8 +221,7 @@ public class DictionaryPasswordValidator
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_DICTIONARY_VALIDATOR_CANNOT_READ_FILE.get(
-          configuration.getDictionaryFile(), String.valueOf(e));
+      LocalizableMessage message = ERR_DICTIONARY_VALIDATOR_CANNOT_READ_FILE.get(configuration.getDictionaryFile(), e);
       throw new InitializationException(message);
     }
     finally

@@ -179,7 +179,7 @@ public class TaskBackend
 
         // This should never happen.
         LocalizableMessage message = ERR_TASKBE_CANNOT_DECODE_RECURRING_TASK_BASE_DN.get(
-            String.valueOf(recurringTaskBaseString), getExceptionMessage(e));
+            recurringTaskBaseString, getExceptionMessage(e));
         throw new ConfigException(message, e);
       }
 
@@ -195,7 +195,7 @@ public class TaskBackend
 
         // This should never happen.
         LocalizableMessage message = ERR_TASKBE_CANNOT_DECODE_SCHEDULED_TASK_BASE_DN.get(
-            String.valueOf(scheduledTaskBaseString), getExceptionMessage(e));
+            scheduledTaskBaseString, getExceptionMessage(e));
         throw new ConfigException(message, e);
       }
     }
@@ -517,8 +517,7 @@ public class TaskBackend
     if (parentDN == null)
     {
       LocalizableMessage message = ERR_TASKBE_ADD_DISALLOWED_DN.
-          get(String.valueOf(scheduledTaskParentDN),
-              String.valueOf(recurringTaskParentDN));
+          get(scheduledTaskParentDN, recurringTaskParentDN);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
@@ -542,8 +541,7 @@ public class TaskBackend
 
     // We won't allow the entry to be added.
     LocalizableMessage message = ERR_TASKBE_ADD_DISALLOWED_DN.
-        get(String.valueOf(scheduledTaskParentDN),
-            String.valueOf(recurringTaskParentDN));
+        get(scheduledTaskParentDN, recurringTaskParentDN);
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -561,8 +559,7 @@ public class TaskBackend
     DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
-      LocalizableMessage message =
-          ERR_TASKBE_DELETE_INVALID_ENTRY.get(String.valueOf(entryDN));
+      LocalizableMessage message = ERR_TASKBE_DELETE_INVALID_ENTRY.get(entryDN);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
     else if (parentDN.equals(scheduledTaskParentDN))
@@ -571,8 +568,7 @@ public class TaskBackend
       Task t = taskScheduler.getScheduledTask(entryDN);
       if (t == null)
       {
-        LocalizableMessage message =
-            ERR_TASKBE_DELETE_NO_SUCH_TASK.get(String.valueOf(entryDN));
+        LocalizableMessage message = ERR_TASKBE_DELETE_NO_SUCH_TASK.get(entryDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
 
@@ -603,8 +599,7 @@ public class TaskBackend
       }
       else
       {
-        LocalizableMessage message =
-            ERR_TASKBE_DELETE_RUNNING.get(String.valueOf(entryDN));
+        LocalizableMessage message = ERR_TASKBE_DELETE_RUNNING.get(entryDN);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
@@ -614,8 +609,7 @@ public class TaskBackend
       RecurringTask rt = taskScheduler.getRecurringTask(entryDN);
       if (rt == null)
       {
-        LocalizableMessage message = ERR_TASKBE_DELETE_NO_SUCH_RECURRING_TASK.get(
-            String.valueOf(entryDN));
+        LocalizableMessage message = ERR_TASKBE_DELETE_NO_SUCH_RECURRING_TASK.get(entryDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
 
@@ -623,8 +617,7 @@ public class TaskBackend
     }
     else
     {
-      LocalizableMessage message =
-          ERR_TASKBE_DELETE_INVALID_ENTRY.get(String.valueOf(entryDN));
+      LocalizableMessage message = ERR_TASKBE_DELETE_INVALID_ENTRY.get(entryDN);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
   }
@@ -647,8 +640,7 @@ public class TaskBackend
       if (entryLock == null)
       {
         throw new DirectoryException(ResultCode.BUSY,
-                                     ERR_TASKBE_MODIFY_CANNOT_LOCK_ENTRY.get(
-                                          String.valueOf(entryDN)));
+                                     ERR_TASKBE_MODIFY_CANNOT_LOCK_ENTRY.get(entryDN));
       }
     }
 
@@ -659,8 +651,7 @@ public class TaskBackend
       DN parentDN = entryDN.getParentDNInSuffix();
       if (parentDN == null)
       {
-        LocalizableMessage message =
-            ERR_TASKBE_MODIFY_INVALID_ENTRY.get(String.valueOf(entryDN));
+        LocalizableMessage message = ERR_TASKBE_MODIFY_INVALID_ENTRY.get(entryDN);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (parentDN.equals(scheduledTaskParentDN))
@@ -669,8 +660,7 @@ public class TaskBackend
         Task t = taskScheduler.getScheduledTask(entryDN);
         if (t == null)
         {
-          LocalizableMessage message =
-              ERR_TASKBE_MODIFY_NO_SUCH_TASK.get(String.valueOf(entryDN));
+          LocalizableMessage message = ERR_TASKBE_MODIFY_NO_SUCH_TASK.get(entryDN);
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
         }
 
@@ -703,17 +693,14 @@ public class TaskBackend
           }
           else
           {
-            LocalizableMessage message =
-                 ERR_TASKBE_MODIFY_RUNNING.get(String.valueOf(entryDN));
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
+            LocalizableMessage message = ERR_TASKBE_MODIFY_RUNNING.get(entryDN);
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
         }
         else if (TaskState.isPending(state) && t.isRecurring())
         {
           // Pending recurring task iterations can only be canceled.
           boolean acceptable = isReplaceEntryAcceptable(modifyOperation);
-
           if (acceptable)
           {
             Task newTask = taskScheduler.entryToScheduledTask(newEntry,
@@ -742,31 +729,25 @@ public class TaskBackend
           }
           else
           {
-            LocalizableMessage message =
-              ERR_TASKBE_MODIFY_RECURRING.get(String.valueOf(entryDN));
-            throw new DirectoryException(
-              ResultCode.UNWILLING_TO_PERFORM, message);
+            LocalizableMessage message = ERR_TASKBE_MODIFY_RECURRING.get(entryDN);
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
         }
         else
         {
-          LocalizableMessage message =
-              ERR_TASKBE_MODIFY_COMPLETED.get(String.valueOf(entryDN));
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                       message);
+          LocalizableMessage message = ERR_TASKBE_MODIFY_COMPLETED.get(entryDN);
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
         }
       }
       else if (parentDN.equals(recurringTaskParentDN))
       {
         // We don't currently support altering recurring tasks.
-        LocalizableMessage message =
-            ERR_TASKBE_MODIFY_RECURRING.get(String.valueOf(entryDN));
+        LocalizableMessage message = ERR_TASKBE_MODIFY_RECURRING.get(entryDN);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else
       {
-        LocalizableMessage message =
-            ERR_TASKBE_MODIFY_INVALID_ENTRY.get(String.valueOf(entryDN));
+        LocalizableMessage message = ERR_TASKBE_MODIFY_INVALID_ENTRY.get(entryDN);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
@@ -934,8 +915,7 @@ public class TaskBackend
       DN parentDN = baseDN.getParentDNInSuffix();
       if (parentDN == null)
       {
-        LocalizableMessage message =
-            ERR_TASKBE_SEARCH_INVALID_BASE.get(String.valueOf(baseDN));
+        LocalizableMessage message = ERR_TASKBE_SEARCH_INVALID_BASE.get(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
       else if (parentDN.equals(scheduledTaskParentDN))
@@ -947,8 +927,7 @@ public class TaskBackend
           Entry e = taskScheduler.getScheduledTaskEntry(baseDN);
           if (e == null)
           {
-            LocalizableMessage message =
-                ERR_TASKBE_SEARCH_NO_SUCH_TASK.get(String.valueOf(baseDN));
+            LocalizableMessage message = ERR_TASKBE_SEARCH_NO_SUCH_TASK.get(baseDN);
             throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
                                          scheduledTaskParentDN, null);
           }
@@ -976,8 +955,7 @@ public class TaskBackend
           Entry e = taskScheduler.getRecurringTaskEntry(baseDN);
           if (e == null)
           {
-            LocalizableMessage message = ERR_TASKBE_SEARCH_NO_SUCH_RECURRING_TASK.get(
-                String.valueOf(baseDN));
+            LocalizableMessage message = ERR_TASKBE_SEARCH_NO_SUCH_RECURRING_TASK.get(baseDN);
             throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
                                          recurringTaskParentDN, null);
           }
@@ -998,8 +976,7 @@ public class TaskBackend
       }
       else
       {
-        LocalizableMessage message =
-            ERR_TASKBE_SEARCH_INVALID_BASE.get(String.valueOf(baseDN));
+        LocalizableMessage message = ERR_TASKBE_SEARCH_INVALID_BASE.get(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
     }
@@ -1115,10 +1092,8 @@ public class TaskBackend
     }
     catch (Exception e)
     {
-      LocalizableMessage message =
-          ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(String.valueOf(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+      LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(e);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
     }
 
     // Write to.
@@ -1155,11 +1130,8 @@ public class TaskBackend
         {
           if (! le.canContinueReading())
           {
-            LocalizableMessage message =
-                ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(String.valueOf(e));
-            throw new DirectoryException(
-                           DirectoryServer.getServerErrorResultCode(),
-                           message, le);
+            LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(e);
+            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, le);
           }
           else
           {
@@ -1362,10 +1334,8 @@ public class TaskBackend
       logger.traceException(e);
 
       LocalizableMessage message = ERR_TASKS_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
-          get(String.valueOf(filename), backupDirectory.getPath(),
-              getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+          get(filename, backupDirectory.getPath(), getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
     }
 
 
@@ -2053,16 +2023,12 @@ public class TaskBackend
             }
             else if (! p.exists())
             {
-
-              messages.add(ERR_TASKBE_BACKING_FILE_MISSING_PARENT.get(
-                      String.valueOf(p), tmpBackingFile));
+              messages.add(ERR_TASKBE_BACKING_FILE_MISSING_PARENT.get(p, tmpBackingFile));
               resultCode = ResultCode.CONSTRAINT_VIOLATION;
             }
             else if (! p.isDirectory())
             {
-
-              messages.add(ERR_TASKBE_BACKING_FILE_PARENT_NOT_DIRECTORY.get(
-                      String.valueOf(p), tmpBackingFile));
+              messages.add(ERR_TASKBE_BACKING_FILE_PARENT_NOT_DIRECTORY.get(p, tmpBackingFile));
               resultCode = ResultCode.CONSTRAINT_VIOLATION;
             }
           }

@@ -1348,7 +1348,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       logger.traceException(e);
 
       LocalizableMessage message = ERR_ADMIN_CANNOT_GET_LISTENER_BASE.get(
-          String.valueOf(dn), stackTraceToSingleLineString(e));
+          dn, stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
 
@@ -1393,8 +1393,7 @@ public final class ServerManagedObject<S extends Configuration> implements
     }
 
     // No parent entry could be found.
-    LocalizableMessage message = ERR_ADMIN_UNABLE_TO_REGISTER_LISTENER
-        .get(String.valueOf(baseDN));
+    LocalizableMessage message = ERR_ADMIN_UNABLE_TO_REGISTER_LISTENER.get(baseDN);
     throw new ConfigException(message);
   }
 

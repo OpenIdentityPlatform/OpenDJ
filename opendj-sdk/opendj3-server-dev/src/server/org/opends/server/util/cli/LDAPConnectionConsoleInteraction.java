@@ -1819,22 +1819,21 @@ public class LDAPConnectionConsoleInteraction {
 
      UserDataCertificateException udce =
        new UserDataCertificateException(Step.REPLICATION_OPTIONS,
-           INFO_CERTIFICATE_EXCEPTION.get(h, String.valueOf(p)), t, h, p,
+           INFO_CERTIFICATE_EXCEPTION.get(h, p), t, h, p,
                usedTrustManager.getLastRefusedChain(),
                usedTrustManager.getLastRefusedAuthType(), excType);
 
      LocalizableMessage msg;
      if (udce.getType() == UserDataCertificateException.Type.NOT_TRUSTED)
      {
-       msg = INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(
-           udce.getHost(), String.valueOf(udce.getPort()));
+       msg = INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(udce.getHost(), udce.getPort());
      }
      else
      {
        msg = INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI.get(
-           udce.getHost(), String.valueOf(udce.getPort()),
+           udce.getHost(), udce.getPort(),
            udce.getHost(),
-           udce.getHost(), String.valueOf(udce.getPort()));
+           udce.getHost(), udce.getPort());
      }
      if (displayErrorMessage)
      {

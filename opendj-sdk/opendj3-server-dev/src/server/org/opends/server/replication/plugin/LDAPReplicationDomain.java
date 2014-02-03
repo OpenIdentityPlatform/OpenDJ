@@ -2491,8 +2491,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private String logDecodingOperationError(LDAPUpdateMsg msg, Exception e)
   {
     LocalizableMessage message =
-        ERR_EXCEPTION_DECODING_OPERATION.get(String.valueOf(msg) + " "
-            + stackTraceToSingleLineString(e));
+        ERR_EXCEPTION_DECODING_OPERATION.get(msg + " " + stackTraceToSingleLineString(e));
     logger.error(message);
     return message.toString();
   }
@@ -3542,8 +3541,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
         LocalizableMessage message =
-            ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(backend.getBackendID(),
-                String.valueOf(failureReason));
+            ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason);
         logger.error(message);
         throw new DirectoryException(ResultCode.OTHER, message);
       }
@@ -3644,8 +3642,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
           LocalizableMessage message =
-              WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(),
-                  String.valueOf(failureReason));
+              WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason);
           logger.warn(message);
           throw new DirectoryException(ResultCode.OTHER, message);
         }
@@ -3683,8 +3680,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     StringBuilder failureReason = new StringBuilder();
     if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
     {
-      LocalizableMessage message = ERR_INIT_CANNOT_LOCK_BACKEND.get(backend.getBackendID(),
-          String.valueOf(failureReason));
+      LocalizableMessage message = ERR_INIT_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason);
       logger.error(message);
       throw new DirectoryException(ResultCode.OTHER, message);
     }
@@ -3798,8 +3794,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     if (!LockFileManager.releaseLock(lockFile, failureReason))
     {
       LocalizableMessage message =
-          WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(),
-              String.valueOf(failureReason));
+          WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason);
       logger.warn(message);
       throw new DirectoryException(ResultCode.OTHER, message);
     }
@@ -3848,8 +3843,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     if (replicationDomain == null)
     {
-      throw new DirectoryException(ResultCode.OTHER,
-          ERR_NO_MATCHING_DOMAIN.get(String.valueOf(baseDN)));
+      throw new DirectoryException(ResultCode.OTHER, ERR_NO_MATCHING_DOMAIN.get(baseDN));
     }
     return replicationDomain;
   }

@@ -273,10 +273,8 @@ class IntegerFirstComponentEqualityMatchingRule
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_NO_INITIAL_PARENTHESIS.get(
-            String.valueOf(valueString));
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, e);
+        LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_NO_INITIAL_PARENTHESIS.get(valueString);
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, e);
       }
     }
 
@@ -288,10 +286,8 @@ class IntegerFirstComponentEqualityMatchingRule
 
     if (pos >= valueLength)
     {
-      LocalizableMessage message =
-          ERR_EMR_INTFIRSTCOMP_NO_NONSPACE.get(String.valueOf(valueString));
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message);
+      LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_NO_NONSPACE.get(valueString);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -305,10 +301,8 @@ class IntegerFirstComponentEqualityMatchingRule
 
     if (pos >= valueLength)
     {
-      LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_NO_SPACE_AFTER_INT.get(
-          String.valueOf(valueString));
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message);
+      LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_NO_SPACE_AFTER_INT.get(valueString);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -322,10 +316,8 @@ class IntegerFirstComponentEqualityMatchingRule
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(
-          String.valueOf(valueString));
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message);
+      LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(valueString);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
   }
 }

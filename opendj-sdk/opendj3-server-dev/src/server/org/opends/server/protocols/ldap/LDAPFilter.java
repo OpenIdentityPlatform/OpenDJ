@@ -305,8 +305,7 @@ public class LDAPFilter
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_LDAP_FILTER_UNCAUGHT_EXCEPTION.get(
-          filterString, String.valueOf(e));
+      LocalizableMessage message = ERR_LDAP_FILTER_UNCAUGHT_EXCEPTION.get(filterString, e);
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
     }
   }
@@ -536,7 +535,7 @@ public class LDAPFilter
           // clause to reject them.
         default:
           LocalizableMessage message = ERR_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE.get(
-              attrType, String.valueOf(attrType.charAt(i)), i);
+              attrType, attrType.charAt(i), i);
           throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
     }
