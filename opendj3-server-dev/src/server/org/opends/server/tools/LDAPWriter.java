@@ -27,28 +27,29 @@
 
 package org.opends.server.tools;
 
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.ldap.LDAPMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.RecordingOutputStream;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.util.ServerConstants;
-
-import java.net.Socket;
-import java.io.IOException;
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.Socket;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.types.RecordingOutputStream;
+import org.opends.server.util.ServerConstants;
 
 /**
  * This class defines a utility that can be used to write LDAP messages over a
  * provided socket.
  */
-public class LDAPWriter
+public class LDAPWriter implements Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  Socket socket;
-  ASN1Writer asn1Writer;
+  private Socket socket;
+  private ASN1Writer asn1Writer;
   private RecordingOutputStream debugOutputStream;
 
 
@@ -110,6 +111,7 @@ public class LDAPWriter
   /**
    * Closes this LDAP writer and the underlying socket.
    */
+  @Override
   public void close()
   {
     try

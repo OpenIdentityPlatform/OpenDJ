@@ -403,10 +403,7 @@ public class FileBasedKeyManagerProvider
         }
         finally
         {
-          try
-          {
-            br.close();
-          } catch (Exception e) {}
+          close(br);
         }
 
         if (pinStr == null)
@@ -561,10 +558,7 @@ public class FileBasedKeyManagerProvider
         }
         finally
         {
-          try
-          {
-            br.close();
-          } catch (Exception e) {}
+          close(br);
         }
 
         if (pinStr == null)

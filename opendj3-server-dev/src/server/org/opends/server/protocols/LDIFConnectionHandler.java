@@ -504,21 +504,7 @@ public final class LDIFConnectionHandler
     }
     finally
     {
-      if (reader != null)
-      {
-        try
-        {
-          reader.close();
-        } catch (Exception e) {}
-      }
-
-      if (writer != null)
-      {
-        try
-        {
-          writer.close();
-        } catch (Exception e) {}
-      }
+      close(reader, writer);
     }
 
     if (errorEncountered || (! fullyProcessed))

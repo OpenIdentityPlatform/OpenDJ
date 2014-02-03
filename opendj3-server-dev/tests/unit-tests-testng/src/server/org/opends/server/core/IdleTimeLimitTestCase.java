@@ -37,6 +37,7 @@ import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPWriter;
+import org.opends.server.util.StaticUtils;
 
 import static org.testng.Assert.*;
 
@@ -95,10 +96,7 @@ public class IdleTimeLimitTestCase
     }
     finally
     {
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
 
       TestCaseUtils.dsconfig(
         "set-global-configuration-prop",
@@ -168,10 +166,7 @@ public class IdleTimeLimitTestCase
     }
     finally
     {
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
 
       TestCaseUtils.dsconfig(
         "set-global-configuration-prop",
@@ -237,10 +232,7 @@ public class IdleTimeLimitTestCase
     }
     finally
     {
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(s);
     }
   }
 }

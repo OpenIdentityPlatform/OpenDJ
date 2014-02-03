@@ -27,22 +27,25 @@
 
 package org.opends.server.tools;
 
-import org.opends.server.protocols.asn1.*;
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.Socket;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RecordingInputStream;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.ServerConstants;
-
-import java.io.IOException;
-import java.net.Socket;
 
 /**
  * This class defines a utility that can be used to read LDAP messages from a
  * provided socket.
  */
-public class LDAPReader
+public class LDAPReader implements Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -118,6 +121,7 @@ public class LDAPReader
   /**
    * Closes this LDAP reader and the underlying socket.
    */
+  @Override
   public void close()
   {
     try

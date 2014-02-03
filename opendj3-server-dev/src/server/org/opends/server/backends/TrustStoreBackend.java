@@ -1287,14 +1287,7 @@ public class TrustStoreBackend
     }
     finally
     {
-      if (inputStream != null)
-      {
-        try
-        {
-          inputStream.close();
-        }
-        catch (Exception e){}
-      }
+      close(inputStream);
     }
 
 
@@ -1352,14 +1345,7 @@ public class TrustStoreBackend
     }
     finally
     {
-      if (inputStream != null)
-      {
-        try
-        {
-          inputStream.close();
-        }
-        catch (Exception e){}
-      }
+      close(inputStream);
     }
 
 
@@ -1425,14 +1411,7 @@ public class TrustStoreBackend
     }
     finally
     {
-      if (inputStream != null)
-      {
-        try
-        {
-          inputStream.close();
-        }
-        catch (Exception e){}
-      }
+      close(inputStream);
     }
 
     try

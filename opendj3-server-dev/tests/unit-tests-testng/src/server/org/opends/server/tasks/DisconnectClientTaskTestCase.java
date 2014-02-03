@@ -40,6 +40,7 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.extensions.GetConnectionIDExtendedOperation;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.DN;
+import org.opends.server.util.StaticUtils;
 import org.forgerock.opendj.ldap.ByteString;
 
 import static org.testng.Assert.*;
@@ -139,10 +140,7 @@ public class DisconnectClientTaskTestCase
                  LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
     assertEquals(extendedResponse.getErrorMessage(), disconnectMessage);
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -212,10 +210,7 @@ public class DisconnectClientTaskTestCase
     // disconnection.
     assertNull(r.readMessage());
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 }
 

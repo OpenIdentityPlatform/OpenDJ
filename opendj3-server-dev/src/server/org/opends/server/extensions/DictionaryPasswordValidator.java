@@ -226,13 +226,7 @@ public class DictionaryPasswordValidator
     }
     finally
     {
-      if (reader != null)
-      {
-        try
-        {
-          reader.close();
-        } catch (Exception e) {}
-      }
+      close(reader);
     }
 
     return dictionary;

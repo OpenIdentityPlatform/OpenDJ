@@ -52,6 +52,7 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.ClientException;
 import org.opends.server.tools.ToolConstants;
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
@@ -1031,10 +1032,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         }
         finally
         {
-          try
-          {
-            reader.close();
-          } catch (Exception e) {}
+          StaticUtils.close(reader);
         }
       }
       /**

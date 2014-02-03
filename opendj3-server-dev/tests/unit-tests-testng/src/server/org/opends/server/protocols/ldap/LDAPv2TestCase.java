@@ -37,6 +37,7 @@ import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.testng.Assert.*;
 
@@ -108,18 +109,8 @@ public class LDAPv2TestCase
         "replace: ds-cfg-allow-ldap-v2",
         "ds-cfg-allow-ldap-v2: true");
 
-      try
-      {
-        r.close();
-      } catch (Exception e) {}
-      try
-      {
-        w.close();
-      } catch (Exception e) {}
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(r, w);
+      StaticUtils.close(s);
     }
   }
 
@@ -161,18 +152,8 @@ public class LDAPv2TestCase
     }
     finally
     {
-      try
-      {
-        r.close();
-      } catch (Exception e) {}
-      try
-      {
-        w.close();
-      } catch (Exception e) {}
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(r, w);
+      StaticUtils.close(s);
     }
   }
 
@@ -223,18 +204,8 @@ public class LDAPv2TestCase
     }
     finally
     {
-      try
-      {
-        r.close();
-      } catch (Exception e) {}
-      try
-      {
-        w.close();
-      } catch (Exception e) {}
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(r, w);
+      StaticUtils.close(s);
     }
   }
 
@@ -271,18 +242,8 @@ public class LDAPv2TestCase
     }
     finally
     {
-      try
-      {
-        r.close();
-      } catch (Exception e) {}
-      try
-      {
-        w.close();
-      } catch (Exception e) {}
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(r, w);
+      StaticUtils.close(s);
     }
   }
 
@@ -331,18 +292,8 @@ public class LDAPv2TestCase
     }
     finally
     {
-      try
-      {
-        r.close();
-      } catch (Exception e) {}
-      try
-      {
-        w.close();
-      } catch (Exception e) {}
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(r, w);
+      StaticUtils.close(s);
     }
   }
 
@@ -390,18 +341,8 @@ public class LDAPv2TestCase
     }
     finally
     {
-      try
-      {
-        r.close();
-      } catch (Exception e) {}
-      try
-      {
-        w.close();
-      } catch (Exception e) {}
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(r, w);
+      StaticUtils.close(s);
     }
   }
 
@@ -453,18 +394,8 @@ public class LDAPv2TestCase
     }
     finally
     {
-      try
-      {
-        r.close();
-      } catch (Exception e) {}
-      try
-      {
-        w.close();
-      } catch (Exception e) {}
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(r, w);
+      StaticUtils.close(s);
     }
   }
 
@@ -513,18 +444,8 @@ public class LDAPv2TestCase
     }
     finally
     {
-      try
-      {
-        r.close();
-      } catch (Exception e) {}
-      try
-      {
-        w.close();
-      } catch (Exception e) {}
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(r, w);
+      StaticUtils.close(s);
     }
   }
 
@@ -574,18 +495,8 @@ public class LDAPv2TestCase
     }
     finally
     {
-      try
-      {
-        r.close();
-      } catch (Exception e) {}
-      try
-      {
-        w.close();
-      } catch (Exception e) {}
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(r, w);
+      StaticUtils.close(s);
     }
   }
 }

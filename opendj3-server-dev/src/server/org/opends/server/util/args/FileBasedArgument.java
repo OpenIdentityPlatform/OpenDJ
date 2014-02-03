@@ -225,10 +225,7 @@ public class FileBasedArgument
     }
     finally
     {
-      try
-      {
-        reader.close();
-      } catch (Exception e) {}
+      close(reader);
     }
 
 

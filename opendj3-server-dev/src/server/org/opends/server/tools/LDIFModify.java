@@ -645,20 +645,7 @@ public class LDIFModify
       successful = false;
     }
 
-    try
-    {
-      sourceReader.close();
-    } catch (Exception e) {}
-
-    try
-    {
-      changeReader.close();
-    } catch (Exception e) {}
-
-    try
-    {
-      targetWriter.close();
-    } catch (Exception e) {}
+    close(sourceReader, changeReader, targetWriter);
 
     for (LocalizableMessage s : errorList)
     {

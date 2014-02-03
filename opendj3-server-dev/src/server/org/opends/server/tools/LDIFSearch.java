@@ -844,18 +844,7 @@ public class LDIFSearch
       }
     }
 
-
-    // Close the reader and writer.
-    try
-    {
-      reader.close();
-    } catch (Exception e) {}
-
-    try
-    {
-      writer.close();
-    } catch (Exception e) {}
-
+    close(reader, writer);
 
     return resultCode;
   }
