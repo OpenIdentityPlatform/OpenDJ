@@ -268,7 +268,7 @@ import static org.opends.server.util.DynamicConstants.*;
      }
      else
      {
-       logger.info(NOTE_INSTALL_DIRECTORY.get(installDir));
+       logger.info(NOTE_INSTALL_DIRECTORY, installDir);
      }
      String instanceDir = toCanonicalPath(DirectoryServer.getInstanceRoot());
      if (instanceDir == null)
@@ -277,22 +277,22 @@ import static org.opends.server.util.DynamicConstants.*;
      }
      else
      {
-       logger.info(NOTE_INSTANCE_DIRECTORY.get(instanceDir));
+       logger.info(NOTE_INSTANCE_DIRECTORY, instanceDir);
      }
-    logger.info(NOTE_JVM_INFO.get(System.getProperty("java.runtime.version"),
+    logger.info(NOTE_JVM_INFO, System.getProperty("java.runtime.version"),
                                System.getProperty("java.vendor"),
-                               getArch(),Runtime.getRuntime().maxMemory()));
+                               getArch(),Runtime.getRuntime().maxMemory());
     long physicalMemorySize = getPhysicalMemorySize();
     if (physicalMemorySize != -1)
     {
-      logger.info(NOTE_JVM_HOST.get(getHostName(), getOSInfo(),
-          physicalMemorySize, Runtime.getRuntime().availableProcessors()));
+      logger.info(NOTE_JVM_HOST, getHostName(), getOSInfo(),
+          physicalMemorySize, Runtime.getRuntime().availableProcessors());
     }
     else
     {
-      logger.info(NOTE_JVM_HOST_WITH_UNKNOWN_PHYSICAL_MEM.get(getHostName(),
-          getOSInfo(), Runtime.getRuntime().availableProcessors()));
+      logger.info(NOTE_JVM_HOST_WITH_UNKNOWN_PHYSICAL_MEM, getHostName(),
+          getOSInfo(), Runtime.getRuntime().availableProcessors());
     }
-    logger.info(NOTE_JVM_ARGS.get(getInputArguments()));
+    logger.info(NOTE_JVM_ARGS, getInputArguments());
    }
  }

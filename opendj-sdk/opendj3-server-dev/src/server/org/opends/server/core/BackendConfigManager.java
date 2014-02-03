@@ -672,7 +672,7 @@ public class BackendConfigManager implements
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(backendID, failureReason));
+            logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, failureReason);
             // FIXME -- Do we need to send an admin alert?
           }
         }
@@ -680,8 +680,8 @@ public class BackendConfigManager implements
         {
           logger.traceException(e2);
 
-          logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(backendID,
-              stackTraceToSingleLineString(e2)));
+          logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID,
+              stackTraceToSingleLineString(e2));
           // FIXME -- Do we need to send an admin alert?
         }
 

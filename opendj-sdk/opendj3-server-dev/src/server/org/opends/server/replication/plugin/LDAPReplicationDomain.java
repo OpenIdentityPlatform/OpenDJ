@@ -412,7 +412,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * Log an error for the repair tool
            * that will need to re-synchronize the servers.
            */
-          logger.error(ERR_CANNOT_RECOVER_CHANGES.get(getBaseDNString()));
+          logger.error(ERR_CANNOT_RECOVER_CHANGES, getBaseDNString());
         }
       } catch (Exception e)
       {
@@ -423,7 +423,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * Log an error for the repair tool
          * that will need to re-synchronize the servers.
          */
-        logger.error(ERR_CANNOT_RECOVER_CHANGES.get(getBaseDNString()));
+        logger.error(ERR_CANNOT_RECOVER_CHANGES, getBaseDNString());
       }
       finally
       {
@@ -480,8 +480,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     catch (DirectoryException e)
     {
-      logger.error(ERR_LOADING_GENERATION_ID.get(
-          getBaseDNString(), stackTraceToSingleLineString(e)));
+      logger.error(ERR_LOADING_GENERATION_ID, getBaseDNString(), stackTraceToSingleLineString(e));
     }
 
     /*
@@ -568,8 +567,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // Should not happen as normally already called without problem in
       // isConfigurationChangeAcceptable or isConfigurationAcceptable
       // if we come up to this method
-      logger.error(NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
-          stackTraceToSingleLineString(e)));
+      logger.error(NOTE_ERR_FRACTIONAL, getBaseDNString(), stackTraceToSingleLineString(e));
       return;
     }
 
@@ -587,8 +585,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     catch  (ConfigException e)
     {
       // Should not happen
-      logger.error(NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
-          stackTraceToSingleLineString(e)));
+      logger.error(NOTE_ERR_FRACTIONAL, getBaseDNString(), stackTraceToSingleLineString(e));
       return;
     }
 
@@ -661,10 +658,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     if (search.getResultCode() != ResultCode.SUCCESS
         && search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
     {
-      logger.error(ERR_SEARCHING_GENERATION_ID.get(
-        search.getResultCode().getResultCodeName() + " " +
-        search.getErrorMessage(),
-        getBaseDNString()));
+      logger.error(ERR_SEARCHING_GENERATION_ID,
+          search.getResultCode().getResultCodeName() + " " + search.getErrorMessage(),
+          getBaseDNString());
       return false;
     }
 
@@ -714,9 +710,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         if (attr.size() > 1)
         {
-          logger.error(ERR_LOADING_GENERATION_ID.get(getBaseDNString(),
-              "#Values=" + attr.size() + " Must be exactly 1 in entry "
-              + resultEntry.toLDIFString()));
+          logger.error(ERR_LOADING_GENERATION_ID,
+              getBaseDNString(),
+              "#Values=" + attr.size() + " Must be exactly 1 in entry " + resultEntry.toLDIFString());
         }
       }
     }
@@ -775,9 +771,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       // Should not happen as configuration in domain root entry is flushed
       // from valid configuration in local variables
-      logger.error(NOTE_ERR_FRACTIONAL.get(
-          fractionalConfig.getBaseDn(),
-          stackTraceToSingleLineString(e)));
+      logger.error(NOTE_ERR_FRACTIONAL, fractionalConfig.getBaseDn(), stackTraceToSingleLineString(e));
       return false;
     }
 
@@ -809,9 +803,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // Should not happen as configuration in domain root entry is flushed
       // from valid configuration in local variables so both should have already
       // been checked
-      logger.error(NOTE_ERR_FRACTIONAL.get(
-          fractionalConfig.getBaseDn(),
-          stackTraceToSingleLineString(e)));
+      logger.error(NOTE_ERR_FRACTIONAL, fractionalConfig.getBaseDn(), stackTraceToSingleLineString(e));
       return false;
     }
   }
@@ -1420,8 +1412,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     catch(DirectoryException e)
     {
-      logger.error(NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
-          stackTraceToSingleLineString(e)));
+      logger.error(NOTE_ERR_FRACTIONAL, getBaseDNString(), stackTraceToSingleLineString(e));
       return FRACTIONAL_HAS_NO_FRACTIONAL_FILTERED_ATTRIBUTES;
     }
     Set<ObjectClass> entryClasses = entryToModify.getObjectClasses().keySet();
@@ -2016,7 +2007,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         catch  (NoSuchElementException e)
         {
-          logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING.get(op, curCSN));
+          logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING, op, curCSN);
           return;
         }
       }
@@ -2033,7 +2024,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           * It should never happen.
           */
           pendingChanges.remove(curCSN);
-          logger.error(ERR_UNKNOWN_TYPE.get(op.getOperationType()));
+          logger.error(ERR_UNKNOWN_TYPE, op.getOperationType());
           return;
         }
 
@@ -2053,7 +2044,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         catch (NoSuchElementException e)
         {
-          logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING.get(op, curCSN));
+          logger.error(ERR_OPERATION_NOT_FOUND_IN_PENDING, op, curCSN);
           return;
         }
         // If assured replication is enabled, this will wait for the matching
@@ -2065,7 +2056,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         } catch (TimeoutException ex)
         {
           // This exception may only be raised if assured replication is enabled
-          logger.error(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(), getAssuredTimeout(), msg));
+          logger.error(NOTE_DS_ACK_TIMEOUT, getBaseDNString(), getAssuredTimeout(), msg);
         }
       }
 
@@ -2166,7 +2157,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        ResultCode res = newOp.getResultCode();
        if (res != ResultCode.SUCCESS)
        {
-        logger.error(ERR_COULD_NOT_SOLVE_CONFLICT.get(entryDN, res));
+        logger.error(ERR_COULD_NOT_SOLVE_CONFLICT, entryDN, res);
        }
      }
    }
@@ -2694,8 +2685,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       // The other type of errors can not be caused by naming conflicts.
       // Log a message for the repair tool.
-      logger.error(ERR_ERROR_REPLAYING_OPERATION.get(
-          op, ctx.getCSN(), result, op.getErrorMessage()));
+      logger.error(ERR_ERROR_REPLAYING_OPERATION,
+          op, ctx.getCSN(), result, op.getErrorMessage());
       return true;
     }
   }
@@ -2762,8 +2753,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    {
      // The other type of errors can not be caused by naming conflicts.
      // Log a message for the repair tool.
-     logger.error(ERR_ERROR_REPLAYING_OPERATION.get(
-         op, ctx.getCSN(), result, op.getErrorMessage()));
+     logger.error(ERR_ERROR_REPLAYING_OPERATION,
+         op, ctx.getCSN(), result, op.getErrorMessage());
      return true;
    }
  }
@@ -2881,8 +2872,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     // The other type of errors can not be caused by naming conflicts.
     // Log a message for the repair tool.
-    logger.error(ERR_ERROR_REPLAYING_OPERATION.get(
-        op, ctx.getCSN(), result, op.getErrorMessage()));
+    logger.error(ERR_ERROR_REPLAYING_OPERATION,
+        op, ctx.getCSN(), result, op.getErrorMessage());
     return true;
   }
 }
@@ -2978,8 +2969,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       // The other type of errors can not be caused by naming conflicts.
       // log a message for the repair tool.
-      logger.error(ERR_ERROR_REPLAYING_OPERATION.get(
-          op, ctx.getCSN(), result, op.getErrorMessage()));
+      logger.error(ERR_ERROR_REPLAYING_OPERATION,
+          op, ctx.getCSN(), result, op.getErrorMessage());
       return true;
     }
   }
@@ -3287,8 +3278,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        * not available, log an error and retry upon timeout
        * should we stop the modifications ?
        */
-      logger.error(ERR_LOADING_GENERATION_ID.get(
-          getBaseDNString(), stackTraceToSingleLineString(e)));
+      logger.error(ERR_LOADING_GENERATION_ID, getBaseDNString(), stackTraceToSingleLineString(e));
       return;
     }
 
@@ -3366,8 +3356,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       if (result != ResultCode.SUCCESS)
       {
-        logger.error(ERR_UPDATING_GENERATION_ID.get(
-            result.getResultCodeName(), getBaseDNString()));
+        logger.error(ERR_UPDATING_GENERATION_ID, result.getResultCodeName(), getBaseDNString());
       }
     }
     else
@@ -3419,10 +3408,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       if (search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
       {
-        logger.error(ERR_SEARCHING_GENERATION_ID.get(
-            search.getResultCode().getResultCodeName() + " " +
-            search.getErrorMessage(),
-            getBaseDNString()));
+        logger.error(ERR_SEARCHING_GENERATION_ID,
+            search.getResultCode().getResultCodeName() + " " + search.getErrorMessage(),
+            getBaseDNString());
       }
     }
     else
@@ -3440,9 +3428,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           Attribute attr = attrs.get(0);
           if (attr.size()>1)
           {
-            logger.error(ERR_LOADING_GENERATION_ID.get(
-                getBaseDNString(), "#Values=" + attr.size() +
-                " Must be exactly 1 in entry " + resultEntry.toLDIFString()));
+            logger.error(ERR_LOADING_GENERATION_ID,
+                getBaseDNString(),
+                "#Values=" + attr.size() + " Must be exactly 1 in entry " + resultEntry.toLDIFString());
           }
           else if (attr.size() == 1)
           {
@@ -3453,8 +3441,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
             }
             catch(Exception e)
             {
-              logger.error(ERR_LOADING_GENERATION_ID.get(
-                  getBaseDNString(), stackTraceToSingleLineString(e)));
+              logger.error(ERR_LOADING_GENERATION_ID, getBaseDNString(), stackTraceToSingleLineString(e));
             }
           }
         }
@@ -4036,8 +4023,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     catch(Exception e)
     {
       logger.traceException(e);
-      logger.error(ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(
-          stackTraceToSingleLineString(e)));
+      logger.error(ERR_CHECK_CREATE_REPL_BACKEND_FAILED, stackTraceToSingleLineString(e));
     }
   }
 
@@ -4102,8 +4088,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     catch (Exception e)
     {
       throw new ConfigException(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
-          "Replication Domain on " + getBaseDNString(),
-          stackTraceToSingleLineString(e)), e);
+          "Replication Domain on " + getBaseDNString(), stackTraceToSingleLineString(e)), e);
     }
   }
 
@@ -4143,9 +4128,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       catch (DirectoryException de)
       {
-        logger.error(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
-            "Replication Domain on " + getBaseDNString(),
-            stackTraceToSingleLineString(de)));
+        logger.error(NOTE_ERR_UNABLE_TO_ENABLE_ECL,
+            "Replication Domain on " + getBaseDNString(), stackTraceToSingleLineString(de));
         // and go on
       }
     }
@@ -4156,7 +4140,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // Go into bad data set status
       setNewStatus(StatusMachineEvent.TO_BAD_GEN_ID_STATUS_EVENT);
       broker.signalStatusChange(status);
-      logger.error(NOTE_FRACTIONAL_BAD_DATA_SET_NEED_RESYNC.get(getBaseDNString()));
+      logger.error(NOTE_FRACTIONAL_BAD_DATA_SET_NEED_RESYNC, getBaseDNString());
       return; // Do not send changes to the replication server
     }
 
@@ -4194,8 +4178,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
     } catch (Exception e)
     {
-      logger.error(ERR_PUBLISHING_FAKE_OPS.get(getBaseDNString(),
-          stackTraceToSingleLineString(e)));
+      logger.error(ERR_PUBLISHING_FAKE_OPS, getBaseDNString(), stackTraceToSingleLineString(e));
     }
   }
 

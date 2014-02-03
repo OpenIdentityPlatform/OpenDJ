@@ -973,7 +973,7 @@ public final class LDAPConnectionHandler extends
           cleanUpSelector();
           listening = false;
 
-          logger.info(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
+          logger.info(NOTE_CONNHANDLER_STOPPED_LISTENING, handlerName);
         }
 
         StaticUtils.sleep(1000);
@@ -1003,7 +1003,7 @@ public final class LDAPConnectionHandler extends
         // administrative action before trying again.
         if (numRegistered == 0)
         {
-          logger.error(ERR_LDAP_CONNHANDLER_NO_ACCEPTORS.get(currentConfig.dn()));
+          logger.error(ERR_LDAP_CONNHANDLER_NO_ACCEPTORS, currentConfig.dn());
 
           enabled = false;
           continue;
@@ -1025,9 +1025,8 @@ public final class LDAPConnectionHandler extends
           catch (Exception e)
           {
             logger.traceException(e);
-
-            logger.error(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(friendlyName,
-                currentConfig.dn(), getExceptionMessage(e)));
+            logger.error(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION, friendlyName,
+                currentConfig.dn(), getExceptionMessage(e));
 
             if (lastIterationFailed)
             {
@@ -1150,14 +1149,14 @@ public final class LDAPConnectionHandler extends
         channel.register(selector, SelectionKey.OP_ACCEPT);
         numRegistered++;
 
-        logger.info(NOTE_CONNHANDLER_STARTED_LISTENING.get(handlerName));
+        logger.info(NOTE_CONNHANDLER_STARTED_LISTENING, handlerName);
       }
       catch (Exception e)
       {
         logger.traceException(e);
 
-        logger.error(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED.get(currentConfig.dn(), a.getHostAddress(), listenPort,
-            stackTraceToSingleLineString(e)));
+        logger.error(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED, currentConfig.dn(), a.getHostAddress(), listenPort,
+            stackTraceToSingleLineString(e));
       }
     }
     return numRegistered;

@@ -88,16 +88,16 @@ public class OtherMailboxSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_LIST_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_CASE_IGNORE_LIST_OID, SYNTAX_OTHER_MAILBOX_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
+          EMR_CASE_IGNORE_LIST_OID, SYNTAX_OTHER_MAILBOX_NAME);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_LIST_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_CASE_IGNORE_LIST_OID, SYNTAX_OTHER_MAILBOX_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
+          SMR_CASE_IGNORE_LIST_OID, SYNTAX_OTHER_MAILBOX_NAME);
     }
   }
 

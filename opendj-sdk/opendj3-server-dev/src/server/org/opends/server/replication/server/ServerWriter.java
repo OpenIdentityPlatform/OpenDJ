@@ -125,17 +125,17 @@ public class ServerWriter extends DirectoryThread
           {
             if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS)
             {
-              logger.warn(WARN_IGNORING_UPDATE_TO_DS_BADGENID.get(handler.getReplicationServerId(),
+              logger.warn(WARN_IGNORING_UPDATE_TO_DS_BADGENID, handler.getReplicationServerId(),
                   update.getCSN(), handler.getBaseDN(), handler.getServerId(),
                   session.getReadableRemoteAddress(),
                   handler.getGenerationId(),
-                  referenceGenerationId));
+                  referenceGenerationId);
             }
             else if (dsStatus == ServerStatus.FULL_UPDATE_STATUS)
             {
-              logger.warn(WARN_IGNORING_UPDATE_TO_DS_FULLUP.get(handler.getReplicationServerId(),
+              logger.warn(WARN_IGNORING_UPDATE_TO_DS_FULLUP, handler.getReplicationServerId(),
                   update.getCSN(), handler.getBaseDN(), handler.getServerId(),
-                  session.getReadableRemoteAddress()));
+                  session.getReadableRemoteAddress());
             }
             continue;
           }
@@ -150,12 +150,12 @@ public class ServerWriter extends DirectoryThread
               || referenceGenerationId == -1
               || handler.getGenerationId() == -1)
           {
-            logger.error(WARN_IGNORING_UPDATE_TO_RS.get(
+            logger.error(WARN_IGNORING_UPDATE_TO_RS,
                 handler.getReplicationServerId(),
                 update.getCSN(), handler.getBaseDN(), handler.getServerId(),
                 session.getReadableRemoteAddress(),
                 handler.getGenerationId(),
-                referenceGenerationId));
+                referenceGenerationId);
             continue;
           }
         }

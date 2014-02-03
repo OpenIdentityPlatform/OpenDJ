@@ -586,7 +586,7 @@ public class ReplicationBackend extends Backend
       catch (Exception e)
       {
         logger.traceException(e);
-        logger.error(ERR_BACKEND_EXPORT_ENTRY.get(dnString, e));
+        logger.error(ERR_BACKEND_EXPORT_ENTRY, dnString, e);
       }
     }
   }

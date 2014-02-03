@@ -645,8 +645,7 @@ public final class UpgradeTasks
           final String[] commandLineArgs =
               args.toArray(new String[args.size()]);
           // Displays info about command line args for log only.
-          logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS.get(
-              Arrays.toString(commandLineArgs)));
+          logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS, Arrays.toString(commandLineArgs));
 
           /*
            * The rebuild-index process just display a status ok / fails. The
@@ -673,8 +672,7 @@ public final class UpgradeTasks
         {
           final LocalizableMessage msg = INFO_UPGRADE_REBUILD_INDEX_NO_BACKEND_FOUND.get();
           logger.debug(msg);
-          logger.debug(INFO_UPGRADE_REBUILD_INDEX_DECLINED.get(
-              Arrays.toString(indexesListToRebuild.toArray())));
+          logger.debug(INFO_UPGRADE_REBUILD_INDEX_DECLINED, indexesListToRebuild);
           context.notifyProgress(pnc.setProgress(100));
         }
       }
@@ -844,11 +842,11 @@ public final class UpgradeTasks
   {
     if (changeCount != 0)
     {
-      logger.debug(INFO_UPGRADE_CHANGE_DONE_IN_SPECIFIC_FILE.get(fileName, changeCount));
+      logger.debug(INFO_UPGRADE_CHANGE_DONE_IN_SPECIFIC_FILE, fileName, changeCount);
     }
     else
     {
-      logger.debug(INFO_UPGRADE_NO_CHANGE_DONE_IN_SPECIFIC_FILE.get(fileName));
+      logger.debug(INFO_UPGRADE_NO_CHANGE_DONE_IN_SPECIFIC_FILE, fileName);
     }
   }
 

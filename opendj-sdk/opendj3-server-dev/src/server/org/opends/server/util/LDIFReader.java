@@ -1054,8 +1054,7 @@ public final class LDIFReader implements Closeable
 
       if (objectClasses.containsKey(objectClass))
       {
-        logger.warn(WARN_LDIF_DUPLICATE_OBJECTCLASS.get(
-            entryDN, lastEntryLineNumber, ocName));
+        logger.warn(WARN_LDIF_DUPLICATE_OBJECTCLASS, entryDN, lastEntryLineNumber, ocName);
       }
       else
       {

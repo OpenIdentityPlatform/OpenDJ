@@ -240,8 +240,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         } else
         {
           // Unknown assured mode: should never happen
-          logger.error(ERR_RS_UNKNOWN_ASSURED_MODE.get(
-              localReplicationServer.getServerId(), assuredMode, baseDN, update));
+          logger.error(ERR_RS_UNKNOWN_ASSURED_MODE,
+              localReplicationServer.getServerId(), assuredMode, baseDN, update);
           assuredMessage = false;
         }
       } else
@@ -421,8 +421,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
        * job properly anymore and needs to close all its connections and
        * shutdown itself.
        */
-      logger.error(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR
-          .get(stackTraceToSingleLineString(e)));
+      logger.error(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR, stackTraceToSingleLineString(e));
       localReplicationServer.shutdown();
       return false;
     }
@@ -591,8 +590,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     if (safeDataLevel < (byte) 1)
     {
       // Should never happen
-      logger.error(ERR_UNKNOWN_ASSURED_SAFE_DATA_LEVEL.get(
-          localReplicationServer.getServerId(), safeDataLevel, baseDN, update));
+      logger.error(ERR_UNKNOWN_ASSURED_SAFE_DATA_LEVEL,
+          localReplicationServer.getServerId(), safeDataLevel, baseDN, update);
     } else if (sourceGroupId == groupId
     // Assured feature does not cross different group IDS
         && isSameGenerationId(sourceHandler.getGenerationId()))
@@ -1404,7 +1403,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       if (msg instanceof ErrorMsg)
       {
         ErrorMsg errorMsg = (ErrorMsg) msg;
-        logger.error(ERR_ERROR_MSG_RECEIVED.get(errorMsg.getDetails()));
+        logger.error(ERR_ERROR_MSG_RECEIVED, errorMsg.getDetails());
       } else if (msg instanceof MonitorRequestMsg)
       {
         replyWithTopologyMonitorMsg(msg, msgEmitter);
@@ -1470,7 +1469,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         {
           // We log the error. The requestor will detect a timeout or
           // any other failure on the connection.
-          logger.error(ERR_CHANGELOG_ERROR_SENDING_MSG.get(msg.getDestination()));
+          logger.error(ERR_CHANGELOG_ERROR_SENDING_MSG, msg.getDestination());
         }
       }
     }
@@ -1480,7 +1479,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       RoutableMsg msg)
   {
     String msgClassname = msg.getClass().getCanonicalName();
-    logger.info(NOTE_ERR_ROUTING_TO_SERVER.get(msgClassname));
+    logger.info(NOTE_ERR_ROUTING_TO_SERVER, msgClassname);
 
     LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     mb.append(NOTE_ERR_ROUTING_TO_SERVER.get(msgClassname));
@@ -1523,7 +1522,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
        * An error happened trying to send an error msg to this server.
        * Log an error and close the connection to this server.
        */
-      logger.error(ERR_CHANGELOG_ERROR_SENDING_ERROR.get(this), ignored);
+      logger.error(ERR_CHANGELOG_ERROR_SENDING_ERROR, this, ignored);
       stopServer(msgEmitter, false);
     }
   }
@@ -1952,7 +1951,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           }
         } catch (IOException e)
         {
-          logger.error(ERR_EXCEPTION_FORWARDING_RESET_GEN_ID.get(baseDN.toNormalizedString(), e.getMessage()));
+          logger.error(ERR_EXCEPTION_FORWARDING_RESET_GEN_ID, baseDN.toNormalizedString(), e.getMessage());
         }
       }
 
@@ -1965,8 +1964,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           dsHandler.changeStatusForResetGenId(newGenId);
         } catch (IOException e)
         {
-          logger.error(ERR_EXCEPTION_CHANGING_STATUS_AFTER_RESET_GEN_ID.get(baseDN.toNormalizedString(),
-              dsHandler.getServerId(), e.getMessage()));
+          logger.error(ERR_EXCEPTION_CHANGING_STATUS_AFTER_RESET_GEN_ID, baseDN.toNormalizedString(),
+              dsHandler.getServerId(), e.getMessage());
         }
       }
 
@@ -1977,12 +1976,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       // treatment.
       sendTopoInfoToAll();
 
-      logger.info(NOTE_RESET_GENERATION_ID.get(baseDN.toNormalizedString(),
-          newGenId));
+      logger.info(NOTE_RESET_GENERATION_ID, baseDN.toNormalizedString(), newGenId);
     }
     catch(Exception e)
     {
-      logger.error(LocalizableMessage.raw(          stackTraceToSingleLineString(e)));
+      logger.error(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
     }
     finally
     {
@@ -2093,8 +2091,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
       catch (IOException e)
       {
-        logger.error(ERR_EXCEPTION_CHANGING_STATUS_FROM_STATUS_ANALYZER.get(
-            baseDN.toNormalizedString(), dsHandler.getServerId(), e.getMessage()));
+        logger.error(ERR_EXCEPTION_CHANGING_STATUS_FROM_STATUS_ANALYZER,
+            baseDN.toNormalizedString(), dsHandler.getServerId(), e.getMessage());
       }
 
       if (newStatus == ServerStatus.INVALID_STATUS || newStatus == oldStatus)
@@ -2149,7 +2147,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
     catch (ChangelogException e)
     {
-      logger.error(ERR_ERROR_CLEARING_DB.get(baseDN, e.getMessage()), e);
+      logger.error(ERR_ERROR_CLEARING_DB, baseDN, e.getMessage(), e);
     }
   }
 
@@ -2610,10 +2608,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           catch (IOException e)
           {
             logger.traceException(e);
-            logger.error(ERR_CHANGELOG_ERROR_SENDING_MSG
-                .get("Replication Server "
-                    + localReplicationServer.getReplicationPort() + " "
-                    + baseDN + " " + localReplicationServer.getServerId()));
+            logger.error(ERR_CHANGELOG_ERROR_SENDING_MSG,
+                "Replication Server " + localReplicationServer.getReplicationPort() + " "
+                    + baseDN + " " + localReplicationServer.getServerId());
             stopServer(rsHandler, false);
           }
         }

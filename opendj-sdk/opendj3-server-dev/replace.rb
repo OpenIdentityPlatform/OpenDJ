@@ -227,7 +227,7 @@ class Replace
     :extensions => ["java"],
     :replacements =>
       [
-        /(logger\.\s*(trace|debug|warn|info|error)\s*\([^;]*)\s*\.toString\(\)/m,
+        /(logger\.\s*(?:trace|debug|warn|info|error)\s*\([^;]*)\s*\.toString\(\)/m,
         '\1',
       ]
   }
@@ -238,7 +238,7 @@ class Replace
     :replacements =>
       [
         # Need to fix removing the last parentheses
-        /(logger\.\s*(trace|debug|warn|info|error)\s*\([^;]*)\s*String\s*\.\s*valueOf\s*\(/m,
+        /(logger\.\s*(?:trace|debug|warn|info|error)\s*\([^;]*)\s*String\s*\.\s*valueOf\s*\(/m,
         '\1',
       ]
   }
@@ -248,11 +248,21 @@ class Replace
     :extensions => ["java"],
     :replacements =>
       [
-        /(logger\.\s*(trace|debug|warn|info|error)\s*\([^;]*)\s*(Character|Byte|Boolean|Short|Integer|Long|Float|Double)\s*\.\s*toString\s*\(/m,
+        /(logger\.\s*(?:trace|debug|warn|info|error)\s*\([^;]*)\s*(Character|Byte|Boolean|Short|Integer|Long|Float|Double)\s*\.\s*toString\s*\(/m,
         '\1',
         # Need to fix removing the last parentheses
         /([A-Z0-9_]+\s*\.\s*get\s*\([^;]*)\s*(Character|Byte|Boolean|Short|Integer|Long|Float|Double)\s*\.\s*toString\s*\(/m,
         '\1',
+      ]
+  }
+
+  LOGGER_AND_ARGN_TO_LOGGER_ONLY = {
+    :dirs => JAVA_DIRS,
+    :extensions => ["java"],
+    :replacements =>
+      [
+        /(logger\.\s*(?:trace|debug|warn|info|error)\s*\()\s*([A-Z0-9_]+)\s*\.\s*get\s*\(([^;]+)\)([^;]+)/m,
+        '\1\2, \3\4',
       ]
   }
 
@@ -269,7 +279,7 @@ class Replace
   }
 
   # List of replacements to run
-  REPLACEMENTS = [ LOGGER_MSG_ARGN_PRIMITIVE_TOSTRING ]
+  REPLACEMENTS = [ LOGGER_AND_ARGN_TO_LOGGER_ONLY ]
 
 
   ################################### Processing methods ########################################

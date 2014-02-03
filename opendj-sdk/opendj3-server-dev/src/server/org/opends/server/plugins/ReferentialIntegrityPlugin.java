@@ -709,11 +709,11 @@ public class ReferentialIntegrityPlugin
         break;
 
       case NO_SUCH_OBJECT:
-        logger.debug(INFO_PLUGIN_REFERENT_SEARCH_NO_SUCH_OBJECT.get(baseDN));
+        logger.debug(INFO_PLUGIN_REFERENT_SEARCH_NO_SUCH_OBJECT, baseDN);
         return;
 
       default:
-        logger.error(ERR_PLUGIN_REFERENT_SEARCH_FAILED.get(operation.getErrorMessage()));
+        logger.error(ERR_PLUGIN_REFERENT_SEARCH_FAILED, operation.getErrorMessage());
         return;
     }
 
@@ -807,7 +807,7 @@ public class ReferentialIntegrityPlugin
             conn.processModify(entryDN, mods);
     if(modifyOperation.getResultCode() != ResultCode.SUCCESS)
     {
-      logger.error(ERR_PLUGIN_REFERENT_MODIFY_FAILED.get(entryDN, modifyOperation.getErrorMessage()));
+      logger.error(ERR_PLUGIN_REFERENT_MODIFY_FAILED, entryDN, modifyOperation.getErrorMessage());
     }
   }
 
@@ -892,7 +892,7 @@ public class ReferentialIntegrityPlugin
       }
       catch (IOException io)
       {
-        logger.error(ERR_PLUGIN_REFERENT_CLOSE_LOGFILE.get(io.getMessage()));
+        logger.error(ERR_PLUGIN_REFERENT_CLOSE_LOGFILE, io.getMessage());
       }
     }
   }
@@ -920,7 +920,7 @@ public class ReferentialIntegrityPlugin
       }
       catch (IOException io)
       {
-        logger.error(ERR_PLUGIN_REFERENT_CLOSE_LOGFILE.get(io.getMessage()));
+        logger.error(ERR_PLUGIN_REFERENT_CLOSE_LOGFILE, io.getMessage());
       }
     }
   }
@@ -966,7 +966,7 @@ public class ReferentialIntegrityPlugin
         logFile.delete();
         logFile.createNewFile();
       } catch (IOException io) {
-        logger.error(ERR_PLUGIN_REFERENT_REPLACE_LOGFILE.get(io.getMessage()));
+        logger.error(ERR_PLUGIN_REFERENT_REPLACE_LOGFILE, io.getMessage());
       }
     }
   }

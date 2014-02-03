@@ -989,7 +989,7 @@ public final class SambaPasswordPlugin extends
     }
     catch (final Exception e)
     {
-      logger.info(ERR_PLUGIN_SAMBA_SYNC_ENCODING.get(e.getMessage()), e);
+      logger.info(ERR_PLUGIN_SAMBA_SYNC_ENCODING, e.getMessage(), e);
       modifications = null;
     }
 
@@ -1051,7 +1051,7 @@ public final class SambaPasswordPlugin extends
     }
     catch (final DirectoryException e)
     {
-      logger.info(ERR_PLUGIN_SAMBA_SYNC_MODIFICATION_PROCESSING.get(e.getMessage()), e);
+      logger.info(ERR_PLUGIN_SAMBA_SYNC_MODIFICATION_PROCESSING, e.getMessage(), e);
     }
   }
 

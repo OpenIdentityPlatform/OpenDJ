@@ -291,8 +291,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
       }
       catch (Exception end)
       {
-        logger.error(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH
-            .get(stackTraceToSingleLineString(end)));
+        logger.error(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH, stackTraceToSingleLineString(end));
         if (replicationServer != null)
         {
           replicationServer.shutdown();

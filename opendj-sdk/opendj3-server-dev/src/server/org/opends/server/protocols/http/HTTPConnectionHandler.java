@@ -723,8 +723,8 @@ public class HTTPConnectionHandler extends
         // error + alert about the horked config
         logger.traceException(e);
 
-        logger.error(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(friendlyName,
-            currentConfig.dn(), getExceptionMessage(e)));
+        logger.error(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION,
+            friendlyName, currentConfig.dn(), getExceptionMessage(e));
 
         if (lastIterationFailed)
         {
@@ -771,7 +771,7 @@ public class HTTPConnectionHandler extends
     logger.trace("Starting HTTP server...");
     this.httpServer.start();
     logger.trace("HTTP server started");
-    logger.info(NOTE_CONNHANDLER_STARTED_LISTENING.get(handlerName));
+    logger.info(NOTE_CONNHANDLER_STARTED_LISTENING, handlerName);
   }
 
   private HttpServer createHttpServer()
@@ -929,7 +929,7 @@ public class HTTPConnectionHandler extends
       this.httpServer.shutdownNow();
       cleanUpHttpServer();
       logger.trace("HTTP server stopped");
-      logger.info(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
+      logger.info(NOTE_CONNHANDLER_STOPPED_LISTENING, handlerName);
     }
   }
 

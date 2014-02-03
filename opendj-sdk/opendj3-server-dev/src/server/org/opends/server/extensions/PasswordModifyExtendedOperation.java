@@ -981,9 +981,9 @@ public class PasswordModifyExtendedOperation
           // At this point, the user's password is already changed so there's
           // not much point in returning a non-success result.  However, we
           // should at least log that something went wrong.
-          logger.warn(WARN_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE.get(userDN,
+          logger.warn(WARN_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE, userDN,
                   modOp.getResultCode(),
-                  modOp.getErrorMessage()));
+                  modOp.getErrorMessage());
         }
       }
 

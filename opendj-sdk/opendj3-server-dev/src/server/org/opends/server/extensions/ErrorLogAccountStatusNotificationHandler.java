@@ -119,10 +119,11 @@ public class ErrorLogAccountStatusNotificationHandler
   public void handleStatusNotification(
                    AccountStatusNotification notification)
   {
-    logger.info(NOTE_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION.get(notification.getNotificationType().getName(),
+    logger.info(NOTE_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION,
+                  notification.getNotificationType().getName(),
                   notification.getUserDN(),
                   notification.getMessage().ordinal(),
-                  notification.getMessage()));
+                  notification.getMessage());
   }
 
 

@@ -575,8 +575,8 @@ public class LocalBackendDeleteOperation
               }
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logger.error(ERR_DELETE_SYNCH_CONFLICT_RESOLUTION_FAILED.get(getConnectionID(), getOperationID(),
-                      getExceptionMessage(de)));
+              logger.error(ERR_DELETE_SYNCH_CONFLICT_RESOLUTION_FAILED,
+                  getConnectionID(), getOperationID(), getExceptionMessage(de));
               setResponseData(de);
               return false;
           }
@@ -594,8 +594,8 @@ public class LocalBackendDeleteOperation
               provider.doPostOperation(this);
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logger.error(ERR_DELETE_SYNCH_POSTOP_FAILED.get(getConnectionID(),
-                      getOperationID(), getExceptionMessage(de)));
+              logger.error(ERR_DELETE_SYNCH_POSTOP_FAILED, getConnectionID(),
+                      getOperationID(), getExceptionMessage(de));
               setResponseData(de);
               return;
           }
@@ -622,8 +622,8 @@ public class LocalBackendDeleteOperation
               }
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logger.error(ERR_DELETE_SYNCH_PREOP_FAILED.get(getConnectionID(),
-                      getOperationID(), getExceptionMessage(de)));
+              logger.error(ERR_DELETE_SYNCH_PREOP_FAILED, getConnectionID(),
+                      getOperationID(), getExceptionMessage(de));
               setResponseData(de);
               return false;
           }

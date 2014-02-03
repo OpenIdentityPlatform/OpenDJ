@@ -94,8 +94,7 @@ public class AuthMethod implements KeywordBindRule {
       {
         String saslMech = expr.substring(5);
         if (DirectoryServer.getSASLMechanismHandler(saslMech) == null) {
-          logger.error(NOTE_ACI_SYNTAX_DUBIOUS_AUTHMETHOD_SASL_MECHANISM.
-                    get(saslMech));
+          logger.error(NOTE_ACI_SYNTAX_DUBIOUS_AUTHMETHOD_SASL_MECHANISM, saslMech);
         }
         return new AuthMethod(EnumAuthMethod.AUTHMETHOD_SASL, saslMech, type);
       }

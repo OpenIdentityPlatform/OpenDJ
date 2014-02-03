@@ -165,7 +165,7 @@ class EntryCachePreloader
    */
   protected void preload()
   {
-    logger.info(NOTE_CACHE_PRELOAD_PROGRESS_START.get(jeb.getBackendID()));
+    logger.info(NOTE_CACHE_PRELOAD_PROGRESS_START, jeb.getBackendID());
     // Start collector thread first.
     collector.start();
     // Kick off a single worker.
@@ -242,7 +242,7 @@ class EntryCachePreloader
       for (Thread thread : preloadThreads) {
         thread.interrupt();
       }
-      logger.warn(WARN_CACHE_PRELOAD_INTERRUPTED.get(jeb.getBackendID()));
+      logger.warn(WARN_CACHE_PRELOAD_INTERRUPTED, jeb.getBackendID());
     } finally {
       // Kill the timer task.
       timer.cancel();

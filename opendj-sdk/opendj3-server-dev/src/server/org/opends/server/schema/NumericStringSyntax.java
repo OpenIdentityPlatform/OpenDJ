@@ -91,24 +91,24 @@ public class NumericStringSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_NUMERIC_STRING_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
+          EMR_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME);
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_NUMERIC_STRING_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
-          OMR_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
+          OMR_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_EXACT_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
+          SMR_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME);
     }
   }
 

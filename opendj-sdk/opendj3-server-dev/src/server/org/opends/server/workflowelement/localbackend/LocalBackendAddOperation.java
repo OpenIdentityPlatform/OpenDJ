@@ -219,8 +219,7 @@ public class LocalBackendAddOperation
             {
               logger.traceException(e);
 
-              logger.error(ERR_ADD_ERROR_NOTIFYING_CHANGE_LISTENER
-                  .get(getExceptionMessage(e)));
+              logger.error(ERR_ADD_ERROR_NOTIFYING_CHANGE_LISTENER, getExceptionMessage(e));
             }
           }
         }
@@ -292,8 +291,8 @@ public class LocalBackendAddOperation
         }
         catch (DirectoryException de)
         {
-          logger.error(ERR_ADD_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
-              getConnectionID(), getOperationID(), getExceptionMessage(de)));
+          logger.error(ERR_ADD_SYNCH_CONFLICT_RESOLUTION_FAILED,
+              getConnectionID(), getOperationID(), getExceptionMessage(de));
           throw de;
         }
       }
@@ -498,8 +497,8 @@ public class LocalBackendAddOperation
           }
           catch (DirectoryException de)
           {
-            logger.error(ERR_ADD_SYNCH_PREOP_FAILED.get(getConnectionID(),
-                getOperationID(), getExceptionMessage(de)));
+            logger.error(ERR_ADD_SYNCH_PREOP_FAILED, getConnectionID(),
+                getOperationID(), getExceptionMessage(de));
             throw de;
           }
         }
@@ -534,8 +533,8 @@ public class LocalBackendAddOperation
         {
           logger.traceException(de);
 
-          logger.error(ERR_ADD_SYNCH_POSTOP_FAILED.get(getConnectionID(),
-              getOperationID(), getExceptionMessage(de)));
+          logger.error(ERR_ADD_SYNCH_POSTOP_FAILED, getConnectionID(),
+              getOperationID(), getExceptionMessage(de));
           setResponseData(de);
           break;
         }

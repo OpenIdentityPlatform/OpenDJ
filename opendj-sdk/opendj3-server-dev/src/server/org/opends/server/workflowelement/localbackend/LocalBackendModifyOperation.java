@@ -1417,12 +1417,12 @@ public class LocalBackendModifyOperation
             if (!syntax.isHumanReadable() || syntax.isBinary())
             {
               // Value is not human-readable
-              logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE.get(entryDN, attr.getName(), invalidReason));
+              logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE, entryDN, attr.getName(), invalidReason);
             }
             else
             {
-              logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX.get(
-                  entryDN, attr.getName(), v.getValue(), invalidReason));
+              logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX,
+                  entryDN, attr.getName(), v.getValue(), invalidReason);
             }
             invalidReason = new LocalizableMessageBuilder();
           }
@@ -1619,13 +1619,13 @@ public class LocalBackendModifyOperation
             if (!syntax.isHumanReadable() || syntax.isBinary())
             {
               // Value is not human-readable
-              logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE.get(
-                  entryDN, attr.getName(), invalidReason));
+              logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE,
+                  entryDN, attr.getName(), invalidReason);
             }
             else
             {
-              logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(
-                  entryDN, attr.getName(), v.getValue(), invalidReason));
+              logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX,
+                  entryDN, attr.getName(), v.getValue(), invalidReason);
             }
             invalidReason = new LocalizableMessageBuilder();
           }
@@ -2033,8 +2033,8 @@ public class LocalBackendModifyOperation
               }
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logger.error(ERR_MODIFY_SYNCH_CONFLICT_RESOLUTION_FAILED.get(getConnectionID(), getOperationID(),
-                      getExceptionMessage(de)));
+              logger.error(ERR_MODIFY_SYNCH_CONFLICT_RESOLUTION_FAILED,
+                  getConnectionID(), getOperationID(), getExceptionMessage(de));
               setResponseData(de);
               return false;
           }
@@ -2062,8 +2062,8 @@ public class LocalBackendModifyOperation
               }
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logger.error(ERR_MODIFY_SYNCH_PREOP_FAILED.get(getConnectionID(),
-                      getOperationID(), getExceptionMessage(de)));
+              logger.error(ERR_MODIFY_SYNCH_PREOP_FAILED, getConnectionID(),
+                      getOperationID(), getExceptionMessage(de));
               setResponseData(de);
               return false;
           }
@@ -2081,8 +2081,8 @@ public class LocalBackendModifyOperation
               provider.doPostOperation(this);
           } catch (DirectoryException de) {
               logger.traceException(de);
-              logger.error(ERR_MODIFY_SYNCH_POSTOP_FAILED.get(getConnectionID(),
-                      getOperationID(), getExceptionMessage(de)));
+              logger.error(ERR_MODIFY_SYNCH_POSTOP_FAILED, getConnectionID(),
+                      getOperationID(), getExceptionMessage(de));
               setResponseData(de);
               return;
           }

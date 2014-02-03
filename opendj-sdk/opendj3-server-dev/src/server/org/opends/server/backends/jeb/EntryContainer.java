@@ -552,8 +552,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         }
         id2subtree.open(); // No-op
 
-        logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED.get(backend
-            .getBackendID()));
+        logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, backend.getBackendID());
       }
 
       dn2uri = new DN2URI(databasePrefix + "_" + REFERRAL_DATABASE_NAME,
@@ -569,7 +568,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         index.open();
         if(!index.isTrusted())
         {
-          logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
+          logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, index.getName());
         }
         attrIndexMap.put(indexCfg.getAttribute(), index);
       }
@@ -583,8 +582,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
         if(!vlvIndex.isTrusted())
         {
-          logger.error(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-              vlvIndex.getName()));
+          logger.error(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, vlvIndex.getName());
         }
 
         vlvIndexMap.put(vlvIndexCfg.getName().toLowerCase(), vlvIndex);
@@ -3567,8 +3565,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           state.putIndexTrustState(null, id2subtree, false);
           id2subtree.open(); // No-op
 
-          logger.error(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED
-              .get(cfg.getBackendId()));
+          logger.error(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, cfg.getBackendId());
         }
       }
 
@@ -3795,8 +3792,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     id2children.open();
     if (!id2children.isTrusted())
     {
-      logger.error(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(id2children
-              .getName()));
+      logger.error(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, id2children.getName());
     }
     id2subtree = new Index(databasePrefix + "_" + ID2SUBTREE_DATABASE_NAME,
             new ID2SIndexer(), state, config.getIndexEntryLimit(), 0, true,
@@ -3804,7 +3800,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     id2subtree.open();
     if (!id2subtree.isTrusted())
     {
-      logger.error(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(id2subtree.getName()));
+      logger.error(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, id2subtree.getName());
     }
   }
 

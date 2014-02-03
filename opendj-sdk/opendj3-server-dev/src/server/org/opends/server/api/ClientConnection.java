@@ -1143,13 +1143,13 @@ public abstract class ClientConnection
       final DN authDN = authenticationInfo.getAuthenticationDN();
       if (operation == null)
       {
-        logger.trace(INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES.get(
-            getConnectionID(), -1L, authDN, buffer, result));
+        logger.trace(INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES,
+            getConnectionID(), -1L, authDN, buffer, result);
       }
       else
       {
-        logger.trace(INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES.get(
-            getConnectionID(), operation.getOperationID(), authDN, buffer, result));
+        logger.trace(INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES,
+            getConnectionID(), operation.getOperationID(), authDN, buffer, result);
       }
 
       return result;

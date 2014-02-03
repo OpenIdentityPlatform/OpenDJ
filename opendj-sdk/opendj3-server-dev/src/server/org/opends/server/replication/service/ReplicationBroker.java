@@ -918,13 +918,13 @@ public class ReplicationBroker
         final int rsServerId = rs.rsInfo.getServerId();
         if (rsGenId == getGenerationID() || rsGenId == -1)
         {
-          logger.info(NOTE_NOW_FOUND_SAME_GENERATION_CHANGELOG.get(serverId, rsServerId, baseDN.toNormalizedString(),
-              rs.replicationServer, getGenerationID()));
+          logger.info(NOTE_NOW_FOUND_SAME_GENERATION_CHANGELOG, serverId, rsServerId, baseDN.toNormalizedString(),
+              rs.replicationServer, getGenerationID());
         }
         else
         {
-          logger.warn(WARN_NOW_FOUND_BAD_GENERATION_CHANGELOG.get(serverId, rsServerId, baseDN.toNormalizedString(),
-              rs.replicationServer, getGenerationID(), rsGenId));
+          logger.warn(WARN_NOW_FOUND_BAD_GENERATION_CHANGELOG, serverId, rsServerId, baseDN.toNormalizedString(),
+              rs.replicationServer, getGenerationID(), rsGenId);
         }
       }
       else
@@ -938,12 +938,12 @@ public class ReplicationBroker
 
           if (replicationServerInfos.size() > 0)
           {
-            logger.warn(WARN_COULD_NOT_FIND_CHANGELOG.get(serverId, baseDN.toNormalizedString(),
-                Utils.joinAsString(", ", replicationServerInfos.keySet())));
+            logger.warn(WARN_COULD_NOT_FIND_CHANGELOG, serverId, baseDN.toNormalizedString(),
+                Utils.joinAsString(", ", replicationServerInfos.keySet()));
           }
           else
           {
-            logger.warn(WARN_NO_AVAILABLE_CHANGELOGS.get(serverId, baseDN.toNormalizedString()));
+            logger.warn(WARN_NO_AVAILABLE_CHANGELOGS, serverId, baseDN.toNormalizedString());
           }
         }
       }
@@ -1012,9 +1012,9 @@ public class ReplicationBroker
         warn user and start heartbeat monitor to recover when a server
         with the right group id shows up.
         */
-        logger.warn(WARN_CONNECTED_TO_SERVER_WITH_WRONG_GROUP_ID.get(
+        logger.warn(WARN_CONNECTED_TO_SERVER_WITH_WRONG_GROUP_ID,
             groupId, rs.getServerId(), rsInfo.getServerURL(), rs.getGroupId(),
-            baseDN.toNormalizedString(), getServerId()));
+            baseDN.toNormalizedString(), getServerId());
       }
       startRSHeartBeatMonitoring(rs);
       if (rsInfo.getProtocolVersion() >=
@@ -1026,8 +1026,8 @@ public class ReplicationBroker
     }
     catch (Exception e)
     {
-      logger.error(ERR_COMPUTING_FAKE_OPS.get(baseDN.toNormalizedString(), rsInfo.getServerURL(),
-          e.getLocalizedMessage() + " " + stackTraceToSingleLineString(e)));
+      logger.error(ERR_COMPUTING_FAKE_OPS, baseDN.toNormalizedString(), rsInfo.getServerURL(),
+          e.getLocalizedMessage() + " " + stackTraceToSingleLineString(e));
     }
     finally
     {
@@ -1267,8 +1267,8 @@ public class ReplicationBroker
     }
     catch (Exception e)
     {
-      logger.warn(WARN_EXCEPTION_STARTING_SESSION_PHASE.get(getServerId(), server, getBaseDN().toNormalizedString(),
-          stackTraceToSingleLineString(e)));
+      logger.warn(WARN_EXCEPTION_STARTING_SESSION_PHASE, getServerId(), server, getBaseDN().toNormalizedString(),
+          stackTraceToSingleLineString(e));
 
       rs.session.close();
       setConnectedRS(ConnectedRS.noConnectedRS());
@@ -1320,9 +1320,9 @@ public class ReplicationBroker
     }
     catch (Exception e)
     {
-      logger.error(WARN_EXCEPTION_STARTING_SESSION_PHASE.get(
+      logger.error(WARN_EXCEPTION_STARTING_SESSION_PHASE,
           getServerId(), electedRS.rsInfo.getServerURL(),
-          getBaseDN().toNormalizedString(), stackTraceToSingleLineString(e)));
+          getBaseDN().toNormalizedString(), stackTraceToSingleLineString(e));
 
       setConnectedRS(ConnectedRS.noConnectedRS());
       return null;
@@ -2690,9 +2690,9 @@ public class ReplicationBroker
           if (rs.session == null || !rs.session.closeInitiated())
           {
             // We did not initiate the close on our side, log an error message.
-            logger.error(WARN_REPLICATION_SERVER_BADLY_DISCONNECTED.get(
+            logger.error(WARN_REPLICATION_SERVER_BADLY_DISCONNECTED,
                 serverId, baseDN.toNormalizedString(), previousRsServerID,
-                rs.replicationServer));
+                rs.replicationServer);
           }
 
           if (!reconnectOnFailure)
