@@ -44,6 +44,7 @@ import org.opends.server.tools.*;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.Base64;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
@@ -53,13 +54,13 @@ import static org.testng.Assert.*;
  */
 public class LDAPBinaryOptionTestCase extends LdapTestCase {
   // Exported LDIF file.
-  File ldif = null;
+  private File ldif = null;
   //LDIFExportConfig used for exporting entries.
-  LDIFExportConfig exportConfig = null;
+  private LDIFExportConfig exportConfig = null;
   //LDIFImportConfig used for importing entries.
-  LDIFImportConfig importConfig = null;
+  private LDIFImportConfig importConfig = null;
   //Test Backend.
-  Backend backend = null;
+  private Backend backend = null;
 
   //Constant value of userCertificate attribute.
   private static final String CERT=
@@ -366,20 +367,9 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     }
     finally
     {
-      try
-      {
-        r.close();
-      } catch (Exception e) {}
-      try
-      {
-        w.close();
-      } catch (Exception e) {}
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
+      StaticUtils.close(r, w);
+      StaticUtils.close(s);
     }
-
   }
 
 

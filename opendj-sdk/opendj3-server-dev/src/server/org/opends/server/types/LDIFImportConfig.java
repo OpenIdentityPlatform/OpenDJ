@@ -36,6 +36,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.opends.server.tools.makeldif.MakeLDIFInputStream;
 import org.opends.server.tools.makeldif.TemplateFile;
+import org.opends.server.util.StaticUtils;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.UtilityMessages.*;
@@ -478,11 +479,7 @@ public final class LDIFImportConfig extends OperationConfig
     {
       if (rejectWriter != null)
       {
-        try
-        {
-          rejectWriter.close();
-        } catch (Exception e) {}
-
+        StaticUtils.close(rejectWriter);
         rejectWriter = null;
       }
 
@@ -533,11 +530,7 @@ public final class LDIFImportConfig extends OperationConfig
     {
       if (rejectWriter != null)
       {
-        try
-        {
-          rejectWriter.close();
-        } catch (Exception e) {}
-
+        StaticUtils.close(rejectWriter);
         rejectWriter = null;
       }
 
@@ -570,10 +563,7 @@ public final class LDIFImportConfig extends OperationConfig
     {
       if (skipWriter != null)
       {
-        try
-        {
-          skipWriter.close();
-        } catch (Exception e) {}
+        StaticUtils.close(skipWriter);
 
         skipWriter = null;
       }
@@ -625,10 +615,7 @@ public final class LDIFImportConfig extends OperationConfig
     {
       if (skipWriter != null)
       {
-        try
-        {
-          skipWriter.close();
-        } catch (Exception e) {}
+        StaticUtils.close(skipWriter);
 
         skipWriter = null;
       }

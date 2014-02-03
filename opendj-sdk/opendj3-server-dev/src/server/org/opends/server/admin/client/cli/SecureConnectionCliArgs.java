@@ -34,7 +34,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import static org.opends.server.util.StaticUtils.wrapText;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -858,14 +858,7 @@ public final class SecureConnectionCliArgs
           }
           finally
           {
-            if (fos != null)
-            {
-              try
-              {
-                fos.close();
-              }
-              catch (Exception e) {}
-            }
+            close(fos);
           }
         }
       trustManager = new ApplicationTrustManager(truststore);
@@ -942,13 +935,7 @@ public final class SecureConnectionCliArgs
       }
       finally
       {
-        if (fos != null)
-        {
-          try {
-            fos.close();
-          }
-          catch (Exception e) {}
-        }
+        close(fos);
       }
 
       char[] password = null;

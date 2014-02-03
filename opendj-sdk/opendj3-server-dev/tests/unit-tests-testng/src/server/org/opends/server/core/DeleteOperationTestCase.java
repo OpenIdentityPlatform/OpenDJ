@@ -967,10 +967,7 @@ responseLoop:
           break responseLoop;
         default:
           // This is a problem.  It's an unexpected response.
-          try
-          {
-            s.close();
-          } catch (Exception e) {}
+          StaticUtils.close(s);
 
           throw new Exception("Unexpected response message " + message +
                               " encountered in " +

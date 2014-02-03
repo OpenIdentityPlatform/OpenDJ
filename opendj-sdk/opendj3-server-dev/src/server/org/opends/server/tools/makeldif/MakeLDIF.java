@@ -376,10 +376,7 @@ public class MakeLDIF
     }
     finally
     {
-      try
-      {
-        ldifWriter.close();
-      } catch (Exception e) {}
+      close(ldifWriter);
     }
 
 

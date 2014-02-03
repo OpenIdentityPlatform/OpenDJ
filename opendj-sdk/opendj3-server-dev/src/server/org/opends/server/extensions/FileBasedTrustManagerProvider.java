@@ -205,10 +205,7 @@ public class FileBasedTrustManagerProvider
             }
             finally
             {
-              try
-              {
-                br.close();
-              } catch (Exception e) {}
+              close(br);
             }
 
             if (pinStr == null)
@@ -437,10 +434,7 @@ public class FileBasedTrustManagerProvider
         }
         finally
         {
-          try
-          {
-            br.close();
-          } catch (Exception e) {}
+          close(br);
         }
 
         if (pinStr == null)
@@ -562,10 +556,7 @@ public class FileBasedTrustManagerProvider
             }
             finally
             {
-              try
-              {
-                br.close();
-              } catch (Exception e) {}
+              close(br);
             }
 
             if (pinStr == null)
