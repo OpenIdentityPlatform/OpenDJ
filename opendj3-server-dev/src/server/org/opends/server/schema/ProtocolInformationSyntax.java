@@ -93,32 +93,32 @@ public class ProtocolInformationSyntax
          DirectoryServer.getApproximateMatchingRule(AMR_DOUBLE_METAPHONE_OID);
     if (defaultApproximateMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE.get(
-          AMR_DOUBLE_METAPHONE_OID, SYNTAX_PROTOCOL_INFORMATION_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE,
+          AMR_DOUBLE_METAPHONE_OID, SYNTAX_PROTOCOL_INFORMATION_NAME);
     }
 
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_CASE_IGNORE_OID, SYNTAX_PROTOCOL_INFORMATION_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
+          EMR_CASE_IGNORE_OID, SYNTAX_PROTOCOL_INFORMATION_NAME);
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
-          OMR_CASE_IGNORE_OID, SYNTAX_PROTOCOL_INFORMATION_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
+          OMR_CASE_IGNORE_OID, SYNTAX_PROTOCOL_INFORMATION_NAME);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_CASE_IGNORE_OID, SYNTAX_PROTOCOL_INFORMATION_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
+          SMR_CASE_IGNORE_OID, SYNTAX_PROTOCOL_INFORMATION_NAME);
     }
   }
 

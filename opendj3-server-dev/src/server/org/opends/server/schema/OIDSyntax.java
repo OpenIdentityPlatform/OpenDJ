@@ -87,14 +87,14 @@ public class OIDSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_OID_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(EMR_OID_OID, SYNTAX_OID_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_OID_OID, SYNTAX_OID_NAME);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(SMR_CASE_IGNORE_OID, SYNTAX_OID_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE, SMR_CASE_IGNORE_OID, SYNTAX_OID_NAME);
     }
   }
 

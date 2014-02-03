@@ -1242,8 +1242,7 @@ public final class DirectoryServer
       }
 
 
-      logger.info(NOTE_DIRECTORY_SERVER_STARTING.get(getVersionString(),
-                                                  BUILD_ID, REVISION_NUMBER));
+      logger.info(NOTE_DIRECTORY_SERVER_STARTING, getVersionString(), BUILD_ID, REVISION_NUMBER);
 
       // Acquire an exclusive lock for the Directory Server process.
       if (! serverLocked)
@@ -1625,9 +1624,8 @@ public final class DirectoryServer
     catch (Exception e)
     {
       logger.traceException(e);
-
-      logger.error(ERR_CANNOT_BOOTSTRAP_SYNTAX.get(syntax.getClass().getName(),
-          stackTraceToSingleLineString(e)));
+      logger.error(ERR_CANNOT_BOOTSTRAP_SYNTAX, syntax.getClass().getName(),
+          stackTraceToSingleLineString(e));
     }
     return syntax;
   }

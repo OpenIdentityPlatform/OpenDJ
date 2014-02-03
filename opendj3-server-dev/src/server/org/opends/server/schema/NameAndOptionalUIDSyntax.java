@@ -91,16 +91,16 @@ public class NameAndOptionalUIDSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_UNIQUE_MEMBER_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_UNIQUE_MEMBER_OID, SYNTAX_NAME_AND_OPTIONAL_UID_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
+          EMR_UNIQUE_MEMBER_OID, SYNTAX_NAME_AND_OPTIONAL_UID_NAME);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_CASE_IGNORE_OID, SYNTAX_NAME_AND_OPTIONAL_UID_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
+          SMR_CASE_IGNORE_OID, SYNTAX_NAME_AND_OPTIONAL_UID_NAME);
     }
   }
 

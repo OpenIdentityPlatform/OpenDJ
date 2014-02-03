@@ -1056,9 +1056,8 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
 
       // Only log an error once, on first error
       if (isAlreadyLogged.compareAndSet(false, true)) {
-        logger.error(ERR_PWPOLICY_REJECT_DUE_TO_UNKNOWN_VALIDATOR_LOG.get(
-            userEntry.getName().toNormalizedString(), pwPolicyName,
-            validatorName));
+        logger.error(ERR_PWPOLICY_REJECT_DUE_TO_UNKNOWN_VALIDATOR_LOG,
+            userEntry.getName().toNormalizedString(), pwPolicyName, validatorName);
       }
       return false;
     }

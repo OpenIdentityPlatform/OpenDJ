@@ -148,7 +148,7 @@ public class IdentityMapperConfigManager
     }
     else if (! identityMappers.containsKey(mapperDN))
     {
-      logger.error(ERR_CONFIG_IDMAPPER_INVALID_PROXY_MAPPER_DN.get(mapperDN));
+      logger.error(ERR_CONFIG_IDMAPPER_INVALID_PROXY_MAPPER_DN, mapperDN);
     }
   }
 

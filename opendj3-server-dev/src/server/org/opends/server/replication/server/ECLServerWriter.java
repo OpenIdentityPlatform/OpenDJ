@@ -161,7 +161,7 @@ public class ECLServerWriter extends ServerWriter
     {
       // An unexpected error happened.
       // Log an error and close the connection.
-      logger.error(ERR_WRITER_UNEXPECTED_EXCEPTION.get(handler + " " + stackTraceToSingleLineString(e)));
+      logger.error(ERR_WRITER_UNEXPECTED_EXCEPTION, handler + " " + stackTraceToSingleLineString(e));
     }
     finally
     {
@@ -257,8 +257,7 @@ public class ECLServerWriter extends ServerWriter
       }
       catch (Exception e)
       {
-        logger.error(ERR_WRITER_UNEXPECTED_EXCEPTION.get(
-            handler + " " + stackTraceToSingleLineString(e)));
+        logger.error(ERR_WRITER_UNEXPECTED_EXCEPTION, handler + " " + stackTraceToSingleLineString(e));
         mypsearch.cancel();
       }
     }

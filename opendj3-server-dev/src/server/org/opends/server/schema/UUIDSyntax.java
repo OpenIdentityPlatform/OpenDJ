@@ -86,14 +86,14 @@ public class UUIDSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_UUID_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(EMR_UUID_OID, SYNTAX_UUID_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_UUID_OID, SYNTAX_UUID_NAME);
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_UUID_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(OMR_UUID_OID, SYNTAX_UUID_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE, OMR_UUID_OID, SYNTAX_UUID_NAME);
     }
   }
 

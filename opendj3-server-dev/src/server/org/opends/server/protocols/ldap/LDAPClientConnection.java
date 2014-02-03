@@ -755,8 +755,8 @@ public final class LDAPClientConnection extends ClientConnection implements
       // This must mean that the operation has either not yet completed
       // or that it completed without a result for some reason. In any
       // case, log a message and set the response to "operations error".
-      logger.error(ERR_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE.get(operation.getOperationType(),
-          operation.getConnectionID(), operation.getOperationID()));
+      logger.error(ERR_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE, operation.getOperationType(),
+          operation.getConnectionID(), operation.getOperationID());
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
@@ -826,8 +826,8 @@ public final class LDAPClientConnection extends ClientConnection implements
       // If this an LDAPv2 client, then we can't send this.
       if (ldapVersion == 2)
       {
-        logger.error(ERR_LDAPV2_SKIPPING_EXTENDED_RESPONSE.get(
-            getConnectionID(), operation.getOperationID(), operation));
+        logger.error(ERR_LDAPV2_SKIPPING_EXTENDED_RESPONSE,
+            getConnectionID(), operation.getOperationID(), operation);
         return null;
       }
 
@@ -855,8 +855,8 @@ public final class LDAPClientConnection extends ClientConnection implements
     default:
       // This must be a type of operation that doesn't have a response.
       // This shouldn't happen, so log a message and return.
-      logger.error(ERR_LDAP_CLIENT_SEND_RESPONSE_INVALID_OP.get(operation.getOperationType(), getConnectionID(),
-          operation.getOperationID(), operation));
+      logger.error(ERR_LDAP_CLIENT_SEND_RESPONSE_INVALID_OP, operation.getOperationType(), getConnectionID(),
+          operation.getOperationID(), operation);
       return null;
     }
 

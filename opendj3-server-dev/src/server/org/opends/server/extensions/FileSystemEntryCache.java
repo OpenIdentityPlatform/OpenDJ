@@ -361,7 +361,7 @@ public class FileSystemEntryCache
                 // Remove cache entries specific to this backend.
                 clearBackend(DirectoryServer.getBackend(backend));
                 // Log an error message.
-                logger.warn(WARN_FSCACHE_OFFLINE_STATE_FAIL.get(backend));
+                logger.warn(WARN_FSCACHE_OFFLINE_STATE_FAIL, backend);
               }
             }
             // Pop max entries limit.

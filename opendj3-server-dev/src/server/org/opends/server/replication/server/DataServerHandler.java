@@ -198,7 +198,7 @@ public class DataServerHandler extends ServerHandler
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      logger.error(ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDN(), serverId, status, event));
+      logger.error(ERR_RS_CANNOT_CHANGE_STATUS, getBaseDN(), serverId, status, event);
       // Only change allowed is from NORMAL_STATUS to DEGRADED_STATUS and vice
       // versa. We may be trying to change the status while another status has
       // just been entered: e.g a full update has just been engaged.
@@ -315,7 +315,7 @@ public class DataServerHandler extends ServerHandler
     StatusMachineEvent event = StatusMachineEvent.statusToEvent(reqStatus);
     if (event == StatusMachineEvent.INVALID_EVENT)
     {
-      logger.error(ERR_RS_INVALID_NEW_STATUS.get(reqStatus, getBaseDN(), serverId));
+      logger.error(ERR_RS_INVALID_NEW_STATUS, reqStatus, getBaseDN(), serverId);
       return ServerStatus.INVALID_STATUS;
     }
 
@@ -323,7 +323,7 @@ public class DataServerHandler extends ServerHandler
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      logger.error(ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDN(), serverId, status, event));
+      logger.error(ERR_RS_CANNOT_CHANGE_STATUS, getBaseDN(), serverId, status, event);
       return ServerStatus.INVALID_STATUS;
     }
 

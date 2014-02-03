@@ -318,8 +318,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       logger.traceException(e);
 
-      logger.error(ERR_COULD_NOT_READ_DB.get(this.dbDirectory.getAbsolutePath(),
-          e.getLocalizedMessage()));
+      logger.error(ERR_COULD_NOT_READ_DB, this.dbDirectory.getAbsolutePath(), e.getLocalizedMessage());
     }
   }
 
@@ -695,7 +694,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
         catch (Exception e)
         {
           logger.traceException(e);
-          logger.error(ERR_CHANGENUMBER_DATABASE.get(e.getLocalizedMessage()));
+          logger.error(ERR_CHANGENUMBER_DATABASE, e.getLocalizedMessage());
         }
       }
       return cnIndexDB;

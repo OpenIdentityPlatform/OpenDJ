@@ -589,7 +589,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
         filter = groupImplementation.getGroupDefinitionFilter();
         if (backend.getEntryCount() > 0 && ! backend.isIndexed(filter))
         {
-          logger.warn(WARN_GROUP_FILTER_NOT_INDEXED.get(filter, configEntryDN, backend.getBackendID()));
+          logger.warn(WARN_GROUP_FILTER_NOT_INDEXED, filter, configEntryDN, backend.getBackendID());
         }
       }
       catch (Exception e)

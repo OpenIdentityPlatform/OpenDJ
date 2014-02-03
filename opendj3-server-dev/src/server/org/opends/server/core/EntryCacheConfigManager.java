@@ -199,8 +199,8 @@ public class EntryCacheConfigManager
       if (!cacheOrderMap.isEmpty()) {
         if (cacheOrderMap.containsKey(configuration.getCacheLevel())) {
           // Log error and skip this cache.
-          logger.error(ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
-            configuration.dn(), configuration.getCacheLevel()));
+          logger.error(ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE,
+              configuration.dn(), configuration.getCacheLevel());
           continue;
         }
       }

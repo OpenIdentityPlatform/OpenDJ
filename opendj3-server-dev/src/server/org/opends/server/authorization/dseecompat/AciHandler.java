@@ -1245,7 +1245,7 @@ public final class AciHandler extends
       if (globalAcis != null)
       {
         aciList.addAci(DN.rootDN(), globalAcis);
-        logger.debug(INFO_ACI_ADD_LIST_GLOBAL_ACIS.get(globalAcis.size()));
+        logger.debug(INFO_ACI_ADD_LIST_GLOBAL_ACIS, globalAcis.size());
       }
     }
     catch (Exception e)

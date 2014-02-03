@@ -3515,7 +3515,7 @@ public final class Schema
       // changes could potentially be sent to the other servers again
       // when this server is restarted, which shouldn't hurt anything.
       // Still, we should log a warning message.
-      logger.error(ERR_SCHEMA_CANNOT_WRITE_CONCAT_SCHEMA_FILE.get(concatFilePath, getExceptionMessage(e)));
+      logger.error(ERR_SCHEMA_CANNOT_WRITE_CONCAT_SCHEMA_FILE, concatFilePath, getExceptionMessage(e));
     }
   }
 

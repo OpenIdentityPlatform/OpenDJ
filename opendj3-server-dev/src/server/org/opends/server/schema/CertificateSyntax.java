@@ -106,24 +106,24 @@ public class CertificateSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CERTIFICATE_EXACT_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_CERTIFICATE_EXACT_OID, SYNTAX_CERTIFICATE_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
+          EMR_CERTIFICATE_EXACT_OID, SYNTAX_CERTIFICATE_NAME);
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_OCTET_STRING_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
-          OMR_OCTET_STRING_OID, SYNTAX_CERTIFICATE_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
+          OMR_OCTET_STRING_OID, SYNTAX_CERTIFICATE_NAME);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_OCTET_STRING_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
-          SMR_OCTET_STRING_OID, SYNTAX_CERTIFICATE_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
+          SMR_OCTET_STRING_OID, SYNTAX_CERTIFICATE_NAME);
     }
 
     this.config = configuration;

@@ -799,12 +799,12 @@ public final class ReplicationServer
       catch (IOException e)
       {
         logger.traceException(e);
-        logger.error(ERR_COULD_NOT_CLOSE_THE_SOCKET.get(e));
+        logger.error(ERR_COULD_NOT_CLOSE_THE_SOCKET, e);
       }
       catch (InterruptedException e)
       {
         logger.traceException(e);
-        logger.error(ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e));
+        logger.error(ERR_COULD_NOT_STOP_LISTEN_THREAD, e);
       }
     }
 
@@ -1029,7 +1029,7 @@ public final class ReplicationServer
     }
     catch(Exception e)
     {
-      logger.error(ERR_DELETE_REPL_BACKEND_FAILED.get(e.getLocalizedMessage()));
+      logger.error(ERR_DELETE_REPL_BACKEND_FAILED, e.getLocalizedMessage());
     }
   }
 

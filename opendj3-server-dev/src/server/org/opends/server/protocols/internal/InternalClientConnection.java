@@ -191,7 +191,7 @@ public final class InternalClientConnection
     {
       logger.traceException(de);
 
-      logger.error(ERR_INTERNAL_CANNOT_DECODE_DN.get(fullDNString, getExceptionMessage(de)));
+      logger.error(ERR_INTERNAL_CANNOT_DECODE_DN, fullDNString, getExceptionMessage(de));
     }
 
     connectionID  = nextConnectionID.getAndDecrement();

@@ -133,8 +133,7 @@ public class DraftCNDB
     }
     catch (DatabaseException e)
     {
-      logger.info(NOTE_EXCEPTION_CLOSING_DATABASE.get(toString(),
-          stackTraceToSingleLineString(e)));
+      logger.info(NOTE_EXCEPTION_CLOSING_DATABASE, this, stackTraceToSingleLineString(e));
     }
     finally
     {

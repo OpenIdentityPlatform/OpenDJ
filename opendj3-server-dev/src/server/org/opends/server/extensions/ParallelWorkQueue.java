@@ -202,7 +202,7 @@ public class ParallelWorkQueue
       catch (Exception e)
       {
         logger.traceException(e);
-        logger.warn(WARN_QUEUE_UNABLE_TO_CANCEL.get(o, e));
+        logger.warn(WARN_QUEUE_UNABLE_TO_CANCEL, o, e);
       }
     }
 
@@ -217,7 +217,7 @@ public class ParallelWorkQueue
       catch (Exception e)
       {
         logger.traceException(e);
-        logger.warn(WARN_QUEUE_UNABLE_TO_NOTIFY_THREAD.get(t.getName(), e));
+        logger.warn(WARN_QUEUE_UNABLE_TO_NOTIFY_THREAD, t.getName(), e);
       }
     }
   }
@@ -413,7 +413,7 @@ public class ParallelWorkQueue
 
       // This should not happen.  The only recourse we have is to log a message
       // and try again.
-      logger.warn(WARN_WORKER_WAITING_UNCAUGHT_EXCEPTION.get(Thread.currentThread().getName(), e));
+      logger.warn(WARN_WORKER_WAITING_UNCAUGHT_EXCEPTION, Thread.currentThread().getName(), e);
       return retryNextOperation(workerThread, numFailures + 1);
     }
   }

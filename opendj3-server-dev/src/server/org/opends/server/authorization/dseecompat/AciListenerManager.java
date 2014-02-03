@@ -422,8 +422,7 @@ public class AciListenerManager implements
     if (backend.getEntryCount() > 0
         && !backend.isIndexed(aciType, IndexType.PRESENCE))
     {
-      logger.warn(WARN_ACI_ATTRIBUTE_NOT_INDEXED.get(backend
-          .getBackendID(), "aci"));
+      logger.warn(WARN_ACI_ATTRIBUTE_NOT_INDEXED, backend.getBackendID(), "aci");
     }
 
     InternalClientConnection conn =

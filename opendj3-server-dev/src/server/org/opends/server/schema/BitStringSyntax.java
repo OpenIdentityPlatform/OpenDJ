@@ -84,7 +84,7 @@ public class BitStringSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_BIT_STRING_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(EMR_BIT_STRING_OID, SYNTAX_BIT_STRING_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_BIT_STRING_OID, SYNTAX_BIT_STRING_NAME);
     }
   }
 

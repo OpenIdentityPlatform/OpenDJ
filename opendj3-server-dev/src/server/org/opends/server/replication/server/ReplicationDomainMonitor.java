@@ -207,7 +207,7 @@ class ReplicationDomainMonitor
               // error log with repeated messages.
               if (!pendingMonitorDataServerIDs.contains(serverId))
               {
-                logger.info(NOTE_MONITOR_DATA_RECEIVED.get(baseDN, serverId));
+                logger.info(NOTE_MONITOR_DATA_RECEIVED, baseDN, serverId);
               }
             }
 
@@ -218,7 +218,7 @@ class ReplicationDomainMonitor
               // error log with repeated messages.
               if (!monitorDataLateServers.contains(serverId))
               {
-                logger.warn(WARN_MISSING_REMOTE_MONITOR_DATA.get(baseDN, serverId));
+                logger.warn(WARN_MISSING_REMOTE_MONITOR_DATA, baseDN, serverId);
               }
             }
 
@@ -311,7 +311,7 @@ class ReplicationDomainMonitor
       {
         // This is a response for an earlier request whose computing is
         // already complete.
-        logger.debug(INFO_IGNORING_REMOTE_MONITOR_DATA.get(domain.getBaseDN().toNormalizedString(), msg.getSenderID()));
+        logger.debug(INFO_IGNORING_REMOTE_MONITOR_DATA, domain.getBaseDN().toNormalizedString(), msg.getSenderID());
         return;
       }
 
@@ -369,8 +369,7 @@ class ReplicationDomainMonitor
       catch (RuntimeException e)
       {
         // FIXME: do we really expect these???
-        logger.error(ERR_PROCESSING_REMOTE_MONITOR_DATA.get(e.getMessage() + " "
-            + stackTraceToSingleLineString(e)));
+        logger.error(ERR_PROCESSING_REMOTE_MONITOR_DATA, e.getMessage() + " " + stackTraceToSingleLineString(e));
       }
       finally
       {

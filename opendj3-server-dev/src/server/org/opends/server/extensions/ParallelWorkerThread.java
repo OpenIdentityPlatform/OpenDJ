@@ -213,11 +213,11 @@ public class ParallelWorkerThread
     // and we will want to log a message.
     if (stoppedByReducedThreadNumber)
     {
-      logger.debug(INFO_WORKER_STOPPED_BY_REDUCED_THREADNUMBER.get(getName()));
+      logger.debug(INFO_WORKER_STOPPED_BY_REDUCED_THREADNUMBER, getName());
     }
     else if (! workQueue.shutdownRequested())
     {
-      logger.warn(WARN_UNEXPECTED_WORKER_THREAD_EXIT.get(getName()));
+      logger.warn(WARN_UNEXPECTED_WORKER_THREAD_EXIT, getName());
     }
 
 

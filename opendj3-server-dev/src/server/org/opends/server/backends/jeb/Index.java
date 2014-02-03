@@ -559,7 +559,7 @@ public class Index extends DatabaseContainer
           }
 
           setTrusted(txn, false);
-          logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+          logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, name);
         }
 
         if((rebuildRunning || trusted) && addedIDs != null &&
@@ -679,7 +679,7 @@ public class Index extends DatabaseContainer
         }
 
         setTrusted(txn, false);
-        logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+        logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, name);
       }
 
       if((rebuildRunning || trusted) && addedIDs != null && addedIDs.size() > 0)
@@ -783,7 +783,7 @@ public class Index extends DatabaseContainer
           }
 
           setTrusted(txn, false);
-          logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+          logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, name);
         }
       }
     }
@@ -831,7 +831,7 @@ public class Index extends DatabaseContainer
         }
 
         setTrusted(txn, false);
-        logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+        logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, name);
       }
       else
       {
@@ -864,7 +864,7 @@ public class Index extends DatabaseContainer
         }
 
         setTrusted(txn, false);
-        logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+        logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, name);
       }
     }
   }

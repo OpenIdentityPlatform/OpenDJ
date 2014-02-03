@@ -619,13 +619,12 @@ public class RebuildIndex extends TaskTool
     }
     catch (InitializationException e)
     {
-      logger.error(ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage()));
+      logger.error(ERR_REBUILDINDEX_ERROR_DURING_REBUILD, e.getMessage());
       returnCode = 1;
     }
     catch (Exception e)
     {
-      logger.error(ERR_REBUILDINDEX_ERROR_DURING_REBUILD
-          .get(getExceptionMessage(e)));
+      logger.error(ERR_REBUILDINDEX_ERROR_DURING_REBUILD, getExceptionMessage(e));
       returnCode = 1;
     }
     finally
@@ -637,13 +636,12 @@ public class RebuildIndex extends TaskTool
         final StringBuilder failureReason = new StringBuilder();
         if (!LockFileManager.releaseLock(lockFile, failureReason))
         {
-          logger.warn(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
+          logger.warn(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), failureReason);
         }
       }
       catch (Exception e)
       {
-        logger.error(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(backend
-            .getBackendID(), getExceptionMessage(e)));
+        logger.error(WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
       }
     }
 

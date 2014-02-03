@@ -134,9 +134,8 @@ final class HeartbeatMonitor extends DirectoryThread
           if (gotOneFailure)
           {
             // Heartbeat is well overdue so the server is assumed to be dead.
-            logger.warn(WARN_HEARTBEAT_FAILURE.get(serverID,
-                replicationServerID, session.getReadableRemoteAddress(),
-                baseDN));
+            logger.warn(WARN_HEARTBEAT_FAILURE, serverID,
+                replicationServerID, session.getReadableRemoteAddress(), baseDN);
 
             // Exit monitor and close session.
             shutdown = true;

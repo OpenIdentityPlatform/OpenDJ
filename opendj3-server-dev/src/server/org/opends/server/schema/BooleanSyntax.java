@@ -118,7 +118,7 @@ public class BooleanSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_BOOLEAN_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(EMR_BOOLEAN_OID, SYNTAX_BOOLEAN_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_BOOLEAN_OID, SYNTAX_BOOLEAN_NAME);
     }
   }
 

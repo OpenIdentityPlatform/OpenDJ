@@ -324,7 +324,7 @@ public class GSSAPISASLMechanismHandler extends
       principal.append("@").append(realm);
     }
     w.write(principal.toString());
-    logger.error(INFO_GSSAPI_PRINCIPAL_NAME.get(principal));
+    logger.error(INFO_GSSAPI_PRINCIPAL_NAME, principal);
     w.write("\" isInitiator=false;");
     w.newLine();
     w.write("};");

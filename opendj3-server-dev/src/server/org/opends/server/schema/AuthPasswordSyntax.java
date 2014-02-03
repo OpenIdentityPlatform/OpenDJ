@@ -89,8 +89,8 @@ public class AuthPasswordSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_AUTH_PASSWORD_EXACT_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
-          EMR_AUTH_PASSWORD_EXACT_NAME, SYNTAX_AUTH_PASSWORD_NAME));
+      logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
+          EMR_AUTH_PASSWORD_EXACT_NAME, SYNTAX_AUTH_PASSWORD_NAME);
     }
   }
 

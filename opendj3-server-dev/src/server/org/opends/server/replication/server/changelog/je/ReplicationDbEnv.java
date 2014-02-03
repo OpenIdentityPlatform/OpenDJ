@@ -608,8 +608,7 @@ public class ReplicationDbEnv
    */
   void shutdownOnException(DatabaseException e)
   {
-    logger.error(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR
-        .get(stackTraceToSingleLineString(e)));
+    logger.error(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR, stackTraceToSingleLineString(e));
     replicationServer.shutdown();
   }
 

@@ -536,17 +536,16 @@ public final class Importer implements DiskSpaceMonitorHandler
 
     if (oldThreadCount != threadCount)
     {
-      logger.error(
-          NOTE_JEB_IMPORT_ADJUST_THREAD_COUNT.get(oldThreadCount, threadCount));
+      logger.error(NOTE_JEB_IMPORT_ADJUST_THREAD_COUNT, oldThreadCount, threadCount);
     }
 
-    logger.info(NOTE_JEB_IMPORT_LDIF_TOT_MEM_BUF.get(availableMemory, phaseOneBufferCount));
+    logger.info(NOTE_JEB_IMPORT_LDIF_TOT_MEM_BUF, availableMemory, phaseOneBufferCount);
     if (tmpEnvCacheSize > 0)
     {
-      logger.info(NOTE_JEB_IMPORT_LDIF_TMP_ENV_MEM.get(tmpEnvCacheSize));
+      logger.info(NOTE_JEB_IMPORT_LDIF_TMP_ENV_MEM, tmpEnvCacheSize);
     }
     envConfig.setConfigParam(MAX_MEMORY, Long.toString(dbCacheSize));
-    logger.info(NOTE_JEB_IMPORT_LDIF_DB_MEM_BUF_INFO.get(dbCacheSize, bufferSize));
+    logger.info(NOTE_JEB_IMPORT_LDIF_DB_MEM_BUF_INFO, dbCacheSize, bufferSize);
   }
 
   /**

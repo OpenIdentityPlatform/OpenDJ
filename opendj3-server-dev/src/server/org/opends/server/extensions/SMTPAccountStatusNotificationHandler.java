@@ -654,8 +654,8 @@ public class SMTPAccountStatusNotificationHandler
     {
       logger.traceException(e);
 
-      logger.error(ERR_SMTP_ASNH_CANNOT_SEND_MESSAGE.get(
-          notificationType.getName(), notification.getUserDN(), getExceptionMessage(e)));
+      logger.error(ERR_SMTP_ASNH_CANNOT_SEND_MESSAGE,
+          notificationType.getName(), notification.getUserDN(), getExceptionMessage(e));
     }
   }
 

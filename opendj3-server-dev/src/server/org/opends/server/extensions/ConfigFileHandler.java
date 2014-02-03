@@ -206,15 +206,13 @@ public class ConfigFileHandler
       f = new File(configFile + ".startok");
       if (! f.exists())
       {
-        logger.warn(WARN_CONFIG_FILE_NO_STARTOK_FILE.get(f.getAbsolutePath(),
-                                                      configFile));
+        logger.warn(WARN_CONFIG_FILE_NO_STARTOK_FILE, f.getAbsolutePath(), configFile);
         useLastKnownGoodConfig = false;
         f = new File(configFile);
       }
       else
       {
-        logger.info(NOTE_CONFIG_FILE_USING_STARTOK_FILE.get(f.getAbsolutePath(),
-                                                         configFile));
+        logger.info(NOTE_CONFIG_FILE_USING_STARTOK_FILE, f.getAbsolutePath(), configFile);
       }
     }
     else
@@ -2048,18 +2046,14 @@ public class ConfigFileHandler
         catch (Exception e)
         {
           logger.traceException(e);
-
-          logger.error(ERR_STARTOK_CANNOT_WRITE.get(configFile, tempFilePath,
-                                                getExceptionMessage(e)));
+          logger.error(ERR_STARTOK_CANNOT_WRITE, configFile, tempFilePath, getExceptionMessage(e));
           return;
         }
       }
       catch (Exception e)
       {
         logger.traceException(e);
-
-        logger.error(ERR_STARTOK_CANNOT_OPEN_FOR_WRITING.get(tempFilePath,
-                      getExceptionMessage(e)));
+        logger.error(ERR_STARTOK_CANNOT_OPEN_FOR_WRITING, tempFilePath, getExceptionMessage(e));
         return;
       }
       finally
@@ -2070,9 +2064,7 @@ public class ConfigFileHandler
     catch (Exception e)
     {
       logger.traceException(e);
-
-      logger.error(ERR_STARTOK_CANNOT_OPEN_FOR_READING.get(configFile,
-                                                       getExceptionMessage(e)));
+      logger.error(ERR_STARTOK_CANNOT_OPEN_FOR_READING, configFile, getExceptionMessage(e));
       return;
     }
     finally
@@ -2116,9 +2108,7 @@ public class ConfigFileHandler
     } catch (Exception e)
     {
       logger.traceException(e);
-
-      logger.error(ERR_STARTOK_CANNOT_RENAME.get(tempFilePath, startOKFilePath,
-                                             getExceptionMessage(e)));
+      logger.error(ERR_STARTOK_CANNOT_RENAME, tempFilePath, startOKFilePath, getExceptionMessage(e));
       return;
     }
 
