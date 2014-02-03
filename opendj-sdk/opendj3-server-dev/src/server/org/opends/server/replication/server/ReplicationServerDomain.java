@@ -37,16 +37,17 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.*;
+
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -1007,7 +1008,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
       catch(Exception e)
       {
-        logger.error(LocalizableMessage.raw(            stackTraceToSingleLineString(e)));
+        logger.error(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
       }
       finally
       {
@@ -1090,7 +1091,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
       catch(Exception e)
       {
-        logger.error(LocalizableMessage.raw(            stackTraceToSingleLineString(e)));
+        logger.error(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
       }
       finally
       {
@@ -2106,7 +2107,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
     catch (Exception e)
     {
-      logger.error(LocalizableMessage.raw(          stackTraceToSingleLineString(e)));
+      logger.error(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
     }
     finally
     {
@@ -2253,7 +2254,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
     catch(Exception e)
     {
-      logger.error(LocalizableMessage.raw(          stackTraceToSingleLineString(e)));
+      logger.error(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
     }
     finally
     {
