@@ -423,7 +423,7 @@ public class QuickSetupDialog
     if (button != null) {
       button.requestFocusInWindow();
     } else {
-      logger.debug(LocalizableMessage.raw("Focus requested for unknown button '" +
+      logger.info(LocalizableMessage.raw("Focus requested for unknown button '" +
               buttonName + "'"));
     }
   }

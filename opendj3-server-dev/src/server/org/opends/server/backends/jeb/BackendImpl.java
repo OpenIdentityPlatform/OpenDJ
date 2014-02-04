@@ -984,12 +984,12 @@ public class BackendImpl
           long closeTime = (finishTime - startTime) / 1000;
           LocalizableMessage msg =
                        NOTE_JEB_IMPORT_LDIF_ROOTCONTAINER_CLOSE.get(closeTime);
-          logger.error(msg);
+          logger.info(msg);
           rootContainer = null;
         }
 
         // Sync the environment to disk.
-        logger.trace(NOTE_JEB_IMPORT_CLOSING_DATABASE);
+        logger.info(NOTE_JEB_IMPORT_CLOSING_DATABASE);
       }
       catch (DatabaseException de)
       {

@@ -248,7 +248,7 @@ public class OfflineInstaller extends Installer
               notifyListeners(getFormattedDoneWithLineBreak());
             }
           } catch (Throwable t) {
-            logger.debug(LocalizableMessage.raw("error stopping server", t));
+            logger.info(LocalizableMessage.raw("error stopping server", t));
           }
         }
         notifyListeners(getLineBreak());
@@ -279,7 +279,7 @@ public class OfflineInstaller extends Installer
             notifyListeners(getFormattedDoneWithLineBreak());
           }
         } catch (Throwable t2) {
-          logger.debug(LocalizableMessage.raw("error stopping server", t2));
+          logger.info(LocalizableMessage.raw("error stopping server", t2));
         }
       }
       notifyListeners(getLineBreak());
@@ -362,7 +362,7 @@ public class OfflineInstaller extends Installer
           notifyListeners(getFormattedDoneWithLineBreak());
         }
       } catch (ApplicationException e) {
-        logger.debug(LocalizableMessage.raw("error stopping server", e));
+        logger.info(LocalizableMessage.raw("error stopping server", e));
       }
     }
 
@@ -376,7 +376,7 @@ public class OfflineInstaller extends Installer
       fm.rename(newConfig, installation.getCurrentConfigurationFile());
 
     } catch (ApplicationException ae) {
-      logger.debug(LocalizableMessage.raw("failed to restore base configuration", ae));
+      logger.info(LocalizableMessage.raw("failed to restore base configuration", ae));
     }
 
     // Cleanup SSL if necessary
@@ -391,7 +391,7 @@ public class OfflineInstaller extends Installer
         try {
           cm.removeCertificate(SELF_SIGNED_CERT_ALIAS);
         } catch (KeyStoreException e) {
-          logger.debug(LocalizableMessage.raw("Error deleting self signed certification", e));
+          logger.info(LocalizableMessage.raw("Error deleting self signed certification", e));
         }
       }
 
@@ -401,7 +401,7 @@ public class OfflineInstaller extends Installer
         try {
           fm.delete(keystore);
         } catch (ApplicationException e) {
-          logger.debug(LocalizableMessage.raw("Failed to delete keystore", e));
+          logger.info(LocalizableMessage.raw("Failed to delete keystore", e));
         }
       }
 
@@ -411,7 +411,7 @@ public class OfflineInstaller extends Installer
         try {
           fm.delete(keystorePin);
         } catch (ApplicationException e) {
-          logger.debug(LocalizableMessage.raw("Failed to delete keystore.pin", e));
+          logger.info(LocalizableMessage.raw("Failed to delete keystore.pin", e));
         }
       }
 
@@ -421,7 +421,7 @@ public class OfflineInstaller extends Installer
         try {
           fm.delete(truststore);
         } catch (ApplicationException e) {
-          logger.debug(LocalizableMessage.raw("Failed to delete truststore", e));
+          logger.info(LocalizableMessage.raw("Failed to delete truststore", e));
         }
       }
     }
@@ -430,7 +430,7 @@ public class OfflineInstaller extends Installer
     try {
       fm.deleteChildren(installation.getDatabasesDirectory());
     } catch (ApplicationException e) {
-      logger.debug(LocalizableMessage.raw("Error deleting databases", e));
+      logger.info(LocalizableMessage.raw("Error deleting databases", e));
     }
 
     if (!isVerbose())

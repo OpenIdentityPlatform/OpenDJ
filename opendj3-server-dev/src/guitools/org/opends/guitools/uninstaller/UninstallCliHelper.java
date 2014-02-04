@@ -179,14 +179,14 @@ public class UninstallCliHelper extends ConsoleApplication {
         outsideDbs = config.getOutsideDbs();
       } catch (IOException ioe) {
         outsideDbs = Collections.emptySet();
-        logger.debug(LocalizableMessage.raw("error determining outside databases", ioe));
+        logger.info(LocalizableMessage.raw("error determining outside databases", ioe));
       }
 
       try {
         outsideLogs = config.getOutsideLogs();
       } catch (IOException ioe) {
         outsideLogs = Collections.emptySet();
-        logger.debug(LocalizableMessage.raw("error determining outside logs", ioe));
+        logger.info(LocalizableMessage.raw("error determining outside logs", ioe));
       }
 
       boolean somethingSpecifiedToDelete =
@@ -281,7 +281,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
       if (isCanceled && !userData.isForceOnError())
       {
-        logger.debug(LocalizableMessage.raw("User cancelled uninstall."));
+        logger.info(LocalizableMessage.raw("User cancelled uninstall."));
         userData = null;
       }
 
@@ -306,7 +306,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         throw new IllegalStateException("Unexpected error: "+t, t);
       }
     }
-    logger.debug(LocalizableMessage.raw("Successfully created user data"));
+    logger.info(LocalizableMessage.raw("Successfully created user data"));
     return userData;
   }
 
@@ -536,12 +536,12 @@ public class UninstallCliHelper extends ConsoleApplication {
       throw new UserDataException(Step.CONFIRM_UNINSTALL,
           Utils.getThrowableMsg(INFO_BUG_MSG.get(), t));
     }
-    logger.debug(LocalizableMessage.raw("interactive: "+interactive));
-    logger.debug(LocalizableMessage.raw("forceOnError: "+forceOnError));
-    logger.debug(LocalizableMessage.raw("conf.isADS(): "+conf.isADS()));
-    logger.debug(LocalizableMessage.raw("conf.isReplicationServer(): "+
+    logger.info(LocalizableMessage.raw("interactive: "+interactive));
+    logger.info(LocalizableMessage.raw("forceOnError: "+forceOnError));
+    logger.info(LocalizableMessage.raw("conf.isADS(): "+conf.isADS()));
+    logger.info(LocalizableMessage.raw("conf.isReplicationServer(): "+
         conf.isReplicationServer()));
-    logger.debug(LocalizableMessage.raw("conf.isServerRunning(): "+conf.isServerRunning()));
+    logger.info(LocalizableMessage.raw("conf.isServerRunning(): "+conf.isServerRunning()));
     if (conf.isADS() && conf.isReplicationServer())
     {
       if (conf.isServerRunning())
@@ -588,7 +588,7 @@ public class UninstallCliHelper extends ConsoleApplication {
           boolean errorWithRemote =
             !updateUserUninstallDataWithRemoteServers(userData);
           cancelled = errorWithRemote && !parser.isForceOnError();
-          logger.debug(LocalizableMessage.raw("Non interactive mode.  errorWithRemote: "+
+          logger.info(LocalizableMessage.raw("Non interactive mode.  errorWithRemote: "+
               errorWithRemote));
         }
       }
@@ -668,7 +668,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         /* During all the confirmations, the server might be stopped. */
         userData.setStopServer(
             Installation.getLocal().getStatus().isServerRunning());
-        logger.debug(LocalizableMessage.raw("Must stop the server after confirmations? "+
+        logger.info(LocalizableMessage.raw("Must stop the server after confirmations? "+
             userData.getStopServer()));
       }
     }
@@ -690,7 +690,7 @@ public class UninstallCliHelper extends ConsoleApplication {
             /* During all the confirmations, the server might be stopped. */
             userData.setStopServer(
                 Installation.getLocal().getStatus().isServerRunning());
-            logger.debug(LocalizableMessage.raw("Must stop the server after confirmations? "+
+            logger.info(LocalizableMessage.raw("Must stop the server after confirmations? "+
                 userData.getStopServer()));
           }
         }
@@ -717,7 +717,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         }
       }
     }
-    logger.debug(LocalizableMessage.raw("cancelled: "+cancelled));
+    logger.info(LocalizableMessage.raw("cancelled: "+cancelled));
     return cancelled;
   }
 
@@ -913,7 +913,7 @@ public class UninstallCliHelper extends ConsoleApplication {
           }
           catch (Throwable t)
           {
-            logger.debug(LocalizableMessage.raw("Error closing connection: "+t, t));
+            logger.info(LocalizableMessage.raw("Error closing connection: "+t, t));
           }
         }
       }
@@ -977,7 +977,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
   private boolean startServer(boolean supressOutput)
   {
-    logger.debug(LocalizableMessage.raw("startServer, supressOutput: "+supressOutput));
+    logger.info(LocalizableMessage.raw("startServer, supressOutput: "+supressOutput));
     boolean serverStarted = false;
     Application application = new Application()
     {
@@ -1106,7 +1106,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         printlnProgress();
       }
       serverStarted = Installation.getLocal().getStatus().isServerRunning();
-      logger.debug(LocalizableMessage.raw("server started successfully. serverStarted: "+
+      logger.info(LocalizableMessage.raw("server started successfully. serverStarted: "+
           serverStarted));
     }
     catch (ApplicationException ae)
@@ -1152,7 +1152,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
     LocalizableMessage exceptionMsg = null;
 
-    logger.debug(LocalizableMessage.raw("Updating user data with remote servers."));
+    logger.info(LocalizableMessage.raw("Updating user data with remote servers."));
 
     InitialLdapContext ctx = null;
     try
@@ -1191,7 +1191,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         forceTrustManagerInitialization();
         updateTrustManager(userData, ci);
       }
-      logger.debug(LocalizableMessage.raw("Reloading topology"));
+      logger.info(LocalizableMessage.raw("Reloading topology"));
       TopologyCache cache = new TopologyCache(adsContext,
           userData.getTrustManager(), getConnectTimeout());
       cache.getFilter().setSearchMonitoringInformation(false);
@@ -1240,7 +1240,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         }
         catch (Throwable t)
         {
-          logger.debug(LocalizableMessage.raw("Error closing connection: "+t, t));
+          logger.info(LocalizableMessage.raw("Error closing connection: "+t, t));
         }
       }
     }
@@ -1285,7 +1285,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       }
     }
     userData.setUpdateRemoteReplication(accepted);
-    logger.debug(LocalizableMessage.raw("accepted: "+accepted));
+    logger.info(LocalizableMessage.raw("accepted: "+accepted));
     return accepted;
   }
 
@@ -1310,7 +1310,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     boolean reloadTopologyCache = false;
     boolean interactive = parser.isInteractive();
 
-    logger.debug(LocalizableMessage.raw("Handle topology cache."));
+    logger.info(LocalizableMessage.raw("Handle topology cache."));
 
     Set<TopologyCacheException> exceptions =
       new HashSet<TopologyCacheException>();
@@ -1333,7 +1333,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     /* Check the exceptions and see if we throw them or not. */
     for (TopologyCacheException e : exceptions)
     {
-      logger.debug(LocalizableMessage.raw("Analyzing exception: "+e, e));
+      logger.info(LocalizableMessage.raw("Analyzing exception: "+e, e));
       if (stopProcessing)
       {
         break;
@@ -1408,7 +1408,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     else
     {
-      logger.debug(LocalizableMessage.raw("exceptionMsgs: "+exceptionMsgs));
+      logger.info(LocalizableMessage.raw("exceptionMsgs: "+exceptionMsgs));
       if (exceptionMsgs.size() > 0)
       {
         if (parser.isForceOnError())
@@ -1439,7 +1439,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         returnValue = true;
       }
     }
-    logger.debug(LocalizableMessage.raw("Return value: "+returnValue));
+    logger.info(LocalizableMessage.raw("Return value: "+returnValue));
     return returnValue;
   }
 

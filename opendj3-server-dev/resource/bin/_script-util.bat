@@ -22,7 +22,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2008-2010 Sun Microsystems, Inc.
-rem      Portions Copyright 2011-2013 ForgeRock AS
+rem      Portions Copyright 2011-2014 ForgeRock AS
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -32,6 +32,7 @@ if "%INSTALL_ROOT%" == "" goto setInstanceRoot
 
 :scriptBegin
 if "%SCRIPT_UTIL_CMD%" == "set-full-environment-and-test-java" goto setFullEnvironmentAndTestJava
+if "%SCRIPT_UTIL_CMD%" == "set-full-server-environment-and-test-java" goto setFullServerEnvironmentAndTestJava
 if "%SCRIPT_UTIL_CMD%" == "set-full-environment" goto setFullEnvironment
 if "%SCRIPT_UTIL_CMD%" == "set-java-home-and-args" goto setJavaHomeAndArgs
 if "%SCRIPT_UTIL_CMD%" == "set_environment_vars" goto setEnvironmentVars
@@ -71,6 +72,21 @@ FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat"
 set SET_CLASSPATH_DONE=true
 goto scriptBegin
 
+:setClassPathWithOpenDJLogger
+if "%SET_CLASSPATH_DONE%" == "true" goto end
+rem get the absolute paths before building the classpath
+rem it also helps comparing the two paths
+FOR /F %%i IN ("%INSTALL_ROOT%")  DO set INSTALL_ROOT=%%~dpnxi
+FOR /F %%i IN ("%INSTANCE_ROOT%") DO set INSTANCE_ROOT=%%~dpnxi
+call "%INSTALL_ROOT%\lib\setcp.bat" %INSTALL_ROOT%\lib\bootstrap-client.jar
+FOR %%x in ("%INSTALL_ROOT%\resources\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
+set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
+if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%" goto setClassPathWithOpenDJLoggerDone
+FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
+:setClassPathWithOpenDJLoggerDone
+set SET_CLASSPATH_DONE=true
+goto scriptBegin
+
 :setFullEnvironment
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "false" goto setJavaHomeAndArgs
 if "%SET_CLASSPATH_DONE%" == "false" goto setClassPath
@@ -83,6 +99,10 @@ if "%SET_CLASSPATH_DONE%" == "false" goto setClassPath
 if "%SET_ENVIRONMENT_VARS_DONE%" == "false" goto setEnvironmentVars
 goto testJava
 
+:setFullServerEnvironmentAndTestJava
+if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "false" goto setJavaHomeAndArgs
+if "%SET_CLASSPATH_DONE%" == "false" goto setClassPathWithOpenDJLogger
+if "%SET_ENVIRONMENT_VARS_DONE%" == "false" goto setEnvironmentVars
 
 :setJavaHomeAndArgs
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto end
@@ -103,7 +123,6 @@ if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDJJavaHome
 if not exist "%OPENDS_JAVA_BIN%" goto checkOpenDJJavaHome
 set OPENDJ_JAVA_BIN=%OPENDS_JAVA_BIN%
 goto endJavaHomeAndArgs
-
 
 :checkOpenDJJavaHome
 if "%OPENDJ_JAVA_HOME%" == "" goto checkLegacyOpenDSJavaHome

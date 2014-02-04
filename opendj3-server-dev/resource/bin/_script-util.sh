@@ -23,7 +23,7 @@
 #
 #
 #      Copyright 2008-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2010-2013 ForgeRock AS
+#      Portions Copyright 2010-2014 ForgeRock AS
 
 #
 # Display an error message
@@ -250,14 +250,32 @@ set_environment_vars() {
 	export SCRIPT_NAME_ARG
 }
 
-# Configure the appropriate CLASSPATH.
-set_classpath() {
+# Configure the appropriate CLASSPATH for server, using Opend DJ logger.
+set_opendj_logger_classpath() {
   CLASSPATH="${INSTANCE_ROOT}/classes"
   for JAR in "${INSTALL_ROOT}/resources/"*.jar
   do
     CLASSPATH=${CLASSPATH}:${JAR}
   done
   CLASSPATH="${CLASSPATH}:${INSTALL_ROOT}/lib/bootstrap.jar"
+  if [ "${INSTALL_ROOT}" != "${INSTANCE_ROOT}" ]
+  then
+    for JAR in "${INSTANCE_ROOT}/lib/"*.jar
+    do
+      CLASSPATH=${CLASSPATH}:${JAR}
+    done
+  fi
+  export CLASSPATH
+}
+
+# Configure the appropriate CLASSPATH for client, using java.util.logging logger.
+set_classpath() {
+  CLASSPATH="${INSTANCE_ROOT}/classes"
+  for JAR in "${INSTALL_ROOT}/resources/"*.jar
+  do
+    CLASSPATH=${CLASSPATH}:${JAR}
+  done
+  CLASSPATH="${CLASSPATH}:${INSTALL_ROOT}/lib/bootstrap-client.jar"
   if [ "${INSTALL_ROOT}" != "${INSTANCE_ROOT}" ]
   then
     for JAR in "${INSTANCE_ROOT}/lib/"*.jar
@@ -352,6 +370,13 @@ then
   set_java_home_and_args
   set_environment_vars
   set_classpath
+  test_java_args
+  test_java
+elif test "${SCRIPT_UTIL_CMD}" = "set-full-server-environment-and-test-java"
+then
+  set_java_home_and_args
+  set_environment_vars
+  set_opendj_logger_classpath
   test_java_args
   test_java
 elif test "${SCRIPT_UTIL_CMD}" = "set-full-environment"

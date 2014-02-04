@@ -386,7 +386,7 @@ public class FileManager {
         application.notifyListeners(application.getFormattedWarning(
                 INFO_FILE_DOES_NOT_EXIST.get(file)));
       }
-      logger.debug(LocalizableMessage.raw("file '" + file + "' does not exist"));
+      logger.info(LocalizableMessage.raw("file '" + file + "' does not exist"));
     }
   }
 
@@ -489,7 +489,7 @@ public class FileManager {
                               objectFile.getAbsolutePath(),
                               destination.getAbsolutePath())));
             }
-            logger.debug(LocalizableMessage.raw("copying file '" +
+            logger.info(LocalizableMessage.raw("copying file '" +
                     objectFile.getAbsolutePath() + "' to '" +
                     destination.getAbsolutePath() + "'"));
             FileInputStream fis = null;
@@ -551,7 +551,7 @@ public class FileManager {
                     errMsg, null);
           }
         } else {
-          logger.debug(LocalizableMessage.raw("Ignoring file '" +
+          logger.info(LocalizableMessage.raw("Ignoring file '" +
                   objectFile.getAbsolutePath() + "' since '" +
                   destination.getAbsolutePath() + "' already exists"));
           if ((application != null) && application.isVerbose()) {
@@ -610,7 +610,7 @@ public class FileManager {
                           file.getAbsolutePath())));
         }
       }
-      logger.debug(LocalizableMessage.raw("deleting " +
+      logger.info(LocalizableMessage.raw("deleting " +
               (isFile ? " file " : " directory ") +
               file.getAbsolutePath()));
 

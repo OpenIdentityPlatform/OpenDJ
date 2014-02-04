@@ -26,12 +26,15 @@
  */
 package org.opends.server.tasks;
 import org.forgerock.i18n.LocalizableMessage;
+import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
 
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.tools.makeldif.TemplateFile;
+
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
@@ -47,8 +50,6 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-
-
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Operation;
@@ -575,8 +576,8 @@ public class ImportTask extends Task
     if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
             importConfig != null)
     {
-      addLogMessage(TaskMessages.INFO_TASK_STOPPED_BY_ADMIN.get(
-              interruptReason));
+      addLogMessage(Severity.INFORMATION, TaskMessages.INFO_TASK_STOPPED_BY_ADMIN.get(
+      interruptReason));
       setTaskInterruptState(interruptState);
       importConfig.cancel();
     }

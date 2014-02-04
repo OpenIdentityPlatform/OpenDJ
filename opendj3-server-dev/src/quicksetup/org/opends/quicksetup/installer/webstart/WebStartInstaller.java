@@ -143,7 +143,7 @@ public class WebStartInstaller extends Installer {
       }
       catch (Throwable t)
       {
-        logger.debug(LocalizableMessage.raw("Error closing zip input stream: "+t, t));
+        logger.info(LocalizableMessage.raw("Error closing zip input stream: "+t, t));
       }
 
       checkAbort();
@@ -293,7 +293,7 @@ public class WebStartInstaller extends Installer {
               notifyListeners(getFormattedDoneWithLineBreak());
             }
           } catch (Throwable t) {
-            logger.debug(LocalizableMessage.raw("error stopping server", t));
+            logger.info(LocalizableMessage.raw("error stopping server", t));
           }
         }
         notifyListeners(getLineBreak());
@@ -314,7 +314,7 @@ public class WebStartInstaller extends Installer {
         try {
           new ServerController(installation).stopServer(true);
         } catch (Throwable t2) {
-          logger.debug(LocalizableMessage.raw("error stopping server", t2));
+          logger.info(LocalizableMessage.raw("error stopping server", t2));
         }
       }
       notifyListeners(getLineBreak());
@@ -575,7 +575,7 @@ public class WebStartInstaller extends Installer {
         try {
           new ServerController(installation).stopServer(true);
         } catch (ApplicationException e) {
-          logger.debug(LocalizableMessage.raw("error stopping server", e));
+          logger.info(LocalizableMessage.raw("error stopping server", e));
         }
       }
 
@@ -585,7 +585,7 @@ public class WebStartInstaller extends Installer {
         fm.deleteRecursively(installation.getRootDirectory(), null,
             FileManager.DeletionPolicy.DELETE_ON_EXIT_IF_UNSUCCESSFUL);
       } catch (ApplicationException e) {
-        logger.debug(LocalizableMessage.raw("error deleting files", e));
+        logger.info(LocalizableMessage.raw("error deleting files", e));
       }
     }
     else
@@ -607,7 +607,7 @@ public class WebStartInstaller extends Installer {
           fm.deleteRecursively(serverRoot, null,
               FileManager.DeletionPolicy.DELETE_ON_EXIT_IF_UNSUCCESSFUL);
         } catch (ApplicationException e) {
-          logger.debug(LocalizableMessage.raw("error deleting files", e));
+          logger.info(LocalizableMessage.raw("error deleting files", e));
         }
       }
     }

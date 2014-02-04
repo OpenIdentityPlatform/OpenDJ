@@ -107,7 +107,7 @@ public class QuickSetupCli {
                   });
         }
         Thread appThread = new Thread(cliApp, "CLI Application");
-        logger.debug(LocalizableMessage.raw("Launching application"));
+        logger.info(LocalizableMessage.raw("Launching application"));
         appThread.start();
         while (!Thread.State.TERMINATED.equals(appThread.getState())) {
           try {
@@ -117,12 +117,12 @@ public class QuickSetupCli {
           }
         }
         returnValue = cliApp.getReturnCode();
-        logger.debug(LocalizableMessage.raw("Application returnValue: "+returnValue));
+        logger.info(LocalizableMessage.raw("Application returnValue: "+returnValue));
         if (returnValue == null) {
           ApplicationException ue = cliApp.getRunError();
           if (ue != null)
           {
-            logger.debug(LocalizableMessage.raw("Application run error: "+ue, ue));
+            logger.info(LocalizableMessage.raw("Application run error: "+ue, ue));
             returnValue = ue.getType();
           }
           else
@@ -166,7 +166,7 @@ public class QuickSetupCli {
       logger.error(LocalizableMessage.raw("Unexpected error: "+t, t));
       returnValue = ReturnCode.UNKNOWN;
     }
-    logger.debug(LocalizableMessage.raw("returnValue: "+returnValue.getReturnCode()));
+    logger.info(LocalizableMessage.raw("returnValue: "+returnValue.getReturnCode()));
     return returnValue;
   }
 

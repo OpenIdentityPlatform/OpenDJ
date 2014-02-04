@@ -30,10 +30,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-
 import java.util.Date;
 import java.text.DateFormat;
+
+import org.opends.server.loggers.JdkLoggingFormater;
 
 /**
  * Utilities for setting up Control Panel application log.
@@ -57,7 +57,7 @@ public class ControlPanelLog
     {
       logFile = file;
       fileHandler = new FileHandler(logFile.getCanonicalPath());
-      fileHandler.setFormatter(new SimpleFormatter());
+      fileHandler.setFormatter(new JdkLoggingFormater());
       for (String packageName : packages)
       {
         Logger logger = Logger.getLogger(packageName);

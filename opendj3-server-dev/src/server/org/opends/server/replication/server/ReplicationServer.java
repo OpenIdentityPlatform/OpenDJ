@@ -194,7 +194,7 @@ public final class ReplicationServer
         getServerId(),
         listenSocket.getInetAddress().getHostAddress(),
         listenSocket.getLocalPort());
-    logger.error(listenMsg);
+    logger.info(listenMsg);
 
     while (!shutdown && !stopListen)
     {

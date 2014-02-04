@@ -1092,7 +1092,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         DirContext dirCtx = ctx.createSubcontext(dn, attrs);
         taskCreated = true;
-        logger.debug(LocalizableMessage.raw("created task entry: "+attrs));
+        logger.info(LocalizableMessage.raw("created task entry: "+attrs));
         dirCtx.close();
       }
       catch (NameAlreadyBoundException ex)
@@ -1158,7 +1158,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (!logMsg.equals(lastLogMsg))
           {
-            logger.debug(LocalizableMessage.raw(logMsg));
+            logger.info(LocalizableMessage.raw(logMsg));
             lastLogMsg = logMsg;
           }
         }
@@ -7534,7 +7534,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (ManagedObjectNotFoundException monfe)
     {
-      logger.debug(LocalizableMessage.raw("Synchronization server does not exist in "+
+      logger.info(LocalizableMessage.raw("Synchronization server does not exist in "+
           ConnectionUtils.getHostPort(ctx)));
     }
     if (sync == null)
@@ -7814,7 +7814,7 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<String> alreadyConfiguredReplicationServers)
   throws ReplicationCliException
   {
-    logger.debug(LocalizableMessage.raw("Configuring base DN '"+baseDN+
+    logger.info(LocalizableMessage.raw("Configuring base DN '"+baseDN+
         "' the replication servers are "+repServers));
     Set<ServerDescriptor> serversToConfigureDomain =
       new HashSet<ServerDescriptor>();
@@ -7862,7 +7862,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     for (ServerDescriptor s : allServers)
     {
-      logger.debug(LocalizableMessage.raw("Configuring server "+server.getHostPort(true)));
+      logger.info(LocalizableMessage.raw("Configuring server "+server.getHostPort(true)));
       InitialLdapContext ctx = null;
       try
       {
@@ -7982,7 +7982,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (PeerNotFoundException pnfe)
       {
-        logger.debug(LocalizableMessage.raw("Peer could not be found"));
+        logger.info(LocalizableMessage.raw("Peer could not be found"));
         if (nTries == 1)
         {
           throw new ReplicationCliException(
@@ -8041,7 +8041,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (PeerNotFoundException pnfe)
       {
-        logger.debug(LocalizableMessage.raw("Peer could not be found"));
+        logger.info(LocalizableMessage.raw("Peer could not be found"));
         if (nTries == 1)
         {
           throw new ReplicationCliException(
@@ -8136,7 +8136,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         DirContext dirCtx = ctx.createSubcontext(dn, attrs);
         taskCreated = true;
-        logger.debug(LocalizableMessage.raw("created task entry: "+attrs));
+        logger.info(LocalizableMessage.raw("created task entry: "+attrs));
         dirCtx.close();
       }
       catch (NameAlreadyBoundException x)
@@ -8197,7 +8197,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (!logMsg.equals(lastLogMsg))
           {
-            logger.debug(LocalizableMessage.raw(logMsg));
+            logger.info(LocalizableMessage.raw(logMsg));
             lastLogMsg = logMsg;
           }
         }
@@ -8296,7 +8296,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         DirContext dirCtx = ctx.createSubcontext(dn, attrs);
         taskCreated = true;
-        logger.debug(LocalizableMessage.raw("created task entry: "+attrs));
+        logger.info(LocalizableMessage.raw("created task entry: "+attrs));
         dirCtx.close();
       }
       catch (NameAlreadyBoundException x)
@@ -8425,7 +8425,7 @@ public class ReplicationCliMain extends ConsoleApplication
           if (((currentTime - minRefreshPeriod) > lastTimeMsgLogged))
           {
             lastTimeMsgLogged = currentTime;
-            logger.debug(LocalizableMessage.raw("Progress msg: "+msg));
+            logger.info(LocalizableMessage.raw("Progress msg: "+msg));
           }
           if (displayProgress)
           {
@@ -8445,7 +8445,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (!logMsg.equals(lastLogMsg))
           {
-            logger.debug(LocalizableMessage.raw(logMsg));
+            logger.info(LocalizableMessage.raw(logMsg));
             lastLogMsg = logMsg;
           }
         }
@@ -8456,7 +8456,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           isOver = true;
           LocalizableMessage errorMsg;
-          logger.debug(LocalizableMessage.raw("Last task entry: "+sr));
+          logger.info(LocalizableMessage.raw("Last task entry: "+sr));
           if (displayProgress && (msg != null) && !msg.equals(lastDisplayedMsg))
           {
             printProgress(msg);
@@ -8510,15 +8510,15 @@ public class ReplicationCliMain extends ConsoleApplication
               printProgress(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
               printlnProgress();
             }
-            logger.debug(LocalizableMessage.raw("Processed msg: "+errorMsg));
-            logger.debug(LocalizableMessage.raw("Initialization completed successfully."));
+            logger.info(LocalizableMessage.raw("Processed msg: "+errorMsg));
+            logger.info(LocalizableMessage.raw("Initialization completed successfully."));
           }
         }
       }
       catch (NameNotFoundException x)
       {
         isOver = true;
-        logger.debug(LocalizableMessage.raw("Initialization entry not found."));
+        logger.info(LocalizableMessage.raw("Initialization entry not found."));
         if (displayProgress)
         {
           printProgress(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
@@ -8583,7 +8583,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ManagedObjectNotFoundException monfe)
       {
         // It does not exist.
-        logger.debug(LocalizableMessage.raw("No synchronization found on "+ hostPort +".",
+        logger.info(LocalizableMessage.raw("No synchronization found on "+ hostPort +".",
             monfe));
       }
       if (sync != null)
@@ -8618,7 +8618,7 @@ public class ReplicationCliMain extends ConsoleApplication
                   }
                   if (replServer != null)
                   {
-                    logger.debug(LocalizableMessage.raw("Updating references in domain " +
+                    logger.info(LocalizableMessage.raw("Updating references in domain " +
                         domain.getBaseDN()+" on " + hostPort + "."));
                     replServers.remove(replServer);
                     if (replServers.size() > 0)
@@ -8726,7 +8726,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ManagedObjectNotFoundException monfe)
       {
         // It does not exist.
-        logger.debug(LocalizableMessage.raw("No synchronization found on "+ hostPort +".",
+        logger.info(LocalizableMessage.raw("No synchronization found on "+ hostPort +".",
             monfe));
       }
       if (sync != null)
@@ -8790,7 +8790,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ManagedObjectNotFoundException monfe)
       {
         // It does not exist.
-        logger.debug(LocalizableMessage.raw("No synchronization found on "+ hostPort +".",
+        logger.info(LocalizableMessage.raw("No synchronization found on "+ hostPort +".",
             monfe));
       }
       if (replicationServer != null)
@@ -10808,7 +10808,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (server.isReplicationServer())
           {
-            logger.debug(LocalizableMessage.raw("Seeding to replication server on "+
+            logger.info(LocalizableMessage.raw("Seeding to replication server on "+
                 server.getHostPort(true)+" with certificates of "+
                 ConnectionUtils.getHostPort(adsCtxSource.getDirContext())));
             InitialLdapContext ctx = null;

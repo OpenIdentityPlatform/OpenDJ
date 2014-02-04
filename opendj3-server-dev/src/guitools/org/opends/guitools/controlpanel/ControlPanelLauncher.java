@@ -355,9 +355,9 @@ class ControlPanelSplashScreen extends org.opends.quicksetup.SplashScreen
       {
         try
         {
-          logger.debug(LocalizableMessage.raw("going to call createAndDisplayGUI."));
+          logger.info(LocalizableMessage.raw("going to call createAndDisplayGUI."));
           controlPanel.createAndDisplayGUI();
-          logger.debug(LocalizableMessage.raw("called createAndDisplayGUI."));
+          logger.info(LocalizableMessage.raw("called createAndDisplayGUI."));
         } catch (Throwable t)
         {
           logger.error(LocalizableMessage.raw("Error displaying GUI: "+t, t));

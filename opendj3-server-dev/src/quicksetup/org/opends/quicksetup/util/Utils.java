@@ -149,7 +149,7 @@ public class Utils
       String installPath)
   {
     boolean supported = false;
-    logger.debug(LocalizableMessage.raw("Checking if options "+option+
+    logger.info(LocalizableMessage.raw("Checking if options "+option+
         " are supported with java home: "+javaHome));
     try
     {
@@ -181,13 +181,13 @@ public class Utils
         env.put("DO_NOT_PAUSE", "true");
       }
       final Process process = pb.start();
-      logger.debug(LocalizableMessage.raw("launching "+args+ " with env: "+env));
+      logger.info(LocalizableMessage.raw("launching "+args+ " with env: "+env));
       InputStream is = process.getInputStream();
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line;
       boolean errorDetected = false;
       while (null != (line = reader.readLine())) {
-        logger.debug(LocalizableMessage.raw("The output: "+line));
+        logger.info(LocalizableMessage.raw("The output: "+line));
         if (line.contains("ERROR:  The detected Java version"))
         {
           if (Utils.isWindows())
@@ -220,9 +220,9 @@ public class Utils
       }
       process.waitFor();
       int returnCode = process.exitValue();
-      logger.debug(LocalizableMessage.raw("returnCode: "+returnCode));
+      logger.info(LocalizableMessage.raw("returnCode: "+returnCode));
       supported = returnCode == 0 && !errorDetected;
-      logger.debug(LocalizableMessage.raw("supported: "+supported));
+      logger.info(LocalizableMessage.raw("supported: "+supported));
     }
     catch (Throwable t)
     {
@@ -2533,6 +2533,6 @@ class EmptyPrintStream extends PrintStream {
   @Override
   public void println(String msg)
   {
-    logger.debug(LocalizableMessage.raw("EmptyStream msg: "+msg));
+    logger.info(LocalizableMessage.raw("EmptyStream msg: "+msg));
   }
 }

@@ -146,7 +146,7 @@ public class InstallerHelper {
 
     String[] allArgs = new String[argList.size()];
     argList.toArray(allArgs);
-    logger.debug(LocalizableMessage.raw("import-ldif arg list: "+argList));
+    logger.info(LocalizableMessage.raw("import-ldif arg list: "+argList));
     ProcessBuilder pb = new ProcessBuilder(allArgs);
     Map<String, String> env = pb.environment();
     env.remove(SetupUtils.OPENDJ_JAVA_HOME);
@@ -176,7 +176,7 @@ public class InstallerHelper {
         @Override
         public void processLine(String line)
         {
-          logger.debug(LocalizableMessage.raw("import-ldif out log: "+line));
+          logger.info(LocalizableMessage.raw("import-ldif out log: "+line));
           application.notifyListeners(LocalizableMessage.raw(line));
           application.notifyListeners(application.getLineBreak());
         }

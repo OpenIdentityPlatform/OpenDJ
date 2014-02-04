@@ -885,7 +885,7 @@ public abstract class ReplicationDomain
         Some problems detected: message did not correctly reach every
         requested servers. Log problem
         */
-        logger.error(NOTE_DS_RECEIVED_ACK_ERROR, getBaseDN(), getServerId(), update, ack.errorsToString());
+        logger.info(NOTE_DS_RECEIVED_ACK_ERROR, getBaseDN(), getServerId(), update, ack.errorsToString());
 
         List<Integer> failedServers = ack.getFailedServers();
 
@@ -1383,7 +1383,7 @@ public abstract class ReplicationDomain
 
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
     {
-      logger.error(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START_ALL,
+      logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START_ALL,
           countEntries(), getBaseDNString(), getServerId());
 
       for (DSInfo dsi : getReplicasList())
@@ -1402,7 +1402,7 @@ public abstract class ReplicationDomain
     }
     else
     {
-      logger.error(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START, countEntries(),
+      logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START, countEntries(),
           getBaseDNString(), getServerId(), serverToInitialize);
 
       ieCtx.startList.add(serverToInitialize);
@@ -1520,7 +1520,7 @@ public abstract class ReplicationDomain
             try { Thread.sleep(1000); }
             catch(Exception e){ /* do nothing */ }
 
-            logger.error(NOTE_RESENDING_INIT_TARGET, exportRootException.getLocalizedMessage());
+            logger.info(NOTE_RESENDING_INIT_TARGET, exportRootException.getLocalizedMessage());
             continue;
           }
 
@@ -1557,12 +1557,12 @@ public abstract class ReplicationDomain
         : exportRootException.getLocalizedMessage();
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
     {
-      logger.error(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END_ALL,
+      logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END_ALL,
           getBaseDNString(), getServerId(), cause);
     }
     else
     {
-      logger.error(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END,
+      logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END,
           getBaseDNString(), getServerId(), serverToInitialize, cause);
     }
 
@@ -2233,7 +2233,7 @@ public abstract class ReplicationDomain
     try
     {
       // Log starting
-      logger.error(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START, getBaseDNString(),
+      logger.info(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START, getBaseDNString(),
           initTargetMsgReceived.getSenderID(), getServerId());
 
       // Go into full update status
@@ -2310,7 +2310,7 @@ public abstract class ReplicationDomain
             Restart the whole import protocol exchange by sending again
             the request
             */
-            logger.error(NOTE_RESENDING_INIT_FROM_REMOTE_REQUEST,
+            logger.info(NOTE_RESENDING_INIT_FROM_REMOTE_REQUEST,
                 ieCtx.getException().getLocalizedMessage());
 
             broker.publish(ieCtx.initReqMsgSent);
@@ -3413,7 +3413,7 @@ public abstract class ReplicationDomain
     } catch (TimeoutException ex)
     {
       // This exception may only be raised if assured replication is enabled
-      logger.error(NOTE_DS_ACK_TIMEOUT, getBaseDNString(), getAssuredTimeout(), update);
+      logger.info(NOTE_DS_ACK_TIMEOUT, getBaseDNString(), getAssuredTimeout(), update);
     }
   }
 

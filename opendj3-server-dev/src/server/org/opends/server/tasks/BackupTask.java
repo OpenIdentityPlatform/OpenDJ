@@ -27,6 +27,7 @@
 package org.opends.server.tasks;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -562,8 +563,8 @@ public class BackupTask extends Task
     if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
             backupConfig != null)
     {
-      addLogMessage(TaskMessages.INFO_TASK_STOPPED_BY_ADMIN.get(
-              interruptReason));
+      addLogMessage(Severity.INFORMATION, TaskMessages.INFO_TASK_STOPPED_BY_ADMIN.get(
+      interruptReason));
       setTaskInterruptState(interruptState);
       backupConfig.cancel();
     }

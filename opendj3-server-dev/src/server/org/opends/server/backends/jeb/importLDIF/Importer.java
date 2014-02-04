@@ -536,7 +536,7 @@ public final class Importer implements DiskSpaceMonitorHandler
 
     if (oldThreadCount != threadCount)
     {
-      logger.error(NOTE_JEB_IMPORT_ADJUST_THREAD_COUNT, oldThreadCount, threadCount);
+      logger.info(NOTE_JEB_IMPORT_ADJUST_THREAD_COUNT, oldThreadCount, threadCount);
     }
 
     logger.info(NOTE_JEB_IMPORT_LDIF_TOT_MEM_BUF, availableMemory, phaseOneBufferCount);
@@ -3205,7 +3205,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       if ( message != null )
       {
-        logger.error(message);
+        logger.info(message);
       }
     }
 

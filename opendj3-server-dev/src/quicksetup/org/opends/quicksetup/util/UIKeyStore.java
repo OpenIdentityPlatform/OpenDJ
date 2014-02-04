@@ -80,7 +80,7 @@ public class UIKeyStore extends KeyStore
       File f = new File(keyStorePath);
       if (!f.exists())
       {
-        logger.debug(LocalizableMessage.raw("Path "+keyStorePath+ " does not exist"));
+        logger.info(LocalizableMessage.raw("Path "+keyStorePath+ " does not exist"));
         keyStorePath = null;
       }
       else if (f.isDirectory())
@@ -137,7 +137,7 @@ public class UIKeyStore extends KeyStore
       throws IOException,KeyStoreException, CertificateException,
       NoSuchAlgorithmException
   {
-    logger.debug(LocalizableMessage.raw("Accepting certificate chain."));
+    logger.info(LocalizableMessage.raw("Accepting certificate chain."));
     KeyStore k = getInstance();
     for (X509Certificate aChain : chain) {
       if (!containsCertificate(aChain, k)) {
@@ -183,7 +183,7 @@ public class UIKeyStore extends KeyStore
     File f = new File(adminTrustStorePath);
     if (!f.exists())
     {
-      logger.debug(LocalizableMessage.raw("Path "+adminTrustStorePath+ " does not exist"));
+      logger.info(LocalizableMessage.raw("Path "+adminTrustStorePath+ " does not exist"));
       adminTrustStorePath = null;
     }
     else if (f.isDirectory())

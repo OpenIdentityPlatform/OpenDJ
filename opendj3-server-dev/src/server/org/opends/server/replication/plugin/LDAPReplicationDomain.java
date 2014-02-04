@@ -567,7 +567,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // Should not happen as normally already called without problem in
       // isConfigurationChangeAcceptable or isConfigurationAcceptable
       // if we come up to this method
-      logger.error(NOTE_ERR_FRACTIONAL, getBaseDNString(), stackTraceToSingleLineString(e));
+      logger.info(NOTE_ERR_FRACTIONAL, getBaseDNString(), stackTraceToSingleLineString(e));
       return;
     }
 
@@ -585,7 +585,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     catch  (ConfigException e)
     {
       // Should not happen
-      logger.error(NOTE_ERR_FRACTIONAL, getBaseDNString(), stackTraceToSingleLineString(e));
+      logger.info(NOTE_ERR_FRACTIONAL, getBaseDNString(), stackTraceToSingleLineString(e));
       return;
     }
 
@@ -771,7 +771,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       // Should not happen as configuration in domain root entry is flushed
       // from valid configuration in local variables
-      logger.error(NOTE_ERR_FRACTIONAL, fractionalConfig.getBaseDn(), stackTraceToSingleLineString(e));
+      logger.info(NOTE_ERR_FRACTIONAL, fractionalConfig.getBaseDn(), stackTraceToSingleLineString(e));
       return false;
     }
 
@@ -803,7 +803,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // Should not happen as configuration in domain root entry is flushed
       // from valid configuration in local variables so both should have already
       // been checked
-      logger.error(NOTE_ERR_FRACTIONAL, fractionalConfig.getBaseDn(), stackTraceToSingleLineString(e));
+      logger.info(NOTE_ERR_FRACTIONAL, fractionalConfig.getBaseDn(), stackTraceToSingleLineString(e));
       return false;
     }
   }
@@ -1412,7 +1412,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     catch(DirectoryException e)
     {
-      logger.error(NOTE_ERR_FRACTIONAL, getBaseDNString(), stackTraceToSingleLineString(e));
+      logger.info(NOTE_ERR_FRACTIONAL, getBaseDNString(), stackTraceToSingleLineString(e));
       return FRACTIONAL_HAS_NO_FRACTIONAL_FILTERED_ATTRIBUTES;
     }
     Set<ObjectClass> entryClasses = entryToModify.getObjectClasses().keySet();
@@ -2056,7 +2056,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         } catch (TimeoutException ex)
         {
           // This exception may only be raised if assured replication is enabled
-          logger.error(NOTE_DS_ACK_TIMEOUT, getBaseDNString(), getAssuredTimeout(), msg);
+          logger.info(NOTE_DS_ACK_TIMEOUT, getBaseDNString(), getAssuredTimeout(), msg);
         }
       }
 
@@ -4128,7 +4128,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       catch (DirectoryException de)
       {
-        logger.error(NOTE_ERR_UNABLE_TO_ENABLE_ECL,
+        logger.info(NOTE_ERR_UNABLE_TO_ENABLE_ECL,
             "Replication Domain on " + getBaseDNString(), stackTraceToSingleLineString(de));
         // and go on
       }
@@ -4140,7 +4140,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // Go into bad data set status
       setNewStatus(StatusMachineEvent.TO_BAD_GEN_ID_STATUS_EVENT);
       broker.signalStatusChange(status);
-      logger.error(NOTE_FRACTIONAL_BAD_DATA_SET_NEED_RESYNC, getBaseDNString());
+      logger.info(NOTE_FRACTIONAL_BAD_DATA_SET_NEED_RESYNC, getBaseDNString());
       return; // Do not send changes to the replication server
     }
 

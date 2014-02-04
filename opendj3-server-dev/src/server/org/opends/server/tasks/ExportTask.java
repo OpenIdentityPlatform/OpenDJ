@@ -27,6 +27,7 @@
 package org.opends.server.tasks;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
 
 import static org.opends.server.core.DirectoryServer.getAttributeType;
@@ -34,6 +35,7 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
@@ -295,8 +297,8 @@ public class ExportTask extends Task
     if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
             exportConfig != null)
     {
-      addLogMessage(TaskMessages.INFO_TASK_STOPPED_BY_ADMIN.get(
-              interruptReason));
+      addLogMessage(Severity.INFORMATION, TaskMessages.INFO_TASK_STOPPED_BY_ADMIN.get(
+      interruptReason));
       setTaskInterruptState(interruptState);
       exportConfig.cancel();
     }
@@ -565,7 +567,7 @@ public class ExportTask extends Task
         try
         {
           DirectoryServer.notifyExportBeginning(backend, exportConfig);
-          addLogMessage(INFO_LDIFEXPORT_PATH_TO_LDIF_FILE.get(ldifFile));
+          addLogMessage(Severity.INFORMATION, INFO_LDIFEXPORT_PATH_TO_LDIF_FILE.get(ldifFile));
           backend.exportLDIF(exportConfig);
           DirectoryServer.notifyExportEnded(backend, exportConfig, true);
         }

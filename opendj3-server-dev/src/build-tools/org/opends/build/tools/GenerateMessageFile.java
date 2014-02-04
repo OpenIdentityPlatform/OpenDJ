@@ -558,7 +558,8 @@ public class GenerateMessageFile extends Task {
     private Integer calculateId(final Category category,
         final Severity severity, final Integer ordinal)
     {
-      return new Integer(ordinal | category.getMask() | severity.getMask());
+      // Id is equivalent to ordinal with OpenDJ3
+      return new Integer(ordinal);
     }
 
     /**
