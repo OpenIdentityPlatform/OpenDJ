@@ -70,7 +70,6 @@ final class UUIDSyntaxImpl extends AbstractSyntaxImpl {
         // bytes long.
         final String valueString = value.toString();
         if (valueString.length() != 36) {
-
             invalidReason.append(WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(valueString, valueString
                     .length()));
             return false;
@@ -86,7 +85,6 @@ final class UUIDSyntaxImpl extends AbstractSyntaxImpl {
             case 18:
             case 23:
                 if (valueString.charAt(i) != '-') {
-
                     invalidReason.append(WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(valueString, i,
                             String.valueOf(valueString.charAt(i))));
                     return false;

@@ -179,7 +179,6 @@ final class PrintableStringSyntaxImpl extends AbstractSyntaxImpl {
         // Check to see if the provided value was null. If so, then that's
         // not acceptable.
         if (value == null) {
-
             invalidReason.append(WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE.get());
             return false;
         }
@@ -189,7 +188,6 @@ final class PrintableStringSyntaxImpl extends AbstractSyntaxImpl {
         final String valueString = value.toString();
         final int valueLength = valueString.length();
         if (valueLength == 0) {
-
             invalidReason.append(WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE.get());
             return false;
         }
@@ -199,7 +197,6 @@ final class PrintableStringSyntaxImpl extends AbstractSyntaxImpl {
         for (int i = 0; i < valueLength; i++) {
             final char c = valueString.charAt(i);
             if (!isPrintableCharacter(c)) {
-
                 invalidReason.append(WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER.get(
                         valueString, String.valueOf(c), i));
                 return false;

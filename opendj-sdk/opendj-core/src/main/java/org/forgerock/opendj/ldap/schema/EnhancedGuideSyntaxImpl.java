@@ -86,7 +86,6 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl {
         // end of the objectclass.
         final int sharpPos = valueStr.indexOf('#');
         if (sharpPos < 0) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SHARP1.get(valueStr));
             return false;
         }
@@ -95,7 +94,6 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl {
         final String ocName = valueStr.substring(0, sharpPos).trim();
         final int ocLength = ocName.length();
         if (ocLength == 0) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_OC1.get(valueStr));
             return false;
         }
@@ -112,7 +110,6 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl {
         // scope.
         final int lastSharpPos = valueStr.lastIndexOf('#');
         if (lastSharpPos == sharpPos) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_FINAL_SHARP.get(valueStr));
             return false;
         }
@@ -121,10 +118,8 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl {
         if (!(scopeStr.equals("baseobject") || scopeStr.equals("onelevel")
                 || scopeStr.equals("wholesubtree") || scopeStr.equals("subordinatesubtree"))) {
             if (scopeStr.length() == 0) {
-
                 invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SCOPE.get(valueStr));
             } else {
-
                 invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE.get(valueStr,
                         scopeStr));
             }
@@ -137,7 +132,6 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl {
         final String criteria = valueStr.substring(sharpPos + 1, lastSharpPos).trim();
         final int criteriaLength = criteria.length();
         if (criteriaLength == 0) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_CRITERIA.get(valueStr));
             return false;
         }

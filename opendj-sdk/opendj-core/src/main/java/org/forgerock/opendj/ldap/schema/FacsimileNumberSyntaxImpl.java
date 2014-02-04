@@ -119,7 +119,6 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl {
 
         // The value must contain at least one character.
         if (valueLength == 0) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_EMPTY.get());
             return false;
         }
@@ -127,7 +126,6 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl {
         // The first character must be a printable string character.
         char c = valueString.charAt(0);
         if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE.get(valueString, String
                     .valueOf(c), 0));
             return false;
@@ -144,7 +142,6 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl {
                 break;
             } else {
                 if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-
                     invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE.get(valueString,
                             String.valueOf(c), pos));
                 }
@@ -155,7 +152,6 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl {
             // We're at the end of the value, so it must be valid unless the
             // last character was a dollar sign.
             if (c == '$') {
-
                 invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_END_WITH_DOLLAR.get(valueString));
                 return false;
             } else {
@@ -171,7 +167,6 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl {
             if (c == '$') {
                 final String paramStr = valueString.substring(paramStartPos, pos);
                 if (!ALLOWED_FAX_PARAMETERS.contains(paramStr)) {
-
                     invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER.get(
                             valueString, paramStr, paramStartPos, (pos - 1)));
                     return false;
