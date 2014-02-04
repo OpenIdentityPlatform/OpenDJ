@@ -26,21 +26,13 @@
  */
 package org.opends.server.extensions;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.StringTokenizer;
+import java.io.File;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.atomic.AtomicLong;
-import java.io.File;
+
 import com.sleepycat.bind.EntryBinding;
 import com.sleepycat.bind.serial.SerialBinding;
 import com.sleepycat.bind.serial.StoredClassCatalog;
@@ -56,28 +48,29 @@ import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.config.ConfigParam;
 import com.sleepycat.je.config.EnvironmentParams;
+
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.api.Backend;
-import org.opends.server.api.EntryCache;
-import org.opends.server.admin.std.server.EntryCacheCfg;
-import org.opends.server.admin.std.server.FileSystemEntryCacheCfg;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.EntryCacheCfg;
+import org.opends.server.admin.std.server.FileSystemEntryCacheCfg;
 import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.api.Backend;
+import org.opends.server.api.EntryCache;
 import org.opends.server.backends.jeb.ConfigurableEnvironment;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.ServerConstants;
 
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a Directory Server entry cache that uses JE database to
@@ -221,15 +214,7 @@ public class FileSystemEntryCache
           EntryCacheCommon.ConfigPhase.PHASE_INIT, null, errorMessages
           );
     if (!processEntryCacheConfig(configuration, applyChanges, errorHandler)) {
-      LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
-      if (!errorMessages.isEmpty()) {
-        Iterator<LocalizableMessage> iterator = errorMessages.iterator();
-        buffer.append(iterator.next());
-        while (iterator.hasNext()) {
-          buffer.append(".  ");
-          buffer.append(iterator.next());
-        }
-      }
+      String buffer = Utils.joinAsString(".  ", errorMessages);
       throw new ConfigException(ERR_FSCACHE_CANNOT_INITIALIZE.get(buffer));
     }
 

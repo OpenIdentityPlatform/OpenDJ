@@ -26,15 +26,14 @@
  */
 package org.opends.server.core;
 
-
-
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -45,17 +44,17 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.server.PluginRootCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.*;
+import org.opends.server.api.plugin.DirectoryServerPlugin;
+import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
+import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a utility that will be used to manage the configuration
@@ -379,18 +378,7 @@ public class PluginConfigManager
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
-          if (! unacceptableReasons.isEmpty())
-          {
-            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
-            buffer.append(iterator.next());
-            while (iterator.hasNext())
-            {
-              buffer.append(".  ");
-              buffer.append(iterator.next());
-            }
-          }
-
+          String buffer = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(
               ERR_CONFIG_PLUGIN_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), buffer));
         }

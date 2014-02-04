@@ -26,18 +26,14 @@
  */
 package org.opends.server.extensions;
 
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.FIFOEntryCacheCfg;
@@ -45,8 +41,6 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.CacheEntry;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -56,11 +50,8 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.Attribute;
 import org.opends.server.util.ServerConstants;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import static org.opends.messages.ExtensionMessages.*;
-
-
 
 /**
  * This class defines a Directory Server entry cache that uses a FIFO to keep
@@ -169,15 +160,7 @@ public class FIFOEntryCache
           EntryCacheCommon.ConfigPhase.PHASE_INIT, null, errorMessages
           );
     if (!processEntryCacheConfig(configuration, applyChanges, errorHandler)) {
-      LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
-      if (!errorMessages.isEmpty()) {
-        Iterator<LocalizableMessage> iterator = errorMessages.iterator();
-        buffer.append(iterator.next());
-        while (iterator.hasNext()) {
-          buffer.append(".  ");
-          buffer.append(iterator.next());
-        }
-      }
+      String buffer = Utils.joinAsString(".  ", errorMessages);
       throw new ConfigException(ERR_FIFOCACHE_CANNOT_INITIALIZE.get(buffer));
     }
   }
@@ -1050,6 +1033,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toVerboseString()
   {
     StringBuilder sb = new StringBuilder();
