@@ -617,6 +617,22 @@ public final class CliConstants {
      */
     public static final String OPTION_LONG_OUTPUT_LDIF_FILENAME = "outputLDIF";
 
+    /**
+     * The value for the long option to automatically accept the license
+     * if present.
+     */
+    public static final String OPTION_LONG_ACCEPT_LICENSE = "acceptLicense";
+
+    /**
+     * The value for the short option rootUserDN.
+     */
+    public static final char OPTION_SHORT_ROOT_USER_DN = 'D';
+
+    /**
+     * The value for the long option rootUserDN.
+     */
+    public static final String OPTION_LONG_ROOT_USER_DN = "rootUserDN";
+
     // Prevent instantiation.
     private CliConstants() {
 

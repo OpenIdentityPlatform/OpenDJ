@@ -44,6 +44,7 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
@@ -62,7 +63,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * file to obtain default values for arguments there if they are not specified
  * on the command-line.
  */
-public final class ArgumentParser {
+public class ArgumentParser {
     /**
      * The argument that will be used to indicate the file properties.
      */
@@ -143,7 +144,7 @@ public final class ArgumentParser {
     private String[] rawArguments;
 
     /** Set of argument groups. */
-    private Set<ArgumentGroup> argumentGroups;
+    protected Set<ArgumentGroup> argumentGroups;
 
     /**
      * Group for arguments that have not been explicitly grouped. These will
@@ -1591,6 +1592,43 @@ public final class ArgumentParser {
             buffer.append(INDENT);
             buffer.append(INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()).toString());
             buffer.append(EOL);
+        }
+    }
+
+    void normalizeArguments(final Properties argumentProperties, final List<Argument> arguments)
+            throws ArgumentException {
+        for (final Argument a : arguments) {
+            if (!a.isPresent()
+            // See if there is a value in the properties that can be used
+                    && argumentProperties != null && a.getPropertyName() != null) {
+                final String value = argumentProperties.getProperty(a.getPropertyName().toLowerCase());
+                final LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
+                if (value != null) {
+                    Boolean addValue = true;
+                    if (!(a instanceof BooleanArgument)) {
+                        addValue = a.valueIsAcceptable(value, invalidReason);
+                    }
+                    if (addValue) {
+                        a.addValue(value);
+                        if (a.needsValue()) {
+                            a.setPresent(true);
+                        }
+                        a.setValueSetByProperty(true);
+                    }
+                }
+            }
+
+            if (!a.isPresent() && a.needsValue()) {
+                // See if the argument defines a default.
+                if (a.getDefaultValue() != null) {
+                    a.addValue(a.getDefaultValue());
+                }
+
+                // If there is still no value and the argument is required, then that's a problem.
+                if (!a.hasValue() && a.isRequired()) {
+                    throw new ArgumentException(ERR_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getName()));
+                }
+            }
         }
     }
 }
