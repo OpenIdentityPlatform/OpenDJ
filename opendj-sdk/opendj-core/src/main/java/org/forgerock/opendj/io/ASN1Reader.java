@@ -144,6 +144,19 @@ public interface ASN1Reader extends Closeable {
     void readEndSequence() throws DecodeException, IOException;
 
     /**
+     * Finishes reading an explicit tag and discards any unread elements.
+     *
+     * @throws DecodeException
+     *             If an error occurs while advancing to the end of the
+     *             explicit tag.
+     * @throws IOException
+     *             If an unexpected IO error occurred.
+     * @throws IllegalStateException
+     *             If there is no explicit tag being read.
+     */
+    void readEndExplicitTag() throws DecodeException, IOException;
+
+    /**
      * Finishes reading a set and discards any unread elements.
      *
      * @throws DecodeException
@@ -323,6 +336,18 @@ public interface ASN1Reader extends Closeable {
      *             If an unexpected IO error occurred.
      */
     void readStartSequence() throws DecodeException, IOException;
+
+    /**
+     * Reads the next element as an explicit tag having the Universal Sequence
+     * ASN.1 type tag. All further reads will read the elements in the explicit
+     * tag until {@link #readEndExplicitTag()} is called.
+     *
+     * @throws DecodeException
+     *             If the element cannot be decoded as an explicit tag.
+     * @throws IOException
+     *             If an unexpected IO error occurred.
+     */
+    void readStartExplicitTag() throws DecodeException, IOException;
 
     /**
      * Reads the next element as a sequence having the provided type tag. All

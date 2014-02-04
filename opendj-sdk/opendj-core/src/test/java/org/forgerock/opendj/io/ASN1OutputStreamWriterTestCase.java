@@ -34,7 +34,7 @@ import java.io.ByteArrayOutputStream;
  */
 public class ASN1OutputStreamWriterTestCase extends ASN1WriterTestCase {
     private final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-    private final ASN1Writer writer = new ASN1OutputStreamWriter(outStream);
+    private final ASN1Writer writer = new ASN1OutputStreamWriter(outStream, 1);
 
     @Override
     protected byte[] getEncodedBytes() {
