@@ -296,7 +296,7 @@ public final class Upgrade
             rebuildSingleIndex(INFO_UPGRADE_TASK_9013_DESCRIPTION.get(),
                 "ds-sync-hist")));
 
-    /** See OPENDJ-1284*/
+    /** See OPENDJ-1284 */
     register("2.7.0.10133", // userCertificate OID / cACertificate OID
         newAttributeTypes(INFO_UPGRADE_TASK_10133_1_SUMMARY.get(),
         "00-core.ldif", "2.5.4.36", "2.5.4.37"),
@@ -310,6 +310,10 @@ public final class Upgrade
         "ds-cfg-java-class: "
             + "org.opends.server.schema.CertificateExactMatchingRuleFactory",
         "ds-cfg-enabled: true"));
+
+    /** See OPENDJ-1295 */
+    register("2.7.0.10215",
+        copySchemaFile("03-pwpolicyextension.ldif"));
 
     /*
      * All upgrades will refresh the server configuration schema and generate
