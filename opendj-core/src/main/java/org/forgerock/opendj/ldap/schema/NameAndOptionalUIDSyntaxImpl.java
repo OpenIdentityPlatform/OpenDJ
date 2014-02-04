@@ -110,7 +110,6 @@ final class NameAndOptionalUIDSyntaxImpl extends AbstractSyntaxImpl {
             for (int i = sharpPos + 2; i < endPos; i++) {
                 final char c = valueString.charAt(i);
                 if (!(c == '0' || c == '1')) {
-
                     invalidReason.append(ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT.get(
                             valueString, String.valueOf(c), i));
                     return false;

@@ -114,7 +114,6 @@ final class TeletexTerminalIdentifierSyntaxImpl extends AbstractSyntaxImpl {
 
         // The value must contain at least one character.
         if (valueLength == 0) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_EMPTY.get());
             return false;
         }
@@ -122,7 +121,6 @@ final class TeletexTerminalIdentifierSyntaxImpl extends AbstractSyntaxImpl {
         // The first character must be a printable string character.
         char c = valueString.charAt(0);
         if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_NOT_PRINTABLE.get(valueString, String
                     .valueOf(c), 0));
             return false;
@@ -139,7 +137,6 @@ final class TeletexTerminalIdentifierSyntaxImpl extends AbstractSyntaxImpl {
                 break;
             } else {
                 if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-
                     invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_NOT_PRINTABLE.get(valueString,
                             String.valueOf(c), pos));
                 }
@@ -150,7 +147,6 @@ final class TeletexTerminalIdentifierSyntaxImpl extends AbstractSyntaxImpl {
             // We're at the end of the value, so it must be valid unless the
             // last character was a dollar sign.
             if (c == '$') {
-
                 invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_END_WITH_DOLLAR.get(valueString));
                 return false;
             } else {
@@ -178,14 +174,12 @@ final class TeletexTerminalIdentifierSyntaxImpl extends AbstractSyntaxImpl {
 
                 final int colonPos = paramStr.indexOf(':');
                 if (colonPos < 0) {
-
                     invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_PARAM_NO_COLON.get(valueString));
                     return false;
                 }
 
                 final String paramName = paramStr.substring(0, colonPos);
                 if (!ALLOWED_TTX_PARAMETERS.contains(paramName)) {
-
                     invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_ILLEGAL_PARAMETER.get(
                             valueString, paramName));
                     return false;
@@ -200,14 +194,12 @@ final class TeletexTerminalIdentifierSyntaxImpl extends AbstractSyntaxImpl {
         final String paramStr = valueString.substring(paramStartPos);
         final int colonPos = paramStr.indexOf(':');
         if (colonPos < 0) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_PARAM_NO_COLON.get(valueString));
             return false;
         }
 
         final String paramName = paramStr.substring(0, colonPos);
         if (!ALLOWED_TTX_PARAMETERS.contains(paramName)) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_ILLEGAL_PARAMETER.get(valueString,
                     paramName));
             return false;

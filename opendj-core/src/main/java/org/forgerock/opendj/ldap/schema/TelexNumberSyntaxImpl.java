@@ -89,7 +89,6 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
         final int valueLength = valueString.length();
 
         if (valueLength < 5) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TOO_SHORT.get(valueString));
             return false;
         }
@@ -97,7 +96,6 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
         // The first character must be a printable string character.
         char c = valueString.charAt(0);
         if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(valueString, String
                     .valueOf(c), 0));
             return false;
@@ -113,7 +111,6 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
                 break;
             } else {
                 if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-
                     invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(valueString, String
                             .valueOf(c), pos));
                 }
@@ -121,7 +118,6 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
         }
 
         if (pos >= valueLength) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TRUNCATED.get(valueString));
             return false;
         }
@@ -129,7 +125,6 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
         // The next character must be a printable string character.
         c = valueString.charAt(pos++);
         if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(valueString, String
                     .valueOf(c), (pos - 1)));
             return false;
@@ -144,7 +139,6 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
                 break;
             } else {
                 if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-
                     invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(valueString, String
                             .valueOf(c), pos));
                     return false;
@@ -153,7 +147,6 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
         }
 
         if (pos >= valueLength) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TRUNCATED.get(valueString));
             return false;
         }
@@ -161,7 +154,6 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
         // The next character must be a printable string character.
         c = valueString.charAt(pos++);
         if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(valueString, String
                     .valueOf(c), (pos - 1)));
             return false;
@@ -172,7 +164,6 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
         for (; pos < valueLength; pos++) {
             c = valueString.charAt(pos);
             if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-
                 invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(valueString, String
                         .valueOf(c), pos));
                 return false;

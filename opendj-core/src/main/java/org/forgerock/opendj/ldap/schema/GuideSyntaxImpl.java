@@ -98,7 +98,6 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl {
                                 return criteriaIsValid(schema, criteria.substring(i + 2), valueStr,
                                         invalidReason);
                             } else {
-
                                 invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(
                                         valueStr, criteria, c, (i + 1)));
                                 return false;
@@ -316,7 +315,6 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl {
         final String ocName = valueStr.substring(0, sharpPos).trim();
         final int ocLength = ocName.length();
         if (ocLength == 0) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_OC1.get(valueStr));
             return false;
         }

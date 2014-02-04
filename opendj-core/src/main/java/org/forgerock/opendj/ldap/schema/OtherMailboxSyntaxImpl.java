@@ -79,7 +79,6 @@ final class OtherMailboxSyntaxImpl extends AbstractSyntaxImpl {
         // Check to see if the provided value was null. If so, then that's
         // not acceptable.
         if (value == null) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_OTHER_MAILBOX_EMPTY_VALUE.get());
             return false;
         }
@@ -89,7 +88,6 @@ final class OtherMailboxSyntaxImpl extends AbstractSyntaxImpl {
         final String valueString = value.toString();
         final int valueLength = valueString.length();
         if (valueLength == 0) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_OTHER_MAILBOX_EMPTY_VALUE.get());
             return false;
         }
@@ -102,7 +100,6 @@ final class OtherMailboxSyntaxImpl extends AbstractSyntaxImpl {
             final char c = valueString.charAt(pos);
             if (c == '$') {
                 if (pos == 0) {
-
                     invalidReason.append(ERR_ATTR_SYNTAX_OTHER_MAILBOX_NO_MBTYPE.get(valueString));
                     return false;
                 }
@@ -110,7 +107,6 @@ final class OtherMailboxSyntaxImpl extends AbstractSyntaxImpl {
                 pos++;
                 break;
             } else if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-
                 invalidReason.append(ERR_ATTR_SYNTAX_OTHER_MAILBOX_ILLEGAL_MBTYPE_CHAR.get(
                         valueString, String.valueOf(c), pos));
                 return false;
@@ -119,7 +115,6 @@ final class OtherMailboxSyntaxImpl extends AbstractSyntaxImpl {
 
         // Make sure there is at least one character left for the mailbox.
         if (pos >= valueLength) {
-
             invalidReason.append(ERR_ATTR_SYNTAX_OTHER_MAILBOX_NO_MAILBOX.get(valueString));
             return false;
         }
@@ -129,7 +124,6 @@ final class OtherMailboxSyntaxImpl extends AbstractSyntaxImpl {
         for (; pos < valueLength; pos++) {
             final char c = valueString.charAt(pos);
             if (c != (c & 0x7F)) {
-
                 invalidReason.append(ERR_ATTR_SYNTAX_OTHER_MAILBOX_ILLEGAL_MB_CHAR.get(valueString,
                         String.valueOf(c), pos));
                 return false;
