@@ -1220,19 +1220,8 @@ public class ConfigFileHandler
 
       if (resultCode != ResultCode.SUCCESS)
       {
-        LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
-        if (! messages.isEmpty())
-        {
-          Iterator<LocalizableMessage> iterator = messages.iterator();
-          buffer.append(iterator.next());
-          while (iterator.hasNext())
-          {
-            buffer.append(".  ");
-            buffer.append(iterator.next());
-          }
-        }
-
-        LocalizableMessage message = ERR_CONFIG_FILE_ADD_APPLY_FAILED.get(buffer);
+        String reasons = Utils.joinAsString(".  ", messages);
+        LocalizableMessage message = ERR_CONFIG_FILE_ADD_APPLY_FAILED.get(reasons);
         throw new DirectoryException(resultCode, message);
       }
     }
@@ -1518,19 +1507,8 @@ public class ConfigFileHandler
 
       if (resultCode != ResultCode.SUCCESS)
       {
-        LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
-        if (! messages.isEmpty())
-        {
-          Iterator<LocalizableMessage> iterator = messages.iterator();
-          buffer.append(iterator.next());
-          while (iterator.hasNext())
-          {
-            buffer.append(".  ");
-            buffer.append(iterator.next());
-          }
-        }
-
-        LocalizableMessage message = ERR_CONFIG_FILE_MODIFY_APPLY_FAILED.get(buffer);
+        String reasons = Utils.joinAsString(".  ", messages);
+        LocalizableMessage message = ERR_CONFIG_FILE_MODIFY_APPLY_FAILED.get(reasons);
         throw new DirectoryException(resultCode, message);
       }
     }
@@ -3225,20 +3203,7 @@ public class ConfigFileHandler
     boolean       adminActionRequired = result.adminActionRequired();
     List<LocalizableMessage> messages            = result.getMessages();
 
-    LocalizableMessageBuilder messageBuffer = new LocalizableMessageBuilder();
-    if (messages != null)
-    {
-      for (LocalizableMessage s : messages)
-      {
-        if (messageBuffer.length() > 0)
-        {
-          messageBuffer.append("  ");
-        }
-        messageBuffer.append(s);
-      }
-    }
-
-
+    String messageBuffer = Utils.joinAsString("  ", messages);
     if (resultCode != ResultCode.SUCCESS)
     {
       logger.error(ERR_CONFIG_CHANGE_RESULT_ERROR, className, methodName,

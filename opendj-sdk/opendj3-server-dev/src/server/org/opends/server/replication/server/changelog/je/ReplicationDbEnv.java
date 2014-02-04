@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
@@ -557,11 +556,8 @@ public class ReplicationDbEnv
       }
       catch (RuntimeException e)
       {
-        LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-        mb.append(ERR_ERROR_CLEARING_DB.get(databaseName,
-            e.getMessage() + " " +
-            stackTraceToSingleLineString(e)));
-        logger.error(mb.toMessage());
+        logger.error(ERR_ERROR_CLEARING_DB, databaseName,
+            e.getMessage() + " " + stackTraceToSingleLineString(e));
       }
       finally
       {

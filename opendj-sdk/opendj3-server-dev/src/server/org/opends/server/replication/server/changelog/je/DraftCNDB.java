@@ -30,7 +30,6 @@ import java.io.Closeable;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.server.changelog.api.*;
 
@@ -616,10 +615,7 @@ public class DraftCNDB
     }
     catch(Exception e)
     {
-      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-      mb.append(ERR_ERROR_CLEARING_DB.get(toString(),
-          e.getMessage() + " " + stackTraceToSingleLineString(e)));
-      logger.error(mb.toMessage());
+      logger.error(ERR_ERROR_CLEARING_DB, this, e.getMessage() + " " + stackTraceToSingleLineString(e));
     }
     finally
     {

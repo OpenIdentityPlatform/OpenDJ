@@ -25,16 +25,15 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.admin;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
+import org.forgerock.util.Utils;
 
 import java.text.NumberFormat;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.TreeSet;
-
-
 
 /**
  * A property definition visitor which can be used to generate syntax
@@ -189,22 +188,10 @@ public final class PropertyDefinitionUsageBuilder {
         }
       } else {
         Set<String> values = new TreeSet<String>();
-
         for (Object value : EnumSet.allOf(d.getEnumClass())) {
           values.add(value.toString().trim().toLowerCase());
         }
-
-        boolean isFirst = true;
-        LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
-        for (String s : values) {
-          if (!isFirst) {
-            builder.append(" | ");
-          }
-          builder.append(s);
-          isFirst = false;
-        }
-
-        return builder.toMessage();
+        return LocalizableMessage.raw(Utils.joinAsString(" | ", values));
       }
     }
 

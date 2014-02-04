@@ -3028,11 +3028,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         // log error and information for the REPAIR tool.
         LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(ERR_CANNOT_RENAME_CONFLICT_ENTRY.get());
-        mb.append(String.valueOf(entryDN));
+        mb.append(entryDN);
         mb.append(" ");
-        mb.append(String.valueOf(conflictOp));
+        mb.append(conflictOp);
         mb.append(" ");
-        mb.append(String.valueOf(op.getResultCode()));
+        mb.append(op.getResultCode());
         logger.error(mb.toMessage());
       }
     } catch (DirectoryException e)
@@ -3040,9 +3040,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // log error and information for the REPAIR tool.
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(ERR_EXCEPTION_RENAME_CONFLICT_ENTRY.get());
-      mb.append(String.valueOf(entryDN));
+      mb.append(entryDN);
       mb.append(" ");
-      mb.append(String.valueOf(conflictOp));
+      mb.append(conflictOp);
       mb.append(" ");
       mb.append(stackTraceToSingleLineString(e));
       logger.error(mb.toMessage());
@@ -3075,11 +3075,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // log information for the repair tool.
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(ERR_CANNOT_RENAME_CONFLICT_ENTRY.get());
-      mb.append(String.valueOf(dn));
+      mb.append(dn);
       mb.append(" ");
-      mb.append(String.valueOf(conflictOp));
+      mb.append(conflictOp);
       mb.append(" ");
-      mb.append(String.valueOf(newOp.getResultCode()));
+      mb.append(newOp.getResultCode());
       logger.error(mb.toMessage());
     }
   }
@@ -3114,9 +3114,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // Log information for the repair tool.
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(ERR_CANNOT_ADD_CONFLICT_ATTRIBUTE.get());
-      mb.append(String.valueOf(op));
+      mb.append(op);
       mb.append(" ");
-      mb.append(String.valueOf(newOp.getResultCode()));
+      mb.append(newOp.getResultCode());
       logger.error(mb.toMessage());
     }
 
@@ -5152,9 +5152,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          // Log information for the repair tool.
          LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
          mb.append(ERR_CANNOT_ADD_CONFLICT_ATTRIBUTE.get());
-         mb.append(String.valueOf(newOp));
+         mb.append(newOp);
          mb.append(" ");
-         mb.append(String.valueOf(newOp.getResultCode()));
+         mb.append(newOp.getResultCode());
          logger.error(mb.toMessage());
        }
        else if (task != null)

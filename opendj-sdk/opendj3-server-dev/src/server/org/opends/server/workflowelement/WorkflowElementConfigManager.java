@@ -26,17 +26,13 @@
  */
 package org.opends.server.workflowelement;
 
-
-
 import java.lang.reflect.InvocationTargetException;
-import static org.opends.messages.ConfigMessages.*;
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -52,6 +48,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
+import static org.opends.messages.ConfigMessages.*;
 
 /**
  * This class defines a utility that will be used to manage the configuration
@@ -427,8 +424,7 @@ public class WorkflowElementConfigManager
       // Again, use SuppressWarning because we know the cast is safe
       @SuppressWarnings("unchecked")
       WorkflowElement<? extends WorkflowElementCfg> workflowElement =
-        (WorkflowElement<? extends WorkflowElementCfg>)
-          workflowElementClass.newInstance();
+        workflowElementClass.newInstance();
 
       if (initialize)
       {
@@ -449,18 +445,7 @@ public class WorkflowElementConfigManager
 
         if (! acceptable)
         {
-          StringBuilder buffer = new StringBuilder();
-          if (! unacceptableReasons.isEmpty())
-          {
-            Iterator<String> iterator = unacceptableReasons.iterator();
-            buffer.append(iterator.next());
-            while (iterator.hasNext())
-            {
-              buffer.append(".  ");
-              buffer.append(iterator.next());
-            }
-          }
-
+          String buffer = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(
               ERR_CONFIG_WORKFLOW_ELEMENT_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), buffer));
         }

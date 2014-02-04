@@ -43,11 +43,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.admin.std.server.ReplicationDomainCfg;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Utils;
+import org.opends.server.admin.std.server.ReplicationDomainCfg;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
@@ -2282,11 +2281,8 @@ public class ReplicationBroker
         }
         catch (Exception e)
         {
-          LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-          mb.append(NOTE_EXCEPTION_RESTARTING_SESSION.get(
-              getBaseDN().toNormalizedString(), e.getLocalizedMessage()));
-          mb.append(stackTraceToSingleLineString(e));
-          logger.error(mb.toMessage());
+          logger.error(NOTE_EXCEPTION_RESTARTING_SESSION,
+              getBaseDN().toNormalizedString(), e.getLocalizedMessage() + " " + stackTraceToSingleLineString(e));
         }
 
         if (rs.isConnected() || !infiniteTry)

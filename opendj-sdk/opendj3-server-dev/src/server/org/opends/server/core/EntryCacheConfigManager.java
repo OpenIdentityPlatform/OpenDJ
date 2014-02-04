@@ -25,49 +25,37 @@
  *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.core;
-import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.EntryCacheCfg;
-import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.meta.EntryCacheCfgDefn;
-import org.opends.server.api.EntryCache;
-import org.opends.server.config.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.EntryCacheMonitorProviderCfg;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigException;
 import org.opends.server.extensions.DefaultEntryCache;
 import org.opends.server.monitors.EntryCacheMonitorProvider;
+import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.ResultCode;
 
-import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a utility that will be used to manage the configuration
@@ -615,9 +603,9 @@ public class EntryCacheConfigManager
       // it instead of creating a new one unless explicit init is requested.
       EntryCache<? extends EntryCacheCfg> cache;
       if (initialize || (entryCache == null)) {
-        cache = (EntryCache<? extends EntryCacheCfg>) cacheClass.newInstance();
+        cache = cacheClass.newInstance();
       } else {
-        cache = (EntryCache<? extends EntryCacheCfg>) entryCache;
+        cache = entryCache;
       }
 
       if (initialize)
@@ -640,18 +628,7 @@ public class EntryCacheConfigManager
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
-          if (! unacceptableReasons.isEmpty())
-          {
-            Iterator<LocalizableMessage> iterator = unacceptableReasons.iterator();
-            buffer.append(iterator.next());
-            while (iterator.hasNext())
-            {
-              buffer.append(".  ");
-              buffer.append(iterator.next());
-            }
-          }
-
+          String buffer = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(
               ERR_CONFIG_ENTRYCACHE_CONFIG_NOT_ACCEPTABLE.get(configuration.dn(), buffer));
         }
