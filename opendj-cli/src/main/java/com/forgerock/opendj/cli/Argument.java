@@ -40,7 +40,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * for an application. This is an abstract class that must be subclassed in
  * order to provide specific functionality.
  */
-abstract class Argument {
+public abstract class Argument {
     // Indicates whether this argument should be hidden in the usage
     // information.
     private boolean isHidden;

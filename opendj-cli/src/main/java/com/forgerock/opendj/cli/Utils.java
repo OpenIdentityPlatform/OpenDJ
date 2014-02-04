@@ -40,6 +40,9 @@ import org.forgerock.i18n.LocalizableMessage;
  * This class provides utility functions for all the client side tools.
  */
 final public class Utils {
+    /** Platform appropriate line separator. */
+    static public final String LINE_SEPARATOR = System.getProperty("line.separator");
+
     /**
      * The name of a command-line script used to launch a tool.
      */
