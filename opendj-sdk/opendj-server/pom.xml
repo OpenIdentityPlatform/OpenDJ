@@ -89,6 +89,11 @@
       <version>${forgerockBuildToolsVersion}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-cli</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <resources>
@@ -191,7 +196,7 @@
             <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
           </links>
         </configuration>
-      </plugin>
+      </plugin>      
     </plugins>
   </reporting>
 </project>
