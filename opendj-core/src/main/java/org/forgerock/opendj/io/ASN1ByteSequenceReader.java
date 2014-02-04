@@ -174,6 +174,12 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public void readEndExplicitTag() throws DecodeException, IOException {
+        readEndSequence();
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -331,6 +337,12 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
 
         // Reset the state
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void readStartExplicitTag() throws DecodeException, IOException {
+        readStartSequence();
     }
 
     /**

@@ -269,6 +269,12 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public void readEndExplicitTag() throws DecodeException, IOException {
+        readEndSequence();
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -460,6 +466,12 @@ final class ASN1BufferReader extends AbstractASN1Reader {
 
         // Reset the state
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void readStartExplicitTag() throws DecodeException, IOException {
+        readStartSequence();
     }
 
     /**

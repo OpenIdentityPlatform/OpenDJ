@@ -45,6 +45,12 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 public final class ASN1 {
 
     /**
+     * Maximum buffer size when reading ASN1. Buffers above this threshold will
+     * be discarded for garbage collection to avoid OutOfMemoryErrors.
+     */
+    private static final int DEFAULT_MAX_BUFFER_SIZE = 32 * 1024;
+
+    /**
      * The byte array containing the pre-encoded ASN.1 encoding for a boolean
      * value of "false".
      */
@@ -62,14 +68,18 @@ public final class ASN1 {
     public static final byte UNIVERSAL_BOOLEAN_TYPE = 0x01;
 
     /**
-     * The BER type that is assigned to the universal enumerated type.
-     */
-    public static final byte UNIVERSAL_ENUMERATED_TYPE = 0x0A;
-
-    /**
      * The BER type that is assigned to the universal integer type.
      */
     public static final byte UNIVERSAL_INTEGER_TYPE = 0x02;
+    /**
+     * The BER type that is assigned to the universal bit string type.
+     */
+    public static final byte UNIVERSAL_BIT_STRING_TYPE = 0x03;
+
+    /**
+     * The BER type that is assigned to the universal octet string type.
+     */
+    public static final byte UNIVERSAL_OCTET_STRING_TYPE = 0x04;
 
     /**
      * The BER type that is assigned to the universal null type.
@@ -77,9 +87,9 @@ public final class ASN1 {
     public static final byte UNIVERSAL_NULL_TYPE = 0x05;
 
     /**
-     * The BER type that is assigned to the universal octet string type.
+     * The BER type that is assigned to the universal enumerated type.
      */
-    public static final byte UNIVERSAL_OCTET_STRING_TYPE = 0x04;
+    public static final byte UNIVERSAL_ENUMERATED_TYPE = 0x0A;
 
     /**
      * The BER type that is assigned to the universal sequence type.
@@ -139,12 +149,12 @@ public final class ASN1 {
      * The bitmask that can be ANDed with the BER type to determine if the
      * element is constructed.
      */
-    static final byte TYPE_MASK_CONSTRUCTED = 0x20;
+    public static final byte TYPE_MASK_CONSTRUCTED = 0x20;
     /**
      * The bitmask that can be ANDed with the BER type to determine if the
      * element is in the context-specific class.
      */
-    static final byte TYPE_MASK_CONTEXT = (byte) 0x80;
+    public static final byte TYPE_MASK_CONTEXT = (byte) 0x80;
     /**
      * The bitmask that can be ANDed with the BER type to determine if the
      * element is a primitive.
@@ -278,7 +288,22 @@ public final class ASN1 {
      * @return The new ASN.1 writer.
      */
     public static ASN1Writer getWriter(final ByteStringBuilder builder) {
-        return getWriter(builder.asOutputStream());
+        return getWriter(builder.asOutputStream(), DEFAULT_MAX_BUFFER_SIZE);
+    }
+
+    /**
+     * Returns an ASN.1 writer whose destination is the provided byte string
+     * builder.
+     *
+     * @param builder
+     *            The output stream to use.
+     * @param maxBufferSize
+     *          The threshold capacity beyond which internal cached buffers used
+     *          for encoding and decoding ASN1 will be trimmed after use.
+     * @return The new ASN.1 writer.
+     */
+    public static ASN1Writer getWriter(final ByteStringBuilder builder, final int maxBufferSize) {
+        return getWriter(builder.asOutputStream(), maxBufferSize);
     }
 
     /**
@@ -289,7 +314,21 @@ public final class ASN1 {
      * @return The new ASN.1 writer.
      */
     public static ASN1Writer getWriter(final OutputStream stream) {
-        return new ASN1OutputStreamWriter(stream);
+        return getWriter(stream, DEFAULT_MAX_BUFFER_SIZE);
+    }
+
+    /**
+     * Returns an ASN.1 writer whose destination is the provided output stream.
+     *
+     * @param stream
+     *            The output stream to use.
+     * @param maxBufferSize
+     *          The threshold capacity beyond which internal cached buffers used
+     *          for encoding and decoding ASN1 will be trimmed after use.
+     * @return The new ASN.1 writer.
+     */
+    public static ASN1Writer getWriter(final OutputStream stream, final int maxBufferSize) {
+        return new ASN1OutputStreamWriter(stream, maxBufferSize);
     }
 
     // Prevent instantiation.
