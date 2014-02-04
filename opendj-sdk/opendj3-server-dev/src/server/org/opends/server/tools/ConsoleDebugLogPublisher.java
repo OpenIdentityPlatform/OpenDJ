@@ -138,7 +138,7 @@ public class ConsoleDebugLogPublisher extends
     buf.append(" ");
 
     // Emit the debug level.
-    buf.append("TRACE ");
+    buf.append("trace ");
 
     // Emit message.
     buf.append(msg);

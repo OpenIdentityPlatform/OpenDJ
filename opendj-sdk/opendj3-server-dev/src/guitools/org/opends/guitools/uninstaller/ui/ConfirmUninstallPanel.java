@@ -223,13 +223,13 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     try {
       outsideDbs = config.getOutsideDbs();
     } catch (IOException ioe) {
-      logger.debug(LocalizableMessage.raw("Unable to determin outside databases", ioe));
+      logger.info(LocalizableMessage.raw("Unable to determin outside databases", ioe));
     }
 
     try {
       outsideLogs = config.getOutsideLogs();
     } catch (IOException ioe) {
-      logger.debug(LocalizableMessage.raw("Unable to determin outside logs", ioe));
+      logger.info(LocalizableMessage.raw("Unable to determin outside logs", ioe));
     }
 
 

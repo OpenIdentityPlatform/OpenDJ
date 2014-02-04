@@ -64,7 +64,7 @@ public class ApplicationPrintStream extends PrintStream
   public void println(String msg)
   {
     notifyListenersNewLine(msg);
-    logger.debug(LocalizableMessage.raw(msg));
+    logger.info(LocalizableMessage.raw(msg));
   }
 
   /**

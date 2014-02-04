@@ -144,7 +144,7 @@ public class ServerController {
         mb.append(application.getLineBreak());
         application.notifyListeners(mb.toMessage());
       }
-      logger.debug(LocalizableMessage.raw("stopping server"));
+      logger.info(LocalizableMessage.raw("stopping server"));
 
       ArrayList<String> argList = new ArrayList<String>();
       argList.add(Utils.getScriptPath(
@@ -166,19 +166,19 @@ public class ServerController {
       env.remove(SetupUtils.OPENDJ_JAVA_ARGS);
       env.remove("CLASSPATH");
 
-      logger.debug(LocalizableMessage.raw("Before calling stop-ds.  Is server running? "+
+      logger.info(LocalizableMessage.raw("Before calling stop-ds.  Is server running? "+
           installation.getStatus().isServerRunning()));
 
       int stopTries = 3;
       while (stopTries > 0)
       {
         stopTries --;
-        logger.debug(LocalizableMessage.raw("Launching stop command, stopTries left: "+
+        logger.info(LocalizableMessage.raw("Launching stop command, stopTries left: "+
             stopTries));
 
         try
         {
-          logger.debug(LocalizableMessage.raw("Launching stop command, argList: "+argList));
+          logger.info(LocalizableMessage.raw("Launching stop command, argList: "+argList));
           Process process = pb.start();
 
           BufferedReader err =
@@ -219,7 +219,7 @@ public class ServerController {
                   // do nothing
                 }
                 stopped = !installation.getStatus().isServerRunning();
-                logger.debug(LocalizableMessage.raw(
+                logger.info(LocalizableMessage.raw(
                     "After calling stop-ds.  Is server running? "+!stopped));
 
                 if (!stopped) {
@@ -249,7 +249,7 @@ public class ServerController {
               mb.append(application.getLineBreak());
               application.notifyListeners(mb.toMessage());
             }
-            logger.debug(LocalizableMessage.raw("server already stopped"));
+            logger.info(LocalizableMessage.raw("server already stopped"));
             break;
           } else if (returnValue != 0) {
             if (stopTries <= 0)
@@ -268,7 +268,7 @@ public class ServerController {
               application.notifyListeners(application.getFormattedLog(
                   INFO_PROGRESS_SERVER_STOPPED.get()));
             }
-            logger.debug(LocalizableMessage.raw("server stopped"));
+            logger.info(LocalizableMessage.raw("server stopped"));
             break;
           }
 
@@ -339,7 +339,7 @@ public class ServerController {
         mb.append(application.getLineBreak());
         application.notifyListeners(mb.toMessage());
       }
-      logger.debug(LocalizableMessage.raw("starting server"));
+      logger.info(LocalizableMessage.raw("starting server"));
 
       ArrayList<String> argList = new ArrayList<String>();
       argList.add(Utils.getScriptPath(
@@ -374,7 +374,7 @@ public class ServerController {
 
         int returnValue = process.waitFor();
 
-        logger.debug(LocalizableMessage.raw("start-ds return value: "+returnValue));
+        logger.info(LocalizableMessage.raw("start-ds return value: "+returnValue));
 
         if (returnValue != 0)
         {
@@ -384,11 +384,11 @@ public class ServerController {
         }
         if (outputReader.isFinished())
         {
-          logger.debug(LocalizableMessage.raw("Output reader finished."));
+          logger.info(LocalizableMessage.raw("Output reader finished."));
         }
         if (errReader.isFinished())
         {
-          logger.debug(LocalizableMessage.raw("Error reader finished."));
+          logger.info(LocalizableMessage.raw("Error reader finished."));
         }
         if (!outputReader.startedIdFound() && !errReader.startedIdFound())
         {
@@ -601,7 +601,7 @@ public class ServerController {
                 application.notifyListeners(buf.toMessage());
                 isFirstLine = false;
               }
-              logger.debug(LocalizableMessage.raw("server: " + line));
+              logger.info(LocalizableMessage.raw("server: " + line));
               line = reader.readLine();
             }
           } catch (Throwable t) {
@@ -609,7 +609,7 @@ public class ServerController {
               LocalizableMessage errorMsg = getThrowableMsg(errorTag, t);
               application.notifyListeners(errorMsg);
             }
-            logger.debug(LocalizableMessage.raw("error reading server messages",t));
+            logger.info(LocalizableMessage.raw("error reading server messages",t));
           }
         }
       });
@@ -691,7 +691,7 @@ public class ServerController {
                 application.notifyListeners(buf.toMessage());
                 isFirstLine = false;
               }
-              logger.debug(LocalizableMessage.raw("server: " + line));
+              logger.info(LocalizableMessage.raw("server: " + line));
               if (line.toLowerCase().contains("=" + startedId))
               {
                 isFinished = true;

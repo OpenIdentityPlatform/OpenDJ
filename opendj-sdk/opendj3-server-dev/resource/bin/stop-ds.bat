@@ -55,7 +55,7 @@ set TEMP_LOG=%TEMP%\logs\
 
 if NOT EXIST %INSTANCE_ROOT%\logs\ (
   if NOT EXIST %TEMP_LOG% (
-    md %TEMP_LOG% 
+    md %TEMP_LOG%
   )
   set LOG="%TEMP_LOG%native-windows.out"
 ) ELSE (
@@ -68,7 +68,7 @@ rem echo %SCRIPT%: your-message-here >> %LOG%
 echo %SCRIPT%: invoked >> %LOG%
 
 rem Set environment variables
-set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
+set SCRIPT_UTIL_CMD=set-full-server-environment-and-test-java
 call "%INSTALL_ROOT%\lib\_script-util.bat" %*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 

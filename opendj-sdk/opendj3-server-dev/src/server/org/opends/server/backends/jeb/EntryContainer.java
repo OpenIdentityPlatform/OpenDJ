@@ -582,7 +582,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
         if(!vlvIndex.isTrusted())
         {
-          logger.error(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, vlvIndex.getName());
+          logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, vlvIndex.getName());
         }
 
         vlvIndexMap.put(vlvIndexCfg.getName().toLowerCase(), vlvIndex);
@@ -3307,7 +3307,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         env.removeDatabase(txn, database.getName());
         if(database instanceof Index)
         {
-          state.removeIndexTrustState(txn, (Index)database);
+          state.removeIndexTrustState(txn, database);
         }
         transactionCommit(txn);
       }
@@ -3322,7 +3322,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       env.removeDatabase(null, database.getName());
       if(database instanceof Index)
       {
-        state.removeIndexTrustState(null, (Index)database);
+        state.removeIndexTrustState(null, database);
       }
     }
   }
@@ -3565,7 +3565,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           state.putIndexTrustState(null, id2subtree, false);
           id2subtree.open(); // No-op
 
-          logger.error(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, cfg.getBackendId());
+          logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, cfg.getBackendId());
         }
       }
 
@@ -3792,7 +3792,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     id2children.open();
     if (!id2children.isTrusted())
     {
-      logger.error(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, id2children.getName());
+      logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, id2children.getName());
     }
     id2subtree = new Index(databasePrefix + "_" + ID2SUBTREE_DATABASE_NAME,
             new ID2SIndexer(), state, config.getIndexEntryLimit(), 0, true,
@@ -3800,7 +3800,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     id2subtree.open();
     if (!id2subtree.isTrusted())
     {
-      logger.error(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, id2subtree.getName());
+      logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, id2subtree.getName());
     }
   }
 

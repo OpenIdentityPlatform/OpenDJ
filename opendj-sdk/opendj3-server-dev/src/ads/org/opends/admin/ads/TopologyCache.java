@@ -137,7 +137,7 @@ public class TopologyCache
         ServerDescriptor descriptor = loader.getServerDescriptor();
         for (ReplicaDescriptor replica : descriptor.getReplicas())
         {
-          logger.debug(LocalizableMessage.raw("Handling replica with dn: "
+          logger.info(LocalizableMessage.raw("Handling replica with dn: "
               + replica.getSuffix().getDN()));
 
           boolean suffixFound = false;
@@ -362,7 +362,7 @@ public class TopologyCache
       }
       catch (InterruptedException ie)
       {
-        logger.debug(LocalizableMessage.raw(ie + " caught and ignored", ie));
+        logger.info(LocalizableMessage.raw(ie + " caught and ignored", ie));
       }
       if (t.isAlive())
       {
@@ -371,7 +371,7 @@ public class TopologyCache
     }
     Date endDate = new Date();
     long workingTime = endDate.getTime() - startDate.getTime();
-    logger.debug(LocalizableMessage.raw("Loading ended at " + workingTime + " ms"));
+    logger.info(LocalizableMessage.raw("Loading ended at " + workingTime + " ms"));
   }
 
   /**

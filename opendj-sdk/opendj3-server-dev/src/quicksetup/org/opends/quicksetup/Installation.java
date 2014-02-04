@@ -52,7 +52,7 @@ public final class Installation
 
   /** Relative path to bootstrap OpenDJ jar file. */
   public static final String OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH =
-      "lib/bootstrap.jar";
+      "lib/bootstrap-client.jar";
 
   /**
    * The relative path where all the Windows binaries (batch files) are.
@@ -490,12 +490,12 @@ public final class Installation
       try
       {
         BuildInformation bi = getBuildInformation();
-        logger.debug(LocalizableMessage.raw("build info for " + rootDirectory.getName() + ": "
+        logger.info(LocalizableMessage.raw("build info for " + rootDirectory.getName() + ": "
             + bi));
       }
       catch (ApplicationException e)
       {
-        logger.debug(LocalizableMessage.raw("error determining build information", e));
+        logger.info(LocalizableMessage.raw("error determining build information", e));
       }
     }
   }
@@ -523,12 +523,12 @@ public final class Installation
       try
       {
         BuildInformation bi = getBuildInformation();
-        logger.debug(LocalizableMessage.raw("build info for " + instanceDirectory.getName()
+        logger.info(LocalizableMessage.raw("build info for " + instanceDirectory.getName()
             + ": " + bi));
       }
       catch (ApplicationException e)
       {
-        logger.debug(LocalizableMessage.raw("error determining build information", e));
+        logger.info(LocalizableMessage.raw("error determining build information", e));
       }
     }
   }
@@ -1141,7 +1141,7 @@ public final class Installation
       }
       catch (InterruptedException e)
       {
-        logger.debug(LocalizableMessage.raw("interrupted trying to get build information", e));
+        logger.info(LocalizableMessage.raw("interrupted trying to get build information", e));
       }
       catch (ExecutionException e)
       {

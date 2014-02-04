@@ -59,7 +59,7 @@ abstract public class OutputReader {
             processLine(line);
           }
         } catch (Throwable t) {
-          logger.debug(LocalizableMessage.raw("error reading output"), t);
+          logger.info(LocalizableMessage.raw("error reading output"), t);
         }
       }
     });

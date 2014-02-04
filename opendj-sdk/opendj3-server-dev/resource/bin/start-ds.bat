@@ -23,7 +23,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2010 Sun Microsystems, Inc.
-rem      Portions Copyright 2011-2013 ForgeRock AS
+rem      Portions Copyright 2011-2014 ForgeRock AS
 
 setlocal
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
@@ -44,7 +44,7 @@ set TEMP_LOG=%TEMP%\logs\
 
 if NOT EXIST %INSTANCE_ROOT%\logs\ (
   if NOT EXIST %TEMP_LOG% (
-    md %TEMP_LOG% 
+    md %TEMP_LOG%
   )
   set LOG="%TEMP_LOG%native-windows.out"
 ) ELSE (
@@ -57,7 +57,7 @@ echo %SCRIPT%: invoked >> %LOG%
 set SCRIPT_NAME=start-ds
 
 rem Set environment variables
-set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
+set SCRIPT_UTIL_CMD=set-full-server-environment-and-test-java
 call "%INSTALL_ROOT%\lib\_script-util.bat" %*
 
 set ERROR_CODE=%errorlevel%

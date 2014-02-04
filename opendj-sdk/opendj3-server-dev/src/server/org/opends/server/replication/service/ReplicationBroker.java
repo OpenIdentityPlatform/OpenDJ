@@ -2656,7 +2656,7 @@ public class ReplicationBroker
                       evals.getEvaluation(previousRsServerID),
                       evals.getEvaluation(bestRsServerId));
                 }
-                logger.error(message);
+                logger.info(message);
                 if (logger.isTraceEnabled())
                   debugInfo("best replication servers evaluation results: "
                       + evals);

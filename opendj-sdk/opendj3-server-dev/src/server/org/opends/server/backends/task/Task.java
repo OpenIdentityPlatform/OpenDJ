@@ -886,8 +886,6 @@ public abstract class Task
     return notifyOnError;
   }
 
-
-
   /**
    * Retrieves the set of messages that were logged by this task.  This list
    * must not be directly modified by the caller.
@@ -902,37 +900,6 @@ public abstract class Task
       msgList.add(LocalizableMessage.raw(logString));
     }
     return Collections.unmodifiableList(msgList);
-  }
-
-
-
-  /**
-   * Writes a message to the error log using the provided information.
-   * Tasks should use this method to log messages to the error log instead of
-   * the one in <code>org.opends.server.loggers.Error</code> to ensure the
-   * messages are included in the ds-task-log-message attribute.
-   *
-   * @param  message   The message to be logged.
-   */
-  protected void logError(LocalizableMessage message)
-  {
-    // Simply pass this on to the server error logger, and it will call back
-    // to the addLogMessage method for this task.
-    logger.error(message);
-  }
-
-  /**
-   * Adds a log message to the set of messages logged by this task. This method
-   * should not be called directly by tasks, but rather will be called
-   * indirectly through the {@code ErrorLog.logError} methods. It does not
-   * automatically persist the updated task information to disk.
-   *
-   * @param message
-   *          the log message.
-   */
-  // TODO : remove this method
-  public void addLogMessage(LocalizableMessage message) {
-    addLogMessage(Severity.SEVERE_ERROR, message);
   }
 
   /**

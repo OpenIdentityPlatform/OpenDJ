@@ -478,7 +478,7 @@ public class TextDebugLogPublisher
     buf.append(" ");
 
     // Emit the debug level.
-    buf.append("TRACE ");
+    buf.append("trace ");
 
     // Emit thread info.
     buf.append("thread={");

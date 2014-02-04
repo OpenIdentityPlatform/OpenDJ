@@ -790,7 +790,7 @@ public abstract class Installer extends GuiApplication {
       try {
         new InstallerHelper().disableWindowsService();
       } catch (ApplicationException ae) {
-        logger.debug(LocalizableMessage.raw("Error disabling Windows service", ae));
+        logger.info(LocalizableMessage.raw("Error disabling Windows service", ae));
       }
     }
 
@@ -1001,7 +1001,7 @@ public abstract class Installer extends GuiApplication {
       }
       nextPassword = "-w".equals(s);
     }
-    logger.debug(LocalizableMessage.raw("configure DS cmd: "+cmd));
+    logger.info(LocalizableMessage.raw("configure DS cmd: "+cmd));
     final InstallerHelper helper = new InstallerHelper();
     setNotifyListeners(false);
     InvokeThread thread = new InvokeThread()
@@ -2509,9 +2509,9 @@ public abstract class Installer extends GuiApplication {
         {
           try
           {
-            logger.debug(LocalizableMessage.raw("Calling initializeSuffix with base DN: "+dn));
-            logger.debug(LocalizableMessage.raw("Try number: "+(6 - nTries)));
-            logger.debug(LocalizableMessage.raw("replicationId of source replica: "+
+            logger.info(LocalizableMessage.raw("Calling initializeSuffix with base DN: "+dn));
+            logger.info(LocalizableMessage.raw("Try number: "+(6 - nTries)));
+            logger.info(LocalizableMessage.raw("replicationId of source replica: "+
                 replicationId));
             initializeSuffix(ctx, replicationId, dn, !isADS && !isSchema,
                 hostPort);
@@ -2519,7 +2519,7 @@ public abstract class Installer extends GuiApplication {
           }
           catch (PeerNotFoundException pnfe)
           {
-            logger.debug(LocalizableMessage.raw("Peer could not be found"));
+            logger.info(LocalizableMessage.raw("Peer could not be found"));
             if (nTries == 1)
             {
               throw new ApplicationException(
@@ -3564,7 +3564,7 @@ public abstract class Installer extends GuiApplication {
               {
                 cause = e.getTrustManager().getLastRefusedCause();
               }
-              logger.debug(LocalizableMessage.raw("Certificate exception cause: "+cause));
+              logger.info(LocalizableMessage.raw("Certificate exception cause: "+cause));
               if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
               {
                 excType = UserDataCertificateException.Type.NOT_TRUSTED;
@@ -3626,13 +3626,13 @@ public abstract class Installer extends GuiApplication {
     }
     catch (Throwable t)
     {
-      logger.debug(LocalizableMessage.raw("Error connecting to remote server.", t));
+      logger.info(LocalizableMessage.raw("Error connecting to remote server.", t));
       if (isCertificateException(t))
       {
         UserDataCertificateException.Type excType;
         ApplicationTrustManager.Cause cause =
           trustManager.getLastRefusedCause();
-        logger.debug(LocalizableMessage.raw("Certificate exception cause: "+cause));
+        logger.info(LocalizableMessage.raw("Certificate exception cause: "+cause));
         if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
         {
           excType = UserDataCertificateException.Type.NOT_TRUSTED;
@@ -4391,7 +4391,7 @@ public abstract class Installer extends GuiApplication {
       {
         DirContext dirCtx = ctx.createSubcontext(dn, attrs);
         taskCreated = true;
-        logger.debug(LocalizableMessage.raw("created task entry: "+attrs));
+        logger.info(LocalizableMessage.raw("created task entry: "+attrs));
         dirCtx.close();
       }
       catch (NameAlreadyBoundException x)
@@ -4528,7 +4528,7 @@ public abstract class Installer extends GuiApplication {
           if (((currentTime - minRefreshPeriod) > lastTimeMsgLogged))
           {
             lastTimeMsgLogged = currentTime;
-            logger.debug(LocalizableMessage.raw("Progress msg: "+msg));
+            logger.info(LocalizableMessage.raw("Progress msg: "+msg));
           }
           if (displayProgress)
           {
@@ -4548,7 +4548,7 @@ public abstract class Installer extends GuiApplication {
         {
           if (!logMsg.equals(lastLogMsg))
           {
-            logger.debug(LocalizableMessage.raw(logMsg));
+            logger.info(LocalizableMessage.raw(logMsg));
             lastLogMsg = logMsg;
           }
         }
@@ -4559,7 +4559,7 @@ public abstract class Installer extends GuiApplication {
         {
           isOver = true;
           LocalizableMessage errorMsg;
-          logger.debug(LocalizableMessage.raw("Last task entry: "+sr));
+          logger.info(LocalizableMessage.raw("Last task entry: "+sr));
           if (displayProgress && (msg != null) && !msg.equals(lastDisplayedMsg))
           {
             notifyListeners(getFormattedProgress(msg));
@@ -4609,7 +4609,7 @@ public abstract class Installer extends GuiApplication {
           }
           else if (displayProgress)
           {
-            logger.debug(LocalizableMessage.raw("Initialization completed successfully."));
+            logger.info(LocalizableMessage.raw("Initialization completed successfully."));
             notifyListeners(getFormattedProgress(
                 INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get()));
             notifyListeners(getLineBreak());
@@ -4619,7 +4619,7 @@ public abstract class Installer extends GuiApplication {
       catch (NameNotFoundException x)
       {
         isOver = true;
-        logger.debug(LocalizableMessage.raw("Initialization entry not found."));
+        logger.info(LocalizableMessage.raw("Initialization entry not found."));
         if (displayProgress)
         {
           notifyListeners(getFormattedProgress(
@@ -4699,7 +4699,7 @@ public abstract class Installer extends GuiApplication {
       {
         DirContext dirCtx = ctx.createSubcontext(dn, attrs);
         taskCreated = true;
-        logger.debug(LocalizableMessage.raw("created task entry: "+attrs));
+        logger.info(LocalizableMessage.raw("created task entry: "+attrs));
         dirCtx.close();
       }
       catch (NameAlreadyBoundException x)
@@ -4751,7 +4751,7 @@ public abstract class Installer extends GuiApplication {
         {
           if (!logMsg.equals(lastLogMsg))
           {
-            logger.debug(LocalizableMessage.raw(logMsg));
+            logger.info(LocalizableMessage.raw(logMsg));
             lastLogMsg = logMsg;
           }
         }

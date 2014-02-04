@@ -491,7 +491,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   public void quit()
   {
-    logger.debug(LocalizableMessage.raw("quitting application"));
+    logger.info(LocalizableMessage.raw("quitting application"));
     flushLogs();
     System.exit(0);
   }

@@ -284,14 +284,14 @@ public class LoginPanel extends StatusGenericPanel
           boolean handleCertificateException = false;
           if (throwable != null)
           {
-            logger.debug(LocalizableMessage.raw("Error connecting: " + throwable, throwable));
+            logger.info(LocalizableMessage.raw("Error connecting: " + throwable, throwable));
 
             if (Utils.isCertificateException(throwable))
             {
               ApplicationTrustManager.Cause cause =
                 getInfo().getTrustManager().getLastRefusedCause();
 
-              logger.debug(LocalizableMessage.raw("Certificate exception cause: "+cause));
+              logger.info(LocalizableMessage.raw("Certificate exception cause: "+cause));
               UserDataCertificateException.Type excType = null;
               if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
               {
@@ -442,7 +442,7 @@ public class LoginPanel extends StatusGenericPanel
 
       if ((chain != null) && (authType != null) && (host != null))
       {
-        logger.debug(LocalizableMessage.raw("Accepting certificate presented by host "+host));
+        logger.info(LocalizableMessage.raw("Accepting certificate presented by host "+host));
         getInfo().getTrustManager().acceptCertificate(chain, authType, host);
         /* Simulate a click on the OK by calling in the okClicked method. */
         SwingUtilities.invokeLater(new Runnable()

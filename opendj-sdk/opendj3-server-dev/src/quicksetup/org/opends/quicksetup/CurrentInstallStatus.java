@@ -174,7 +174,7 @@ public class CurrentInstallStatus
       port = Installation.getLocal().getCurrentConfiguration().
               getPort();
     } catch (IOException ioe) {
-      logger.debug(LocalizableMessage.raw("Failed to get port", ioe));
+      logger.info(LocalizableMessage.raw("Failed to get port", ioe));
     }
     return port;
   }

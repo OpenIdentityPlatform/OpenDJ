@@ -431,7 +431,7 @@ public abstract class GuiApplication extends Application {
 
     if ((chain != null) && (authType != null) && (host != null))
     {
-      logger.debug(LocalizableMessage.raw("Accepting certificate presented by host "+host));
+      logger.info(LocalizableMessage.raw("Accepting certificate presented by host "+host));
       getTrustManager().acceptCertificate(chain, authType, host);
     }
     else

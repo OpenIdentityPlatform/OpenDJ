@@ -669,7 +669,7 @@ public final class ClassLoaderProvider {
       try {
         // Log build information of extensions in the error log
         String[] information = getBuildInformation(jarFile);
-        logger.error(NOTE_LOG_EXTENSION_INFORMATION, jarFile.getName(), information[1], information[2]);
+        logger.info(NOTE_LOG_EXTENSION_INFORMATION, jarFile.getName(), information[1], information[2]);
       } catch(Exception e) {
         // Do not log information for that extension
       }

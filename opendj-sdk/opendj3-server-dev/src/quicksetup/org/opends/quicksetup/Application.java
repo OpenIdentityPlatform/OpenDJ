@@ -105,15 +105,15 @@ public abstract class Application implements ProgressNotifier, Runnable {
         appClass = Class.forName(appClassName);
         app = (GuiApplication) appClass.newInstance();
       } catch (ClassNotFoundException e) {
-        logger.debug(LocalizableMessage.raw("error creating quicksetup application", e));
+        logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
         String msg = "Application class " + appClass + " not found";
         throw new RuntimeException(msg, e);
       } catch (IllegalAccessException e) {
-        logger.debug(LocalizableMessage.raw("error creating quicksetup application", e));
+        logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
         String msg = "Could not access class " + appClass;
         throw new RuntimeException(msg, e);
       } catch (InstantiationException e) {
-        logger.debug(LocalizableMessage.raw("error creating quicksetup application", e));
+        logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
         String msg = "Error instantiating class " + appClass;
         throw new RuntimeException(msg, e);
       } catch (ClassCastException e) {
@@ -836,7 +836,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
       notifyListeners(mb.toMessage());
       applicationPrintStreamReceived(msg);
-      logger.debug(LocalizableMessage.raw(msg));
+      logger.info(LocalizableMessage.raw(msg));
       isFirstLine = false;
     }
 

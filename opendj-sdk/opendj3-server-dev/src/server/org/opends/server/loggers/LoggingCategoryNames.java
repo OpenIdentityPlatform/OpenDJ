@@ -89,6 +89,9 @@ class LoggingCategoryNames
     // The category used for messages associated with tools
     NAMES.put("org.opends.server.tools", "TOOLS");
 
+    // The category used for messages associated with upgrade tool
+    NAMES.put("org.opends.server.tools.upgrade", "UPGRADE");
+
     // The category used for messages associated with tasks
     NAMES.put("org.opends.server.tasks", "TASK");
 

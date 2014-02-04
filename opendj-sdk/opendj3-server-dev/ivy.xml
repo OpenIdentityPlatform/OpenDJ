@@ -83,8 +83,7 @@
     <dependency org="org.slf4j"             name="slf4j-jdk14"              rev="&slf4j.version;"      conf="default->master,sources"/>
     -->
 
-    <exclude org="javax.activation"         artifact="activation" />
-    <exclude  module="slf4j-jdk14"/>
+    <exclude org="javax.activation" artifact="activation" />
     <!-- This is already the OpenDJ server module :) -->
     <exclude  module="opendj-server"/>
     <exclude  module="opendj3-server-dev"/>

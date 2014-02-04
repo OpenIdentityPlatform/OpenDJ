@@ -286,7 +286,7 @@ public class ZipExtractor {
         application.notifyListenersRatioChange(ratioBeforeCompleted);
       }
     }
-    logger.debug(LocalizableMessage.raw("extracting " + Utils.getPath(destination)));
+    logger.info(LocalizableMessage.raw("extracting " + Utils.getPath(destination)));
     if (Utils.insureParentsExist(destination))
     {
       if (entry.isDirectory())

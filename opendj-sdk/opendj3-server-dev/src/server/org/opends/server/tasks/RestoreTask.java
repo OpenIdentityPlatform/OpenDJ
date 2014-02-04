@@ -26,6 +26,7 @@
  */
 package org.opends.server.tasks;
 import org.forgerock.i18n.LocalizableMessage;
+import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
 
 import static org.opends.server.core.DirectoryServer.getAttributeType;
@@ -33,8 +34,8 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
@@ -50,8 +51,6 @@ import org.opends.server.types.BackupInfo;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-
-
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
@@ -221,8 +220,8 @@ public class RestoreTask extends Task
     if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
             restoreConfig != null)
     {
-      addLogMessage(TaskMessages.INFO_TASK_STOPPED_BY_ADMIN.get(
-              interruptReason));
+      addLogMessage(Severity.INFORMATION, TaskMessages.INFO_TASK_STOPPED_BY_ADMIN.get(
+      interruptReason));
       setTaskInterruptState(interruptState);
       restoreConfig.cancel();
     }

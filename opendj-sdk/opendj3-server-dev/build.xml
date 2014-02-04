@@ -1189,12 +1189,17 @@ Please:
 
     <antcall target="package-snmp" />
 
-    <!-- Build the bootstrap jar that avoids getting the error message "The input line is too long" on Windows -->
+    <!--
+      Build the bootstrap jar that avoids getting the error message "The input line is too long" on Windows.
+      This is intended for the server, logging is implemented by the opendj-slf4j-adapter module.
+    -->
+
     <manifestclasspath property="manifest.classpath"
                        jarfile="${pdir}/lib/bootstrap.jar">
       <classpath>
         <fileset dir="${pdir}/lib">
           <include name="*.jar" />
+        	<exclude name="slf4j-jdk14.jar" />
         </fileset>
       </classpath>
     </manifestclasspath>
@@ -1202,6 +1207,24 @@ Please:
       <manifest>
         <attribute name="Built-By" value="${user.name}" />
         <attribute name="Class-Path" value="${manifest.classpath}" />
+      </manifest>
+    </jar>
+
+  	<!--
+  	  Build the bootstrap-client  jar.
+      This is intended for client tools, logging is implemented through the slf4j-jdk14 library.
+    -->
+    <manifestclasspath property="manifest_client.classpath"
+                       jarfile="${pdir}/lib/bootstrap-client.jar">
+      <classpath>
+        <fileset dir="${pdir}/lib" includes="*.jar" excludes="bootstrap.jar opendj-slf4j-adapter.jar" >
+        </fileset>
+      </classpath>
+    </manifestclasspath>
+    <jar jarfile="${pdir}/lib/bootstrap-client.jar">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}" />
+        <attribute name="Class-Path" value="${manifest_client.classpath}" />
       </manifest>
     </jar>
 

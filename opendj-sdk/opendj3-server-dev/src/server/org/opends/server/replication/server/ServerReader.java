@@ -215,7 +215,7 @@ public class ServerReader extends DirectoryThread
              * connection.
              */
             errMessage = NOTE_READER_NULL_MSG.get(handler);
-            logger.error(errMessage);
+            logger.info(errMessage);
             return;
           }
         } catch (NotSupportedOldVersionPDUException e)
@@ -248,7 +248,7 @@ public class ServerReader extends DirectoryThread
        * close the connection.
        */
       errMessage = NOTE_READER_EXCEPTION.get(handler, stackTraceToSingleLineString(e));
-      logger.error(errMessage);
+      logger.info(errMessage);
     }
     finally
     {

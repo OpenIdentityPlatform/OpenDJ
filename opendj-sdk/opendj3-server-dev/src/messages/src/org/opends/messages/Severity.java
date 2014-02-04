@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.messages;
@@ -48,56 +49,47 @@ public enum Severity {
   /**
    * The severity that will be used for informational messages.
    */
-  INFORMATION(0x00000000, "INFO", "INFO"),
+  INFORMATION("INFO", "INFO"),
 
   /**
    * The severity that will be used for mild warning messages.
    */
-  MILD_WARNING(0x00010000, "MILD_WARN", "WARN"),
+  MILD_WARNING("MILD_WARN", "WARN"),
 
   /**
    * The severity that will be used for severe warning messages.
    */
-  SEVERE_WARNING(0x00020000, "SEVERE_WARN", "WARN"),
+  SEVERE_WARNING("SEVERE_WARN", "WARN"),
 
   /**
    * The severity that will be used for mild error messages.
    */
-  MILD_ERROR(0x00030000, "MILD_ERR", "ERR"),
+  MILD_ERROR("MILD_ERR", "ERR"),
 
   /**
    * The severity that will be used for severe error messages.
    */
-  SEVERE_ERROR(0x00040000, "SEVERE_ERR", "ERR"),
+  SEVERE_ERROR("SEVERE_ERR", "ERR"),
 
   /**
    * The severity that will be used for fatal error messages.
    */
-  FATAL_ERROR(0x00050000, "FATAL_ERR", "ERR"),
+  FATAL_ERROR("FATAL_ERR", "ERR"),
 
   /**
    * The severity that will be used for debug messages.
    */
-  DEBUG(0x00060000, "DEBUG", "DEBUG"),
+  DEBUG("DEBUG", "DEBUG"),
 
   /**
    * The severity that will be used for important informational
    * messages.
    */
-  NOTICE(0x00070000, "NOTICE", "NOTE");
+  NOTICE("NOTICE", "NOTE");
 
   static private Set<String> PROPERTY_KEY_FORM_VALUES_SET;
 
   static private Map<String,Severity> PROPERTY_KEY_FORM_MAP;
-
-  static private Map<Integer,Severity> MASK_VALUE_MAP;
-
-  static {
-    MASK_VALUE_MAP = new HashMap<Integer,Severity>();
-    for (Severity c : EnumSet.allOf(Severity.class)) {
-      MASK_VALUE_MAP.put(c.mask, c);
-    }
-  }
 
   static {
     PROPERTY_KEY_FORM_MAP = new HashMap<String,Severity>();
@@ -118,21 +110,6 @@ public enum Severity {
   }
 
   /**
-   * Obtains the <code>Severity</code> associated with a given mask
-   * value.
-   * @param mask for which a <code>Severity</code> is obtained.
-   * @return Severity associated with <code>mask</code>
-   */
-  static public Severity parseMask(int mask) {
-    Severity sev = MASK_VALUE_MAP.get(mask);
-    if (sev == null) {
-      throw new IllegalArgumentException(
-              "No Severity defined with int value " + mask);
-    }
-    return sev;
-  }
-
-  /**
    * Returns the <code>Severity</code> associated with the input
    * string <code>s</code> which can either be a severity's name
    * or messageDescriptorForm.
@@ -147,27 +124,8 @@ public enum Severity {
     return sev;
   }
 
-  /**
-   * Obtains the <code>Severity</code> associated with the the input
-   * message ID <code>msgId</code>.
-   * @param msgId int message ID
-   * @return Severity assocated with the ID
-   */
-  static public Severity parseMessageId(int msgId) {
-    return parseMask(msgId & 0x000F0000);
-  }
-
-  private final int mask;
   private final String propertyKeyForm;
   private final String messageDescriptorForm;
-
-  /**
-   * Returns the mask associated with this <code>Severity</code>.
-   * @return mask for this severity
-   */
-  public int getMask() {
-    return mask;
-  }
 
   /**
    * Gets the abbreviated form of this <code>Severity</code>.
@@ -187,9 +145,7 @@ public enum Severity {
     return propertyKeyForm;
   }
 
-  private Severity(int mask, String propertyKeyForm,
-                   String messageDescriptorName) {
-    this.mask = mask;
+  private Severity(String propertyKeyForm, String messageDescriptorName) {
     this.propertyKeyForm = propertyKeyForm;
     this.messageDescriptorForm = messageDescriptorName;
   }

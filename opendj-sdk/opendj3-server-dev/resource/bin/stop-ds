@@ -23,7 +23,7 @@
 #
 #
 #      Copyright 2006-2009 Sun Microsystems, Inc.
-#      Portions Copyright 2011 ForgeRock AS
+#      Portions Copyright 2011-2014 ForgeRock AS
 
 
 # This script may be used to request that the Directory Server shut down.
@@ -88,7 +88,7 @@ then
 fi
 
 # Set environment variables
-SCRIPT_UTIL_CMD=set-full-environment-and-test-java
+SCRIPT_UTIL_CMD=set-full-server-environment-and-test-java
 export SCRIPT_UTIL_CMD
 .  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
