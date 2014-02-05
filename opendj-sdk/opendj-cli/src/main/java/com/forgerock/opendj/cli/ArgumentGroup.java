@@ -34,12 +34,10 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 
 /**
- * Class for organizing options into logical groups when argument usage is
- * printed. To use an argument group, create an instance and use
- * {@code ArgumentParser#addArgument(Argument, ArgumentGroup)}
- * when adding arguments for to the parser.
+ * Class for organizing options into logical groups when argument usage is printed. To use an argument group, create an
+ * instance and use {@code ArgumentParser#addArgument(Argument, ArgumentGroup)} when adding arguments for to the parser.
  */
-final class ArgumentGroup implements Comparable<ArgumentGroup> {
+public final class ArgumentGroup implements Comparable<ArgumentGroup> {
 
     // Description for this group of arguments
     private LocalizableMessage description = null;
@@ -54,14 +52,12 @@ final class ArgumentGroup implements Comparable<ArgumentGroup> {
      * Creates a parameterized instance.
      *
      * @param description
-     *            for options in this group that is printed before argument
-     *            descriptions in usage output
+     *            for options in this group that is printed before argument descriptions in usage output
      * @param priority
-     *            number governing the position of this group within the usage
-     *            statement. Groups with higher priority values appear before
-     *            groups with lower priority.
+     *            number governing the position of this group within the usage statement. Groups with higher priority
+     *            values appear before groups with lower priority.
      */
-    ArgumentGroup(final LocalizableMessage description, final int priority) {
+    public ArgumentGroup(final LocalizableMessage description, final int priority) {
         this.description = description;
         this.priority = priority;
         this.args = new LinkedList<Argument>();
@@ -83,7 +79,7 @@ final class ArgumentGroup implements Comparable<ArgumentGroup> {
      *            to add
      * @return boolean where true indicates the add was successful
      */
-    boolean addArgument(final Argument arg) {
+    public boolean addArgument(final Argument arg) {
         boolean success = false;
         if (arg != null) {
             final Character newShort = arg.getShortIdentifier();

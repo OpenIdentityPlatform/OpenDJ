@@ -24,7 +24,7 @@
  *      Copyright 2014 ForgeRock AS.
  */
 
-package org.forgerock.opendj.cli;
+package com.forgerock.opendj.cli;
 
 import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.Test;

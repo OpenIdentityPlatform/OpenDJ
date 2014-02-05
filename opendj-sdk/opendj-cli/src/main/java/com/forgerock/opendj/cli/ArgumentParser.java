@@ -165,7 +165,7 @@ public class ArgumentParser {
      * properties file, no-prompt etc. These will appear toward the bottom of
      * the usage statement.
      */
-    private final ArgumentGroup ioArgGroup = new ArgumentGroup(INFO_DESCRIPTION_IO_ARGS.get(),
+    protected final ArgumentGroup ioArgGroup = new ArgumentGroup(INFO_DESCRIPTION_IO_ARGS.get(),
             Integer.MIN_VALUE + 1);
 
     /**
@@ -369,7 +369,7 @@ public class ArgumentParser {
      *             If the provided argument conflicts with another argument that
      *             has already been defined.
      */
-    void addDefaultArgument(final Argument argument) throws ArgumentException {
+    protected void addDefaultArgument(final Argument argument) throws ArgumentException {
         addArgument(argument, defaultArgGroup);
     }
 
@@ -397,7 +397,7 @@ public class ArgumentParser {
      *             If the provided argument conflicts with another argument that
      *             has already been defined.
      */
-    void addInputOutputArgument(final Argument argument) throws ArgumentException {
+    public void addInputOutputArgument(final Argument argument) throws ArgumentException {
         addArgument(argument, ioArgGroup);
     }
 
@@ -522,7 +522,7 @@ public class ArgumentParser {
      * @return The argument with the specified long identifier, or
      *         <CODE>null</CODE> if there is no such argument.
      */
-    Argument getArgumentForLongID(final String longID) {
+    public Argument getArgumentForLongID(final String longID) {
         return longIDMap.get(longID);
     }
 
@@ -545,7 +545,7 @@ public class ArgumentParser {
      * @return The list of all arguments that have been defined for this
      *         argument parser.
      */
-    LinkedList<Argument> getArgumentList() {
+    public LinkedList<Argument> getArgumentList() {
         return argumentList;
     }
 
@@ -671,7 +671,7 @@ public class ArgumentParser {
      * @return A string containing usage information based on the defined
      *         arguments.
      */
-    String getUsage() {
+    public String getUsage() {
         final StringBuilder buffer = new StringBuilder();
         getUsage(buffer);
 
@@ -825,7 +825,7 @@ public class ArgumentParser {
      * @return <CODE>true</CODE> if the usage argument was provided and
      *         <CODE>false</CODE> otherwise.
      */
-    boolean isUsageArgumentPresent() {
+    public boolean isUsageArgumentPresent() {
         boolean isUsageArgumentPresent = false;
         if (usageArgument != null) {
             isUsageArgumentPresent = usageArgument.isPresent();
@@ -840,7 +840,7 @@ public class ArgumentParser {
      * @return <CODE>true</CODE> if the version argument was provided and
      *         <CODE>false</CODE> otherwise.
      */
-    boolean isVersionArgumentPresent() {
+    public boolean isVersionArgumentPresent() {
         return versionPresent;
     }
 
@@ -1630,5 +1630,24 @@ public class ArgumentParser {
                 }
             }
         }
+    }
+
+    /**
+     * Get the password which has to be used for the command without prompting the user. If no password was specified,
+     * return null.
+     *
+     * @param clearArg
+     *            The password StringArgument argument.
+     * @param fileArg
+     *            The password FileBased argument.
+     * @return The password stored into the specified file on by the command line argument, or null it if not specified.
+     */
+    public static String getBindPassword(StringArgument clearArg, FileBasedArgument fileArg) {
+        if (clearArg.isPresent()) {
+            return clearArg.getValue();
+        } else if (fileArg.isPresent()) {
+            return fileArg.getValue();
+        }
+        return null;
     }
 }
