@@ -880,15 +880,15 @@ public class JavaPropertiesTool extends ConsoleApplication
     {
       buf.append(
           "if \"%OPENDJ_JAVA_HOME%\" == \"\" goto "+javaHomeLabel2+LEGACY+EOL+
-          "set TEMP=%OPENDJ_JAVA_HOME%\\bin\\java.exe"+EOL+
-          "if not exist \"%TEMP%\" goto "+javaHomeLabel2+LEGACY+EOL+
-          "set OPENDJ_JAVA_BIN=%TEMP%"+EOL+
+          "set TEMP_EXE=%OPENDJ_JAVA_HOME%\\bin\\java.exe"+EOL+
+          "if not exist \"%TEMP_EXE%\" goto "+javaHomeLabel2+LEGACY+EOL+
+          "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
           "goto "+javaArgsLabel1+EOL+EOL+
           ":"+javaHomeLabel2+LEGACY+EOL+
           "if \"%OPENDS_JAVA_HOME%\" == \"\" goto "+javaHomeLabel2+EOL+
-          "set TEMP=%OPENDS_JAVA_HOME%\\bin\\java.exe"+EOL+
-          "if not exist \"%TEMP%\" goto "+javaHomeLabel2+EOL+
-          "set OPENDJ_JAVA_BIN=%TEMP%"+EOL+
+          "set TEMP_EXE=%OPENDS_JAVA_HOME%\\bin\\java.exe"+EOL+
+          "if not exist \"%TEMP_EXE%\" goto "+javaHomeLabel2+EOL+
+          "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
           "goto "+javaArgsLabel1+EOL+EOL
       );
     }
@@ -896,15 +896,15 @@ public class JavaPropertiesTool extends ConsoleApplication
     {
       buf.append(
           "if \"%OPENDJ_JAVA_HOME%\" == \"\" goto "+javaArgsLabel1+LEGACY+EOL+
-          "set TEMP=%OPENDJ_JAVA_HOME%\\bin\\java.exe"+EOL+
-          "if not exist \"%TEMP%\" goto "+javaArgsLabel1+LEGACY+EOL+
-          "set OPENDJ_JAVA_BIN=%TEMP%"+EOL+
+          "set TEMP_EXE=%OPENDJ_JAVA_HOME%\\bin\\java.exe"+EOL+
+          "if not exist \"%TEMP_EXE%\" goto "+javaArgsLabel1+LEGACY+EOL+
+          "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
           "goto "+javaArgsLabel1+EOL+EOL+
           ":"+javaArgsLabel1+LEGACY+EOL+
           "if \"%OPENDS_JAVA_HOME%\" == \"\" goto "+javaArgsLabel1+EOL+
-          "set TEMP=%OPENDS_JAVA_HOME%\\bin\\java.exe"+EOL+
-          "if not exist \"%TEMP%\" goto "+javaArgsLabel1+EOL+
-          "set OPENDJ_JAVA_BIN=%TEMP%"+EOL+
+          "set TEMP_EXE=%OPENDS_JAVA_HOME%\\bin\\java.exe"+EOL+
+          "if not exist \"%TEMP_EXE%\" goto "+javaArgsLabel1+EOL+
+          "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
           "goto "+javaArgsLabel1+EOL+EOL
       );
     }
@@ -915,9 +915,9 @@ public class JavaPropertiesTool extends ConsoleApplication
       {
         buf.append(
             ":"+CHECK_DEFAULT_JAVA_HOME+EOL+
-            "set TEMP="+defaultJavaHome+"\\bin\\java.exe"+EOL+
-            "if not exist \"%TEMP%\" goto "+javaArgsLabel1+EOL+
-            "set OPENDJ_JAVA_BIN=%TEMP%"+EOL+
+            "set TEMP_EXE="+defaultJavaHome+"\\bin\\java.exe"+EOL+
+            "if not exist \"%TEMP_EXE%\" goto "+javaArgsLabel1+EOL+
+            "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
             "goto "+javaArgsLabel1+EOL+EOL
         );
       }
@@ -925,9 +925,9 @@ public class JavaPropertiesTool extends ConsoleApplication
       {
         buf.append(
             ":"+CHECK_DEFAULT_JAVA_HOME+EOL+
-            "set TEMP="+defaultJavaHome+"\\bin\\java.exe"+EOL+
-            "if not exist \"%TEMP%\" goto "+CHECK_ENV_JAVA_HOME+EOL+
-            "set OPENDJ_JAVA_BIN=%TEMP%"+EOL+
+            "set TEMP_EXE="+defaultJavaHome+"\\bin\\java.exe"+EOL+
+            "if not exist \"%TEMP_EXE%\" goto "+CHECK_ENV_JAVA_HOME+EOL+
+            "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
             "goto "+javaArgsLabel1+EOL+EOL
         );
       }
@@ -986,19 +986,19 @@ public class JavaPropertiesTool extends ConsoleApplication
             name.length() - ".java-home".length());
         buf.append(
             ":check"+scriptName+"JavaHome"+EOL+
-            "set TEMP="+value+"\\bin\\java.exe"+EOL);
+            "set TEMP_EXE="+value+"\\bin\\java.exe"+EOL);
         if (defaultJavaHome != null)
         {
           buf.append(
-              "if not exist \"%TEMP%\" goto "+CHECK_DEFAULT_JAVA_HOME+EOL);
+              "if not exist \"%TEMP_EXE%\" goto "+CHECK_DEFAULT_JAVA_HOME+EOL);
         }
         else if (javaHomeLabel1 != CHECK_ENV_JAVA_HOME)
         {
           buf.append(
-              "if not exist \"%TEMP%\" goto "+CHECK_ENV_JAVA_HOME+EOL);
+              "if not exist \"%TEMP_EXE%\" goto "+CHECK_ENV_JAVA_HOME+EOL);
         }
         buf.append(
-            "set OPENDJ_JAVA_BIN=%TEMP%"+EOL+
+            "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
             "goto "+javaArgsLabel1+EOL+EOL);
       }
     }
