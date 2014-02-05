@@ -27,12 +27,10 @@
 
 package org.forgerock.opendj.io;
 
-import static com.forgerock.opendj.util.StaticUtils.IO_LOG;
-import static com.forgerock.opendj.util.StaticUtils.byteToHex;
-
 import java.io.IOException;
 import java.util.List;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Modification;
@@ -55,8 +53,6 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 
-import com.forgerock.opendj.util.StaticUtils;
-
 /**
  * Writes LDAP messages to an underlying ASN.1 writer.
  * <p>
@@ -69,6 +65,7 @@ import com.forgerock.opendj.util.StaticUtils;
 public final class LDAPWriter<W extends ASN1Writer> {
     // @Checkstyle:ignore AvoidNestedBlocks
 
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     private final W writer;
 
     LDAPWriter(final W asn1Writer) {
@@ -96,7 +93,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeAbandonRequest(final int messageID, final AbandonRequest request)
             throws IOException {
-        IO_LOG.trace("ENCODE LDAP ABANDON REQUEST(messageID={}, request={})", messageID, request);
+        logger.trace("ENCODE LDAP ABANDON REQUEST(messageID=%d, request=%s)", messageID, request);
         writeMessageHeader(messageID);
         {
             writer.writeInteger(LDAP.OP_TYPE_ABANDON_REQUEST, request.getRequestID());
@@ -115,7 +112,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      *             If an unexpected IO error occurred.
      */
     public void writeAddRequest(final int messageID, final AddRequest request) throws IOException {
-        IO_LOG.trace("ENCODE LDAP ADD REQUEST(messageID={}, request={})", messageID, request);
+        logger.trace("ENCODE LDAP ADD REQUEST(messageID=%d, request=%s)", messageID, request);
         writeMessageHeader(messageID);
         {
             LDAP.writeEntry(writer, LDAP.OP_TYPE_ADD_REQUEST, request);
@@ -134,7 +131,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      *             If an unexpected IO error occurred.
      */
     public void writeAddResult(final int messageID, final Result result) throws IOException {
-        IO_LOG.trace("ENCODE LDAP ADD RESULT(messageID={}, result={})", messageID, result);
+        logger.trace("ENCODE LDAP ADD RESULT(messageID=%d, result=%s)", messageID, result);
         writeMessageHeader(messageID);
         {
             writeResultHeader(LDAP.OP_TYPE_ADD_RESPONSE, result);
@@ -157,8 +154,8 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeBindRequest(final int messageID, final int version,
             final GenericBindRequest request) throws IOException {
-        IO_LOG.trace("ENCODE LDAP BIND REQUEST(messageID={}, auth=0x{}, request={})", messageID,
-                byteToHex(request.getAuthenticationType()), request);
+        logger.trace("ENCODE LDAP BIND REQUEST(messageID=%d, auth=0x%x, request=%s)",
+            messageID, request.getAuthenticationType(), request);
         writeMessageHeader(messageID);
         {
             writer.writeStartSequence(LDAP.OP_TYPE_BIND_REQUEST);
@@ -184,7 +181,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      *             If an unexpected IO error occurred.
      */
     public void writeBindResult(final int messageID, final BindResult result) throws IOException {
-        IO_LOG.trace("ENCODE LDAP BIND RESULT(messageID={}, result={})", messageID, result);
+        logger.trace("ENCODE LDAP BIND RESULT(messageID=%d, result=%s)", messageID, result);
         writeMessageHeader(messageID);
         {
             writeResultHeader(LDAP.OP_TYPE_BIND_RESPONSE, result);
@@ -212,7 +209,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeCompareRequest(final int messageID, final CompareRequest request)
             throws IOException {
-        IO_LOG.trace("ENCODE LDAP COMPARE REQUEST(messageID={}, request={})", messageID, request);
+        logger.trace("ENCODE LDAP COMPARE REQUEST(messageID=%d, request=%s)", messageID, request);
         writeMessageHeader(messageID);
         {
             writer.writeStartSequence(LDAP.OP_TYPE_COMPARE_REQUEST);
@@ -242,7 +239,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeCompareResult(final int messageID, final CompareResult result)
             throws IOException {
-        IO_LOG.trace("ENCODE LDAP COMPARE RESULT(messageID={}, result={})", messageID, result);
+        logger.trace("ENCODE LDAP COMPARE RESULT(messageID=%d, result=%s)", messageID, result);
         writeMessageHeader(messageID);
         {
             writeResultHeader(LDAP.OP_TYPE_COMPARE_RESPONSE, result);
@@ -285,7 +282,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeDeleteRequest(final int messageID, final DeleteRequest request)
             throws IOException {
-        IO_LOG.trace("ENCODE LDAP DELETE REQUEST(messageID={}, request={})", messageID, request);
+        logger.trace("ENCODE LDAP DELETE REQUEST(messageID=%d, request=%s)", messageID, request);
         writeMessageHeader(messageID);
         {
             writer.writeOctetString(LDAP.OP_TYPE_DELETE_REQUEST, request.getName().toString());
@@ -304,7 +301,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      *             If an unexpected IO error occurred.
      */
     public void writeDeleteResult(final int messageID, final Result result) throws IOException {
-        IO_LOG.trace("ENCODE LDAP DELETE RESULT(messageID={}, result={})", messageID, result);
+        logger.trace("ENCODE LDAP DELETE RESULT(messageID=%d, result=%s)", messageID, result);
         writeMessageHeader(messageID);
         {
             writeResultHeader(LDAP.OP_TYPE_DELETE_RESPONSE, result);
@@ -325,7 +322,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeExtendedRequest(final int messageID, final ExtendedRequest<?> request)
             throws IOException {
-        IO_LOG.trace("ENCODE LDAP EXTENDED REQUEST(messageID={}, request={})", messageID, request);
+        logger.trace("ENCODE LDAP EXTENDED REQUEST(messageID=%d, request=%s)", messageID, request);
         writeMessageHeader(messageID);
         {
             writer.writeStartSequence(LDAP.OP_TYPE_EXTENDED_REQUEST);
@@ -353,7 +350,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeExtendedResult(final int messageID, final ExtendedResult result)
             throws IOException {
-        IO_LOG.trace("ENCODE LDAP EXTENDED RESULT(messageID={}, result={})", messageID, result);
+        logger.trace("ENCODE LDAP EXTENDED RESULT(messageID=%d, result=%s)", messageID, result);
         writeMessageHeader(messageID);
         {
             writeResultHeader(LDAP.OP_TYPE_EXTENDED_RESPONSE, result);
@@ -384,8 +381,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeIntermediateResponse(final int messageID, final IntermediateResponse response)
             throws IOException {
-        IO_LOG.trace("ENCODE LDAP INTERMEDIATE RESPONSE(messageID={}, response={})", messageID,
-                response);
+        logger.trace("ENCODE LDAP INTERMEDIATE RESPONSE(messageID=%d, response=%s)", messageID, response);
         writeMessageHeader(messageID);
         {
             writer.writeStartSequence(LDAP.OP_TYPE_INTERMEDIATE_RESPONSE);
@@ -417,7 +413,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeModifyDNRequest(final int messageID, final ModifyDNRequest request)
             throws IOException {
-        IO_LOG.trace("ENCODE LDAP MODIFY DN REQUEST(messageID={}, request={})", messageID, request);
+        logger.trace("ENCODE LDAP MODIFY DN REQUEST(messageID=%d, request=%s)", messageID, request);
         writeMessageHeader(messageID);
         {
             writer.writeStartSequence(LDAP.OP_TYPE_MODIFY_DN_REQUEST);
@@ -447,7 +443,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      *             If an unexpected IO error occurred.
      */
     public void writeModifyDNResult(final int messageID, final Result result) throws IOException {
-        IO_LOG.trace("ENCODE LDAP MODIFY DN RESULT(messageID={}, result={})", messageID, result);
+        logger.trace("ENCODE LDAP MODIFY DN RESULT(messageID=%d, result=%s)", messageID, result);
         writeMessageHeader(messageID);
         {
             writeResultHeader(LDAP.OP_TYPE_MODIFY_DN_RESPONSE, result);
@@ -468,7 +464,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeModifyRequest(final int messageID, final ModifyRequest request)
             throws IOException {
-        IO_LOG.trace("ENCODE LDAP MODIFY REQUEST(messageID={}, request={})", messageID, request);
+        logger.trace("ENCODE LDAP MODIFY REQUEST(messageID=%d, request=%s)", messageID, request);
         writeMessageHeader(messageID);
         {
             writer.writeStartSequence(LDAP.OP_TYPE_MODIFY_REQUEST);
@@ -498,7 +494,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      *             If an unexpected IO error occurred.
      */
     public void writeModifyResult(final int messageID, final Result result) throws IOException {
-        IO_LOG.trace("ENCODE LDAP MODIFY RESULT(messageID={}, result={})", messageID, result);
+        logger.trace("ENCODE LDAP MODIFY RESULT(messageID=%d, result=%s)", messageID, result);
         writeMessageHeader(messageID);
         {
             writeResultHeader(LDAP.OP_TYPE_MODIFY_RESPONSE, result);
@@ -519,7 +515,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeSearchRequest(final int messageID, final SearchRequest request)
             throws IOException {
-        IO_LOG.trace("ENCODE LDAP SEARCH REQUEST(messageID={}, request={})", messageID, request);
+        logger.trace("ENCODE LDAP SEARCH REQUEST(messageID=%d, request=%s)", messageID, request);
         writeMessageHeader(messageID);
         {
             writer.writeStartSequence(LDAP.OP_TYPE_SEARCH_REQUEST);
@@ -555,7 +551,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      *             If an unexpected IO error occurred.
      */
     public void writeSearchResult(final int messageID, final Result result) throws IOException {
-        IO_LOG.trace("ENCODE LDAP SEARCH RESULT(messageID={}, result={})", messageID, result);
+        logger.trace("ENCODE LDAP SEARCH RESULT(messageID=%d, result=%s)", messageID, result);
         writeMessageHeader(messageID);
         {
             writeResultHeader(LDAP.OP_TYPE_SEARCH_RESULT_DONE, result);
@@ -576,7 +572,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeSearchResultEntry(final int messageID, final SearchResultEntry entry)
             throws IOException {
-        IO_LOG.trace("ENCODE LDAP SEARCH RESULT ENTRY(messageID={}, entry={})", messageID, entry);
+        logger.trace("ENCODE LDAP SEARCH RESULT ENTRY(messageID=%d, entry=%s)", messageID, entry);
         writeMessageHeader(messageID);
         {
             LDAP.writeEntry(writer, LDAP.OP_TYPE_SEARCH_RESULT_ENTRY, entry);
@@ -596,8 +592,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeSearchResultReference(final int messageID,
             final SearchResultReference reference) throws IOException {
-        IO_LOG.trace("ENCODE LDAP SEARCH RESULT REFERENCE(messageID={}, reference={})", messageID,
-                reference);
+        logger.trace("ENCODE LDAP SEARCH RESULT REFERENCE(messageID=%d, reference=%s)", messageID, reference);
         writeMessageHeader(messageID);
         {
             writer.writeStartSequence(LDAP.OP_TYPE_SEARCH_RESULT_REFERENCE);
@@ -623,7 +618,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeUnbindRequest(final int messageID, final UnbindRequest request)
             throws IOException {
-        IO_LOG.trace("ENCODE LDAP UNBIND REQUEST(messageID={}, request={})", messageID, request);
+        logger.trace("ENCODE LDAP UNBIND REQUEST(messageID=%d, request=%s)", messageID, request);
         writeMessageHeader(messageID);
         {
             writer.writeNull(LDAP.OP_TYPE_UNBIND_REQUEST);
@@ -645,8 +640,8 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeUnrecognizedMessage(final int messageID, final byte messageTag,
             final ByteString messageBytes) throws IOException {
-        IO_LOG.trace("ENCODE LDAP UNKNOWN MESSAGE(messageID={}, messageTag={}, messageBytes={})",
-                messageID, StaticUtils.byteToHex(messageTag), messageBytes);
+        logger.trace("ENCODE LDAP UNKNOWN MESSAGE(messageID=%d, messageTag=%x, messageBytes=%s)",
+                messageID, messageTag, messageBytes);
         writeMessageHeader(messageID);
         {
             writer.writeOctetString(messageTag, messageBytes);
