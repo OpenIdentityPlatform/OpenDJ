@@ -51,14 +51,14 @@
     <dependency org="javax.servlet"         name="javax.servlet-api"        rev="[3.1-b02]" />
     <dependency org="com.sleepycat"         name="je"                       rev="5.0.103" />
     <dependency org="org.forgerock.opendj"  name="opendj-rest2ldap-servlet" rev="&opendj.sdk.version;" conf="default->master,compile" />
-    <dependency org="org.forgerock.opendj"  name="opendj-slf4j-adapter" 	rev="&opendj.sdk.version;" />
-    <dependency org="org.forgerock.commons" name="i18n-slf4j"  				rev="&i18n.version;" />
-    <dependency org="org.forgerock.opendj"  name="opendj-cli"  				rev="&opendj.sdk.version;" />    
+    <dependency org="org.forgerock.opendj"  name="opendj-slf4j-adapter"     rev="&opendj.sdk.version;" />
+    <dependency org="org.forgerock.commons" name="i18n-slf4j"               rev="&i18n.version;" />
+    <dependency org="org.forgerock.opendj"  name="opendj-cli"               rev="&opendj.sdk.version;" />    
     <dependency org="org.forgerock.opendj"  name="opendj-server2x-adapter"  rev="&opendj.sdk.version;">
-      <exclude module="opendj-server" /> 	
+      <exclude module="opendj-server" />
     </dependency>
     <dependency org="org.forgerock.opendj"  name="opendj-server"            rev="&opendj.sdk.version;">
-      <exclude module="opendj-config" /> 	
+      <exclude module="opendj-config" />
     </dependency>
     <dependency org="org.glassfish.grizzly" name="grizzly-http-servlet"     rev="&grizzly.version;">
       <exclude module="javax.servlet-api" />
