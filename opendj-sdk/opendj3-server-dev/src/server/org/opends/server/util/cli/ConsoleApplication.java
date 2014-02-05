@@ -67,6 +67,7 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
+import com.forgerock.opendj.cli.CLIException;
 
 
 /**

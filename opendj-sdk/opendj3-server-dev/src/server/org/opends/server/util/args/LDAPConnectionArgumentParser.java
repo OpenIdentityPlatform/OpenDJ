@@ -40,6 +40,13 @@ import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.types.OpenDsException;
 
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.ArgumentGroup;
+import com.forgerock.opendj.cli.FileBasedArgument;
+import com.forgerock.opendj.cli.StringArgument;
+
 import java.util.LinkedList;
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -373,7 +380,14 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
               ui.populateLDAPOptions(options),
               ui.getConnectTimeout(),
               out, err);
-    } catch (OpenDsException e) {
+    } catch (ArgumentException e) {
+      if ((e.getCause() != null) && (e.getCause().getCause() != null) &&
+          e.getCause().getCause() instanceof SSLException) {
+          err.println(ERR_TASKINFO_LDAP_EXCEPTION_SSL.get(ui.getHostName(), ui.getPortNumber()));
+        } else {
+          err.println(e.getMessageObject());
+        }
+      } catch (OpenDsException e) {
       if ((e.getCause() != null) && (e.getCause().getCause() != null) &&
         e.getCause().getCause() instanceof SSLException) {
         err.println(ERR_TASKINFO_LDAP_EXCEPTION_SSL.get(ui.getHostName(), ui.getPortNumber()));

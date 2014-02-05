@@ -28,27 +28,34 @@
 package org.opends.server.tools;
 
 import org.forgerock.i18n.LocalizableMessage;
+
 import static org.opends.messages.ToolMessages.*;
 
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+
 import static org.opends.server.loggers.ErrorLogger.removeErrorLogPublisher;
 
 import org.opends.server.protocols.asn1.ASN1Exception;
+
 import static org.opends.server.tools.ToolConstants.*;
+
 import org.opends.server.tools.tasks.TaskClient;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
+
 import static org.opends.server.util.StaticUtils.filterExitCode;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.BooleanArgument;
+
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.StringArgument;
+
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.opends.server.util.args.StringArgument;
-import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 import org.opends.server.util.cli.Menu;
@@ -58,7 +65,6 @@ import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -67,6 +73,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
 import org.opends.server.backends.task.TaskState;
 
 /**

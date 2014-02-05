@@ -55,12 +55,14 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.BuildVersion;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.IntegerArgument;
-import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.opends.server.util.cli.CLIException;
+
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.CLIException;
+
 import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.ToolMessages.*;

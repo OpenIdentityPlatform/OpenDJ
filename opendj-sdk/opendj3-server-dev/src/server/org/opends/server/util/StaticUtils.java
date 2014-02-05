@@ -54,8 +54,8 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.*;
-import org.opends.server.util.args.Argument;
-import org.opends.server.util.args.ArgumentException;
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.ArgumentException;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.UtilityMessages.*;

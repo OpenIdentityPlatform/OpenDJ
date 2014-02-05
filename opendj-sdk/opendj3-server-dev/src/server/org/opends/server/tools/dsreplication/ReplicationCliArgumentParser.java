@@ -47,15 +47,15 @@ import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
-import org.opends.server.types.OpenDsException;
-import org.opends.server.util.args.Argument;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentGroup;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.FileBasedArgument;
-import org.opends.server.util.args.IntegerArgument;
-import org.opends.server.util.args.StringArgument;
-import org.opends.server.util.args.SubCommand;
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentGroup;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.FileBasedArgument;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.SubCommand;
 
 /**
  * This class is used to parse the arguments passed to the replication CLI.
@@ -1915,9 +1915,13 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         taskArgs.validateArgs();
       }
     }
-    catch (OpenDsException ode)
+    catch (CLIException ce)
     {
-      addMessage(buf, ode.getMessageObject());
+      addMessage(buf, ce.getMessageObject());
+    }
+    catch (ArgumentException ae)
+    {
+      addMessage(buf, ae.getMessageObject());
     }
   }
 

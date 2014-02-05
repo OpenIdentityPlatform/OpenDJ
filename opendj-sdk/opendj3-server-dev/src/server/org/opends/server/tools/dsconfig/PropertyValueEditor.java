@@ -72,8 +72,7 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.forgerock.util.Reject;
-import org.opends.server.util.cli.CLIException;
-import org.opends.server.util.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.CLIException;
 import org.opends.server.util.cli.HelpCallback;
 import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
@@ -81,6 +80,7 @@ import org.opends.server.util.cli.MenuCallback;
 import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
+import org.opends.server.util.cli.ConsoleApplication;
 
 
 

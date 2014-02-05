@@ -47,9 +47,9 @@ import javax.naming.ldap.InitialLdapContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.SubCommand;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.SubCommand;
 
 /**
  * This class will parse CLI arguments for the dsframework command lines.

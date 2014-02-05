@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -41,8 +42,8 @@ import org.opends.server.admin.RelationDefinitionVisitor;
 import org.opends.server.admin.RelationOption;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.SubCommandArgumentParser;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.SubCommandArgumentParser;
 
 
 

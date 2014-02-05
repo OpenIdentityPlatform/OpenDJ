@@ -79,12 +79,25 @@ import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.args.*;
-import org.opends.server.util.cli.*;
+
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.FileBasedArgument;
+import com.forgerock.opendj.cli.IntegerArgument;
+
+import org.opends.server.util.cli.CommandBuilder;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
+import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.table.TabSeparatedTablePrinter;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TablePrinter;
 import org.opends.server.util.table.TextTablePrinter;
+import org.opends.server.util.cli.PointAdder;
+import org.opends.server.util.cli.MenuResult;
 
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
@@ -92,6 +105,7 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.*;
 import javax.naming.ldap.InitialLdapContext;
+
 import java.io.*;
 import java.util.*;
 

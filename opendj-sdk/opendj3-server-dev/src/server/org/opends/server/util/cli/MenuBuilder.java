@@ -43,6 +43,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TablePrinter;
 import org.opends.server.util.table.TextTablePrinter;
+import com.forgerock.opendj.cli.CLIException;
 
 
 

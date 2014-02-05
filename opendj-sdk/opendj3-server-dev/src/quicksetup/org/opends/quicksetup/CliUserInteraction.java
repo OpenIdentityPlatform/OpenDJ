@@ -34,7 +34,7 @@ import static org.opends.messages.AdminToolMessages.*;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.cli.CLIException;
+import com.forgerock.opendj.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;

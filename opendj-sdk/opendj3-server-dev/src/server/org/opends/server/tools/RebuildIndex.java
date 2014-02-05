@@ -36,10 +36,12 @@ import static org.opends.server.util.StaticUtils.*;
 
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.BooleanArgument;
+
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.StringArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.opends.server.util.args.StringArgument;
+
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.DebugLogger;

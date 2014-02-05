@@ -25,11 +25,9 @@
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.tools;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
-
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -59,11 +57,11 @@ import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.BuildVersion;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.StringArgument;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.StringArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.opends.server.util.cli.CLIException;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;

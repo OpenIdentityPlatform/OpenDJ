@@ -75,7 +75,7 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.args.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 import org.opends.server.util.table.TableBuilder;
