@@ -796,9 +796,10 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
         for (AggregationPropertyDefinition<?, ?> apd : getAllAggregationPropertyDefinitions()) {
 
             apd.initialize();
-            // Now register the aggregation property in the referenced managed
-            // object
-            // definition for reverse lookups.
+            /*
+             * Now register the aggregation property in the referenced managed
+             * object definition for reverse lookups.
+             */
             registerReverseAggregationPropertyDefinition(apd);
         }
 

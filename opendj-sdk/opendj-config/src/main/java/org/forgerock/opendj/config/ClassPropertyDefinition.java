@@ -43,9 +43,8 @@ import java.util.List;
  * <p>
  * Note that in a client/server environment, the client is probably not capable
  * of validating the Java class (e.g. it will not be able to load it nor have
- * access to the interfaces it is supposed to implement). For this reason, it is
- * possible to switch off validation in the client by using the appropriate
- * {@link PropertyDefinitionsOptions}.
+ * access to the interfaces it is supposed to implement). For this reason,
+ * validation is disabled in client applications.
  */
 public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
@@ -117,7 +116,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
     // Load a named class.
     private static Class<?> loadClass(String className, boolean initialize) throws ClassNotFoundException {
-        return Class.forName(className, initialize, ClassLoaderProvider.getInstance().getClassLoader());
+        return Class.forName(className, initialize, ConfigurationFramework.getInstance().getClassLoader());
     }
 
     // List of interfaces which property values must implement.
@@ -152,11 +151,11 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      * {@inheritDoc}
      */
     @Override
-    public String decodeValue(String value, PropertyDefinitionsOptions options) {
+    public String decodeValue(String value) {
         Reject.ifNull(value);
 
         try {
-            validateValue(value, options);
+            validateValue(value);
         } catch (PropertyException e) {
             throw PropertyException.illegalPropertyValueException(this, value, e.getCause());
         }
@@ -219,7 +218,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(String value, PropertyDefinitionsOptions options) {
+    public void validateValue(String value) {
         Reject.ifNull(value);
 
         // Always make sure the name is a valid class name.
@@ -229,7 +228,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
          * If additional validation is enabled then attempt to load the class
          * and check the interfaces that it implements/extends.
          */
-        if (options.allowClassValidation()) {
+        if (!ConfigurationFramework.getInstance().isClient()) {
             validateClassInterfaces(value, false);
         }
     }

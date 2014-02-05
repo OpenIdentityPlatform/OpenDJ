@@ -92,7 +92,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
         IntegerPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(true);
         IntegerPropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.decodeValue("unlimited");
     }
 
     @Test(expectedExceptions = PropertyException.class)
@@ -100,7 +100,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
         IntegerPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
         IntegerPropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.decodeValue("unlimited");
     }
 
     @Test(expectedExceptions = PropertyException.class)
@@ -108,7 +108,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
         IntegerPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
         IntegerPropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.validateValue(-1, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.validateValue(-1);
     }
 
     @DataProvider(name = "validateValueData")
@@ -128,7 +128,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
         builder.setUpperLimit(high);
         builder.setAllowUnlimited(allowUnlimited);
         IntegerPropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.validateValue(valueToValidate, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.validateValue(valueToValidate);
     }
 
     @DataProvider(name = "illegalValidateValueData")
@@ -152,7 +152,7 @@ public class IntegerPropertyDefinitionTest extends ConfigTestCase {
         builder.setUpperLimit(high);
         builder.setAllowUnlimited(allowUnlimited);
         IntegerPropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.validateValue(value, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.validateValue(value);
     }
 
     @DataProvider(name = "encodeValueData")

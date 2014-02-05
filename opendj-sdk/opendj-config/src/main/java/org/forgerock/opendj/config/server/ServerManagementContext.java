@@ -44,7 +44,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.config.AbsoluteInheritedDefaultBehaviorProvider;
@@ -63,7 +62,6 @@ import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyDefinitionVisitor;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.PropertyNotFoundException;
 import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.Reference;
@@ -78,6 +76,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,7 +142,7 @@ public final class ServerManagementContext {
 
             for (String stringValue : stringValues) {
                 try {
-                    values.add(nextProperty.decodeValue(stringValue, propertyDefOptions));
+                    values.add(nextProperty.decodeValue(stringValue));
                 } catch (PropertyException e) {
                     exception = PropertyException.defaultBehaviorException(nextProperty, e);
                     break;
@@ -234,7 +233,7 @@ public final class ServerManagementContext {
                 if (attributeValues.size() > 0) {
                     Collection<T> pvalues = new ArrayList<T>();
                     for (String value : attributeValues) {
-                        pvalues.add(ValueDecoder.decode(propDef1, value, propertyDefOptions));
+                        pvalues.add(ValueDecoder.decode(propDef1, value));
                     }
                     return pvalues;
                 } else {
@@ -242,7 +241,7 @@ public final class ServerManagementContext {
                     Collection<T> tmp = find(target, propDef2);
                     Collection<T> pvalues = new ArrayList<T>(tmp.size());
                     for (T value : tmp) {
-                        propDef1.validateValue(value, propertyDefOptions);
+                        propDef1.validateValue(value);
                         pvalues.add(value);
                     }
                     return pvalues;
@@ -289,8 +288,6 @@ public final class ServerManagementContext {
      */
     private static final class ValueDecoder extends PropertyDefinitionVisitor<Object, String> {
 
-        private final PropertyDefinitionsOptions options;
-
         /**
          * Decodes the provided property LDAP value.
          *
@@ -300,21 +297,18 @@ public final class ServerManagementContext {
          *            The property definition.
          * @param value
          *            The LDAP string representation.
-         * @param options
-         *            Options to decode property definitions values.
          * @return Returns the decoded LDAP value.
          * @throws PropertyException
          *             If the property value could not be decoded because it was
          *             invalid.
          */
-        public static <P> P decode(PropertyDefinition<P> propertyDef, String value,
-            PropertyDefinitionsOptions options) {
-            return propertyDef.castValue(propertyDef.accept(new ValueDecoder(options), value));
+        public static <P> P decode(PropertyDefinition<P> propertyDef, String value) {
+            return propertyDef.castValue(propertyDef.accept(new ValueDecoder(), value));
         }
 
         // Prevent instantiation.
-        private ValueDecoder(PropertyDefinitionsOptions options) {
-            this.options = options;
+        private ValueDecoder() {
+            // Do nothing.
         }
 
         /**
@@ -339,7 +333,7 @@ public final class ServerManagementContext {
         @Override
         public <T> Object visitUnknown(PropertyDefinition<T> d, String p) {
             // By default the property definition's decoder will do.
-            return d.decodeValue(p, options);
+            return d.decodeValue(p);
         }
     }
 
@@ -354,23 +348,13 @@ public final class ServerManagementContext {
     private final ConfigurationRepository configRepository;
 
     /**
-     * Options to use when decoding and validating values of property
-     * definitions.
-     */
-    private final PropertyDefinitionsOptions propertyDefOptions;
-
-    /**
      * Creates a context from the provided configuration repository.
      *
      * @param repository
      *          The repository of configuration entries.
-     * @param propertyDefOptions
-     *          Options to use when decoding and validating values
-     *          of property definitions.
      */
-    ServerManagementContext(ConfigurationRepository repository, PropertyDefinitionsOptions propertyDefOptions) {
+    ServerManagementContext(ConfigurationRepository repository) {
         configRepository = repository;
-        this.propertyDefOptions = propertyDefOptions;
     }
 
     /**
@@ -715,7 +699,7 @@ public final class ServerManagementContext {
             // The property has values defined for it.
             for (String value : attributeValues) {
                 try {
-                    pvalues.add(ValueDecoder.decode(propertyDef, value, propertyDefOptions));
+                    pvalues.add(ValueDecoder.decode(propertyDef, value));
                 } catch (PropertyException e) {
                     exception = e;
                 }
@@ -758,7 +742,7 @@ public final class ServerManagementContext {
         // We should log a warning here if this is the case
         // since the attribute should have been defined.
         String attrID = LDAPProfile.getInstance().getAttributeName(d, pd);
-        AttributeType type = DirectoryServer.getAttributeType(attrID, true);
+        AttributeType type = Schema.getDefaultSchema().getAttributeType(attrID);
         Iterable<Attribute> attributes = configEntry.getAllAttributes(AttributeDescription.create(type));
         List<String> values = new ArrayList<String>();
         for (Attribute attribute : attributes) {

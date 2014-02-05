@@ -134,7 +134,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(DN value, PropertyDefinitionsOptions options) {
+    public void validateValue(DN value) {
         Reject.ifNull(value);
 
         if (baseDN != null) {
@@ -154,12 +154,12 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
      * {@inheritDoc}
      */
     @Override
-    public DN decodeValue(String value, PropertyDefinitionsOptions options) {
+    public DN decodeValue(String value) {
         Reject.ifNull(value);
 
         try {
             DN dn = DN.valueOf(value);
-            validateValue(dn, options);
+            validateValue(dn);
             return dn;
         } catch (PropertyException e) {
             throw PropertyException.illegalPropertyValueException(this, value);

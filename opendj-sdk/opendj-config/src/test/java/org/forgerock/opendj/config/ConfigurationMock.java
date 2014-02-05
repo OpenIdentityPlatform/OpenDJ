@@ -182,7 +182,7 @@ public final class ConfigurationMock {
         public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> provider, Void p) {
             SortedSet<T> values = new TreeSet<T>();
             for (String stringValue : provider.getDefaultValues()) {
-                values.add(propertyDef.decodeValue(stringValue, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS));
+                values.add(propertyDef.decodeValue(stringValue));
             }
             return values;
         }

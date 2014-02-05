@@ -36,7 +36,6 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.config.AdminTestCase;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.TestCfg;
 import org.forgerock.opendj.config.TestChildCfg;
 import org.forgerock.opendj.config.TestChildCfgDefn;
@@ -146,7 +145,7 @@ public final class ConstraintTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_1);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         MockConstraint constraint = new MockConstraint(true, false, configRepository);
         try {
             TestCfg.addConstraint(constraint);
@@ -165,7 +164,7 @@ public final class ConstraintTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_1);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         MockConstraint constraint = new MockConstraint(false, true, configRepository);
         try {
             TestCfg.addConstraint(constraint);
@@ -202,7 +201,7 @@ public final class ConstraintTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_1);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         parentCfg.addTestChildAddListener(new AddListener());
         MockConstraint constraint = new MockConstraint(isUsableConstraint, false, configRepository);
@@ -225,7 +224,7 @@ public final class ConstraintTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_1);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         parentCfg.addTestChildDeleteListener(new DeleteListener());
         MockConstraint constraint = new MockConstraint(false, isDeleteAllowedConstraint, configRepository);
@@ -248,7 +247,7 @@ public final class ConstraintTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_1);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         MockConstraint constraint = new MockConstraint(isUsableConstraint, false, configRepository);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         TestChildCfg childCfg = parentCfg.getTestChild(entryName(TEST_CHILD_1));

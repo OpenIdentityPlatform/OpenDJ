@@ -29,7 +29,6 @@ import java.util.SortedSet;
 
 import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
 import org.forgerock.opendj.config.PropertyDefinition;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -151,7 +150,7 @@ public final class ContainsCondition implements Condition {
 
     // Creates the new private implementation.
     private <T> void buildImpl(PropertyDefinition<T> pd) {
-        T value = pd.decodeValue(propertyStringValue, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        T value = pd.decodeValue(propertyStringValue);
         this.impl = new Impl<T>(pd, value);
     }
 

@@ -39,7 +39,7 @@ public class AttributeTypePropertyDefinitionTest extends ConfigTestCase {
     @Test
     public void testValidateValue() {
         AttributeTypePropertyDefinition propertyDef = createPropertyDefinition();
-        propertyDef.validateValue(Schema.getDefaultSchema().getAttributeType("cn"), new PropertyDefinitionsOptions());
+        propertyDef.validateValue(Schema.getDefaultSchema().getAttributeType("cn"));
     }
 
     @DataProvider(name = "valueLegalData")
@@ -51,13 +51,13 @@ public class AttributeTypePropertyDefinitionTest extends ConfigTestCase {
     public void testDecodeValue(String value) {
         AttributeTypePropertyDefinition propertyDef = createPropertyDefinition();
         AttributeType expected = Schema.getDefaultSchema().getAttributeType(value);
-        assertEquals(propertyDef.decodeValue(value, new PropertyDefinitionsOptions()), expected);
+        assertEquals(propertyDef.decodeValue(value), expected);
     }
 
     @Test(dataProvider = "valueLegalData")
     public void testEncodeValue(String value) {
         AttributeTypePropertyDefinition propertyDef = createPropertyDefinition();
-        assertEquals(propertyDef.encodeValue(propertyDef.decodeValue(value, new PropertyDefinitionsOptions())), value);
+        assertEquals(propertyDef.encodeValue(propertyDef.decodeValue(value)), value);
     }
 
     @DataProvider(name = "valueIllegalData")
@@ -67,14 +67,19 @@ public class AttributeTypePropertyDefinitionTest extends ConfigTestCase {
 
     @Test(dataProvider = "valueIllegalData", expectedExceptions = { PropertyException.class })
     public void testDecodeValueIllegal(String value) {
-        AttributeTypePropertyDefinition propertyDef = createPropertyDefinition();
-        propertyDef.decodeValue(value, new PropertyDefinitionsOptions());
+        ConfigurationFramework.getInstance().setIsClient(false);
+        try {
+            AttributeTypePropertyDefinition propertyDef = createPropertyDefinition();
+            propertyDef.decodeValue(value);
+        } finally {
+            ConfigurationFramework.getInstance().setIsClient(true);
+        }
     }
 
     @Test(dataProvider = "valueIllegalData")
     public void testDecodeValueIllegalNoSchemaCheck(String value) {
         AttributeTypePropertyDefinition propertyDef = createPropertyDefinition();
-        AttributeType type = propertyDef.decodeValue(value, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        AttributeType type = propertyDef.decodeValue(value);
         assertEquals(type.getNameOrOID(), value);
     }
 

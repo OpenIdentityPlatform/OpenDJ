@@ -39,7 +39,7 @@ import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.core.DirectoryServer;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
  * A path which can be used to determine the location of a managed object
@@ -140,7 +140,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
 
             // Now add the single RDN representing the named instance.
             String type = profile.getRelationChildRDNType(r);
-            AttributeType attrType = DirectoryServer.getAttributeType(type.toLowerCase(), true);
+            AttributeType attrType = Schema.getDefaultSchema().getAttributeType(type);
             dn = dn.child(new RDN(attrType, name));
         }
 
@@ -154,7 +154,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
 
             // Now add the single RDN representing the instance.
             String type = profile.getRelationChildRDNType(r);
-            AttributeType attrType = DirectoryServer.getAttributeType(type.toLowerCase(), true);
+            AttributeType attrType = Schema.getDefaultSchema().getAttributeType(type);
             dn = dn.child(new RDN(attrType, d.getName()));
         }
 

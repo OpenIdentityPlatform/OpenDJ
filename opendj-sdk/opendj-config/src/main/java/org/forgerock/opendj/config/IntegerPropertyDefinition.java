@@ -229,7 +229,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(Integer value, PropertyDefinitionsOptions options) {
+    public void validateValue(Integer value) {
         Reject.ifNull(value);
 
         if (!allowUnlimited && value < lowerLimit) {
@@ -266,7 +266,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
      * {@inheritDoc}
      */
     @Override
-    public Integer decodeValue(String value, PropertyDefinitionsOptions options) {
+    public Integer decodeValue(String value) {
         Reject.ifNull(value);
 
         if (allowUnlimited) {
@@ -283,7 +283,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         }
 
         try {
-            validateValue(i, options);
+            validateValue(i);
         } catch (PropertyException e) {
             throw PropertyException.illegalPropertyValueException(this, value);
         }

@@ -85,7 +85,7 @@ public final class ACIPropertyDefinition extends PropertyDefinition<Aci> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(Aci value, PropertyDefinitionsOptions options) {
+    public void validateValue(Aci value) {
         Reject.ifNull(value);
 
         // No additional validation required.
@@ -95,7 +95,7 @@ public final class ACIPropertyDefinition extends PropertyDefinition<Aci> {
      * {@inheritDoc}
      */
     @Override
-    public Aci decodeValue(String value, PropertyDefinitionsOptions options) {
+    public Aci decodeValue(String value) {
         Reject.ifNull(value);
 
         try {

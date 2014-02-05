@@ -39,7 +39,6 @@ import java.util.SortedSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.config.AdminTestCase;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.TestCfg;
 import org.forgerock.opendj.config.TestChildCfg;
 import org.forgerock.opendj.config.TestParentCfg;
@@ -266,7 +265,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(testParent, testBaseChild, testChild);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         TestParentCfg parentCfg = getParentCfg(testParent, context);
 
         // assert
@@ -285,7 +284,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(testParent, testBaseChild, testChild);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         TestParentCfg parentCfg = getParentCfg(testParent, context);
         TestConfigurationAddListener addListener = new TestConfigurationAddListener();
         parentCfg.addTestChildAddListener(addListener);
@@ -332,7 +331,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_BASE_1, TEST_CHILD_1);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         TestChildCfg childCfg = parentCfg.getTestChild(entryName(TEST_CHILD_1));
         TestConfigurationChangeListener changeListener = new TestConfigurationChangeListener();
@@ -362,7 +361,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     public void testParentValues(Entry parentEntry, List<String> valuesForOptionalDNProperty) throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithEntries(parentEntry);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         TestParentCfg parent = getParentCfg(parentEntry, context);
 
         assertThat(parent.getMandatoryClassProperty()).isEqualTo(

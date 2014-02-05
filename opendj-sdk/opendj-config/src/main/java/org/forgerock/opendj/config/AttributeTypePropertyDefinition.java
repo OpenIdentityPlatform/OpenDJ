@@ -31,7 +31,7 @@ import org.forgerock.util.Reject;
 import java.util.EnumSet;
 
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.core.DirectoryServer;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
  * Attribute type property definition.
@@ -109,21 +109,22 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
      * {@inheritDoc}
      */
     @Override
-    public AttributeType decodeValue(String value, PropertyDefinitionsOptions options) {
+    public AttributeType decodeValue(String value) {
         Reject.ifNull(value);
 
-        String name = value.trim().toLowerCase();
-        AttributeType type = DirectoryServer.getAttributeType(name, !options.checkSchemaForAttributes());
-
-        if (type == null) {
+        final String name = value.trim();
+        if (!ConfigurationFramework.getInstance().isClient()
+                && !Schema.getDefaultSchema().hasAttributeType(name)) {
+            // If this is the server then the attribute type must be defined.
             throw PropertyException.illegalPropertyValueException(this, value);
-        } else {
-            try {
-                validateValue(type, options);
-                return type;
-            } catch (PropertyException e) {
-                throw PropertyException.illegalPropertyValueException(this, value);
-            }
+        }
+        final AttributeType type =
+                Schema.getDefaultSchema().asNonStrictSchema().getAttributeType(name);
+        try {
+            validateValue(type);
+            return type;
+        } catch (PropertyException e) {
+            throw PropertyException.illegalPropertyValueException(this, value);
         }
     }
 
@@ -139,7 +140,7 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(AttributeType value, PropertyDefinitionsOptions options) {
+    public void validateValue(AttributeType value) {
         Reject.ifNull(value);
 
         // No implementation required.
