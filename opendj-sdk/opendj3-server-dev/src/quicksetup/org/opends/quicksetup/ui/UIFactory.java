@@ -862,6 +862,10 @@ public class UIFactory
   static public JTextComponent makeJTextComponent(LabelFieldDescriptor desc,
       String defaultValue)
   {
+    if (defaultValue == null)
+    {
+      defaultValue = "";
+    }
     JTextComponent field;
     switch (desc.getType())
     {
