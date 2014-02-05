@@ -22,15 +22,14 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.grizzly;
-
-import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 
 import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
@@ -45,6 +44,8 @@ import com.forgerock.opendj.util.ReferenceCountedObject;
  * options.
  */
 final class DefaultTCPNIOTransport extends ReferenceCountedObject<TCPNIOTransport> {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     static final DefaultTCPNIOTransport DEFAULT_TRANSPORT = new DefaultTCPNIOTransport();
 
     private DefaultTCPNIOTransport() {
@@ -57,7 +58,7 @@ final class DefaultTCPNIOTransport extends ReferenceCountedObject<TCPNIOTranspor
             instance.shutdownNow();
         } catch (final IOException e) {
             // TODO: I18N
-            DEFAULT_LOG.warn("An error occurred while shutting down the Grizzly transport", e);
+            logger.warn(LocalizableMessage.raw("An error occurred while shutting down the Grizzly transport", e));
         }
     }
 
