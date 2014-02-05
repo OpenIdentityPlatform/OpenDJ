@@ -77,7 +77,8 @@ public class ListenerSettingsTestCase extends AbstractSetupTestCase {
         // Verify the new port number is different from the free socket and verify it's free.
         final int newPort = ListenerSettings.getFreeSocketPort(port);
         assertThat(newPort).isNotEqualTo(port);
-        assertThat(newPort).isEqualTo(port + ListenerSettings.PORT_INCREMENT);
+        assertTrue(Math.abs(newPort - port) % ListenerSettings.PORT_INCREMENT == 0);
+
         boundSocket.close();
     }
 
