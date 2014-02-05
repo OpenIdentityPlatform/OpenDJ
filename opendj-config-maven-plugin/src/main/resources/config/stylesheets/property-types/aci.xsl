@@ -28,11 +28,8 @@
   <!-- 
     Templates for processing dseecompat ACI.
   -->
-  <xsl:template match="adm:aci" mode="java-value-imports">
-    <import>org.opends.server.authorization.dseecompat.Aci</import>
-  </xsl:template>
   <xsl:template match="adm:aci" mode="java-value-type">
-    <xsl:value-of select="'Aci'" />
+    <xsl:value-of select="'String'" />
   </xsl:template>
   <xsl:template match="adm:aci" mode="java-definition-type">
     <xsl:value-of select="'ACIPropertyDefinition'" />

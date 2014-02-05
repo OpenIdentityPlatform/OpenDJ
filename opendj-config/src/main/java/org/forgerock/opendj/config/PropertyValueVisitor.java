@@ -31,7 +31,6 @@ import java.net.InetAddress;
 import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.authorization.dseecompat.Aci;
 
 /**
  * A visitor of property values, in the style of the visitor design pattern.
@@ -75,7 +74,7 @@ public abstract class PropertyValueVisitor<R, P> {
      *            A visitor specified parameter.
      * @return Returns a visitor specified result.
      */
-    public R visitACI(ACIPropertyDefinition pd, Aci v, P p) {
+    public R visitACI(ACIPropertyDefinition pd, String v, P p) {
         return visitUnknown(pd, v, p);
     }
 

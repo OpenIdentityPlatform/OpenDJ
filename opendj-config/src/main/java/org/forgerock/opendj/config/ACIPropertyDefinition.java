@@ -26,23 +26,20 @@
 
 package org.forgerock.opendj.config;
 
-import org.forgerock.util.Reject;
-import org.opends.server.authorization.dseecompat.Aci;
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DN;
-
 import java.util.EnumSet;
+import java.util.regex.Pattern;
+
+import org.forgerock.util.Reject;
 
 /**
  * ACI property definition.
  */
-public final class ACIPropertyDefinition extends PropertyDefinition<Aci> {
+public final class ACIPropertyDefinition extends PropertyDefinition<String> {
 
     /**
      * An interface for incrementally constructing ACI property definitions.
      */
-    public static final class Builder extends AbstractBuilder<Aci, ACIPropertyDefinition> {
+    public static final class Builder extends AbstractBuilder<String, ACIPropertyDefinition> {
 
         // Private constructor
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
@@ -53,9 +50,9 @@ public final class ACIPropertyDefinition extends PropertyDefinition<Aci> {
          * {@inheritDoc}
          */
         @Override
-        protected ACIPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-            EnumSet<PropertyOption> options, AdministratorAction adminAction,
-            DefaultBehaviorProvider<Aci> defaultBehavior) {
+        protected ACIPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
+                String propertyName, EnumSet<PropertyOption> options,
+                AdministratorAction adminAction, DefaultBehaviorProvider<String> defaultBehavior) {
             return new ACIPropertyDefinition(d, propertyName, options, adminAction, defaultBehavior);
         }
     }
@@ -74,18 +71,27 @@ public final class ACIPropertyDefinition extends PropertyDefinition<Aci> {
         return new Builder(d, propertyName);
     }
 
+    /**
+     * Pattern used for performing basic ACI syntax validation. Taken from the
+     * Aci class in the server.
+     */
+    private static final Pattern ACI_REGEX =
+            Pattern.compile("^\\s*(\\(\\s*(\\w+)\\s*(!?=)\\s*\"([^\"]+)\"\\s*\\)\\s*)*\\s*\\"
+                    + "(\\s*(?i)version(?-i)\\s*(\\d\\.\\d)\\s*;\\s*(?i)acl(?-i)\\s*\"([^\"]*)"
+                    + "\"\\s*;\\s*\\s*(\\w+)\\s*\\(([^()]+)\\)\\s*(.+?\"[)]*)\\s*;\\s*\\s*\\)\\s*$");
+
     // Private constructor.
     private ACIPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-        EnumSet<PropertyOption> options, AdministratorAction adminAction,
-        DefaultBehaviorProvider<Aci> defaultBehavior) {
-        super(d, Aci.class, propertyName, options, adminAction, defaultBehavior);
+            EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<String> defaultBehavior) {
+        super(d, String.class, propertyName, options, adminAction, defaultBehavior);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(Aci value) {
+    public void validateValue(String value) {
         Reject.ifNull(value);
 
         // No additional validation required.
@@ -95,15 +101,20 @@ public final class ACIPropertyDefinition extends PropertyDefinition<Aci> {
      * {@inheritDoc}
      */
     @Override
-    public Aci decodeValue(String value) {
+    public String decodeValue(String value) {
         Reject.ifNull(value);
 
-        try {
-            return Aci.decode(ByteString.valueOf(value), DN.rootDN());
-        } catch (LocalizedIllegalArgumentException e) {
-            // TODO: it would be nice to throw the cause.
-            throw PropertyException.illegalPropertyValueException(this, value);
+        /*
+         * We don't have access to the ACI class from the server so do
+         * best-effort using regular expressions. TODO: is it worth improving on
+         * this? We could use reflection to get the appropriate parser which
+         * would allow us to use full validation in OpenDJ whilst remaining
+         * decoupled in other applications.
+         */
+        if (ACI_REGEX.matcher(value).matches()) {
+            return value;
         }
+        throw PropertyException.illegalPropertyValueException(this, value);
     }
 
     /**
@@ -118,7 +129,7 @@ public final class ACIPropertyDefinition extends PropertyDefinition<Aci> {
      * {@inheritDoc}
      */
     @Override
-    public <R, P> R accept(PropertyValueVisitor<R, P> v, Aci value, P p) {
+    public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
         return v.visitACI(this, value, p);
     }
 
@@ -126,7 +137,7 @@ public final class ACIPropertyDefinition extends PropertyDefinition<Aci> {
      * {@inheritDoc}
      */
     @Override
-    public int compare(Aci o1, Aci o2) {
+    public int compare(String o1, String o2) {
         return o1.toString().compareTo(o2.toString());
     }
 }
