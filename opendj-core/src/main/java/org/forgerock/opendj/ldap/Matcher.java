@@ -22,16 +22,16 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
-
-import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.Schema;
@@ -221,7 +221,7 @@ public final class Matcher {
     private static final class Visitor implements FilterVisitor<MatcherImpl, Schema> {
         public MatcherImpl visitAndFilter(final Schema schema, final List<Filter> subFilters) {
             if (subFilters.isEmpty()) {
-                DEFAULT_LOG.trace("Empty add filter component. Will always return TRUE");
+                logger.trace(LocalizableMessage.raw("Empty add filter component. Will always return TRUE"));
                 return TRUE;
             }
 
@@ -242,14 +242,15 @@ public final class Matcher {
                 ad = AttributeDescription.valueOf(attributeDescription, schema);
             } catch (final LocalizedIllegalArgumentException e) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("Attribute description {} is not recognized", attributeDescription, e);
+                logger.warn(LocalizableMessage.raw(
+                        "Attribute description %s is not recognized", attributeDescription, e));
                 return UNDEFINED;
             }
 
             if ((rule = ad.getAttributeType().getApproximateMatchingRule()) == null) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("The attribute type {} does not define an approximate matching rule",
-                        attributeDescription);
+                logger.warn(LocalizableMessage.raw("The attribute type %s does not define an approximate matching rule",
+                        attributeDescription));
                 return UNDEFINED;
             }
 
@@ -257,7 +258,7 @@ public final class Matcher {
                 assertion = rule.getAssertion(assertionValue);
             } catch (final DecodeException de) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("The assertion value {} is invalid", assertionValue, de);
+                logger.warn(LocalizableMessage.raw("The assertion value %s is invalid", assertionValue, de));
                 return UNDEFINED;
             }
             return new AssertionMatcherImpl(ad, rule, null, assertion, false);
@@ -273,15 +274,15 @@ public final class Matcher {
                 ad = AttributeDescription.valueOf(attributeDescription, schema);
             } catch (final LocalizedIllegalArgumentException e) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("Attribute description {} is not recognized: {}",
-                        attributeDescription, e.getMessage());
+                logger.warn(LocalizableMessage.raw("Attribute description %s is not recognized",
+                        attributeDescription, e));
                 return UNDEFINED;
             }
 
             if ((rule = ad.getAttributeType().getEqualityMatchingRule()) == null) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("The attribute type {} does not define an equality matching rule",
-                        attributeDescription);
+                logger.warn(LocalizableMessage.raw("The attribute type %s does not define an equality matching rule",
+                        attributeDescription));
                 return UNDEFINED;
             }
 
@@ -289,7 +290,7 @@ public final class Matcher {
                 assertion = rule.getAssertion(assertionValue);
             } catch (final DecodeException de) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("The assertion value {} is invalid", assertionValue, de);
+                logger.warn(LocalizableMessage.raw("The assertion value %s is invalid", assertionValue, de));
                 return UNDEFINED;
             }
             return new AssertionMatcherImpl(ad, rule, null, assertion, false);
@@ -308,7 +309,7 @@ public final class Matcher {
                     rule = schema.getMatchingRule(matchingRule);
                 } catch (final UnknownSchemaElementException e) {
                     // TODO: I18N
-                    DEFAULT_LOG.warn("Matching rule {} is not recognized", matchingRule);
+                    logger.warn(LocalizableMessage.raw("Matching rule %s is not recognized", matchingRule));
                     return UNDEFINED;
                 }
             }
@@ -318,15 +319,17 @@ public final class Matcher {
                     ad = AttributeDescription.valueOf(attributeDescription, schema);
                 } catch (final LocalizedIllegalArgumentException e) {
                     // TODO: I18N
-                    DEFAULT_LOG.warn("Attribute description {} is not recognized", attributeDescription, e);
+                    logger.warn(LocalizableMessage.raw("Attribute description %s is not recognized",
+                            attributeDescription, e));
                     return UNDEFINED;
                 }
 
                 if (rule == null) {
                     if ((rule = ad.getAttributeType().getEqualityMatchingRule()) == null) {
                         // TODO: I18N
-                        DEFAULT_LOG.warn("The attribute type {} does not define an equality matching rule",
-                                attributeDescription);
+                        logger.warn(LocalizableMessage.raw(
+                                "The attribute type %s does not define an equality matching rule",
+                                attributeDescription));
                         return UNDEFINED;
                     }
                 } else {
@@ -334,13 +337,15 @@ public final class Matcher {
                         ruleUse = schema.getMatchingRuleUse(rule);
                         if (!ruleUse.hasAttribute(ad.getAttributeType())) {
                             // TODO: I18N
-                            DEFAULT_LOG.warn("The matching rule {} is not valid for attribute type {}",
-                                    matchingRule, attributeDescription);
+                            logger.warn(LocalizableMessage.raw(
+                                    "The matching rule %s is not valid for attribute type %s",
+                                    matchingRule, attributeDescription));
                             return UNDEFINED;
                         }
                     } catch (final UnknownSchemaElementException e) {
                         // TODO: I18N
-                        DEFAULT_LOG.warn("No matching rule use is defined for matching rule {}", matchingRule);
+                        logger.warn(LocalizableMessage.raw("No matching rule use is defined for matching rule %s",
+                                matchingRule));
                         return UNDEFINED;
                     }
                 }
@@ -349,7 +354,8 @@ public final class Matcher {
                     ruleUse = schema.getMatchingRuleUse(rule);
                 } catch (final UnknownSchemaElementException e) {
                     // TODO: I18N
-                    DEFAULT_LOG.warn("No matching rule use is defined for matching rule {}", matchingRule);
+                    logger.warn(LocalizableMessage.raw("No matching rule use is defined for matching rule %s",
+                            matchingRule));
                     return UNDEFINED;
                 }
             }
@@ -358,7 +364,7 @@ public final class Matcher {
                 assertion = rule.getAssertion(assertionValue);
             } catch (final DecodeException de) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("The assertion value {} is invalid", assertionValue, de);
+                logger.warn(LocalizableMessage.raw("The assertion value %s is invalid", assertionValue, de));
                 return UNDEFINED;
             }
             return new AssertionMatcherImpl(ad, rule, ruleUse, assertion, dnAttributes);
@@ -374,15 +380,16 @@ public final class Matcher {
                 ad = AttributeDescription.valueOf(attributeDescription, schema);
             } catch (final LocalizedIllegalArgumentException e) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("Attribute description {} is not recognized", attributeDescription, e);
+                logger.warn(LocalizableMessage.raw("Attribute description %s is not recognized",
+                        attributeDescription, e));
 
                 return UNDEFINED;
             }
 
             if ((rule = ad.getAttributeType().getOrderingMatchingRule()) == null) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("The attribute type {} does not define an ordering matching rule",
-                        attributeDescription);
+                logger.warn(LocalizableMessage.raw("The attribute type %s does not define an ordering matching rule",
+                        attributeDescription));
                 return UNDEFINED;
             }
 
@@ -390,7 +397,7 @@ public final class Matcher {
                 assertion = rule.getGreaterOrEqualAssertion(assertionValue);
             } catch (final DecodeException de) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("The assertion value {} is invalid", assertionValue, de);
+                logger.warn(LocalizableMessage.raw("The assertion value %s is invalid", assertionValue, de));
                 return UNDEFINED;
             }
             return new AssertionMatcherImpl(ad, rule, null, assertion, false);
@@ -406,14 +413,15 @@ public final class Matcher {
                 ad = AttributeDescription.valueOf(attributeDescription, schema);
             } catch (final LocalizedIllegalArgumentException e) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("Attribute description {} is not recognized", attributeDescription, e);
+                logger.warn(LocalizableMessage.raw("Attribute description %s is not recognized",
+                        attributeDescription, e));
                 return UNDEFINED;
             }
 
             if ((rule = ad.getAttributeType().getOrderingMatchingRule()) == null) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("The attribute type {} does not define an ordering matching rule",
-                        attributeDescription);
+                logger.warn(LocalizableMessage.raw("The attribute type %s does not define an ordering matching rule",
+                        attributeDescription));
                 return UNDEFINED;
             }
 
@@ -421,7 +429,7 @@ public final class Matcher {
                 assertion = rule.getLessOrEqualAssertion(assertionValue);
             } catch (final DecodeException de) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("The assertion value {} is invalid", assertionValue , de);
+                logger.warn(LocalizableMessage.raw("The assertion value %s is invalid", assertionValue , de));
                 return UNDEFINED;
             }
             return new AssertionMatcherImpl(ad, rule, null, assertion, false);
@@ -434,7 +442,7 @@ public final class Matcher {
 
         public MatcherImpl visitOrFilter(final Schema schema, final List<Filter> subFilters) {
             if (subFilters.isEmpty()) {
-                DEFAULT_LOG.trace("Empty or filter component. Will always return FALSE");
+                logger.trace(LocalizableMessage.raw("Empty or filter component. Will always return FALSE"));
                 return FALSE;
             }
 
@@ -451,7 +459,8 @@ public final class Matcher {
                 ad = AttributeDescription.valueOf(attributeDescription, schema);
             } catch (final LocalizedIllegalArgumentException e) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("Attribute description {} is not recognized", attributeDescription, e);
+                logger.warn(LocalizableMessage.raw("Attribute description %s is not recognized",
+                        attributeDescription, e));
                 return UNDEFINED;
             }
 
@@ -469,14 +478,15 @@ public final class Matcher {
                 ad = AttributeDescription.valueOf(attributeDescription, schema);
             } catch (final LocalizedIllegalArgumentException e) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("Attribute description {} is not recognized", attributeDescription, e);
+                logger.warn(LocalizableMessage.raw("Attribute description %s is not recognized",
+                        attributeDescription, e));
                 return UNDEFINED;
             }
 
             if ((rule = ad.getAttributeType().getSubstringMatchingRule()) == null) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("The attribute type {} does not define an substring matching rule",
-                        attributeDescription);
+                logger.warn(LocalizableMessage.raw("The attribute type %s does not define an substring matching rule",
+                        attributeDescription));
                 return UNDEFINED;
             }
 
@@ -484,7 +494,7 @@ public final class Matcher {
                 assertion = rule.getSubstringAssertion(initialSubstring, anySubstrings, finalSubstring);
             } catch (final DecodeException de) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("The substring assertion values contain an invalid value", de);
+                logger.warn(LocalizableMessage.raw("The substring assertion values contain an invalid value", de));
                 return UNDEFINED;
             }
             return new AssertionMatcherImpl(ad, rule, null, assertion, false);
@@ -493,11 +503,13 @@ public final class Matcher {
         public MatcherImpl visitUnrecognizedFilter(final Schema schema, final byte filterTag,
                 final ByteString filterBytes) {
             // TODO: I18N
-            DEFAULT_LOG.warn("The type of filtering requested with tag {} is not implemented",
-                    StaticUtils.byteToHex(filterTag));
+            logger.warn(LocalizableMessage.raw("The type of filtering requested with tag %s is not implemented",
+                    StaticUtils.byteToHex(filterTag)));
             return UNDEFINED;
         }
     }
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     private static final MatcherImpl FALSE = new FalseMatcherImpl();
 
@@ -533,8 +545,9 @@ public final class Matcher {
             return assertion.matches(normalizedValue);
         } catch (final DecodeException de) {
             // TODO: I18N
-            DEFAULT_LOG.warn("The attribute value {} is invalid for matching rule {}. Possible schema error?",
-                    v, rule.getNameOrOID(), de);
+            logger.warn(LocalizableMessage.raw(
+                    "The attribute value %s is invalid for matching rule %s. Possible schema error?",
+                    v, rule.getNameOrOID(), de));
             return ConditionResult.UNDEFINED;
         }
     }

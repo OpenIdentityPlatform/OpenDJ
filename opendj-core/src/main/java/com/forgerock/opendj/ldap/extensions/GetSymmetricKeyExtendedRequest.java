@@ -22,17 +22,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions copyright 2013-2014 ForgeRock AS
  */
-
 package com.forgerock.opendj.ldap.extensions;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_GET_SYMMETRIC_KEY_NO_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
@@ -49,8 +48,6 @@ import org.forgerock.opendj.ldap.responses.AbstractExtendedResultDecoder;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
 import org.forgerock.opendj.ldap.responses.Responses;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * Get symmetric key extended request.
@@ -94,7 +91,7 @@ public final class GetSymmetricKeyExtendedRequest extends
 
                 return newRequest;
             } catch (final IOException ioe) {
-                StaticUtils.DEFAULT_LOG.debug("", ioe);
+                logger.debug(LocalizableMessage.raw("%s", ioe));
 
                 final LocalizableMessage message =
                         ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(ioe.getMessage());
@@ -116,6 +113,8 @@ public final class GetSymmetricKeyExtendedRequest extends
             return result;
         }
     }
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /**
      * The request OID for the get symmetric key extended operation.

@@ -24,7 +24,6 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions copyright 2012-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import static org.fest.assertions.Fail.fail;
@@ -48,7 +47,6 @@ import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.OngoingStubbing;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
-import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.TimeSource;
 
 /**
@@ -266,7 +264,7 @@ public final class TestCaseUtils {
      * @param level logging level to use
      */
     public static void setDefaultLogLevel(Level level) {
-        Logger.getLogger(StaticUtils.DEFAULT_LOG.getName()).setLevel(level);
+        Logger.getLogger("org.forgerock.opendj.ldap").setLevel(level);
     }
 
 }

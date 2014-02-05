@@ -22,12 +22,10 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
 import static org.forgerock.opendj.ldap.ErrorResultException.*;
 
@@ -39,6 +37,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
@@ -153,7 +153,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         private synchronized void checkIfAvailable() {
             if (!isOperational.get()
                     && (pendingConnectFuture == null || pendingConnectFuture.isDone())) {
-                DEFAULT_LOG.debug("Attempting reconnect to offline factory '{}'", this);
+                logger.debug(LocalizableMessage.raw("Attempting reconnect to offline factory '%s'", this));
                 pendingConnectFuture = factory.getConnectionAsync(this);
             }
         }
@@ -175,7 +175,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
                 synchronized (stateLock) {
                     offlineFactoriesCount++;
                     if (offlineFactoriesCount == 1) {
-                        DEFAULT_LOG.debug("Starting monitoring thread");
+                        logger.debug(LocalizableMessage.raw("Starting monitoring thread"));
                         monitoringFuture =
                                 scheduler.get().scheduleWithFixedDelay(new MonitorRunnable(), 0,
                                         monitoringInterval, monitoringIntervalTimeUnit);
@@ -198,7 +198,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
                 synchronized (stateLock) {
                     offlineFactoriesCount--;
                     if (offlineFactoriesCount == 0) {
-                        DEFAULT_LOG.debug("Stopping monitoring thread");
+                        logger.debug(LocalizableMessage.raw("Stopping monitoring thread"));
 
                         monitoringFuture.cancel(false);
                         monitoringFuture = null;
@@ -209,7 +209,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
 
         private void handleListenerException(RuntimeException e) {
             // TODO: I18N
-            DEFAULT_LOG.error("A run-time error occurred while processing a load-balancer event", e);
+            logger.error(LocalizableMessage.raw("A run-time error occurred while processing a load-balancer event", e));
         }
     }
 
@@ -226,6 +226,8 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         }
     }
 
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     /**
      * A default event listener which just logs the event.
      */
@@ -235,13 +237,14 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         public void handleConnectionFactoryOnline(ConnectionFactory factory) {
             // Transition from offline to online.
             // TODO: I18N
-            DEFAULT_LOG.info("Connection factory '{}' is now operational", factory);
+            logger.info(LocalizableMessage.raw("Connection factory '%s' is now operational", factory));
         }
 
         @Override
         public void handleConnectionFactoryOffline(ConnectionFactory factory, ErrorResultException error) {
             // TODO: I18N
-            DEFAULT_LOG.warn("Connection factory '{}' is no longer operational: {}", factory, error.getMessage());
+            logger.warn(LocalizableMessage.raw("Connection factory '%s' is no longer operational: %s",
+                    factory, error.getMessage()));
         }
     };
 

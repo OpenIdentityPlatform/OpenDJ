@@ -22,15 +22,18 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 import static java.util.Collections.newSetFromMap;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import com.forgerock.opendj.util.ReferenceCountedObject;
 
 /**
@@ -56,6 +59,8 @@ public final class TimeoutChecker {
                     return new TimeoutChecker();
                 }
             };
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /**
      * Condition variable used for coordinating the timeout thread.
@@ -84,7 +89,7 @@ public final class TimeoutChecker {
         final Thread checkerThread = new Thread("OpenDJ LDAP SDK Timeout Checker") {
             @Override
             public void run() {
-                DEFAULT_LOG.debug("Timeout Checker Starting");
+                logger.debug(LocalizableMessage.raw("Timeout Checker Starting"));
                 while (!shutdownRequested) {
                     /*
                      * New listeners may be added during iteration and may not
@@ -97,7 +102,7 @@ public final class TimeoutChecker {
                     long delay = Long.MAX_VALUE;
                     pendingListenerMinDelay = Long.MAX_VALUE;
                     for (final TimeoutEventListener listener : listeners) {
-                        DEFAULT_LOG.trace("Checking connection {} delay = {}", listener, delay);
+                        logger.trace(LocalizableMessage.raw("Checking connection %s delay = %d", listener, delay));
 
                         // May update the connections set.
                         final long newDelay = listener.handleTimeout(currentTime);
