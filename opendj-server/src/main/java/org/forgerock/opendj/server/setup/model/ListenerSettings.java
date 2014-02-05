@@ -30,8 +30,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
-import static org.forgerock.util.Utils.closeSilently;
-
 class ListenerSettings {
 
     /** Default value for incrementing port number. */
@@ -265,7 +263,17 @@ class ListenerSettings {
                 socket.setReuseAddress(true);
                 socket.bind(new InetSocketAddress(portNumber));
             } finally {
-                closeSilently(socket);
+                close(socket);
+            }
+        }
+
+        private void close(ServerSocket socket) {
+            try {
+                if (socket != null) {
+                    socket.close();
+                }
+            } catch (final IOException ignored) {
+                // Ignore.
             }
         }
     }
