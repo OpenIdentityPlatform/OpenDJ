@@ -24,16 +24,16 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.grizzly;
 
-import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 import static org.forgerock.opendj.grizzly.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LDAPClientContext;
@@ -51,6 +51,8 @@ import com.forgerock.opendj.util.ReferenceCountedObject;
  * LDAP listener implementation using Grizzly for transport.
  */
 public final class GrizzlyLDAPListener implements LDAPListenerImpl {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     private final ReferenceCountedObject<TCPNIOTransport>.Reference transport;
     private final ServerConnectionFactory<LDAPClientContext, Integer> connectionFactory;
     private final TCPNIOServerConnection serverConnection;
@@ -130,7 +132,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
                 Thread.currentThread().interrupt();
             } catch (final Exception e) {
                 // TODO: I18N
-                DEFAULT_LOG.warn("Exception occurred while closing listener", e);
+                logger.warn(LocalizableMessage.raw("Exception occurred while closing listener", e));
             }
             transport.release();
         }

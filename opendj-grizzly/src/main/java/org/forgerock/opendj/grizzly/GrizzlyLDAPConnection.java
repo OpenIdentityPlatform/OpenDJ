@@ -24,13 +24,9 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.grizzly;
 
-import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_BIND_OR_START_TLS_CONNECTION_TIMEOUT;
-import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_BIND_OR_START_TLS_REQUEST_TIMEOUT;
-import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_REQUEST_TIMEOUT;
-import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
+import static com.forgerock.opendj.grizzly.GrizzlyMessages.*;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.IOException;
@@ -45,6 +41,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
@@ -114,6 +112,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
         }
     }
 
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     private final AtomicBoolean bindOrStartTLSInProgress = new AtomicBoolean(false);
     private final org.glassfish.grizzly.Connection<?> connection;
     private final AtomicInteger nextMsgID = new AtomicInteger(1);
@@ -613,8 +612,8 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                  * invalidating the connection. We'll do the latter, since
                  * ignoring timeouts could cause the application to hang.
                  */
-                DEFAULT_LOG.debug("Failing bind or StartTLS request due to timeout "
-                        + "(connection will be invalidated): " + future);
+                logger.debug(LocalizableMessage.raw("Failing bind or StartTLS request due to timeout %s"
+                        + "(connection will be invalidated): ", future));
                 final Result result =
                         Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT).setDiagnosticMessage(
                                 LDAP_CONNECTION_BIND_OR_START_TLS_REQUEST_TIMEOUT.get(timeout)
@@ -628,7 +627,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                                         .toString());
                 connectionErrorOccurred(errorResult);
             } else {
-                DEFAULT_LOG.debug("Failing request due to timeout: " + future);
+                logger.debug(LocalizableMessage.raw("Failing request due to timeout: %s", future));
                 final Result result =
                         Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT).setDiagnosticMessage(
                                 LDAP_CONNECTION_REQUEST_TIMEOUT.get(timeout).toString());
