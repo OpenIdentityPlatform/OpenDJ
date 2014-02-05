@@ -40,11 +40,11 @@ cd /d %INSTALL_ROOT%
 cd /d %INSTANCE_DIR%
 set INSTANCE_ROOT=%CD%
 cd /d %CUR_DIR%
-set TEMP_LOG=%TEMP%\logs\
+set TEMP_LOG="%TEMP%\logs\"
 
-if NOT EXIST %INSTANCE_ROOT%\logs\ (
-  if NOT EXIST %TEMP_LOG% (
-    md %TEMP_LOG% 
+if NOT EXIST "%INSTANCE_ROOT%\logs\" (
+  if NOT EXIST "%TEMP_LOG%" (
+    md "%TEMP_LOG%"
   )
   set LOG="%TEMP_LOG%native-windows.out"
 ) ELSE (
