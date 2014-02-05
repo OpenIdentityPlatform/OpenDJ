@@ -22,18 +22,16 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_MATCHING_RULE_NAME;
-import static com.forgerock.opendj.util.StaticUtils.SCHEMA_LOG;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 
@@ -45,6 +43,8 @@ import com.forgerock.opendj.util.SubstringReader;
  * syntax is defined in RFC 2252.
  */
 final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     @Override
     public String getEqualityMatchingRule() {
@@ -90,7 +90,7 @@ final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl {
                 // whitespace. That is illegal.
                 final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EMPTY_VALUE1.get(definition);
                 final DecodeException e = DecodeException.error(message);
-                SCHEMA_LOG.debug("", e);
+                logger.debug(LocalizableMessage.raw("%s", e));
                 throw e;
             }
 
@@ -100,9 +100,9 @@ final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl {
             if (c != '(') {
                 final LocalizableMessage message =
                         ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS.get(definition,
-                                (reader.pos() - 1), String.valueOf(c));
+                                (reader.pos() - 1), c);
                 final DecodeException e = DecodeException.error(message);
-                SCHEMA_LOG.debug("", e);
+                logger.debug(LocalizableMessage.raw("%s", e));
                 throw e;
             }
 
@@ -155,7 +155,7 @@ final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl {
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_MR_ILLEGAL_TOKEN1.get(definition, tokenName);
                     final DecodeException e = DecodeException.error(message);
-                    SCHEMA_LOG.debug("", e);
+                    logger.debug(LocalizableMessage.raw("%s", e));
                     throw e;
                 }
             }
@@ -164,7 +164,7 @@ final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl {
             if (syntax == null) {
                 final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_NO_SYNTAX.get(definition);
                 final DecodeException e = DecodeException.error(message);
-                SCHEMA_LOG.debug("", e);
+                logger.debug(LocalizableMessage.raw("%s", e));
                 throw e;
             }
             return true;

@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS
+ *      Portions copyright 2012-2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
@@ -37,10 +36,9 @@ import java.util.TimeZone;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * This class implements the UTC time attribute syntax. This is very similar to
@@ -51,6 +49,8 @@ import com.forgerock.opendj.util.StaticUtils;
  * allowed.
  */
 final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /**
      * The lock that will be used to provide threadsafe access to the date
@@ -146,9 +146,9 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl {
             }
         } catch (final Exception e) {
             final LocalizableMessage message =
-                    ERR_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE.get(valueString, String.valueOf(e));
+                    ERR_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE.get(valueString, e);
             final DecodeException de = DecodeException.error(message, e);
-            StaticUtils.SCHEMA_LOG.debug("", de);
+            logger.debug(LocalizableMessage.raw("%s", de));
             throw de;
         }
     }

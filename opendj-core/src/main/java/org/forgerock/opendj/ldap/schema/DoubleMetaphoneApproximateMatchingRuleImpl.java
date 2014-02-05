@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * This class defines an approximate matching rule based on the Double Metaphone
@@ -50,6 +50,8 @@ import com.forgerock.opendj.util.StaticUtils;
  * generate a single value rather than one or possibly two values.
  */
 final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractMatchingRuleImpl {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /**
      * {@inheritDoc}
@@ -891,11 +893,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractMatchingR
 
             return true;
         } catch (final Exception e) {
-            if (StaticUtils.SCHEMA_LOG.isDebugEnabled()) {
-                StaticUtils.SCHEMA_LOG.debug("Unable to check that '" + value + "' has substring '" + substring
-                        + "' at position " + start, e);
-            }
-
+            logger.debug(LocalizableMessage.raw(
+                "Unable to check that '%s' has substring '%s' at position %d: %s", value, substring, start, e));
             return false;
         }
     }

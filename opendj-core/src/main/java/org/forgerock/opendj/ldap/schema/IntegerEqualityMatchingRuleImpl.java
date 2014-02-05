@@ -26,14 +26,13 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_INTEGER;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * This class defines the integerMatch matching rule defined in X.520 and
@@ -41,12 +40,14 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 final class IntegerEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         try {
             return ByteString.valueOf(Integer.parseInt(value.toString()));
         } catch (final Exception e) {
-            StaticUtils.SCHEMA_LOG.debug("", e);
+            logger.debug(LocalizableMessage.raw("%s", e));
 
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value.toString());

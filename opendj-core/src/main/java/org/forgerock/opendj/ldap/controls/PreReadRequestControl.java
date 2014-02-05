@@ -22,18 +22,15 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.controls;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_PREREADREQ_CANNOT_DECODE_VALUE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_PREREADREQ_NO_CONTROL_VALUE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_PREREAD_CONTROL_BAD_OID;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
@@ -49,8 +47,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-
-import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.util.Reject;
 
 /**
@@ -83,6 +79,8 @@ import org.forgerock.util.Reject;
  *      Directory Access Protocol (LDAP) Read Entry Controls </a>
  */
 public final class PreReadRequestControl implements Control {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     /**
      * The IANA-assigned OID for the LDAP pre-read request control used for
      * retrieving an entry in the state it had immediately before an update was
@@ -148,7 +146,7 @@ public final class PreReadRequestControl implements Control {
                         }
                         reader.readEndSequence();
                     } catch (final Exception ex) {
-                        StaticUtils.CONTROLS_LOG.debug("Unable to read sequence", ex);
+                        logger.debug(LocalizableMessage.raw("Unable to read sequence", ex));
 
                         final LocalizableMessage message =
                                 ERR_PREREADREQ_CANNOT_DECODE_VALUE.get(ex.getMessage());

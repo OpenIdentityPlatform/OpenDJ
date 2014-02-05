@@ -28,14 +28,12 @@ package com.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.util.StaticUtils.byteToHex;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_CONTROL_BAD_OID;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_DECODE_ERROR;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_NO_CONTROL_VALUE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
@@ -46,7 +44,6 @@ import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 
-import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.util.Reject;
 
 /**
@@ -70,6 +67,9 @@ import org.forgerock.util.Reject;
  * @see AccountUsabilityRequestControl
  */
 public final class AccountUsabilityResponseControl implements Control {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     /**
      * The OID for the account usability response control.
      */
@@ -149,7 +149,7 @@ public final class AccountUsabilityResponseControl implements Control {
                             throw DecodeException.error(message);
                         }
                     } catch (final IOException e) {
-                        StaticUtils.CONTROLS_LOG.debug("", e);
+                        logger.debug(LocalizableMessage.raw("%s", e));
 
                         final LocalizableMessage message =
                                 ERR_ACCTUSABLERES_DECODE_ERROR.get(getExceptionMessage(e));

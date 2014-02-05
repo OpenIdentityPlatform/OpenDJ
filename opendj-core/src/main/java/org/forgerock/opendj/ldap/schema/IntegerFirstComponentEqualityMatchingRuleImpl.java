@@ -22,22 +22,19 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions copyright 2013-2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
-
-import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
 
 /**
@@ -49,6 +46,8 @@ import com.forgerock.opendj.util.SubstringReader;
  * after the opening parenthesis.
  */
 final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence value)
@@ -66,7 +65,7 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractMatchi
                 }
             };
         } catch (final Exception e) {
-            StaticUtils.SCHEMA_LOG.debug("", e);
+            logger.debug(LocalizableMessage.raw("%s", e));
 
             final LocalizableMessage message =
                     ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(value.toString());

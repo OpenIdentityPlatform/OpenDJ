@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
@@ -32,6 +31,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.LDAP;
@@ -41,8 +41,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
-
-import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.util.Reject;
 
 /**
@@ -77,6 +75,8 @@ import org.forgerock.util.Reject;
  *      Directory Access Protocol (LDAP) Read Entry Controls </a>
  */
 public final class PostReadResponseControl implements Control {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     /**
      * The IANA-assigned OID for the LDAP post-read response control used for
      * retrieving an entry in the state it had immediately after an update was
@@ -115,7 +115,7 @@ public final class PostReadResponseControl implements Control {
                     try {
                         entry = LDAP.readEntry(reader, options);
                     } catch (final IOException le) {
-                        StaticUtils.CONTROLS_LOG.debug("Unable to read result entry ", le);
+                        logger.debug(LocalizableMessage.raw("Unable to read result entry ", le));
                         final LocalizableMessage message =
                                 ERR_POSTREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());
                         throw DecodeException.error(message, le);

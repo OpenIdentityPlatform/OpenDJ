@@ -68,16 +68,6 @@ public final class StaticUtils {
     public static final Logger DEFAULT_LOG = LoggerFactory.getLogger(DEFAULT_LOGGER_NAME);
 
     /**
-     * The logger used by the SDK for controls related features.
-     */
-    public static final Logger CONTROLS_LOG = LoggerFactory.getLogger(DEFAULT_LOGGER_NAME + ".controls");
-
-    /**
-     * The logger used by the SDK for schema related features.
-     */
-    public static final Logger SCHEMA_LOG = LoggerFactory.getLogger(DEFAULT_LOGGER_NAME + ".schema");
-
-    /**
      * Indicates whether the SDK is being used in debug mode. In debug mode
      * components may enable certain instrumentation in order to help debug
      * applications.

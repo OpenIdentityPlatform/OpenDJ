@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -34,6 +34,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.ERR_SUBENTRIES_NO_CONTROL_V
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
@@ -41,8 +42,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-
-import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.util.Reject;
 
 /**
@@ -93,6 +92,8 @@ import org.forgerock.util.Reject;
  *      the Lightweight Directory Access Protocol </a>
  */
 public final class SubentriesRequestControl implements Control {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     /**
      * The OID for the sub-entries request control.
      */
@@ -138,7 +139,7 @@ public final class SubentriesRequestControl implements Control {
                     try {
                         visibility = reader.readBoolean();
                     } catch (final IOException e) {
-                        StaticUtils.CONTROLS_LOG.debug("Unable to read visbility", e);
+                        logger.debug(LocalizableMessage.raw("Unable to read visbility", e));
                         final LocalizableMessage message =
                                 ERR_SUBENTRIES_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
                         throw DecodeException.error(message);

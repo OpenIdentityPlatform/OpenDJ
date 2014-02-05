@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
@@ -39,6 +38,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
@@ -50,8 +50,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.util.Reject;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * The matched values request control as defined in RFC 3876. The matched values
@@ -148,6 +146,8 @@ public final class MatchedValuesRequestControl implements Control {
         }
     }
 
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     /**
      * The OID for the matched values request control used to specify which
      * particular attribute values should be returned in a search result entry.
@@ -205,7 +205,7 @@ public final class MatchedValuesRequestControl implements Control {
                         return new MatchedValuesRequestControl(control.isCritical(), Collections
                                 .unmodifiableList(filters));
                     } catch (final IOException e) {
-                        StaticUtils.CONTROLS_LOG.debug("", e);
+                        logger.debug(LocalizableMessage.raw("%s", e));
 
                         final LocalizableMessage message =
                                 ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE
