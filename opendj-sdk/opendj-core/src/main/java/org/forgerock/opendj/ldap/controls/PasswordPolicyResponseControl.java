@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -33,6 +33,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
@@ -41,8 +42,6 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.util.Reject;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * The password policy response control as defined in
@@ -98,6 +97,8 @@ import com.forgerock.opendj.util.StaticUtils;
  *      </a>
  */
 public final class PasswordPolicyResponseControl implements Control {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     /**
      * The OID for the password policy control from
      * draft-behera-ldap-password-policy.
@@ -182,7 +183,7 @@ public final class PasswordPolicyResponseControl implements Control {
                         return new PasswordPolicyResponseControl(control.isCritical(), warningType,
                                 warningValue, errorType);
                     } catch (final IOException e) {
-                        StaticUtils.CONTROLS_LOG.debug("", e);
+                        logger.debug(LocalizableMessage.raw("%s", e));
 
                         final LocalizableMessage message =
                                 ERR_PWPOLICYRES_DECODE_ERROR.get(getExceptionMessage(e));

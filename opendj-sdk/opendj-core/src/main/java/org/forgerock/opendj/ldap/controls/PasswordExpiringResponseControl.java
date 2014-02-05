@@ -22,21 +22,18 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions copyright 2013-2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_PWEXPIRING_CONTROL_BAD_OID;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_PWEXPIRING_NO_CONTROL_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-
-import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.util.Reject;
 
 /**
@@ -69,6 +66,8 @@ import org.forgerock.util.Reject;
  *      - Password Policy for LDAP Directories </a>
  */
 public final class PasswordExpiringResponseControl implements Control {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     /**
      * The OID for the Netscape password expiring response control.
      */
@@ -104,7 +103,7 @@ public final class PasswordExpiringResponseControl implements Control {
                     try {
                         secondsUntilExpiration = Integer.parseInt(control.getValue().toString());
                     } catch (final Exception e) {
-                        StaticUtils.CONTROLS_LOG.debug("", e);
+                        logger.debug(LocalizableMessage.raw("%s", e));
 
                         final LocalizableMessage message =
                                 ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION

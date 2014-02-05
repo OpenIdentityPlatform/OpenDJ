@@ -22,16 +22,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.CONTROLS_LOG;
 
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
@@ -132,6 +132,8 @@ import org.forgerock.util.Reject;
  *      Extension for Simple Paged Results Manipulation </a>
  */
 public final class SimplePagedResultsControl implements Control {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     /**
      * The OID for the paged results request/response control defined in RFC
      * 2696.
@@ -154,58 +156,43 @@ public final class SimplePagedResultsControl implements Control {
                     }
 
                     if (!control.getOID().equals(OID)) {
-                        final LocalizableMessage message =
-                                ERR_LDAP_PAGED_RESULTS_CONTROL_BAD_OID.get(control.getOID(), OID);
-                        throw DecodeException.error(message);
+                        throw DecodeException.error(ERR_LDAP_PAGED_RESULTS_CONTROL_BAD_OID.get(control.getOID(), OID));
                     }
 
                     if (!control.hasValue()) {
                         // The control must always have a value.
-                        final LocalizableMessage message = ERR_LDAP_PAGED_RESULTS_DECODE_NULL.get();
-                        throw DecodeException.error(message);
+                        throw DecodeException.error(ERR_LDAP_PAGED_RESULTS_DECODE_NULL.get());
                     }
 
                     final ASN1Reader reader = ASN1.getReader(control.getValue());
                     try {
                         reader.readStartSequence();
                     } catch (final Exception e) {
-                        CONTROLS_LOG.debug("Unable to read start sequence", e);
-
-                        final LocalizableMessage message =
-                                ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));
-                        throw DecodeException.error(message, e);
+                        logger.debug(LocalizableMessage.raw("Unable to read start sequence", e));
+                        throw DecodeException.error(ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(e), e);
                     }
 
                     int size;
                     try {
                         size = (int) reader.readInteger();
                     } catch (final Exception e) {
-                        CONTROLS_LOG.debug("Unable to read size", e);
-
-                        final LocalizableMessage message =
-                                ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(String.valueOf(e));
-                        throw DecodeException.error(message, e);
+                        logger.debug(LocalizableMessage.raw("Unable to read size", e));
+                        throw DecodeException.error(ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(e), e);
                     }
 
                     ByteString cookie;
                     try {
                         cookie = reader.readOctetString();
                     } catch (final Exception e) {
-                        CONTROLS_LOG.debug("Unable to read cookie", e);
-
-                        final LocalizableMessage message =
-                                ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE.get(String.valueOf(e));
-                        throw DecodeException.error(message, e);
+                        logger.debug(LocalizableMessage.raw("Unable to read cookie", e));
+                        throw DecodeException.error(ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE.get(e), e);
                     }
 
                     try {
                         reader.readEndSequence();
                     } catch (final Exception e) {
-                        CONTROLS_LOG.debug("Unable to read end sequence", e);
-
-                        final LocalizableMessage message =
-                                ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));
-                        throw DecodeException.error(message, e);
+                        logger.debug(LocalizableMessage.raw("Unable to read end sequence", e));
+                        throw DecodeException.error(ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(e), e);
                     }
 
                     return new SimplePagedResultsControl(control.isCritical(), size, cookie);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -33,13 +33,12 @@ import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-
-import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.util.Reject;
 
 /**
@@ -77,6 +76,8 @@ import org.forgerock.util.Reject;
  *      SASL Authorization Identities (authzId) </a>
  */
 public final class ProxiedAuthV2RequestControl implements Control {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     /**
      * The OID for the proxied authorization v2 control.
      */
@@ -129,7 +130,7 @@ public final class ProxiedAuthV2RequestControl implements Control {
                             authorizationID = control.getValue().toString();
                         }
                     } catch (final IOException e) {
-                        StaticUtils.CONTROLS_LOG.debug("Unable to read exceptionID", e);
+                        logger.debug(LocalizableMessage.raw("Unable to read exceptionID", e));
 
                         final LocalizableMessage message =
                                 ERR_PROXYAUTH2_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
