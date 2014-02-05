@@ -341,11 +341,11 @@ public final class ConfigurationFramework {
     }
 
     /**
-     * Returns {@code true} if the configuration framework has been enabled.
+     * Returns {@code true} if the configuration framework has been initialized.
      *
-     * @return {@code true} if the configuration framework has been enabled.
+     * @return {@code true} if the configuration framework has been initialized.
      */
-    public synchronized boolean isEnabled() {
+    public synchronized boolean isInitialized() {
         return loader != null;
     }
 
