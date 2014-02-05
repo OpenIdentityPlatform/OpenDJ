@@ -52,7 +52,6 @@ import org.forgerock.opendj.config.ManagedObjectNotFoundException;
 import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.OptionalRelationDefinition;
 import org.forgerock.opendj.config.PropertyDefinition;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.PropertyNotFoundException;
 import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.RelationDefinition;
@@ -137,7 +136,7 @@ public abstract class Driver {
 
             for (String stringValue : stringValues) {
                 try {
-                    values.add(nextProperty.decodeValue(stringValue, propertyDefOptions));
+                    values.add(nextProperty.decodeValue(stringValue));
                 } catch (PropertyException e) {
                     exception = PropertyException.defaultBehaviorException(nextProperty, e);
                     break;
@@ -227,7 +226,7 @@ public abstract class Driver {
                     Collection<T> tmp = find(target, pd2);
                     Collection<T> values = new ArrayList<T>(tmp.size());
                     for (T value : tmp) {
-                        pd1.validateValue(value, propertyDefOptions);
+                        pd1.validateValue(value);
                         values.add(value);
                     }
                     return values;
@@ -253,16 +252,11 @@ public abstract class Driver {
         }
     };
 
-    private final PropertyDefinitionsOptions propertyDefOptions;
-
     /**
      * Creates a new abstract driver.
-     *
-     * @param propertyDefOptions
-     *            Decoding options for property definitions values.
      */
-    protected Driver(PropertyDefinitionsOptions propertyDefOptions) {
-        this.propertyDefOptions = propertyDefOptions;
+    protected Driver() {
+       // Do nothing.
     }
 
     /**

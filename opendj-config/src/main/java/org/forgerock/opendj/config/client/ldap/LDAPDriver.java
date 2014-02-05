@@ -53,7 +53,6 @@ import org.forgerock.opendj.config.ManagedObjectNotFoundException;
 import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyDefinitionVisitor;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.Reference;
 import org.forgerock.opendj.config.RelationDefinition;
@@ -81,9 +80,6 @@ final class LDAPDriver extends Driver {
      * A visitor which is used to decode property LDAP values.
      */
     private static final class ValueDecoder extends PropertyDefinitionVisitor<Object, String> {
-
-        private final PropertyDefinitionsOptions options;
-
         /**
          * Decodes the provided property LDAP value.
          *
@@ -93,21 +89,19 @@ final class LDAPDriver extends Driver {
          *            The property definition.
          * @param value
          *            The LDAP string representation.
-         * @param options
-         *            Decoding options for property definitions.
          * @return Returns the decoded LDAP value.
          * @throws PropertyException
          *             If the property value could not be decoded because it was
          *             invalid.
          */
-        public static <P> P decode(PropertyDefinition<P> pd, Object value, PropertyDefinitionsOptions options) {
+        public static <P> P decode(PropertyDefinition<P> pd, Object value) {
             String s = String.valueOf(value);
-            return pd.castValue(pd.accept(new ValueDecoder(options), s));
+            return pd.castValue(pd.accept(new ValueDecoder(), s));
         }
 
         // Prevent instantiation.
-        private ValueDecoder(PropertyDefinitionsOptions options) {
-            this.options = options;
+        private ValueDecoder() {
+            // Do nothing.
         }
 
         /**
@@ -132,7 +126,7 @@ final class LDAPDriver extends Driver {
         @Override
         public <T> Object visitUnknown(PropertyDefinition<T> d, String p) {
             // By default the property definition's decoder will do.
-            return d.decodeValue(p, options);
+            return d.decodeValue(p);
         }
     }
 
@@ -152,11 +146,8 @@ final class LDAPDriver extends Driver {
      *            The LDAP connection.
      * @param profile
      *            The LDAP profile.
-     * @param propertyDefOptions
-     *            Options used to validate property definitions values
      */
-    public LDAPDriver(LDAPConnection connection, LDAPProfile profile, PropertyDefinitionsOptions propertyDefOptions) {
-        super(propertyDefOptions);
+    public LDAPDriver(LDAPConnection connection, LDAPProfile profile) {
         this.connection = connection;
         this.profile = profile;
     }
@@ -264,10 +255,9 @@ final class LDAPDriver extends Driver {
 
             // Decode the values.
             SortedSet<P> values = new TreeSet<P>(propertyDef);
-            PropertyDefinitionsOptions options = context.getPropertyDefOptions();
             if (attribute != null) {
                 for (ByteString byteValue : attribute) {
-                    P value = ValueDecoder.decode(propertyDef, byteValue, options);
+                    P value = ValueDecoder.decode(propertyDef, byteValue);
                     values.add(value);
                 }
             }
@@ -489,10 +479,9 @@ final class LDAPDriver extends Driver {
 
         // Get the property's active values.
         SortedSet<P> activeValues = new TreeSet<P>(propertyDef);
-        PropertyDefinitionsOptions options = context.getPropertyDefOptions();
         if (attribute != null) {
             for (ByteString byteValue : attribute) {
-                P value = ValueDecoder.decode(propertyDef, byteValue, options);
+                P value = ValueDecoder.decode(propertyDef, byteValue);
                 activeValues.add(value);
             }
         }

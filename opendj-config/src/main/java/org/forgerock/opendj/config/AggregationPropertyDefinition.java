@@ -812,11 +812,11 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      * {@inheritDoc}
      */
     @Override
-    public String decodeValue(String value, PropertyDefinitionsOptions options) {
+    public String decodeValue(String value) {
         Reject.ifNull(value);
 
         try {
-            validateValue(value, options);
+            validateValue(value);
             return value;
         } catch (PropertyException e) {
             throw PropertyException.illegalPropertyValueException(this, value);
@@ -980,7 +980,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(String value, PropertyDefinitionsOptions options) {
+    public void validateValue(String value) {
         try {
             Reference.parseName(parentPath, relationDefinition, value);
         } catch (IllegalArgumentException e) {

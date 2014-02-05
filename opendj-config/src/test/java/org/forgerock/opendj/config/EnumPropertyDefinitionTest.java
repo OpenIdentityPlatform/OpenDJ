@@ -94,7 +94,7 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
     @Test(dataProvider = "decodeValueData")
     public void testDecodeValue(String value, TestEnum expectedValue) {
         EnumPropertyDefinition<?> def = builder.getInstance();
-        assertEquals(def.decodeValue(value, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS), expectedValue);
+        assertEquals(def.decodeValue(value), expectedValue);
     }
 
     /**
@@ -117,7 +117,7 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
             PropertyException.class })
     public void testDecodeValueIllegalData(String value) {
         EnumPropertyDefinition<?> def = builder.getInstance();
-        def.decodeValue(value, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        def.decodeValue(value);
     }
 
     /**
@@ -135,7 +135,7 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
     @Test
     public void testValidateValue() {
         EnumPropertyDefinition<TestEnum> def = builder.getInstance();
-        def.validateValue(TestEnum.ONE, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        def.validateValue(TestEnum.ONE);
     }
 
 }

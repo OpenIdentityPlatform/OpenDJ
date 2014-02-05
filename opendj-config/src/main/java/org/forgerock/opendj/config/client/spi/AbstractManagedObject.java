@@ -48,7 +48,6 @@ import org.forgerock.opendj.config.ManagedObjectNotFoundException;
 import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.OptionalRelationDefinition;
 import org.forgerock.opendj.config.PropertyDefinition;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.RelationDefinition;
 import org.forgerock.opendj.config.RelationDefinitionVisitor;
@@ -226,9 +225,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     // The managed object's properties.
     private final PropertySet properties;
 
-    /** Decoding options for property definitions values. */
-    private final PropertyDefinitionsOptions propertyDefOptions;
-
     /**
      * Creates a new abstract managed object.
      *
@@ -244,17 +240,15 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      *            committed).
      * @param namingPropertyDefinition
      *            Optional naming property definition.
-     * @param propertyDefOptions TODO
      */
     protected AbstractManagedObject(ManagedObjectDefinition<T, ? extends Configuration> d,
         ManagedObjectPath<T, ? extends Configuration> path, PropertySet properties, boolean existsOnServer,
-        PropertyDefinition<?> namingPropertyDefinition, PropertyDefinitionsOptions propertyDefOptions) {
+        PropertyDefinition<?> namingPropertyDefinition) {
         this.definition = d;
         this.path = path;
         this.properties = properties;
         this.existsOnServer = existsOnServer;
         this.namingPropertyDefinition = namingPropertyDefinition;
-        this.propertyDefOptions = propertyDefOptions;
     }
 
     /**
@@ -349,9 +343,9 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         PropertyDefinition<?> pd = r.getNamingPropertyDefinition();
         if (pd != null) {
             try {
-                pd.decodeValue(name, propertyDefOptions);
+                pd.decodeValue(name);
             } catch (PropertyException e) {
-                throw new IllegalManagedObjectNameException(name, pd, propertyDefOptions);
+                throw new IllegalManagedObjectNameException(name, pd);
             }
         }
 
@@ -667,7 +661,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
             throw PropertyException.propertyIsReadOnlyException(pd);
         }
 
-        properties.setPropertyValues(pd, values, propertyDefOptions);
+        properties.setPropertyValues(pd, values);
 
         // If this is a naming property then update the name.
         if (pd.equals(namingPropertyDefinition)) {
@@ -812,9 +806,8 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
 
         // Set the naming property if there is one.
         if (namingPropertyDefinition != null) {
-            P value = namingPropertyDefinition.decodeValue(name, propertyDefOptions);
-            childProperties.setPropertyValues(namingPropertyDefinition, Collections.singleton(value),
-                propertyDefOptions);
+            P value = namingPropertyDefinition.decodeValue(name);
+            childProperties.setPropertyValues(namingPropertyDefinition, Collections.singleton(value));
         }
 
         return newInstance(d, p, childProperties, false, namingPropertyDefinition);

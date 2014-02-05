@@ -36,33 +36,33 @@ public class StringPropertyDefinitionTest extends ConfigTestCase {
     @Test
     public void testValidateValueNoPattern() {
         StringPropertyDefinition d = getDefinition(true, null);
-        d.validateValue("abc", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        d.validateValue("abc");
     }
 
     @Test
     public void testValidateValuePatternMatches() {
         StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
-        d.validateValue("abc", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        d.validateValue("abc");
     }
 
     // TODO : I18N problem
     @Test(enabled = false, expectedExceptions = PropertyException.class)
     public void testValidateValuePatternDoesNotMatch() {
         StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
-        d.validateValue("abc123", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        d.validateValue("abc123");
     }
 
     @Test
     public void testDecodeValuePatternMatches() {
         StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
-        assertEquals(d.decodeValue("abc", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS), "abc");
+        assertEquals(d.decodeValue("abc"), "abc");
     }
 
     // TODO : I18N problem
     @Test(enabled = false, expectedExceptions = PropertyException.class)
     public void testDecodeValuePatternDoesNotMatch() {
         StringPropertyDefinition d = getDefinition(true, "^[a-z]+$");
-        d.decodeValue("abc123", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        d.decodeValue("abc123");
     }
 
     // Create a string property definition.

@@ -43,7 +43,6 @@ import org.forgerock.opendj.config.AdminTestCase;
 import org.forgerock.opendj.config.AdministratorAction;
 import org.forgerock.opendj.config.AggregationPropertyDefinition;
 import org.forgerock.opendj.config.PropertyException;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.TestCfg;
 import org.forgerock.opendj.config.TestChildCfg;
@@ -296,7 +295,7 @@ public final class AggregationServerTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_3, LDAP_CONN_HANDLER_ENTRY);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         try {
             parentCfg.getTestChild(entryName(TEST_CHILD_3));
@@ -321,7 +320,7 @@ public final class AggregationServerTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_5, LDAP_CONN_HANDLER_ENTRY);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
 
         try {
@@ -344,7 +343,7 @@ public final class AggregationServerTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_6, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
 
         registerAggregationDefinitionWithTargetEnabled();
 
@@ -371,7 +370,7 @@ public final class AggregationServerTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_7, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
 
         registerAggregationDefinitionWithTargetEnabled();
 
@@ -399,7 +398,7 @@ public final class AggregationServerTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_6, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
 
         registerAggregationDefinitionWithTargetAndSourceEnabled();
 
@@ -426,7 +425,7 @@ public final class AggregationServerTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_7, TEST_CONNECTION_HANDLER_ENTRY_DISABLED);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
 
         registerAggregationDefinitionWithTargetAndSourceEnabled();
 
@@ -446,7 +445,7 @@ public final class AggregationServerTest extends AdminTestCase {
     public void testAggregationEmpty() throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_1);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         TestChildCfg testChildCfg = parentCfg.getTestChild(entryName(TEST_CHILD_1));
 
@@ -467,7 +466,7 @@ public final class AggregationServerTest extends AdminTestCase {
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_4, LDAP_CONN_HANDLER_ENTRY,
                 LDAPS_CONN_HANDLER_ENTRY);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         TestChildCfg testChildCfg = parentCfg.getTestChild(entryName(TEST_CHILD_4));
 
@@ -487,7 +486,7 @@ public final class AggregationServerTest extends AdminTestCase {
         ConfigurationRepository configRepository =
             createConfigRepositoryWithEntries(TEST_PARENT_1, TEST_CHILD_2, LDAP_CONN_HANDLER_ENTRY);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
         TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
         TestChildCfg testChildCfg = parentCfg.getTestChild(entryName(TEST_CHILD_2));
 
@@ -513,7 +512,7 @@ public final class AggregationServerTest extends AdminTestCase {
             createConfigRepositoryWithEntries(TEST_PARENTS, TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_7,
                 CONN_HANDLER_ENTRY, TEST_CONNECTION_HANDLER_ENTRY_ENABLED);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
 
         registerAggregationDefinitionWithTargetEnabled();
 
@@ -551,7 +550,7 @@ public final class AggregationServerTest extends AdminTestCase {
             createConfigRepositoryWithEntries(TEST_PARENTS, TEST_PARENT_1, TEST_BASE_CHILD, TEST_CHILD_7,
                 CONN_HANDLER_ENTRY, TEST_CONNECTION_HANDLER_ENTRY_ENABLED);
         ServerManagementContext context =
-            new ServerManagementContext(configRepository, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            new ServerManagementContext(configRepository);
 
         registerAggregationDefinitionWithTargetEnabled();
 

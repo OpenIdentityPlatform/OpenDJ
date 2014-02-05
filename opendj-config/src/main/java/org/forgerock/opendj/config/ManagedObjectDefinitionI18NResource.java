@@ -282,7 +282,7 @@ public final class ManagedObjectDefinitionI18NResource {
         if (resourceBundle == null) {
             String baseName = prefix + "." + d.getClass().getName();
             resourceBundle =
-                ResourceBundle.getBundle(baseName, locale, ClassLoaderProvider.getInstance().getClassLoader());
+                ResourceBundle.getBundle(baseName, locale, ConfigurationFramework.getInstance().getClassLoader());
             map.put(locale, resourceBundle);
         }
 

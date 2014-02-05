@@ -94,7 +94,7 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
                 "test-property");
         localBuilder.setBaseDN(baseDN);
         DNPropertyDefinition propertyDef = localBuilder.getInstance();
-        propertyDef.validateValue(DN.valueOf(valueToValidate), PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.validateValue(DN.valueOf(valueToValidate));
     }
 
     @Test(dataProvider = "illegalValues", expectedExceptions = PropertyException.class)
@@ -103,7 +103,7 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
                 "test-property");
         localBuilder.setBaseDN(baseDN);
         DNPropertyDefinition propertyDef = localBuilder.getInstance();
-        propertyDef.validateValue(DN.valueOf(valueToValidate), PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.validateValue(DN.valueOf(valueToValidate));
     }
 
     @Test(dataProvider = "legalValues")
@@ -112,7 +112,7 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
                 "test-property");
         localBuilder.setBaseDN(baseDN);
         DNPropertyDefinition propertyDef = localBuilder.getInstance();
-        propertyDef.decodeValue(valueToValidate, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.decodeValue(valueToValidate);
     }
 
     @Test(dataProvider = "illegalValues", expectedExceptions = PropertyException.class)
@@ -121,6 +121,6 @@ public class DNPropertyDefinitionTest extends ConfigTestCase {
                 "test-property");
         localBuilder.setBaseDN(baseDN);
         DNPropertyDefinition propertyDef = localBuilder.getInstance();
-        propertyDef.decodeValue(valueToValidate, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.decodeValue(valueToValidate);
     }
 }

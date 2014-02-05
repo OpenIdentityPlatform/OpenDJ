@@ -37,7 +37,6 @@ import org.forgerock.opendj.config.Constraint;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.ManagedObjectAlreadyExistsException;
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.TestCfg;
 import org.forgerock.opendj.config.TestChildCfgClient;
 import org.forgerock.opendj.config.TestChildCfgDefn;
@@ -51,8 +50,9 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.opends.server.core.DirectoryServer;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -234,12 +234,11 @@ public final class LDAPClientTest extends AdminTestCase {
         c.addExpectedAttribute("ds-cfg-attribute-type", "description");
 
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
         child.setMandatoryBooleanProperty(true);
-        child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
+        child.setMandatoryReadOnlyAttributeTypeProperty(getAttributeType("description"));
         child.commit();
 
         c.assertEntryIsCreated();
@@ -262,12 +261,11 @@ public final class LDAPClientTest extends AdminTestCase {
         };
         conn.importLDIF(TEST_LDIF);
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(conn, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(conn, LDAPProfile.getInstance());
         try {
             TestParentCfgClient parent = createTestParent(ctx, "test parent new");
             parent.setMandatoryBooleanProperty(true);
-            parent.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
+            parent.setMandatoryReadOnlyAttributeTypeProperty(getAttributeType("description"));
             parent.commit();
         } catch (Exception e) {
             if (expectedExceptionClass.equals(ErrorResultException.class)) {
@@ -297,11 +295,10 @@ public final class LDAPClientTest extends AdminTestCase {
         c.addExpectedAttribute("ds-cfg-attribute-type", "description");
 
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = createTestParent(ctx, "test parent new");
         parent.setMandatoryBooleanProperty(true);
-        parent.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
+        parent.setMandatoryReadOnlyAttributeTypeProperty(getAttributeType("description"));
         parent.commit();
         c.assertEntryIsCreated();
     }
@@ -317,15 +314,14 @@ public final class LDAPClientTest extends AdminTestCase {
         MockLDAPConnection c = new MockLDAPConnection();
         c.importLDIF(TEST_LDIF);
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.getTestChild("test child 3");
         Assert.assertEquals(child.isMandatoryBooleanProperty(), Boolean.TRUE);
         Assert.assertEquals(child.getMandatoryClassProperty(),
             "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
         Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-            DirectoryServer.getAttributeType("description"));
+            getAttributeType("description"));
         assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(), "dc=default value c3v1,dc=com",
             "dc=default value c3v2,dc=com");
         assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), "dc=default value c3v3,dc=com",
@@ -343,15 +339,14 @@ public final class LDAPClientTest extends AdminTestCase {
         MockLDAPConnection c = new MockLDAPConnection();
         c.importLDIF(TEST_LDIF);
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.getTestChild("test child 1");
         Assert.assertEquals(child.isMandatoryBooleanProperty(), Boolean.TRUE);
         Assert.assertEquals(child.getMandatoryClassProperty(),
             "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
         Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-            DirectoryServer.getAttributeType("description"));
+            getAttributeType("description"));
         assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(), "dc=domain1,dc=com", "dc=domain2,dc=com",
             "dc=domain3,dc=com");
         assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), "dc=domain1,dc=com", "dc=domain2,dc=com",
@@ -381,8 +376,7 @@ public final class LDAPClientTest extends AdminTestCase {
         };
         c.importLDIF(TEST_LDIF);
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         try {
             getTestParent(ctx, "test parent 2");
         } catch (Exception e) {
@@ -406,14 +400,13 @@ public final class LDAPClientTest extends AdminTestCase {
         MockLDAPConnection c = new MockLDAPConnection();
         c.importLDIF(TEST_LDIF);
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 2");
         Assert.assertEquals(parent.isMandatoryBooleanProperty(), Boolean.TRUE);
         Assert.assertEquals(parent.getMandatoryClassProperty(),
             "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
         Assert.assertEquals(parent.getMandatoryReadOnlyAttributeTypeProperty(),
-            DirectoryServer.getAttributeType("description"));
+            getAttributeType("description"));
         assertDNSetEquals(parent.getOptionalMultiValuedDNProperty(), "dc=default value p2v1,dc=com",
             "dc=default value p2v2,dc=com");
     }
@@ -429,14 +422,13 @@ public final class LDAPClientTest extends AdminTestCase {
         MockLDAPConnection c = new MockLDAPConnection();
         c.importLDIF(TEST_LDIF);
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         Assert.assertEquals(parent.isMandatoryBooleanProperty(), Boolean.TRUE);
         Assert.assertEquals(parent.getMandatoryClassProperty(),
             "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
         Assert.assertEquals(parent.getMandatoryReadOnlyAttributeTypeProperty(),
-            DirectoryServer.getAttributeType("description"));
+            getAttributeType("description"));
         assertDNSetEquals(parent.getOptionalMultiValuedDNProperty(), "dc=domain1,dc=com", "dc=domain2,dc=com",
             "dc=domain3,dc=com");
     }
@@ -461,8 +453,7 @@ public final class LDAPClientTest extends AdminTestCase {
         c.addExpectedAttribute("ds-cfg-attribute-type", "description");
 
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
 
@@ -478,7 +469,7 @@ public final class LDAPClientTest extends AdminTestCase {
 
         // Check that the default values are not committed.
         child.setMandatoryBooleanProperty(true);
-        child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
+        child.setMandatoryReadOnlyAttributeTypeProperty(getAttributeType("description"));
         child.commit();
 
         c.assertEntryIsCreated();
@@ -504,8 +495,7 @@ public final class LDAPClientTest extends AdminTestCase {
         c.addExpectedAttribute("ds-cfg-attribute-type", "description");
 
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 2");
         TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
 
@@ -521,7 +511,7 @@ public final class LDAPClientTest extends AdminTestCase {
 
         // Check that the default values are not committed.
         child.setMandatoryBooleanProperty(true);
-        child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
+        child.setMandatoryReadOnlyAttributeTypeProperty(getAttributeType("description"));
         child.commit();
 
         c.assertEntryIsCreated();
@@ -538,8 +528,7 @@ public final class LDAPClientTest extends AdminTestCase {
         MockLDAPConnection c = new MockLDAPConnection();
         c.importLDIF(TEST_LDIF);
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         String[] actual = parent.listTestChildren();
         String[] expected = new String[] { "test child 1", "test child 2", "test child 3" };
@@ -557,8 +546,7 @@ public final class LDAPClientTest extends AdminTestCase {
         MockLDAPConnection c = new MockLDAPConnection();
         c.importLDIF(TEST_LDIF);
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 3");
         String[] actual = parent.listTestChildren();
         String[] expected = new String[] {};
@@ -576,8 +564,7 @@ public final class LDAPClientTest extends AdminTestCase {
         MockLDAPConnection c = new MockLDAPConnection();
         c.importLDIF(TEST_LDIF);
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         String[] actual = listTestParents(ctx);
         String[] expected = new String[] { "test parent 1", "test parent 2", "test parent 3" };
         Assert.assertEqualsNoOrder(actual, expected);
@@ -593,8 +580,7 @@ public final class LDAPClientTest extends AdminTestCase {
     public void testListTopLevelManagedObjectsEmpty() throws Exception {
         MockLDAPConnection c = new MockLDAPConnection();
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         String[] actual = listTestParents(ctx);
         String[] expected = new String[] {};
         Assert.assertEqualsNoOrder(actual, expected);
@@ -614,8 +600,7 @@ public final class LDAPClientTest extends AdminTestCase {
         c.importLDIF(TEST_LDIF);
         c.addExpectedModification("ds-cfg-base-dn");
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.getTestChild("test child 2");
         child.setOptionalMultiValuedDNProperty1(Collections.<DN> emptySet());
@@ -635,8 +620,7 @@ public final class LDAPClientTest extends AdminTestCase {
             new ModifyEntryMockLDAPConnection("cn=test parent 1,cn=test parents,cn=config");
         c.importLDIF(TEST_LDIF);
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         parent.commit();
         Assert.assertFalse(c.isEntryModified());
@@ -656,8 +640,7 @@ public final class LDAPClientTest extends AdminTestCase {
         c.addExpectedModification("ds-cfg-enabled", "false");
         c.addExpectedModification("ds-cfg-base-dn", "dc=mod1,dc=com", "dc=mod2,dc=com");
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         parent.setMandatoryBooleanProperty(false);
         parent.setOptionalMultiValuedDNProperty(Arrays.asList(DN.valueOf("dc=mod1,dc=com"),
@@ -679,8 +662,7 @@ public final class LDAPClientTest extends AdminTestCase {
                 "cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config");
         c.importLDIF(TEST_LDIF);
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         parent.removeTestChild("test child 1");
         c.assertSubtreeIsDeleted();
@@ -698,8 +680,7 @@ public final class LDAPClientTest extends AdminTestCase {
             new DeleteSubtreeMockLDAPConnection("cn=test parent 1,cn=test parents,cn=config");
         c.importLDIF(TEST_LDIF);
         ManagementContext ctx =
-            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+            LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
         removeTestParent(ctx, "test parent 1");
         c.assertSubtreeIsDeleted();
     }
@@ -729,12 +710,11 @@ public final class LDAPClientTest extends AdminTestCase {
             c.addExpectedAttribute("ds-cfg-attribute-type", "description");
 
             ManagementContext ctx =
-                LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                    PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+                LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
             TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
             TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
             child.setMandatoryBooleanProperty(true);
-            child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
+            child.setMandatoryReadOnlyAttributeTypeProperty(getAttributeType("description"));
             child.commit();
 
             c.assertEntryIsCreated();
@@ -769,12 +749,11 @@ public final class LDAPClientTest extends AdminTestCase {
             conn.addExpectedAttribute("ds-cfg-attribute-type", "description");
 
             ManagementContext ctx =
-                LDAPManagementContext.createFromContext(conn, LDAPProfile.getInstance(),
-                    PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+                LDAPManagementContext.createFromContext(conn, LDAPProfile.getInstance());
             TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
             TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
             child.setMandatoryBooleanProperty(true);
-            child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
+            child.setMandatoryReadOnlyAttributeTypeProperty(getAttributeType("description"));
             child.commit();
             Assert.fail("The add constraint failed to prevent creation of the managed object");
         } finally {
@@ -801,8 +780,7 @@ public final class LDAPClientTest extends AdminTestCase {
                     "cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config");
             c.importLDIF(TEST_LDIF);
             ManagementContext ctx =
-                LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                    PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+                LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
             TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
             parent.removeTestChild("test child 1");
             c.assertSubtreeIsDeleted();
@@ -830,8 +808,7 @@ public final class LDAPClientTest extends AdminTestCase {
                     "cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config");
             c.importLDIF(TEST_LDIF);
             ManagementContext ctx =
-                LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                    PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+                LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
             TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
             parent.removeTestChild("test child 1");
             Assert.fail("The remove constraint failed to prevent removal of the managed object");
@@ -860,8 +837,7 @@ public final class LDAPClientTest extends AdminTestCase {
             c.importLDIF(TEST_LDIF);
             c.addExpectedModification("ds-cfg-base-dn");
             ManagementContext ctx =
-                LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                    PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+                LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
             TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
             TestChildCfgClient child = parent.getTestChild("test child 2");
             child.setOptionalMultiValuedDNProperty1(Collections.<DN> emptySet());
@@ -892,8 +868,7 @@ public final class LDAPClientTest extends AdminTestCase {
             c.importLDIF(TEST_LDIF);
             c.addExpectedModification("ds-cfg-base-dn");
             ManagementContext ctx =
-                LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance(),
-                    PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+                LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
             TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
             TestChildCfgClient child = parent.getTestChild("test child 2");
             child.setOptionalMultiValuedDNProperty1(Collections.<DN> emptySet());
@@ -939,5 +914,9 @@ public final class LDAPClientTest extends AdminTestCase {
     private void removeTestParent(ManagementContext context, String name) throws Exception {
         ManagedObject<RootCfgClient> root = context.getRootConfigurationManagedObject();
         root.removeChild(TestCfg.getTestOneToManyParentRelationDefinition(), name);
+    }
+
+    private AttributeType getAttributeType(String type) {
+        return Schema.getDefaultSchema().getAttributeType(type);
     }
 }

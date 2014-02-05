@@ -230,7 +230,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(Long value, PropertyDefinitionsOptions options) {
+    public void validateValue(Long value) {
         Reject.ifNull(value);
 
         if (!allowUnlimited && value < lowerLimit) {
@@ -276,7 +276,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
      * {@inheritDoc}
      */
     @Override
-    public Long decodeValue(String value, PropertyDefinitionsOptions options) {
+    public Long decodeValue(String value) {
         Reject.ifNull(value);
 
         // First check for the special "unlimited" value when necessary.
@@ -295,7 +295,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         }
 
         try {
-            validateValue(i, options);
+            validateValue(i);
         } catch (PropertyException e) {
             throw PropertyException.illegalPropertyValueException(this, value);
         }

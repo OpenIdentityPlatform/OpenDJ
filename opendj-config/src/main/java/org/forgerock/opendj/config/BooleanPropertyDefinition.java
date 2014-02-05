@@ -97,7 +97,7 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(Boolean value, PropertyDefinitionsOptions options) {
+    public void validateValue(Boolean value) {
         Reject.ifNull(value);
 
         // No additional validation required.
@@ -107,7 +107,7 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
      * {@inheritDoc}
      */
     @Override
-    public Boolean decodeValue(String value, PropertyDefinitionsOptions options) {
+    public Boolean decodeValue(String value) {
         Reject.ifNull(value);
 
         String nvalue = value.trim().toLowerCase();

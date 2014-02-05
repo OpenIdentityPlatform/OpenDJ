@@ -150,7 +150,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      * {@inheritDoc}
      */
     @Override
-    public E decodeValue(String value, PropertyDefinitionsOptions options) {
+    public E decodeValue(String value) {
         Reject.ifNull(value);
 
         String nvalue = value.trim().toLowerCase();
@@ -219,7 +219,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      * {@inheritDoc}
      */
     @Override
-    public void validateValue(E value, PropertyDefinitionsOptions options) {
+    public void validateValue(E value) {
         Reject.ifNull(value);
 
         // No additional validation required.

@@ -32,7 +32,6 @@ import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.OperationsException;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyDefinitionUsageBuilder;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 
 /**
  * Thrown when an attempt is made to create a new managed object with an illegal
@@ -51,19 +50,20 @@ public class IllegalManagedObjectNameException extends OperationsException {
     private static final long serialVersionUID = 7491748228684293291L;
 
     /** Create the message. */
-    private static LocalizableMessage createMessage(String illegalName, PropertyDefinition<?> namingPropertyDefinition,
-        PropertyDefinitionsOptions options) {
+    private static LocalizableMessage createMessage(String illegalName,
+            PropertyDefinition<?> namingPropertyDefinition) {
         if (illegalName.length() == 0) {
             return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_EMPTY.get();
         } else if (illegalName.trim().length() == 0) {
             return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_BLANK.get();
         } else if (namingPropertyDefinition != null) {
             try {
-                namingPropertyDefinition.decodeValue(illegalName, options);
+                namingPropertyDefinition.decodeValue(illegalName);
             } catch (PropertyException e) {
                 PropertyDefinitionUsageBuilder builder = new PropertyDefinitionUsageBuilder(true);
                 return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_SYNTAX.get(illegalName,
-                    namingPropertyDefinition.getName(), builder.getUsage(namingPropertyDefinition));
+                        namingPropertyDefinition.getName(), builder
+                                .getUsage(namingPropertyDefinition));
             }
         }
 
@@ -83,7 +83,7 @@ public class IllegalManagedObjectNameException extends OperationsException {
      *            The illegal managed object name.
      */
     public IllegalManagedObjectNameException(String illegalName) {
-        this(illegalName, null, null);
+        this(illegalName, null);
     }
 
     /**
@@ -93,12 +93,9 @@ public class IllegalManagedObjectNameException extends OperationsException {
      *            The illegal managed object name.
      * @param namingPropertyDefinition
      *            The naming property definition.
-     * @param options
-     *            Options to decode property definition values.
      */
-    public IllegalManagedObjectNameException(String illegalName, PropertyDefinition<?> namingPropertyDefinition,
-        PropertyDefinitionsOptions options) {
-        super(createMessage(illegalName, namingPropertyDefinition, options));
+    public IllegalManagedObjectNameException(String illegalName, PropertyDefinition<?> namingPropertyDefinition) {
+        super(createMessage(illegalName, namingPropertyDefinition));
 
         this.illegalName = illegalName;
         this.namingPropertyDefinition = namingPropertyDefinition;

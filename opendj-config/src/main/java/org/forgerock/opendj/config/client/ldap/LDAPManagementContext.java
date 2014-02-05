@@ -27,7 +27,6 @@
 package org.forgerock.opendj.config.client.ldap;
 
 import org.forgerock.opendj.config.LDAPProfile;
-import org.forgerock.opendj.config.PropertyDefinitionsOptions;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.spi.Driver;
 import org.forgerock.util.Reject;
@@ -44,15 +43,12 @@ public final class LDAPManagementContext extends ManagementContext {
      *            The LDAP connection.
      * @param profile
      *            The LDAP profile.
-     * @param options
-     *            Options to decode values of property definitions.
      * @return Returns the new management context.
      */
-    public static ManagementContext createFromContext(LDAPConnection connection, LDAPProfile profile,
-        PropertyDefinitionsOptions options) {
-        Reject.ifNull(connection, profile, options);
-        LDAPDriver driver = new LDAPDriver(connection, profile, options);
-        LDAPManagementContext context = new LDAPManagementContext(driver, options);
+    public static ManagementContext createFromContext(LDAPConnection connection, LDAPProfile profile) {
+        Reject.ifNull(connection, profile);
+        LDAPDriver driver = new LDAPDriver(connection, profile);
+        LDAPManagementContext context = new LDAPManagementContext(driver);
         driver.setManagementContext(context);
         return context;
     }
@@ -60,28 +56,14 @@ public final class LDAPManagementContext extends ManagementContext {
     /** The LDAP management context driver. */
     private final LDAPDriver driver;
 
-    /** Options to validate and decode values of property definitions. */
-    private final PropertyDefinitionsOptions options;
-
     /** Private constructor. */
-    private LDAPManagementContext(LDAPDriver driver, PropertyDefinitionsOptions options) {
+    private LDAPManagementContext(LDAPDriver driver) {
         this.driver = driver;
-        this.options = options;
     }
 
     /** {@inheritDoc} */
     @Override
     protected Driver getDriver() {
         return driver;
-    }
-
-    /**
-     * Returns the property definitions options.
-     *
-     * @return the options to validate and decode values of property
-     *         definitions.
-     */
-    protected PropertyDefinitionsOptions getPropertyDefOptions() {
-        return options;
     }
 }

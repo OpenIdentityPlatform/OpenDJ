@@ -99,7 +99,7 @@ public class SizePropertyDefinitionTest extends ConfigTestCase {
         SizePropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(true);
         SizePropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.decodeValue("unlimited");
     }
 
     @Test(expectedExceptions = PropertyException.class)
@@ -107,7 +107,7 @@ public class SizePropertyDefinitionTest extends ConfigTestCase {
         SizePropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
         SizePropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.decodeValue("unlimited", PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.decodeValue("unlimited");
     }
 
     @Test(expectedExceptions = PropertyException.class)
@@ -115,7 +115,7 @@ public class SizePropertyDefinitionTest extends ConfigTestCase {
         SizePropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(false);
         SizePropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.validateValue(-1L, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.validateValue(-1L);
     }
 
     @DataProvider(name = "validateValueData")
@@ -135,7 +135,7 @@ public class SizePropertyDefinitionTest extends ConfigTestCase {
         builder.setUpperLimit(high);
         builder.setAllowUnlimited(isAllowUnlimited);
         SizePropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.validateValue(valueToValidate, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.validateValue(valueToValidate);
     }
 
     @DataProvider(name = "illegalValidateValueData")
@@ -159,7 +159,7 @@ public class SizePropertyDefinitionTest extends ConfigTestCase {
         builder.setUpperLimit(high);
         builder.setAllowUnlimited(allowUnlimited);
         SizePropertyDefinition propertyDef = buildTestDefinition(builder);
-        propertyDef.validateValue(valueToValidate, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        propertyDef.validateValue(valueToValidate);
     }
 
     @DataProvider(name = "encodeValueData")

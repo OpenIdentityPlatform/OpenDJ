@@ -45,13 +45,13 @@ public class BooleanPropertyDefinitionTest extends ConfigTestCase {
     @Test
     public void testValidateValue() {
         BooleanPropertyDefinition def = createPropertyDefinition();
-        def.validateValue(Boolean.TRUE, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        def.validateValue(Boolean.TRUE);
     }
 
     @Test(expectedExceptions = NullPointerException.class)
     public void testValidateValueIllegal() {
         BooleanPropertyDefinition def = createPropertyDefinition();
-        def.validateValue(null, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        def.validateValue(null);
     }
 
     @DataProvider(name = "decodeValueData")
@@ -62,7 +62,7 @@ public class BooleanPropertyDefinitionTest extends ConfigTestCase {
     @Test(dataProvider = "decodeValueData")
     public void testDecodeValue(String value, Boolean expected) {
         BooleanPropertyDefinition def = createPropertyDefinition();
-        assertEquals(def.decodeValue(value, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS), expected);
+        assertEquals(def.decodeValue(value), expected);
     }
 
     @DataProvider(name = "decodeValueDataIllegal")
@@ -74,7 +74,7 @@ public class BooleanPropertyDefinitionTest extends ConfigTestCase {
             PropertyException.class })
     public void testDecodeValueIllegal(String value) {
         BooleanPropertyDefinition def = createPropertyDefinition();
-        def.decodeValue(value, PropertyDefinitionsOptions.NO_VALIDATION_OPTIONS);
+        def.decodeValue(value);
     }
 
     private BooleanPropertyDefinition createPropertyDefinition() {
