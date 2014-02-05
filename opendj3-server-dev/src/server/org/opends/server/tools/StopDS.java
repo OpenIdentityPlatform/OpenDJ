@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.net.ssl.SSLException;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -54,15 +55,16 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tasks.ShutdownTask;
 import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.util.args.Argument;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.FileBasedArgument;
-import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.opends.server.util.args.StringArgument;
+import org.forgerock.opendj.ldap.ByteString;
+
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.FileBasedArgument;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.ToolMessages.*;

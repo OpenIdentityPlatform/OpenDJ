@@ -56,7 +56,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.DynamicConstants;
-import org.opends.server.util.args.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentException;
 
 /**
  * The class that is in charge of creating the main dialog of the ControlPanel

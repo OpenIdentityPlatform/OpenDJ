@@ -67,11 +67,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.util.BuildVersion;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.opends.server.util.args.StringArgument;
-import org.opends.server.util.cli.CLIException;
+
+import com.forgerock.opendj.cli.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;

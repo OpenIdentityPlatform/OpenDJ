@@ -55,11 +55,11 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
 import org.opends.server.types.Privilege;
-import org.opends.server.util.args.Argument;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.StringArgument;
-import org.opends.server.util.args.SubCommand;
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.SubCommand;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
 /**

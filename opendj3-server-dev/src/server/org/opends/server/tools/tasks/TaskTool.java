@@ -27,29 +27,32 @@
 
 package org.opends.server.tools.tasks;
 
-import org.opends.server.util.args.Argument;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.StringArgument;
-import org.opends.server.util.args.ArgumentGroup;
-import org.opends.server.util.cli.CLIException;
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.ArgumentGroup;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.CLIException;
 
 import static org.opends.server.util.StaticUtils.wrapText;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
+
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
+
 import static org.opends.server.tools.ToolConstants.*;
 
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.backends.task.FailedDependencyAction;
 import org.forgerock.i18n.LocalizableMessage;
+
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.TaskMessages.*;
 
@@ -349,6 +352,10 @@ public abstract class TaskTool implements TaskScheduleInformation {
           }
         }
         ret = 0;
+      } catch (ArgumentException e) {
+        LocalizableMessage message = e.getMessageObject();
+        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
+        ret = 1;
       } catch (LDAPConnectionException e) {
         LocalizableMessage message;
         if (isWrongPortException(e,

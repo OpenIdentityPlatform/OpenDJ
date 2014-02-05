@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
  package org.opends.server.admin.client.cli;
 
@@ -29,9 +30,9 @@ import java.io.OutputStream;
 import java.util.Set;
 
 import org.opends.admin.ads.ADSContextException;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.SubCommand;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.SubCommand;
 
 /**
  * This Interface defines method that a group of subcommand shoud implement.

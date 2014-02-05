@@ -32,7 +32,7 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.admin.ads.ADSContext.ServerGroupProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
-import org.opends.server.util.args.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentException;
 import org.opends.server.DirectoryServerTestCase;
 
 import static org.opends.messages.AdminMessages.*;

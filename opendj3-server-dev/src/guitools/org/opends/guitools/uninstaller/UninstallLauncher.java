@@ -42,8 +42,8 @@ import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
 
 /**
  * This class is called by the uninstall command lines to launch the uninstall

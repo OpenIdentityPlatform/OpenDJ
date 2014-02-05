@@ -37,7 +37,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.args.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentException;
 
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 import static org.opends.messages.AdminMessages.*;

@@ -40,10 +40,10 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.SetupUtils;
-import org.opends.server.util.args.ArgumentParser;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.StringArgument;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;

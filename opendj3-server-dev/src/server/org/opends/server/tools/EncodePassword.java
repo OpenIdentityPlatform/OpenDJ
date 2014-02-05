@@ -58,7 +58,11 @@ import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.BuildVersion;
-import org.opends.server.util.args.*;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.FileBasedArgument;
+import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;

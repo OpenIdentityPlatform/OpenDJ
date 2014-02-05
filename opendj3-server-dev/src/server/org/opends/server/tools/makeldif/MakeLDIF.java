@@ -42,11 +42,11 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.IntegerArgument;
-import org.opends.server.util.args.StringArgument;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;

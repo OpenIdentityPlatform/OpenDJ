@@ -28,7 +28,7 @@
 package org.opends.quicksetup;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.util.args.ArgumentParser;
+import com.forgerock.opendj.cli.ArgumentParser;
 
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.server.tools.ToolConstants.*;

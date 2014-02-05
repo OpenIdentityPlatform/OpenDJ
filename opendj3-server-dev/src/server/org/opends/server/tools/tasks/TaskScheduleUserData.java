@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.tasks;
 
@@ -34,8 +35,8 @@ import java.util.List;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
 import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.StringArgument;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.StringArgument;
 import org.opends.server.util.cli.CommandBuilder;
 
 /**

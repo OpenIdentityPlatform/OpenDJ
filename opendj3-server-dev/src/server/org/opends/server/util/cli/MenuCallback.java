@@ -21,10 +21,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008 Sun Microsystems
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.cli;
 
+import com.forgerock.opendj.cli.CLIException;
 
 
 /**

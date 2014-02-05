@@ -46,16 +46,16 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.NullOutputStream;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.util.args.Argument;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.FileBasedArgument;
-import org.opends.server.util.args.IntegerArgument;
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.FileBasedArgument;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.MultiChoiceArgument;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.SubCommand;
+import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.opends.server.util.args.MultiChoiceArgument;
-import org.opends.server.util.args.StringArgument;
-import org.opends.server.util.args.SubCommand;
-import org.opends.server.util.args.SubCommandArgumentParser;
 
 import static org.opends.server.extensions.
                    PasswordPolicyStateExtendedOperation.*;

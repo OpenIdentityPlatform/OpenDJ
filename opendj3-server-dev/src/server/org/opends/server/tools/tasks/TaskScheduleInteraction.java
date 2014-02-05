@@ -44,7 +44,7 @@ import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.backends.task.RecurringTask;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.cli.CLIException;
+import com.forgerock.opendj.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.cli.MenuResult;

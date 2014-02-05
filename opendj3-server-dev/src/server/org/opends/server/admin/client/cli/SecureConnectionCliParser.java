@@ -46,13 +46,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.PasswordReader;
-import org.opends.server.util.args.Argument;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentGroup;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.FileBasedArgument;
-import org.opends.server.util.args.StringArgument;
-import org.opends.server.util.args.SubCommandArgumentParser;
+import com.forgerock.opendj.cli.*;
 
 /**
  * This is a commodity class that can be used to check the arguments required

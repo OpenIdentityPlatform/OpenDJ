@@ -48,7 +48,7 @@ import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.util.args.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentException;
 import org.opends.server.util.cli.ConsoleApplication;
 
 /**

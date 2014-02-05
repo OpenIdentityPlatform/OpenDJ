@@ -42,10 +42,10 @@ import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.backends.task.RecurringTask;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.args.Argument;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.StringArgument;
-import org.opends.server.util.cli.CLIException;
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.CLIException;
 
 /**
  * A class that contains all the arguments related to the task scheduling.

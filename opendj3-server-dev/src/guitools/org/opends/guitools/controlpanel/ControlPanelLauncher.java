@@ -48,7 +48,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.args.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentException;
 
 /**
  * The class that is invoked directly by the control-panel command-line.  This

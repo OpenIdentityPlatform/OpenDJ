@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.util.cli;
@@ -31,9 +32,9 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.opends.server.util.SetupUtils;
-import org.opends.server.util.args.Argument;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.FileBasedArgument;
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.FileBasedArgument;
 
 /**
  * Class used to be able to generate the non interactive mode.

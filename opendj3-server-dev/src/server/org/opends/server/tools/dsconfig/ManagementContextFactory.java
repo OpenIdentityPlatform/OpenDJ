@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -29,8 +30,8 @@ package org.opends.server.tools.dsconfig;
 
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.tools.ClientException;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.SubCommandArgumentParser;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import org.opends.server.util.cli.CommandBuilder;
 import org.opends.server.util.cli.ConsoleApplication;
 

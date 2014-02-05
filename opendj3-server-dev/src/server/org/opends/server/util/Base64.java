@@ -48,11 +48,11 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.StringArgument;
-import org.opends.server.util.args.SubCommand;
-import org.opends.server.util.args.SubCommandArgumentParser;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.SubCommand;
+import com.forgerock.opendj.cli.SubCommandArgumentParser;
 
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.messages.ToolMessages.*;
