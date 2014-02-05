@@ -24,7 +24,6 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2014 ForgeRock AS
  */
-
 package com.forgerock.opendj.util;
 
 import java.io.UnsupportedEncodingException;
@@ -47,25 +46,19 @@ import java.util.concurrent.TimeUnit;
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ProviderNotFoundException;
 import org.forgerock.opendj.ldap.spi.Provider;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Common utility methods.
  */
 public final class StaticUtils {
 
-    private static final String DEFAULT_LOGGER_NAME = "org.forgerock.opendj.ldap";
-
-    /**
-     * The default logger used by the SDK if there is no appropriate specific logger.
-     */
-    public static final Logger DEFAULT_LOG = LoggerFactory.getLogger(DEFAULT_LOGGER_NAME);
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /**
      * Indicates whether the SDK is being used in debug mode. In debug mode
@@ -1741,7 +1734,7 @@ public final class StaticUtils {
                 System.err.println(builder);
             } else {
                 // TODO: I18N
-                DEFAULT_LOG.error("{}", builder);
+                logger.error(LocalizableMessage.raw("%s", builder));
             }
         }
     }

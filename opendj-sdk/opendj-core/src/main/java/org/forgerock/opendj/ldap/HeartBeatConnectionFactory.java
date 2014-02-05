@@ -22,16 +22,12 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
-import static com.forgerock.opendj.ldap.CoreMessages.HBCF_CONNECTION_CLOSED_BY_CLIENT;
-import static com.forgerock.opendj.ldap.CoreMessages.HBCF_HEARTBEAT_FAILED;
-import static com.forgerock.opendj.ldap.CoreMessages.HBCF_HEARTBEAT_TIMEOUT;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.LinkedList;
@@ -47,6 +43,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -497,8 +495,8 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                      * benign password policy related errors. See OPENDJ-1168
                      * and OPENDJ-1167.
                      */
-                    DEFAULT_LOG.debug("Heartbeat failed for connection factory '{}'", factory,
-                            error);
+                    logger.debug(LocalizableMessage.raw("Heartbeat failed for connection factory '%s'", factory,
+                            error));
                     timestamp(error);
                 }
                 releaseHeartBeatLock();
@@ -805,7 +803,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                  */
                 final long currentTimeMillis = timeSource.currentTimeMillis();
                 if (lastResponseTimestamp < (currentTimeMillis - timeoutMS)) {
-                    DEFAULT_LOG.warn("No heartbeat detected for connection '{}'", connection);
+                    logger.warn(LocalizableMessage.raw("No heartbeat detected for connection '%s'", connection));
                     handleConnectionError(false, newHeartBeatTimeoutError());
                 }
             }
@@ -1072,6 +1070,8 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
 
     }
 
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     /**
      * Default heart beat which will target the root DSE but not return any
      * results.
@@ -1192,9 +1192,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         if (isClosed.compareAndSet(false, true)) {
             synchronized (validConnections) {
                 if (!validConnections.isEmpty()) {
-                    DEFAULT_LOG.debug(
-                            "HeartbeatConnectionFactory '{}' is closing while {} active connections remain",
-                            this, validConnections.size());
+                    logger.debug(LocalizableMessage.raw(
+                            "HeartbeatConnectionFactory '%s' is closing while %d active connections remain",
+                            this, validConnections.size()));
                 }
             }
             releaseScheduler();
