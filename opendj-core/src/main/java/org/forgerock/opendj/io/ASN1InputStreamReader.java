@@ -22,14 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.io;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.IO_LOG;
-import static com.forgerock.opendj.util.StaticUtils.byteToHex;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +34,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -46,7 +44,10 @@ import com.forgerock.opendj.util.SizeLimitInputStream;
 /**
  * An ASN1Reader that reads from an input stream.
  */
-final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Reader {
+final class ASN1InputStreamReader extends AbstractASN1Reader {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     private int state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
 
     private byte peekType = 0;
@@ -171,10 +172,8 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
             throw DecodeException.fatalError(message);
         }
 
-        if (IO_LOG.isTraceEnabled()) {
-            IO_LOG.trace("READ ASN.1 BOOLEAN(type=0x{}, length={}, value={})",
-                    byteToHex(peekType), peekLength, String.valueOf(readByte != 0x00));
-        }
+        logger.trace("READ ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)", peekType, peekLength, readByte != 0x00);
+
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return readByte != 0x00;
     }
@@ -191,14 +190,12 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
         // Ignore all unused trailing components.
         final SizeLimitInputStream subSq = (SizeLimitInputStream) in;
         if (subSq.getSizeLimit() - subSq.getBytesRead() > 0) {
-            if (IO_LOG.isTraceEnabled()) {
-                IO_LOG.trace("Ignoring {} unused trailing bytes in ASN.1 SEQUENCE",
-                        subSq.getSizeLimit() - subSq.getBytesRead());
-            }
+            logger.trace("Ignoring %d unused trailing bytes in ASN.1 SEQUENCE",
+                    subSq.getSizeLimit() - subSq.getBytesRead());
             subSq.skip(subSq.getSizeLimit() - subSq.getBytesRead());
         }
 
-        IO_LOG.trace("READ ASN.1 END SEQUENCE");
+        logger.trace("READ ASN.1 END SEQUENCE");
 
         in = streamStack.removeFirst();
 
@@ -282,8 +279,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
                 intValue = (intValue << 8) | (readByte & 0xFF);
             }
 
-            IO_LOG.trace("READ ASN.1 INTEGER(type=0x{}, length={}, value={})",
-                    byteToHex(peekType), peekLength, intValue);
+            logger.trace("READ ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", peekType, peekLength, intValue);
 
             state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return intValue;
@@ -303,8 +299,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
             throw DecodeException.fatalError(message);
         }
 
-        IO_LOG.trace("READ ASN.1 NULL(type=0x{}, length={})",
-                byteToHex(peekType), peekLength);
+        logger.trace("READ ASN.1 NULL(type=0x%x, length=%d)", peekType, peekLength);
 
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
@@ -336,7 +331,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
             bytesNeeded -= bytesRead;
         }
 
-        IO_LOG.trace("READ ASN.1 OCTETSTRING(type=0x{}, length={})", byteToHex(peekType), peekLength);
+        logger.trace("READ ASN.1 OCTETSTRING(type=0x%x, length=%d)", peekType, peekLength);
 
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return ByteString.wrap(value);
@@ -367,7 +362,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
             bytesNeeded -= bytesRead;
         }
 
-        IO_LOG.trace("READ ASN.1 OCTETSTRING(type=0x{}, length={})", byteToHex(peekType), peekLength);
+        logger.trace("READ ASN.1 OCTETSTRING(type=0x%x, length=%d)", peekType, peekLength);
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return builder;
     }
@@ -411,8 +406,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
             throw new RuntimeException("Unable to decode ASN.1 OCTETSTRING bytes as UTF-8 string ", e);
         }
 
-        IO_LOG.trace("READ ASN.1 OCTETSTRING(type=0x{}, length={}, value={})",
-                byteToHex(peekType), peekLength, str);
+        logger.trace("READ ASN.1 OCTETSTRING(type=0x%x, length=%d, value=%s)", peekType, peekLength, str);
 
         return str;
     }
@@ -426,7 +420,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements ASN1Read
 
         final SizeLimitInputStream subStream = new SizeLimitInputStream(in, peekLength);
 
-        IO_LOG.trace("READ ASN.1 START SEQUENCE(type=0x{}, length={})", byteToHex(peekType), peekLength);
+        logger.trace("READ ASN.1 START SEQUENCE(type=0x%x, length=%d)", peekType, peekLength);
 
         streamStack.addFirst(in);
         in = subStream;

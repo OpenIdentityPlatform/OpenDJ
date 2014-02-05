@@ -26,14 +26,13 @@
  */
 package org.forgerock.opendj.io;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
-import static com.forgerock.opendj.util.StaticUtils.IO_LOG;
-import static com.forgerock.opendj.util.StaticUtils.byteToHex;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 
@@ -43,6 +42,9 @@ import com.forgerock.opendj.util.StaticUtils;
  * An ASN1Writer implementation that outputs to an outputstream.
  */
 final class ASN1OutputStreamWriter extends AbstractASN1Writer {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     private final OutputStream rootStream;
     private OutputStream out;
     private final ArrayList<ByteStringBuilder> streamStack;
@@ -96,8 +98,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         writeLength(1);
         out.write(booleanValue ? ASN1.BOOLEAN_VALUE_TRUE : ASN1.BOOLEAN_VALUE_FALSE);
 
-        IO_LOG.trace("WRITE ASN.1 BOOLEAN(type=0x{}, length={}, value={})",
-                    byteToHex(type), 1, String.valueOf(booleanValue));
+        logger.trace("WRITE ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)", type, 1, booleanValue);
         return this;
     }
 
@@ -125,7 +126,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         writeLength(childStream.length());
         childStream.copyTo(parentStream);
 
-        IO_LOG.trace("WRITE ASN.1 END SEQUENCE(length={})", childStream.length());
+        logger.trace("WRITE ASN.1 END SEQUENCE(length=%d)", childStream.length());
 
         if (childStream.capacity() > maxBufferSize) {
             // garbage collect excessively large buffers
@@ -162,27 +163,27 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
                 || ((intValue & 0x0000007F) == intValue)) {
             writeLength(1);
             out.write((byte) (intValue & 0xFF));
-            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 1, intValue);
+            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 1, intValue);
         } else if (((intValue < 0) && ((intValue & 0xFFFF8000) == 0xFFFF8000))
                 || ((intValue & 0x00007FFF) == intValue)) {
             writeLength(2);
             out.write((byte) ((intValue >> 8) & 0xFF));
             out.write((byte) (intValue & 0xFF));
-            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 2, intValue);
+            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 2, intValue);
         } else if (((intValue < 0) && ((intValue & 0xFF800000) == 0xFF800000))
                 || ((intValue & 0x007FFFFF) == intValue)) {
             writeLength(3);
             out.write((byte) ((intValue >> 16) & 0xFF));
             out.write((byte) ((intValue >> 8) & 0xFF));
             out.write((byte) (intValue & 0xFF));
-            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 3, intValue);
+            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 3, intValue);
         } else {
             writeLength(4);
             out.write((byte) ((intValue >> 24) & 0xFF));
             out.write((byte) ((intValue >> 16) & 0xFF));
             out.write((byte) ((intValue >> 8) & 0xFF));
             out.write((byte) (intValue & 0xFF));
-            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 4, intValue);
+            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 4, intValue);
         }
         return this;
     }
@@ -197,20 +198,20 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
                 || ((longValue & 0x000000000000007FL) == longValue)) {
             writeLength(1);
             out.write((byte) (longValue & 0xFF));
-            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 1, longValue);
+            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 1, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFFFFFFFFFF8000L) == 0xFFFFFFFFFFFF8000L))
                 || ((longValue & 0x0000000000007FFFL) == longValue)) {
             writeLength(2);
             out.write((byte) ((longValue >> 8) & 0xFF));
             out.write((byte) (longValue & 0xFF));
-            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 2, longValue);
+            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 2, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFFFFFFFF800000L) == 0xFFFFFFFFFF800000L))
                 || ((longValue & 0x00000000007FFFFFL) == longValue)) {
             writeLength(3);
             out.write((byte) ((longValue >> 16) & 0xFF));
             out.write((byte) ((longValue >> 8) & 0xFF));
             out.write((byte) (longValue & 0xFF));
-            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 3, longValue);
+            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 3, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFFFFFF80000000L) == 0xFFFFFFFF80000000L))
                 || ((longValue & 0x000000007FFFFFFFL) == longValue)) {
             writeLength(4);
@@ -218,7 +219,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
             out.write((byte) ((longValue >> 16) & 0xFF));
             out.write((byte) ((longValue >> 8) & 0xFF));
             out.write((byte) (longValue & 0xFF));
-            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 4, longValue);
+            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 4, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFFFF8000000000L) == 0xFFFFFF8000000000L))
                 || ((longValue & 0x0000007FFFFFFFFFL) == longValue)) {
             writeLength(5);
@@ -227,7 +228,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
             out.write((byte) ((longValue >> 16) & 0xFF));
             out.write((byte) ((longValue >> 8) & 0xFF));
             out.write((byte) (longValue & 0xFF));
-            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 5, longValue);
+            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 5, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFF800000000000L) == 0xFFFF800000000000L))
                 || ((longValue & 0x00007FFFFFFFFFFFL) == longValue)) {
             writeLength(6);
@@ -237,7 +238,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
             out.write((byte) ((longValue >> 16) & 0xFF));
             out.write((byte) ((longValue >> 8) & 0xFF));
             out.write((byte) (longValue & 0xFF));
-            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 6, longValue);
+            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 6, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFF80000000000000L) == 0xFF80000000000000L))
                 || ((longValue & 0x007FFFFFFFFFFFFFL) == longValue)) {
             writeLength(7);
@@ -248,7 +249,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
             out.write((byte) ((longValue >> 16) & 0xFF));
             out.write((byte) ((longValue >> 8) & 0xFF));
             out.write((byte) (longValue & 0xFF));
-            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 7, longValue);
+            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 7, longValue);
         } else {
             writeLength(8);
             out.write((byte) ((longValue >> 56) & 0xFF));
@@ -259,7 +260,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
             out.write((byte) ((longValue >> 16) & 0xFF));
             out.write((byte) ((longValue >> 8) & 0xFF));
             out.write((byte) (longValue & 0xFF));
-            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 8, longValue);
+            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 8, longValue);
         }
         return this;
     }
@@ -272,7 +273,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         out.write(type);
         writeLength(0);
 
-        IO_LOG.trace("WRITE ASN.1 NULL(type=0x{}, length={})", byteToHex(type), 0);
+        logger.trace("WRITE ASN.1 NULL(type=0x%x, length=%d)", type, 0);
         return this;
     }
 
@@ -286,7 +287,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         writeLength(length);
         out.write(value, offset, length);
 
-        IO_LOG.trace("WRITE ASN.1 OCTETSTRING(type=0x{}, length={})", byteToHex(type), length);
+        logger.trace("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)", type, length);
         return this;
     }
 
@@ -300,8 +301,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         writeLength(value.length());
         value.copyTo(out);
 
-        IO_LOG.trace("WRITE ASN.1 OCTETSTRING(type=0x{}, length={})", byteToHex(type), value.length());
-
+        logger.trace("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)", type, value.length());
         return this;
     }
 
@@ -321,8 +321,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         writeLength(bytes.length);
         out.write(bytes);
 
-        IO_LOG.trace("WRITE ASN.1 OCTETSTRING(type=0x{}, length={}, value={})",
-                byteToHex(type), bytes.length, value);
+        logger.trace("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d, value=%s)", type, bytes.length, value);
         return this;
     }
 
@@ -346,7 +345,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
             out = streamStack.get(stackDepth).asOutputStream();
         }
 
-        IO_LOG.trace("WRITE ASN.1 START SEQUENCE(type=0x{})", byteToHex(type));
+        logger.trace("WRITE ASN.1 START SEQUENCE(type=0x%x)", type);
         return this;
     }
 

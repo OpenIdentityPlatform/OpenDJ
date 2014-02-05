@@ -27,15 +27,12 @@
 
 package org.forgerock.opendj.io;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_MODIFICATION_DECODE_INVALID_MOD_TYPE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE;
-import static com.forgerock.opendj.util.StaticUtils.IO_LOG;
-import static com.forgerock.opendj.util.StaticUtils.byteToHex;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -82,6 +79,9 @@ import org.forgerock.opendj.ldap.schema.Schema;
  *            The type of ASN.1 reader used for decoding elements.
  */
 public final class LDAPReader<R extends ASN1Reader> {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     private final DecodeOptions options;
     private final R reader;
 
@@ -140,7 +140,7 @@ public final class LDAPReader<R extends ASN1Reader> {
         final int msgToAbandon = (int) reader.readInteger(LDAP.OP_TYPE_ABANDON_REQUEST);
         final AbandonRequest message = Requests.newAbandonRequest(msgToAbandon);
         readControls(message);
-        IO_LOG.trace("DECODE LDAP ABANDON REQUEST(messageID={}, request={})", messageID, message);
+        logger.trace("DECODE LDAP ABANDON REQUEST(messageID=%d, request=%s)", messageID, message);
         handler.abandonRequest(messageID, message);
     }
 
@@ -149,7 +149,7 @@ public final class LDAPReader<R extends ASN1Reader> {
         final Entry entry = LDAP.readEntry(reader, LDAP.OP_TYPE_ADD_REQUEST, options);
         final AddRequest message = Requests.newAddRequest(entry);
         readControls(message);
-        IO_LOG.trace("DECODE LDAP ADD REQUEST(messageID={}, request={})", messageID, message);
+        logger.trace("DECODE LDAP ADD REQUEST(messageID=%d, request=%s)", messageID, message);
         handler.addRequest(messageID, message);
     }
 
@@ -169,7 +169,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP ADD RESULT(messageID={}, result={})", messageID, message);
+        logger.trace("DECODE LDAP ADD RESULT(messageID=%d, result=%s)", messageID, message);
         handler.addResult(messageID, message);
     }
 
@@ -184,8 +184,8 @@ public final class LDAPReader<R extends ASN1Reader> {
             final GenericBindRequest request =
                     Requests.newGenericBindRequest(authName, authType, authBytes);
             readControls(request);
-            IO_LOG.trace("DECODE LDAP BIND REQUEST(messageID={}, auth=0x{}, request={})",
-                    messageID, byteToHex(request.getAuthenticationType()), request);
+            logger.trace("DECODE LDAP BIND REQUEST(messageID=%d, auth=0x%x, request=%s)",
+                messageID, request.getAuthenticationType(), request);
 
             handler.bindRequest(messageID, protocolVersion, request);
         } finally {
@@ -213,7 +213,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP BIND RESULT(messageID={}, result={})", messageID, message);
+        logger.trace("DECODE LDAP BIND RESULT(messageID=%d, result=%s)", messageID, message);
         handler.bindResult(messageID, message);
     }
 
@@ -238,7 +238,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP COMPARE REQUEST(messageID={}, request={})", messageID, message);
+        logger.trace("DECODE LDAP COMPARE REQUEST(messageID=%d, request=%s)", messageID, message);
         handler.compareRequest(messageID, message);
     }
 
@@ -258,7 +258,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP COMPARE RESULT(messageID={}, result={})", messageID, message);
+        logger.trace("DECODE LDAP COMPARE RESULT(messageID=%d, result=%s)", messageID, message);
         handler.compareResult(messageID, message);
     }
 
@@ -317,7 +317,7 @@ public final class LDAPReader<R extends ASN1Reader> {
         final DN dn = LDAP.readDN(dnString, schema);
         final DeleteRequest message = Requests.newDeleteRequest(dn);
         readControls(message);
-        IO_LOG.trace("DECODE LDAP DELETE REQUEST(messageID={}, request={})", messageID, message);
+        logger.trace("DECODE LDAP DELETE REQUEST(messageID=%d, request=%s)", messageID, message);
         handler.deleteRequest(messageID, message);
     }
 
@@ -337,7 +337,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP DELETE RESULT(messageID={}, result={})", messageID, message);
+        logger.trace("DECODE LDAP DELETE RESULT(messageID=%d, result=%s)", messageID, message);
         handler.deleteResult(messageID, message);
     }
 
@@ -357,7 +357,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP EXTENDED REQUEST(messageID={}, request={})", messageID, message);
+        logger.trace("DECODE LDAP EXTENDED REQUEST(messageID=%d, request=%s)", messageID, message);
         handler.extendedRequest(messageID, message);
     }
 
@@ -383,7 +383,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP EXTENDED RESULT(messageID={}, result={})", messageID, message);
+        logger.trace("DECODE LDAP EXTENDED RESULT(messageID=%d, result=%s)", messageID, message);
         handler.extendedResult(messageID, message);
     }
 
@@ -405,8 +405,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP INTERMEDIATE RESPONSE(messageID={}, response={})", messageID,
-                message);
+        logger.trace("DECODE LDAP INTERMEDIATE RESPONSE(messageID=%d, response=%s)", messageID, message);
         handler.intermediateResponse(messageID, message);
     }
 
@@ -432,7 +431,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP MODIFY DN REQUEST(messageID={}, request={})", messageID, message);
+        logger.trace("DECODE LDAP MODIFY DN REQUEST(messageID=%d, request=%s)", messageID, message);
         handler.modifyDNRequest(messageID, message);
     }
 
@@ -452,7 +451,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE MODIFY DN RESULT(messageID={}, result={})", messageID, message);
+        logger.trace("DECODE LDAP MODIFY DN RESULT(messageID=%d, result=%s)", messageID, message);
         handler.modifyDNResult(messageID, message);
     }
 
@@ -507,7 +506,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP MODIFY REQUEST(messageID={}, request={})", messageID, message);
+        logger.trace("DECODE LDAP MODIFY REQUEST(messageID=%d, request=%s)", messageID, message);
         handler.modifyRequest(messageID, message);
     }
 
@@ -527,7 +526,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP MODIFY RESULT(messageID={}, result={})", messageID, message);
+        logger.trace("DECODE LDAP MODIFY RESULT(messageID=%d, result=%s)", messageID, message);
         handler.modifyResult(messageID, message);
     }
 
@@ -672,7 +671,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP SEARCH REQUEST(messageID={}, request={})", messageID, message);
+        logger.trace("DECODE LDAP SEARCH REQUEST(messageID=%d, request=%s)", messageID, message);
         handler.searchRequest(messageID, message);
     }
 
@@ -692,7 +691,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP SEARCH RESULT(messageID={}, result={})", messageID, message);
+        logger.trace("DECODE LDAP SEARCH RESULT(messageID=%d, result=%s)", messageID, message);
         handler.searchResult(messageID, message);
     }
 
@@ -701,7 +700,7 @@ public final class LDAPReader<R extends ASN1Reader> {
         final Entry entry = LDAP.readEntry(reader, LDAP.OP_TYPE_SEARCH_RESULT_ENTRY, options);
         final SearchResultEntry message = Responses.newSearchResultEntry(entry);
         readControls(message);
-        IO_LOG.trace("DECODE LDAP SEARCH RESULT ENTRY(messageID={}, entry={})", messageID, message);
+        logger.trace("DECODE LDAP SEARCH RESULT ENTRY(messageID=%d, entry=%s)", messageID, message);
         handler.searchResultEntry(messageID, message);
     }
 
@@ -718,8 +717,7 @@ public final class LDAPReader<R extends ASN1Reader> {
             reader.readEndSequence();
         }
         readControls(message);
-        IO_LOG.trace("DECODE LDAP SEARCH RESULT REFERENCE(messageID={}, result={})", messageID,
-                message);
+        logger.trace("DECODE LDAP SEARCH RESULT REFERENCE(messageID=%d, reference=%s)", messageID, message);
         handler.searchResultReference(messageID, message);
     }
 
@@ -728,7 +726,7 @@ public final class LDAPReader<R extends ASN1Reader> {
         reader.readNull(LDAP.OP_TYPE_UNBIND_REQUEST);
         final UnbindRequest message = Requests.newUnbindRequest();
         readControls(message);
-        IO_LOG.trace("DECODE LDAP UNBIND REQUEST(messageID={}, request={})", messageID, message);
+        logger.trace("DECODE LDAP UNBIND REQUEST(messageID=%d, request=%s)", messageID, message);
         handler.unbindRequest(messageID, message);
     }
 }

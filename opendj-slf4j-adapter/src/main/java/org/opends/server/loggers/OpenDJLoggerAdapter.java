@@ -71,7 +71,6 @@ final class OpenDJLoggerAdapter implements Logger {
     /** Trace with message only. */
     private void logTraceMessage(String msg) {
         tracer.trace(msg);
-
     }
 
     /** Trace with message and exception. */

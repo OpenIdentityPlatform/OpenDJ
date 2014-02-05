@@ -78,11 +78,6 @@ public final class StaticUtils {
     public static final Logger SCHEMA_LOG = LoggerFactory.getLogger(DEFAULT_LOGGER_NAME + ".schema");
 
     /**
-     * The logger used by the SDK for IO related features (buffers, readers, writers).
-     */
-    public static final Logger IO_LOG = LoggerFactory.getLogger(DEFAULT_LOGGER_NAME + ".io");
-
-    /**
      * Indicates whether the SDK is being used in debug mode. In debug mode
      * components may enable certain instrumentation in order to help debug
      * applications.
@@ -1726,10 +1721,9 @@ public final class StaticUtils {
     public static StackTraceElement[] getStackTraceIfDebugEnabled() {
         if (!DEBUG_ENABLED) {
             return null;
-        } else {
-            final StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-            return Arrays.copyOfRange(stack, 2, stack.length);
         }
+        final StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        return Arrays.copyOfRange(stack, 2, stack.length);
     }
 
     /**
