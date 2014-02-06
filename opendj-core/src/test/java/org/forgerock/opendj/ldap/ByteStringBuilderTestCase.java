@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.io.ByteArrayInputStream;
@@ -35,6 +34,7 @@ import java.util.Arrays;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterOutputStream;
 
+import org.fest.assertions.Assertions;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -44,8 +44,15 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
-    private static final byte[] EIGHT_BYTES = new byte[] { (byte) 0x01, (byte) 0x02, (byte) 0x03,
-        (byte) 0x04, (byte) 0x05, (byte) 0x06, (byte) 0x07, (byte) 0x08 };
+
+    //@Checkstyle:off
+    private static byte _(int i) {
+        return (byte) i;
+    }
+    //@Checkstyle:on
+
+    private static final byte[] EIGHT_BYTES = new byte[] { _(0x01), _(0x02), _(0x03),
+        _(0x04), _(0x05), _(0x06), _(0x07), _(0x08) };
 
     /**
      * ByteSequence data provider.
@@ -59,7 +66,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
         System.arraycopy(builders, 0, addlSequences, 0, builders.length);
         addlSequences[builders.length] =
                 new Object[] { new ByteStringBuilder().append(EIGHT_BYTES).subSequence(2, 6),
-                    new byte[] { (byte) 0x03, (byte) 0x04, (byte) 0x05, (byte) 0x06 } };
+                    new byte[] { _(0x03), _(0x04), _(0x05), _(0x06) } };
 
         return addlSequences;
     }
@@ -124,12 +131,39 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
         bs.byteAt(0);
     }
 
-    @Test(dataProvider = "builderProvider", expectedExceptions = IndexOutOfBoundsException.class)
-    public void testClearWithNewCapacity(ByteStringBuilder bs, byte[] ba) {
-        bs.clear(123);
-        Assert.assertEquals(bs.length(), 0);
-        Assert.assertEquals(bs.capacity(), 123);
-        bs.byteAt(0);
+    @DataProvider
+    public Object[][] clearAndTruncateProvider() throws Exception {
+        return new Object[][] {
+            { builder(0), 42, 42 },
+            { builder(42), 42, 42 },
+            { builder(43), 42, 42 },
+        };
+    }
+
+    private ByteStringBuilder builder(int length) {
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        for (int i = 0; i < length; i++) {
+            builder.append(42);
+        }
+        return builder;
+    }
+
+    @Test(dataProvider = "clearAndTruncateProvider")
+    public void testClearAndTruncate(ByteStringBuilder bs, int thresholdCapacity, int newCapacity) {
+        bs.clearAndTruncate(thresholdCapacity, newCapacity);
+        Assertions.assertThat(bs.length()).isEqualTo(0);
+        Assertions.assertThat(bs.capacity()).isLessThanOrEqualTo(thresholdCapacity);
+        Assertions.assertThat(bs.capacity()).isLessThanOrEqualTo(newCapacity);
+    }
+
+    @Test(expectedExceptions = { IllegalArgumentException.class })
+    public void clearAndTruncateThrowsWithNegativeNewCapacity() {
+        new ByteStringBuilder().clearAndTruncate(42, -1);
+    }
+
+    @Test(expectedExceptions = { IllegalArgumentException.class })
+    public void clearAndTruncateThrowsWithNewCapacityAboveThreshold() {
+        new ByteStringBuilder().clearAndTruncate(42, 42 + 1);
     }
 
     @Test
@@ -166,7 +200,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
     public void testAsOutputStream() throws Exception {
         final ByteStringBuilder bsb = new ByteStringBuilder();
         final OutputStream os = bsb.asOutputStream();
-        os.write((byte) 0x01);
+        os.write(_(0x01));
         os.write(2);
         os.write(new byte[] { 2, 3, 4, 5 }, 1, 2);
         os.close();
@@ -200,12 +234,11 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
         testBuilderFromStream.append(testStream, 8);
 
         return new Object[][] {
-            { new ByteStringBuilder().append((byte) 0x00).append((byte) 0x01),
-                new byte[] { (byte) 0x00, (byte) 0x01 } },
-            {
-                new ByteStringBuilder(5).append(
-                        new byte[] { (byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04 }).append(
-                        new byte[] { (byte) 0x05, (byte) 0x06, (byte) 0x07, (byte) 0x08 }),
+            { new ByteStringBuilder().append(_(0x00)).append(_(0x01)),
+                new byte[] { _(0x00), _(0x01) } },
+            { new ByteStringBuilder(5)
+                      .append(new byte[] { _(0x01), _(0x02), _(0x03), _(0x04) })
+                      .append(new byte[] { _(0x05), _(0x06), _(0x07), _(0x08) }),
                 EIGHT_BYTES },
             { new ByteStringBuilder(3).append(EIGHT_BYTES, 0, 3).append(EIGHT_BYTES, 3, 5),
                 EIGHT_BYTES },
@@ -215,16 +248,16 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
                 EIGHT_BYTES },
             { testBuilderFromStream, EIGHT_BYTES },
             { new ByteStringBuilder().append(Short.MIN_VALUE).append(Short.MAX_VALUE),
-                new byte[] { (byte) 0x80, (byte) 0x00, (byte) 0x7F, (byte) 0xFF } },
+                new byte[] { _(0x80), _(0x00), _(0x7F), _(0xFF) } },
             {
                 new ByteStringBuilder(5).append(Integer.MIN_VALUE).append(Integer.MAX_VALUE),
-                new byte[] { (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x7F,
-                    (byte) 0xFF, (byte) 0xFF, (byte) 0xFF } },
+                new byte[] { _(0x80), _(0x00), _(0x00), _(0x00), _(0x7F),
+                    _(0xFF), _(0xFF), _(0xFF) } },
             {
                 new ByteStringBuilder().append(Long.MIN_VALUE).append(Long.MAX_VALUE),
-                new byte[] { (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x7F, (byte) 0xFF, (byte) 0xFF,
-                    (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF } },
+                new byte[] { _(0x80), _(0x00), _(0x00), _(0x00), _(0x00),
+                    _(0x00), _(0x00), _(0x00), _(0x7F), _(0xFF), _(0xFF),
+                    _(0xFF), _(0xFF), _(0xFF), _(0xFF), _(0xFF) } },
             { new ByteStringBuilder(11).append("this is a").append(" test"),
                 "this is a test".getBytes("UTF-8") },
             { new ByteStringBuilder().append((Object) "this is a").append((Object) " test"),
@@ -237,9 +270,9 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
                         (Object) " test".toCharArray()), "this is a test".getBytes("UTF-8") },
             {
                 new ByteStringBuilder().append((Object) EIGHT_BYTES).append((Object) EIGHT_BYTES),
-                new byte[] { (byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04, (byte) 0x05,
-                    (byte) 0x06, (byte) 0x07, (byte) 0x08, (byte) 0x01, (byte) 0x02, (byte) 0x03,
-                    (byte) 0x04, (byte) 0x05, (byte) 0x06, (byte) 0x07, (byte) 0x08 } },
+                new byte[] { _(0x01), _(0x02), _(0x03), _(0x04), _(0x05),
+                    _(0x06), _(0x07), _(0x08), _(0x01), _(0x02), _(0x03),
+                    _(0x04), _(0x05), _(0x06), _(0x07), _(0x08) } },
             {
                 new ByteStringBuilder().appendBERLength(0x00000000).appendBERLength(0x00000001)
                         .appendBERLength(0x0000000F).appendBERLength(0x00000010).appendBERLength(
@@ -249,15 +282,15 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
                         .appendBERLength(0x00100000).appendBERLength(0x00FFFFFF).appendBERLength(
                                 0x01000000).appendBERLength(0x0FFFFFFF).appendBERLength(0x10000000)
                         .appendBERLength(0xFFFFFFFF),
-                new byte[] { (byte) 0x00, (byte) 0x01, (byte) 0x0F, (byte) 0x10, (byte) 0x7F,
-                    (byte) 0x81, (byte) 0xFF, (byte) 0x82, (byte) 0x01, (byte) 0x00, (byte) 0x82,
-                    (byte) 0x0F, (byte) 0xFF, (byte) 0x82, (byte) 0x10, (byte) 0x00, (byte) 0x82,
-                    (byte) 0xFF, (byte) 0xFF, (byte) 0x83, (byte) 0x01, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x83, (byte) 0x0F, (byte) 0xFF, (byte) 0xFF, (byte) 0x83, (byte) 0x10,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x83, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
-                    (byte) 0x84, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x84,
-                    (byte) 0x0F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0x84, (byte) 0x10,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x84, (byte) 0xFF, (byte) 0xFF,
-                    (byte) 0xFF, (byte) 0xFF } }, };
+                new byte[] { _(0x00), _(0x01), _(0x0F), _(0x10), _(0x7F),
+                    _(0x81), _(0xFF), _(0x82), _(0x01), _(0x00), _(0x82),
+                    _(0x0F), _(0xFF), _(0x82), _(0x10), _(0x00), _(0x82),
+                    _(0xFF), _(0xFF), _(0x83), _(0x01), _(0x00), _(0x00),
+                    _(0x83), _(0x0F), _(0xFF), _(0xFF), _(0x83), _(0x10),
+                    _(0x00), _(0x00), _(0x83), _(0xFF), _(0xFF), _(0xFF),
+                    _(0x84), _(0x01), _(0x00), _(0x00), _(0x00), _(0x84),
+                    _(0x0F), _(0xFF), _(0xFF), _(0xFF), _(0x84), _(0x10),
+                    _(0x00), _(0x00), _(0x00), _(0x84), _(0xFF), _(0xFF),
+                    _(0xFF), _(0xFF) } }, };
     }
 }

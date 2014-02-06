@@ -128,12 +128,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
 
         logger.trace("WRITE ASN.1 END SEQUENCE(length=%d)", childStream.length());
 
-        if (childStream.capacity() > maxBufferSize) {
-            // garbage collect excessively large buffers
-            childStream.clear(maxBufferSize);
-        } else {
-            childStream.clear();
-        }
+        childStream.clearAndTruncate(maxBufferSize, maxBufferSize);
         return this;
     }
 
