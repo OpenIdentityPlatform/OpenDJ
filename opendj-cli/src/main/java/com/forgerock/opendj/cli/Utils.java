@@ -332,6 +332,20 @@ final public class Utils {
         return buffer.toString();
     }
 
+    /**
+     * Checks that the java version.
+     *
+     * @throws CLIException
+     *             If the java version we are running on is not compatible.
+     */
+    public static void checkJavaVersion() throws CLIException {
+        final String version = System.getProperty("java.specification.version");
+        if (!(Float.valueOf(version) >= 1.6)) {
+            final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+            throw new CLIException(ERR_INCOMPATIBLE_JAVA_VERSION.get("1.6", version, javaBin), null);
+        }
+    }
+
     // Prevent instantiation.
     private Utils() {
         // Do nothing.

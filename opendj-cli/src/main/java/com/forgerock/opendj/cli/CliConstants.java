@@ -633,6 +633,11 @@ public final class CliConstants {
      */
     public static final String OPTION_LONG_ROOT_USER_DN = "rootUserDN";
 
+    /**
+     * The value for the long option connect timeout attribute.
+     */
+    public static final String OPTION_LONG_CONNECT_TIMEOUT = "connectTimeout";
+
     // Prevent instantiation.
     private CliConstants() {
 

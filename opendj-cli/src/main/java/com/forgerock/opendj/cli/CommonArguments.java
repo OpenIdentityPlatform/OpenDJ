@@ -69,7 +69,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static final StringArgument getPropertiesFileArgument() throws ArgumentException {
+    public static final StringArgument getPropertiesFile() throws ArgumentException {
         return new StringArgument("propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false, true,
                 INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_PROP_FILE_PATH.get());
     }
@@ -77,23 +77,23 @@ public final class CommonArguments {
     /**
      * Returns the "No properties file" boolean argument.
      *
-     * @return The "No properties file" argument.
+     * @return The "noPropertiesFile" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static final BooleanArgument getNoPropertiesFileArgument() throws ArgumentException {
-        return new BooleanArgument("noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
+    public static final BooleanArgument getNoPropertiesFile() throws ArgumentException {
+        return new BooleanArgument("noPropertiesFile", null, OPTION_LONG_NO_PROP_FILE,
                 INFO_DESCRIPTION_NO_PROP_FILE.get());
     }
 
     /**
      * Returns the "Continue On Error" boolean argument.
      *
-     * @return The "Continue On Error" argument.
+     * @return The "continueOnError" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static final BooleanArgument getContinueOnErrorArgument() throws ArgumentException {
+    public static final BooleanArgument getContinueOnError() throws ArgumentException {
         final BooleanArgument continueOnError = new BooleanArgument("continueOnError", 'c', "continueOnError",
                 INFO_DESCRIPTION_CONTINUE_ON_ERROR.get());
         continueOnError.setPropertyName("continueOnError");
@@ -107,7 +107,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static final IntegerArgument getVersionArgument() throws ArgumentException {
+    public static final IntegerArgument getVersion() throws ArgumentException {
         final IntegerArgument version = new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
                 OPTION_LONG_PROTOCOL_VERSION, false, false, true, INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3, null,
                 INFO_DESCRIPTION_VERSION.get());
@@ -164,6 +164,24 @@ public final class CommonArguments {
         testOnly.setHidden(true);
         testOnly.setPropertyName("testOnly");
         return testOnly;
+    }
+
+    /**
+     * Returns the "connection timeout" boolean argument.
+     *
+     * @param defaultTimeout
+     *            The default timeout.
+     * @return The "connectTimeout" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static final IntegerArgument getConnectTimeOut(final int defaultTimeout) throws ArgumentException {
+        final IntegerArgument connectTimeout = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT, null,
+                OPTION_LONG_CONNECT_TIMEOUT, false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(), defaultTimeout, null,
+                true, 1, true, 65535, INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
+        connectTimeout.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
+        connectTimeout.setHidden(true);
+        return connectTimeout;
     }
 
     /**

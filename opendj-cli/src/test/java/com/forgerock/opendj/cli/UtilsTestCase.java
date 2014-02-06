@@ -23,16 +23,25 @@
  *
  *      Copyright 2014 ForgeRock AS.
  */
-
 package com.forgerock.opendj.cli;
 
-import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.Test;
 
-/**
- * An abstract class that all CLI unit tests should extend.
- */
-@Test(groups = { "precommit", "cli", "sdk" })
-public abstract class CliTestCase extends ForgeRockTestCase {
+public class UtilsTestCase extends CliTestCase {
 
+    @Test(expectedExceptions = CLIException.class)
+    public void testInvalidJavaVersion() throws CLIException {
+        final String original = System.getProperty("java.specification.version");
+        System.setProperty("java.specification.version", "1.5");
+        try {
+            Utils.checkJavaVersion();
+        } finally {
+            System.setProperty("java.specification.version", original);
+        }
+    }
+
+    @Test()
+    public void testValidJavaVersion() throws CLIException {
+        Utils.checkJavaVersion();
+    }
 }
