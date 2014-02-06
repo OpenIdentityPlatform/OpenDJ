@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -30,7 +31,7 @@ package org.opends.server.loggers;
 /**
  * This enumeration defines the post rotation actions possible.
  */
-public enum ActionType
+enum ActionType
 {
   /**
    * The action type that indicates the rotated file should be compressed using

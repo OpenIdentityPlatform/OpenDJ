@@ -865,10 +865,10 @@ public class ImportLDIF extends TaskTool {
       {
         try
         {
-          ErrorLogPublisher<?> errorLogPublisher =
+          ErrorLogPublisher errorLogPublisher =
               TextErrorLogPublisher.getToolStartupTextErrorPublisher(
                   new TextWriter.STREAM(out));
-          ErrorLogger.addErrorLogPublisher(errorLogPublisher);
+          ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
         }
         catch(Exception e)
         {

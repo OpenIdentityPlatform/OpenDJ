@@ -402,14 +402,14 @@ public class RebuildIndex extends TaskTool
   {
     try
     {
-      final ErrorLogPublisher<?> errorLogPublisher =
+      final ErrorLogPublisher errorLogPublisher =
           TextErrorLogPublisher
               .getToolStartupTextErrorPublisher(new TextWriter.STREAM(out));
-      final DebugLogPublisher<?> debugLogPublisher =
+      final DebugLogPublisher debugLogPublisher =
           TextDebugLogPublisher
               .getStartupTextDebugPublisher(new TextWriter.STREAM(out));
-      ErrorLogger.addErrorLogPublisher(errorLogPublisher);
-      DebugLogger.addDebugLogPublisher(debugLogPublisher);
+      ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
+      DebugLogger.getInstance().addLogPublisher(debugLogPublisher);
     }
     catch (Exception e)
     {

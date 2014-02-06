@@ -57,8 +57,8 @@
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
-        <cli:default-property name="debug-level" />
-        <cli:default-property name="debug-category" />
+        <cli:default-property name="enabled" />
+        <cli:default-property name="debug-exceptions-only" />
       </cli:relation>
     </adm:profile>
   </adm:relation>

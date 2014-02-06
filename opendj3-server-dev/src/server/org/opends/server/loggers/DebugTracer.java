@@ -111,83 +111,80 @@ class DebugTracer
    */
   void traceException(String msg, Throwable exception)
   {
-    if(DebugLogger.debugEnabled())
+    StackTraceElement[] stackTrace = null;
+    StackTraceElement[] filteredStackTrace = null;
+    StackTraceElement callerFrame = null;
+    final boolean hasException = (exception != null);
+    for (PublisherSettings settings : publisherSettings)
     {
-      StackTraceElement[] stackTrace = null;
-      StackTraceElement[] filteredStackTrace = null;
-      StackTraceElement callerFrame = null;
-      final boolean hasException = (exception != null);
-      for (PublisherSettings settings : publisherSettings)
+      TraceSettings activeSettings = settings.classSettings;
+      Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+      if (shouldLog(hasException, activeSettings) || methodSettings != null)
       {
-        TraceSettings activeSettings = settings.classSettings;
-        Map<String, TraceSettings> methodSettings = settings.methodSettings;
-
-        if (shouldLog(hasException, activeSettings) || methodSettings != null)
+        if (stackTrace == null)
         {
-          if(stackTrace == null)
-          {
-            stackTrace = Thread.currentThread().getStackTrace();
-          }
-          if (callerFrame == null)
-          {
-            callerFrame = getCallerFrame(stackTrace);
-          }
+          stackTrace = Thread.currentThread().getStackTrace();
+        }
+        if (callerFrame == null)
+        {
+          callerFrame = getCallerFrame(stackTrace);
+        }
 
-          String signature = callerFrame.getMethodName();
+        String signature = callerFrame.getMethodName();
 
-          // Specific method settings still could exist. Try getting
-          // the settings for this method.
-          if(methodSettings != null)
+        // Specific method settings still could exist. Try getting
+        // the settings for this method.
+        if (methodSettings != null)
+        {
+          TraceSettings mSettings = methodSettings.get(signature);
+
+          if (mSettings == null)
           {
-            TraceSettings mSettings = methodSettings.get(signature);
-
-            if (mSettings == null)
+            // Try looking for an undecorated method name
+            int idx = signature.indexOf('(');
+            if (idx != -1)
             {
-              // Try looking for an undecorated method name
-              int idx = signature.indexOf('(');
-              if (idx != -1)
-              {
-                mSettings =
-                    methodSettings.get(signature.substring(0, idx));
-              }
-            }
-
-            // If this method does have a specific setting and it is not
-            // suppose to be logged, continue.
-            if (mSettings != null)
-            {
-              if(!shouldLog(hasException, mSettings))
-              {
-                continue;
-              }
-              else
-              {
-                activeSettings = mSettings;
-              }
+              mSettings = methodSettings.get(signature.substring(0, idx));
             }
           }
 
-          String sourceLocation = callerFrame.getFileName() + ":" +
-              callerFrame.getLineNumber();
+          // If this method does have a specific setting and it is not
+          // suppose to be logged, continue.
+          if (mSettings != null)
+          {
+            if (!shouldLog(hasException, mSettings))
+            {
+              continue;
+            }
+            else
+            {
+              activeSettings = mSettings;
+            }
+          }
+        }
 
-          if (filteredStackTrace == null && activeSettings.getStackDepth() > 0)
-          {
-            StackTraceElement[] trace = hasException ? exception.getStackTrace() : stackTrace;
-            filteredStackTrace =
-                DebugStackTraceFormatter.SMART_FRAME_FILTER.
-                    getFilteredStackTrace(trace);
-          }
+        String sourceLocation =
+            callerFrame.getFileName() + ":" + callerFrame.getLineNumber();
 
-          if (hasException)
-          {
-            settings.debugPublisher.traceException(activeSettings, signature,
-                sourceLocation, msg, exception, filteredStackTrace);
-          }
-          else
-          {
-            settings.debugPublisher.trace(activeSettings, signature,
-                sourceLocation, msg, filteredStackTrace);
-          }
+        if (filteredStackTrace == null && activeSettings.getStackDepth() > 0)
+        {
+          StackTraceElement[] trace =
+              hasException ? exception.getStackTrace() : stackTrace;
+          filteredStackTrace =
+              DebugStackTraceFormatter.SMART_FRAME_FILTER
+                  .getFilteredStackTrace(trace);
+        }
+
+        if (hasException)
+        {
+          settings.debugPublisher.traceException(activeSettings, signature,
+              sourceLocation, msg, exception, filteredStackTrace);
+        }
+        else
+        {
+          settings.debugPublisher.trace(activeSettings, signature,
+              sourceLocation, msg, filteredStackTrace);
         }
       }
     }
@@ -267,15 +264,10 @@ class DebugTracer
   {
     if (stackTrace != null && stackTrace.length > 0)
     {
-      // Skip leading frames debug logging classes and getStackTrace
-      // method call frame if any.
+      // Skip all logging related classes
       for (StackTraceElement aStackTrace : stackTrace)
       {
-        if(aStackTrace.getClassName().startsWith(Thread.class.getName()))
-        {
-          continue;
-        }
-        if (!aStackTrace.getClassName().startsWith(DebugTracer.class.getName()))
+        if(!isLoggingStackTraceElement(aStackTrace))
         {
           return aStackTrace;
         }
@@ -283,6 +275,24 @@ class DebugTracer
     }
 
     return null;
+  }
+
+  /**
+   * Checks if element belongs to a class responsible for logging
+   * (includes the Thread class that may be used to get the stack trace).
+   *
+   * @param trace
+   *            the trace element to check.
+   * @return {@code true} if element corresponds to logging
+   */
+  static boolean isLoggingStackTraceElement(StackTraceElement trace)
+  {
+    return false;
+//    String name = trace.getClassName();
+//    return name.startsWith(Thread.class.getName())
+//        || name.startsWith(DebugTracer.class.getName())
+//        || name.startsWith(OpenDJLoggerAdapter.class.getName())
+//        || name.startsWith(LocalizedLogger.class.getName());
   }
 
   /** Indicates if there is something to log. */

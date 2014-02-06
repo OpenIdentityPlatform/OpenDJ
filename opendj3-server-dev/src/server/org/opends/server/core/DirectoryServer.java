@@ -30,9 +30,6 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.DebugLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -8100,9 +8097,9 @@ public final class DirectoryServer
     // loggers.
     logger.info(NOTE_SERVER_STOPPED.get());
 
-    removeAllAccessLogPublishers();
-    removeAllErrorLogPublishers();
-    removeAllDebugLogPublishers();
+    AccessLogger.getInstance().removeAllLogPublishers();
+    ErrorLogger.getInstance().removeAllLogPublishers();
+    DebugLogger.getInstance().removeAllLogPublishers();
 
     // Now that the loggers are disabled we can shutdown the timer.
     TimeThread.stop();
@@ -9186,18 +9183,16 @@ public final class DirectoryServer
                          "standard error:  " + stackTraceToSingleLineString(e));
     }
 
-
     // Install the default loggers so the startup messages
     // will be printed.
-    TextErrorLogPublisher startupErrorLogPublisher =
+    ErrorLogPublisher startupErrorLogPublisher =
         TextErrorLogPublisher.getServerStartupTextErrorPublisher(
             new TextWriter.STDOUT());
-    ErrorLogger.addErrorLogPublisher(startupErrorLogPublisher);
+    ErrorLogger.getInstance().addLogPublisher(startupErrorLogPublisher);
 
-    TextDebugLogPublisher startupDebugLogPublisher =
-        TextDebugLogPublisher.getStartupTextDebugPublisher(
-            new TextWriter.STDOUT());
-    DebugLogger.addDebugLogPublisher(startupDebugLogPublisher);
+    DebugLogPublisher startupDebugLogPublisher =
+        TextDebugLogPublisher.getStartupTextDebugPublisher(new TextWriter.STDOUT());
+    DebugLogger.getInstance().addLogPublisher(startupDebugLogPublisher);
 
 
     // Create an environment configuration for the server and populate a number
@@ -9271,8 +9266,8 @@ public final class DirectoryServer
       shutDown(theDirectoryServer.getClass().getName(), message);
     }
 
-    ErrorLogger.removeErrorLogPublisher(startupErrorLogPublisher);
-    DebugLogger.removeDebugLogPublisher(startupDebugLogPublisher);
+    ErrorLogger.getInstance().removeLogPublisher(startupErrorLogPublisher);
+    DebugLogger.getInstance().removeLogPublisher(startupDebugLogPublisher);
   }
 
   /**

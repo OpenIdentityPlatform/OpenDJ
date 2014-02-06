@@ -370,16 +370,16 @@ public class VerifyIndex
 
       try
       {
-        ErrorLogPublisher<?> errorLogPublisher =
+        ErrorLogPublisher errorLogPublisher =
             TextErrorLogPublisher.getToolStartupTextErrorPublisher(
             new TextWriter.STREAM(out));
-        DebugLogPublisher<?> debugLogPublisher =
+        DebugLogPublisher debugLogPublisher =
             TextDebugLogPublisher.getStartupTextDebugPublisher(
             new TextWriter.STREAM(out));
         debugLogPublisher.addTraceSettings(null,
             new TraceSettings());
-        ErrorLogger.addErrorLogPublisher(errorLogPublisher);
-        DebugLogger.addDebugLogPublisher(debugLogPublisher);
+        ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
+        DebugLogger.getInstance().addLogPublisher(debugLogPublisher);
       }
       catch(Exception e)
       {

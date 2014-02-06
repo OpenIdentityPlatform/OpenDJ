@@ -52,13 +52,13 @@ public class AccessLogger extends AbstractLogger
       loggerStorage = new LoggerStorage
       <AccessLogPublisher<AccessLogPublisherCfg>, AccessLogPublisherCfg>();
 
-  /** The singleton instance of this class for configuration purposes. */
+  /** The singleton instance of this class. */
   private static final AccessLogger instance = new AccessLogger();
 
   /**
    * The constructor for this class.
    */
-  public AccessLogger()
+  private AccessLogger()
   {
     super((Class) AccessLogPublisher.class,
         ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS);
@@ -74,10 +74,9 @@ public class AccessLogger extends AbstractLogger
 
   /** {@inheritDoc} */
   @Override
-  protected LoggerStorage<AccessLogPublisher<AccessLogPublisherCfg>,
-      AccessLogPublisherCfg> getStorage()
+  protected Collection<AccessLogPublisher<AccessLogPublisherCfg>> getLogPublishers()
   {
-    return loggerStorage;
+    return loggerStorage.getLogPublishers();
   }
 
   /**
@@ -90,28 +89,7 @@ public class AccessLogger extends AbstractLogger
     return instance;
   }
 
-  /**
-   * Add an access log publisher to the access logger.
-   *
-   * @param publisher The access log publisher to add.
-   */
-  public synchronized static void addAccessLogPublisher(
-      AccessLogPublisher publisher)
-  {
-    loggerStorage.addLogPublisher(publisher);
-  }
 
-  /**
-   * Remove an access log publisher from the access logger.
-   *
-   * @param publisher The access log publisher to remove.
-   * @return The publisher that was removed or null if it was not found.
-   */
-  public synchronized static boolean removeAccessLogPublisher(
-      AccessLogPublisher<AccessLogPublisherCfg> publisher)
-  {
-    return loggerStorage.removeLogPublisher(publisher);
-  }
 
   /**
    * Removes all existing access log publishers from the logger.
@@ -531,6 +509,29 @@ public class AccessLogger extends AbstractLogger
     {
       publisher.logUnbind(unbindOperation);
     }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final synchronized void addLogPublisher(
+      AccessLogPublisher<AccessLogPublisherCfg> publisher)
+  {
+    loggerStorage.addLogPublisher(publisher);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final synchronized boolean removeLogPublisher(
+      AccessLogPublisher<AccessLogPublisherCfg> publisher)
+  {
+    return loggerStorage.removeLogPublisher(publisher);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final synchronized void removeAllLogPublishers()
+  {
+    loggerStorage.removeAllLogPublishers();
   }
 }
 

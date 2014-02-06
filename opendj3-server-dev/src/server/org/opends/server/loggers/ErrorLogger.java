@@ -27,6 +27,7 @@
 package org.opends.server.loggers;
 
 import static org.opends.messages.ConfigMessages.*;
+import java.util.Collection;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -66,7 +67,7 @@ public class ErrorLogger extends AbstractLogger
   /**
    * The constructor for this class.
    */
-  public ErrorLogger()
+  private ErrorLogger()
   {
     super((Class) ErrorLogPublisher.class,
         ERR_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS);
@@ -82,41 +83,9 @@ public class ErrorLogger extends AbstractLogger
 
   /** {@inheritDoc} */
   @Override
-  protected LoggerStorage<ErrorLogPublisher<ErrorLogPublisherCfg>,
-      ErrorLogPublisherCfg> getStorage()
+  protected Collection<ErrorLogPublisher<ErrorLogPublisherCfg>> getLogPublishers()
   {
-    return loggerStorage;
-  }
-
-  /**
-   * Add an error log publisher to the error logger.
-   *
-   * @param publisher The error log publisher to add.
-   */
-  public synchronized static void addErrorLogPublisher(
-      ErrorLogPublisher publisher)
-  {
-    loggerStorage.addLogPublisher(publisher);
-  }
-
-  /**
-   * Remove an error log publisher from the error logger.
-   *
-   * @param publisher The error log publisher to remove.
-   * @return True if the error log publisher is removed or false otherwise.
-   */
-  public synchronized static boolean removeErrorLogPublisher(
-      ErrorLogPublisher publisher)
-  {
-    return loggerStorage.removeLogPublisher(publisher);
-  }
-
-  /**
-   * Removes all existing error log publishers from the logger.
-   */
-  public synchronized static void removeAllErrorLogPublishers()
-  {
-    loggerStorage.removeAllLogPublishers();
+    return loggerStorage.getLogPublishers();
   }
 
   /**
@@ -186,6 +155,29 @@ public class ErrorLogger extends AbstractLogger
       }
     }
     return false;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final synchronized void addLogPublisher(
+      ErrorLogPublisher<ErrorLogPublisherCfg> publisher)
+  {
+    loggerStorage.addLogPublisher(publisher);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final synchronized boolean removeLogPublisher(
+      ErrorLogPublisher<ErrorLogPublisherCfg> publisher)
+  {
+    return loggerStorage.removeLogPublisher(publisher);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final synchronized void removeAllLogPublishers()
+  {
+    loggerStorage.removeAllLogPublishers();
   }
 
 }
