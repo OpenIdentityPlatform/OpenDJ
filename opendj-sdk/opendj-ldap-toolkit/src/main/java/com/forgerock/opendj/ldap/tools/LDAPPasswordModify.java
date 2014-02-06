@@ -113,11 +113,11 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
 
-            propertiesFileArgument = CommonArguments.getPropertiesFileArgument();
+            propertiesFileArgument = CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            noPropertiesFileArgument = CommonArguments.getNoPropertiesFileArgument();
+            noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
@@ -163,7 +163,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             controlStr.setPropertyName("control");
             argParser.addArgument(controlStr);
 
-            version = CommonArguments.getVersionArgument();
+            version = CommonArguments.getVersion();
             argParser.addArgument(version);
 
             verbose = CommonArguments.getVerbose();

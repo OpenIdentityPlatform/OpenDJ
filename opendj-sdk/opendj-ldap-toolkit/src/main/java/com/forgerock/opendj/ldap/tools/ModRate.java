@@ -175,11 +175,11 @@ public final class ModRate extends ConsoleApplication {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
             runner = new ModifyPerformanceRunner(argParser, this);
 
-            propertiesFileArgument = CommonArguments.getPropertiesFileArgument();
+            propertiesFileArgument = CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            noPropertiesFileArgument = CommonArguments.getNoPropertiesFileArgument();
+            noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 

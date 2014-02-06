@@ -103,7 +103,7 @@ public final class LDIFModify extends ConsoleApplication {
                                     .get(INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get()));
             argParser.addArgument(outputFilename);
 
-            continueOnError = CommonArguments.getContinueOnErrorArgument();
+            continueOnError = CommonArguments.getContinueOnError();
             argParser.addArgument(continueOnError);
 
             showUsage = CommonArguments.getShowUsage();

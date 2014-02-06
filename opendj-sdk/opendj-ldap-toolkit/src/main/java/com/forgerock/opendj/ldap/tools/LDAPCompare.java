@@ -147,11 +147,11 @@ public final class LDAPCompare extends ConsoleApplication {
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
 
-            propertiesFileArgument = CommonArguments.getPropertiesFileArgument();
+            propertiesFileArgument = CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            noPropertiesFileArgument = CommonArguments.getNoPropertiesFileArgument();
+            noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
@@ -184,7 +184,7 @@ public final class LDAPCompare extends ConsoleApplication {
             controlStr.setPropertyName("control");
             argParser.addArgument(controlStr);
 
-            version = CommonArguments.getVersionArgument();
+            version = CommonArguments.getVersion();
             argParser.addArgument(version);
 
             encodingStr =
@@ -194,7 +194,7 @@ public final class LDAPCompare extends ConsoleApplication {
             encodingStr.setPropertyName("encoding");
             argParser.addArgument(encodingStr);
 
-            continueOnError = CommonArguments.getContinueOnErrorArgument();
+            continueOnError = CommonArguments.getContinueOnError();
             argParser.addArgument(continueOnError);
 
             noop =
