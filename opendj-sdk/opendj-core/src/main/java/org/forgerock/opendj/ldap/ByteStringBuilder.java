@@ -253,6 +253,13 @@ public final class ByteStringBuilder implements ByteSequence {
     int length;
 
     /**
+     * The lazily allocated output stream view of this builder. Synchronization
+     * is not necessary because the stream is stateless and race conditions can
+     * be tolerated.
+     */
+    private OutputStreamImpl os;
+
+    /**
      * Creates a new byte string builder with an initial capacity of 32 bytes.
      */
     public ByteStringBuilder() {
@@ -668,8 +675,10 @@ public final class ByteStringBuilder implements ByteSequence {
      *         this byte string builder.
      */
     public OutputStream asOutputStream() {
-        // Is it worth caching this?
-        return new OutputStreamImpl();
+        if (os == null) {
+            os = new OutputStreamImpl();
+        }
+        return os;
     }
 
     /**

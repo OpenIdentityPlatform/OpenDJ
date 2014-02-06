@@ -31,6 +31,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -42,6 +43,8 @@ import com.forgerock.opendj.util.StaticUtils;
  * An ASN1Writer implementation that outputs to an outputstream.
  */
 final class ASN1OutputStreamWriter extends AbstractASN1Writer {
+    /** Initial size of internal buffers. */
+    private static final int BUFFER_INIT_SIZE = 32;
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -63,7 +66,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
     ASN1OutputStreamWriter(final OutputStream stream, final int maxBufferSize) {
         this.out = stream;
         this.rootStream = stream;
-        this.maxBufferSize = maxBufferSize;
+        this.maxBufferSize = Math.max(maxBufferSize, BUFFER_INIT_SIZE);
         this.streamStack = new ArrayList<ByteStringBuilder>();
         this.stackDepth = -1;
     }
@@ -128,7 +131,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
 
         logger.trace("WRITE ASN.1 END SEQUENCE(length=%d)", childStream.length());
 
-        childStream.clearAndTruncate(maxBufferSize, maxBufferSize);
+        childStream.clearAndTruncate(maxBufferSize, BUFFER_INIT_SIZE);
         return this;
     }
 
@@ -333,7 +336,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
 
         // Make sure we have a cached sub-stream at this depth
         if (stackDepth >= streamStack.size()) {
-            final ByteStringBuilder subStream = new ByteStringBuilder();
+            final ByteStringBuilder subStream = new ByteStringBuilder(BUFFER_INIT_SIZE);
             streamStack.add(subStream);
             out = subStream.asOutputStream();
         } else {

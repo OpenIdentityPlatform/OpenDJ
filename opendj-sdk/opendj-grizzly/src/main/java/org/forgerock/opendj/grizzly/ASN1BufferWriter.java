@@ -50,17 +50,14 @@ import com.forgerock.opendj.util.StaticUtils;
 final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
     private class ChildSequenceBuffer implements SequenceBuffer {
         private SequenceBuffer parent;
-
         private ChildSequenceBuffer child;
-
         private final ByteStringBuilder buffer = new ByteStringBuilder(BUFFER_INIT_SIZE);
 
         public SequenceBuffer endSequence() throws IOException {
             writeLength(parent, buffer.length());
             parent.writeByteArray(buffer.getBackingArray(), 0, buffer.length());
-
+            buffer.clearAndTruncate(DEFAULT_MAX_INTERNAL_BUFFER_SIZE, BUFFER_INIT_SIZE);
             logger.trace("WRITE ASN.1 END SEQUENCE(length=%d)", buffer.length());
-
             return parent;
         }
 
@@ -69,10 +66,8 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
                 child = new ChildSequenceBuffer();
                 child.parent = this;
             }
-
             buffer.append(type);
             child.buffer.clear();
-
             return child;
         }
 
@@ -130,11 +125,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
                 child = new ChildSequenceBuffer();
                 child.parent = this;
             }
-
             outBuffer.ensureAdditionalCapacity(1);
             outBuffer.put(type);
             child.buffer.clear();
-
             return child;
         }
 
@@ -162,7 +155,15 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+    /**
+     * Initial size of newly created buffers.
+     */
     private static final int BUFFER_INIT_SIZE = 1024;
+
+    /**
+     * Default maximum size for cached protocol/entry encoding buffers.
+     */
+    private static final int DEFAULT_MAX_INTERNAL_BUFFER_SIZE = 32 * 1024;
 
     /**
      * Reset the writer.
@@ -177,7 +178,6 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
 
     private SequenceBuffer sequenceBuffer;
     private RecyclableBuffer outBuffer;
-
     private final RootSequenceBuffer rootBuffer;
 
     /**
