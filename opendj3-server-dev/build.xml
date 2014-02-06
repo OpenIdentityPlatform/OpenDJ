@@ -1647,6 +1647,12 @@ Please:
         <include name="${SHORT_NAME}_zh_CN.jar" />
         <include name="${SHORT_NAME}_pl.jar" />
         <include name="${SHORT_NAME}_ca_ES.jar" />
+        <include name="forgerock-util.jar" />
+        <include name="i18n-core.jar" />
+        <include name="i18n-slf4j.jar" />
+        <include name="slf4j-api.jar" />
+        <include name="opendj-cli.jar" />
+        <include name="opendj-core.jar" />
       </lib>
     </war>
 
