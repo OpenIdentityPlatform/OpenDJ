@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -60,7 +60,7 @@ public final class ByteStringBuilder implements ByteSequence {
 
         @Override
         public void write(final int i) {
-            append(((byte) (i & 0xFF)));
+            append((byte) (i & 0xFF));
         }
     }
 
@@ -71,10 +71,10 @@ public final class ByteStringBuilder implements ByteSequence {
      */
     private final class SubSequence implements ByteSequence {
 
-        // The length of the sub-sequence.
+        /** The length of the sub-sequence. */
         private final int subLength;
 
-        // The offset of the sub-sequence.
+        /** The offset of the sub-sequence. */
         private final int subOffset;
 
         /**
@@ -90,16 +90,14 @@ public final class ByteStringBuilder implements ByteSequence {
             this.subLength = length;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public ByteSequenceReader asReader() {
             return new ByteSequenceReader(this);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public byte byteAt(final int index) {
             if (index >= subLength || index < 0) {
                 throw new IndexOutOfBoundsException();
@@ -109,9 +107,8 @@ public final class ByteStringBuilder implements ByteSequence {
             return buffer[subOffset + index];
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public int compareTo(final byte[] b, final int offset, final int length) {
             ByteString.checkArrayBounds(b, offset, length);
 
@@ -119,9 +116,8 @@ public final class ByteStringBuilder implements ByteSequence {
             return ByteString.compareTo(buffer, subOffset, subLength, b, offset, length);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public int compareTo(final ByteSequence o) {
             if (this == o) {
                 return 0;
@@ -131,17 +127,15 @@ public final class ByteStringBuilder implements ByteSequence {
             return -o.compareTo(buffer, subOffset, subLength);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public byte[] copyTo(final byte[] b) {
             copyTo(b, 0);
             return b;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public byte[] copyTo(final byte[] b, final int offset) {
             if (offset < 0) {
                 throw new IndexOutOfBoundsException();
@@ -152,26 +146,23 @@ public final class ByteStringBuilder implements ByteSequence {
             return b;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public ByteStringBuilder copyTo(final ByteStringBuilder builder) {
             // Protect against reallocation: use builder's buffer.
             return builder.append(buffer, subOffset, subLength);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public OutputStream copyTo(final OutputStream stream) throws IOException {
             // Protect against reallocation: use builder's buffer.
             stream.write(buffer, subOffset, subLength);
             return stream;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public boolean equals(final byte[] b, final int offset, final int length) {
             ByteString.checkArrayBounds(b, offset, length);
 
@@ -179,9 +170,7 @@ public final class ByteStringBuilder implements ByteSequence {
             return ByteString.equals(buffer, subOffset, subLength, b, offset, length);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean equals(final Object o) {
             if (this == o) {
@@ -196,9 +185,7 @@ public final class ByteStringBuilder implements ByteSequence {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public int hashCode() {
             // Protect against reallocation: use builder's buffer.
@@ -210,16 +197,14 @@ public final class ByteStringBuilder implements ByteSequence {
             return length == 0;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public int length() {
             return subLength;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public ByteSequence subSequence(final int start, final int end) {
             if (start < 0 || start > end || end > subLength) {
                 throw new IndexOutOfBoundsException();
@@ -229,24 +214,20 @@ public final class ByteStringBuilder implements ByteSequence {
         }
 
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public String toBase64String() {
             return Base64.encode(this);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public byte[] toByteArray() {
             return copyTo(new byte[subLength]);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public ByteString toByteString() {
             // Protect against reallocation: use builder's buffer.
             final byte[] b = new byte[subLength];
@@ -254,9 +235,7 @@ public final class ByteStringBuilder implements ByteSequence {
             return ByteString.wrap(b);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public String toString() {
             // Protect against reallocation: use builder's buffer.
@@ -267,10 +246,10 @@ public final class ByteStringBuilder implements ByteSequence {
     // These are package private so that compression and crypto
     // functionality may directly access the fields.
 
-    // The buffer where data is stored.
+    /** The buffer where data is stored. */
     byte[] buffer;
 
-    // The number of bytes to expose from the buffer.
+    /** The number of bytes to expose from the buffer. */
     int length;
 
     /**
@@ -706,13 +685,13 @@ public final class ByteStringBuilder implements ByteSequence {
      *         read and decode data from this byte string builder.
      * @see #clear()
      */
+    @Override
     public ByteSequenceReader asReader() {
         return new ByteSequenceReader(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public byte byteAt(final int index) {
         if (index >= length || index < 0) {
             throw new IndexOutOfBoundsException();
@@ -747,41 +726,47 @@ public final class ByteStringBuilder implements ByteSequence {
 
     /**
      * Sets the length of this byte string builder to zero, and resets the
-     * capacity to the specified size.
+     * capacity to the specified size if above provided threshold.
      * <p>
      * <b>NOTE:</b> if this method is called, then
      * {@code ByteSequenceReader.rewind()} must also be called on any associated
      * byte sequence readers in order for them to remain valid.
      *
-     * @param capacity
+     * @param thresholdCapacity
+     *             The threshold capacity triggering a truncate
+     * @param newCapacity
      *            The new capacity.
      * @return This byte string builder.
      * @throws IllegalArgumentException
-     *             If the {@code capacity} is negative.
+     *             If the {@code newCapacity} is negative or the {@code newCapacity}
+     *             is bigger than the {@code thresholdCapacity}.
      * @see #asReader()
      */
-    public ByteStringBuilder clear(int capacity) {
-        if (capacity < 0) {
-            throw new IllegalArgumentException();
+    public ByteStringBuilder clearAndTruncate(int thresholdCapacity, int newCapacity) {
+        if (newCapacity > thresholdCapacity) {
+            throw new IllegalArgumentException("new capacity '" + newCapacity
+                    + "' cannot be bigger than threshold capacity '" + thresholdCapacity + "'");
         }
-        if (capacity != buffer.length) {
-            buffer = new byte[capacity];
+        if (newCapacity < 0) {
+            throw new IllegalArgumentException("new capacity '" + newCapacity + "' cannot be negative.");
+        }
+        if (buffer.length > thresholdCapacity) {
+            // garbage collect excessively large buffers
+            buffer = new byte[newCapacity];
         }
         length = 0;
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public int compareTo(final byte[] bytes, final int offset, final int length) {
         ByteString.checkArrayBounds(bytes, offset, length);
         return ByteString.compareTo(this.buffer, 0, this.length, bytes, offset, length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public int compareTo(final ByteSequence o) {
         if (this == o) {
             return 0;
@@ -789,17 +774,15 @@ public final class ByteStringBuilder implements ByteSequence {
         return -o.compareTo(buffer, 0, length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public byte[] copyTo(final byte[] bytes) {
         copyTo(bytes, 0);
         return bytes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public byte[] copyTo(final byte[] bytes, final int offset) {
         if (offset < 0) {
             throw new IndexOutOfBoundsException();
@@ -808,17 +791,15 @@ public final class ByteStringBuilder implements ByteSequence {
         return bytes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public ByteStringBuilder copyTo(final ByteStringBuilder builder) {
         builder.append(buffer, 0, length);
         return builder;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public OutputStream copyTo(final OutputStream stream) throws IOException {
         stream.write(buffer, 0, length);
         return stream;
@@ -857,9 +838,8 @@ public final class ByteStringBuilder implements ByteSequence {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean equals(final byte[] bytes, final int offset, final int length) {
         ByteString.checkArrayBounds(bytes, offset, length);
         return ByteString.equals(this.buffer, 0, this.length, bytes, offset, length);
@@ -921,14 +901,14 @@ public final class ByteStringBuilder implements ByteSequence {
         return ByteString.hashCode(buffer, 0, length);
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean isEmpty() {
         return length == 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public int length() {
         return length;
     }
@@ -991,6 +971,7 @@ public final class ByteStringBuilder implements ByteSequence {
      *            The end index, exclusive.
      * @return The newly created byte subsequence.
      */
+    @Override
     public ByteSequence subSequence(final int start, final int end) {
         if (start < 0 || start > end || end > length) {
             throw new IndexOutOfBoundsException();
@@ -999,17 +980,14 @@ public final class ByteStringBuilder implements ByteSequence {
         return new SubSequence(start, end - start);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toBase64String() {
         return Base64.encode(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public byte[] toByteArray() {
         return copyTo(new byte[length]);
     }
@@ -1021,15 +999,14 @@ public final class ByteStringBuilder implements ByteSequence {
      *
      * @return The {@link ByteString} representation of this byte sequence.
      */
+    @Override
     public ByteString toByteString() {
         final byte[] b = new byte[length];
         System.arraycopy(buffer, 0, b, 0, length);
         return ByteString.wrap(b);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         return ByteString.toString(buffer, 0, length);
