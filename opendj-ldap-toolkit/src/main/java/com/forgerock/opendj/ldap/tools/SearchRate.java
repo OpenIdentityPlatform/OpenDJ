@@ -218,11 +218,11 @@ public final class SearchRate extends ConsoleApplication {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
             runner = new SearchPerformanceRunner(argParser, this);
 
-            propertiesFileArgument = CommonArguments.getPropertiesFileArgument();
+            propertiesFileArgument = CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            noPropertiesFileArgument = CommonArguments.getNoPropertiesFileArgument();
+            noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 

@@ -263,11 +263,11 @@ public final class LDAPSearch extends ConsoleApplication {
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
             final StringArgument propertiesFileArgument =
-                CommonArguments.getPropertiesFileArgument();
+                CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            final BooleanArgument noPropertiesFileArgument = CommonArguments.getNoPropertiesFileArgument();
+            final BooleanArgument noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
@@ -365,7 +365,7 @@ public final class LDAPSearch extends ConsoleApplication {
             effectiveRightsAttrs.setPropertyName(OPTION_LONG_EFFECTIVERIGHTSATTR);
             argParser.addArgument(effectiveRightsAttrs);
 
-            version = CommonArguments.getVersionArgument();
+            version = CommonArguments.getVersion();
             argParser.addArgument(version);
 
             final StringArgument encodingStr =
@@ -416,7 +416,7 @@ public final class LDAPSearch extends ConsoleApplication {
             countEntries.setPropertyName("countEntries");
             argParser.addArgument(countEntries);
 
-            final BooleanArgument continueOnError = CommonArguments.getContinueOnErrorArgument();
+            final BooleanArgument continueOnError = CommonArguments.getContinueOnError();
             argParser.addArgument(continueOnError);
 
             noop =
