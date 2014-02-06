@@ -396,35 +396,4 @@ public class ModelTestCase extends AbstractSetupTestCase {
         assertTrue(ds.hasLicense());
         ds.validate();
     }
-
-    /**
-     * Performs security checks.
-     *
-     * @throws ConfigException
-     *             If a configuration exception occurs.
-     */
-    @Test()
-    public void testCheckJavaVersion() throws ConfigException {
-        final Model ds = new DataStoreModel();
-        ds.checkJavaVersion();
-    }
-
-    /**
-     * Performs security checks. In this case, java version is invalid.
-     *
-     * @throws ConfigException
-     *             If a configuration exception occurs.
-     */
-    @Test(expectedExceptions = Exception.class)
-    public void testInvalidJavaVersion() throws Exception {
-        final Model ds = new DataStoreModel();
-        final String original = System.getProperty("java.specification.version");
-        System.setProperty("java.specification.version", "1.5");
-        try {
-            ds.checkJavaVersion();
-        } finally {
-            System.setProperty("java.specification.version", original);
-        }
-
-    }
 }
