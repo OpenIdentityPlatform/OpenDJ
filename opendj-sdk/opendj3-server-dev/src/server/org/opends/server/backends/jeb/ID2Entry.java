@@ -25,6 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
+
 import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.server.core.DirectoryServer.getMaxInternalBufferSize;
@@ -71,6 +72,7 @@ public class ID2Entry extends DatabaseContainer
   private static final ThreadLocal<EntryCodec> ENTRY_CODEC_CACHE =
       new ThreadLocal<EntryCodec>()
   {
+    @Override
     protected EntryCodec initialValue()
     {
       return new EntryCodec();
@@ -112,32 +114,9 @@ public class ID2Entry extends DatabaseContainer
 
     private void release()
     {
-      try
-      {
-        writer.close(); // Clears encodedBuffer as well.
-      }
-      catch (Exception ignored)
-      {
-        // Unreachable.
-      }
-
-      if (entryBuffer.capacity() < maxBufferSize)
-      {
-        entryBuffer.clear();
-      }
-      else
-      {
-        entryBuffer.clear(BUFFER_INIT_SIZE);
-      }
-
-      if (compressedEntryBuffer.capacity() < maxBufferSize)
-      {
-        compressedEntryBuffer.clear();
-      }
-      else
-      {
-        compressedEntryBuffer.clear(BUFFER_INIT_SIZE);
-      }
+      closeSilently(writer); // Clears encodedBuffer as well.
+      entryBuffer.clearAndTruncate(maxBufferSize, BUFFER_INIT_SIZE);
+      compressedEntryBuffer.clearAndTruncate(maxBufferSize, BUFFER_INIT_SIZE);
     }
 
     private Entry decode(ByteString bytes, CompressedSchema compressedSchema)
@@ -433,6 +412,7 @@ public class ID2Entry extends DatabaseContainer
    * @return true if the entry was written, false if it was not.
    * @throws DatabaseException If an error occurs in the JE database.
    */
+  @Override
   public OperationStatus put(Transaction txn, DatabaseEntry key,
                              DatabaseEntry data)
        throws DatabaseException
