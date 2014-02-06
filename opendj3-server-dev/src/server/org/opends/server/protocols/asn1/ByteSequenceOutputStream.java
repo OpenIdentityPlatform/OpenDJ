@@ -111,14 +111,7 @@ final class ByteSequenceOutputStream extends OutputStream {
    */
   void reset()
   {
-    if (buffer.capacity() > maxInternalBufferSize)
-    {
-      buffer.clear(BUFFER_INIT_SIZE);
-    }
-    else
-    {
-      buffer.clear();
-    }
+    buffer.clearAndTruncate(maxInternalBufferSize, BUFFER_INIT_SIZE);
   }
 
   /**
