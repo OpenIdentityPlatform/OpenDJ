@@ -26,9 +26,12 @@ package org.forgerock.opendj.server.setup.cli;
 
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
+import static com.forgerock.opendj.cli.Utils.checkJavaVersion;
 import static com.forgerock.opendj.cli.CliMessages.*;
 
+
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -36,64 +39,93 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CLIException;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.SubCommand;
+import com.forgerock.opendj.cli.SubCommandArgumentParser;
 
 /**
  * This class implements the new CLI for OpenDJ3 setup.
  */
 public final class SetupCli extends ConsoleApplication {
 
-    ArgumentParser argParser;
+    /**
+     * Setup's logger.
+     */
+    private static final LocalizedLogger LOG = LocalizedLogger.getLoggerForThisClass();
 
-    BooleanArgument testOnly;
-    BooleanArgument cli;
-    BooleanArgument addBaseEntry;
-    BooleanArgument skipPortCheck;
-    BooleanArgument enableWindowsService;
-    BooleanArgument doNotStart;
-    BooleanArgument enableStartTLS;
-    BooleanArgument generateSelfSignedCertificate;
-    StringArgument hostName;
-    BooleanArgument usePkcs11;
-    FileBasedArgument directoryManagerPwdFile;
-    FileBasedArgument keyStorePasswordFile;
-    IntegerArgument ldapPort;
-    IntegerArgument adminConnectorPort;
-    IntegerArgument ldapsPort;
-    IntegerArgument jmxPort;
-    IntegerArgument sampleData;
-    StringArgument baseDN;
-    StringArgument importLDIF;
-    StringArgument rejectedImportFile;
-    StringArgument skippedImportFile;
-    StringArgument directoryManagerDN;
-    StringArgument directoryManagerPwdString;
-    StringArgument useJavaKeyStore;
-    StringArgument useJCEKS;
-    StringArgument usePkcs12;
-    StringArgument keyStorePassword;
-    StringArgument certNickname;
-    StringArgument progName;
-    IntegerArgument connectTimeout = null;
-    BooleanArgument acceptLicense;
+    /**
+     * TODO remove that after implementation in config.
+     *
+     * @return The installation path.
+     */
+    static final String getInstallationPath() {
+        return "/home/violette/OpenDJ-3.0.0/";
+    }
+
+    /**
+     * TODO remove that after implementation in config.
+     *
+     * @return The instance path.
+     */
+    static final String getInstancePath() {
+        return "/home/violette/OpenDJ-3.0.0/";
+    }
+
+
+    private SubCommandArgumentParser argParser;
+
+    private BooleanArgument cli;
+    private BooleanArgument addBaseEntry;
+    private BooleanArgument skipPortCheck;
+    private BooleanArgument enableWindowsService;
+    private BooleanArgument doNotStart;
+    private BooleanArgument enableStartTLS;
+    private BooleanArgument generateSelfSignedCertificate;
+    private StringArgument hostName;
+    private BooleanArgument usePkcs11;
+    private FileBasedArgument directoryManagerPwdFile;
+    private FileBasedArgument keyStorePasswordFile;
+    private IntegerArgument ldapPort;
+    private IntegerArgument adminConnectorPort;
+    private IntegerArgument ldapsPort;
+    private IntegerArgument jmxPort;
+    private IntegerArgument sampleData;
+    private StringArgument baseDN;
+    private StringArgument importLDIF;
+    private StringArgument rejectedImportFile;
+    private StringArgument skippedImportFile;
+    private StringArgument directoryManagerDN;
+    private StringArgument directoryManagerPwdString;
+    private StringArgument useJavaKeyStore;
+    private StringArgument useJCEKS;
+    private StringArgument usePkcs12;
+    private StringArgument keyStorePassword;
+    private StringArgument certNickname;
+    private IntegerArgument connectTimeout = null;
+    private BooleanArgument acceptLicense;
+
+    // Sub-commands
+    private SubCommand createDirectoryServer;
+    private SubCommand createProxy;
 
     // Register the global arguments.
-    BooleanArgument noPrompt;
-    BooleanArgument quietMode;
-    BooleanArgument verbose;
-    StringArgument propertiesFile;
-    BooleanArgument noPropertiesFile;
-    BooleanArgument showUsage;
+    private BooleanArgument noPrompt;
+    private BooleanArgument quietMode;
+    private BooleanArgument verbose;
+    private StringArgument propertiesFile;
+    private BooleanArgument noPropertiesFile;
+    private BooleanArgument showUsage;
 
     private SetupCli() {
         // Nothing to do.
@@ -117,16 +149,22 @@ public final class SetupCli extends ConsoleApplication {
 
     /** Create the command-line argument parser for use with this program. */
     int run(final String[] args) {
+        // TODO SetupLog.initLogFileHandler();
+
         try {
-            argParser = new ArgumentParser("Setup", INFO_SETUP_TITLE.get(), true, false, 0, 0, INFO_SETUP_DESCRIPTION
-                    .get().toString());
+            checkJavaVersion();
+        } catch (CLIException e) {
+            println(e.getMessageObject());
+            return ReturnCode.JAVA_VERSION_INCOMPATIBLE.get();
+        }
 
+        try {
+            argParser = new SubCommandArgumentParser("setup", INFO_SETUP_DESCRIPTION.get(), true);
             initializeArguments();
-
         } catch (ArgumentException e) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
             println(message);
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+            return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
         }
 
         // Parse the command-line arguments provided to this program.
@@ -135,12 +173,12 @@ public final class SetupCli extends ConsoleApplication {
 
             if (argParser.usageOrVersionDisplayed()) {
                 // If we should just display usage or version information, then print it and exit.
-                return ResultCode.SUCCESS.intValue();
+                return ReturnCode.SUCCESS.get();
             }
         } catch (final ArgumentException e) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(e.getMessage());
             println(message);
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+            return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
         }
 
         // Verifying provided informations.
@@ -151,25 +189,22 @@ public final class SetupCli extends ConsoleApplication {
             checkImportDataArguments(errorMessages);
             checkSecurityArguments(errorMessages);
             if (errorMessages.size() > 0) {
-                throw new ArgumentException(ERR_CANNOT_INITIALIZE_ARGS.get(getMessageFromCollection(errorMessages,
-                        LINE_SEPARATOR)));
+                throw new ArgumentException(ERR_CANNOT_INITIALIZE_ARGS.get(
+                        getMessageFromCollection(errorMessages, LINE_SEPARATOR)));
             }
         } catch (final ArgumentException e) {
             println(e.getMessageObject());
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+            return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
         }
 
         // Starts setup process.
-
-        return ResultCode.SUCCESS.intValue();
+        return ReturnCode.SUCCESS.get();
     }
 
     private void initializeArguments() throws ArgumentException {
 
         // Options.
         acceptLicense = CommonArguments.getAcceptLicense();
-
-        testOnly = CommonArguments.getTestOnly();
         cli = CommonArguments.getCLI();
         baseDN = CommonArguments.getBaseDN();
         addBaseEntry = CommonArguments.getAddBaseEntry();
@@ -197,44 +232,57 @@ public final class SetupCli extends ConsoleApplication {
         keyStorePassword = CommonArguments.getKeyStorePassword();
         keyStorePasswordFile = CommonArguments.getKeyStorePasswordFile();
         certNickname = CommonArguments.getCertNickName();
+        connectTimeout = CommonArguments.getConnectTimeOut(30000);
 
         // Utility Input Output Options.
         noPrompt = CommonArguments.getNoPrompt();
         quietMode = CommonArguments.getQuiet();
         verbose = CommonArguments.getVerbose();
-        propertiesFile = CommonArguments.getPropertiesFileArgument();
-        noPropertiesFile = CommonArguments.getNoPropertiesFileArgument();
+        propertiesFile = CommonArguments.getPropertiesFile();
+        noPropertiesFile = CommonArguments.getNoPropertiesFile();
         showUsage = CommonArguments.getShowUsage();
 
         // Register global arguments.
-        argParser.addArgument(testOnly);
-        argParser.addArgument(cli);
-        argParser.addArgument(baseDN);
-        argParser.addArgument(addBaseEntry);
-        argParser.addArgument(importLDIF);
-        argParser.addArgument(rejectedImportFile);
-        argParser.addArgument(skippedImportFile);
-        argParser.addArgument(sampleData);
-        argParser.addArgument(ldapPort);
-        argParser.addArgument(adminConnectorPort);
-        argParser.addArgument(jmxPort);
-        argParser.addArgument(skipPortCheck);
-        argParser.addArgument(directoryManagerDN);
-        argParser.addArgument(directoryManagerPwdString);
-        argParser.addArgument(directoryManagerPwdFile);
-        argParser.addArgument(enableWindowsService);
-        argParser.addArgument(doNotStart);
-        argParser.addArgument(enableStartTLS);
-        argParser.addArgument(ldapsPort);
-        argParser.addArgument(generateSelfSignedCertificate);
-        argParser.addArgument(hostName);
-        argParser.addArgument(usePkcs11);
-        argParser.addArgument(useJavaKeyStore);
-        argParser.addArgument(useJCEKS);
-        argParser.addArgument(usePkcs12);
-        argParser.addArgument(keyStorePassword);
-        argParser.addArgument(keyStorePasswordFile);
-        argParser.addArgument(certNickname);
+        argParser.addGlobalArgument(cli);
+        argParser.addGlobalArgument(baseDN);
+        argParser.addGlobalArgument(addBaseEntry);
+        argParser.addGlobalArgument(importLDIF);
+        argParser.addGlobalArgument(rejectedImportFile);
+        argParser.addGlobalArgument(skippedImportFile);
+        argParser.addGlobalArgument(sampleData);
+        argParser.addGlobalArgument(ldapPort);
+        argParser.addGlobalArgument(adminConnectorPort);
+        argParser.addGlobalArgument(jmxPort);
+        argParser.addGlobalArgument(skipPortCheck);
+        argParser.addGlobalArgument(directoryManagerDN);
+        argParser.addGlobalArgument(directoryManagerPwdString);
+        argParser.addGlobalArgument(directoryManagerPwdFile);
+        argParser.addGlobalArgument(enableWindowsService);
+        argParser.addGlobalArgument(doNotStart);
+        argParser.addGlobalArgument(enableStartTLS);
+        argParser.addGlobalArgument(ldapsPort);
+        argParser.addGlobalArgument(generateSelfSignedCertificate);
+        argParser.addGlobalArgument(hostName);
+        argParser.addGlobalArgument(usePkcs11);
+        argParser.addGlobalArgument(useJavaKeyStore);
+        argParser.addGlobalArgument(useJCEKS);
+        argParser.addGlobalArgument(usePkcs12);
+        argParser.addGlobalArgument(keyStorePassword);
+        argParser.addGlobalArgument(keyStorePasswordFile);
+        argParser.addGlobalArgument(certNickname);
+        argParser.addGlobalArgument(connectTimeout);
+
+        //Sub-commands && their arguments
+        final ArrayList<SubCommand> subCommandList = new ArrayList<SubCommand>(2);
+        createDirectoryServer = new SubCommand(argParser, "create-directory-server",
+                INFO_SETUP_SUBCOMMAND_CREATE_DIRECTORY_SERVER.get());
+        // TODO to complete.
+        createProxy = new SubCommand(argParser, "create-proxy",
+                INFO_SETUP_SUBCOMMAND_CREATE_PROXY.get());
+        subCommandList.add(createDirectoryServer);
+        subCommandList.add(createProxy);
+
+        argParser.setUsageGroupArgument(showUsage, subCommandList);
 
         // Register the global arguments.
         argParser.addArgument(showUsage);
@@ -286,6 +334,15 @@ public final class SetupCli extends ConsoleApplication {
     }
 
     /**
+     * Returns whether the command was launched to setup proxy or not.
+     *
+     * @return <CODE>true</CODE> if the command was launched to setup a proxy and <CODE>false</CODE> otherwise.
+     */
+    public boolean isCreateProxy() {
+        return (argParser.getSubCommand("create-proxy") != null);
+    }
+
+    /**
      * Checks that there are no conflicts with the provided ports (like if the user provided the same port for different
      * protocols).
      *
@@ -322,11 +379,8 @@ public final class SetupCli extends ConsoleApplication {
                 }
             }
         } catch (ArgumentException ae) {
-            // TODO log that
-            /*
-             * logger.error(LocalizableMessage.raw("Unexpected error.  " +
-             * "Assuming that it is caused by a previous parsing issue: " + ae, ae));
-             */
+            LOG.error(LocalizableMessage.raw("Unexpected error. "
+                    + "Assuming that it is caused by a previous parsing issue: " + ae, ae));
         }
     }
 

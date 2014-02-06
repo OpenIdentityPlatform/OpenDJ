@@ -40,6 +40,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.Utils;
 
 /**
@@ -52,7 +53,12 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
     Object[][] createValidArguments() throws Exception {
         Object[][] data = new Object[][] {
             { args("--help"),
-              expectedErrOutput(LocalizableMessage.raw("Command options:")) }, };
+                expectedErrOutput(INFO_SETUP_DESCRIPTION.get()) },
+            { args("--cli", "create-directory-server", "--doNotStart", "--ldapPort", "1389",
+                "--adminConnectorPort", "4444",
+                "-D", "cn=Directory Manager", "-w", "password", "-b", "dc=example,dc=com",
+                "-a"), expectedErrOutput(LocalizableMessage.EMPTY) },
+        };
         return data;
     }
 
@@ -61,7 +67,7 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
         Object[][] data = new Object[][] {
             { args("-c"),
                 expectedErrOutput(
-                        ERR_ERROR_PARSING_ARGS.get(ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get("c"))) },
+                        ERR_ERROR_PARSING_ARGS.get(ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.get("c"))) },
             { args("-N"), expectedErrOutput(ERR_ERROR_PARSING_ARGS.get(
                     ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID.get("N"))) },
         };
@@ -74,7 +80,7 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
             { args("--cli", "--doNotStart", "--ldapPort", "1389", "--adminConnectorPort", "4444",
                     "-D", "cn=Directory Manager", "-w", "password", "-b", "dc=example,dc=com",
                     "-a"),
-                expectedErrOutput(LocalizableMessage.EMPTY) },
+                null },
         };
         return data;
     }
@@ -109,7 +115,7 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
     }
     // @formatter:on
 
-    /*@Test(dataProvider = "validArguments")
+    @Test(dataProvider = "validArguments")
     public void testRunValidArguments(String[] arguments, LocalizableMessage expectedErrOutput) throws Exception {
         run(arguments, true, expectedErrOutput);
     }
@@ -117,17 +123,24 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
     @Test(dataProvider = "invalidArguments")
     public void testRunInvalidArguments(String[] arguments, LocalizableMessage expectedErrOutput) throws Exception {
         run(arguments, false, expectedErrOutput);
-    }*/
+    }
+
+    @Test(dataProvider = "validPorts")
+    public void testcheckValidProvidedPorts(String[] arguments, LocalizableMessage expectedErrOutput) throws Exception {
+        run(arguments, true, expectedErrOutput);
+    }
 
     @Test(dataProvider = "invalidPorts")
-    public void testcheckProvidedPorts(String[] arguments, LocalizableMessage expectedErrOutput) throws Exception {
+    public void testcheckInvalidProvidedPorts(String[] arguments, LocalizableMessage expectedErrOutput)
+            throws Exception {
         run(arguments, false, expectedErrOutput);
     }
 
-    private void run(String[] arguments, boolean expectsResults, LocalizableMessage expectedErrOutput)
+    private void run(final String[] arguments, final boolean shouldSucceed, final LocalizableMessage expectedErrOutput)
             throws UnsupportedEncodingException {
         PrintStream outStream = null;
         PrintStream errStream = null;
+        int resultCode = 0;
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             outStream = new PrintStream(out);
@@ -135,19 +148,21 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
             errStream = new PrintStream(err);
 
             final SetupCli setup = new SetupCli(outStream, errStream);
-            setup.run(arguments);
+            resultCode = setup.run(arguments);
 
-            if (expectsResults) {
-                assertThat(out.size()).isGreaterThan(0);
-                assertThat(out.toString("UTF-8")).contains(wrapText(expectedErrOutput, MAX_LINE_WIDTH));
+            if (shouldSucceed) {
+                if (expectedErrOutput != null) {
+                    assertThat(out.toString("UTF-8")).contains(wrapText(expectedErrOutput, MAX_LINE_WIDTH));
+                }
+                assertThat(resultCode).isEqualTo(ReturnCode.SUCCESS.get());
             } else {
+                assertThat(resultCode).isNotEqualTo(ReturnCode.SUCCESS.get());
                 assertThat(out.size()).isEqualTo(0);
                 assertThat(err.size()).isGreaterThan(0);
                 final String errorMsg = err.toString("UTF-8").replaceAll(Utils.LINE_SEPARATOR, " ");
                 final String expectedMsg = expectedErrOutput.toString().replaceAll(Utils.LINE_SEPARATOR, " ");
                 assertTrue(errorMsg.contains(expectedMsg), errorMsg + "\n >---< \n" + expectedMsg);
             }
-
         } finally {
             closeSilently(outStream, errStream);
         }
@@ -162,5 +177,4 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
     private LocalizableMessage expectedErrOutput(LocalizableMessage val) {
         return val;
     }
-
 }

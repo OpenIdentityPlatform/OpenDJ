@@ -259,14 +259,6 @@ abstract class Model {
         this.installationPath = installationPath;
     }
 
-    void checkJavaVersion() throws ConfigException {
-        final String version = System.getProperty("java.specification.version");
-        if (!(Float.valueOf(version) >= 1.6)) {
-            // TODO change exception : original was IncompatibleVersionException
-            throw new ConfigException(LocalizableMessage.raw("invalid java version" + version));
-        }
-    }
-
     /**
      * Creates a basic data store model configuration for setup.
      */
