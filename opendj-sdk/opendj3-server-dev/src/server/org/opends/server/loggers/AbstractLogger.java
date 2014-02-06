@@ -147,11 +147,33 @@ public abstract class AbstractLogger
   }
 
   /**
-   * Returns the logger storage for the current logger.
+   * Returns the log publishers.
    *
-   * @return the logger storage for the current logger
+   * @return the collection of {@link LogPublisher}s
    */
-  protected abstract LoggerStorage<P, C> getStorage();
+  protected abstract Collection<P> getLogPublishers();
+
+  /**
+   * Add a log publisher to the logger.
+   *
+   * @param publisher
+   *          The log publisher to add.
+   */
+  public abstract void addLogPublisher(P publisher);
+
+  /**
+   * Remove a log publisher from the logger.
+   *
+   * @param publisher
+   *          The log publisher to remove.
+   * @return True if the log publisher is removed or false otherwise.
+   */
+  public abstract boolean removeLogPublisher(P publisher);
+
+  /**
+   * Removes all existing log publishers from the logger.
+   */
+  public abstract void removeAllLogPublishers();
 
   /**
    * Returns the java {@link ClassPropertyDefinition} for the current logger.
@@ -175,7 +197,7 @@ public abstract class AbstractLogger
    * @param invalidLoggerClassErrorMessage
    *          the error message to use if the logger class in invalid
    */
-  public AbstractLogger(
+  AbstractLogger(
       final Class<P> logPublisherClass,
       final Arg3<Object, Object, Object>
           invalidLoggerClassErrorMessage)
@@ -208,7 +230,7 @@ public abstract class AbstractLogger
 
       if(config.isEnabled())
       {
-        getStorage().addLogPublisher(getLogPublisher(config));
+        addLogPublisher(getLogPublisher(config));
       }
     }
   }
@@ -252,7 +274,7 @@ public abstract class AbstractLogger
     {
       try
       {
-        getStorage().addLogPublisher(getLogPublisher(config));
+        addLogPublisher(getLogPublisher(config));
       }
       catch(ConfigException e)
       {
@@ -273,8 +295,7 @@ public abstract class AbstractLogger
 
   private P findLogPublisher(DN dn)
   {
-    Collection<P> logPublishers = getStorage().getLogPublishers();
-    for (P publisher : logPublishers)
+    for (P publisher : getLogPublishers())
     {
       if (publisher.getDN().equals(dn))
       {
@@ -322,7 +343,7 @@ public abstract class AbstractLogger
       else
       {
         // The publisher is being disabled so shut down and remove.
-        getStorage().removeLogPublisher(logPublisher);
+        removeLogPublisher(logPublisher);
       }
     }
 
@@ -352,7 +373,7 @@ public abstract class AbstractLogger
     P logPublisher = findLogPublisher(config.dn());
     if(logPublisher != null)
     {
-      getStorage().removeLogPublisher(logPublisher);
+      removeLogPublisher(logPublisher);
     }
     else
     {

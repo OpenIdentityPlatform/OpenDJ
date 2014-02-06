@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -54,7 +54,7 @@ public class HTTPAccessLogger extends AbstractLogger
   /**
    * The constructor for this class.
    */
-  public HTTPAccessLogger()
+  private HTTPAccessLogger()
   {
     super((Class) HTTPAccessLogPublisher.class,
         ERR_CONFIG_LOGGER_INVALID_HTTP_ACCESS_LOGGER_CLASS);
@@ -70,10 +70,9 @@ public class HTTPAccessLogger extends AbstractLogger
 
   /** {@inheritDoc} */
   @Override
-  protected LoggerStorage<HTTPAccessLogPublisher<HTTPAccessLogPublisherCfg>,
-      HTTPAccessLogPublisherCfg> getStorage()
+  protected Collection<HTTPAccessLogPublisher<HTTPAccessLogPublisherCfg>> getLogPublishers()
   {
-    return loggerStorage;
+    return loggerStorage.getLogPublishers();
   }
 
   /**
@@ -84,39 +83,6 @@ public class HTTPAccessLogger extends AbstractLogger
   public static HTTPAccessLogger getInstance()
   {
     return instance;
-  }
-
-  /**
-   * Add an HTTP access log publisher to the HTTP access logger.
-   *
-   * @param publisher
-   *          The HTTP access log publisher to add.
-   */
-  public synchronized static void addHTTPAccessLogPublisher(
-      HTTPAccessLogPublisher publisher)
-  {
-    loggerStorage.addLogPublisher(publisher);
-  }
-
-  /**
-   * Remove an HTTP access log publisher from the HTTP access logger.
-   *
-   * @param publisher
-   *          The HTTP access log publisher to remove.
-   * @return The publisher that was removed or null if it was not found.
-   */
-  public synchronized static boolean removeHTTPAccessLogPublisher(
-      HTTPAccessLogPublisher<HTTPAccessLogPublisherCfg> publisher)
-  {
-    return loggerStorage.removeLogPublisher(publisher);
-  }
-
-  /**
-   * Removes all existing HTTP access log publishers from the logger.
-   */
-  public synchronized static void removeAllHTTPAccessLogPublishers()
-  {
-    loggerStorage.removeAllLogPublishers();
   }
 
   /**
@@ -142,6 +108,29 @@ public class HTTPAccessLogger extends AbstractLogger
     {
       publisher.logRequestInfo(requestInfo);
     }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final synchronized void addLogPublisher(
+      HTTPAccessLogPublisher<HTTPAccessLogPublisherCfg> publisher)
+  {
+    loggerStorage.addLogPublisher(publisher);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final synchronized boolean removeLogPublisher(
+      HTTPAccessLogPublisher<HTTPAccessLogPublisherCfg> publisher)
+  {
+    return loggerStorage.removeLogPublisher(publisher);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final synchronized void removeAllLogPublishers()
+  {
+    loggerStorage.removeAllLogPublishers();
   }
 
 }

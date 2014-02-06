@@ -93,8 +93,7 @@ public class DebugStackTraceFormatter
 
         // Skip leading frames debug logging classes
         while (firstFrame < frames.length &&
-            isFrameForPackage(frames[firstFrame],
-                              "org.opends.server.loggers.debug")) {
+            DebugTracer.isLoggingStackTraceElement(frames[firstFrame])) {
           firstFrame++;
         }
 

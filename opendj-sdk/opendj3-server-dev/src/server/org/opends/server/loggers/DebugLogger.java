@@ -28,6 +28,7 @@ package org.opends.server.loggers;
 
 import static org.opends.messages.ConfigMessages.*;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -67,13 +68,13 @@ public class DebugLogger extends AbstractLogger
       loggerStorage = new LoggerStorage
       <DebugLogPublisher<DebugLogPublisherCfg>, DebugLogPublisherCfg>();
 
-  /** The singleton instance of this class for configuration purposes. */
+  /** The singleton instance of this class. */
   static final DebugLogger instance = new DebugLogger();
 
   /**
    * The constructor for this class.
    */
-  public DebugLogger()
+  private DebugLogger()
   {
     super((Class) DebugLogPublisher.class,
         ERR_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS);
@@ -89,55 +90,9 @@ public class DebugLogger extends AbstractLogger
 
   /** {@inheritDoc} */
   @Override
-  protected LoggerStorage<DebugLogPublisher<DebugLogPublisherCfg>,
-      DebugLogPublisherCfg> getStorage()
+  protected Collection<DebugLogPublisher<DebugLogPublisherCfg>> getLogPublishers()
   {
-    return loggerStorage;
-  }
-
-  /**
-   * Add an debug log publisher to the debug logger.
-   *
-   * @param publisher The debug log publisher to add.
-   */
-  public synchronized static void addDebugLogPublisher(
-      DebugLogPublisher publisher)
-  {
-    loggerStorage.addLogPublisher(publisher);
-
-    updateTracerSettings();
-
-    enabled = true;
-  }
-
-  /**
-   * Remove an debug log publisher from the debug logger.
-   *
-   * @param publisher The debug log publisher to remove.
-   * @return The publisher that was removed or null if it was not found.
-   */
-  public synchronized static boolean removeDebugLogPublisher(
-      DebugLogPublisher publisher)
-  {
-    boolean removed = loggerStorage.removeLogPublisher(publisher);
-
-    updateTracerSettings();
-
-    enabled = !loggerStorage.getLogPublishers().isEmpty();
-
-    return removed;
-  }
-
-  /**
-   * Removes all existing debug log publishers from the logger.
-   */
-  public synchronized static void removeAllDebugLogPublishers()
-  {
-    loggerStorage.removeAllLogPublishers();
-
-    updateTracerSettings();
-
-    enabled = false;
+    return loggerStorage.getLogPublishers();
   }
 
   /**
@@ -193,6 +148,36 @@ public class DebugLogger extends AbstractLogger
       classTracers.put(tracer.getTracedClassName(), tracer);
     }
     return tracer;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final synchronized void addLogPublisher(
+      DebugLogPublisher<DebugLogPublisherCfg> publisher)
+  {
+    loggerStorage.addLogPublisher(publisher);
+    updateTracerSettings();
+    enabled = true;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final synchronized boolean removeLogPublisher(
+      DebugLogPublisher<DebugLogPublisherCfg> publisher)
+  {
+    boolean removed = loggerStorage.removeLogPublisher(publisher);
+    updateTracerSettings();
+    enabled = !loggerStorage.getLogPublishers().isEmpty();
+    return removed;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final synchronized void removeAllLogPublishers()
+  {
+    loggerStorage.removeAllLogPublishers();
+    updateTracerSettings();
+    enabled = false;
   }
 
 }

@@ -41,7 +41,11 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPConnection;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.RootCfgClient;
+import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.api.Backend;
+import org.opends.server.api.DebugLogPublisher;
+import org.opends.server.api.ErrorLogPublisher;
+import org.opends.server.api.HTTPAccessLogPublisher;
 import org.opends.server.api.WorkQueue;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.backends.jeb.*;
@@ -463,21 +467,20 @@ public final class TestCaseUtils {
       config.setConfigClass(ConfigFileHandler.class);
       config.setConfigFile(new File(testConfigDir, "config.ldif"));
 
-      AccessLogger.addAccessLogPublisher(
-          TextAccessLogPublisher.getStartupTextAccessPublisher(
-              ACCESS_TEXT_WRITER, false));
+      AccessLogger.getInstance().addLogPublisher(
+          (AccessLogPublisher) TextAccessLogPublisher
+              .getStartupTextAccessPublisher(ACCESS_TEXT_WRITER, false));
 
-      HTTPAccessLogger.addHTTPAccessLogPublisher(TextHTTPAccessLogPublisher
-          .getStartupTextHTTPAccessPublisher(HTTP_ACCESS_TEXT_WRITER));
+      HTTPAccessLogger.getInstance().addLogPublisher(
+          (HTTPAccessLogPublisher) TextHTTPAccessLogPublisher
+              .getStartupTextHTTPAccessPublisher(HTTP_ACCESS_TEXT_WRITER));
 
-      // Use more verbose tool logger.
-      ErrorLogger.addErrorLogPublisher(
-         TextErrorLogPublisher.getToolStartupTextErrorPublisher(
-              ERROR_TEXT_WRITER));
+      // Enable more verbose error logger.
+      ErrorLogger.getInstance().addLogPublisher(
+            (ErrorLogPublisher) TextErrorLogPublisher.getToolStartupTextErrorPublisher(ERROR_TEXT_WRITER));
 
-      DebugLogger.addDebugLogPublisher(
-         TextDebugLogPublisher.getStartupTextDebugPublisher(
-              DEBUG_TEXT_WRITER));
+      DebugLogger.getInstance().addLogPublisher(
+            (DebugLogPublisher) TextDebugLogPublisher.getStartupTextDebugPublisher(DEBUG_TEXT_WRITER));
 
       // Writing the buildinfo with the current version.
       final FileWriter buildInfoWriter = new FileWriter (new File(testConfigDir, "buildinfo"));

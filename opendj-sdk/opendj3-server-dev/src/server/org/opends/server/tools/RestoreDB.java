@@ -463,14 +463,14 @@ public class RestoreDB extends TaskTool {
 
       try
       {
-        ErrorLogPublisher<?> errorLogPublisher =
+        ErrorLogPublisher errorLogPublisher =
             TextErrorLogPublisher.getToolStartupTextErrorPublisher(
             new TextWriter.STREAM(out));
-        DebugLogPublisher<?> debugLogPublisher =
+        DebugLogPublisher debugLogPublisher =
             TextDebugLogPublisher.getStartupTextDebugPublisher(
             new TextWriter.STREAM(out));
-        ErrorLogger.addErrorLogPublisher(errorLogPublisher);
-        DebugLogger.addDebugLogPublisher(debugLogPublisher);
+        ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
+        DebugLogger.getInstance().addLogPublisher(debugLogPublisher);
       }
       catch(Exception e)
       {

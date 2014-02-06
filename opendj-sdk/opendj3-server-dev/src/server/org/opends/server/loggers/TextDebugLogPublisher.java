@@ -344,7 +344,7 @@ public class TextDebugLogPublisher
   private TraceSettings getDefaultSettings(FileBasedDebugLogPublisherCfg config)
   {
     return new TraceSettings(TraceSettings.Level.getLevel(
-        true,
+        false,
         config.isDefaultDebugExceptionsOnly()),
         config.isDefaultOmitMethodEntryArguments(),
         config.isDefaultOmitMethodReturnValue(),

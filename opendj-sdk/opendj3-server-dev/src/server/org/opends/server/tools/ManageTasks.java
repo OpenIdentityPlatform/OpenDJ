@@ -35,8 +35,7 @@ import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.ErrorLogger.removeErrorLogPublisher;
-
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.protocols.asn1.ASN1Exception;
 
 import static org.opends.server.tools.ToolConstants.*;
@@ -95,7 +94,7 @@ public class ManageTasks extends ConsoleApplication {
     int retCode = mainTaskInfo(args, System.in, System.out, System.err);
 
     if (errorLogPublisher != null) {
-      removeErrorLogPublisher(errorLogPublisher);
+      ErrorLogger.getInstance().removeLogPublisher(errorLogPublisher);
     }
 
     if (retCode != 0) {
